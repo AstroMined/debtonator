@@ -18,9 +18,15 @@ Currently in active development. Completed features:
 - Migration system with Alembic
 - Performance indexes and relationships
 - Development environment setup
+- Bills API endpoints with:
+  - CRUD operations
+  - Date range filtering
+  - Payment status management
+  - Account-specific amount tracking
 
 Next up:
-- API endpoint implementation
+- Income API endpoints
+- Cashflow API endpoints
 - Data migration tools
 - Frontend development
 - Testing infrastructure
@@ -60,6 +66,21 @@ alembic upgrade head
 python run.py
 ```
 
+## API Documentation
+
+The API documentation is available at `/docs` when running the development server.
+
+### Bills API Endpoints
+
+- `GET /api/v1/bills/` - List all bills with pagination
+- `POST /api/v1/bills/` - Create a new bill
+- `GET /api/v1/bills/{id}` - Get a specific bill
+- `PUT /api/v1/bills/{id}` - Update a bill
+- `DELETE /api/v1/bills/{id}` - Delete a bill
+- `GET /api/v1/bills/unpaid/` - List unpaid bills
+- `GET /api/v1/bills/by-date-range/` - Get bills within date range
+- `PATCH /api/v1/bills/{id}/mark-paid` - Mark a bill as paid
+
 ## Project Structure
 
 ```
@@ -70,6 +91,7 @@ debtonator/
 │   └── ...              # Other documentation
 ├── src/
 │   ├── api/             # API endpoints
+│   │   └── v1/          # API version 1
 │   ├── database/        # Database configuration
 │   ├── models/          # SQLAlchemy models
 │   ├── schemas/         # Pydantic schemas

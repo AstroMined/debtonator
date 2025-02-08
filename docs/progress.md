@@ -7,7 +7,6 @@
   - Extracted structure and formulas
   - Identified data patterns
   - Documented calculations
-  - Analyzed historical data
   - Created data samples for analysis
   - Preserved full data for migration
 
@@ -85,7 +84,13 @@
   - Cashflow forecasting
   - Model relationships
   - Calculation methods
-- [ ] API endpoints
+- [x] Bills API endpoints
+  - CRUD operations
+  - Date range filtering
+  - Payment status management
+  - Account-specific amount tracking
+- [ ] Income API endpoints
+- [ ] Cashflow API endpoints
 - [ ] Business logic implementation
 
 ### Frontend Development
@@ -95,17 +100,17 @@
 - [ ] API integration
 
 ## In Progress
-1. API endpoint planning
-   - Define RESTful routes for each model
+1. Income API endpoint planning
+   - Define RESTful routes
    - Plan calculation endpoints
    - Design validation rules
    - Document request/response schemas
 
 ## Next Up
-1. Implement core API endpoints
-2. Create data migration tools
-3. Develop basic frontend components
-4. Set up testing infrastructure
+1. Implement income API endpoints
+2. Create cashflow API endpoints
+3. Create data migration tools
+4. Develop basic frontend components
 
 ## Known Issues
 
@@ -136,7 +141,13 @@
   - Supporting models for transactions
   - Performance indexes
   - Migration system
-- [ ] Create core API endpoints
+- [x] Create bills API endpoints
+  - CRUD operations
+  - Date range filtering
+  - Payment status management
+  - Account-specific tracking
+- [ ] Create income API endpoints
+- [ ] Create cashflow API endpoints
 - [ ] Develop basic UI components
 
 ### Phase 2: Core Features
@@ -181,8 +192,9 @@
 
 ### Technical Documentation
 - [x] Initial architecture documentation
-- [ ] API documentation
-- [ ] Database schema documentation
+- [x] Bills API documentation
+- [ ] Income API documentation
+- [ ] Cashflow API documentation
 - [ ] Component documentation
 
 ### User Documentation

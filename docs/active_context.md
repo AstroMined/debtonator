@@ -1,7 +1,7 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Implementing API endpoints and business logic for the bill and cashflow management system. Database schema has been implemented with all necessary models, relationships, and indexes.
+Implementing API endpoints and business logic for the bill and cashflow management system. Core bills API endpoints have been implemented, and we're moving on to income and cashflow endpoints.
 
 ## Recent Analysis
 
@@ -68,11 +68,20 @@ Hourly Rate = RequiredIncome/52/hours
 - ✓ Proper indexing implemented
 - ✓ Relationships and constraints defined
 
-### API Structure (In Progress)
-- Define RESTful endpoints for each model
-- Implement calculation endpoints
-- Add real-time update capabilities
-- Enforce strong validation rules
+### API Structure
+- ✓ Bills API endpoints implemented
+  - CRUD operations
+  - Date range filtering
+  - Unpaid bills filtering
+  - Payment status management
+- Next: Income API endpoints
+  - CRUD operations
+  - Deposit status tracking
+  - Undeposited amount calculations
+- Future: Cashflow API endpoints
+  - Forecast calculations
+  - Account balance tracking
+  - Minimum required calculations
 
 ### Frontend Architecture
 - React-based SPA
@@ -95,26 +104,34 @@ Hourly Rate = RequiredIncome/52/hours
    - Implemented relationships and foreign keys
    - Added performance indexes
    - Implemented calculation methods
-3. Design and implement API endpoints
-   - Bills management endpoints (CRUD operations)
-   - Income tracking endpoints (CRUD operations)
-   - Account management endpoints (CRUD operations)
-   - Cashflow calculation endpoints
-4. Create data migration tools
+3. ✓ Design and implement bills API endpoints
+   - ✓ CRUD operations
+   - ✓ Date range filtering
+   - ✓ Payment status management
+   - ✓ Account-specific amount tracking
+4. Implement income API endpoints
+   - CRUD operations
+   - Deposit status tracking
+   - Undeposited calculations
+5. Implement cashflow API endpoints
+   - Forecast calculations
+   - Balance tracking
+   - Minimum required calculations
+6. Create data migration tools
    - Excel data extraction script
    - Data transformation utilities
    - Database import procedures
    - Data validation checks
 
 ### Technical Planning
-1. Design API Endpoints
-   - Define RESTful routes for each model
-   - Plan calculation endpoints
-   - Document request/response schemas
-   - Define validation rules
+1. ✓ Design API Endpoints
+   - ✓ Define RESTful routes for each model
+   - ✓ Plan calculation endpoints
+   - ✓ Document request/response schemas
+   - ✓ Define validation rules
 
 2. Plan Business Logic
-   - Bill creation/update workflows
+   - ✓ Bill creation/update workflows
    - Income tracking process
    - Transaction handling
    - Cashflow calculation logic
@@ -132,9 +149,9 @@ Hourly Rate = RequiredIncome/52/hours
    - Real-time update strategy
 
 ### Documentation Needs
-1. API documentation
-2. Database schema documentation
-3. Component documentation
+1. ✓ Bills API documentation
+2. Income API documentation
+3. Cashflow API documentation
 4. Testing documentation
 
 ## Known Issues

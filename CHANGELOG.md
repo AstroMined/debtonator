@@ -28,11 +28,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Technical context and patterns
   - Architecture decisions
   - Progress tracking
+- Bills API endpoints
+  - CRUD operations for bills
+  - Date range filtering
+  - Unpaid bills filtering
+  - Payment status management
+  - Account-specific amount tracking
+  - Automatic due date calculation
+  - API documentation via Swagger UI
 
 ### Changed
 - Converted from Excel-based system to database schema
 - Updated bill tracking to use proper relationships
 - Enhanced account management with transaction tracking
+- Implemented versioned API structure (v1)
 
 ### Technical Details
 - Added foreign key from bills to accounts
@@ -44,3 +53,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Cashflow: date
 - Implemented calculation methods in models
 - Set up async database support
+- Added Pydantic schemas for request/response validation
+- Implemented service layer for bills management
+- Added FastAPI dependency injection for database sessions
+- Created RESTful API endpoints with proper status codes
+- Added OpenAPI documentation with detailed schemas
