@@ -1,0 +1,40 @@
+from datetime import date
+from decimal import Decimal
+from sqlalchemy import String, Date, Boolean, Numeric, Index
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ..database.base import Base
+from .transactions import AccountTransaction
+
+class Income(Base):
+    """Income model representing an income record"""
+    __tablename__ = "income"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    date: Mapped[date]
+    source: Mapped[str] = mapped_column(String(255))
+    amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
+    deposited: Mapped[bool] = mapped_column(Boolean, default=False)
+    undeposited_amount: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2),
+        default=0,
+        comment="Calculated field for undeposited amounts"
+    )
+    created_at: Mapped[date] = mapped_column(Date, default=date.today)
+    updated_at: Mapped[date] = mapped_column(Date, default=date.today, onupdate=date.today)
+
+    # Relationships
+    transactions = relationship("AccountTransaction", back_populates="income")
+
+    # Create indexes for efficient lookups
+    __table_args__ = (
+        Index('idx_income_date', 'date'),
+        Index('idx_income_deposited', 'deposited'),
+    )
+
+    def __repr__(self) -> str:
+        return f"<Income {self.source} {self.amount}>"
+
+    def calculate_undeposited(self) -> None:
+        """Calculate undeposited amount based on deposit status"""
+        self.undeposited_amount = self.amount if not self.deposited else Decimal(0)
