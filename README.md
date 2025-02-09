@@ -7,8 +7,12 @@ A modern bill and cashflow management system that helps track bills, income, and
 ### Account Management
 - Dynamic account creation and configuration
 - Support for multiple account types (credit, checking, savings)
-- Balance and credit limit tracking
-- Statement balance history
+- Real-time balance and credit limit tracking
+- Statement balance history with visual indicators
+- Mobile-optimized account grid view
+- Comprehensive account overview with error handling
+- Intuitive account management interface
+- Seamless integration with bills and income features
 
 ### Bill Management
 - Comprehensive bill tracking with enhanced visualization
