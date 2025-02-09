@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2025-02-09
+
+### Fixed
+- Test infrastructure improvements
+  - Fixed test client configuration for API endpoints
+  - Enhanced debug logging for test failures
+  - Improved response content handling in tests
+  - Fixed JSON formatting in test data
+- API endpoint routing
+  - Fixed router prefix handling
+  - Improved URL path consistency
+  - Enhanced debug logging for route registration
+
 ## [0.4.0] - 2025-02-09
 
 ### Added

@@ -35,11 +35,18 @@ def event_loop() -> Generator:
 
 @pytest.fixture(autouse=True)
 async def setup_db() -> AsyncGenerator:
+    print("\nSetting up test database...")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        print("Database tables created")
+        # List created tables
+        result = await conn.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))
+        tables = result.scalars().all()
+        print(f"Created tables: {tables}")
     yield
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+        print("Database tables dropped")
 
 @pytest.fixture
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
@@ -52,20 +59,30 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
 @pytest.fixture
 async def client() -> AsyncGenerator[AsyncClient, None]:
     async def _get_test_db():
+        print("\nCreating test database session...")
         async with TestingSessionLocal() as session:
             await session.execute(text("PRAGMA foreign_keys=ON"))
             await session.commit()
+            print("Test database session created")
             yield session
 
     app.dependency_overrides[get_db] = _get_test_db
     class DebugTransport(httpx.ASGITransport):
         async def handle_async_request(self, request):
-            print(f"\nRequest URL: {request.url}")
-            return await super().handle_async_request(request)
+            print(f"\nRequest Method: {request.method}")
+            print(f"Request URL: {request.url}")
+            print(f"Request Headers: {request.headers}")
+            print(f"Request Body: {request.content.decode() if request.content else None}")
+            response = await super().handle_async_request(request)
+            content = await response.aread()
+            print(f"Response Status: {response.status_code}")
+            print(f"Response Body: {content.decode() if content else None}")
+            return response
 
     async with AsyncClient(
         transport=DebugTransport(app=app), 
-        base_url="http://test"
+        base_url="http://testserver",
+        follow_redirects=True
     ) as client:
         yield client
     app.dependency_overrides.clear()

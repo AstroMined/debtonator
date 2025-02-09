@@ -1,59 +1,59 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Income management system improvements, with focus on account balance handling, data validation, and test coverage.
+Test infrastructure and API endpoint improvements, with focus on reliability and debugging capabilities.
 
 ### Recent Implementation
-1. **Income Management Improvements**
-   - Enhanced account balance updates for income deposits
-   - Added proper balance recalculation for income amount updates
-   - Implemented positive amount validation with database constraint
-   - Added account filtering support for income listing
+1. **Test Infrastructure Improvements**
+   - Fixed test client configuration for API endpoints
+   - Enhanced debug logging for test failures
+   - Improved response content handling in tests
+   - Fixed JSON formatting in test data
 
-2. **API Enhancements**
-   - Fixed URL handling with consistent trailing slashes
-   - Added account filtering endpoint parameters
-   - Improved error handling for invalid amounts
-   - Enhanced response consistency
-
-3. **Test Coverage Expansion**
-   - Added comprehensive income API integration tests
-   - Enhanced unit tests for income service
-   - Added balance update validation tests
-   - Improved test data setup and assertions
-
-### Recent Changes
-1. **Income System Updates**
-   - ✓ Added positive amount validation constraint
-   - ✓ Enhanced account balance handling
-   - ✓ Improved income filtering
-   - ✓ Fixed URL consistency
-
-2. **Test Improvements**
-   - ✓ Added income API integration tests
-   - ✓ Enhanced income service unit tests
-   - ✓ Added balance update tests
-   - ✓ Fixed test data setup
+2. **API Endpoint Enhancements**
+   - Fixed router prefix handling
+   - Improved URL path consistency
+   - Enhanced debug logging for route registration
+   - Fixed test client configuration
 
 3. **Code Quality**
-   - ✓ Improved error handling
-   - ✓ Enhanced type safety
-   - ✓ Added data validation
-   - ✓ Fixed URL consistency
+   - Enhanced test debugging capabilities
+   - Improved test data formatting
+   - Fixed router configuration
+   - Added detailed request/response logging
+
+### Recent Changes
+1. **Test Infrastructure Updates**
+   - ✓ Fixed test client configuration
+   - ✓ Enhanced debug logging
+   - ✓ Improved response handling
+   - ✓ Fixed JSON formatting
+
+2. **API Endpoint Fixes**
+   - ✓ Fixed router prefix handling
+   - ✓ Improved URL consistency
+   - ✓ Enhanced route registration
+   - ✓ Fixed test client setup
+
+3. **Code Quality**
+   - ✓ Enhanced debugging
+   - ✓ Improved data formatting
+   - ✓ Fixed configuration
+   - ✓ Added detailed logging
 
 ## Active Decisions
 
-### Income Management
-- ✓ Positive amount validation at database level
-- ✓ Accurate balance updates for deposits
-- ✓ Proper balance recalculation for updates
-- ✓ Account-based income filtering
+### Test Infrastructure
+- ✓ Proper test client configuration
+- ✓ Enhanced debugging capabilities
+- ✓ Improved response handling
+- ✓ Fixed data formatting
 
 ### API Design
-- ✓ Consistent URL patterns
-- ✓ Proper error handling
-- ✓ Enhanced filtering support
-- ✓ Response format standardization
+- ✓ Consistent router configuration
+- ✓ Proper prefix handling
+- ✓ Enhanced logging
+- ✓ Fixed client setup
 
 ## Next Steps
 

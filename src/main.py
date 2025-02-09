@@ -32,8 +32,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Debug: Print all registered routes with methods
+print("\nAPI Router Routes:")
+for route in api_router.routes:
+    print(f"API Route: {route.path}")
+    for method in route.methods:
+        print(f"  Method: {method}")
+
 # Include API router
-app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+app.include_router(api_router)
+
+# Debug: Print all app routes with methods
+print("\nApp Routes:")
+for route in app.routes:
+    print(f"App Route: {route.path}")
+    for method in route.methods:
+        print(f"  Method: {method}")
 
 @app.on_event("startup")
 async def startup_event():
