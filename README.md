@@ -4,6 +4,88 @@ A modern bill and cashflow management system that helps track bills, income, and
 
 ## Features
 
+### Bulk Import
+The application supports bulk importing of bills and income data through CSV or JSON files.
+
+#### File Formats
+
+##### Bills Import
+CSV Format:
+```csv
+month,day_of_month,bill_name,amount,account_id,auto_pay,splits
+"January",15,"Electric Bill",150.50,1,true,"[{""account_id"":2,""amount"":75.25},{""account_id"":3,""amount"":75.25}]"
+"February",1,"Internet",89.99,2,false,""
+```
+
+JSON Format:
+```json
+[
+  {
+    "month": "January",
+    "day_of_month": 15,
+    "bill_name": "Electric Bill",
+    "amount": 150.50,
+    "account_id": 1,
+    "auto_pay": true,
+    "splits": [
+      {"account_id": 2, "amount": 75.25},
+      {"account_id": 3, "amount": 75.25}
+    ]
+  },
+  {
+    "month": "February",
+    "day_of_month": 1,
+    "bill_name": "Internet",
+    "amount": 89.99,
+    "account_id": 2,
+    "auto_pay": false
+  }
+]
+```
+
+##### Income Import
+CSV Format:
+```csv
+date,source,amount,deposited,account_id
+"2025-02-01","Salary",5000.00,true,1
+"2025-02-15","Freelance",1500.00,false,2
+```
+
+JSON Format:
+```json
+[
+  {
+    "date": "2025-02-01",
+    "source": "Salary",
+    "amount": 5000.00,
+    "deposited": true,
+    "account_id": 1
+  },
+  {
+    "date": "2025-02-15",
+    "source": "Freelance",
+    "amount": 1500.00,
+    "deposited": false,
+    "account_id": 2
+  }
+]
+```
+
+#### Import Process
+1. Click the "Import" button on either the Bills or Income page
+2. Select or drag-and-drop your CSV/JSON file
+3. Review the data preview and validation results
+4. If there are no errors, click "Import Data" to proceed
+5. View the import results summary
+
+Note: The import preview will validate your data before importing, checking for:
+- Required fields
+- Valid dates and amounts
+- Valid account references
+- Bill split total matching
+- Duplicate entries
+
+
 ### Navigation & Interface
 - Intuitive breadcrumb navigation for context
 - Active route highlighting for better UX

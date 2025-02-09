@@ -1,179 +1,184 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   DataGrid,
   GridColDef,
   GridRenderCellParams,
+  GridToolbar,
 } from '@mui/x-data-grid';
-import { Box, Chip, IconButton, Tooltip } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { format } from 'date-fns';
-
-import { Income, IncomeTableRow } from '../../types/income';
-import { getIncomes, deleteIncome } from '../../services/income';
-import { ErrorBoundary } from '../common/ErrorBoundary';
+import {
+  Box,
+  Button,
+  Chip,
+  IconButton,
+  Tooltip,
+  useTheme,
+  useMediaQuery,
+} from '@mui/material';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import { Income } from '../../types/income';
+import { Account } from '../../types/accounts';
+import FileImportModal from '../common/FileImportModal';
+import { previewIncomeImport, importIncome } from '../../services/income';
 
 interface IncomeTableProps {
-  onEdit: (income: Income) => void;
-  onDelete?: (id: number) => void;
+  incomes: Income[];
+  accounts: Account[];
+  onDepositToggle: (incomeId: number, deposited: boolean) => void;
+  loading?: boolean;
+  onImportComplete?: () => void;
 }
 
-export const IncomeTable: React.FC<IncomeTableProps> = ({ onEdit, onDelete }) => {
-  const [incomes, setIncomes] = useState<IncomeTableRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export const IncomeTable = ({
+  incomes,
+  accounts,
+  onDepositToggle,
+  loading = false,
+  onImportComplete,
+}: IncomeTableProps): React.ReactElement => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [importModalOpen, setImportModalOpen] = useState(false);
 
-  const fetchIncomes = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await getIncomes();
-      const formattedData: IncomeTableRow[] = data.map((income) => ({
-        ...income,
-        formattedDate: format(new Date(income.date), 'MM/dd/yyyy'),
-      }));
-      setIncomes(formattedData);
-    } catch (error) {
-      setError('Failed to fetch incomes');
-      console.error('Failed to fetch incomes:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchIncomes();
-  }, [fetchIncomes]);
-
-  const handleDelete = async (id: number) => {
-    try {
-      await deleteIncome(id);
-      if (onDelete) {
-        onDelete(id);
-      }
-      fetchIncomes();
-    } catch (error) {
-      console.error('Failed to delete income:', error);
-    }
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
   };
 
   const columns: GridColDef[] = [
     {
+      field: 'deposited',
+      headerName: 'Status',
+      width: 130,
+      renderCell: (params: GridRenderCellParams<Income>) => (
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <IconButton
+            onClick={() =>
+              params.row.id && onDepositToggle(params.row.id, !params.row.deposited)
+            }
+            size="small"
+            color={params.row.deposited ? 'success' : 'default'}
+          >
+            {params.row.deposited ? (
+              <CheckCircleIcon />
+            ) : (
+              <RadioButtonUncheckedIcon />
+            )}
+          </IconButton>
+          <Tooltip
+            title={params.row.deposited ? 'Deposited' : 'Not Deposited'}
+          >
+            <Chip
+              label={params.row.deposited ? 'Deposited' : 'Pending'}
+              size="small"
+              color={params.row.deposited ? 'success' : 'warning'}
+              variant="outlined"
+            />
+          </Tooltip>
+        </Box>
+      ),
+      sortable: true,
+    },
+    {
       field: 'date',
       headerName: 'Date',
-      flex: 1,
-      valueFormatter: ({ value }) => {
-        return format(new Date(value as string), 'MM/dd/yyyy');
-      },
+      width: 120,
+      type: 'date',
+      valueGetter: ({ value }) => value && new Date(value),
     },
     {
       field: 'source',
       headerName: 'Source',
+      width: 200,
       flex: 1,
     },
     {
       field: 'amount',
       headerName: 'Amount',
-      flex: 1,
-      valueFormatter: ({ value }) => {
-        return new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-        }).format(value as number);
-      },
+      width: 120,
+      type: 'number',
+      valueFormatter: ({ value }) => formatCurrency(value as number),
     },
     {
-      field: 'deposited',
-      headerName: 'Status',
-      flex: 1,
-      renderCell: (params: GridRenderCellParams) => (
-        <Chip
-          label={params.value ? 'Deposited' : 'Pending'}
-          color={params.value ? 'success' : 'warning'}
-          size="small"
-        />
-      ),
-    },
-    {
-      field: 'target_account_name',
-      headerName: 'Target Account',
-      flex: 1,
-    },
-    {
-      field: 'undeposited_amount',
-      headerName: 'Undeposited',
-      flex: 1,
-      valueFormatter: ({ value }) => {
-        const amount = value as number;
-        return amount
-          ? new Intl.NumberFormat('en-US', {
-              style: 'currency',
-              currency: 'USD',
-            }).format(amount)
-          : '-';
-      },
-    },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      flex: 1,
-      sortable: false,
-      renderCell: (params: GridRenderCellParams) => (
-        <Box>
-          <Tooltip title="Edit">
-            <IconButton
-              onClick={() => onEdit(params.row)}
-              size="small"
-              color="primary"
-            >
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-          {onDelete && (
-            <Tooltip title="Delete">
-              <IconButton
-                onClick={() => handleDelete(params.row.id)}
-                size="small"
-                color="error"
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Tooltip>
-          )}
-        </Box>
-      ),
+      field: 'account_id',
+      headerName: 'Account',
+      width: 150,
+      valueGetter: (params: GridRenderCellParams<Income>) =>
+        accounts.find((a) => a.id === params.row.account_id)?.name || '-',
     },
   ];
 
   return (
-    <ErrorBoundary>
-      <Box sx={{ width: '100%', height: 400 }}>
+    <Box sx={{ width: '100%' }}>
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+        <Button
+          variant="outlined"
+          startIcon={<UploadFileIcon />}
+          onClick={() => setImportModalOpen(true)}
+        >
+          Import Income
+        </Button>
+      </Box>
+
+      <Box sx={{ height: 500 }}>
         <DataGrid
           rows={incomes}
           columns={columns}
           loading={loading}
-          pageSizeOptions={[5, 10, 25, 50]}
+          slots={{
+            toolbar: GridToolbar,
+          }}
+          slotProps={{
+            toolbar: {
+              showQuickFilter: true,
+              quickFilterProps: { debounceMs: 500 },
+            },
+          }}
           initialState={{
-            pagination: { paginationModel: { pageSize: 10 } },
             sorting: {
               sortModel: [{ field: 'date', sort: 'desc' }],
             },
+            columns: {
+              columnVisibilityModel: {
+                account_id: !isMobile,
+              },
+            },
+            pagination: {
+              paginationModel: { pageSize: 10, page: 0 },
+            },
           }}
-          slots={{
-            noRowsOverlay: () => (
-              <Box
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                height="100%"
-              >
-                {error || 'No income entries found'}
-              </Box>
-            ),
+          sx={{
+            '& .MuiDataGrid-cell:focus': {
+              outline: 'none',
+            },
+            '& .MuiDataGrid-row': {
+              '&:nth-of-type(odd)': {
+                backgroundColor: theme.palette.action.hover,
+              },
+            },
+            '& .MuiDataGrid-cell--textLeft': {
+              paddingLeft: 2,
+            },
           }}
-          disableRowSelectionOnClick
         />
       </Box>
-    </ErrorBoundary>
+
+      <FileImportModal
+        open={importModalOpen}
+        onClose={() => {
+          setImportModalOpen(false);
+          if (onImportComplete) {
+            onImportComplete();
+          }
+        }}
+        onImport={importIncome}
+        onPreview={previewIncomeImport}
+        title="Import Income"
+        acceptedFormats=".csv,.json"
+      />
+    </Box>
   );
 };

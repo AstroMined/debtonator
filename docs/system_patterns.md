@@ -93,6 +93,19 @@ class BillFactory:
 
 ## Data Flow Patterns
 
+### Bulk Import Processing
+```mermaid
+graph LR
+    A[Upload File] --> B[Validate Format]
+    B --> C[Parse Data]
+    C --> D[Validate Content]
+    D --> E[Preview Data]
+    E --> F[Confirm Import]
+    F --> G[Process in Chunks]
+    G --> H[Update Database]
+    H --> I[Return Results]
+```
+
 ### Bill Management with Splits
 ```mermaid
 graph LR
@@ -102,6 +115,18 @@ graph LR
     D --> E[Save Bill & Splits]
     E --> F[Update Account Balances]
     F --> G[Notify User]
+```
+
+### Bulk Import Validation
+```mermaid
+graph TD
+    A[Read File] --> B[Check Format]
+    B --> C[Parse Records]
+    C --> D[Validate Each Record]
+    D --> E[Check References]
+    E --> F[Validate Business Rules]
+    F --> G[Generate Report]
+    G --> H[Show Preview]
 ```
 
 ### Account Management

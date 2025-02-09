@@ -1,5 +1,25 @@
 import { Bill, BillDateRange } from '../types/bills';
 
+interface ImportError {
+  row: number;
+  field: string;
+  message: string;
+}
+
+interface ImportPreview {
+  records: Array<Omit<Bill, 'id'>>;
+  validation_errors: ImportError[];
+  total_records: number;
+}
+
+interface ImportResponse {
+  success: boolean;
+  processed: number;
+  succeeded: number;
+  failed: number;
+  errors?: ImportError[];
+}
+
 const API_BASE_URL = '/api/v1';
 
 export const getBills = async (dateRange?: BillDateRange): Promise<Bill[]> => {
@@ -81,6 +101,51 @@ export const deleteBill = async (id: number): Promise<void> => {
     }
   } catch (error) {
     console.error('Error deleting bill:', error);
+    throw error;
+  }
+};
+
+export const previewBillsImport = async (file: File): Promise<ImportPreview> => {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE_URL}/bulk-import/bills/preview`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error previewing bills import:', error);
+    throw error;
+  }
+};
+
+export const importBills = async (file: File): Promise<ImportResponse> => {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('preview', 'false');
+
+    const response = await fetch(`${API_BASE_URL}/bulk-import/bills`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error importing bills:', error);
     throw error;
   }
 };

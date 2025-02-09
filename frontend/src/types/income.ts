@@ -1,14 +1,13 @@
 export interface Income {
-  id?: number;
+  id: number;
   date: string;
   source: string;
   amount: number;
   deposited: boolean;
-  target_account_id: number;
-  target_account_name?: string;
+  account_id?: number;
   undeposited_amount?: number;
 }
 
-export interface IncomeTableRow extends Income {
-  formattedDate: string;
-}
+export type IncomeCreate = Omit<Income, 'id'>;
+
+export type IncomeUpdate = Partial<IncomeCreate>;

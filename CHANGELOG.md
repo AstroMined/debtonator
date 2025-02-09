@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.3.0] - 2025-02-09
+
+### Added
+- Bulk import functionality for bills and income
+  - Support for CSV and JSON file formats
+  - File upload interface with drag-and-drop support
+  - Data validation and preview before import
+  - Progress tracking and error reporting
+  - Import status notifications
+  - Documentation for import file formats
+
+### Changed
+- Enhanced bills and income tables with import capabilities
+- Updated API endpoints to handle bulk data imports
+- Improved error handling for data validation
+
+## [0.2.0] - 2025-02-09
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),

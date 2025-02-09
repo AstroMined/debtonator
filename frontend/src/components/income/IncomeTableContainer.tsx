@@ -1,14 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Alert, Box, CircularProgress } from '@mui/material';
-import { BillsTable } from './BillsTable';
-import { Bill } from '../../types/bills';
-import { getAccounts } from '../../services/accounts';
+import { IncomeTable } from './IncomeTable';
+import { Income } from '../../types/income';
 import { Account } from '../../types/accounts';
-import { getBills, updateBillPaymentStatus } from '../../services/bills';
+import { getAccounts } from '../../services/accounts';
+import { getIncomes, updateIncome } from '../../services/income';
 import { ErrorBoundary } from '../common/ErrorBoundary';
 
-export const BillsTableContainer: React.FC = () => {
-  const [bills, setBills] = useState<Bill[]>([]);
+export const IncomeTableContainer: React.FC = () => {
+  const [incomes, setIncomes] = useState<Income[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -17,11 +17,11 @@ export const BillsTableContainer: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const [billsData, accountsData] = await Promise.all([
-        getBills(),
+      const [incomesData, accountsData] = await Promise.all([
+        getIncomes(),
         getAccounts(),
       ]);
-      setBills(billsData);
+      setIncomes(incomesData);
       setAccounts(accountsData);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to fetch data');
@@ -35,43 +35,22 @@ export const BillsTableContainer: React.FC = () => {
     fetchData();
   }, [fetchData]);
 
-  const handlePaymentToggle = async (billId: number, paid: boolean) => {
+  const handleDepositToggle = async (incomeId: number, deposited: boolean) => {
     try {
       setError(null);
-      const updatedBill = await updateBillPaymentStatus(billId, paid);
-      setBills((prevBills) =>
-        prevBills.map((bill) =>
-          bill.id === billId ? { ...bill, ...updatedBill } : bill
+      const updatedIncome = await updateIncome(incomeId, { deposited });
+      setIncomes((prevIncomes) =>
+        prevIncomes.map((income) =>
+          income.id === incomeId ? { ...income, ...updatedIncome } : income
         )
       );
     } catch (error) {
       setError(
         error instanceof Error
           ? error.message
-          : 'Failed to update payment status'
+          : 'Failed to update deposit status'
       );
-      console.error('Failed to update payment status:', error);
-    }
-  };
-
-  const handleBulkPaymentToggle = async (billIds: number[], paid: boolean) => {
-    try {
-      setError(null);
-      await Promise.all(
-        billIds.map((id) => updateBillPaymentStatus(id, paid))
-      );
-      setBills((prevBills) =>
-        prevBills.map((bill) =>
-          billIds.includes(bill.id!) ? { ...bill, paid } : bill
-        )
-      );
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to update bulk payment status'
-      );
-      console.error('Failed to update bulk payment status:', error);
+      console.error('Failed to update deposit status:', error);
     }
   };
 
@@ -79,7 +58,7 @@ export const BillsTableContainer: React.FC = () => {
     fetchData();
   }, [fetchData]);
 
-  if (loading && !bills.length) {
+  if (loading && !incomes.length) {
     return (
       <Box
         sx={{
@@ -102,11 +81,10 @@ export const BillsTableContainer: React.FC = () => {
             {error}
           </Alert>
         )}
-        <BillsTable
-          bills={bills}
+        <IncomeTable
+          incomes={incomes}
           accounts={accounts}
-          onPaymentToggle={handlePaymentToggle}
-          onBulkPaymentToggle={handleBulkPaymentToggle}
+          onDepositToggle={handleDepositToggle}
           loading={loading}
           onImportComplete={handleImportComplete}
         />

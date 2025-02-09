@@ -69,9 +69,25 @@
    - [x] Version display
 
 ## Next Up
-1. Add interactive charts to cashflow visualization
-2. Implement trend analysis features
-3. Enhance mobile responsiveness for remaining components
+1. Implement bulk import functionality
+   - Backend services and endpoints
+     - Bills bulk import endpoint
+     - Income bulk import endpoint
+     - Data validation services
+     - Progress tracking
+   - Frontend components
+     - File upload modal
+     - Data preview table
+     - Validation display
+     - Progress indicator
+   - Testing and documentation
+     - Unit tests
+     - Integration tests
+     - API documentation
+     - Usage guidelines
+2. Add interactive charts to cashflow visualization
+3. Implement trend analysis features
+4. Enhance mobile responsiveness for remaining components
 
 ### Phase 2: Core Features (In Progress)
 - [x] Bill management implementation

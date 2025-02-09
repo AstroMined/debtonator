@@ -49,6 +49,26 @@
 
 ## Data Models
 
+### Bulk Import
+```python
+class BulkImportResponse(BaseModel):
+    success: bool
+    processed: int
+    succeeded: int
+    failed: int
+    errors: Optional[List[ImportError]]
+
+class ImportError(BaseModel):
+    row: int
+    field: str
+    message: str
+
+class BulkImportPreview(BaseModel):
+    records: List[Union[Bill, Income]]
+    validation_errors: List[ImportError]
+    total_records: int
+```
+
 ### Bills
 ```python
 class Bill(BaseModel):
@@ -91,6 +111,23 @@ class Account(BaseModel):
     last_statement_date: Optional[date]
     created_at: date
     updated_at: date
+```
+
+### Bulk Import Endpoints
+```python
+@router.post("/bills/bulk-import")
+async def bulk_import_bills(
+    file: UploadFile,
+    preview: bool = True
+) -> BulkImportResponse:
+    pass
+
+@router.post("/income/bulk-import")
+async def bulk_import_income(
+    file: UploadFile,
+    preview: bool = True
+) -> BulkImportResponse:
+    pass
 ```
 
 ### Income

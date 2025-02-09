@@ -7,11 +7,14 @@ import {
   GridRowSelectionModel,
   GridFilterModel,
 } from '@mui/x-data-grid';
-import { Box, Chip, IconButton, Tooltip, useTheme, useMediaQuery } from '@mui/material';
+import { Box, Chip, IconButton, Tooltip, useTheme, useMediaQuery, Button } from '@mui/material';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { Bill, BillStatus, BillTableRow } from '../../types/bills';
-import { Account } from '../../services/accounts';
+import { Account } from '../../types/accounts';
+import FileImportModal from '../common/FileImportModal';
+import { previewBillsImport, importBills } from '../../services/bills';
 
 interface BillsTableProps {
   bills: Bill[];
@@ -19,6 +22,7 @@ interface BillsTableProps {
   onPaymentToggle: (billId: number, paid: boolean) => void;
   onBulkPaymentToggle?: (billIds: number[], paid: boolean) => void;
   loading?: boolean;
+  onImportComplete?: () => void;
 }
 
 export const BillsTable = ({
@@ -27,6 +31,7 @@ export const BillsTable = ({
   onPaymentToggle,
   onBulkPaymentToggle,
   loading = false,
+  onImportComplete,
 }: BillsTableProps): React.ReactElement => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -241,8 +246,22 @@ export const BillsTable = ({
     return defaultColumns;
   }, [isMobile, accounts]);
 
+  const [importModalOpen, setImportModalOpen] = useState(false);
+
+
   return (
-    <Box sx={{ width: '100%', height: 500 }}>
+    <Box sx={{ width: '100%' }}>
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+        <Button
+          variant="outlined"
+          startIcon={<UploadFileIcon />}
+          onClick={() => setImportModalOpen(true)}
+        >
+          Import Bills
+        </Button>
+      </Box>
+
+      <Box sx={{ height: 500 }}>
       <DataGrid
         rows={rows}
         columns={columns}
@@ -307,6 +326,21 @@ export const BillsTable = ({
         getRowClassName={(params) => 
           params.row.status === 'overdue' ? 'overdue' : ''
         }
+      />
+      </Box>
+
+      <FileImportModal
+        open={importModalOpen}
+        onClose={() => {
+          setImportModalOpen(false);
+          if (onImportComplete) {
+            onImportComplete();
+          }
+        }}
+        onImport={importBills}
+        onPreview={previewBillsImport}
+        title="Import Bills"
+        acceptedFormats=".csv,.json"
       />
     </Box>
   );
