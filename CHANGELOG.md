@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Income tracking interface implementation
+  - Income entry form with validation
+  - Income list/grid view with filtering and sorting
+  - Deposit status tracking
+  - Target account selection
+  - Error handling with user feedback
+  - Loading state management
+  - Mobile responsive design
+  - Real-time updates
+- Frontend service layer for income management
+  - API endpoint integration
+  - Error handling
+  - Loading states
+  - Deposit status management
+  - Target account selection
 - Frontend service layer for bills management
   - API endpoint integration
   - Error handling with proper user feedback

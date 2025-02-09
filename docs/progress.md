@@ -1,7 +1,5 @@
 # Progress: Debtonator
 
-[Previous content remains unchanged until Frontend Development section...]
-
 ### Frontend Development
 - [x] React project setup
   - TypeScript configuration
@@ -26,12 +24,18 @@
     - Bulk payment updates
     - Mobile responsive design
     - Filter and sort capabilities
+  - Income tracking interface
+    - Income entry form with validation
+    - Income list/grid view with filtering
+    - Deposit status tracking
+    - Target account selection
   - Account management components
   - ✓ Loading states
   - ✓ Error handling
   - ✓ Error boundaries
 - [x] API integration
   - ✓ Bills service implementation
+  - ✓ Income service implementation
   - ✓ API endpoint integration
   - ✓ Error handling
   - ✓ Loading states
@@ -44,18 +48,14 @@
 
 ## In Progress
 1. Frontend component development
-   - Income tracking interface
    - Cashflow visualization
    - Balance tracking display
    - Navigation structure
 
 ## Next Up
-1. Complete income tracking interface
-2. Implement cashflow visualization
-3. Add balance tracking visualization
-4. Enhance mobile responsiveness
-
-[Previous content remains unchanged until Phase 2: Core Features section...]
+1. Implement cashflow visualization
+2. Add balance tracking visualization
+3. Enhance mobile responsiveness
 
 ### Phase 2: Core Features (In Progress)
 - [x] Bill management implementation
@@ -66,9 +66,14 @@
   - [x] API integration
   - [x] Error handling
   - [x] Loading states
+- [x] Income tracking system
+  - [x] Income entry form with validation
+  - [x] Income list/grid view with filtering
+  - [x] Deposit status tracking
+  - [x] Target account selection
+  - [x] API integration
+  - [x] Error handling
+  - [x] Loading states
 - [ ] Account management system
-- [ ] Income tracking system
 - [ ] Cashflow calculations
 - [ ] Basic reporting
-
-[Rest of the file remains unchanged...]

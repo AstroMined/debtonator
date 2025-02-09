@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { AppLayout } from './components/layout';
-import { HomePage, BillsPage } from './pages';
+import { HomePage, BillsPage, IncomePage } from './pages';
 
 function App() {
   return (
@@ -14,7 +14,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/bills" element={<BillsPage />} />
             {/* Add more routes as they are implemented */}
-            <Route path="/income" element={<div>Income page coming soon</div>} />
+            <Route path="/income" element={<IncomePage />} />
             <Route path="/cashflow" element={<div>Cashflow page coming soon</div>} />
             <Route path="/accounts" element={<div>Accounts page coming soon</div>} />
           </Routes>
