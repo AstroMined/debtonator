@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.3] - 2025-02-09
+
+### Added
+- Comprehensive backend test infrastructure
+  - Pytest test suite with async support
+  - Test database configuration with SQLite
+  - Reusable test fixtures for database and API clients
+  - Proper test isolation and cleanup
+
+### Enhanced
+- Account API improvements
+  - Added proper status codes (201 for creation)
+  - Implemented enum-based validation for account types
+  - Added PATCH support for partial updates
+  - Enhanced error handling and validation
+
+### Added
+- Unit tests for Account model
+  - Account creation validation
+  - Balance calculations
+  - Credit limit handling
+  - Available credit updates
+- Integration tests for Account API
+  - CRUD operations testing
+  - Input validation testing
+  - Error handling scenarios
+  - Status code compliance
+
 ## [0.3.2] - 2025-02-09
 
 ### Enhanced

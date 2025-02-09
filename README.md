@@ -246,6 +246,50 @@ debtonator/
 │   ├── services/       # Business logic
 │   └── utils/          # Utilities
 └── tests/              # Test suites
+    ├── unit/          # Unit tests
+    │   └── test_*.py  # Model and service tests
+    └── integration/   # Integration tests
+        └── test_*.py  # API endpoint tests
+```
+
+## Testing
+
+The project uses pytest for comprehensive backend testing:
+
+### Test Infrastructure
+- Pytest with async support
+- SQLite in-memory database for testing
+- Reusable fixtures for database and API clients
+- Proper test isolation and cleanup
+
+### Test Categories
+- Unit Tests
+  - Model validation and calculations
+  - Service layer business logic
+  - Utility functions
+- Integration Tests
+  - API endpoint testing
+  - Database operations
+  - Error handling scenarios
+  - Input validation
+
+### Running Tests
+```bash
+# Run all tests
+pytest
+
+# Run with verbose output
+pytest -v
+
+# Run specific test categories
+pytest tests/unit/
+pytest tests/integration/
+
+# Run specific test file
+pytest tests/unit/test_accounts.py
+
+# Run specific test
+pytest tests/unit/test_accounts.py::test_create_checking_account
 ```
 
 ## State Management

@@ -1,8 +1,8 @@
 from datetime import date
 from decimal import Decimal
 from typing import List, Optional
-from sqlalchemy import String, Date, Numeric, Index
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import String, Date, Numeric, Index, event
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from ..database.base import Base
 from .transactions import AccountTransaction
@@ -61,3 +61,19 @@ class Account(Base):
         """Update available credit based on total limit and current balance"""
         if self.type == "credit" and self.total_limit is not None:
             self.available_credit = self.total_limit - abs(self.available_balance)
+
+    @validates('available_balance')
+    def validate_balance(self, key: str, value: Decimal) -> Decimal:
+        """Validate and update available credit when balance changes"""
+        if hasattr(self, 'type') and self.type == "credit" and hasattr(self, 'total_limit') and self.total_limit is not None:
+            self.available_credit = self.total_limit - abs(value)
+        return value
+
+# Set up event listeners
+@event.listens_for(Account, 'after_insert')
+def receive_after_insert(mapper, connection, target):
+    target.update_available_credit()
+
+@event.listens_for(Account, 'after_update')
+def receive_after_update(mapper, connection, target):
+    target.update_available_credit()

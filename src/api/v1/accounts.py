@@ -30,7 +30,7 @@ async def get_account(
         raise HTTPException(status_code=404, detail="Account not found")
     return account
 
-@router.post("", response_model=AccountResponse)
+@router.post("", response_model=AccountResponse, status_code=201)
 async def create_account(
     account: AccountCreate,
     db: AsyncSession = Depends(get_db)
@@ -47,7 +47,7 @@ async def create_account(
         await db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.put("/{account_id}", response_model=AccountResponse)
+@router.patch("/{account_id}", response_model=AccountResponse)
 async def update_account(
     account_id: int,
     account: AccountUpdate,

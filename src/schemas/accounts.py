@@ -1,12 +1,19 @@
 from datetime import date
 from decimal import Decimal
 from typing import Optional
+from enum import Enum
 from pydantic import BaseModel, ConfigDict, Field
+
+class AccountType(str, Enum):
+    """Valid account types"""
+    CREDIT = "credit"
+    CHECKING = "checking"
+    SAVINGS = "savings"
 
 class AccountBase(BaseModel):
     """Base schema for account data"""
     name: str = Field(..., description="Account name")
-    type: str = Field(..., description="Type of account (credit, checking, savings)")
+    type: AccountType = Field(..., description="Type of account (credit, checking, savings)")
     available_balance: Decimal = Field(default=0, description="Current available balance")
     available_credit: Optional[Decimal] = Field(None, description="Available credit for credit accounts")
     total_limit: Optional[Decimal] = Field(None, description="Total credit limit for credit accounts")
@@ -20,7 +27,7 @@ class AccountCreate(AccountBase):
 class AccountUpdate(BaseModel):
     """Schema for updating an existing account"""
     name: Optional[str] = None
-    type: Optional[str] = None
+    type: Optional[AccountType] = None
     available_balance: Optional[Decimal] = None
     available_credit: Optional[Decimal] = None
     total_limit: Optional[Decimal] = None
