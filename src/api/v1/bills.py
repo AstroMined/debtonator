@@ -30,7 +30,7 @@ async def list_bills(
         }
         raise HTTPException(status_code=500, detail=error_detail)
 
-@router.post("/", response_model=BillResponse)
+@router.post("/", response_model=BillResponse, status_code=201)
 async def create_bill(
     bill: BillCreate,
     db: AsyncSession = Depends(get_db)

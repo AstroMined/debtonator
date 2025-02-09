@@ -21,6 +21,7 @@ Test coverage expansion and infrastructure improvements.
    - Improved transaction handling
    - Enhanced error handling
    - Better session management
+   - Corrected HTTP status code expectations in tests
 
 ### Recent Changes
 1. **Test Infrastructure**
@@ -34,12 +35,14 @@ Test coverage expansion and infrastructure improvements.
    - ✓ Identified coverage gaps
    - ✓ Fixed failing tests
    - ✓ Improved test assertions
+   - ✓ Fixed incorrect status code expectations
 
 3. **Code Organization**
    - ✓ Fixed import structure
    - ✓ Enhanced async patterns
    - ✓ Improved transaction handling
    - ✓ Better error management
+   - ✓ Standardized HTTP status codes
 
 ## Active Decisions
 
@@ -48,6 +51,7 @@ Test coverage expansion and infrastructure improvements.
 - ✓ Enhanced async handling
 - ✓ Improved session management
 - ✓ Fixed transaction issues
+- ✓ Standardized HTTP status codes (201 for POST success)
 
 ### Coverage Analysis
 - ✓ API endpoints need more tests
@@ -75,3 +79,4 @@ Test coverage expansion and infrastructure improvements.
    - Document test patterns
    - Add coverage goals
    - Update test guidelines
+   - Document HTTP status code standards
