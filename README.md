@@ -42,6 +42,10 @@ A modern bill and cashflow management system that helps track bills, income, and
 
 ### Frontend
 - React with TypeScript
+- Redux Toolkit for state management
+  - Type-safe state and actions
+  - Efficient selectors and memoization
+  - Real-time state synchronization
 - Material-UI components
 - Vite build system
 - Jest and React Testing Library

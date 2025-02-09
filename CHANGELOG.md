@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Global state management with Redux Toolkit
+  - Type-safe state implementation with TypeScript
+  - Domain-specific slices for accounts, bills, income, and cashflow
+  - Efficient selectors with memoization
+  - Real-time state synchronization
+  - Comprehensive state management for:
+    - Account balances and limits
+    - Bill payments and splits
+    - Income deposits and tracking
+    - Cashflow forecasts and calculations
+  - Enhanced performance through optimized re-renders
+  - Improved data consistency across components
+
+### Added
 - Account management interface implementation
   - Account table/grid view with dynamic data display
   - Balance and credit limit tracking visualization
