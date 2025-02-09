@@ -1,6 +1,6 @@
 from datetime import date
 from decimal import Decimal
-from sqlalchemy import String, Date, Boolean, Numeric, Index
+from sqlalchemy import String, Date, Boolean, Numeric, Index, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.base import Base
@@ -22,6 +22,10 @@ class Income(Base):
     )
     created_at: Mapped[date] = mapped_column(Date, default=date.today)
     updated_at: Mapped[date] = mapped_column(Date, default=date.today, onupdate=date.today)
+
+    # Account relationship
+    account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
+    account = relationship("Account", back_populates="income")
 
     # Relationships
     transactions = relationship("AccountTransaction", back_populates="income")

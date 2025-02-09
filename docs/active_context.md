@@ -1,129 +1,76 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Backend test infrastructure and test coverage, with a particular focus on the Account functionality. The system now has a comprehensive test suite for both unit and integration testing.
+Backend test infrastructure and test coverage improvements, with particular focus on fixing test failures and improving test reliability.
 
 ### Recent Implementation
-1. **Backend Test Infrastructure**
-   - Implemented pytest test suite with async support
-   - Set up test database configuration
-   - Created reusable test fixtures
-   - Added proper test isolation
+1. **Test Infrastructure Improvements**
+   - Fixed SQLite foreign key constraint handling
+   - Enhanced test database configuration
+   - Improved test fixtures with proper data setup
+   - Added proper SQLAlchemy text() usage for raw SQL
 
-2. **Account Testing Coverage**
-   - Unit tests for Account model
-     - Account creation validation
-     - Balance calculations
-     - Credit limit handling
-     - Available credit updates
-   - Integration tests for Account API
-     - CRUD operations
-     - Input validation
-     - Error handling
-     - Status code compliance
+2. **Model Relationship Fixes**
+   - Added account_id to Income model
+   - Created migration for income-account relationship
+   - Added proper back-reference in Account model
+   - Enhanced bill fixtures with required fields
 
-3. **API Improvements**
-   - Added proper status codes (201 for creation)
-   - Implemented enum-based validation for account types
-   - Added PATCH support for partial updates
-   - Enhanced error handling
+3. **Calculation Improvements**
+   - Fixed daily deficit calculation rounding
+   - Ensured consistent decimal handling
+   - Improved test assertions for calculations
 
-### Recent Implementation
-1. **Bills Component Performance Optimization**
-   - Enhanced memoization with useCallback for event handlers
-   - Improved Redux integration with type-safe hooks
-   - Optimized bulk payment updates with batch processing
-   - Added optimistic updates for better UX
-   - Improved error handling with local error state
+### Recent Changes
+1. **Database Schema Updates**
+   - ✓ Added account_id to Income model
+   - ✓ Created and ran migration
+   - ✓ Added foreign key constraints
+   - ✓ Updated relationship mappings
 
-2. **State Management Improvements**
-   - Enhanced TypeScript type safety
-   - Reduced unnecessary re-renders
-   - Better state management for pending updates
-   - Efficient data fetching with proper loading states
-   - Implemented batch processing for bulk operations
-
-3. **Documentation**
-   - Updated changelog with performance improvements
-   - Enhanced TypeScript type definitions
-   - Documented optimistic update patterns
-   - Added performance optimization guidelines
-
-## Recent Changes
-
-### Frontend Performance Enhancement
-1. **Component Optimization**
-   - ✓ Enhanced memoization implementation
-   - ✓ Optimized event handler bindings
-   - ✓ Reduced unnecessary re-renders
-   - ✓ Improved component lifecycle
-
-2. **State Management**
-   - ✓ Type-safe Redux integration
-   - ✓ Optimistic updates with rollback
-   - ✓ Batch processing for bulk operations
-   - ✓ Enhanced error handling
+2. **Test Infrastructure**
+   - ✓ Fixed SQLite configuration
+   - ✓ Enabled foreign key constraints
+   - ✓ Improved test data setup
+   - ✓ Enhanced fixture reliability
 
 3. **Code Quality**
-   - ✓ Improved TypeScript type safety
-   - ✓ Better error boundary usage
-   - ✓ Enhanced code organization
+   - ✓ Fixed calculation precision
+   - ✓ Improved type safety
+   - ✓ Enhanced error handling
    - ✓ Updated documentation
 
 ## Active Decisions
 
-### Bill Splits Implementation
-- ✓ Primary account amount calculated as (total - splits)
-- ✓ Split validation with proper error handling
-- ✓ Automatic split creation for primary account
-- ✓ Response validation for bill operations
-- ✓ Efficient relationship loading
-- ✓ Proper error propagation
+### Test Infrastructure
+- ✓ SQLite foreign key constraints enabled by default
+- ✓ Proper test database configuration
+- ✓ Consistent test data setup
+- ✓ Reliable test assertions
 
-### API Structure
-- ✓ Bills API endpoints implemented
-  - CRUD operations
-  - Date range filtering
-  - Unpaid bills filtering
-  - Payment status management
-  - Split payment support
-  - Enhanced error handling
-  - Detailed error reporting
-- ✓ Income API endpoints implemented
-  - CRUD operations
-  - Deposit status tracking
-  - Undeposited amount calculations
-- ✓ Cashflow API endpoints implemented
-  - Forecast calculations
-  - Account balance tracking
-  - Minimum required calculations
-- ✓ Accounts API endpoints implemented
-  - CRUD operations
-  - Balance tracking
-  - Credit limit management
-
-### Frontend Architecture
-[Previous content remains the same...]
+### Database Schema
+- ✓ Income-Account relationship established
+- ✓ Foreign key constraints enforced
+- ✓ Migration path defined
+- ✓ Data integrity maintained
 
 ## Next Steps
 
 ### Immediate Tasks
-1. Extend performance optimizations
-   - Apply similar optimizations to Income components
-   - Enhance Cashflow component performance
-   - Optimize Accounts component rendering
-   - Implement virtualization for large lists
+1. Continue improving test coverage
+   - Add more edge case tests
+   - Enhance error scenario coverage
+   - Add performance tests
+   - Improve test documentation
 
-2. State management improvements
-   - Implement data caching strategy
-   - Add real-time sync capabilities
-   - Enhance offline support
-   - Optimize data prefetching
+2. Documentation updates
+   - Update API documentation
+   - Add testing guidelines
+   - Document test patterns
+   - Create test data setup guide
 
-3. Documentation updates
-   - Document performance best practices
-   - Update component optimization guides
-   - Add state management patterns
-   - Create performance testing guidelines
-
-[Rest of the content remains the same...]
+3. Further enhancements
+   - Add more validation tests
+   - Improve error handling tests
+   - Add stress tests
+   - Enhance performance testing

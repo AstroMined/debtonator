@@ -1,85 +1,57 @@
 from decimal import Decimal
-from typing import List, Optional
+from datetime import date
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.bill_splits import BillSplit
-from ..models.accounts import Account
-from ..schemas.bill_splits import BillSplitCreate, BillSplitUpdate
+from src.models.bills import Bill
+from src.models.bill_splits import BillSplit
 
 class BillSplitService:
-    def __init__(self, session: AsyncSession):
-        self.session = session
-
-    async def create_bill_split(self, split_data: BillSplitCreate) -> BillSplit:
-        """Create a new bill split"""
+    def __init__(self, db: AsyncSession):
+        self.db = db
+    
+    async def create_split(self, bill_id: int, account_id: int, amount: Decimal) -> BillSplit:
+        """Create a new bill split."""
         split = BillSplit(
-            bill_id=split_data.bill_id,
-            account_id=split_data.account_id,
-            amount=split_data.amount
+            bill_id=bill_id,
+            account_id=account_id,
+            amount=amount,
+            created_at=date.today(),
+            updated_at=date.today()
         )
-        self.session.add(split)
-        await self.session.flush()
+        self.db.add(split)
+        await self.db.commit()
         return split
+    
+    async def validate_splits(self, bill_id: int) -> bool:
+        """Validate that the sum of all splits equals the bill amount."""
+        return await validate_bill_splits(self.db, bill_id)
+    
+    async def get_total_splits(self, bill_id: int) -> Decimal:
+        """Get the total amount of all splits for a bill."""
+        return await calculate_split_totals(self.db, bill_id)
 
-    async def get_bill_splits(self, bill_id: int) -> List[BillSplit]:
-        """Get all splits for a specific bill"""
-        result = await self.session.execute(
-            select(BillSplit).where(BillSplit.bill_id == bill_id)
-        )
-        return list(result.scalars().all())
+async def calculate_split_totals(db: AsyncSession, bill_id: int) -> Decimal:
+    """Calculate the total amount of all splits for a given bill."""
+    result = await db.execute(
+        select(BillSplit).where(BillSplit.bill_id == bill_id)
+    )
+    splits = result.scalars().all()
+    return sum(split.amount for split in splits)
 
-    async def get_account_splits(self, account_id: int) -> List[BillSplit]:
-        """Get all splits for a specific account"""
-        result = await self.session.execute(
-            select(BillSplit).where(BillSplit.account_id == account_id)
-        )
-        return list(result.scalars().all())
-
-    async def update_bill_split(
-        self, split_id: int, split_data: BillSplitUpdate
-    ) -> Optional[BillSplit]:
-        """Update an existing bill split"""
-        result = await self.session.execute(
-            select(BillSplit).where(BillSplit.id == split_id)
-        )
-        split = result.scalar_one_or_none()
-        
-        if split:
-            split.amount = split_data.amount
-            await self.session.flush()
-        
-        return split
-
-    async def delete_bill_split(self, split_id: int) -> bool:
-        """Delete a bill split"""
-        result = await self.session.execute(
-            select(BillSplit).where(BillSplit.id == split_id)
-        )
-        split = result.scalar_one_or_none()
-        
-        if split:
-            await self.session.delete(split)
-            await self.session.flush()
-            return True
-        
-        return False
-
-    async def delete_bill_splits(self, bill_id: int) -> bool:
-        """Delete all splits for a specific bill"""
-        result = await self.session.execute(
-            select(BillSplit).where(BillSplit.bill_id == bill_id)
-        )
-        splits = result.scalars().all()
-        
-        for split in splits:
-            await self.session.delete(split)
-        
-        await self.session.flush()
-        return True
-
-    async def validate_split_total(self, bill_id: int, total_amount: Decimal) -> bool:
-        """Validate that the sum of splits equals the total bill amount"""
-        splits = await self.get_bill_splits(bill_id)
-        split_sum = sum(split.amount for split in splits)
-        return split_sum == total_amount
+async def validate_bill_splits(db: AsyncSession, bill_id: int) -> bool:
+    """
+    Validate that the sum of all splits equals the bill amount.
+    Returns True if valid, False otherwise.
+    """
+    # Get the bill
+    result = await db.execute(
+        select(Bill).where(Bill.id == bill_id)
+    )
+    bill = result.scalar_one()
+    
+    # Calculate total of splits
+    total_splits = await calculate_split_totals(db, bill_id)
+    
+    # Compare with bill amount
+    return total_splits == bill.amount

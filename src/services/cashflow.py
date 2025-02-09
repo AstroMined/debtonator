@@ -1,199 +1,150 @@
-from datetime import date, timedelta
 from decimal import Decimal
-from typing import List, Optional, Tuple
-from sqlalchemy import select, and_
+from datetime import date, timedelta
+from typing import List, Dict, Union
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.cashflow import CashflowForecast
-from ..models.bills import Bill
-from ..models.income import Income
-from ..schemas.cashflow import CashflowCreate, CashflowUpdate, CashflowFilters
+from src.models.accounts import Account
+from src.models.bills import Bill
+from src.models.income import Income
 
 class CashflowService:
-    def __init__(self, session: AsyncSession):
-        self.session = session
-
-    async def create(self, cashflow_data: CashflowCreate) -> CashflowForecast:
-        """Create a new cashflow forecast"""
-        forecast = CashflowForecast(**cashflow_data.model_dump())
-        forecast.calculate_deficits()
-        forecast.calculate_required_income()
-        forecast.calculate_hourly_rates()
-        
-        self.session.add(forecast)
-        await self.session.commit()
-        await self.session.refresh(forecast)
-        return forecast
-
-    async def get(self, forecast_id: int) -> Optional[CashflowForecast]:
-        """Get a cashflow forecast by ID"""
-        result = await self.session.get(CashflowForecast, forecast_id)
-        return result
-
-    async def update(
-        self, 
-        forecast_id: int, 
-        forecast_data: CashflowUpdate
-    ) -> Optional[CashflowForecast]:
-        """Update a cashflow forecast"""
-        forecast = await self.get(forecast_id)
-        if not forecast:
-            return None
-
-        update_data = forecast_data.model_dump(exclude_unset=True)
-        for field, value in update_data.items():
-            setattr(forecast, field, value)
-
-        forecast.calculate_deficits()
-        forecast.calculate_required_income()
-        forecast.calculate_hourly_rates()
-        
-        await self.session.commit()
-        await self.session.refresh(forecast)
-        return forecast
-
-    async def delete(self, forecast_id: int) -> bool:
-        """Delete a cashflow forecast"""
-        forecast = await self.get(forecast_id)
-        if not forecast:
-            return False
-
-        await self.session.delete(forecast)
-        await self.session.commit()
-        return True
-
-    async def list(
+    def __init__(self, db: AsyncSession):
+        self.db = db
+    
+    async def get_forecast(
         self,
-        filters: Optional[CashflowFilters] = None,
-        skip: int = 0,
-        limit: int = 100
-    ) -> Tuple[List[CashflowForecast], int]:
-        """List cashflow forecasts with optional filtering"""
-        query = select(CashflowForecast)
+        account_id: int,
+        start_date: date,
+        end_date: date
+    ) -> List[Dict[str, Union[date, Decimal]]]:
+        """Get cashflow forecast for the specified date range."""
+        return await calculate_forecast(self.db, account_id, start_date, end_date)
+    
+    async def get_required_funds(
+        self,
+        account_id: int,
+        start_date: date,
+        end_date: date
+    ) -> Decimal:
+        """Get required funds for bills in the specified date range."""
+        return await calculate_required_funds(self.db, account_id, start_date, end_date)
+    
+    def get_daily_deficit(self, min_amount: Decimal, days: int) -> Decimal:
+        """Calculate daily deficit needed to cover minimum required amount."""
+        return calculate_daily_deficit(min_amount, days)
+    
+    def get_yearly_deficit(self, daily_deficit: Decimal) -> Decimal:
+        """Calculate yearly deficit based on daily deficit."""
+        return calculate_yearly_deficit(daily_deficit)
+    
+    def get_required_income(
+        self,
+        yearly_deficit: Decimal,
+        tax_rate: Decimal = Decimal("0.80")
+    ) -> Decimal:
+        """Calculate required gross income to cover yearly deficit."""
+        return calculate_required_income(yearly_deficit, tax_rate)
 
-        if filters:
-            conditions = []
-            if filters.start_date:
-                conditions.append(CashflowForecast.forecast_date >= filters.start_date)
-            if filters.end_date:
-                conditions.append(CashflowForecast.forecast_date <= filters.end_date)
-            if filters.min_balance:
-                conditions.append(CashflowForecast.balance >= filters.min_balance)
-            if filters.max_balance:
-                conditions.append(CashflowForecast.balance <= filters.max_balance)
+async def calculate_forecast(
+    db: AsyncSession,
+    account_id: int,
+    start_date: date,
+    end_date: date
+) -> List[Dict[str, Union[date, Decimal]]]:
+    """Calculate daily cashflow forecast for the specified date range."""
+    # Get account
+    result = await db.execute(
+        select(Account).where(Account.id == account_id)
+    )
+    account = result.scalar_one()
+    
+    # Get all bills in date range
+    result = await db.execute(
+        select(Bill).where(
+            Bill.account_id == account_id,
+            Bill.due_date >= start_date,
+            Bill.due_date <= end_date,
+            Bill.paid == False
+        )
+    )
+    bills = result.scalars().all()
+    
+    # Get all income in date range
+    result = await db.execute(
+        select(Income).where(
+            Income.account_id == account_id,
+            Income.date >= start_date,
+            Income.date <= end_date,
+            Income.deposited == False
+        )
+    )
+    income_entries = result.scalars().all()
+    
+    # Create daily forecast
+    forecast = []
+    current_balance = account.available_balance
+    current_date = start_date
+    
+    while current_date <= end_date:
+        # Add bills due on this date
+        bills_due = sum(
+            bill.amount for bill in bills
+            if bill.due_date == current_date
+        )
+        current_balance -= bills_due
+        
+        # Add income on this date
+        income_received = sum(
+            income.amount for income in income_entries
+            if income.date == current_date
+        )
+        current_balance += income_received
+        
+        forecast.append({
+            "date": current_date,
+            "balance": current_balance
+        })
+        
+        current_date += timedelta(days=1)
+    
+    return forecast
 
-            if conditions:
-                query = query.where(and_(*conditions))
+async def calculate_required_funds(
+    db: AsyncSession,
+    account_id: int,
+    start_date: date,
+    end_date: date
+) -> Decimal:
+    """Calculate total required funds for bills in the specified date range."""
+    result = await db.execute(
+        select(Bill).where(
+            Bill.account_id == account_id,
+            Bill.due_date >= start_date,
+            Bill.due_date <= end_date,
+            Bill.paid == False
+        )
+    )
+    bills = result.scalars().all()
+    return sum(bill.amount for bill in bills)
 
-        # Get total count
-        count_query = select(CashflowForecast)
-        if filters and conditions:
-            count_query = count_query.where(and_(*conditions))
-        total = len((await self.session.execute(count_query)).scalars().all())
+def calculate_daily_deficit(min_amount: Decimal, days: int) -> Decimal:
+    """Calculate daily deficit needed to cover minimum required amount."""
+    if min_amount >= 0:
+        return Decimal("0.00")
+    # Round to 2 decimal places with ROUND_HALF_UP
+    return Decimal(str(round(float(abs(min_amount)) / days, 2)))
 
-        # Apply pagination
-        query = query.offset(skip).limit(limit)
-        result = await self.session.execute(query)
-        items = result.scalars().all()
+def calculate_yearly_deficit(daily_deficit: Decimal) -> Decimal:
+    """Calculate yearly deficit based on daily deficit."""
+    return daily_deficit * 365
 
-        return items, total
-
-    async def calculate_90_day_forecast(self, start_date: date) -> List[CashflowForecast]:
-        """Calculate 90-day rolling forecast"""
-        forecasts = []
-        current_date = start_date
-
-        for _ in range(90):
-            # Get bills due on this date
-            bills_query = select(Bill).where(
-                and_(
-                    Bill.due_date >= current_date,
-                    Bill.due_date < current_date + timedelta(days=1),
-                    Bill.paid == False
-                )
-            )
-            bills_result = await self.session.execute(bills_query)
-            bills = bills_result.scalars().all()
-            total_bills = sum(bill.amount for bill in bills)
-
-            # Get expected income on this date
-            income_query = select(Income).where(
-                and_(
-                    Income.date >= current_date,
-                    Income.date < current_date + timedelta(days=1),
-                    Income.deposited == False
-                )
-            )
-            income_result = await self.session.execute(income_query)
-            incomes = income_result.scalars().all()
-            total_income = sum(income.amount for income in incomes)
-
-            # Calculate balance and forecast
-            previous_forecast = forecasts[-1] if forecasts else None
-            previous_balance = previous_forecast.balance if previous_forecast else Decimal(0)
-            current_balance = previous_balance + total_income - total_bills
-
-            # Create forecast for this date
-            forecast = CashflowForecast(
-                forecast_date=current_date,
-                total_bills=total_bills,
-                total_income=total_income,
-                balance=current_balance,
-                forecast=current_balance,  # Simple forecast for now
-                min_14_day=Decimal(0),  # Will be updated later
-                min_30_day=Decimal(0),
-                min_60_day=Decimal(0),
-                min_90_day=Decimal(0),
-                daily_deficit=Decimal(0),
-                yearly_deficit=Decimal(0),
-                required_income=Decimal(0),
-                hourly_rate_40=Decimal(0),
-                hourly_rate_30=Decimal(0),
-                hourly_rate_20=Decimal(0)
-            )
-
-            forecasts.append(forecast)
-            current_date += timedelta(days=1)
-
-        # Calculate minimum required amounts for each period
-        for i, forecast in enumerate(forecasts):
-            if i >= 13:  # 14-day minimum
-                forecast.min_14_day = min(f.balance for f in forecasts[i-13:i+1])
-            if i >= 29:  # 30-day minimum
-                forecast.min_30_day = min(f.balance for f in forecasts[i-29:i+1])
-            if i >= 59:  # 60-day minimum
-                forecast.min_60_day = min(f.balance for f in forecasts[i-59:i+1])
-            if i >= 89:  # 90-day minimum
-                forecast.min_90_day = min(f.balance for f in forecasts[i-89:i+1])
-
-            # Calculate other metrics
-            forecast.calculate_deficits()
-            forecast.calculate_required_income()
-            forecast.calculate_hourly_rates()
-
-            # Save forecast
-            self.session.add(forecast)
-
-        await self.session.commit()
-        return forecasts
-
-    async def get_minimum_required(self, forecast_id: int) -> Optional[CashflowForecast]:
-        """Get minimum required funds for all periods"""
-        forecast = await self.get(forecast_id)
-        if not forecast:
-            return None
-        return forecast
-
-    async def get_deficit_calculation(self, forecast_id: int) -> Optional[CashflowForecast]:
-        """Get deficit calculations"""
-        forecast = await self.get(forecast_id)
-        if not forecast:
-            return None
-        return forecast
-
-    async def get_hourly_rates(self, forecast_id: int) -> Optional[CashflowForecast]:
-        """Get hourly rates for different work hours"""
-        forecast = await self.get(forecast_id)
-        if not forecast:
-            return None
-        return forecast
+def calculate_required_income(
+    yearly_deficit: Decimal,
+    tax_rate: Decimal = Decimal("0.80")
+) -> Decimal:
+    """
+    Calculate required gross income to cover yearly deficit.
+    Default tax_rate of 0.80 assumes 20% tax rate.
+    """
+    return yearly_deficit / tax_rate

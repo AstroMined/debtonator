@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 import httpx
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -43,12 +44,17 @@ async def setup_db() -> AsyncGenerator:
 @pytest.fixture
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
     async with TestingSessionLocal() as session:
+        # Enable foreign key constraints
+        await session.execute(text("PRAGMA foreign_keys=ON"))
+        await session.commit()
         yield session
 
 @pytest.fixture
 async def client() -> AsyncGenerator[AsyncClient, None]:
     async def _get_test_db():
         async with TestingSessionLocal() as session:
+            await session.execute(text("PRAGMA foreign_keys=ON"))
+            await session.commit()
             yield session
 
     app.dependency_overrides[get_db] = _get_test_db
@@ -61,6 +67,8 @@ def sync_client() -> Generator[TestClient, None, None]:
     def _get_test_db():
         session = TestingSessionLocal()
         try:
+            session.execute(text("PRAGMA foreign_keys=ON"))
+            session.commit()
             yield session
         finally:
             session.close()
