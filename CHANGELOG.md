@@ -8,6 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Frontend layout foundation
+  - Material-UI integration with custom theme
+  - Responsive navigation system
+    - Top app bar with mobile menu toggle
+    - Sidebar with navigation links
+    - Mobile-friendly drawer
+  - Page container with proper spacing
+  - Theme configuration
+    - Custom color palette
+    - Typography settings
+    - Component style overrides
+  - Layout components
+    - AppLayout for consistent structure
+    - Navigation bar
+    - Responsive sidebar
+    - Content container
 - Frontend development setup
   - React with TypeScript configuration
   - Vite build system and development server

@@ -1,35 +1,26 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import { Typography, Paper, Box } from '@mui/material';
+import { AppLayout } from './components/layout';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <AppLayout>
+      <Paper sx={{ p: 3 }}>
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Welcome to Debtonator
+          </Typography>
+          <Typography variant="subtitle1" color="text.secondary">
+            Your personal bill and cashflow management system
+          </Typography>
+        </Box>
+        <Typography paragraph>
+          This application helps you track bills, income, and maintain sufficient account balances
+          for timely bill payments. Use the navigation menu to access different features.
+        </Typography>
+      </Paper>
+    </AppLayout>
+  );
 }
 
-export default App
+export default App;
