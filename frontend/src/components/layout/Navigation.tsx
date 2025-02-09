@@ -73,6 +73,14 @@ export const Navigation: React.FC<NavigationProps> = ({ onMenuClick }) => {
               >
                 Income
               </Button>
+              <Button
+                component={RouterLink}
+                to="/cashflow"
+                color="inherit"
+                sx={{ textTransform: 'none' }}
+              >
+                Cashflow
+              </Button>
             </>
           )}
         </Box>

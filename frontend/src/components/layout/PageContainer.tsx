@@ -1,14 +1,15 @@
 import React from 'react';
-import { Box, Container, useTheme } from '@mui/material';
+import { Box, Container, Typography, useTheme } from '@mui/material';
 
 interface PageContainerProps {
   children: React.ReactNode;
+  title?: string;
 }
 
 const DRAWER_WIDTH = 240;
 const TOOLBAR_HEIGHT = 64; // AppBar height
 
-export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {
+export const PageContainer: React.FC<PageContainerProps> = ({ children, title }) => {
   const theme = useTheme();
 
   return (
@@ -33,6 +34,11 @@ export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {
           px: { xs: 2, sm: 3 },
         }}
       >
+        {title && (
+          <Typography variant="h4" component="h1" gutterBottom>
+            {title}
+          </Typography>
+        )}
         {children}
       </Container>
     </Box>
