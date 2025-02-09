@@ -38,19 +38,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Currency formatting utilities
 
 ### Added
-- Cashflow visualization implementation
-  - Basic forecast display with key metrics
-  - Account balance overview
-  - Required funds indicators for different time periods (14/30/60/90 days)
+- Enhanced cashflow visualization with interactive charts
+  - 90-day rolling forecast chart with date range selection
+  - Account balance trends chart with toggle functionality
+  - Required funds comparison chart with period selection
+  - Cross-account balance comparison with real-time updates
+  - Interactive tooltips with detailed data points
+  - Mobile-responsive chart layouts
+  - Brush component for date range selection
+  - Legend toggles for account visibility
+  - Visual deficit/surplus indicators
+  - Recharts integration for smooth animations
+  - Memoized calculations for performance
+  - Error handling with fallback UI
+  - Loading states with skeleton placeholders
+- Frontend service layer enhancements
+  - Historical data fetching with date range support
+  - Account-specific balance history tracking
   - Real-time data updates with 5-minute polling
-  - Mobile-responsive metric cards
-  - Error handling with user feedback
-  - Loading state management
-- Frontend service layer for cashflow management
-  - API endpoint integration for forecast data
-  - Date range filtering support
+  - Data transformation utilities for chart formatting
   - Error handling with proper user feedback
-  - Data transformation utilities
 
 ### Added
 - Income tracking interface implementation

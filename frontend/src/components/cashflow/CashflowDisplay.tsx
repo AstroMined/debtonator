@@ -2,11 +2,17 @@ import React from 'react';
 import { Box, Card, CardContent, Grid, Typography, CircularProgress } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { CashflowForecast } from '../../types/cashflow';
+import { Account } from '../../types/accounts';
+import { CashflowCharts } from './charts';
 
 interface CashflowDisplayProps {
   isLoading?: boolean;
   error?: Error | null;
-  data?: CashflowForecast;
+  currentData?: CashflowForecast;
+  historicalData: CashflowForecast[];
+  accounts: Account[];
+  onDateRangeChange?: (start: Date, end: Date) => void;
+  onAccountToggle?: (accountId: number) => void;
 }
 
 const MetricCard: React.FC<{
@@ -45,7 +51,11 @@ const MetricCard: React.FC<{
 export const CashflowDisplay: React.FC<CashflowDisplayProps> = ({
   isLoading = false,
   error = null,
-  data
+  currentData,
+  historicalData,
+  accounts,
+  onDateRangeChange,
+  onAccountToggle
 }) => {
   const theme = useTheme();
 
@@ -71,7 +81,7 @@ export const CashflowDisplay: React.FC<CashflowDisplayProps> = ({
     );
   }
 
-  if (!data) {
+  if (!currentData) {
     return (
       <Box p={3} bgcolor={theme.palette.grey[100]} borderRadius={1}>
         <Typography variant="body1">No cashflow data available</Typography>
@@ -96,27 +106,27 @@ export const CashflowDisplay: React.FC<CashflowDisplayProps> = ({
         <Grid item xs={12} sm={6} md={3}>
           <MetricCard
             title="Total Bills"
-            value={formatCurrency(data.total_bills)}
+            value={formatCurrency(currentData.total_bills)}
             subtitle="Next 90 days"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <MetricCard
             title="Total Income"
-            value={formatCurrency(data.total_income)}
+            value={formatCurrency(currentData.total_income)}
             subtitle="Expected"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <MetricCard
             title="Current Balance"
-            value={formatCurrency(data.balance)}
+            value={formatCurrency(currentData.balance)}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <MetricCard
             title="90-Day Forecast"
-            value={formatCurrency(data.forecast)}
+            value={formatCurrency(currentData.forecast)}
           />
         </Grid>
       </Grid>
@@ -129,28 +139,35 @@ export const CashflowDisplay: React.FC<CashflowDisplayProps> = ({
         <Grid item xs={12} sm={6} md={3}>
           <MetricCard
             title="14-Day Minimum"
-            value={formatCurrency(data.min_14_day)}
+            value={formatCurrency(currentData.min_14_day)}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <MetricCard
             title="30-Day Minimum"
-            value={formatCurrency(data.min_30_day)}
+            value={formatCurrency(currentData.min_30_day)}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <MetricCard
             title="60-Day Minimum"
-            value={formatCurrency(data.min_60_day)}
+            value={formatCurrency(currentData.min_60_day)}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <MetricCard
             title="90-Day Minimum"
-            value={formatCurrency(data.min_90_day)}
+            value={formatCurrency(currentData.min_90_day)}
           />
         </Grid>
       </Grid>
+
+      <CashflowCharts
+        data={historicalData}
+        accounts={accounts}
+        onDateRangeChange={onDateRangeChange}
+        onAccountToggle={onAccountToggle}
+      />
     </Box>
   );
 };

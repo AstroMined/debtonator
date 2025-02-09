@@ -26,10 +26,16 @@ A modern bill and cashflow management system that helps track bills, income, and
 
 ### Financial Analysis
 - Income tracking and deposit status
-- Cashflow analysis and forecasting
-- 90-day rolling forecast
-- Required funds calculation
-- Cross-account balance tracking
+- Interactive cashflow visualization
+  - 90-day rolling forecast with date range selection
+  - Account balance trends with toggle functionality
+  - Required funds comparison with period selection
+  - Cross-account balance comparison
+  - Real-time data updates
+- Comprehensive financial metrics
+  - Required funds calculation for multiple periods
+  - Cross-account balance tracking
+  - Deficit/surplus visualization
 
 ## Tech Stack
 

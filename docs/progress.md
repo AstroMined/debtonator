@@ -87,6 +87,12 @@
   - [x] Basic forecast display
   - [x] Account balance metrics
   - [x] Required funds indicators
-  - [ ] Interactive charts
-  - [ ] Historical trends
+  - [x] Interactive charts
+    - [x] 90-day cashflow forecast visualization
+    - [x] Account balance trends with toggle
+    - [x] Required funds comparison with period selection
+  - [x] Historical trends
+    - [x] Date range selection
+    - [x] Account-specific balance history
+    - [x] Cross-account comparison
 - [ ] Basic reporting

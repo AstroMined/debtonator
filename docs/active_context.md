@@ -141,10 +141,10 @@ Implementing the account management system with dynamic account tracking, balanc
       - ✓ Basic forecast display
       - ✓ Account balance metrics
       - ✓ Required funds indicators
-      - Future enhancements:
-        - Interactive charts
-        - Trend visualization
-        - Historical comparison
+      - ✓ Interactive charts:
+        - ✓ 90-day cashflow forecast visualization
+        - ✓ Account balance trends
+        - ✓ Required funds comparison
 
 ### Technical Planning
 1. ✓ Design API Endpoints
