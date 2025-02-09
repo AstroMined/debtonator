@@ -2,14 +2,21 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Account, AccountUpdate } from '../../types/accounts';
 import { Decimal } from 'decimal.js';
 
+interface BalanceHistoryEntry {
+  timestamp: Date;
+  balance: Decimal;
+}
+
 interface AccountsState {
   accounts: Account[];
+  balanceHistory: Record<number, BalanceHistoryEntry[]>;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: AccountsState = {
   accounts: [],
+  balanceHistory: {},
   loading: false,
   error: null,
 };
@@ -45,6 +52,20 @@ const accountsSlice = createSlice({
           account.available_credit = new Decimal(account.total_limit).minus(newBalance);
         }
         account.updated_at = new Date();
+
+        // Update balance history
+        if (!state.balanceHistory[id]) {
+          state.balanceHistory[id] = [];
+        }
+        state.balanceHistory[id].push({
+          timestamp: new Date(),
+          balance: newBalance
+        });
+
+        // Keep only last 30 entries
+        if (state.balanceHistory[id].length > 30) {
+          state.balanceHistory[id] = state.balanceHistory[id].slice(-30);
+        }
       }
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
@@ -77,6 +98,8 @@ export const selectAccountById = (state: { accounts: AccountsState }, id: number
   state.accounts.accounts.find(account => account.id === id);
 export const selectLoading = (state: { accounts: AccountsState }) => state.accounts.loading;
 export const selectError = (state: { accounts: AccountsState }) => state.accounts.error;
+export const selectAccountBalanceHistory = (state: { accounts: AccountsState }, accountId: number) =>
+  state.accounts.balanceHistory[accountId] || [];
 export const selectTotalAvailableCredit = (state: { accounts: AccountsState }) =>
   state.accounts.accounts
     .filter(account => account.type === 'credit' && account.available_credit !== null)

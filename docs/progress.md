@@ -54,9 +54,7 @@
     - [x] Efficient state updates
 
 ## In Progress
-1. Frontend component development
-   - Balance tracking display
-2. Performance optimization
+1. Performance optimization
    - Component re-renders
    - Data caching strategy
    - State update batching
@@ -99,9 +97,16 @@
     - [x] Credit limit display
     - [x] Statement balance history
     - [x] Mobile responsive design
+    - [x] Balance history tracking
+    - [x] Visual balance indicators
+    - [x] Expandable account details
   - [x] API integration
   - [x] Error handling
   - [x] Loading states
+  - [x] Redux state management
+    - [x] Balance history tracking
+    - [x] Real-time balance updates
+    - [x] Optimistic UI updates
 - [x] Cashflow visualization
   - [x] Basic forecast display
   - [x] Account balance metrics

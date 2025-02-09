@@ -19,7 +19,12 @@ A modern bill and cashflow management system that helps track bills, income, and
 ### Account Management
 - Dynamic account creation and configuration
 - Support for multiple account types (credit, checking, savings)
-- Real-time balance and credit limit tracking
+- Enhanced balance tracking and visualization
+  - Real-time balance history (last 30 entries)
+  - Visual balance change indicators with up/down arrows
+  - Color-coded balance status
+  - Expandable account details
+  - Credit account-specific information
 - Statement balance history with visual indicators
 - Mobile-optimized account grid view
 - Comprehensive account overview with error handling

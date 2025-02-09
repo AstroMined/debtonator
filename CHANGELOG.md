@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-02-09
+
+### Added
+- Enhanced balance tracking system
+  - Real-time balance history tracking (last 30 entries)
+  - Visual balance change indicators with up/down arrows
+  - Color-coded balance status
+  - Expandable account details in accounts table
+  - Credit account-specific information display
+  - Balance history state management
+    - Efficient state updates with Redux Toolkit
+    - Memoized balance calculations
+    - Optimistic UI updates
+    - Type-safe state handling
+
 ### Added
 - Enhanced navigation structure and user interface
   - Added breadcrumb navigation for better context
