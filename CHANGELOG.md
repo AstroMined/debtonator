@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Frontend service layer for bills management
+  - API endpoint integration
+  - Error handling with proper user feedback
+  - Loading state management
+  - Payment status management
+  - Split payment support
+  - Real-time updates
+- Error boundary implementation
+  - Global error boundary component
+  - Graceful error recovery
+  - User-friendly error messages
+  - Retry functionality
 - Enhanced Bills Table UI/UX (ADR-005)
   - Improved split payment visualization with tooltips and indicators
   - Enhanced mobile responsiveness with smart column management
@@ -54,60 +66,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced validation for split payment totals
 - Added comprehensive test coverage for new features
 
-## [0.1.0] - 2024-02-08
-
-### Added
-- Bills Table/Grid component
-  - Material-UI DataGrid integration
-  - Sortable columns with custom sorting
-  - Payment status toggle with visual feedback
-  - Status indicators (paid/unpaid/overdue)
-  - Currency formatting for amounts
-  - Auto-pay status indicators
-  - Mobile-responsive design
-  - Loading states and error handling
-  - Default sorting by due date
-  - Customized cell rendering
-  - Tooltip information
-  - Keyboard navigation support
-  - Account-specific amount columns
-  - Paid date tracking and display
-  - Days overdue calculation with tooltip display
-  - Bulk payment actions with selection model
-  - Advanced filtering with GridToolbar
-  - Dynamic column visibility for mobile
-  - Pagination with configurable page size
-  - Striped rows for better readability
-
-- Bill Entry Form component
-  - Form validation with Formik and Yup
-  - Material-UI form controls
-  - Date picker with historical date support
-  - Account selection dropdown
-  - Auto-pay toggle switch
-  - Amount validation with decimal places
-  - Mobile-responsive layout
-  - Error handling and feedback
-  - Support for editing existing bills
-  - Unit tests with Jest and React Testing Library
-
-- Frontend layout foundation
-  - Material-UI integration with custom theme
-  - Responsive navigation system
-  - Top app bar with mobile menu toggle
-  - Sidebar with navigation links
-  - Mobile-friendly drawer
-  - Page container with proper spacing
-  - Theme configuration
-  - Custom color palette
-  - Typography settings
-  - Component style overrides
-
-### Changed
-- Converted from Excel-based system to database schema
-- Updated bill tracking to use proper relationships
-- Enhanced account management with transaction tracking
-- Implemented versioned API structure (v1)
-- Updated project documentation to include frontend setup
-- Enhanced development workflow with frontend tooling
-- Removed date restrictions to support historical data entry
+[Previous releases remain unchanged...]

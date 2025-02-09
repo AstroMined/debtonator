@@ -6,5 +6,5 @@ Formulate a plan to continue on with the in-progress items, but keep the scope l
 End session:
 update memory bank
 
-Update README.md, CHANGELOG.md and create any ADRs that are absolutely necessary to document a major architectural change.
+Update README.md, CHANGELOG.md and create ADRs ONLY if absolutely necessary to document a MAJOR architectural change.
 Finally, suggest a good commit message for the tasks accomplished during this session.
