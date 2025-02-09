@@ -1,231 +1,137 @@
 # Debtonator
 
-A modern bill and cashflow management system built with FastAPI and React.
-
-## Overview
-
-Debtonator helps users track bills, income, and maintain sufficient account balances for timely bill payments. It provides real-time financial forecasting and calculates required income based on upcoming expenses.
+A modern bill and cashflow management system that helps track bills, income, and maintain sufficient account balances for timely bill payments.
 
 ## Features
 
-### Bill Management
-- Track bills with due dates, amounts, and payment status
-- Support for multiple payment accounts (AMEX, UFCU, Unlimited)
+- Dynamic account management
+- Bill tracking with split payment support
+- Income tracking and deposit status
+- Cashflow analysis and forecasting
 - Auto-pay status tracking
-- Historical payment records
-- Date range filtering
-- User-friendly bill entry form
-- Support for historical data entry
-
-### Income Tracking
-- Record and track income sources
-- Deposit status management
-- Undeposited income tracking
-- Running total calculations
-- Source categorization
-
-### Cashflow Analysis
+- Payment status management
 - 90-day rolling forecast
-- Available credit/balance tracking
-- Minimum required funds calculation:
-  - 14-day outlook
-  - 30-day outlook
-  - 60-day outlook
-  - 90-day outlook
-- Required income projections:
-  - Daily deficit
-  - Yearly deficit
-  - Extra income needed (with tax consideration)
-  - Hourly rate calculations (40/30/20 hours per week)
+- Required funds calculation
 
-## Technology Stack
+## Tech Stack
 
 ### Backend
-- FastAPI for high-performance API
+- Python with FastAPI
 - SQLite for development (MySQL/MariaDB for production)
+- SQLAlchemy ORM
 - Pydantic for data validation
-- SQLAlchemy for ORM
-- Alembic for migrations
+- Alembic for database migrations
 
 ### Frontend
 - React with TypeScript
 - Material-UI components
-- Formik and Yup for form management
-- Vite for build tooling
+- Vite build system
 - Jest and React Testing Library
-- ESLint and Prettier for code quality
-- Mobile-responsive design
-- Real-time calculations
+- Formik and Yup for form handling
 
-## API Documentation
+## Getting Started
 
-### Bills API
-- `GET /api/v1/bills/` - List bills with filtering
-- `POST /api/v1/bills/` - Create new bill
-- `GET /api/v1/bills/{id}` - Get bill details
-- `PUT /api/v1/bills/{id}` - Update bill
-- `DELETE /api/v1/bills/{id}` - Delete bill
-- `PUT /api/v1/bills/{id}/pay` - Mark bill as paid
+### Prerequisites
+- Python 3.10 or higher
+- Node.js 18 or higher
+- SQLite3
 
-### Income API
-- `GET /api/v1/income/` - List income records with filtering
-- `POST /api/v1/income/` - Create new income record
-- `GET /api/v1/income/{id}` - Get income details
-- `PUT /api/v1/income/{id}` - Update income record
-- `DELETE /api/v1/income/{id}` - Delete income record
-- `GET /api/v1/income/undeposited/` - List undeposited income
-- `PUT /api/v1/income/{id}/deposit` - Mark income as deposited
-- `GET /api/v1/income/undeposited/total/` - Get total undeposited amount
+### Installation
 
-### Cashflow API
-- `GET /api/v1/cashflow/` - List cashflow forecasts
-- `POST /api/v1/cashflow/forecast/90-day` - Calculate 90-day forecast
-- `GET /api/v1/cashflow/{id}` - Get forecast details
-- `GET /api/v1/cashflow/{id}/minimum-required` - Get minimum required funds
-- `GET /api/v1/cashflow/{id}/deficit` - Get deficit calculations
-- `GET /api/v1/cashflow/{id}/hourly-rates` - Get required hourly rates
-
-## Setup
-
-### Backend Setup
-
-1. Clone the repository:
+1. Clone the repository
 ```bash
 git clone https://github.com/yourusername/debtonator.git
 cd debtonator
 ```
 
-2. Create and activate virtual environment:
+2. Set up Python environment
 ```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
-```
-
-3. Install dependencies:
-```bash
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Set up environment variables:
+3. Set up environment variables
 ```bash
 cp .env.example .env
-# Edit .env with your configuration
+# Edit .env with your settings
 ```
 
-5. Run database migrations:
+4. Initialize database
 ```bash
 alembic upgrade head
 ```
 
-6. (Optional) Migrate historical Excel data:
-```bash
-python src/migration/migrate_excel.py path/to/excel_file.xlsx
-```
-
-7. Start the development server:
-```bash
-uvicorn src.main:app --reload
-```
-
-8. Access the API documentation:
-- Swagger UI: http://localhost:8000/api/v1/docs
-- ReDoc: http://localhost:8000/api/v1/redoc
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
+5. Install frontend dependencies
 ```bash
 cd frontend
-```
-
-2. Install dependencies:
-```bash
 npm install
 ```
 
-3. Set up environment variables:
+### Running the Application
+
+1. Start the backend server
 ```bash
-cp .env.example .env
-# Edit .env with your configuration
+# From the root directory
+python run.py
 ```
 
-4. Start the development server:
+2. Start the frontend development server
 ```bash
+# From the frontend directory
 npm run dev
 ```
 
-5. Access the application:
-- Development: http://localhost:3000
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Documentation: http://localhost:8000/api/v1/docs
 
-## Development Status
+## Project Structure
 
-### Completed
-- ✓ Backend API structure
-- ✓ Database models and migrations
-- ✓ Bills API endpoints
-- ✓ Income API endpoints
-- ✓ Cashflow API endpoints
-- ✓ Core business logic
-- ✓ API documentation
-- ✓ Data migration tools
-  - Excel data extraction
-  - Data transformation
-  - Database import with validation
-  - Migration CLI tool
-- ✓ Frontend development setup
-  - React with TypeScript
-  - Build system and testing
-  - Code quality tools
-  - Project structure
-- ✓ Frontend layout foundation
-  - Base layout with Material-UI
-  - Responsive navigation system
-  - Theme configuration
-  - Mobile-friendly design
-- ✓ Bill Entry Form
-  - Form validation
-  - Material-UI components
-  - Historical date support
-  - Mobile responsiveness
-  - Unit tests
-- ✓ Bills Table/Grid View
-  - Material-UI DataGrid integration
-  - Payment status management with visual feedback
-  - Status indicators (paid/unpaid/overdue)
-  - Days overdue calculation and display
-  - Account-specific amount columns
-  - Paid date tracking
-  - Bulk payment actions
-  - Advanced filtering with toolbar
-  - Dynamic column visibility
-  - Pagination support
-  - Mobile-responsive design
-  - Loading states and error handling
-  - Striped rows for readability
-  - Tooltip information
+```
+debtonator/
+├── alembic/              # Database migrations
+├── docs/                 # Project documentation
+│   ├── adr/             # Architecture Decision Records
+│   └── ...              # Other documentation
+├── frontend/            # React frontend application
+│   ├── src/
+│   │   ├── components/  # React components
+│   │   ├── pages/       # Page components
+│   │   ├── services/    # API services
+│   │   └── types/       # TypeScript types
+│   └── ...
+├── src/                 # Backend application
+│   ├── api/            # API endpoints
+│   ├── models/         # Database models
+│   ├── schemas/        # Pydantic schemas
+│   ├── services/       # Business logic
+│   └── utils/          # Utilities
+└── tests/              # Test suites
+```
 
-### In Progress
-- Frontend feature components development
-  - Income tracking interface
-  - Cashflow visualization
-  - Account management interface
+## Documentation
 
-### Planned
-- Frontend features implementation
-- User authentication
-- Mobile applications
-- Banking API integration
-- Notification system
+- [Project Brief](docs/project_brief.md)
+- [Technical Context](docs/tech_context.md)
+- [System Patterns](docs/system_patterns.md)
+- [API Documentation](http://localhost:8000/api/v1/docs)
+
+## Architecture Decisions
+
+- [Database Schema Design](docs/adr/001-database-schema-design.md)
+- [Historical Data Entry](docs/adr/002-historical-data-entry.md)
+- [Dynamic Accounts and Bill Splits](docs/adr/003-dynamic-accounts-and-bill-splits.md)
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

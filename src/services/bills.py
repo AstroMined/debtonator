@@ -4,12 +4,16 @@ from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.bills import Bill
-from src.schemas.bills import BillCreate, BillUpdate
+from ..models.bills import Bill
+from ..models.accounts import Account
+from ..schemas.bills import BillCreate, BillUpdate
+from .bill_splits import BillSplitService
+from ..schemas.bill_splits import BillSplitCreate
 
 class BillService:
     def __init__(self, db: AsyncSession):
         self.db = db
+        self.split_service = BillSplitService(db)
 
     async def get_bills(self, skip: int = 0, limit: int = 100) -> List[Bill]:
         result = await self.db.execute(select(Bill).offset(skip).limit(limit))
@@ -33,6 +37,12 @@ class BillService:
         # Calculate due date
         due_date = datetime.strptime(f"{bill_create.month}/{bill_create.day_of_month}/2025", "%m/%d/%Y").date()
         
+        # Get account name for denormalized field
+        account_result = await self.db.execute(
+            select(Account).filter(Account.id == bill_create.account_id)
+        )
+        account = account_result.scalar_one()
+        
         # Create bill instance
         db_bill = Bill(
             month=bill_create.month,
@@ -40,21 +50,32 @@ class BillService:
             due_date=due_date,
             bill_name=bill_create.bill_name,
             amount=bill_create.amount,
-            account=bill_create.account,
+            account_id=bill_create.account_id,
+            account_name=account.name,  # Denormalized field
             auto_pay=bill_create.auto_pay,
             up_to_date=True,  # New bills are up to date by default
             paid=False
         )
         
-        # Set account-specific amounts
-        if bill_create.account == "AMEX":
-            db_bill.amex_amount = bill_create.amount
-        elif bill_create.account == "UNLIMITED":
-            db_bill.unlimited_amount = bill_create.amount
-        elif bill_create.account == "UFCU":
-            db_bill.ufcu_amount = bill_create.amount
-
         self.db.add(db_bill)
+        await self.db.flush()  # Get the bill ID without committing
+
+        # Handle bill splits if provided
+        if bill_create.splits:
+            total_split_amount = Decimal('0')
+            for split in bill_create.splits:
+                split_create = BillSplitCreate(
+                    bill_id=db_bill.id,
+                    account_id=split.account_id,
+                    amount=split.amount
+                )
+                await self.split_service.create_bill_split(split_create)
+                total_split_amount += split.amount
+
+            # Validate split total matches bill amount
+            if total_split_amount != bill_create.amount:
+                raise ValueError("Sum of split amounts must equal total bill amount")
+
         await self.db.commit()
         await self.db.refresh(db_bill)
         return db_bill
@@ -70,24 +91,38 @@ class BillService:
         if update_data.get("paid") is True and not db_bill.paid:
             update_data["paid_date"] = date.today()
         
-        # Update account-specific amounts if account or amount changes
-        if "amount" in update_data or "account" in update_data:
-            new_amount = update_data.get("amount", db_bill.amount)
-            new_account = update_data.get("account", db_bill.account)
-            
-            # Reset all account amounts
-            update_data["amex_amount"] = None
-            update_data["unlimited_amount"] = None
-            update_data["ufcu_amount"] = None
-            
-            # Set new account amount
-            if new_account == "AMEX":
-                update_data["amex_amount"] = new_amount
-            elif new_account == "UNLIMITED":
-                update_data["unlimited_amount"] = new_amount
-            elif new_account == "UFCU":
-                update_data["ufcu_amount"] = new_amount
+        # If account_id is being updated, update account_name
+        if "account_id" in update_data:
+            account_result = await self.db.execute(
+                select(Account).filter(Account.id == update_data["account_id"])
+            )
+            account = account_result.scalar_one()
+            update_data["account_name"] = account.name
 
+        # Handle bill splits update
+        if "splits" in update_data:
+            # Delete existing splits
+            await self.split_service.delete_bill_splits(bill_id)
+            
+            # Create new splits if provided
+            splits = update_data.pop("splits")  # Remove splits from update_data
+            if splits:
+                total_split_amount = Decimal('0')
+                for split in splits:
+                    split_create = BillSplitCreate(
+                        bill_id=bill_id,
+                        account_id=split.account_id,
+                        amount=split.amount
+                    )
+                    await self.split_service.create_bill_split(split_create)
+                    total_split_amount += split.amount
+
+                # Validate split total matches bill amount
+                bill_amount = update_data.get("amount", db_bill.amount)
+                if total_split_amount != bill_amount:
+                    raise ValueError("Sum of split amounts must equal total bill amount")
+
+        # Update bill fields
         for key, value in update_data.items():
             setattr(db_bill, key, value)
 
@@ -99,7 +134,11 @@ class BillService:
         db_bill = await self.get_bill(bill_id)
         if not db_bill:
             return False
+        
+        # Delete associated splits first
+        await self.split_service.delete_bill_splits(bill_id)
             
+        # Then delete the bill
         await self.db.delete(db_bill)
         await self.db.commit()
         return True

@@ -1,11 +1,12 @@
 from datetime import date
 from decimal import Decimal
-from typing import Optional
+from typing import List, Optional
 from sqlalchemy import String, Date, Boolean, Numeric, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.base import Base
 from .transactions import AccountTransaction
+from .bill_splits import BillSplit
 
 class Bill(Base):
     """Bill model representing a bill payment record"""
@@ -23,17 +24,13 @@ class Bill(Base):
     account_name: Mapped[str] = mapped_column(String(50))  # Denormalized for historical data
     auto_pay: Mapped[bool] = mapped_column(Boolean, default=False)
     paid: Mapped[bool] = mapped_column(Boolean, default=False)
-    amex_amount: Mapped[Optional[Decimal]] = mapped_column(Numeric(10, 2), nullable=True)
-    unlimited_amount: Mapped[Optional[Decimal]] = mapped_column(Numeric(10, 2), nullable=True)
-    ufcu_amount: Mapped[Optional[Decimal]] = mapped_column(Numeric(10, 2), nullable=True)
     created_at: Mapped[date] = mapped_column(Date, default=date.today)
     updated_at: Mapped[date] = mapped_column(Date, default=date.today, onupdate=date.today)
 
     # Relationships
     transactions = relationship("AccountTransaction", back_populates="bill")
-
-    # Relationships
     account = relationship("Account", back_populates="bills")
+    splits: Mapped[List[BillSplit]] = relationship("BillSplit", back_populates="bill", cascade="all, delete-orphan")
 
     # Create indexes for efficient lookups
     __table_args__ = (

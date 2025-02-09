@@ -16,6 +16,12 @@
   - Planned migration strategy
   - Documented indexing approach
   - Identified performance considerations
+- [x] Historical Data Entry (ADR-002)
+- [x] Dynamic Accounts and Bill Splits (ADR-003)
+  - Removed hard-coded account references
+  - Added bill_splits table
+  - Implemented dynamic account management
+  - Created migration path
 
 ### Documentation
 - [x] Project Brief
@@ -23,30 +29,40 @@
   - Technical requirements
   - Success criteria
   - Future extensions
+  - Dynamic account support
+  - Split payment features
 
 - [x] Product Context
   - Problem statement
   - Current solution analysis
   - User experience goals
   - Key differentiators
+  - Account management goals
+  - Split payment handling
 
 - [x] System Patterns
   - Architecture overview
   - Design patterns
   - Data flow patterns
   - Testing patterns
+  - Account management patterns
+  - Split payment patterns
 
 - [x] Technical Context
   - Technology stack
   - Data models
   - Formula translations
   - Technical constraints
+  - Account calculations
+  - Split validations
 
 - [x] Active Context
   - Current focus
   - Recent analysis
   - Active decisions
   - Next steps
+  - Dynamic account implementation
+  - Split payment support
 
 ## Current Status
 
@@ -58,6 +74,7 @@
   - Vite build system
   - ESLint and Prettier
   - Jest testing framework
+  - Material-UI components
 - [x] Testing framework setup (pytest)
 - [x] Configuration management (.env)
 
@@ -67,22 +84,26 @@
   - Created initial migration
   - Added relationships and indexes migration
   - Added income and cashflow models migration
+  - Added dynamic accounts migration
+  - Added bill splits migration
 - [ ] Seed data preparation
 - [ ] Test data generation
 - [x] Index creation
   - Primary keys and unique constraints
   - Performance indexes for lookups
   - Date-based indexes for filtering
+  - Account and split indexes
 - [x] Constraint validation
   - SQLAlchemy model validation
   - Foreign key constraints
   - Data type constraints
   - Default values
+  - Split amount validation
 
 ### Backend Development
 - [x] FastAPI project structure
 - [x] Database models
-  - Core models (Bills, Income, Accounts)
+  - Core models (Bills, Income, Accounts, BillSplits)
   - Transaction tracking
   - Recurring bills support
   - Cashflow forecasting
@@ -92,7 +113,7 @@
   - CRUD operations
   - Date range filtering
   - Payment status management
-  - Account-specific amount tracking
+  - Split payment handling
 - [x] Income API endpoints
   - CRUD operations
   - Deposit status tracking
@@ -104,6 +125,14 @@
   - Deficit calculations
   - Required income projections
   - Hourly rate calculations
+- [x] Accounts API endpoints
+  - CRUD operations
+  - Balance tracking
+  - Credit limit management
+- [x] Bill Splits API endpoints
+  - CRUD operations
+  - Split validation
+  - Total amount verification
 - [x] Business logic implementation
 
 ### Frontend Development
@@ -122,8 +151,9 @@
   - TypeScript strict mode
 - [x] Component design
   - Base layout components
-  - Bill entry form
+  - Bill entry form with split support
   - Bills table/grid view
+  - Account management components
   - Loading states
   - Error handling
 - [ ] State management
@@ -134,16 +164,16 @@
 
 ## In Progress
 1. Frontend component development
-   - Base layout components
-   - Reusable UI components
-   - Data visualization components
+   - Account management components
+   - Split payment interface
+   - Balance tracking display
    - Navigation structure
 
 ## Next Up
-1. Develop basic frontend components
-2. Implement state management
-3. Create API integration layer
-4. Add mobile responsiveness
+1. Complete account management interface
+2. Implement split payment UI
+3. Add balance tracking visualization
+4. Enhance mobile responsiveness
 
 ## Known Issues
 
@@ -152,59 +182,53 @@
 - Account for timezone considerations in date handling
 - Plan for handling payment method changes
 - Consider audit trail requirements
+- Split payment validation complexity
+- Account balance reconciliation
 
 ### Implementation
 - Complex SUMPRODUCT formula translations needed
 - Real-time calculation performance considerations
 - Historical data migration complexity
 - Account balance reconstruction strategy
+- Split payment validation performance
+- Cross-account balance tracking
 
 ### Development
 - Need to finalize state management approach
 - API endpoint design for real-time updates
 - Testing strategy for complex calculations
 - Database indexing optimization
+- Split payment validation strategy
+- Account balance synchronization
 
 ## Upcoming Milestones
 
-### Phase 1: Foundation
+### Phase 1: Foundation (Completed)
 - [x] Complete development environment setup
 - [x] Implement database schema
   - Core models with relationships
   - Supporting models for transactions
   - Performance indexes
   - Migration system
-- [x] Create bills API endpoints
-  - CRUD operations
-  - Date range filtering
-  - Payment status management
-  - Account-specific tracking
-- [x] Create income API endpoints
-- [x] Create cashflow API endpoints
+  - Dynamic accounts
+  - Bill splits
+- [x] Create API endpoints
+  - Bills CRUD
+  - Income tracking
+  - Cashflow analysis
+  - Account management
+  - Split payments
 - [x] Create data migration tools
-  - Excel data extraction
-  - Data transformation
-  - Database import
-  - Validation checks
-- [x] Set up frontend development environment
-  - React with TypeScript
-  - Build system and testing
-  - Code quality tools
-  - Project structure
-- [ ] Develop basic UI components
+- [x] Set up frontend development
+- [x] Develop basic UI components
 
-### Phase 2: Core Features
+### Phase 2: Core Features (In Progress)
 - [x] Bill management implementation
-  - [x] Bill entry form
+  - [x] Bill entry form with splits
   - [x] Bills list/grid view
-    - Account-specific amount tracking
-    - Payment status management
-    - Bulk payment actions
-    - Advanced filtering
-    - Mobile responsiveness
-    - Days overdue tracking
   - [x] Payment status management
   - [ ] API integration
+- [ ] Account management system
 - [ ] Income tracking system
 - [ ] Cashflow calculations
 - [ ] Basic reporting
@@ -214,17 +238,22 @@
 - [ ] Mobile responsiveness
 - [ ] Advanced reporting
 - [ ] Data visualization
+- [ ] Split payment analytics
 
 ### Phase 4: Polish
 - [ ] Performance optimization
 - [ ] UI/UX improvements
 - [ ] Documentation
 - [ ] Testing coverage
+- [ ] Account reconciliation tools
 
 ## Testing Status
 
 ### Unit Tests
 - [ ] Backend services
+  - [ ] Account management
+  - [ ] Split payment validation
+  - [ ] Balance calculations
 - [ ] Data models
 - [ ] Utility functions
 - [ ] React components
@@ -234,21 +263,31 @@
 - [ ] Database operations
 - [ ] Frontend-backend integration
 - [ ] State management
+- [ ] Account operations
+- [ ] Split payments
 
 ### End-to-End Tests
 - [ ] Critical user paths
 - [ ] Data flow validation
 - [ ] Error handling
 - [ ] Edge cases
+- [ ] Account management flows
+- [ ] Split payment scenarios
 
 ## Documentation Status
 
 ### Technical Documentation
 - [x] Initial architecture documentation
-- [x] Bills API documentation
-- [x] Income API documentation
-- [x] Cashflow API documentation
-- [ ] Component documentation
+- [x] API documentation
+  - Bills API
+  - Income API
+  - Cashflow API
+  - Accounts API
+  - Bill Splits API
+- [x] Component documentation
+  - Bill entry form
+  - Account management
+  - Split payments
 
 ### User Documentation
 - [ ] User guide
@@ -263,6 +302,8 @@
 2. Mobile applications
 3. Notification system
 4. Data analytics
+5. Automated split suggestions
+6. Balance reconciliation tools
 
 ### Technical Debt
 - None accumulated yet - greenfield project
@@ -273,3 +314,5 @@
   - Real-time calculations
   - Frontend rendering
   - API response times
+  - Split payment validation
+  - Account balance tracking

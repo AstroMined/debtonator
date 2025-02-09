@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import {
@@ -6,33 +6,47 @@ import {
   Button,
   FormControl,
   FormControlLabel,
+  IconButton,
   InputLabel,
   MenuItem,
   Select,
   Switch,
   TextField,
   Typography,
+  Stack,
+  Divider,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 
-export interface BillFormData {
-  billName: string;
+import { Bill } from '../../types/bills';
+import { Account, getAccounts } from '../../services/accounts';
+
+interface FormSplit {
+  account_id: number;
   amount: number;
-  dueDate: Date | null;
-  account: 'AMEX' | 'UFCU' | 'UNLIMITED';
-  autoPay: boolean;
+}
+
+interface FormValues {
+  bill_name: string;
+  amount: number;
+  due_date: Date | null;
+  account_id: number;
+  auto_pay: boolean;
+  splits: FormSplit[];
 }
 
 interface BillEntryFormProps {
-  onSubmit: (values: BillFormData) => void;
+  onSubmit: (values: Bill) => void;
   onCancel: () => void;
-  initialValues?: Partial<BillFormData>;
+  initialValues?: Partial<Bill>;
 }
 
 const validationSchema = Yup.object({
-  billName: Yup.string().required('Bill name is required'),
+  bill_name: Yup.string().required('Bill name is required'),
   amount: Yup.number()
     .required('Amount is required')
     .positive('Amount must be positive')
@@ -41,7 +55,7 @@ const validationSchema = Yup.object({
       'Amount cannot have more than 2 decimal places',
       (number) => number == null || Number.isInteger(number * 100)
     ),
-  dueDate: Yup.date()
+  due_date: Yup.date()
     .required('Due date is required')
     .nullable()
     .transform((value, originalValue) => {
@@ -51,35 +65,94 @@ const validationSchema = Yup.object({
       const date = new Date(originalValue);
       return isNaN(date.getTime()) ? null : date;
     }),
-  account: Yup.string()
-    .oneOf(['AMEX', 'UFCU', 'UNLIMITED'], 'Invalid account selected')
-    .required('Account is required'),
-  autoPay: Yup.boolean(),
+  account_id: Yup.number().required('Account is required'),
+  auto_pay: Yup.boolean(),
+  splits: Yup.array().of(
+    Yup.object().shape({
+      account_id: Yup.number().required('Account is required'),
+      amount: Yup.number()
+        .required('Amount is required')
+        .positive('Amount must be positive')
+        .test(
+          'maxDigitsAfterDecimal',
+          'Amount cannot have more than 2 decimal places',
+          (number) => number == null || Number.isInteger(number * 100)
+        ),
+    })
+  ),
 });
 
-const defaultInitialValues: BillFormData = {
-  billName: '',
+const defaultInitialValues: FormValues = {
+  bill_name: '',
   amount: 0,
-  dueDate: null,
-  account: 'UFCU',
-  autoPay: false,
+  due_date: null,
+  account_id: 0,
+  auto_pay: false,
+  splits: [],
 };
 
 export const BillEntryForm: React.FC<BillEntryFormProps> = ({
   onSubmit,
   onCancel,
-  initialValues = defaultInitialValues,
+  initialValues,
 }) => {
-  const formik = useFormik({
+  const [accounts, setAccounts] = useState<Account[]>([]);
+
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const accountsData = await getAccounts();
+        setAccounts(accountsData);
+      } catch (error) {
+        console.error('Failed to fetch accounts:', error);
+      }
+    };
+    fetchAccounts();
+  }, []);
+
+  const formik = useFormik<FormValues>({
     initialValues: {
       ...defaultInitialValues,
       ...initialValues,
+      // Convert string date to Date object if it exists
+      due_date: initialValues?.due_date ? new Date(initialValues.due_date) : null,
     },
     validationSchema,
     onSubmit: (values) => {
-      onSubmit(values);
+      // Convert form values to API format
+      const billData: Bill = {
+        bill_name: values.bill_name,
+        amount: values.amount,
+        month: new Date(values.due_date!).toLocaleString('default', { month: 'long' }),
+        day_of_month: new Date(values.due_date!).getDate(),
+        account_id: values.account_id,
+        auto_pay: values.auto_pay,
+        splits: values.splits,
+      };
+      onSubmit(billData);
     },
   });
+
+  const addSplit = () => {
+    const splits = formik.values.splits || [];
+    formik.setFieldValue('splits', [
+      ...splits,
+      { account_id: 0, amount: 0 },
+    ]);
+  };
+
+  const removeSplit = (index: number) => {
+    const splits = formik.values.splits || [];
+    formik.setFieldValue(
+      'splits',
+      splits.filter((_, i) => i !== index)
+    );
+  };
+
+  const totalSplitAmount = (formik.values.splits || [])
+    .reduce((sum, split) => sum + (split.amount || 0), 0);
+
+  const remainingAmount = formik.values.amount - totalSplitAmount;
 
   return (
     <Box
@@ -89,25 +162,25 @@ export const BillEntryForm: React.FC<BillEntryFormProps> = ({
         display: 'flex',
         flexDirection: 'column',
         gap: 2,
-        maxWidth: 400,
+        maxWidth: 600,
         margin: '0 auto',
         padding: 2,
       }}
     >
       <Typography variant="h6" component="h2" gutterBottom>
-        {initialValues.billName ? 'Edit Bill' : 'New Bill'}
+        {initialValues?.bill_name ? 'Edit Bill' : 'New Bill'}
       </Typography>
 
       <TextField
         fullWidth
-        id="billName"
-        name="billName"
+        id="bill_name"
+        name="bill_name"
         label="Bill Name"
-        value={formik.values.billName}
+        value={formik.values.bill_name}
         onChange={formik.handleChange}
         onBlur={formik.handleBlur}
-        error={formik.touched.billName && Boolean(formik.errors.billName)}
-        helperText={formik.touched.billName && formik.errors.billName}
+        error={formik.touched.bill_name && Boolean(formik.errors.bill_name)}
+        helperText={formik.touched.bill_name && formik.errors.bill_name}
       />
 
       <TextField
@@ -130,16 +203,16 @@ export const BillEntryForm: React.FC<BillEntryFormProps> = ({
       <LocalizationProvider dateAdapter={AdapterDateFns}>
         <DatePicker
           label="Due Date"
-          value={formik.values.dueDate}
+          value={formik.values.due_date}
           onChange={(date) => {
-            formik.setFieldTouched('dueDate', true, false);
-            formik.setFieldValue('dueDate', date, true);
+            formik.setFieldTouched('due_date', true, false);
+            formik.setFieldValue('due_date', date, true);
           }}
           slotProps={{
             textField: {
               fullWidth: true,
-              error: formik.touched.dueDate && Boolean(formik.errors.dueDate),
-              helperText: formik.touched.dueDate && formik.errors.dueDate as string,
+              error: formik.touched.due_date && Boolean(formik.errors.due_date),
+              helperText: formik.touched.due_date && formik.errors.due_date as string,
             },
           }}
           format="MM/dd/yyyy"
@@ -148,41 +221,111 @@ export const BillEntryForm: React.FC<BillEntryFormProps> = ({
       </LocalizationProvider>
 
       <FormControl fullWidth>
-        <InputLabel id="account-label">Account</InputLabel>
+        <InputLabel id="account_id-label">Primary Account</InputLabel>
         <Select
-          labelId="account-label"
-          id="account"
-          name="account"
-          value={formik.values.account}
-          label="Account"
+          labelId="account_id-label"
+          id="account_id"
+          name="account_id"
+          value={formik.values.account_id}
+          label="Primary Account"
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          error={formik.touched.account && Boolean(formik.errors.account)}
+          error={formik.touched.account_id && Boolean(formik.errors.account_id)}
         >
-          <MenuItem value="AMEX">AMEX</MenuItem>
-          <MenuItem value="UFCU">UFCU</MenuItem>
-          <MenuItem value="UNLIMITED">UNLIMITED</MenuItem>
+          {accounts.map((account) => (
+            <MenuItem key={account.id} value={account.id}>
+              {account.name}
+            </MenuItem>
+          ))}
         </Select>
       </FormControl>
 
       <FormControlLabel
         control={
           <Switch
-            id="autoPay"
-            name="autoPay"
-            checked={formik.values.autoPay}
+            id="auto_pay"
+            name="auto_pay"
+            checked={formik.values.auto_pay}
             onChange={formik.handleChange}
           />
         }
         label="Auto Pay"
       />
 
+      <Divider sx={{ my: 2 }} />
+
+      <Box>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography variant="subtitle1">Split Payments</Typography>
+          <Button
+            startIcon={<AddIcon />}
+            onClick={addSplit}
+            variant="outlined"
+            size="small"
+          >
+            Add Split
+          </Button>
+        </Stack>
+
+        {(formik.values.splits || []).map((split, index) => (
+          <Box key={index} sx={{ mb: 2 }}>
+            <Stack direction="row" spacing={2} alignItems="flex-start">
+              <FormControl fullWidth>
+                <InputLabel>Account</InputLabel>
+                <Select
+                  value={split.account_id}
+                  label="Account"
+                  onChange={(e) =>
+                    formik.setFieldValue(`splits.${index}.account_id`, e.target.value)
+                  }
+                >
+                  {accounts.map((account) => (
+                    <MenuItem key={account.id} value={account.id}>
+                      {account.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <TextField
+                fullWidth
+                label="Amount"
+                type="number"
+                inputProps={{ step: '0.01', min: '0' }}
+                value={split.amount}
+                onChange={(e) =>
+                  formik.setFieldValue(`splits.${index}.amount`, parseFloat(e.target.value))
+                }
+              />
+
+              <IconButton
+                onClick={() => removeSplit(index)}
+                color="error"
+                sx={{ mt: 1 }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Stack>
+          </Box>
+        ))}
+
+        {formik.values.splits && formik.values.splits.length > 0 && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            Remaining Amount: ${remainingAmount.toFixed(2)}
+          </Typography>
+        )}
+      </Box>
+
       <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
         <Button variant="outlined" onClick={onCancel}>
           Cancel
         </Button>
-        <Button variant="contained" type="submit">
-          {initialValues.billName ? 'Update' : 'Create'}
+        <Button
+          variant="contained"
+          type="submit"
+          disabled={remainingAmount < 0}
+        >
+          {initialValues?.bill_name ? 'Update' : 'Create'}
         </Button>
       </Box>
     </Box>

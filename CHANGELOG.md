@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Major architectural change to support dynamic accounts instead of hard-coded account names
+- Added new bill_splits table to support splitting bills across multiple accounts
+- Updated bill entry form to support dynamic account selection and bill splits
+- Added accounts API endpoints for managing accounts
+- Improved database schema to be more flexible and maintainable
+- Updated frontend components to handle dynamic accounts and split payments
+- Enhanced form validation for split payment totals
+
+### Added
+- New account management features
+  - CRUD operations for accounts
+  - Balance tracking
+  - Credit limit management
+- Bill splitting functionality
+  - Support for splitting bills across multiple accounts
+  - Split amount validation
+  - Split payment tracking
+- Dynamic account selection in forms
+- API endpoints for managing accounts and bill splits
+- Migration path for existing data
+- New ADR documenting the architectural change
+
+### Technical Details
+- Removed hard-coded account columns (amex_amount, unlimited_amount, ufcu_amount)
+- Added bill_splits table with proper relationships and constraints
+- Implemented database migration with data preservation
+- Added new API endpoints for account management
+- Updated frontend components for dynamic account handling
+- Enhanced validation for split payment totals
+- Added comprehensive test coverage for new features
+
+## [0.1.0] - 2024-02-08
+
 ### Added
 - Bills Table/Grid component
   - Material-UI DataGrid integration
@@ -21,7 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Customized cell rendering
   - Tooltip information
   - Keyboard navigation support
-  - Account-specific amount columns (AMEX, Unlimited, UFCU)
+  - Account-specific amount columns
   - Paid date tracking and display
   - Days overdue calculation with tooltip display
   - Bulk payment actions with selection model
@@ -29,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Dynamic column visibility for mobile
   - Pagination with configurable page size
   - Striped rows for better readability
+
 - Bill Entry Form component
   - Form validation with Formik and Yup
   - Material-UI form controls
@@ -40,83 +75,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Error handling and feedback
   - Support for editing existing bills
   - Unit tests with Jest and React Testing Library
+
 - Frontend layout foundation
   - Material-UI integration with custom theme
   - Responsive navigation system
-    - Top app bar with mobile menu toggle
-    - Sidebar with navigation links
-    - Mobile-friendly drawer
+  - Top app bar with mobile menu toggle
+  - Sidebar with navigation links
+  - Mobile-friendly drawer
   - Page container with proper spacing
   - Theme configuration
-    - Custom color palette
-    - Typography settings
-    - Component style overrides
-  - Layout components
-    - AppLayout for consistent structure
-    - Navigation bar
-    - Responsive sidebar
-    - Content container
-- Frontend development setup
-  - React with TypeScript configuration
-  - Vite build system and development server
-  - Jest and React Testing Library setup
-  - ESLint and Prettier configuration
-  - Project structure with organized directories
-  - Development proxy for API integration
-  - Environment configuration
-  - Code quality tools and standards
-- Data migration tools
-  - Excel data extraction with pandas
-  - Data transformation to SQLAlchemy models
-  - Batch database import with validation
-  - Migration CLI tool with progress tracking
-  - Comprehensive error handling
-  - Data verification system
-  - Support for bills, income, and cashflow data
-- Income API endpoints
-  - CRUD operations for income records
-  - Deposit status tracking
-  - Undeposited amount calculations
-  - Date range filtering
-  - Income source categorization
-  - API documentation via Swagger UI
-- Cashflow API endpoints
-  - 90-day rolling forecast calculations
-  - Minimum required funds tracking
-  - Deficit calculations
-  - Required income projections
-  - Hourly rate calculations
-  - Account balance tracking
-  - API documentation via Swagger UI
-- Initial project setup and documentation
-- Database schema design and implementation
-  - Core models (Bills, Income, Accounts)
-  - Supporting models (Transactions, RecurringBills, CashflowForecasts)
-  - Model relationships and foreign keys
-  - Performance indexes
-- Development environment configuration
-  - Python virtual environment with UV
-  - SQLite database setup
-  - Configuration management (.env)
-  - FastAPI project structure
-- Database migration system
-  - Alembic configuration
-  - Initial schema migration
-  - Migration for relationships and indexes
-  - Income and cashflow models migration
-- Project documentation
-  - Project brief and requirements
-  - Technical context and patterns
-  - Architecture decisions
-  - Progress tracking
-- Bills API endpoints
-  - CRUD operations for bills
-  - Date range filtering
-  - Unpaid bills filtering
-  - Payment status management
-  - Account-specific amount tracking
-  - Automatic due date calculation
-  - API documentation via Swagger UI
+  - Custom color palette
+  - Typography settings
+  - Component style overrides
 
 ### Changed
 - Converted from Excel-based system to database schema
@@ -126,27 +96,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated project documentation to include frontend setup
 - Enhanced development workflow with frontend tooling
 - Removed date restrictions to support historical data entry
-
-### Technical Details
-- Added foreign key from bills to accounts
-- Created indexes for efficient querying:
-  - Bills: due_date, paid_date, account_id
-  - Income: date, deposited status
-  - Transactions: date, account_id
-  - Accounts: name
-  - Cashflow: forecast_date
-- Implemented calculation methods in models
-- Set up async database support
-- Added Pydantic schemas for request/response validation
-- Implemented service layer for bills, income, and cashflow management
-- Added FastAPI dependency injection for database sessions
-- Created RESTful API endpoints with proper status codes
-- Added OpenAPI documentation with detailed schemas
-- Frontend development environment:
-  - TypeScript strict mode configuration
-  - Jest testing environment with DOM support
-  - ESLint rules for React and TypeScript
-  - Prettier code formatting standards
-  - Development server with API proxy
-  - Path aliases for clean imports
-  - Environment variable management

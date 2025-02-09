@@ -1,31 +1,27 @@
-export interface Bill {
-  id: number;
-  month: string;
-  dayOfMonth: number;
-  dueDate: string;
-  paidDate?: string;
-  billName: string;
+export interface BillSplit {
+  id?: number;
+  bill_id?: number;
+  account_id: number;
   amount: number;
-  upToDate: boolean;
-  account: string;
-  autoPay: boolean;
-  paid: boolean;
-  amexAmount?: number;
-  unlimitedAmount?: number;
-  ufcuAmount?: number;
 }
 
-export type BillStatus = 'paid' | 'unpaid' | 'overdue';
-
-export interface BillTableRow extends Bill {
-  status: BillStatus;
-  daysOverdue: number;
+export interface Bill {
+  id?: number;
+  month: string;
+  day_of_month: number;
+  due_date?: string;
+  paid_date?: string;
+  bill_name: string;
+  amount: number;
+  account_id: number;
+  account_name?: string;
+  auto_pay: boolean;
+  paid?: boolean;
+  up_to_date?: boolean;
+  splits?: BillSplit[];
 }
 
-export type Account = 'AMEX' | 'UNLIMITED' | 'UFCU';
-
-export interface BillUpdatePayload {
-  id: number;
-  paid: boolean;
-  paidDate?: string;
+export interface BillDateRange {
+  start_date: string;
+  end_date: string;
 }

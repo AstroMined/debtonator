@@ -1,12 +1,13 @@
 from datetime import date
 from decimal import Decimal
-from typing import Optional
+from typing import List, Optional
 from sqlalchemy import String, Date, Numeric, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.base import Base
 from .transactions import AccountTransaction
 from .recurring_bills import RecurringBill
+from .bill_splits import BillSplit
 
 class Account(Base):
     """Account model representing a financial account"""
@@ -46,6 +47,7 @@ class Account(Base):
     transactions = relationship("AccountTransaction", back_populates="account")
     recurring_bills = relationship("RecurringBill", back_populates="account")
     bills = relationship("Bill", back_populates="account")
+    bill_splits: Mapped[List[BillSplit]] = relationship("BillSplit", back_populates="account", cascade="all, delete-orphan")
 
     # Create indexes for efficient lookups
     __table_args__ = (

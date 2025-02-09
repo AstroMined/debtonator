@@ -15,17 +15,23 @@ graph TD
    - State management
    - API integration
    - Real-time calculations
+   - Dynamic account management
+   - Split payment handling
 
 2. **API Layer**
    - FastAPI endpoints
    - Business logic
    - Data validation
    - Authentication
+   - Account management
+   - Split payment validation
 
 3. **Data Layer**
    - Database schema
    - Data access patterns
    - Caching strategy
+   - Account relationships
+   - Bill splits tracking
 
 ## Design Patterns
 
@@ -41,6 +47,9 @@ class BillRepository:
     
     async def get_unpaid_bills(self) -> List[Bill]:
         pass
+
+    async def get_bill_splits(self, bill_id: int) -> List[BillSplit]:
+        pass
 ```
 
 ### Service Layer Pattern
@@ -49,11 +58,20 @@ class BillRepository:
 - Handles complex calculations
 
 ```python
-class CashflowService:
-    async def calculate_forecast(self, days: int) -> CashflowForecast:
+class BillService:
+    async def create_bill_with_splits(
+        self, bill_data: BillCreate, splits: List[BillSplitCreate]
+    ) -> Bill:
         pass
     
-    async def calculate_required_income(self, target_balance: Decimal) -> IncomeRequirement:
+    async def validate_split_total(self, bill_id: int) -> bool:
+        pass
+
+class AccountService:
+    async def update_balance(self, account_id: int, amount: Decimal) -> Account:
+        pass
+    
+    async def calculate_available_credit(self, account_id: int) -> Decimal:
         pass
 ```
 
@@ -67,35 +85,43 @@ class BillFactory:
     @staticmethod
     def create_recurring_bill(template: BillTemplate) -> Bill:
         pass
+
+    @staticmethod
+    def create_split_bill(template: BillTemplate, splits: List[BillSplit]) -> Bill:
+        pass
 ```
 
 ## Data Flow Patterns
 
-### Bill Management
+### Bill Management with Splits
 ```mermaid
 graph LR
     A[Create Bill] --> B[Validate Data]
-    B --> C[Save Bill]
-    C --> D[Update Cashflow]
-    D --> E[Notify User]
+    B --> C[Create Splits]
+    C --> D[Validate Splits]
+    D --> E[Save Bill & Splits]
+    E --> F[Update Account Balances]
+    F --> G[Notify User]
 ```
 
-### Income Tracking
+### Account Management
 ```mermaid
 graph LR
-    A[Record Income] --> B[Update Balance]
-    B --> C[Recalculate Forecast]
-    C --> D[Update Dashboard]
+    A[Update Account] --> B[Validate Balance]
+    B --> C[Update Credit]
+    C --> D[Save Changes]
+    D --> E[Update Related Bills]
 ```
 
-### Cashflow Calculation
+### Bill Split Validation
 ```mermaid
 graph TD
-    A[Get Bills] --> D[Calculate Totals]
-    B[Get Income] --> D
-    C[Get Balances] --> D
-    D --> E[Generate Forecast]
-    E --> F[Calculate Requirements]
+    A[Get Bill] --> D[Get Splits]
+    B[Calculate Total] --> E[Compare with Bill Amount]
+    C[Validate Accounts] --> F[Check Balances]
+    D --> B
+    E --> G[Validate Result]
+    F --> G
 ```
 
 ## State Management
@@ -105,12 +131,16 @@ graph TD
 - Component-level state
 - Form state
 - API cache state
+- Account state management
+- Split payment state
 
 ### Backend State
 - Database transactions
 - Session management
 - Cache invalidation
 - Background tasks
+- Account balance tracking
+- Split payment validation
 
 ## Error Handling
 
@@ -119,12 +149,16 @@ graph TD
 - Form validation errors
 - Network error recovery
 - State inconsistency handling
+- Split payment validation errors
+- Account balance errors
 
 ### Backend Errors
 - Database errors
 - Validation errors
 - Business rule violations
 - External service errors
+- Split total mismatch errors
+- Account balance constraints
 
 ## Security Patterns
 
@@ -138,6 +172,8 @@ graph TD
 - Secure communication
 - Input validation
 - Output sanitization
+- Account data protection
+- Balance information security
 
 ## Testing Patterns
 
@@ -146,15 +182,37 @@ graph TD
 - Data validation
 - Calculations
 - Component rendering
+- Split payment validation
+- Account balance calculations
 
 ### Integration Testing
 - API endpoints
 - Database operations
 - Service interactions
 - User workflows
+- Account management flows
+- Split payment flows
 
 ### End-to-End Testing
 - Critical paths
 - User scenarios
 - Mobile responsiveness
 - Performance testing
+- Account operations
+- Split payment scenarios
+
+## Validation Patterns
+
+### Bill Split Validation
+- Total amount matching
+- Account availability
+- Balance sufficiency
+- Split constraints
+- Business rules compliance
+
+### Account Validation
+- Balance consistency
+- Credit limit enforcement
+- Transaction validation
+- Split payment capacity
+- Historical data consistency

@@ -4,12 +4,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.database import get_db
-from src.schemas.bills import Bill, BillCreate, BillUpdate, BillDateRange
+from src.schemas.bills import BillResponse, BillCreate, BillUpdate, BillDateRange
 from src.services.bills import BillService
 
 router = APIRouter()
 
-@router.get("/", response_model=List[Bill])
+@router.get("/", response_model=List[BillResponse])
 async def list_bills(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
@@ -21,7 +21,7 @@ async def list_bills(
     bill_service = BillService(db)
     return await bill_service.get_bills(skip=skip, limit=limit)
 
-@router.post("/", response_model=Bill)
+@router.post("/", response_model=BillResponse)
 async def create_bill(
     bill: BillCreate,
     db: AsyncSession = Depends(get_db)
@@ -32,7 +32,7 @@ async def create_bill(
     bill_service = BillService(db)
     return await bill_service.create_bill(bill)
 
-@router.get("/{bill_id}", response_model=Bill)
+@router.get("/{bill_id}", response_model=BillResponse)
 async def get_bill(
     bill_id: int,
     db: AsyncSession = Depends(get_db)
@@ -46,7 +46,7 @@ async def get_bill(
         raise HTTPException(status_code=404, detail="Bill not found")
     return bill
 
-@router.put("/{bill_id}", response_model=Bill)
+@router.put("/{bill_id}", response_model=BillResponse)
 async def update_bill(
     bill_id: int,
     bill_update: BillUpdate,
@@ -75,7 +75,7 @@ async def delete_bill(
         raise HTTPException(status_code=404, detail="Bill not found")
     return {"message": "Bill deleted successfully"}
 
-@router.get("/unpaid/", response_model=List[Bill])
+@router.get("/unpaid/", response_model=List[BillResponse])
 async def list_unpaid_bills(
     db: AsyncSession = Depends(get_db)
 ):
@@ -85,7 +85,7 @@ async def list_unpaid_bills(
     bill_service = BillService(db)
     return await bill_service.get_unpaid_bills()
 
-@router.get("/by-date-range/", response_model=List[Bill])
+@router.get("/by-date-range/", response_model=List[BillResponse])
 async def get_bills_by_date_range(
     date_range: BillDateRange,
     db: AsyncSession = Depends(get_db)
@@ -99,7 +99,7 @@ async def get_bills_by_date_range(
         end_date=date_range.end_date
     )
 
-@router.patch("/{bill_id}/mark-paid", response_model=Bill)
+@router.patch("/{bill_id}/mark-paid", response_model=BillResponse)
 async def mark_bill_paid(
     bill_id: int,
     db: AsyncSession = Depends(get_db)

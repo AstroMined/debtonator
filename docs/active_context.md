@@ -1,99 +1,28 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Frontend feature component development progressing with the completion of the Bill Entry Form. Moving forward with remaining feature components for bills, income, and cashflow management.
+Major architectural change to support dynamic accounts and bill splits, improving flexibility and reusability of the application. Frontend components and database schema have been updated to remove hard-coded account references.
 
-## Recent Analysis
+## Recent Changes
 
-### Frontend Layout Implementation
-1. **Material-UI Integration**
-   - Custom theme configuration
-   - Component style overrides
-   - Responsive design patterns
-   - Typography system
+### Dynamic Account Management
+1. **Database Schema**
+   - Removed hard-coded account columns
+   - Added bill_splits table
+   - Improved data normalization
+   - Migration path implemented
 
-2. **Navigation System**
-   - Top app bar with mobile menu
-   - Responsive sidebar
-   - Mobile-friendly drawer
-   - Navigation routing structure
+2. **API Implementation**
+   - New accounts API endpoints
+   - Updated bills API for splits
+   - Bill splits API endpoints
+   - Validation for split totals
 
-3. **Layout Components**
-   ```typescript
-   // Component hierarchy
-   AppLayout
-   ├── Navigation
-   ├── Sidebar
-   └── PageContainer
-   ```
-
-### Bill Management Implementation
-1. **Bill Entry Form**
-   - Form validation with Formik and Yup
-   - Material-UI form controls
-   - Date picker with historical date support
-   - Account selection
-   - Auto-pay toggle
-   - Amount validation with decimal places
-   - Mobile-responsive layout
-   - Error handling and feedback
-   - Support for editing existing bills
-
-2. **Bills Table**
-   - ✓ Material-UI DataGrid integration
-   - ✓ Sortable columns
-   - ✓ Payment status toggle
-   - ✓ Status indicators (paid/unpaid/overdue)
-   - ✓ Currency formatting
-   - ✓ Auto-pay indicators
-   - ✓ Mobile-responsive design
-   - ✓ Loading states
-   - ✓ Error handling
-   - ✓ Account-specific amount columns
-   - ✓ Paid date tracking
-   - ✓ Days overdue calculation
-   - ✓ Bulk payment actions
-   - ✓ Advanced filtering
-   - ✓ Pagination
-
-3. **Bills Page**
-   - Add New Bill functionality
-   - Bill listing and management
-   - Form state management
-   - Responsive layout
-   - Navigation integration
-   - Loading state handling
-   - Error feedback
-
-### API Implementation
-1. **Income API**
-   - CRUD operations completed
-   - Deposit status tracking
-   - Undeposited amount calculations
-   - Date range filtering
-   - Source categorization
-   - Relationship with transactions
-
-2. **Cashflow API**
-   - 90-day rolling forecast
-   - Minimum required funds tracking
-   - Deficit calculations
-   - Required income projections
-   - Hourly rate calculations
-   - Account balance tracking
-
-3. **Formula Translations**
-   - Income calculations implemented
-     ```python
-     undeposited_amount = amount if not deposited else Decimal(0)
-     ```
-   - Cashflow calculations implemented
-     ```python
-     daily_deficit = min_amount / 14 if min_amount < 0 else Decimal(0)
-     yearly_deficit = daily_deficit * 365
-     required_income = abs(yearly_deficit) / Decimal('0.8')
-     hourly_rate = required_income / 52 / hours_per_week
-     ```
+3. **Frontend Updates**
+   - Dynamic account selection
+   - Split payment support
+   - Updated bill display
+   - Improved form validation
 
 ## Active Decisions
 
@@ -102,6 +31,8 @@ Frontend feature component development progressing with the completion of the Bi
 - ✓ Schema matches Excel structure
 - ✓ Proper indexing implemented
 - ✓ Relationships and constraints defined
+- ✓ Dynamic account support
+- ✓ Bill splits functionality
 
 ### API Structure
 - ✓ Bills API endpoints implemented
@@ -109,6 +40,7 @@ Frontend feature component development progressing with the completion of the Bi
   - Date range filtering
   - Unpaid bills filtering
   - Payment status management
+  - Split payment support
 - ✓ Income API endpoints implemented
   - CRUD operations
   - Deposit status tracking
@@ -117,6 +49,10 @@ Frontend feature component development progressing with the completion of the Bi
   - Forecast calculations
   - Account balance tracking
   - Minimum required calculations
+- ✓ Accounts API endpoints implemented
+  - CRUD operations
+  - Balance tracking
+  - Credit limit management
 
 ### Frontend Architecture
 - ✓ React-based SPA with TypeScript
@@ -127,7 +63,8 @@ Frontend feature component development progressing with the completion of the Bi
 - ✓ Material-UI integration
 - ✓ Mobile-first approach
 - ✓ Base layout components
-- ✓ Bill entry form component
+- ✓ Dynamic account management
+- ✓ Bill split support
 - Real-time calculations
 
 ## Next Steps
@@ -141,35 +78,37 @@ Frontend feature component development progressing with the completion of the Bi
 6. ✓ Create data migration tools
 7. ✓ Set up frontend development environment
 8. ✓ Implement base layout components
-9. Feature component development
-   - Bills management interface
-     - ✓ Bill entry form
-     - Bills list/grid view
-     - Payment status updates
-     - Auto-pay management
-   - Income tracking interface
-     - Income entry form
-     - Income list view
-     - Deposit status tracking
-   - Cashflow visualization
-     - Forecast charts
-     - Account balance displays
-     - Required funds indicators
+9. ✓ Implement dynamic account management
+10. Feature component development
+    - Bills management interface
+      - ✓ Bill entry form with split support
+      - Bills list/grid view
+      - Payment status updates
+      - Auto-pay management
+    - Income tracking interface
+      - Income entry form
+      - Income list view
+      - Deposit status tracking
+    - Cashflow visualization
+      - Forecast charts
+      - Account balance displays
+      - Required funds indicators
 
 ### Technical Planning
 1. ✓ Design API Endpoints
 2. ✓ Plan Business Logic
 3. ✓ Frontend Layout Foundation
 4. ✓ Bill Entry Form Implementation
+5. ✓ Dynamic Account Management
 
-5. Feature Components
+6. Feature Components
    - Component specifications
    - State management implementation
    - API integration
    - Real-time updates
    - Mobile optimization
 
-6. Testing Strategy
+7. Testing Strategy
    - Unit tests for components
    - Integration tests
    - E2E testing
@@ -181,7 +120,8 @@ Frontend feature component development progressing with the completion of the Bi
 3. ✓ Cashflow API documentation
 4. ✓ Layout components documentation
 5. ✓ Bill Entry Form documentation
-6. Feature components documentation (in progress)
+6. ✓ Account Management documentation
+7. Feature components documentation (in progress)
 
 ## Known Issues
 
@@ -191,6 +131,8 @@ Frontend feature component development progressing with the completion of the Bi
 - Performance optimization
 - Form validation patterns
 - Data caching strategy
+- Split payment validation
+- Account balance tracking
 
 ## Current Questions
 1. How to handle real-time updates efficiently?
@@ -201,6 +143,8 @@ Frontend feature component development progressing with the completion of the Bi
 6. How to optimize component re-renders?
 7. How to implement optimistic updates?
 8. Strategy for error boundary implementation?
+9. How to handle complex split payment scenarios?
+10. Best approach for account balance reconciliation?
 
 ## Risk Assessment
 
@@ -208,12 +152,15 @@ Frontend feature component development progressing with the completion of the Bi
 - Component performance
 - State management complexity
 - Mobile user experience
+- Split payment validation
+- Account balance accuracy
 
 ### Medium Priority
 - Testing coverage
 - Documentation completeness
 - Error handling
 - Loading states
+- Migration reliability
 
 ### Low Priority
 - UI/UX refinements

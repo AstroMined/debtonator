@@ -26,23 +26,26 @@
   - Schema definition
 
 ### Frontend
-- **Framework**: React
+- **Framework**: React with TypeScript
   - Component-based architecture
   - Virtual DOM for performance
   - Large ecosystem of libraries
   - Strong community support
+  - Type safety with TypeScript
 
-- **State Management**: TBD
-  - Options:
-    - Redux for complex state
-    - React Context for simpler state
-    - React Query for server state
+- **UI Components**: Material-UI
+  - Comprehensive component library
+  - Customizable theming
+  - Responsive design support
+  - Form components
+  - Data grid for tables
 
-- **UI Components**: TBD
-  - Options:
-    - Material-UI
-    - Chakra UI
-    - Tailwind CSS
+- **Form Management**: Formik & Yup
+  - Form state management
+  - Validation with Yup schemas
+  - Error handling
+  - Field-level validation
+  - Form submission handling
 
 ## Data Models
 
@@ -57,12 +60,37 @@ class Bill(BaseModel):
     bill_name: str
     amount: Decimal
     up_to_date: bool
-    account: str
+    account_id: int
+    account_name: str
     auto_pay: bool
     paid: bool
-    amex_amount: Optional[Decimal]
-    unlimited_amount: Optional[Decimal]
-    ufcu_amount: Optional[Decimal]
+    splits: List[BillSplit]
+```
+
+### BillSplits
+```python
+class BillSplit(BaseModel):
+    id: int
+    bill_id: int
+    account_id: int
+    amount: Decimal
+    created_at: date
+    updated_at: date
+```
+
+### Accounts
+```python
+class Account(BaseModel):
+    id: int
+    name: str
+    type: str  # credit, checking, savings
+    available_balance: Decimal
+    available_credit: Optional[Decimal]
+    total_limit: Optional[Decimal]
+    last_statement_balance: Optional[Decimal]
+    last_statement_date: Optional[date]
+    created_at: date
+    updated_at: date
 ```
 
 ### Income
@@ -74,16 +102,6 @@ class Income(BaseModel):
     amount: Decimal
     deposited: bool
     undeposited_amount: Decimal
-```
-
-### Accounts
-```python
-class Account(BaseModel):
-    id: int
-    name: str
-    type: str
-    available_balance: Decimal
-    available_credit: Optional[Decimal]
 ```
 
 ### Cashflow
@@ -102,17 +120,38 @@ class CashflowForecast(BaseModel):
 
 ## Formula Translations
 
-### Bill Calculations
+### Bill Split Calculations
 ```python
-def calculate_account_amount(bill: Bill) -> Decimal:
-    if not bill.paid:
-        if bill.account == "AMEX":
-            return bill.amount
-        elif bill.account == "UNLIMITED":
-            return bill.amount
-        elif bill.account == "UFCU":
-            return bill.amount
+def validate_bill_splits(bill: Bill) -> bool:
+    total_split_amount = sum(split.amount for split in bill.splits)
+    return total_split_amount == bill.amount
+
+def get_account_total(account_id: int, bills: List[Bill]) -> Decimal:
+    total = Decimal(0)
+    for bill in bills:
+        # Add primary account amount
+        if bill.account_id == account_id:
+            total += bill.amount
+        # Add split amounts
+        for split in bill.splits:
+            if split.account_id == account_id:
+                total += split.amount
+    return total
+```
+
+### Account Calculations
+```python
+def calculate_available_credit(account: Account) -> Decimal:
+    if account.type == "credit" and account.total_limit:
+        return account.total_limit - abs(account.available_balance)
     return Decimal(0)
+
+def update_account_balance(account: Account, amount: Decimal, is_credit: bool = False) -> Decimal:
+    if is_credit:
+        account.available_balance -= amount
+    else:
+        account.available_balance += amount
+    return account.available_balance
 ```
 
 ### Income Calculations
@@ -144,18 +183,21 @@ def calculate_hourly_rate(required_income: Decimal, hours_per_week: int) -> Deci
 - Maintain data integrity during migration
 - Verify calculation accuracy
 - Handle date format conversions
+- Migrate account-specific amounts to bill splits
 
 ### Performance Requirements
 - Fast cashflow calculations
 - Quick forecast updates
 - Responsive UI updates
 - Efficient database queries
+- Optimized split calculations
 
 ### Security Requirements
 - Secure user authentication
 - Financial data encryption
 - Secure API endpoints
 - Input validation
+- Account data protection
 
 ## Development Setup
 1. Python virtual environment with UV
@@ -166,30 +208,36 @@ def calculate_hourly_rate(required_income: Decimal, hours_per_week: int) -> Deci
    - Git for version control
    - Docker for containerization
    - Testing frameworks
+   - ESLint and Prettier
 
 ## Deployment Considerations
 1. Database migration strategy
    - Schema versioning
    - Data migration scripts
    - Rollback procedures
+   - Split data migration
 
 2. API versioning
    - URL versioning
    - Backward compatibility
    - Documentation
+   - OpenAPI/Swagger docs
 
 3. Frontend deployment
    - Static file hosting
    - CDN integration
    - Build optimization
+   - TypeScript compilation
 
 4. Monitoring and logging
    - Application metrics
    - Error tracking
    - Performance monitoring
    - User analytics
+   - Account operation logging
 
 5. Backup strategy
    - Database backups
    - Data retention
    - Disaster recovery
+   - Account data protection

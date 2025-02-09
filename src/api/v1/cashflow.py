@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...database.database import get_session
+from ...database.database import get_db
 from ...schemas.cashflow import (
     CashflowCreate,
     CashflowUpdate,
@@ -21,20 +21,20 @@ router = APIRouter(prefix="/cashflow", tags=["cashflow"])
 @router.post("/", response_model=CashflowResponse, status_code=201)
 async def create_forecast(
     forecast_data: CashflowCreate,
-    session: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_db)
 ):
     """Create a new cashflow forecast"""
-    service = CashflowService(session)
+    service = CashflowService(db)
     forecast = await service.create(forecast_data)
     return forecast
 
 @router.get("/{forecast_id}", response_model=CashflowResponse)
 async def get_forecast(
     forecast_id: int,
-    session: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_db)
 ):
     """Get a cashflow forecast by ID"""
-    service = CashflowService(session)
+    service = CashflowService(db)
     forecast = await service.get(forecast_id)
     if not forecast:
         raise HTTPException(status_code=404, detail="Forecast not found")
@@ -44,10 +44,10 @@ async def get_forecast(
 async def update_forecast(
     forecast_id: int,
     forecast_data: CashflowUpdate,
-    session: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_db)
 ):
     """Update a cashflow forecast"""
-    service = CashflowService(session)
+    service = CashflowService(db)
     forecast = await service.update(forecast_id, forecast_data)
     if not forecast:
         raise HTTPException(status_code=404, detail="Forecast not found")
@@ -56,10 +56,10 @@ async def update_forecast(
 @router.delete("/{forecast_id}", status_code=204)
 async def delete_forecast(
     forecast_id: int,
-    session: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_db)
 ):
     """Delete a cashflow forecast"""
-    service = CashflowService(session)
+    service = CashflowService(db)
     success = await service.delete(forecast_id)
     if not success:
         raise HTTPException(status_code=404, detail="Forecast not found")
@@ -72,7 +72,7 @@ async def list_forecasts(
     max_balance: Optional[float] = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    session: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_db)
 ):
     """List cashflow forecasts with optional filtering"""
     filters = CashflowFilters(
@@ -81,27 +81,27 @@ async def list_forecasts(
         min_balance=min_balance,
         max_balance=max_balance
     )
-    service = CashflowService(session)
+    service = CashflowService(db)
     items, total = await service.list(filters, skip, limit)
     return CashflowList(items=items, total=total)
 
 @router.post("/forecast/90-day", response_model=list[CashflowResponse])
 async def calculate_90_day_forecast(
     start_date: date = Query(default_factory=date.today),
-    session: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_db)
 ):
     """Calculate 90-day rolling forecast"""
-    service = CashflowService(session)
+    service = CashflowService(db)
     forecasts = await service.calculate_90_day_forecast(start_date)
     return forecasts
 
 @router.get("/{forecast_id}/minimum-required", response_model=MinimumRequired)
 async def get_minimum_required(
     forecast_id: int,
-    session: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_db)
 ):
     """Get minimum required funds for all periods"""
-    service = CashflowService(session)
+    service = CashflowService(db)
     forecast = await service.get_minimum_required(forecast_id)
     if not forecast:
         raise HTTPException(status_code=404, detail="Forecast not found")
@@ -115,10 +115,10 @@ async def get_minimum_required(
 @router.get("/{forecast_id}/deficit", response_model=DeficitCalculation)
 async def get_deficit_calculation(
     forecast_id: int,
-    session: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_db)
 ):
     """Get deficit calculations"""
-    service = CashflowService(session)
+    service = CashflowService(db)
     forecast = await service.get_deficit_calculation(forecast_id)
     if not forecast:
         raise HTTPException(status_code=404, detail="Forecast not found")
@@ -131,10 +131,10 @@ async def get_deficit_calculation(
 @router.get("/{forecast_id}/hourly-rates", response_model=HourlyRates)
 async def get_hourly_rates(
     forecast_id: int,
-    session: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_db)
 ):
     """Get hourly rates for different work hours"""
-    service = CashflowService(session)
+    service = CashflowService(db)
     forecast = await service.get_hourly_rates(forecast_id)
     if not forecast:
         raise HTTPException(status_code=404, detail="Forecast not found")
