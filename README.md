@@ -4,14 +4,26 @@ A modern bill and cashflow management system that helps track bills, income, and
 
 ## Features
 
-- Dynamic account management
-- Bill tracking with split payment support
+### Account Management
+- Dynamic account creation and configuration
+- Support for multiple account types (credit, checking, savings)
+- Balance and credit limit tracking
+- Statement balance history
+
+### Bill Management
+- Comprehensive bill tracking
+- Split payment support across multiple accounts
+- Auto-pay status tracking
+- Payment status management with bulk actions
+- Due date tracking with overdue detection
+- Mobile-responsive grid view with advanced filtering
+
+### Financial Analysis
 - Income tracking and deposit status
 - Cashflow analysis and forecasting
-- Auto-pay status tracking
-- Payment status management
 - 90-day rolling forecast
 - Required funds calculation
+- Cross-account balance tracking
 
 ## Tech Stack
 

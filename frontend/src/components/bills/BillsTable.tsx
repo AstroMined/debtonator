@@ -11,9 +11,11 @@ import { Box, Chip, IconButton, Tooltip, useTheme, useMediaQuery } from '@mui/ma
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { Bill, BillStatus, BillTableRow } from '../../types/bills';
+import { Account } from '../../services/accounts';
 
 interface BillsTableProps {
   bills: Bill[];
+  accounts: Account[];
   onPaymentToggle: (billId: number, paid: boolean) => void;
   onBulkPaymentToggle?: (billIds: number[], paid: boolean) => void;
   loading?: boolean;
@@ -21,6 +23,7 @@ interface BillsTableProps {
 
 export const BillsTable: React.FC<BillsTableProps> = ({
   bills,
+  accounts,
   onPaymentToggle,
   onBulkPaymentToggle,
   loading = false,
@@ -34,14 +37,18 @@ export const BillsTable: React.FC<BillsTableProps> = ({
 
   const getBillStatus = (bill: Bill): BillStatus => {
     if (bill.paid) return 'paid';
-    const dueDate = new Date(bill.dueDate);
+    if (!bill.due_date) return 'unpaid';
+    
+    const dueDate = new Date(bill.due_date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return dueDate < today ? 'overdue' : 'unpaid';
   };
 
-  const getDaysOverdue = (dueDate: string): number => {
-    const due = new Date(dueDate);
+  const getDaysOverdue = (due_date: string | undefined): number => {
+    if (!due_date) return 0;
+    
+    const due = new Date(due_date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const diffTime = Math.abs(today.getTime() - due.getTime());
@@ -50,11 +57,20 @@ export const BillsTable: React.FC<BillsTableProps> = ({
 
   const rows: BillTableRow[] = useMemo(
     () =>
-      bills.map((bill) => ({
-        ...bill,
-        status: getBillStatus(bill),
-        daysOverdue: !bill.paid && new Date(bill.dueDate) < new Date() ? getDaysOverdue(bill.dueDate) : 0,
-      })),
+      bills.map((bill) => {
+        // Create a map of account IDs to split amounts
+        const splitAmounts = bill.splits?.reduce((acc, split) => {
+          acc[split.account_id] = split.amount;
+          return acc;
+        }, {} as { [accountId: number]: number }) || {};
+
+        return {
+          ...bill,
+          status: getBillStatus(bill),
+          daysOverdue: !bill.paid && bill.due_date && new Date(bill.due_date) < new Date() ? getDaysOverdue(bill.due_date) : 0,
+          splitAmounts,
+        };
+      }),
     [bills]
   );
 
@@ -83,17 +99,21 @@ export const BillsTable: React.FC<BillsTableProps> = ({
     setSelectionModel(newSelectionModel);
     if (onBulkPaymentToggle && newSelectionModel.length > 0) {
       // Check if all selected bills have the same payment status
-      const selectedBills = rows.filter(row => newSelectionModel.includes(row.id));
-      const allPaid = selectedBills.every(bill => bill.paid);
-      const allUnpaid = selectedBills.every(bill => !bill.paid);
-      
-      if (allPaid || allUnpaid) {
-        onBulkPaymentToggle(newSelectionModel as number[], !allPaid);
+      const selectedBills = rows.filter(row => row.id && newSelectionModel.includes(row.id));
+      if (selectedBills.length > 0) {
+        const allPaid = selectedBills.every(bill => bill.paid);
+        const allUnpaid = selectedBills.every(bill => !bill.paid);
+        
+        if (allPaid || allUnpaid) {
+          const validIds = selectedBills.map(bill => bill.id!);
+          onBulkPaymentToggle(validIds, !allPaid);
+        }
       }
     }
   };
 
-  const getDefaultColumns = (): GridColDef[] => [
+  const getDefaultColumns = (): GridColDef[] => {
+    const baseColumns: GridColDef[] = [
     {
       field: 'paid',
       headerName: 'Status',
@@ -106,7 +126,7 @@ export const BillsTable: React.FC<BillsTableProps> = ({
         return (
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <IconButton
-              onClick={() => onPaymentToggle(params.row.id, !params.row.paid)}
+              onClick={() => params.row.id && onPaymentToggle(params.row.id, !params.row.paid)}
               size="small"
               color={params.row.paid ? 'success' : 'default'}
             >
@@ -133,7 +153,7 @@ export const BillsTable: React.FC<BillsTableProps> = ({
       field: 'dueDate',
       headerName: 'Due Date',
       width: 120,
-      valueGetter: ({ row }: { row: BillTableRow }) => new Date(row.dueDate),
+      valueGetter: ({ row }: { row: BillTableRow }) => row.due_date ? new Date(row.due_date) : null,
       type: 'date',
     },
     {
@@ -141,11 +161,11 @@ export const BillsTable: React.FC<BillsTableProps> = ({
       headerName: 'Paid Date',
       width: 120,
       valueGetter: ({ row }: { row: BillTableRow }) => 
-        row.paidDate ? new Date(row.paidDate) : null,
+        row.paid_date ? new Date(row.paid_date) : null,
       type: 'date',
     },
     {
-      field: 'billName',
+      field: 'bill_name',
       headerName: 'Bill Name',
       width: 200,
       flex: 1,
@@ -157,50 +177,47 @@ export const BillsTable: React.FC<BillsTableProps> = ({
       type: 'number',
       valueFormatter: ({ value }) => formatCurrency(value as number),
     },
-    {
-      field: 'amexAmount',
-      headerName: 'AMEX',
+    // Account columns for splits
+    ...accounts.map((account): GridColDef => ({
+      field: `account_${account.id}`,
+      headerName: account.name,
       width: 120,
       type: 'number',
+      valueGetter: (params: GridRenderCellParams<BillTableRow>) => 
+        params.row.splitAmounts?.[account.id] || 
+        (params.row.account_id === account.id ? params.row.amount : 0),
       valueFormatter: ({ value }) => formatCurrency(value as number),
-    },
+    })),
+
     {
-      field: 'unlimitedAmount',
-      headerName: 'Unlimited',
-      width: 120,
-      type: 'number',
-      valueFormatter: ({ value }) => formatCurrency(value as number),
+      field: 'account_name',
+      headerName: 'Primary Account',
+      width: 150,
+      valueGetter: (params: GridRenderCellParams<BillTableRow>) => 
+        params.row.account_name || accounts.find(a => a.id === params.row.account_id)?.name || '-',
     },
+
     {
-      field: 'ufcuAmount',
-      headerName: 'UFCU',
-      width: 120,
-      type: 'number',
-      valueFormatter: ({ value }) => formatCurrency(value as number),
-    },
-    {
-      field: 'account',
-      headerName: 'Account',
-      width: 120,
-    },
-    {
-      field: 'autoPay',
+      field: 'auto_pay',
       headerName: 'Auto Pay',
       width: 100,
       type: 'boolean',
       renderCell: (params: GridRenderCellParams<BillTableRow>) => (
-        <Tooltip title={params.row.autoPay ? 'Auto Pay Enabled' : 'Manual Payment'}>
+        <Tooltip title={params.row.auto_pay ? 'Auto Pay Enabled' : 'Manual Payment'}>
           <Chip
-            label={params.row.autoPay ? 'Auto' : 'Manual'}
+            label={params.row.auto_pay ? 'Auto' : 'Manual'}
             size="small"
-            color={params.row.autoPay ? 'info' : 'default'}
+            color={params.row.auto_pay ? 'info' : 'default'}
           />
         </Tooltip>
       ),
     },
   ];
 
-  const columns = useMemo(() => getDefaultColumns(), [isMobile]);
+  return baseColumns;
+};
+
+  const columns = useMemo(() => getDefaultColumns(), [isMobile, accounts, getDefaultColumns]);
 
   return (
     <Box sx={{ width: '100%', height: 500 }}>
@@ -225,16 +242,13 @@ export const BillsTable: React.FC<BillsTableProps> = ({
         }}
         initialState={{
           sorting: {
-            sortModel: [{ field: 'dueDate', sort: 'asc' }],
+            sortModel: [{ field: 'due_date', sort: 'asc' }],
           },
           columns: {
             columnVisibilityModel: {
-              paidDate: !isMobile,
-              amexAmount: !isMobile,
-              unlimitedAmount: !isMobile,
-              ufcuAmount: !isMobile,
-              account: !isMobile,
-              autoPay: !isMobile,
+              paid_date: !isMobile,
+              account_name: !isMobile,
+              auto_pay: !isMobile,
             },
           },
           pagination: {

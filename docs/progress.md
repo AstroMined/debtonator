@@ -153,6 +153,12 @@
   - Base layout components
   - Bill entry form with split support
   - Bills table/grid view
+    - Dynamic account columns
+    - Split payment display
+    - Payment status management
+    - Bulk payment updates
+    - Mobile responsive design
+    - Filter and sort capabilities
   - Account management components
   - Loading states
   - Error handling
@@ -225,8 +231,9 @@
 ### Phase 2: Core Features (In Progress)
 - [x] Bill management implementation
   - [x] Bill entry form with splits
-  - [x] Bills list/grid view
+  - [x] Bills list/grid view with dynamic accounts
   - [x] Payment status management
+  - [x] Split payment display and tracking
   - [ ] API integration
 - [ ] Account management system
 - [ ] Income tracking system

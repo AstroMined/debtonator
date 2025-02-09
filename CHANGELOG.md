@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved database schema to be more flexible and maintainable
 - Updated frontend components to handle dynamic accounts and split payments
 - Enhanced form validation for split payment totals
+- Enhanced Bills Table/Grid view with dynamic account support
+  - Replaced hard-coded account columns with dynamic columns
+  - Added split payment display and tracking
+  - Improved payment status management with bulk actions
+  - Enhanced mobile responsiveness for dynamic columns
+  - Added advanced filtering and sorting capabilities
 
 ### Added
 - New account management features

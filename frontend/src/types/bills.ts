@@ -25,3 +25,11 @@ export interface BillDateRange {
   start_date: string;
   end_date: string;
 }
+
+export type BillStatus = 'paid' | 'unpaid' | 'overdue';
+
+export interface BillTableRow extends Bill {
+  status: BillStatus;
+  daysOverdue: number;
+  splitAmounts?: { [accountId: number]: number };
+}
