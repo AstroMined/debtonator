@@ -7,3 +7,4 @@ End session:
 update memory bank
 
 Update README.md, CHANGELOG.md and create any ADRs that are absolutely necessary to document a major architectural change.
+Finally, suggest a good commit message for the tasks accomplished during this session.

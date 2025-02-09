@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Enhanced Bills Table UI/UX (ADR-005)
+  - Improved split payment visualization with tooltips and indicators
+  - Enhanced mobile responsiveness with smart column management
+  - Added row virtualization for better performance
+  - Improved visual feedback for payment status and overdue bills
+  - Added detailed tooltips for payment information
+  - Enhanced accessibility with better keyboard navigation
+
 ### Changed
 - Major architectural change to support dynamic accounts instead of hard-coded account names
 - Added new bill_splits table to support splitting bills across multiple accounts

@@ -21,13 +21,13 @@ interface BillsTableProps {
   loading?: boolean;
 }
 
-export const BillsTable: React.FC<BillsTableProps> = ({
+export const BillsTable = ({
   bills,
   accounts,
   onPaymentToggle,
   onBulkPaymentToggle,
   loading = false,
-}) => {
+}: BillsTableProps): React.ReactElement => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>([]);
@@ -113,111 +113,133 @@ export const BillsTable: React.FC<BillsTableProps> = ({
   };
 
   const getDefaultColumns = (): GridColDef[] => {
-    const baseColumns: GridColDef[] = [
-    {
-      field: 'paid',
-      headerName: 'Status',
-      width: 130,
-      renderCell: (params: GridRenderCellParams<BillTableRow>) => {
-        const statusLabel = params.row.status === 'overdue' 
-          ? `Overdue (${params.row.daysOverdue} days)`
-          : params.row.status;
+    return [
+      {
+        field: 'paid',
+        headerName: 'Status',
+        width: 130,
+        renderCell: (params: GridRenderCellParams<BillTableRow>) => {
+          const statusLabel = params.row.status === 'overdue' 
+            ? `Overdue (${params.row.daysOverdue} days)`
+            : params.row.status;
 
-        return (
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            <IconButton
-              onClick={() => params.row.id && onPaymentToggle(params.row.id, !params.row.paid)}
-              size="small"
-              color={params.row.paid ? 'success' : 'default'}
-            >
-              {params.row.paid ? (
-                <CheckCircleIcon />
-              ) : (
-                <RadioButtonUncheckedIcon />
-              )}
-            </IconButton>
-            <Tooltip title={statusLabel}>
-              <Chip
-                label={params.row.status}
+          return (
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <IconButton
+                onClick={() => params.row.id && onPaymentToggle(params.row.id, !params.row.paid)}
                 size="small"
-                color={getStatusColor(params.row.status)}
-                variant="outlined"
-              />
-            </Tooltip>
-          </Box>
-        );
+                color={params.row.paid ? 'success' : 'default'}
+              >
+                {params.row.paid ? (
+                  <CheckCircleIcon />
+                ) : (
+                  <RadioButtonUncheckedIcon />
+                )}
+              </IconButton>
+              <Tooltip title={statusLabel}>
+                <Chip
+                  label={params.row.status}
+                  size="small"
+                  color={getStatusColor(params.row.status)}
+                  variant="outlined"
+                />
+              </Tooltip>
+            </Box>
+          );
+        },
+        sortable: true,
       },
-      sortable: true,
-    },
-    {
-      field: 'dueDate',
-      headerName: 'Due Date',
-      width: 120,
-      valueGetter: ({ row }: { row: BillTableRow }) => row.due_date ? new Date(row.due_date) : null,
-      type: 'date',
-    },
-    {
-      field: 'paidDate',
-      headerName: 'Paid Date',
-      width: 120,
-      valueGetter: ({ row }: { row: BillTableRow }) => 
-        row.paid_date ? new Date(row.paid_date) : null,
-      type: 'date',
-    },
-    {
-      field: 'bill_name',
-      headerName: 'Bill Name',
-      width: 200,
-      flex: 1,
-    },
-    {
-      field: 'amount',
-      headerName: 'Amount',
-      width: 120,
-      type: 'number',
-      valueFormatter: ({ value }) => formatCurrency(value as number),
-    },
-    // Account columns for splits
-    ...accounts.map((account): GridColDef => ({
-      field: `account_${account.id}`,
-      headerName: account.name,
-      width: 120,
-      type: 'number',
-      valueGetter: (params: GridRenderCellParams<BillTableRow>) => 
-        params.row.splitAmounts?.[account.id] || 
-        (params.row.account_id === account.id ? params.row.amount : 0),
-      valueFormatter: ({ value }) => formatCurrency(value as number),
-    })),
+      {
+        field: 'dueDate',
+        headerName: 'Due Date',
+        width: 120,
+        valueGetter: ({ row }: { row: BillTableRow }) => row.due_date ? new Date(row.due_date) : null,
+        type: 'date',
+      },
+      {
+        field: 'paidDate',
+        headerName: 'Paid Date',
+        width: 120,
+        valueGetter: ({ row }: { row: BillTableRow }) => 
+          row.paid_date ? new Date(row.paid_date) : null,
+        type: 'date',
+      },
+      {
+        field: 'bill_name',
+        headerName: 'Bill Name',
+        width: 200,
+        flex: 1,
+      },
+      {
+        field: 'amount',
+        headerName: 'Amount',
+        width: 120,
+        type: 'number',
+        valueFormatter: ({ value }) => formatCurrency(value as number),
+      },
+      // Account columns for splits
+      ...accounts.map((account): GridColDef => ({
+        field: `account_${account.id}`,
+        headerName: account.name,
+        width: 120,
+        type: 'number',
+        valueGetter: (params: GridRenderCellParams<BillTableRow>) => 
+          params.row.splitAmounts?.[account.id] || 
+          (params.row.account_id === account.id ? params.row.amount : 0),
+        valueFormatter: ({ value }) => formatCurrency(value as number),
+        renderCell: (params: GridRenderCellParams<BillTableRow>) => {
+          const amount = params.row.splitAmounts?.[account.id] || 
+            (params.row.account_id === account.id ? params.row.amount : 0);
+          const isMainAccount = params.row.account_id === account.id;
+          
+          return (
+            <Tooltip title={isMainAccount ? 'Primary Account' : 'Split Payment'}>
+              <Box>
+                {formatCurrency(amount)}
+              </Box>
+            </Tooltip>
+          );
+        },
+      })),
+      {
+        field: 'account_name',
+        headerName: 'Primary Account',
+        width: 150,
+        valueGetter: (params: GridRenderCellParams<BillTableRow>) => 
+          params.row.account_name || accounts.find(a => a.id === params.row.account_id)?.name || '-',
+      },
+      {
+        field: 'auto_pay',
+        headerName: 'Auto Pay',
+        width: 100,
+        type: 'boolean',
+        renderCell: (params: GridRenderCellParams<BillTableRow>) => (
+          <Tooltip title={params.row.auto_pay ? 'Auto Pay Enabled' : 'Manual Payment'}>
+            <Chip
+              label={params.row.auto_pay ? 'Auto' : 'Manual'}
+              size="small"
+              color={params.row.auto_pay ? 'info' : 'default'}
+            />
+          </Tooltip>
+        ),
+      },
+    ];
+  };
 
-    {
-      field: 'account_name',
-      headerName: 'Primary Account',
-      width: 150,
-      valueGetter: (params: GridRenderCellParams<BillTableRow>) => 
-        params.row.account_name || accounts.find(a => a.id === params.row.account_id)?.name || '-',
-    },
-
-    {
-      field: 'auto_pay',
-      headerName: 'Auto Pay',
-      width: 100,
-      type: 'boolean',
-      renderCell: (params: GridRenderCellParams<BillTableRow>) => (
-        <Tooltip title={params.row.auto_pay ? 'Auto Pay Enabled' : 'Manual Payment'}>
-          <Chip
-            label={params.row.auto_pay ? 'Auto' : 'Manual'}
-            size="small"
-            color={params.row.auto_pay ? 'info' : 'default'}
-          />
-        </Tooltip>
-      ),
-    },
-  ];
-
-  return baseColumns;
-};
-
-  const columns = useMemo(() => getDefaultColumns(), [isMobile, accounts, getDefaultColumns]);
+  const columns = useMemo(() => {
+    const defaultColumns = getDefaultColumns();
+    
+    // Hide account columns on mobile
+    if (isMobile) {
+      return defaultColumns.filter((col: GridColDef) => 
+        !col.field.startsWith('account_') || 
+        // Keep primary account column if it matches the bill's account
+        col.field === `account_${accounts[0]?.id}`
+      );
+    }
+    
+    return defaultColumns;
+  }, [isMobile, accounts]);
 
   return (
     <Box sx={{ width: '100%', height: 500 }}>
@@ -263,11 +285,28 @@ export const BillsTable: React.FC<BillsTableProps> = ({
             '&:nth-of-type(odd)': {
               backgroundColor: theme.palette.action.hover,
             },
+            '&.overdue': {
+              backgroundColor: theme.palette.error.light,
+              '&:hover': {
+                backgroundColor: theme.palette.error.main,
+              },
+            },
           },
           '& .MuiDataGrid-cell--textLeft': {
             paddingLeft: 2,
           },
+          // Optimize performance with row virtualization
+          '& .MuiDataGrid-virtualScroller': {
+            overflowX: 'hidden',
+          },
+          // Responsive column widths
+          '& .MuiDataGrid-columnHeader': {
+            minWidth: isMobile ? 100 : 120,
+          },
         }}
+        getRowClassName={(params) => 
+          params.row.status === 'overdue' ? 'overdue' : ''
+        }
       />
     </Box>
   );

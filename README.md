@@ -11,12 +11,14 @@ A modern bill and cashflow management system that helps track bills, income, and
 - Statement balance history
 
 ### Bill Management
-- Comprehensive bill tracking
-- Split payment support across multiple accounts
-- Auto-pay status tracking
+- Comprehensive bill tracking with enhanced visualization
+- Intuitive split payment support with detailed tooltips
+- Auto-pay status tracking with visual indicators
 - Payment status management with bulk actions
-- Due date tracking with overdue detection
-- Mobile-responsive grid view with advanced filtering
+- Due date tracking with overdue detection and visual feedback
+- Mobile-optimized grid view with smart column management
+- Advanced filtering and sorting capabilities
+- Performance-optimized for large datasets
 
 ### Financial Analysis
 - Income tracking and deposit status
@@ -135,6 +137,8 @@ debtonator/
 - [Database Schema Design](docs/adr/001-database-schema-design.md)
 - [Historical Data Entry](docs/adr/002-historical-data-entry.md)
 - [Dynamic Accounts and Bill Splits](docs/adr/003-dynamic-accounts-and-bill-splits.md)
+- [Bills Table Dynamic Accounts](docs/adr/004-bills-table-dynamic-accounts.md)
+- [Bills Table UI/UX Enhancements](docs/adr/005-bills-table-enhancements.md)
 
 ## Contributing
 
