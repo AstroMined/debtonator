@@ -7,7 +7,9 @@ import {
   Box,
   useTheme,
   useMediaQuery,
+  Button,
 } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 
@@ -36,12 +38,36 @@ export const Navigation: React.FC<NavigationProps> = ({ onMenuClick }) => {
         
         <AccountBalanceWalletIcon sx={{ mr: 2 }} />
         
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+        <Typography
+          variant="h6"
+          component={RouterLink}
+          to="/"
+          sx={{
+            flexGrow: 1,
+            textDecoration: 'none',
+            color: 'inherit',
+            '&:hover': {
+              textDecoration: 'none',
+            },
+          }}
+        >
           Debtonator
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          {/* Additional navigation items can be added here */}
+          {!isMobile && (
+            <>
+              <Button
+                component={RouterLink}
+                to="/bills"
+                color="inherit"
+                sx={{ textTransform: 'none' }}
+              >
+                Bills
+              </Button>
+              {/* Add more navigation buttons here */}
+            </>
+          )}
         </Box>
       </Toolbar>
     </AppBar>

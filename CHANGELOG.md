@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Bill Entry Form component
+  - Form validation with Formik and Yup
+  - Material-UI form controls
+  - Date picker with historical date support
+  - Account selection dropdown
+  - Auto-pay toggle switch
+  - Amount validation with decimal places
+  - Mobile-responsive layout
+  - Error handling and feedback
+  - Support for editing existing bills
+  - Unit tests with Jest and React Testing Library
 - Frontend layout foundation
   - Material-UI integration with custom theme
   - Responsive navigation system
@@ -93,6 +104,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implemented versioned API structure (v1)
 - Updated project documentation to include frontend setup
 - Enhanced development workflow with frontend tooling
+- Removed date restrictions to support historical data entry
 
 ### Technical Details
 - Added foreign key from bills to accounts

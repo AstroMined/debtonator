@@ -11,6 +11,7 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Dashboard as DashboardIcon,
   Receipt as BillsIcon,
@@ -37,6 +38,8 @@ const menuItems = [
 export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const drawerContent = (
     <Box sx={{ width: DRAWER_WIDTH }}>
@@ -45,7 +48,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       <List>
         {menuItems.map((item) => (
           <ListItem key={item.text} disablePadding>
-            <ListItemButton>
+            <ListItemButton
+              onClick={() => {
+                navigate(item.path);
+                if (isMobile) {
+                  onClose();
+                }
+              }}
+              selected={location.pathname === item.path}
+            >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>

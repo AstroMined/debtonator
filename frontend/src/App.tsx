@@ -1,25 +1,26 @@
 import React from 'react';
-import { Typography, Paper, Box } from '@mui/material';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { AppLayout } from './components/layout';
+import { HomePage, BillsPage } from './pages';
 
 function App() {
   return (
-    <AppLayout>
-      <Paper sx={{ p: 3 }}>
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom>
-            Welcome to Debtonator
-          </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            Your personal bill and cashflow management system
-          </Typography>
-        </Box>
-        <Typography paragraph>
-          This application helps you track bills, income, and maintain sufficient account balances
-          for timely bill payments. Use the navigation menu to access different features.
-        </Typography>
-      </Paper>
-    </AppLayout>
+    <BrowserRouter>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <AppLayout>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/bills" element={<BillsPage />} />
+            {/* Add more routes as they are implemented */}
+            <Route path="/income" element={<div>Income page coming soon</div>} />
+            <Route path="/cashflow" element={<div>Cashflow page coming soon</div>} />
+            <Route path="/accounts" element={<div>Accounts page coming soon</div>} />
+          </Routes>
+        </AppLayout>
+      </LocalizationProvider>
+    </BrowserRouter>
   );
 }
 

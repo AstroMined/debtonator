@@ -14,6 +14,8 @@ Debtonator helps users track bills, income, and maintain sufficient account bala
 - Auto-pay status tracking
 - Historical payment records
 - Date range filtering
+- User-friendly bill entry form
+- Support for historical data entry
 
 ### Income Tracking
 - Record and track income sources
@@ -47,6 +49,8 @@ Debtonator helps users track bills, income, and maintain sufficient account bala
 
 ### Frontend
 - React with TypeScript
+- Material-UI components
+- Formik and Yup for form management
 - Vite for build tooling
 - Jest and React Testing Library
 - ESLint and Prettier for code quality
@@ -174,20 +178,24 @@ npm run dev
   - Build system and testing
   - Code quality tools
   - Project structure
-
-### In Progress
-- Frontend feature components development
-  - Bills management interface
-  - Income tracking interface
-  - Cashflow visualization
-  - Account management interface
-
-### Completed Recently
 - ✓ Frontend layout foundation
   - Base layout with Material-UI
   - Responsive navigation system
   - Theme configuration
   - Mobile-friendly design
+- ✓ Bill Entry Form
+  - Form validation
+  - Material-UI components
+  - Historical date support
+  - Mobile responsiveness
+  - Unit tests
+
+### In Progress
+- Frontend feature components development
+  - Bills list/grid view
+  - Income tracking interface
+  - Cashflow visualization
+  - Account management interface
 
 ### Planned
 - Frontend features implementation
