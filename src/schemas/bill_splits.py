@@ -4,6 +4,8 @@ from pydantic import BaseModel, ConfigDict
 
 class BillSplitBase(BaseModel):
     """Base schema for bill split data"""
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    
     amount: Decimal
 
 class BillSplitCreate(BillSplitBase):
@@ -13,11 +15,11 @@ class BillSplitCreate(BillSplitBase):
 
 class BillSplitUpdate(BillSplitBase):
     """Schema for updating an existing bill split"""
-    pass
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 class BillSplitInDB(BillSplitBase):
     """Schema for bill split data as stored in the database"""
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
     id: int
     bill_id: int
@@ -27,4 +29,4 @@ class BillSplitInDB(BillSplitBase):
 
 class BillSplitResponse(BillSplitInDB):
     """Schema for bill split data in API responses"""
-    pass
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

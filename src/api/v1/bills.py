@@ -18,8 +18,17 @@ async def list_bills(
     """
     List all bills with pagination support.
     """
-    bill_service = BillService(db)
-    return await bill_service.get_bills(skip=skip, limit=limit)
+    try:
+        bill_service = BillService(db)
+        bills = await bill_service.get_bills(skip=skip, limit=limit)
+        return bills
+    except Exception as e:
+        import traceback
+        error_detail = {
+            "message": str(e),
+            "traceback": traceback.format_exc()
+        }
+        raise HTTPException(status_code=500, detail=error_detail)
 
 @router.post("/", response_model=BillResponse)
 async def create_bill(
@@ -30,7 +39,17 @@ async def create_bill(
     Create a new bill.
     """
     bill_service = BillService(db)
-    return await bill_service.create_bill(bill)
+    try:
+        return await bill_service.create_bill(bill)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        import traceback
+        error_detail = {
+            "message": str(e),
+            "traceback": traceback.format_exc()
+        }
+        raise HTTPException(status_code=500, detail=error_detail)
 
 @router.get("/{bill_id}", response_model=BillResponse)
 async def get_bill(
@@ -56,7 +75,10 @@ async def update_bill(
     Update a bill's details.
     """
     bill_service = BillService(db)
-    bill = await bill_service.update_bill(bill_id, bill_update)
+    try:
+        bill = await bill_service.update_bill(bill_id, bill_update)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     if not bill:
         raise HTTPException(status_code=404, detail="Bill not found")
     return bill

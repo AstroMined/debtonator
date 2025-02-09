@@ -54,6 +54,22 @@ export const updateBillPaymentAsync = createAsyncThunk(
   }
 );
 
+export const updateBillsPaymentAsync = createAsyncThunk(
+  'bills/updateBillsPayment',
+  async (payload: { billIds: number[]; paid: boolean }, { rejectWithValue }) => {
+    try {
+      const responses = await Promise.all(
+        payload.billIds.map(billId => 
+          billsApi.updateBillPaymentStatus(billId, payload.paid)
+        )
+      );
+      return responses.map(toBillTableRow);
+    } catch (error) {
+      return rejectWithValue((error as Error).message);
+    }
+  }
+);
+
 export const updateBillAsync = createAsyncThunk(
   'bills/updateBill',
   async (payload: BillUpdatePayload, { rejectWithValue }) => {
@@ -258,7 +274,7 @@ const billsSlice = createSlice({
         state.error = action.error.message || 'Failed to fetch bills';
       })
 
-    // Update Bill Payment
+    // Update Single Bill Payment
     builder
       .addCase(updateBillPaymentAsync.pending, (state, action) => {
         const { billId, paid } = action.meta.arg;
@@ -338,6 +354,55 @@ const billsSlice = createSlice({
           state.calculations = calculateBillsState(state.items);
         }
         state.error = action.error.message || 'Failed to update bill';
+      })
+      
+      // Update Multiple Bills Payment
+      .addCase(updateBillsPaymentAsync.pending, (state, action) => {
+        const { billIds, paid } = action.meta.arg;
+        billIds.forEach(billId => {
+          if (state.items[billId]) {
+            // Store original state for rollback
+            state.pendingUpdates[billId] = {
+              type: 'payment',
+              originalData: { ...state.items[billId] },
+              timestamp: new Date().toISOString()
+            };
+            // Optimistically update
+            state.items[billId].paid = paid;
+            state.items[billId].status = paid ? 'paid' : 
+              state.items[billId].daysOverdue > 0 ? 'overdue' : 'unpaid';
+          }
+        });
+        state.calculations = calculateBillsState(state.items);
+      })
+      .addCase(updateBillsPaymentAsync.fulfilled, (state, action) => {
+        const { billIds } = action.meta.arg;
+        // Clear pending updates
+        billIds.forEach(billId => {
+          delete state.pendingUpdates[billId];
+        });
+        // Update with server response
+        action.payload.forEach(bill => {
+          if (bill.id) {
+            state.items[bill.id] = {
+              ...state.items[bill.id],
+              ...bill
+            };
+          }
+        });
+        state.calculations = calculateBillsState(state.items);
+      })
+      .addCase(updateBillsPaymentAsync.rejected, (state, action) => {
+        const { billIds } = action.meta.arg;
+        // Rollback on failure
+        billIds.forEach(billId => {
+          if (state.pendingUpdates[billId]) {
+            state.items[billId] = state.pendingUpdates[billId].originalData;
+            delete state.pendingUpdates[billId];
+          }
+        });
+        state.calculations = calculateBillsState(state.items);
+        state.error = action.error.message || 'Failed to update payment status';
       });
   }
 });

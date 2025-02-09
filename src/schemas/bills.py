@@ -7,11 +7,15 @@ from .bill_splits import BillSplitResponse
 
 class BillSplitInput(BaseModel):
     """Schema for bill split input during bill creation/update"""
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    
     account_id: int
     amount: Decimal
 
 class BillBase(BaseModel):
     """Base schema for bill data"""
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    
     bill_name: str = Field(..., description="Name of the bill")
     amount: Decimal = Field(..., description="Total amount of the bill")
     month: str = Field(..., description="Month of the bill")
@@ -22,10 +26,12 @@ class BillBase(BaseModel):
 
 class BillCreate(BillBase):
     """Schema for creating a new bill"""
-    splits: Optional[List[BillSplitInput]] = None
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    splits: Optional[List[BillSplitInput]] = Field(default_factory=list)
 
 class BillUpdate(BaseModel):
     """Schema for updating an existing bill"""
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
     bill_name: Optional[str] = None
     amount: Optional[Decimal] = None
     month: Optional[str] = None
@@ -39,7 +45,7 @@ class BillUpdate(BaseModel):
 
 class BillInDB(BillBase):
     """Schema for bill data as stored in the database"""
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
     id: int
     due_date: date
@@ -48,13 +54,15 @@ class BillInDB(BillBase):
     paid: bool = False
     created_at: date
     updated_at: date
-    splits: List[BillSplitResponse] = []
+    splits: List[BillSplitResponse] = Field(default_factory=list)
 
 class BillResponse(BillInDB):
     """Schema for bill data in API responses"""
-    pass
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 class BillDateRange(BaseModel):
     """Schema for specifying a date range for bill queries"""
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    
     start_date: date = Field(..., description="Start date for bill range")
     end_date: date = Field(..., description="End date for bill range")

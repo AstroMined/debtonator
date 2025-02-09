@@ -1,79 +1,70 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Alert, Box, CircularProgress } from '@mui/material';
+import { useAppDispatch, useAppSelector } from '../../store';
 import { BillsTable } from './BillsTable';
-import { Bill } from '../../types/bills';
 import { getAccounts } from '../../services/accounts';
 import { Account } from '../../types/accounts';
-import { getBills, updateBillPaymentStatus } from '../../services/bills';
 import { ErrorBoundary } from '../common/ErrorBoundary';
+import { 
+  selectBillsList,
+  selectLoading,
+  selectError,
+  fetchBills,
+  updateBillPaymentAsync,
+  updateBillsPaymentAsync
+} from '../../store/slices/billsSlice';
 
 export const BillsTableContainer: React.FC = () => {
-  const [bills, setBills] = useState<Bill[]>([]);
+  const dispatch = useAppDispatch();
+  const bills = useAppSelector(selectBillsList);
+  const loading = useAppSelector(selectLoading);
+  const error = useAppSelector(selectError);
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
-      setLoading(true);
-      setError(null);
-      const [billsData, accountsData] = await Promise.all([
-        getBills(),
-        getAccounts(),
-      ]);
-      setBills(billsData);
+      setLocalError(null);
+      const accountsData = await getAccounts();
       setAccounts(accountsData);
+      await dispatch(fetchBills()).unwrap();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to fetch data');
+      setLocalError(error instanceof Error ? error.message : 'Failed to fetch data');
       console.error('Failed to fetch data:', error);
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const handlePaymentToggle = async (billId: number, paid: boolean) => {
+  const handlePaymentToggle = useCallback(async (billId: number, paid: boolean) => {
     try {
-      setError(null);
-      const updatedBill = await updateBillPaymentStatus(billId, paid);
-      setBills((prevBills) =>
-        prevBills.map((bill) =>
-          bill.id === billId ? { ...bill, ...updatedBill } : bill
-        )
-      );
+      setLocalError(null);
+      await dispatch(updateBillPaymentAsync({ billId, paid })).unwrap();
     } catch (error) {
-      setError(
+      setLocalError(
         error instanceof Error
           ? error.message
           : 'Failed to update payment status'
       );
       console.error('Failed to update payment status:', error);
     }
-  };
+  }, [dispatch]);
 
-  const handleBulkPaymentToggle = async (billIds: number[], paid: boolean) => {
+  const handleBulkPaymentToggle = useCallback(async (billIds: number[], paid: boolean) => {
     try {
-      setError(null);
-      await Promise.all(
-        billIds.map((id) => updateBillPaymentStatus(id, paid))
-      );
-      setBills((prevBills) =>
-        prevBills.map((bill) =>
-          billIds.includes(bill.id!) ? { ...bill, paid } : bill
-        )
-      );
+      setLocalError(null);
+      await dispatch(updateBillsPaymentAsync({ billIds, paid })).unwrap();
     } catch (error) {
-      setError(
+      setLocalError(
         error instanceof Error
           ? error.message
           : 'Failed to update bulk payment status'
       );
       console.error('Failed to update bulk payment status:', error);
     }
-  };
+  }, [dispatch]);
 
   const handleImportComplete = useCallback(() => {
     fetchData();
@@ -97,9 +88,9 @@ export const BillsTableContainer: React.FC = () => {
   return (
     <ErrorBoundary>
       <Box sx={{ width: '100%' }}>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-            {error}
+        {(error || localError) && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setLocalError(null)}>
+            {error || localError}
           </Alert>
         )}
         <BillsTable

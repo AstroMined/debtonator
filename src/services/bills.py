@@ -16,24 +16,67 @@ class BillService:
         self.split_service = BillSplitService(db)
 
     async def get_bills(self, skip: int = 0, limit: int = 100) -> List[Bill]:
-        result = await self.db.execute(select(Bill).offset(skip).limit(limit))
-        return result.scalars().all()
+        from sqlalchemy.orm import joinedload
+        stmt = (
+            select(Bill)
+            .options(joinedload(Bill.splits))
+            .offset(skip)
+            .limit(limit)
+            .order_by(Bill.due_date.desc())
+        )
+        result = await self.db.execute(stmt)
+        return result.unique().scalars().all()
 
     async def get_bill(self, bill_id: int) -> Optional[Bill]:
-        result = await self.db.execute(select(Bill).filter(Bill.id == bill_id))
-        return result.scalar_one_or_none()
+        from sqlalchemy.orm import joinedload
+        stmt = (
+            select(Bill)
+            .options(joinedload(Bill.splits))
+            .filter(Bill.id == bill_id)
+        )
+        result = await self.db.execute(stmt)
+        return result.unique().scalar_one_or_none()
 
     async def get_bills_by_date_range(self, start_date: date, end_date: date) -> List[Bill]:
-        result = await self.db.execute(
-            select(Bill).filter(Bill.due_date.between(start_date, end_date))
+        from sqlalchemy.orm import joinedload
+        stmt = (
+            select(Bill)
+            .options(joinedload(Bill.splits))
+            .filter(Bill.due_date.between(start_date, end_date))
+            .order_by(Bill.due_date.desc())
         )
-        return result.scalars().all()
+        result = await self.db.execute(stmt)
+        return result.unique().scalars().all()
 
     async def get_unpaid_bills(self) -> List[Bill]:
-        result = await self.db.execute(select(Bill).filter(Bill.paid == False))
-        return result.scalars().all()
+        from sqlalchemy.orm import joinedload
+        stmt = (
+            select(Bill)
+            .options(joinedload(Bill.splits))
+            .filter(Bill.paid == False)
+            .order_by(Bill.due_date.desc())
+        )
+        result = await self.db.execute(stmt)
+        return result.unique().scalars().all()
 
     async def create_bill(self, bill_create: BillCreate) -> Bill:
+        # Validate splits if provided
+        if bill_create.splits:
+            total_split_amount = sum(split.amount for split in bill_create.splits)
+            if total_split_amount >= bill_create.amount:
+                raise ValueError(f"Split amounts total ({total_split_amount}) exceeds or equals bill amount ({bill_create.amount})")
+            
+            # Validate account existence
+            for split in bill_create.splits:
+                account_result = await self.db.execute(
+                    select(Account).filter(Account.id == split.account_id)
+                )
+                if not account_result.scalar_one_or_none():
+                    raise ValueError(f"Account {split.account_id} not found")
+                
+                if split.amount <= 0:
+                    raise ValueError("Split amounts must be greater than 0")
+
         # Calculate due date
         due_date = datetime.strptime(f"{bill_create.month}/{bill_create.day_of_month}/2025", "%m/%d/%Y").date()
         
@@ -41,7 +84,9 @@ class BillService:
         account_result = await self.db.execute(
             select(Account).filter(Account.id == bill_create.account_id)
         )
-        account = account_result.scalar_one()
+        account = account_result.scalar_one_or_none()
+        if not account:
+            raise ValueError(f"Primary account {bill_create.account_id} not found")
         
         # Create bill instance
         db_bill = Bill(
@@ -108,11 +153,28 @@ class BillService:
 
         # Handle bill splits update
         if "splits" in update_data:
+            splits = update_data.pop("splits")  # Remove splits from update_data
+            if splits:
+                total_split_amount = sum(split.amount for split in splits)
+                bill_amount = update_data.get("amount", db_bill.amount)
+                if total_split_amount >= bill_amount:
+                    raise ValueError(f"Split amounts total ({total_split_amount}) exceeds or equals bill amount ({bill_amount})")
+                
+                # Validate account existence and amounts
+                for split in splits:
+                    account_result = await self.db.execute(
+                        select(Account).filter(Account.id == split.account_id)
+                    )
+                    if not account_result.scalar_one_or_none():
+                        raise ValueError(f"Account {split.account_id} not found")
+                    
+                    if split.amount <= 0:
+                        raise ValueError("Split amounts must be greater than 0")
+
             # Delete existing splits
             await self.split_service.delete_bill_splits(bill_id)
             
-            # Create new splits if provided
-            splits = update_data.pop("splits")  # Remove splits from update_data
+            # Create new splits
             if splits:
                 total_split_amount = Decimal('0')
                 for split_input in splits:

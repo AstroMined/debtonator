@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   DataGrid,
   GridColDef,
@@ -40,7 +40,7 @@ export const BillsTable = ({
     items: [],
   });
 
-  const getBillStatus = (bill: Bill): BillStatus => {
+  const getBillStatus = useCallback((bill: Bill): BillStatus => {
     if (bill.paid) return 'paid';
     if (!bill.due_date) return 'unpaid';
     
@@ -48,9 +48,9 @@ export const BillsTable = ({
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return dueDate < today ? 'overdue' : 'unpaid';
-  };
+  }, []);
 
-  const getDaysOverdue = (due_date: string | undefined): number => {
+  const getDaysOverdue = useCallback((due_date: string | undefined): number => {
     if (!due_date) return 0;
     
     const due = new Date(due_date);
@@ -58,7 +58,7 @@ export const BillsTable = ({
     today.setHours(0, 0, 0, 0);
     const diffTime = Math.abs(today.getTime() - due.getTime());
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
+  }, []);
 
   const rows: BillTableRow[] = useMemo(
     () =>
@@ -92,30 +92,30 @@ export const BillsTable = ({
     }
   };
 
-  const formatCurrency = (amount?: number) => {
+  const formatCurrency = useCallback((amount?: number) => {
     if (amount === undefined || amount === 0) return '-';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
     }).format(amount);
-  };
+  }, []);
 
-  const handleSelectionChange = (newSelectionModel: GridRowSelectionModel) => {
+  const handleSelectionChange = useCallback((newSelectionModel: GridRowSelectionModel) => {
     setSelectionModel(newSelectionModel);
     if (onBulkPaymentToggle && newSelectionModel.length > 0) {
       // Check if all selected bills have the same payment status
-      const selectedBills = rows.filter(row => row.id && newSelectionModel.includes(row.id));
+      const selectedBills = rows.filter((row: BillTableRow) => row.id && newSelectionModel.includes(row.id));
       if (selectedBills.length > 0) {
-        const allPaid = selectedBills.every(bill => bill.paid);
-        const allUnpaid = selectedBills.every(bill => !bill.paid);
+        const allPaid = selectedBills.every((bill: BillTableRow) => bill.paid);
+        const allUnpaid = selectedBills.every((bill: BillTableRow) => !bill.paid);
         
         if (allPaid || allUnpaid) {
-          const validIds = selectedBills.map(bill => bill.id!);
+          const validIds = selectedBills.map((bill: BillTableRow) => bill.id!);
           onBulkPaymentToggle(validIds, !allPaid);
         }
       }
     }
-  };
+  }, [rows, onBulkPaymentToggle]);
 
   const getDefaultColumns = (): GridColDef[] => {
     return [
@@ -244,7 +244,7 @@ export const BillsTable = ({
     }
     
     return defaultColumns;
-  }, [isMobile, accounts]);
+  }, [isMobile, accounts, getDefaultColumns]);
 
   const [importModalOpen, setImportModalOpen] = useState(false);
 

@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2025-02-09
+
+### Enhanced
+- Bills component performance optimization
+  - Improved memoization with useCallback for event handlers
+  - Enhanced Redux integration with type-safe hooks
+  - Optimized bulk payment updates with batch processing
+  - Added optimistic updates for better UX
+  - Improved error handling with local error state
+  - Enhanced TypeScript type safety
+  - Reduced unnecessary re-renders
+  - Better state management for pending updates
+  - Efficient data fetching with proper loading states
+
 ## [0.3.1] - 2025-02-09
 
 ### Fixed
