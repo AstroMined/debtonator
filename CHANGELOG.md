@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Data migration tools
+  - Excel data extraction with pandas
+  - Data transformation to SQLAlchemy models
+  - Batch database import with validation
+  - Migration CLI tool with progress tracking
+  - Comprehensive error handling
+  - Data verification system
+  - Support for bills, income, and cashflow data
 - Income API endpoints
   - CRUD operations for income records
   - Deposit status tracking

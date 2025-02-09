@@ -72,11 +72,11 @@ Implementing API endpoints and business logic for the bill and cashflow manageme
 3. ✓ Design and implement bills API endpoints
 4. ✓ Implement income API endpoints
 5. ✓ Implement cashflow API endpoints
-6. Create data migration tools
-   - Excel data extraction script
-   - Data transformation utilities
-   - Database import procedures
-   - Data validation checks
+6. ✓ Create data migration tools
+   - ✓ Excel data extraction script
+   - ✓ Data transformation utilities
+   - ✓ Database import procedures
+   - ✓ Data validation checks
 7. Begin frontend development
    - Set up React project
    - Design component hierarchy

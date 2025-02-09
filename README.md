@@ -81,6 +81,8 @@ Debtonator helps users track bills, income, and maintain sufficient account bala
 
 ## Setup
 
+### Initial Setup
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/yourusername/debtonator.git
@@ -110,12 +112,17 @@ cp .env.example .env
 alembic upgrade head
 ```
 
-6. Start the development server:
+6. (Optional) Migrate historical Excel data:
+```bash
+python src/migration/migrate_excel.py path/to/excel_file.xlsx
+```
+
+7. Start the development server:
 ```bash
 uvicorn src.main:app --reload
 ```
 
-7. Access the API documentation:
+8. Access the API documentation:
 - Swagger UI: http://localhost:8000/api/v1/docs
 - ReDoc: http://localhost:8000/api/v1/redoc
 
@@ -129,9 +136,13 @@ uvicorn src.main:app --reload
 - ✓ Cashflow API endpoints
 - ✓ Core business logic
 - ✓ API documentation
+- ✓ Data migration tools
+  - Excel data extraction
+  - Data transformation
+  - Database import with validation
+  - Migration CLI tool
 
 ### In Progress
-- Data migration tools
 - Frontend development
 - Testing implementation
 
