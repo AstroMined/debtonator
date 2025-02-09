@@ -271,16 +271,37 @@ The project uses pytest for comprehensive backend testing:
 - Better dependency organization
 - Type-safe relationship definitions
 
+### Test Coverage (70% Overall)
+- Well Covered Areas (>90%)
+  - Models layer (92-98%)
+  - Schemas layer (100%)
+  - Core utilities (100%)
+  - Base configurations (100%)
+- Needs Improvement (50-80%)
+  - Income API (64%)
+  - Database utilities (47%)
+  - Income service (51%)
+  - Cashflow models (77%)
+- Critical Gaps (<50%)
+  - Bill splits API (29%)
+  - Bills API (35%)
+  - Accounts API (42%)
+  - Cashflow API (40%)
+  - Bulk import service (31%)
+
 ### Test Categories
 - Unit Tests
   - Model validation and calculations
   - Service layer business logic
   - Utility functions
+  - Error case handling
+  - Transaction management
 - Integration Tests
   - API endpoint testing
   - Database operations
   - Error handling scenarios
   - Input validation
+  - End-to-end workflows
 
 ### Running Tests
 ```bash

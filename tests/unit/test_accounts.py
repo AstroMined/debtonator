@@ -31,7 +31,7 @@ async def sample_credit_account_data():
     }
 
 @pytest.mark.asyncio
-async def test_create_checking_account(db_session, sample_account_data):
+async def test_create_checking_account(setup_db, db_session, sample_account_data):
     # Create account
     account = Account(**sample_account_data)
     db_session.add(account)
@@ -48,7 +48,7 @@ async def test_create_checking_account(db_session, sample_account_data):
     assert db_account.total_limit is None
 
 @pytest.mark.asyncio
-async def test_create_credit_account(db_session, sample_credit_account_data):
+async def test_create_credit_account(setup_db, db_session, sample_credit_account_data):
     # Create account
     account = Account(**sample_credit_account_data)
     db_session.add(account)
@@ -66,7 +66,7 @@ async def test_create_credit_account(db_session, sample_credit_account_data):
     assert db_account.last_statement_balance == sample_credit_account_data["last_statement_balance"]
 
 @pytest.mark.asyncio
-async def test_calculate_available_credit(db_session, sample_credit_account_data):
+async def test_calculate_available_credit(setup_db, db_session, sample_credit_account_data):
     account = Account(**sample_credit_account_data)
     
     # Verify initial available credit
@@ -79,7 +79,7 @@ async def test_calculate_available_credit(db_session, sample_credit_account_data
     assert account.available_credit == Decimal("1000.00")
 
 @pytest.mark.asyncio
-async def test_checking_account_balance_update(db_session, sample_account_data):
+async def test_checking_account_balance_update(setup_db, db_session, sample_account_data):
     account = Account(**sample_account_data)
     db_session.add(account)
     await db_session.commit()
@@ -104,7 +104,7 @@ async def test_checking_account_balance_update(db_session, sample_account_data):
     assert final_account.available_balance == initial_balance + deposit_amount - withdrawal_amount
 
 @pytest.mark.asyncio
-async def test_credit_limit_validation(db_session, sample_credit_account_data):
+async def test_credit_limit_validation(setup_db, db_session, sample_credit_account_data):
     account = Account(**sample_credit_account_data)
     db_session.add(account)
     await db_session.commit()

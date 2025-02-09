@@ -20,7 +20,7 @@ class BillSplitService:
             updated_at=date.today()
         )
         self.db.add(split)
-        await self.db.commit()
+        await self.db.flush()
         return split
     
     async def validate_splits(self, bill_id: int) -> bool:
@@ -33,12 +33,11 @@ class BillSplitService:
 
     async def delete_bill_splits(self, bill_id: int) -> None:
         """Delete all splits for a bill."""
-        result = await self.db.execute(
-            select(BillSplit).where(BillSplit.bill_id == bill_id)
+        from sqlalchemy import delete
+        await self.db.execute(
+            delete(BillSplit).where(BillSplit.bill_id == bill_id)
         )
-        splits = result.scalars().all()
-        for split in splits:
-            await self.db.delete(split)
+        await self.db.commit()
 
 async def calculate_split_totals(db: AsyncSession, bill_id: int) -> Decimal:
     """Calculate the total amount of all splits for a given bill."""

@@ -10,7 +10,7 @@ from src.models.bill_splits import BillSplit
 from src.services.bill_splits import validate_bill_splits, calculate_split_totals
 
 @pytest.fixture
-async def sample_accounts(db_session):
+async def sample_accounts(setup_db, db_session):
     # Create test accounts
     checking = Account(
         name="Test Checking",
@@ -54,7 +54,7 @@ async def sample_bill(db_session, sample_accounts):
     return bill
 
 @pytest.mark.asyncio
-async def test_create_bill_split(db_session, sample_bill, sample_accounts):
+async def test_create_bill_split(setup_db, db_session, sample_bill, sample_accounts):
     # Create a bill split
     split = BillSplit(
         bill_id=sample_bill.id,
@@ -78,7 +78,7 @@ async def test_create_bill_split(db_session, sample_bill, sample_accounts):
     assert db_split.account_id == sample_accounts["credit"].id
 
 @pytest.mark.asyncio
-async def test_validate_bill_splits_total(db_session, sample_bill, sample_accounts):
+async def test_validate_bill_splits_total(setup_db, db_session, sample_bill, sample_accounts):
     # Create splits that sum to the bill amount
     splits = [
         BillSplit(
@@ -108,7 +108,7 @@ async def test_validate_bill_splits_total(db_session, sample_bill, sample_accoun
     assert is_valid is True
 
 @pytest.mark.asyncio
-async def test_validate_bill_splits_invalid_total(db_session, sample_bill, sample_accounts):
+async def test_validate_bill_splits_invalid_total(setup_db, db_session, sample_bill, sample_accounts):
     # Create splits that don't sum to bill amount
     splits = [
         BillSplit(
@@ -138,7 +138,7 @@ async def test_validate_bill_splits_invalid_total(db_session, sample_bill, sampl
     assert is_valid is False
 
 @pytest.mark.asyncio
-async def test_bill_split_with_invalid_account(db_session, sample_bill):
+async def test_bill_split_with_invalid_account(setup_db, db_session, sample_bill):
     # Try to create a split with non-existent account
     split = BillSplit(
         bill_id=sample_bill.id,

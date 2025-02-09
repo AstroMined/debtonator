@@ -20,3 +20,5 @@ When running the full test suite with pytest, run it like below to keep the outp
 pytest -q --tb=no --disable-warnings
 
 If you need to run a specific single test to get more error context, you can do it with tracebacks if needed.
+DO NOT RUN MORE THAN ONE SINGLE SPECIFIC TEST WITH TRACEBACKS.
+You will lock up if you do.

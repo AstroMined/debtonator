@@ -11,18 +11,11 @@ from tests.conftest import TestingSessionLocal, engine
 
 
 @pytest.fixture
-async def session(setup_db):  # Depend on setup_db to ensure tables are created
-    async with TestingSessionLocal() as session:
-        await session.execute(text("PRAGMA foreign_keys=ON"))
-        await session.commit()
-        yield session
+async def bill_service(db_session):
+    yield BillService(db_session)
 
 @pytest.fixture
-async def bill_service(session):
-    yield BillService(session)
-
-@pytest.fixture
-async def test_accounts(session):
+async def test_accounts(db_session):
     # Create test accounts
     accounts = [
         Account(name="Checking", type="checking", available_balance=Decimal("1000.00")),
@@ -31,12 +24,12 @@ async def test_accounts(session):
         Account(name="Savings", type="savings", available_balance=Decimal("2000.00"))
     ]
     for account in accounts:
-        session.add(account)
-    await session.commit()
+        db_session.add(account)
+    await db_session.commit()
     
     # Refresh to get IDs
     for account in accounts:
-        await session.refresh(account)
+        await db_session.refresh(account)
     
     yield accounts
 
@@ -190,8 +183,8 @@ async def test_update_bill_with_new_splits(bill_service, test_accounts):
     # Assert
     assert len(updated_bill.splits) == 2  # Primary + new split
     split_amounts = {split.account_id: split.amount for split in updated_bill.splits}
-    assert split_amounts[checking_account.id] == Decimal("600.00")  # Primary gets remainder
-    assert split_amounts[credit_account.id] == Decimal("400.00")
+    assert split_amounts[1] == Decimal("600.00")  # Primary gets remainder (checking_account.id = 1)
+    assert split_amounts[2] == Decimal("400.00")  # credit_account.id = 2
 
 @pytest.mark.asyncio
 async def test_delete_bill_cascade_splits(bill_service, test_accounts):

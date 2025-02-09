@@ -26,7 +26,7 @@ TestingSessionLocal = sessionmaker(
     engine, class_=AsyncSession, expire_on_commit=False
 )
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def event_loop() -> Generator:
     """Create an instance of the default event loop for each test case."""
     loop = asyncio.get_event_loop_policy().new_event_loop()
@@ -37,20 +37,26 @@ def event_loop() -> Generator:
 async def setup_db() -> AsyncGenerator:
     print("\nSetting up test database...")
     async with engine.begin() as conn:
+        print("Dropping all tables...")
         await conn.run_sync(Base.metadata.drop_all)
+        print("Creating all tables...")
         await conn.run_sync(Base.metadata.create_all)
         print("Database tables created")
-        # List created tables
+        
+        # List all tables in Base.metadata
+        print(f"Tables in Base.metadata: {Base.metadata.tables.keys()}")
+        
+        # List actually created tables
         result = await conn.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))
         tables = result.scalars().all()
-        print(f"Created tables: {tables}")
+        print(f"Actually created tables in database: {tables}")
     yield
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         print("Database tables dropped")
 
 @pytest.fixture
-async def db_session() -> AsyncGenerator[AsyncSession, None]:
+async def db_session(setup_db) -> AsyncGenerator[AsyncSession, None]:
     async with TestingSessionLocal() as session:
         # Enable foreign key constraints
         await session.execute(text("PRAGMA foreign_keys=ON"))

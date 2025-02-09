@@ -54,21 +54,40 @@
     - [x] Efficient state updates
 
 ## In Progress
-1. Test infrastructure improvements
-   - ✓ Test client configuration
-   - ✓ Debug logging enhancements
-   - ✓ Response content handling
-   - ✓ JSON data formatting
-   - ✓ Model relationship fixes
-   - ✓ Test session handling
+1. Test Coverage Expansion
+   - ✓ Test infrastructure fixes
    - ✓ Database setup improvements
-   - [ ] Test coverage expansion
+   - ✓ Session handling fixes
+   - ✓ Coverage analysis (70% overall)
+   - [ ] API endpoint tests (29-42% coverage)
+   - [ ] Service layer tests (31-51% coverage)
+   - [ ] Error case coverage
    - [ ] Test documentation updates
 
 2. Performance optimization
    - Component re-renders
    - Data caching strategy
    - State update batching
+
+## Test Coverage Status
+1. Well Covered Areas (>90%)
+   - Models layer
+   - Schemas layer
+   - Core utilities
+   - Base configurations
+
+2. Needs Improvement (50-80%)
+   - Income API (64%)
+   - Database utilities (47%)
+   - Income service (51%)
+   - Cashflow models (77%)
+
+3. Critical Gaps (<50%)
+   - Bill splits API (29%)
+   - Bills API (35%)
+   - Accounts API (42%)
+   - Cashflow API (40%)
+   - Bulk import service (31%)
 
 ## Completed
 1. Navigation structure improvements

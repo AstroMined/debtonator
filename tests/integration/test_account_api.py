@@ -32,7 +32,7 @@ async def credit_account_create_data():
     return data
 
 @pytest.mark.asyncio
-async def test_create_checking_account(client: AsyncClient, account_create_data):
+async def test_create_checking_account(setup_db, client: AsyncClient, account_create_data):
     # Ensure proper JSON formatting
     json_data = {
         "name": account_create_data["name"],
@@ -51,7 +51,7 @@ async def test_create_checking_account(client: AsyncClient, account_create_data)
     assert "id" in data
 
 @pytest.mark.asyncio
-async def test_create_credit_account(client: AsyncClient, credit_account_create_data):
+async def test_create_credit_account(setup_db, client: AsyncClient, credit_account_create_data):
     # Ensure proper JSON formatting
     json_data = {
         "name": credit_account_create_data["name"],
@@ -76,7 +76,7 @@ async def test_create_credit_account(client: AsyncClient, credit_account_create_
     assert "id" in data
 
 @pytest.mark.asyncio
-async def test_get_account(client: AsyncClient, account_create_data):
+async def test_get_account(setup_db, client: AsyncClient, account_create_data):
     # First create an account
     # Ensure proper JSON formatting
     json_data = {
@@ -100,7 +100,7 @@ async def test_get_account(client: AsyncClient, account_create_data):
     assert Decimal(data["available_balance"]) == Decimal(account_create_data["available_balance"])
 
 @pytest.mark.asyncio
-async def test_update_account(client: AsyncClient, account_create_data):
+async def test_update_account(setup_db, client: AsyncClient, account_create_data):
     # First create an account
     # Ensure proper JSON formatting
     json_data = {
@@ -127,7 +127,7 @@ async def test_update_account(client: AsyncClient, account_create_data):
     assert Decimal(data["available_balance"]) == Decimal(update_data["available_balance"])
 
 @pytest.mark.asyncio
-async def test_get_all_accounts(client: AsyncClient, account_create_data, credit_account_create_data):
+async def test_get_all_accounts(setup_db, client: AsyncClient, account_create_data, credit_account_create_data):
     # Create two accounts
     # Ensure proper JSON formatting for both accounts
     checking_data = {
@@ -161,7 +161,7 @@ async def test_get_all_accounts(client: AsyncClient, account_create_data, credit
     assert any(account["name"] == credit_account_create_data["name"] for account in data)
 
 @pytest.mark.asyncio
-async def test_create_account_validation(client: AsyncClient):
+async def test_create_account_validation(setup_db, client: AsyncClient):
     # Test invalid account type
     invalid_data = {
         "name": "Invalid Account",
@@ -179,6 +179,6 @@ async def test_create_account_validation(client: AsyncClient):
     assert response.status_code == 422
 
 @pytest.mark.asyncio
-async def test_get_nonexistent_account(client: AsyncClient):
+async def test_get_nonexistent_account(setup_db, client: AsyncClient):
     response = await client.get("/api/v1/accounts/999")
     assert response.status_code == 404

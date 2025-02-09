@@ -1,77 +1,77 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Model relationship improvements and test infrastructure enhancements.
+Test coverage expansion and infrastructure improvements.
 
 ### Recent Implementation
-1. **Model Relationship Improvements**
-   - Fixed circular dependencies in models
-   - Enhanced type hints for relationships
-   - Improved model initialization order
-   - Better dependency management
+1. **Test Infrastructure Fixes**
+   - Fixed database setup in unit tests
+   - Resolved async session handling issues
+   - Improved test fixtures
+   - Enhanced error handling in tests
 
-2. **Test Infrastructure Enhancements**
-   - Fixed circular imports in model relationships
-   - Enhanced model dependency management
-   - Improved test database setup
-   - Added proper test session handling
+2. **Test Coverage Analysis**
+   - Achieved 70% overall test coverage
+   - Identified critical areas needing tests
+   - Mapped coverage gaps in API endpoints
+   - Analyzed service layer coverage
 
 3. **Code Quality**
-   - Enhanced model organization
-   - Improved import structure
-   - Fixed dependency cycles
-   - Better type safety in relationships
+   - Fixed async/await patterns
+   - Improved transaction handling
+   - Enhanced error handling
+   - Better session management
 
 ### Recent Changes
-1. **Model Updates**
-   - ✓ Fixed circular imports
-   - ✓ Enhanced type hints
-   - ✓ Improved initialization
-   - ✓ Better dependency structure
+1. **Test Infrastructure**
+   - ✓ Fixed database setup issues
+   - ✓ Resolved greenlet spawn errors
+   - ✓ Improved session handling
+   - ✓ Enhanced fixture management
 
-2. **Test Infrastructure**
-   - ✓ Fixed test database setup
-   - ✓ Enhanced session handling
-   - ✓ Improved model loading
-   - ✓ Better test isolation
+2. **Test Coverage**
+   - ✓ Generated coverage reports
+   - ✓ Identified coverage gaps
+   - ✓ Fixed failing tests
+   - ✓ Improved test assertions
 
 3. **Code Organization**
-   - ✓ Improved model structure
-   - ✓ Enhanced import order
-   - ✓ Fixed dependency cycles
-   - ✓ Better type safety
+   - ✓ Fixed import structure
+   - ✓ Enhanced async patterns
+   - ✓ Improved transaction handling
+   - ✓ Better error management
 
 ## Active Decisions
 
 ### Test Infrastructure
-- ✓ Proper test client configuration
-- ✓ Enhanced debugging capabilities
-- ✓ Improved response handling
-- ✓ Fixed data formatting
+- ✓ Proper database setup
+- ✓ Enhanced async handling
+- ✓ Improved session management
+- ✓ Fixed transaction issues
 
-### API Design
-- ✓ Consistent router configuration
-- ✓ Proper prefix handling
-- ✓ Enhanced logging
-- ✓ Fixed client setup
+### Coverage Analysis
+- ✓ API endpoints need more tests
+- ✓ Service layer coverage gaps
+- ✓ Model layer well covered
+- ✓ Schema layer well covered
 
 ## Next Steps
 
 ### Immediate Tasks
-1. Further Income System Enhancements
-   - Add bulk income operations
-   - Implement recurring income support
-   - Add income categorization
-   - Enhance income reporting
+1. API Test Coverage
+   - Add bill_splits API tests
+   - Add bills API tests
+   - Add accounts API tests
+   - Add cashflow API tests
 
-2. Documentation Updates
-   - Update API documentation
-   - Document income validation rules
-   - Add income management guidelines
-   - Update testing documentation
+2. Service Layer Coverage
+   - Expand bulk import tests
+   - Enhance income service tests
+   - Add missing service tests
+   - Improve error case coverage
 
-3. Future Improvements
-   - Add income analytics
-   - Implement income forecasting
-   - Add income trends visualization
-   - Enhance filtering capabilities
+3. Documentation Updates
+   - Update test documentation
+   - Document test patterns
+   - Add coverage goals
+   - Update test guidelines
