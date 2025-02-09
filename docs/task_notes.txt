@@ -11,3 +11,11 @@ update memory bank
 Update README.md, CHANGELOG.md and update major, minor, or patch semantic versioning as needed.
 Create ADRs ONLY if absolutely necessary to document a MAJOR architectural change.
 Finally, suggest a good commit message for the tasks accomplished during this session.
+
+follow your custom instructions
+
+Formulate a plan to expand, but keep the scope limited to work that can completed in a single session.
+When running the full test suite with pytest, run it like below to keep the output limited to conserve tokens in your context window:
+pytest -q --tb=no --disable-warnings
+
+If you need to run a specific single test to get more error context, you can do it with tracebacks if needed.

@@ -1,76 +1,77 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Backend test infrastructure and test coverage improvements, with particular focus on fixing test failures and improving test reliability.
+Income management system improvements, with focus on account balance handling, data validation, and test coverage.
 
 ### Recent Implementation
-1. **Test Infrastructure Improvements**
-   - Fixed SQLite foreign key constraint handling
-   - Enhanced test database configuration
-   - Improved test fixtures with proper data setup
-   - Added proper SQLAlchemy text() usage for raw SQL
+1. **Income Management Improvements**
+   - Enhanced account balance updates for income deposits
+   - Added proper balance recalculation for income amount updates
+   - Implemented positive amount validation with database constraint
+   - Added account filtering support for income listing
 
-2. **Model Relationship Fixes**
-   - Added account_id to Income model
-   - Created migration for income-account relationship
-   - Added proper back-reference in Account model
-   - Enhanced bill fixtures with required fields
+2. **API Enhancements**
+   - Fixed URL handling with consistent trailing slashes
+   - Added account filtering endpoint parameters
+   - Improved error handling for invalid amounts
+   - Enhanced response consistency
 
-3. **Calculation Improvements**
-   - Fixed daily deficit calculation rounding
-   - Ensured consistent decimal handling
-   - Improved test assertions for calculations
+3. **Test Coverage Expansion**
+   - Added comprehensive income API integration tests
+   - Enhanced unit tests for income service
+   - Added balance update validation tests
+   - Improved test data setup and assertions
 
 ### Recent Changes
-1. **Database Schema Updates**
-   - ✓ Added account_id to Income model
-   - ✓ Created and ran migration
-   - ✓ Added foreign key constraints
-   - ✓ Updated relationship mappings
+1. **Income System Updates**
+   - ✓ Added positive amount validation constraint
+   - ✓ Enhanced account balance handling
+   - ✓ Improved income filtering
+   - ✓ Fixed URL consistency
 
-2. **Test Infrastructure**
-   - ✓ Fixed SQLite configuration
-   - ✓ Enabled foreign key constraints
-   - ✓ Improved test data setup
-   - ✓ Enhanced fixture reliability
+2. **Test Improvements**
+   - ✓ Added income API integration tests
+   - ✓ Enhanced income service unit tests
+   - ✓ Added balance update tests
+   - ✓ Fixed test data setup
 
 3. **Code Quality**
-   - ✓ Fixed calculation precision
-   - ✓ Improved type safety
-   - ✓ Enhanced error handling
-   - ✓ Updated documentation
+   - ✓ Improved error handling
+   - ✓ Enhanced type safety
+   - ✓ Added data validation
+   - ✓ Fixed URL consistency
 
 ## Active Decisions
 
-### Test Infrastructure
-- ✓ SQLite foreign key constraints enabled by default
-- ✓ Proper test database configuration
-- ✓ Consistent test data setup
-- ✓ Reliable test assertions
+### Income Management
+- ✓ Positive amount validation at database level
+- ✓ Accurate balance updates for deposits
+- ✓ Proper balance recalculation for updates
+- ✓ Account-based income filtering
 
-### Database Schema
-- ✓ Income-Account relationship established
-- ✓ Foreign key constraints enforced
-- ✓ Migration path defined
-- ✓ Data integrity maintained
+### API Design
+- ✓ Consistent URL patterns
+- ✓ Proper error handling
+- ✓ Enhanced filtering support
+- ✓ Response format standardization
 
 ## Next Steps
 
 ### Immediate Tasks
-1. Continue improving test coverage
-   - Add more edge case tests
-   - Enhance error scenario coverage
-   - Add performance tests
-   - Improve test documentation
+1. Further Income System Enhancements
+   - Add bulk income operations
+   - Implement recurring income support
+   - Add income categorization
+   - Enhance income reporting
 
-2. Documentation updates
+2. Documentation Updates
    - Update API documentation
-   - Add testing guidelines
-   - Document test patterns
-   - Create test data setup guide
+   - Document income validation rules
+   - Add income management guidelines
+   - Update testing documentation
 
-3. Further enhancements
-   - Add more validation tests
-   - Improve error handling tests
-   - Add stress tests
-   - Enhance performance testing
+3. Future Improvements
+   - Add income analytics
+   - Implement income forecasting
+   - Add income trends visualization
+   - Enhance filtering capabilities

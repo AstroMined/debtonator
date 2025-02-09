@@ -128,7 +128,12 @@ Note: The import preview will validate your data before importing, checking for:
 - Comprehensive pending updates tracking
 
 ### Financial Analysis
-- Income tracking and deposit status
+- Enhanced income management system
+  - Positive amount validation with database constraints
+  - Accurate account balance tracking for deposits
+  - Proper balance recalculation for income updates
+  - Account-based income filtering
+  - Consistent API endpoint handling
 - Interactive cashflow visualization
   - 90-day rolling forecast with date range selection
   - Account balance trends with toggle functionality

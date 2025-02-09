@@ -13,7 +13,7 @@ from ...schemas.income import (
 )
 from ...services.income import IncomeService
 
-router = APIRouter(prefix="/income", tags=["income"])
+router = APIRouter()
 
 @router.post("/", response_model=IncomeResponse, status_code=201)
 async def create_income(
@@ -61,7 +61,7 @@ async def delete_income(
     if not success:
         raise HTTPException(status_code=404, detail="Income record not found")
 
-@router.get("/", response_model=IncomeList)
+@router.get("/", response_model=list[IncomeResponse])
 async def list_income(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
@@ -69,6 +69,7 @@ async def list_income(
     deposited: Optional[bool] = None,
     min_amount: Optional[float] = None,
     max_amount: Optional[float] = None,
+    account_id: Optional[int] = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     db: AsyncSession = Depends(get_db)
@@ -80,13 +81,14 @@ async def list_income(
         source=source,
         deposited=deposited,
         min_amount=min_amount,
-        max_amount=max_amount
+        max_amount=max_amount,
+        account_id=account_id
     )
     service = IncomeService(db)
     items, total = await service.list(filters, skip, limit)
-    return IncomeList(items=items, total=total)
+    return items
 
-@router.get("/undeposited/", response_model=list[IncomeResponse])
+@router.get("/undeposited", response_model=list[IncomeResponse])
 async def get_undeposited_income(
     db: AsyncSession = Depends(get_db)
 ):
@@ -106,7 +108,7 @@ async def mark_income_as_deposited(
         raise HTTPException(status_code=404, detail="Income record not found")
     return income
 
-@router.get("/undeposited/total/")
+@router.get("/undeposited/total")
 async def get_total_undeposited(
     db: AsyncSession = Depends(get_db)
 ):

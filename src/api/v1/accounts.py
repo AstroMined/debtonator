@@ -9,7 +9,7 @@ from ...schemas.accounts import AccountCreate, AccountUpdate, AccountResponse
 
 router = APIRouter(tags=["accounts"])
 
-@router.get("", response_model=List[AccountResponse])
+@router.get("/", response_model=List[AccountResponse])
 async def get_accounts(
     db: AsyncSession = Depends(get_db)
 ):
@@ -30,7 +30,7 @@ async def get_account(
         raise HTTPException(status_code=404, detail="Account not found")
     return account
 
-@router.post("", response_model=AccountResponse, status_code=201)
+@router.post("/", response_model=AccountResponse, status_code=201)
 async def create_account(
     account: AccountCreate,
     db: AsyncSession = Depends(get_db)

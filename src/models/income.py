@@ -1,6 +1,6 @@
 from datetime import date
 from decimal import Decimal
-from sqlalchemy import String, Date, Boolean, Numeric, Index, ForeignKey
+from sqlalchemy import String, Date, Boolean, Numeric, Index, ForeignKey, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.base import Base
@@ -30,10 +30,11 @@ class Income(Base):
     # Relationships
     transactions = relationship("AccountTransaction", back_populates="income")
 
-    # Create indexes for efficient lookups
+    # Create indexes and constraints
     __table_args__ = (
         Index('idx_income_date', 'date'),
         Index('idx_income_deposited', 'deposited'),
+        CheckConstraint('amount >= 0', name='ck_income_positive_amount'),
     )
 
     def __repr__(self) -> str:

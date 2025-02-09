@@ -9,6 +9,7 @@ class IncomeBase(BaseModel):
     source: str = Field(..., min_length=1, max_length=255)
     amount: Decimal = Field(..., ge=0, description="Income amount")
     deposited: bool = Field(default=False)
+    account_id: int = Field(..., description="ID of the account this income belongs to")
 
 class IncomeCreate(IncomeBase):
     """Schema for creating a new income record"""
@@ -24,7 +25,6 @@ class IncomeUpdate(BaseModel):
 class IncomeInDB(IncomeBase):
     """Schema for income record in database"""
     id: int
-    undeposited_amount: Decimal
     created_at: date
     updated_at: date
 
@@ -48,3 +48,4 @@ class IncomeFilters(BaseModel):
     deposited: Optional[bool] = None
     min_amount: Optional[Decimal] = Field(None, ge=0)
     max_amount: Optional[Decimal] = Field(None, ge=0)
+    account_id: Optional[int] = None

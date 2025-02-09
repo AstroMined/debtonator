@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-02-09
+
+### Added
+- Enhanced income management system
+  - Added positive amount validation with database constraint
+  - Improved account balance handling for deposits
+  - Added proper balance recalculation for income updates
+  - Enhanced account-based income filtering
+  - Added consistent URL handling for API endpoints
+
+### Fixed
+- Account balance updates for income changes
+  - Proper balance recalculation when updating deposited income
+  - Fixed balance updates for new deposits
+  - Improved error handling for invalid amounts
+- API endpoint consistency
+  - Fixed URL handling with consistent trailing slashes
+  - Improved error responses for validation failures
+  - Enhanced filtering parameter handling
+
+### Enhanced
+- Test coverage expansion
+  - Added comprehensive income API integration tests
+  - Enhanced income service unit tests
+  - Added balance update validation tests
+  - Improved test data setup and assertions
+
 ## [0.3.4] - 2025-02-09
 
 ### Fixed
