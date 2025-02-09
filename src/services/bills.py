@@ -109,24 +109,22 @@ class BillService:
         if bill_create.splits:
             total_split_amount = Decimal('0')
             for split_input in bill_create.splits:
-                split_create = BillSplitCreate(
+                await self.split_service.create_split(
                     bill_id=db_bill.id,
                     account_id=split_input.account_id,
                     amount=split_input.amount
                 )
-                await self.split_service.create_bill_split(split_create)
                 total_split_amount += split_input.amount
 
             # Calculate primary account amount (total - splits)
             primary_amount = bill_create.amount - total_split_amount
             
             # Create split for primary account
-            primary_split = BillSplitCreate(
+            await self.split_service.create_split(
                 bill_id=db_bill.id,
                 account_id=bill_create.account_id,
                 amount=primary_amount
             )
-            await self.split_service.create_bill_split(primary_split)
 
         await self.db.commit()
         await self.db.refresh(db_bill)
@@ -137,7 +135,48 @@ class BillService:
         if not db_bill:
             return None
 
-        update_data = bill_update.model_dump(exclude_unset=True)
+        # Handle splits first if present
+        if bill_update.splits is not None:
+            # Delete existing splits
+            await self.split_service.delete_bill_splits(bill_id)
+            
+            if bill_update.splits:
+                # Calculate total split amount
+                total_split_amount = sum(split.amount for split in bill_update.splits)
+                bill_amount = bill_update.amount if bill_update.amount is not None else db_bill.amount
+                
+                if total_split_amount >= bill_amount:
+                    raise ValueError(f"Split amounts total ({total_split_amount}) exceeds or equals bill amount ({bill_amount})")
+                
+                # Validate account existence and amounts
+                for split in bill_update.splits:
+                    account_result = await self.db.execute(
+                        select(Account).filter(Account.id == split.account_id)
+                    )
+                    if not account_result.scalar_one_or_none():
+                        raise ValueError(f"Account {split.account_id} not found")
+                    
+                    if split.amount <= 0:
+                        raise ValueError("Split amounts must be greater than 0")
+                
+                # Create new splits
+                for split_input in bill_update.splits:
+                    await self.split_service.create_split(
+                        bill_id=bill_id,
+                        account_id=split_input.account_id,
+                        amount=split_input.amount
+                    )
+                
+                # Calculate and create primary account split
+                primary_amount = bill_amount - total_split_amount
+                await self.split_service.create_split(
+                    bill_id=bill_id,
+                    account_id=bill_update.account_id if bill_update.account_id is not None else db_bill.account_id,
+                    amount=primary_amount
+                )
+
+        # Handle other updates
+        update_data = bill_update.model_dump(exclude_unset=True, exclude={'splits'})
         
         # If paid status is being updated to True, set paid_date
         if update_data.get("paid") is True and not db_bill.paid:
@@ -150,53 +189,6 @@ class BillService:
             )
             account = account_result.scalar_one()
             update_data["account_name"] = account.name
-
-        # Handle bill splits update
-        if "splits" in update_data:
-            splits = update_data.pop("splits")  # Remove splits from update_data
-            if splits:
-                total_split_amount = sum(split.amount for split in splits)
-                bill_amount = update_data.get("amount", db_bill.amount)
-                if total_split_amount >= bill_amount:
-                    raise ValueError(f"Split amounts total ({total_split_amount}) exceeds or equals bill amount ({bill_amount})")
-                
-                # Validate account existence and amounts
-                for split in splits:
-                    account_result = await self.db.execute(
-                        select(Account).filter(Account.id == split.account_id)
-                    )
-                    if not account_result.scalar_one_or_none():
-                        raise ValueError(f"Account {split.account_id} not found")
-                    
-                    if split.amount <= 0:
-                        raise ValueError("Split amounts must be greater than 0")
-
-            # Delete existing splits
-            await self.split_service.delete_bill_splits(bill_id)
-            
-            # Create new splits
-            if splits:
-                total_split_amount = Decimal('0')
-                for split_input in splits:
-                    split_create = BillSplitCreate(
-                        bill_id=bill_id,
-                        account_id=split_input.account_id,
-                        amount=split_input.amount
-                    )
-                    await self.split_service.create_bill_split(split_create)
-                    total_split_amount += split_input.amount
-
-                # Calculate primary account amount (total - splits)
-                bill_amount = update_data.get("amount", db_bill.amount)
-                primary_amount = bill_amount - total_split_amount
-                
-                # Create split for primary account
-                primary_split = BillSplitCreate(
-                    bill_id=bill_id,
-                    account_id=update_data.get("account_id", db_bill.account_id),
-                    amount=primary_amount
-                )
-                await self.split_service.create_bill_split(primary_split)
 
         # Update bill fields
         for key, value in update_data.items():

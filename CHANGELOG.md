@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2025-02-09
+
+### Fixed
+- Test infrastructure improvements
+  - Fixed circular imports in model relationships
+  - Enhanced model dependency management
+  - Improved test database setup
+  - Added proper test session handling
+- Model relationship improvements
+  - Fixed circular dependencies in models
+  - Enhanced type hints for relationships
+  - Improved model initialization order
+  - Better dependency management
+
 ## [0.4.1] - 2025-02-09
 
 ### Fixed

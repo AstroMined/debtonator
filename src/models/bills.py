@@ -5,8 +5,6 @@ from sqlalchemy import String, Date, Boolean, Numeric, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.base import Base
-from .transactions import AccountTransaction
-from .bill_splits import BillSplit
 
 class Bill(Base):
     """Bill model representing a bill payment record"""
@@ -30,7 +28,7 @@ class Bill(Base):
     # Relationships
     transactions = relationship("AccountTransaction", back_populates="bill")
     account = relationship("Account", back_populates="bills")
-    splits: Mapped[List[BillSplit]] = relationship("BillSplit", back_populates="bill", cascade="all, delete-orphan")
+    splits: Mapped[List["BillSplit"]] = relationship("BillSplit", back_populates="bill", cascade="all, delete-orphan")
 
     # Create indexes for efficient lookups
     __table_args__ = (

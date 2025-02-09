@@ -41,7 +41,7 @@ class BillUpdate(BaseModel):
     auto_pay: Optional[bool] = None
     paid: Optional[bool] = None
     paid_date: Optional[date] = None
-    splits: Optional[List[BillSplitResponse]] = None
+    splits: Optional[List[BillSplitInput]] = None
 
 class BillInDB(BillBase):
     """Schema for bill data as stored in the database"""

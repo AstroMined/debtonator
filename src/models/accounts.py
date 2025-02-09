@@ -5,9 +5,6 @@ from sqlalchemy import String, Date, Numeric, Index, event
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from ..database.base import Base
-from .transactions import AccountTransaction
-from .recurring_bills import RecurringBill
-from .bill_splits import BillSplit
 
 class Account(Base):
     """Account model representing a financial account"""
@@ -47,7 +44,7 @@ class Account(Base):
     transactions = relationship("AccountTransaction", back_populates="account")
     recurring_bills = relationship("RecurringBill", back_populates="account")
     bills = relationship("Bill", back_populates="account")
-    bill_splits: Mapped[List[BillSplit]] = relationship("BillSplit", back_populates="account", cascade="all, delete-orphan")
+    bill_splits: Mapped[List["BillSplit"]] = relationship("BillSplit", back_populates="account", cascade="all, delete-orphan")
     income = relationship("Income", back_populates="account")
 
     # Create indexes for efficient lookups

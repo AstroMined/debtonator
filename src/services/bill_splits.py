@@ -31,6 +31,15 @@ class BillSplitService:
         """Get the total amount of all splits for a bill."""
         return await calculate_split_totals(self.db, bill_id)
 
+    async def delete_bill_splits(self, bill_id: int) -> None:
+        """Delete all splits for a bill."""
+        result = await self.db.execute(
+            select(BillSplit).where(BillSplit.bill_id == bill_id)
+        )
+        splits = result.scalars().all()
+        for split in splits:
+            await self.db.delete(split)
+
 async def calculate_split_totals(db: AsyncSession, bill_id: int) -> Decimal:
     """Calculate the total amount of all splits for a given bill."""
     result = await db.execute(

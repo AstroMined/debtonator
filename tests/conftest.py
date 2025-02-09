@@ -33,10 +33,11 @@ def event_loop() -> Generator:
     yield loop
     loop.close()
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="function")
 async def setup_db() -> AsyncGenerator:
     print("\nSetting up test database...")
     async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
         print("Database tables created")
         # List created tables
