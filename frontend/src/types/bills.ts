@@ -1,8 +1,12 @@
+export type BillStatus = 'paid' | 'unpaid' | 'overdue';
+
 export interface BillSplit {
   id?: number;
   bill_id?: number;
   account_id: number;
   amount: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Bill {
@@ -26,10 +30,42 @@ export interface BillDateRange {
   end_date: string;
 }
 
-export type BillStatus = 'paid' | 'unpaid' | 'overdue';
-
 export interface BillTableRow extends Bill {
   status: BillStatus;
   daysOverdue: number;
   splitAmounts?: { [accountId: number]: number };
+}
+
+export interface BillCalculations {
+  totalAmount: number;
+  totalUnpaid: number;
+  totalByAccount: { [accountId: number]: number };
+  totalByStatus: { [key in BillStatus]: number };
+  upcomingBills: number;
+  overdueBills: number;
+  lastUpdated: string;
+}
+
+export interface BillFilters {
+  status?: BillStatus;
+  month?: string;
+  accountId?: number;
+  dateRange?: BillDateRange;
+  searchTerm?: string;
+}
+
+export interface BillUpdatePayload {
+  id: number;
+  updates: Partial<Bill>;
+}
+
+export interface BillSplitUpdatePayload {
+  billId: number;
+  splits: BillSplit[];
+}
+
+export interface BillPaymentUpdatePayload {
+  billId: number;
+  paid: boolean;
+  paidDate?: string;
 }

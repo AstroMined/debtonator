@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Enhanced
+- Bills state management with advanced features
+  - Normalized state structure using Record<id, item>
+  - Real-time calculations with memoized selectors
+  - Optimistic updates with automatic rollback
+  - Comprehensive pending updates tracking
+  - Enhanced TypeScript type safety
+  - Efficient filtering and calculations
+  - New selectors for:
+    - Pending updates status
+    - Optimistic calculations
+    - Bill filtering by multiple criteria
+    - Account-specific bill totals
+  - Improved error handling with rollback
+  - Automatic state recalculation
+  - Performance optimizations:
+    - Memoized selectors
+    - Normalized state
+    - Efficient updates
+    - Batched calculations
+
+## [Previous Changes]
+
 ### Added
 - Global state management with Redux Toolkit
   - Type-safe state implementation with TypeScript

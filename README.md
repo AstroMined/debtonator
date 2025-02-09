@@ -23,6 +23,10 @@ A modern bill and cashflow management system that helps track bills, income, and
 - Mobile-optimized grid view with smart column management
 - Advanced filtering and sorting capabilities
 - Performance-optimized for large datasets
+- Real-time calculations with optimistic updates
+- Automatic state rollback on failures
+- Efficient state updates with normalized structure
+- Comprehensive pending updates tracking
 
 ### Financial Analysis
 - Income tracking and deposit status
@@ -52,6 +56,10 @@ A modern bill and cashflow management system that helps track bills, income, and
   - Type-safe state and actions
   - Efficient selectors and memoization
   - Real-time state synchronization
+  - Normalized state structure
+  - Optimistic updates with rollback
+  - Pending updates tracking
+  - Automatic recalculations
 - Material-UI components
 - Vite build system
 - Jest and React Testing Library
@@ -128,6 +136,8 @@ debtonator/
 │   │   ├── components/  # React components
 │   │   ├── pages/       # Page components
 │   │   ├── services/    # API services
+│   │   ├── store/       # Redux store and slices
+│   │   │   └── slices/  # Feature-specific slices
 │   │   └── types/       # TypeScript types
 │   └── ...
 ├── src/                 # Backend application
@@ -138,6 +148,31 @@ debtonator/
 │   └── utils/          # Utilities
 └── tests/              # Test suites
 ```
+
+## State Management
+
+The application uses Redux Toolkit with a focus on performance and reliability:
+
+### Normalized State Structure
+- Efficient lookups with Record<id, item>
+- Reduced data duplication
+- Optimized updates and selections
+
+### Real-time Calculations
+- Memoized selectors for performance
+- Automatic recalculation on state changes
+- Efficient filtering and aggregation
+
+### Optimistic Updates
+- Immediate UI feedback
+- Automatic rollback on failures
+- Pending updates tracking
+- Original state preservation
+
+### Type Safety
+- Full TypeScript coverage
+- Type-safe actions and state
+- Comprehensive selector types
 
 ## Documentation
 
