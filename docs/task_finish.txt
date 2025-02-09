@@ -1,3 +1,0 @@
-update memory bank
-
-Update README.md, CHANGELOG.md and create any ADRs that are absolutely necessary to document a major architectural change.

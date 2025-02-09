@@ -191,12 +191,19 @@ npm run dev
   - Unit tests
 - ✓ Bills Table/Grid View
   - Material-UI DataGrid integration
-  - Payment status management
-  - Status indicators
-  - Sorting and filtering
-  - Mobile responsiveness
-  - Loading states
-  - Error handling
+  - Payment status management with visual feedback
+  - Status indicators (paid/unpaid/overdue)
+  - Days overdue calculation and display
+  - Account-specific amount columns
+  - Paid date tracking
+  - Bulk payment actions
+  - Advanced filtering with toolbar
+  - Dynamic column visibility
+  - Pagination support
+  - Mobile-responsive design
+  - Loading states and error handling
+  - Striped rows for readability
+  - Tooltip information
 
 ### In Progress
 - Frontend feature components development

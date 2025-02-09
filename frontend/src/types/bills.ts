@@ -19,6 +19,7 @@ export type BillStatus = 'paid' | 'unpaid' | 'overdue';
 
 export interface BillTableRow extends Bill {
   status: BillStatus;
+  daysOverdue: number;
 }
 
 export type Account = 'AMEX' | 'UNLIMITED' | 'UFCU';

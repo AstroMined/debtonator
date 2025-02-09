@@ -197,6 +197,12 @@
 - [x] Bill management implementation
   - [x] Bill entry form
   - [x] Bills list/grid view
+    - Account-specific amount tracking
+    - Payment status management
+    - Bulk payment actions
+    - Advanced filtering
+    - Mobile responsiveness
+    - Days overdue tracking
   - [x] Payment status management
   - [ ] API integration
 - [ ] Income tracking system

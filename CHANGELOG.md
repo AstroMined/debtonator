@@ -21,6 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Customized cell rendering
   - Tooltip information
   - Keyboard navigation support
+  - Account-specific amount columns (AMEX, Unlimited, UFCU)
+  - Paid date tracking and display
+  - Days overdue calculation with tooltip display
+  - Bulk payment actions with selection model
+  - Advanced filtering with GridToolbar
+  - Dynamic column visibility for mobile
+  - Pagination with configurable page size
+  - Striped rows for better readability
 - Bill Entry Form component
   - Form validation with Formik and Yup
   - Material-UI form controls

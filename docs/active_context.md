@@ -40,15 +40,21 @@ Frontend feature component development progressing with the completion of the Bi
    - Support for editing existing bills
 
 2. **Bills Table**
-   - Material-UI DataGrid integration
-   - Sortable columns
-   - Payment status toggle
-   - Status indicators (paid/unpaid/overdue)
-   - Currency formatting
-   - Auto-pay indicators
-   - Mobile-responsive design
-   - Loading states
-   - Error handling
+   - ✓ Material-UI DataGrid integration
+   - ✓ Sortable columns
+   - ✓ Payment status toggle
+   - ✓ Status indicators (paid/unpaid/overdue)
+   - ✓ Currency formatting
+   - ✓ Auto-pay indicators
+   - ✓ Mobile-responsive design
+   - ✓ Loading states
+   - ✓ Error handling
+   - ✓ Account-specific amount columns
+   - ✓ Paid date tracking
+   - ✓ Days overdue calculation
+   - ✓ Bulk payment actions
+   - ✓ Advanced filtering
+   - ✓ Pagination
 
 3. **Bills Page**
    - Add New Bill functionality
