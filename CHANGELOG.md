@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Enhanced navigation structure and user interface
+  - Added breadcrumb navigation for better context
+  - Implemented active route highlighting
+  - Created collapsible account summary in sidebar
+    - Total balance display with color indicators
+    - Available credit tracking
+    - Individual account balances
+    - Collapsible sections for better organization
+  - Improved mobile navigation drawer
+  - Added sticky positioning for better UX
+  - Enhanced visual feedback for current location
+  - Version display in sidebar footer
+
 ### Enhanced
 - Bills state management with advanced features
   - Normalized state structure using Record<id, item>

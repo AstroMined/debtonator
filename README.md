@@ -4,6 +4,18 @@ A modern bill and cashflow management system that helps track bills, income, and
 
 ## Features
 
+### Navigation & Interface
+- Intuitive breadcrumb navigation for context
+- Active route highlighting for better UX
+- Collapsible account summary in sidebar
+  - Real-time total balance display
+  - Available credit tracking
+  - Individual account balances
+  - Color-coded status indicators
+- Mobile-optimized navigation drawer
+- Sticky positioning for better usability
+- Version information display
+
 ### Account Management
 - Dynamic account creation and configuration
 - Support for multiple account types (credit, checking, savings)

@@ -12,6 +12,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { AccountSummary } from './AccountSummary';
 import {
   Dashboard as DashboardIcon,
   Receipt as BillsIcon,
@@ -42,10 +43,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const navigate = useNavigate();
 
   const drawerContent = (
-    <Box sx={{ width: DRAWER_WIDTH }}>
+    <Box sx={{ 
+      width: DRAWER_WIDTH,
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
       <Box sx={{ p: 2 }} /> {/* Spacer for AppBar */}
       <Divider />
-      <List>
+      <AccountSummary />
+      <Divider />
+      <List sx={{ flexGrow: 1 }}>
         {menuItems.map((item) => (
           <ListItem key={item.text} disablePadding>
             <ListItemButton
@@ -63,6 +71,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           </ListItem>
         ))}
       </List>
+      <Divider />
+      <Box sx={{ p: 2, textAlign: 'center' }}>
+        <ListItemText 
+          primary="Debtonator v1.0"
+          primaryTypographyProps={{
+            variant: 'caption',
+            color: 'text.secondary'
+          }}
+        />
+      </Box>
     </Box>
   );
 
@@ -91,6 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         '& .MuiDrawer-paper': {
           width: DRAWER_WIDTH,
           boxSizing: 'border-box',
+          overflowY: 'auto',
         },
       }}
       open

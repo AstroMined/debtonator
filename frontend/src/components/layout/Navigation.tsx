@@ -8,8 +8,9 @@ import {
   useTheme,
   useMediaQuery,
   Button,
+  Breadcrumbs,
 } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 
@@ -54,45 +55,105 @@ export const Navigation: React.FC<NavigationProps> = ({ onMenuClick }) => {
           Debtonator
         </Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        {!isMobile && (
+          <Box sx={{ ml: 4, display: 'flex', flexDirection: 'column' }}>
+            <Breadcrumbs
+              aria-label="breadcrumb"
+              sx={{
+                '& .MuiBreadcrumbs-ol': {
+                  color: 'white',
+                },
+                '& .MuiBreadcrumbs-separator': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                },
+              }}
+            >
+              <Typography
+                component={RouterLink}
+                to="/"
+                sx={{
+                  color: 'white',
+                  textDecoration: 'none',
+                  '&:hover': {
+                    textDecoration: 'underline',
+                  },
+                }}
+              >
+                Home
+              </Typography>
+              <BreadcrumbSection />
+            </Breadcrumbs>
+          </Box>
+        )}
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 'auto' }}>
           {!isMobile && (
             <>
-              <Button
-                component={RouterLink}
-                to="/accounts"
-                color="inherit"
-                sx={{ textTransform: 'none' }}
-              >
-                Accounts
-              </Button>
-              <Button
-                component={RouterLink}
-                to="/bills"
-                color="inherit"
-                sx={{ textTransform: 'none' }}
-              >
-                Bills
-              </Button>
-              <Button
-                component={RouterLink}
-                to="/income"
-                color="inherit"
-                sx={{ textTransform: 'none' }}
-              >
-                Income
-              </Button>
-              <Button
-                component={RouterLink}
-                to="/cashflow"
-                color="inherit"
-                sx={{ textTransform: 'none' }}
-              >
-                Cashflow
-              </Button>
+              <NavButton to="/accounts" label="Accounts" />
+              <NavButton to="/bills" label="Bills" />
+              <NavButton to="/income" label="Income" />
+              <NavButton to="/cashflow" label="Cashflow" />
             </>
           )}
         </Box>
       </Toolbar>
     </AppBar>
+  );
+};
+
+interface NavButtonProps {
+  to: string;
+  label: string;
+}
+
+const NavButton: React.FC<NavButtonProps> = ({ to, label }) => {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+
+  return (
+    <Button
+      component={RouterLink}
+      to={to}
+      color="inherit"
+      sx={{
+        textTransform: 'none',
+        position: 'relative',
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          bottom: -2,
+          left: 0,
+          width: '100%',
+          height: 2,
+          backgroundColor: 'white',
+          opacity: isActive ? 1 : 0,
+          transition: 'opacity 0.2s',
+        },
+        '&:hover::after': {
+          opacity: 0.7,
+        },
+      }}
+    >
+      {label}
+    </Button>
+  );
+};
+
+const BreadcrumbSection: React.FC = () => {
+  const location = useLocation();
+  const pathSegments = location.pathname.split('/').filter(Boolean);
+
+  if (pathSegments.length === 0) return null;
+
+  const currentPage = pathSegments[pathSegments.length - 1];
+  return (
+    <Typography
+      sx={{
+        color: 'rgba(255, 255, 255, 0.9)',
+        textTransform: 'capitalize',
+      }}
+    >
+      {currentPage}
+    </Typography>
   );
 };
