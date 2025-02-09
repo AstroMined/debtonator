@@ -39,11 +39,25 @@ Frontend feature component development progressing with the completion of the Bi
    - Error handling and feedback
    - Support for editing existing bills
 
-2. **Bills Page**
+2. **Bills Table**
+   - Material-UI DataGrid integration
+   - Sortable columns
+   - Payment status toggle
+   - Status indicators (paid/unpaid/overdue)
+   - Currency formatting
+   - Auto-pay indicators
+   - Mobile-responsive design
+   - Loading states
+   - Error handling
+
+3. **Bills Page**
    - Add New Bill functionality
+   - Bill listing and management
    - Form state management
    - Responsive layout
    - Navigation integration
+   - Loading state handling
+   - Error feedback
 
 ### API Implementation
 1. **Income API**

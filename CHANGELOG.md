@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Bills Table/Grid component
+  - Material-UI DataGrid integration
+  - Sortable columns with custom sorting
+  - Payment status toggle with visual feedback
+  - Status indicators (paid/unpaid/overdue)
+  - Currency formatting for amounts
+  - Auto-pay status indicators
+  - Mobile-responsive design
+  - Loading states and error handling
+  - Default sorting by due date
+  - Customized cell rendering
+  - Tooltip information
+  - Keyboard navigation support
 - Bill Entry Form component
   - Form validation with Formik and Yup
   - Material-UI form controls

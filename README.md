@@ -189,10 +189,17 @@ npm run dev
   - Historical date support
   - Mobile responsiveness
   - Unit tests
+- ✓ Bills Table/Grid View
+  - Material-UI DataGrid integration
+  - Payment status management
+  - Status indicators
+  - Sorting and filtering
+  - Mobile responsiveness
+  - Loading states
+  - Error handling
 
 ### In Progress
 - Frontend feature components development
-  - Bills list/grid view
   - Income tracking interface
   - Cashflow visualization
   - Account management interface
