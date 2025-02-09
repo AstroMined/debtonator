@@ -1,3 +1,46 @@
+# Next Session Tasks
+
+## High Priority
+1. Complete system integration testing
+   - Test all error scenarios in bill splits
+   - Verify balance calculations across accounts
+   - Test bulk operations with splits
+   - Validate cashflow calculations with split bills
+
+2. Performance Optimization
+   - Implement data caching for accounts and bills
+   - Optimize component re-renders in bills table
+   - Add state update batching for bulk operations
+   - Profile and optimize database queries
+
+3. Documentation Updates
+   - Add troubleshooting guide for common errors
+   - Create integration testing documentation
+   - Update API documentation with error scenarios
+   - Add examples for bill splits usage
+
+## Medium Priority
+1. Mobile Responsiveness
+   - Enhance bills table on mobile
+   - Improve split payment UI on small screens
+   - Optimize charts for mobile view
+
+2. Testing Coverage
+   - Add E2E tests for critical flows
+   - Increase unit test coverage
+   - Add integration tests for splits
+
+## Suggested Commit Message
+```
+fix(bills): enhance bill splits implementation and validation
+
+- Fix primary account amount calculation in splits
+- Add automatic split creation for primary account
+- Improve split amount validation
+- Enhance error handling and response validation
+- Update documentation with new ADR and progress
+- Bump version to 0.3.1
+
 ***** SWITCH TO PLAN MODE!!! *****
 
 Start session:

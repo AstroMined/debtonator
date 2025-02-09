@@ -1,5 +1,30 @@
 # Changelog
 
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.3.1] - 2025-02-09
+
+### Fixed
+- Bill splits validation and creation
+  - Fixed primary account amount calculation
+  - Improved split amount validation
+  - Enhanced error handling for splits
+  - Fixed response validation for bill operations
+- System integration issues
+  - Resolved account management validation
+  - Fixed bill creation with splits
+  - Improved balance tracking accuracy
+
+### Changed
+- Enhanced bill splits implementation
+  - Primary account amount now calculated as (total - splits)
+  - Automatic split creation for primary account
+  - Improved validation error messages
+  - Better error handling for edge cases
+
 ## [0.3.0] - 2025-02-09
 
 ### Added
@@ -15,15 +40,6 @@
 - Enhanced bills and income tables with import capabilities
 - Updated API endpoints to handle bulk data imports
 - Improved error handling for data validation
-
-## [0.2.0] - 2025-02-09
-
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
 
 ## [0.2.0] - 2025-02-09
 

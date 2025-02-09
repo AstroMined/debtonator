@@ -1,8 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+# Import all models to ensure they are registered
+from . import models
 from .utils.config import settings
-from .api.v1 import bills, income, cashflow, accounts
+from .api.base import api_router
+from .database.base import Base
+from .database.database import engine
+
+# Create tables
+async def create_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -22,11 +31,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(bills.router, prefix=settings.API_V1_PREFIX)
-app.include_router(income.router, prefix=settings.API_V1_PREFIX)
-app.include_router(cashflow.router, prefix=settings.API_V1_PREFIX)
-app.include_router(accounts.router, prefix=settings.API_V1_PREFIX)
+# Include API router
+app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+
+@app.on_event("startup")
+async def startup_event():
+    await create_tables()
 
 @app.get("/")
 async def root():

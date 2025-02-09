@@ -63,18 +63,25 @@ class BillService:
         # Handle bill splits if provided
         if bill_create.splits:
             total_split_amount = Decimal('0')
-            for split in bill_create.splits:
+            for split_input in bill_create.splits:
                 split_create = BillSplitCreate(
                     bill_id=db_bill.id,
-                    account_id=split.account_id,
-                    amount=split.amount
+                    account_id=split_input.account_id,
+                    amount=split_input.amount
                 )
                 await self.split_service.create_bill_split(split_create)
-                total_split_amount += split.amount
+                total_split_amount += split_input.amount
 
-            # Validate split total matches bill amount
-            if total_split_amount != bill_create.amount:
-                raise ValueError("Sum of split amounts must equal total bill amount")
+            # Calculate primary account amount (total - splits)
+            primary_amount = bill_create.amount - total_split_amount
+            
+            # Create split for primary account
+            primary_split = BillSplitCreate(
+                bill_id=db_bill.id,
+                account_id=bill_create.account_id,
+                amount=primary_amount
+            )
+            await self.split_service.create_bill_split(primary_split)
 
         await self.db.commit()
         await self.db.refresh(db_bill)
@@ -108,19 +115,26 @@ class BillService:
             splits = update_data.pop("splits")  # Remove splits from update_data
             if splits:
                 total_split_amount = Decimal('0')
-                for split in splits:
+                for split_input in splits:
                     split_create = BillSplitCreate(
                         bill_id=bill_id,
-                        account_id=split.account_id,
-                        amount=split.amount
+                        account_id=split_input.account_id,
+                        amount=split_input.amount
                     )
                     await self.split_service.create_bill_split(split_create)
-                    total_split_amount += split.amount
+                    total_split_amount += split_input.amount
 
-                # Validate split total matches bill amount
+                # Calculate primary account amount (total - splits)
                 bill_amount = update_data.get("amount", db_bill.amount)
-                if total_split_amount != bill_amount:
-                    raise ValueError("Sum of split amounts must equal total bill amount")
+                primary_amount = bill_amount - total_split_amount
+                
+                # Create split for primary account
+                primary_split = BillSplitCreate(
+                    bill_id=bill_id,
+                    account_id=update_data.get("account_id", db_bill.account_id),
+                    amount=primary_amount
+                )
+                await self.split_service.create_bill_split(primary_split)
 
         # Update bill fields
         for key, value in update_data.items():

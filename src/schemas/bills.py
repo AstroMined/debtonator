@@ -5,6 +5,11 @@ from pydantic import BaseModel, Field, ConfigDict
 
 from .bill_splits import BillSplitResponse
 
+class BillSplitInput(BaseModel):
+    """Schema for bill split input during bill creation/update"""
+    account_id: int
+    amount: Decimal
+
 class BillBase(BaseModel):
     """Base schema for bill data"""
     bill_name: str = Field(..., description="Name of the bill")
@@ -17,7 +22,7 @@ class BillBase(BaseModel):
 
 class BillCreate(BillBase):
     """Schema for creating a new bill"""
-    splits: Optional[List[BillSplitResponse]] = None
+    splits: Optional[List[BillSplitInput]] = None
 
 class BillUpdate(BaseModel):
     """Schema for updating an existing bill"""

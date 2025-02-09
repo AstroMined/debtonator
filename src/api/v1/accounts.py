@@ -7,7 +7,7 @@ from ...database.database import get_db
 from ...models.accounts import Account
 from ...schemas.accounts import AccountCreate, AccountUpdate, AccountResponse
 
-router = APIRouter(prefix="/accounts", tags=["accounts"])
+router = APIRouter(tags=["accounts"])
 
 @router.get("", response_model=List[AccountResponse])
 async def get_accounts(
@@ -37,6 +37,7 @@ async def create_account(
 ):
     """Create a new account"""
     db_account = Account(**account.model_dump())
+    db_account.update_available_credit()
     db.add(db_account)
     try:
         await db.commit()
@@ -61,7 +62,8 @@ async def update_account(
     update_data = account.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(db_account, key, value)
-
+    
+    db_account.update_available_credit()
     try:
         await db.commit()
         await db.refresh(db_account)
