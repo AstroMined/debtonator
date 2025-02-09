@@ -45,11 +45,13 @@ Debtonator helps users track bills, income, and maintain sufficient account bala
 - SQLAlchemy for ORM
 - Alembic for migrations
 
-### Frontend (Planned)
-- React for UI
-- Real-time calculations
+### Frontend
+- React with TypeScript
+- Vite for build tooling
+- Jest and React Testing Library
+- ESLint and Prettier for code quality
 - Mobile-responsive design
-- Clear financial visualization
+- Real-time calculations
 
 ## API Documentation
 
@@ -81,7 +83,7 @@ Debtonator helps users track bills, income, and maintain sufficient account bala
 
 ## Setup
 
-### Initial Setup
+### Backend Setup
 
 1. Clone the repository:
 ```bash
@@ -126,6 +128,32 @@ uvicorn src.main:app --reload
 - Swagger UI: http://localhost:8000/api/v1/docs
 - ReDoc: http://localhost:8000/api/v1/redoc
 
+### Frontend Setup
+
+1. Navigate to the frontend directory:
+```bash
+cd frontend
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+4. Start the development server:
+```bash
+npm run dev
+```
+
+5. Access the application:
+- Development: http://localhost:3000
+
 ## Development Status
 
 ### Completed
@@ -141,12 +169,21 @@ uvicorn src.main:app --reload
   - Data transformation
   - Database import with validation
   - Migration CLI tool
+- ✓ Frontend development setup
+  - React with TypeScript
+  - Build system and testing
+  - Code quality tools
+  - Project structure
 
 ### In Progress
-- Frontend development
-- Testing implementation
+- Frontend component development
+  - Base layout components
+  - Reusable UI components
+  - Data visualization components
+  - Navigation structure
 
 ### Planned
+- Frontend features implementation
 - User authentication
 - Mobile applications
 - Banking API integration

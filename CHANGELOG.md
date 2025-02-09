@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Frontend development setup
+  - React with TypeScript configuration
+  - Vite build system and development server
+  - Jest and React Testing Library setup
+  - ESLint and Prettier configuration
+  - Project structure with organized directories
+  - Development proxy for API integration
+  - Environment configuration
+  - Code quality tools and standards
 - Data migration tools
   - Excel data extraction with pandas
   - Data transformation to SQLAlchemy models
@@ -66,6 +75,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated bill tracking to use proper relationships
 - Enhanced account management with transaction tracking
 - Implemented versioned API structure (v1)
+- Updated project documentation to include frontend setup
+- Enhanced development workflow with frontend tooling
 
 ### Technical Details
 - Added foreign key from bills to accounts
@@ -82,3 +93,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added FastAPI dependency injection for database sessions
 - Created RESTful API endpoints with proper status codes
 - Added OpenAPI documentation with detailed schemas
+- Frontend development environment:
+  - TypeScript strict mode configuration
+  - Jest testing environment with DOM support
+  - ESLint rules for React and TypeScript
+  - Prettier code formatting standards
+  - Development server with API proxy
+  - Path aliases for clean imports
+  - Environment variable management
