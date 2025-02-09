@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Income API endpoints
+  - CRUD operations for income records
+  - Deposit status tracking
+  - Undeposited amount calculations
+  - Date range filtering
+  - Income source categorization
+  - API documentation via Swagger UI
+- Cashflow API endpoints
+  - 90-day rolling forecast calculations
+  - Minimum required funds tracking
+  - Deficit calculations
+  - Required income projections
+  - Hourly rate calculations
+  - Account balance tracking
+  - API documentation via Swagger UI
 - Initial project setup and documentation
 - Database schema design and implementation
   - Core models (Bills, Income, Accounts)
@@ -23,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Alembic configuration
   - Initial schema migration
   - Migration for relationships and indexes
+  - Income and cashflow models migration
 - Project documentation
   - Project brief and requirements
   - Technical context and patterns
@@ -50,11 +66,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Income: date, deposited status
   - Transactions: date, account_id
   - Accounts: name
-  - Cashflow: date
+  - Cashflow: forecast_date
 - Implemented calculation methods in models
 - Set up async database support
 - Added Pydantic schemas for request/response validation
-- Implemented service layer for bills management
+- Implemented service layer for bills, income, and cashflow management
 - Added FastAPI dependency injection for database sessions
 - Created RESTful API endpoints with proper status codes
 - Added OpenAPI documentation with detailed schemas

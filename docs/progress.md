@@ -62,7 +62,7 @@
 - [x] Migration scripts
   - Created initial migration
   - Added relationships and indexes migration
-  - Set up Alembic for future migrations
+  - Added income and cashflow models migration
 - [ ] Seed data preparation
 - [ ] Test data generation
 - [x] Index creation
@@ -89,9 +89,18 @@
   - Date range filtering
   - Payment status management
   - Account-specific amount tracking
-- [ ] Income API endpoints
-- [ ] Cashflow API endpoints
-- [ ] Business logic implementation
+- [x] Income API endpoints
+  - CRUD operations
+  - Deposit status tracking
+  - Undeposited calculations
+  - Date range filtering
+- [x] Cashflow API endpoints
+  - 90-day forecast calculations
+  - Minimum required funds tracking
+  - Deficit calculations
+  - Required income projections
+  - Hourly rate calculations
+- [x] Business logic implementation
 
 ### Frontend Development
 - [ ] React project setup
@@ -100,17 +109,17 @@
 - [ ] API integration
 
 ## In Progress
-1. Income API endpoint planning
-   - Define RESTful routes
-   - Plan calculation endpoints
-   - Design validation rules
-   - Document request/response schemas
+1. Data migration tools development
+   - Excel data extraction
+   - Data transformation
+   - Database import
+   - Validation checks
 
 ## Next Up
-1. Implement income API endpoints
-2. Create cashflow API endpoints
-3. Create data migration tools
-4. Develop basic frontend components
+1. Create data migration tools
+2. Develop basic frontend components
+3. Implement user authentication
+4. Add mobile responsiveness
 
 ## Known Issues
 
@@ -146,8 +155,8 @@
   - Date range filtering
   - Payment status management
   - Account-specific tracking
-- [ ] Create income API endpoints
-- [ ] Create cashflow API endpoints
+- [x] Create income API endpoints
+- [x] Create cashflow API endpoints
 - [ ] Develop basic UI components
 
 ### Phase 2: Core Features
@@ -193,8 +202,8 @@
 ### Technical Documentation
 - [x] Initial architecture documentation
 - [x] Bills API documentation
-- [ ] Income API documentation
-- [ ] Cashflow API documentation
+- [x] Income API documentation
+- [x] Cashflow API documentation
 - [ ] Component documentation
 
 ### User Documentation

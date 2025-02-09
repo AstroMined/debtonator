@@ -1,64 +1,39 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Implementing API endpoints and business logic for the bill and cashflow management system. Core bills API endpoints have been implemented, and we're moving on to income and cashflow endpoints.
+Implementing API endpoints and business logic for the bill and cashflow management system. Core bills, income, and cashflow API endpoints have been implemented. Moving on to data migration tools and frontend development.
 
 ## Recent Analysis
 
-### Spreadsheet Structure
-1. **Bills Sheet**
-   - 4,970 rows of historical data (2017-2025)
-   - 13 columns tracking bill details
-   - Complex formulas for account-specific calculations
-   - Conditional formatting for payment status
-   - Notable patterns:
-     * Regular bills (e.g., "Helping Hands" $560)
-     * Utilities (AT&T, COA)
-     * Rent payments
-     * Mixed payment methods (Auto Pay vs Manual)
+### API Implementation
+1. **Income API**
+   - CRUD operations completed
+   - Deposit status tracking
+   - Undeposited amount calculations
+   - Date range filtering
+   - Source categorization
+   - Relationship with transactions
 
-2. **Income Sheet**
-   - 528 rows of income records
-   - 5 key columns for income tracking
-   - Formulas for calculating undeposited amounts
-   - Date-based organization
-   - Key income sources:
-     * Regular employment (ScienceLogic: $2,887.92)
-     * Recurring payments (Mom Rent: $250)
-     * Historical sources (Fire Dept, Capitol Courier)
+2. **Cashflow API**
+   - 90-day rolling forecast
+   - Minimum required funds tracking
+   - Deficit calculations
+   - Required income projections
+   - Hourly rate calculations
+   - Account balance tracking
 
-3. **Cashflow Sheet**
-   - 890 rows of cashflow data
-   - Special calculations in first 5 rows
-   - Rolling 90-day forecast
-   - Complex SUMPRODUCT formulas for totals
-   - Account tracking:
-     * AMEX available credit
-     * UFCU available balance
-     * Unlimited available credit
-     * Pending deposits
-
-### Key Formulas Identified
-
-#### Bills
-```excel
-Due Date = DATEVALUE(CONCATENATE(Month,"/",Day,"/25"))
-Account Amount = IF(Account="AMEX",IF(Paid="Yes",0,Amount),0)
-```
-
-#### Income
-```excel
-Undeposited = IF(Deposited="No",Amount,0)
-```
-
-#### Cashflow
-```excel
-Min Period = MIN(I8:I22)  # 14-day minimum
-Daily Deficit = IF(MinPeriod<0,MinPeriod/14,0)
-Yearly Deficit = DailyDeficit*365
-Required Income = (ABS(YearlyDeficit)/0.8)
-Hourly Rate = RequiredIncome/52/hours
-```
+3. **Formula Translations**
+   - Income calculations implemented
+     ```python
+     undeposited_amount = amount if not deposited else Decimal(0)
+     ```
+   - Cashflow calculations implemented
+     ```python
+     daily_deficit = min_amount / 14 if min_amount < 0 else Decimal(0)
+     yearly_deficit = daily_deficit * 365
+     required_income = abs(yearly_deficit) / Decimal('0.8')
+     hourly_rate = required_income / 52 / hours_per_week
+     ```
 
 ## Active Decisions
 
@@ -74,11 +49,11 @@ Hourly Rate = RequiredIncome/52/hours
   - Date range filtering
   - Unpaid bills filtering
   - Payment status management
-- Next: Income API endpoints
+- ✓ Income API endpoints implemented
   - CRUD operations
   - Deposit status tracking
   - Undeposited amount calculations
-- Future: Cashflow API endpoints
+- ✓ Cashflow API endpoints implemented
   - Forecast calculations
   - Account balance tracking
   - Minimum required calculations
@@ -93,35 +68,20 @@ Hourly Rate = RequiredIncome/52/hours
 
 ### Immediate Tasks
 1. ✓ Set up development environment
-   - Python virtual environment with UV
-   - SQLite database with async support
-   - Configuration management (.env)
-   - FastAPI project structure
 2. ✓ Implement database schema
-   - Created core SQLAlchemy models (bills, income, accounts)
-   - Added supporting models (transactions, recurring bills, forecasts)
-   - Set up Alembic migrations
-   - Implemented relationships and foreign keys
-   - Added performance indexes
-   - Implemented calculation methods
 3. ✓ Design and implement bills API endpoints
-   - ✓ CRUD operations
-   - ✓ Date range filtering
-   - ✓ Payment status management
-   - ✓ Account-specific amount tracking
-4. Implement income API endpoints
-   - CRUD operations
-   - Deposit status tracking
-   - Undeposited calculations
-5. Implement cashflow API endpoints
-   - Forecast calculations
-   - Balance tracking
-   - Minimum required calculations
+4. ✓ Implement income API endpoints
+5. ✓ Implement cashflow API endpoints
 6. Create data migration tools
    - Excel data extraction script
    - Data transformation utilities
    - Database import procedures
    - Data validation checks
+7. Begin frontend development
+   - Set up React project
+   - Design component hierarchy
+   - Implement core components
+   - Integrate with API
 
 ### Technical Planning
 1. ✓ Design API Endpoints
@@ -130,11 +90,11 @@ Hourly Rate = RequiredIncome/52/hours
    - ✓ Document request/response schemas
    - ✓ Define validation rules
 
-2. Plan Business Logic
+2. ✓ Plan Business Logic
    - ✓ Bill creation/update workflows
-   - Income tracking process
-   - Transaction handling
-   - Cashflow calculation logic
+   - ✓ Income tracking process
+   - ✓ Transaction handling
+   - ✓ Cashflow calculation logic
 
 3. Testing Strategy
    - Unit tests for models and calculations
@@ -150,9 +110,9 @@ Hourly Rate = RequiredIncome/52/hours
 
 ### Documentation Needs
 1. ✓ Bills API documentation
-2. Income API documentation
-3. Cashflow API documentation
-4. Testing documentation
+2. ✓ Income API documentation
+3. ✓ Cashflow API documentation
+4. Frontend component documentation
 
 ## Known Issues
 

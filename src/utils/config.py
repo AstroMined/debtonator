@@ -1,37 +1,26 @@
-from functools import lru_cache
-from typing import Optional
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    """Application settings loaded from environment variables"""
-    # App settings
-    APP_NAME: str
-    APP_VERSION: str
-    DEBUG: bool
+    """Application settings"""
+    
+    # Database
+    DATABASE_URL: str = "sqlite+aiosqlite:///./debtonator.db"
+    
+    # Application
+    DEBUG: bool = False
+    API_V1_PREFIX: str = "/api/v1"
+    PROJECT_NAME: str = "Debtonator"
+    VERSION: str = "0.1.0"
+    DESCRIPTION: str = "Bill & Cashflow Management System"
+    
+    # CORS
+    BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:3000"]
+    
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True
+    )
 
-    # Database settings
-    DATABASE_URL: str
-
-    # Security settings
-    SECRET_KEY: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int
-
-    # CORS settings
-    CORS_ORIGINS: str  # Comma-separated list of origins
-
-    # Optional API keys for future integrations
-    BANKING_API_KEY: Optional[str] = None
-
-    @property
-    def cors_origin_list(self) -> list[str]:
-        """Convert CORS_ORIGINS string to list"""
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
-
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-
-@lru_cache()
-def get_settings() -> Settings:
-    """Get cached settings instance"""
-    return Settings()
+# Create settings instance
+settings = Settings()

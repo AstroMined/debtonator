@@ -1,120 +1,154 @@
 # Debtonator
 
-A modern bill and cashflow management system that helps track bills, income, and maintain sufficient account balances for timely bill payments.
+A modern bill and cashflow management system built with FastAPI and React.
+
+## Overview
+
+Debtonator helps users track bills, income, and maintain sufficient account balances for timely bill payments. It provides real-time financial forecasting and calculates required income based on upcoming expenses.
 
 ## Features
 
-- Track bills with payment status, due dates, and account allocation
-- Record income sources and deposit status
-- Monitor account balances and available credit
-- Generate 90-day rolling cashflow forecasts
-- Calculate minimum required funds for different periods
-- Track recurring bills and payment patterns
+### Bill Management
+- Track bills with due dates, amounts, and payment status
+- Support for multiple payment accounts (AMEX, UFCU, Unlimited)
+- Auto-pay status tracking
+- Historical payment records
+- Date range filtering
 
-## Project Status
+### Income Tracking
+- Record and track income sources
+- Deposit status management
+- Undeposited income tracking
+- Running total calculations
+- Source categorization
 
-Currently in active development. Completed features:
-- Database schema with models for bills, income, accounts, and transactions
-- Migration system with Alembic
-- Performance indexes and relationships
-- Development environment setup
-- Bills API endpoints with:
-  - CRUD operations
-  - Date range filtering
-  - Payment status management
-  - Account-specific amount tracking
+### Cashflow Analysis
+- 90-day rolling forecast
+- Available credit/balance tracking
+- Minimum required funds calculation:
+  - 14-day outlook
+  - 30-day outlook
+  - 60-day outlook
+  - 90-day outlook
+- Required income projections:
+  - Daily deficit
+  - Yearly deficit
+  - Extra income needed (with tax consideration)
+  - Hourly rate calculations (40/30/20 hours per week)
 
-Next up:
-- Income API endpoints
-- Cashflow API endpoints
-- Data migration tools
-- Frontend development
-- Testing infrastructure
+## Technology Stack
 
-## Development Setup
+### Backend
+- FastAPI for high-performance API
+- SQLite for development (MySQL/MariaDB for production)
+- Pydantic for data validation
+- SQLAlchemy for ORM
+- Alembic for migrations
 
-### Prerequisites
-- Python 3.10+
-- SQLite (for development)
+### Frontend (Planned)
+- React for UI
+- Real-time calculations
+- Mobile-responsive design
+- Clear financial visualization
 
-### Installation
+## API Documentation
 
-1. Create and activate virtual environment:
+### Bills API
+- `GET /api/v1/bills/` - List bills with filtering
+- `POST /api/v1/bills/` - Create new bill
+- `GET /api/v1/bills/{id}` - Get bill details
+- `PUT /api/v1/bills/{id}` - Update bill
+- `DELETE /api/v1/bills/{id}` - Delete bill
+- `PUT /api/v1/bills/{id}/pay` - Mark bill as paid
+
+### Income API
+- `GET /api/v1/income/` - List income records with filtering
+- `POST /api/v1/income/` - Create new income record
+- `GET /api/v1/income/{id}` - Get income details
+- `PUT /api/v1/income/{id}` - Update income record
+- `DELETE /api/v1/income/{id}` - Delete income record
+- `GET /api/v1/income/undeposited/` - List undeposited income
+- `PUT /api/v1/income/{id}/deposit` - Mark income as deposited
+- `GET /api/v1/income/undeposited/total/` - Get total undeposited amount
+
+### Cashflow API
+- `GET /api/v1/cashflow/` - List cashflow forecasts
+- `POST /api/v1/cashflow/forecast/90-day` - Calculate 90-day forecast
+- `GET /api/v1/cashflow/{id}` - Get forecast details
+- `GET /api/v1/cashflow/{id}/minimum-required` - Get minimum required funds
+- `GET /api/v1/cashflow/{id}/deficit` - Get deficit calculations
+- `GET /api/v1/cashflow/{id}/hourly-rates` - Get required hourly rates
+
+## Setup
+
+1. Clone the repository:
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+git clone https://github.com/yourusername/debtonator.git
+cd debtonator
 ```
 
-2. Install dependencies:
+2. Create and activate virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate     # Windows
+```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Set up environment variables:
+4. Set up environment variables:
 ```bash
 cp .env.example .env
-# Edit .env with your settings
+# Edit .env with your configuration
 ```
 
-4. Run database migrations:
+5. Run database migrations:
 ```bash
 alembic upgrade head
 ```
 
-5. Start development server:
+6. Start the development server:
 ```bash
-python run.py
+uvicorn src.main:app --reload
 ```
 
-## API Documentation
+7. Access the API documentation:
+- Swagger UI: http://localhost:8000/api/v1/docs
+- ReDoc: http://localhost:8000/api/v1/redoc
 
-The API documentation is available at `/docs` when running the development server.
+## Development Status
 
-### Bills API Endpoints
+### Completed
+- ✓ Backend API structure
+- ✓ Database models and migrations
+- ✓ Bills API endpoints
+- ✓ Income API endpoints
+- ✓ Cashflow API endpoints
+- ✓ Core business logic
+- ✓ API documentation
 
-- `GET /api/v1/bills/` - List all bills with pagination
-- `POST /api/v1/bills/` - Create a new bill
-- `GET /api/v1/bills/{id}` - Get a specific bill
-- `PUT /api/v1/bills/{id}` - Update a bill
-- `DELETE /api/v1/bills/{id}` - Delete a bill
-- `GET /api/v1/bills/unpaid/` - List unpaid bills
-- `GET /api/v1/bills/by-date-range/` - Get bills within date range
-- `PATCH /api/v1/bills/{id}/mark-paid` - Mark a bill as paid
+### In Progress
+- Data migration tools
+- Frontend development
+- Testing implementation
 
-## Project Structure
-
-```
-debtonator/
-├── alembic/              # Database migrations
-├── docs/                 # Project documentation
-│   ├── adr/             # Architecture Decision Records
-│   └── ...              # Other documentation
-├── src/
-│   ├── api/             # API endpoints
-│   │   └── v1/          # API version 1
-│   ├── database/        # Database configuration
-│   ├── models/          # SQLAlchemy models
-│   ├── schemas/         # Pydantic schemas
-│   ├── services/        # Business logic
-│   └── utils/           # Utility functions
-└── tests/               # Test suite
-    ├── integration/     # Integration tests
-    └── unit/           # Unit tests
-```
-
-## Documentation
-
-- [Project Brief](docs/project_brief.md)
-- [Technical Context](docs/tech_context.md)
-- [System Patterns](docs/system_patterns.md)
-- [Architecture Decisions](docs/adr/)
+### Planned
+- User authentication
+- Mobile applications
+- Banking API integration
+- Notification system
 
 ## Contributing
 
-1. Check the [Active Context](docs/active_context.md) for current focus
-2. Review [Progress](docs/progress.md) for status
-3. Follow project patterns in [System Patterns](docs/system_patterns.md)
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## License
 
-[MIT License](LICENSE)
+This project is licensed under the MIT License - see the LICENSE file for details.

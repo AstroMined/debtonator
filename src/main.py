@@ -1,37 +1,38 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api.base import api_router
-from .database.database import create_db_and_tables
-from .utils.config import get_settings
-
-settings = get_settings()
+from .utils.config import settings
+from .api.v1 import bills, income, cashflow
 
 app = FastAPI(
-    title=settings.APP_NAME,
-    description="Bill & Cashflow Management System",
-    version=settings.APP_VERSION,
-    debug=settings.DEBUG
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    description=settings.DESCRIPTION,
+    openapi_url=f"{settings.API_V1_PREFIX}/openapi.json",
+    docs_url=f"{settings.API_V1_PREFIX}/docs",
+    redoc_url=f"{settings.API_V1_PREFIX}/redoc",
 )
 
-# CORS middleware configuration
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origin_list,
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include all API routes
-app.include_router(api_router, prefix="/api")
-
-@app.on_event("startup")
-async def startup_event():
-    """Create database tables on startup"""
-    await create_db_and_tables()
+# Include routers
+app.include_router(bills.router, prefix=settings.API_V1_PREFIX)
+app.include_router(income.router, prefix=settings.API_V1_PREFIX)
+app.include_router(cashflow.router, prefix=settings.API_V1_PREFIX)
 
 @app.get("/")
 async def root():
-    """Health check endpoint"""
-    return {"status": "healthy", "message": "Debtonator API is running"}
+    """Root endpoint"""
+    return {
+        "name": settings.PROJECT_NAME,
+        "version": settings.VERSION,
+        "description": settings.DESCRIPTION,
+        "docs": f"{settings.API_V1_PREFIX}/docs",
+    }
