@@ -1,5 +1,71 @@
 # Progress: Debtonator
 
+## Current Priority: Bills/Payments Separation
+Major architectural change to separate bills from their payment tracking.
+
+### Phase 1: Database Changes (1-2 days)
+- [x] New Schema Implementation
+  - [x] Liability model (replacing Bills)
+  - [x] Payment model (transactions)
+  - [x] PaymentSource model (entries)
+  - [x] Updated relationships
+  - [x] Removed legacy Bill model
+- [ ] Migration Scripts
+  - [ ] Table creation
+  - [ ] Data migration
+  - [ ] Index creation
+- [ ] Testing
+  - [x] Model unit tests created
+  - [ ] Migration tests
+  - [ ] Data integrity validation
+  - [ ] Performance testing
+
+### Phase 2: API Layer (2-3 days)
+- [ ] New Schemas
+  - [ ] Liability schema
+  - [ ] Payment schema
+  - [ ] Payment source schema
+- [ ] Endpoint Updates
+  - [ ] Bill endpoints
+  - [ ] Payment endpoints
+  - [ ] Source tracking endpoints
+- [ ] Services
+  - [ ] Payment processing
+  - [ ] Bill tracking
+  - [ ] Balance calculations
+
+### Phase 3: Frontend Foundation (2-3 days)
+- [ ] Core Updates
+  - [ ] New TypeScript interfaces
+  - [ ] Redux store modifications
+  - [ ] API service updates
+- [ ] Component Updates
+  - [ ] Bill components
+  - [ ] Payment forms
+  - [ ] Account tracking
+
+### Phase 4: Frontend Features (3-4 days)
+- [ ] New Components
+  - [ ] Payment entry forms
+  - [ ] Payment history views
+  - [ ] Bill status tracking
+- [ ] Updates
+  - [ ] Cashflow calculations
+  - [ ] Filtering options
+  - [ ] Balance tracking
+
+### Phase 5: Testing/Documentation (2-3 days)
+- [ ] Testing
+  - [ ] Unit test updates
+  - [ ] Integration tests
+  - [ ] Migration testing
+- [ ] Documentation
+  - [ ] API documentation
+  - [ ] Migration guide
+  - [ ] User documentation
+
+## Previously Completed Work
+
 ### Frontend Development
 - [x] React project setup
   - TypeScript configuration
@@ -53,43 +119,7 @@
     - [x] Memoized selectors
     - [x] Efficient state updates
 
-## In Progress
-1. Test Coverage Expansion
-   - ✓ Test infrastructure fixes
-   - ✓ Database setup improvements
-   - ✓ Session handling fixes
-   - ✓ Coverage analysis (70% overall)
-   - [ ] API endpoint tests (29-42% coverage)
-   - [ ] Service layer tests (31-51% coverage)
-   - [ ] Error case coverage
-   - [ ] Test documentation updates
-
-2. Performance optimization
-   - Component re-renders
-   - Data caching strategy
-   - State update batching
-
-## Test Coverage Status
-1. Well Covered Areas (>90%)
-   - Models layer
-   - Schemas layer
-   - Core utilities
-   - Base configurations
-
-2. Needs Improvement (50-80%)
-   - Income API (64%)
-   - Database utilities (47%)
-   - Income service (51%)
-   - Cashflow models (77%)
-
-3. Critical Gaps (<50%)
-   - Bill splits API (29%)
-   - Bills API (35%)
-   - Accounts API (42%)
-   - Cashflow API (40%)
-   - Bulk import service (31%)
-
-## Completed
+## Recent Improvements
 1. Navigation structure improvements
    - [x] Breadcrumb navigation
    - [x] Active route highlighting
@@ -98,28 +128,13 @@
    - [x] Sticky positioning
    - [x] Version display
 
-## Next Up
-1. Implement bulk import functionality
-   - Backend services and endpoints
-     - Bills bulk import endpoint
-     - Income bulk import endpoint
-     - Data validation services
-     - Progress tracking
-   - Frontend components
-     - File upload modal
-     - Data preview table
-     - Validation display
-     - Progress indicator
-   - Testing and documentation
-     - Unit tests
-     - Integration tests
-     - API documentation
-     - Usage guidelines
-2. Add interactive charts to cashflow visualization
-3. Implement trend analysis features
-4. Enhance mobile responsiveness for remaining components
+2. Test Coverage Expansion
+   - ✓ Test infrastructure fixes
+   - ✓ Database setup improvements
+   - ✓ Session handling fixes
+   - ✓ Coverage analysis (70% overall)
 
-### Phase 2: Core Features (In Progress)
+### Core Features
 - [x] Bill management implementation
   - [x] Bill entry form with splits
   - [x] Bills list/grid view with dynamic accounts
@@ -165,4 +180,10 @@
     - [x] Date range selection
     - [x] Account-specific balance history
     - [x] Cross-account comparison
-- [ ] Basic reporting
+
+## Future Enhancements
+1. Bulk import functionality
+2. Enhanced reporting capabilities
+3. Mobile app development
+4. Real-time synchronization
+5. Banking API integration

@@ -16,7 +16,7 @@ graph TD
    - API integration
    - Real-time calculations
    - Dynamic account management
-   - Split payment handling
+   - Payment tracking
 
 2. **API Layer**
    - FastAPI endpoints
@@ -24,16 +24,44 @@ graph TD
    - Data validation
    - Authentication
    - Account management
-   - Split payment validation
+   - Payment processing
 
 3. **Data Layer**
    - Database schema
    - Data access patterns
    - Caching strategy
    - Account relationships
-   - Bill splits tracking
+   - Payment tracking
 
 ## Design Patterns
+
+### Double-Entry Accounting Pattern
+- Separates bills from payments
+- Tracks liabilities independently
+- Maintains payment history
+- Supports multiple payment sources
+
+```python
+class Bill:  # Liability
+    id: int
+    name: str
+    amount: Decimal
+    due_date: date
+    category: str
+    
+class Payment:  # Transaction
+    id: int
+    bill_id: Optional[int]  # Optional for non-bill expenses
+    amount: Decimal
+    payment_date: date
+    category: str
+    
+class PaymentSource:  # Entry
+    id: int
+    payment_id: int
+    account_id: int
+    amount: Decimal
+```
 
 ### Repository Pattern
 - Abstracts data access
@@ -48,7 +76,11 @@ class BillRepository:
     async def get_unpaid_bills(self) -> List[Bill]:
         pass
 
-    async def get_bill_splits(self, bill_id: int) -> List[BillSplit]:
+class PaymentRepository:
+    async def get_payments_for_bill(self, bill_id: int) -> List[Payment]:
+        pass
+    
+    async def get_payment_sources(self, payment_id: int) -> List[PaymentSource]:
         pass
 ```
 
@@ -58,13 +90,13 @@ class BillRepository:
 - Handles complex calculations
 
 ```python
-class BillService:
-    async def create_bill_with_splits(
-        self, bill_data: BillCreate, splits: List[BillSplitCreate]
-    ) -> Bill:
+class PaymentService:
+    async def create_payment(
+        self, payment_data: PaymentCreate, sources: List[PaymentSourceCreate]
+    ) -> Payment:
         pass
     
-    async def validate_split_total(self, bill_id: int) -> bool:
+    async def validate_payment_sources(self, payment_id: int) -> bool:
         pass
 
 class AccountService:
@@ -75,58 +107,39 @@ class AccountService:
         pass
 ```
 
-### Factory Pattern
-- Creates complex objects
-- Manages object lifecycle
-- Enables dependency injection
-
-```python
-class BillFactory:
-    @staticmethod
-    def create_recurring_bill(template: BillTemplate) -> Bill:
-        pass
-
-    @staticmethod
-    def create_split_bill(template: BillTemplate, splits: List[BillSplit]) -> Bill:
-        pass
-```
-
 ## Data Flow Patterns
 
-### Bulk Import Processing
+### Payment Processing
 ```mermaid
 graph LR
-    A[Upload File] --> B[Validate Format]
-    B --> C[Parse Data]
-    C --> D[Validate Content]
-    D --> E[Preview Data]
-    E --> F[Confirm Import]
-    F --> G[Process in Chunks]
-    G --> H[Update Database]
-    H --> I[Return Results]
+    A[Create Payment] --> B[Validate Amount]
+    B --> C[Create Sources]
+    C --> D[Validate Sources]
+    D --> E[Save Payment & Sources]
+    E --> F[Update Account Balances]
+    F --> G[Update Bill Status]
+    G --> H[Notify User]
 ```
 
-### Bill Management with Splits
+### Bill Management
 ```mermaid
 graph LR
     A[Create Bill] --> B[Validate Data]
-    B --> C[Create Splits]
-    C --> D[Validate Splits]
-    D --> E[Save Bill & Splits]
-    E --> F[Update Account Balances]
-    F --> G[Notify User]
+    B --> C[Save Bill]
+    C --> D[Schedule Reminders]
+    D --> E[Update Cashflow]
+    E --> F[Notify User]
 ```
 
-### Bulk Import Validation
+### Payment Source Validation
 ```mermaid
 graph TD
-    A[Read File] --> B[Check Format]
-    B --> C[Parse Records]
-    C --> D[Validate Each Record]
-    D --> E[Check References]
-    E --> F[Validate Business Rules]
-    F --> G[Generate Report]
-    G --> H[Show Preview]
+    A[Get Payment] --> D[Get Sources]
+    B[Calculate Total] --> E[Compare with Payment Amount]
+    C[Validate Accounts] --> F[Check Balances]
+    D --> B
+    E --> G[Validate Result]
+    F --> G
 ```
 
 ### Account Management
@@ -135,18 +148,7 @@ graph LR
     A[Update Account] --> B[Validate Balance]
     B --> C[Update Credit]
     C --> D[Save Changes]
-    D --> E[Update Related Bills]
-```
-
-### Bill Split Validation
-```mermaid
-graph TD
-    A[Get Bill] --> D[Get Splits]
-    B[Calculate Total] --> E[Compare with Bill Amount]
-    C[Validate Accounts] --> F[Check Balances]
-    D --> B
-    E --> G[Validate Result]
-    F --> G
+    D --> E[Update Related Payments]
 ```
 
 ## State Management
@@ -157,7 +159,7 @@ graph TD
 - Form state
 - API cache state
 - Account state management
-- Split payment state
+- Payment tracking state
 
 ### Backend State
 - Database transactions
@@ -165,7 +167,7 @@ graph TD
 - Cache invalidation
 - Background tasks
 - Account balance tracking
-- Split payment validation
+- Payment validation
 
 ## Error Handling
 
@@ -174,7 +176,7 @@ graph TD
 - Form validation errors
 - Network error recovery
 - State inconsistency handling
-- Split payment validation errors
+- Payment validation errors
 - Account balance errors
 
 ### Backend Errors
@@ -182,7 +184,7 @@ graph TD
 - Validation errors
 - Business rule violations
 - External service errors
-- Split total mismatch errors
+- Payment total mismatch errors
 - Account balance constraints
 
 ## Security Patterns
@@ -207,7 +209,7 @@ graph TD
 - Data validation
 - Calculations
 - Component rendering
-- Split payment validation
+- Payment validation
 - Account balance calculations
 
 ### Integration Testing
@@ -216,7 +218,7 @@ graph TD
 - Service interactions
 - User workflows
 - Account management flows
-- Split payment flows
+- Payment processing flows
 
 ### End-to-End Testing
 - Critical paths
@@ -224,20 +226,43 @@ graph TD
 - Mobile responsiveness
 - Performance testing
 - Account operations
-- Split payment scenarios
+- Payment scenarios
 
 ## Validation Patterns
 
-### Bill Split Validation
+### Payment Validation
 - Total amount matching
 - Account availability
 - Balance sufficiency
-- Split constraints
+- Source constraints
 - Business rules compliance
 
 ### Account Validation
 - Balance consistency
 - Credit limit enforcement
 - Transaction validation
-- Split payment capacity
+- Payment capacity
 - Historical data consistency
+
+## Migration Patterns
+
+### Data Migration
+```mermaid
+graph TD
+    A[Export Current Data] --> B[Transform Schema]
+    B --> C[Create New Tables]
+    C --> D[Migrate Bills]
+    D --> E[Create Payments]
+    E --> F[Link Relationships]
+    F --> G[Validate Data]
+    G --> H[Switch Schema]
+```
+
+### Feature Migration
+```mermaid
+graph LR
+    A[Deploy Schema] --> B[Update API]
+    B --> C[Deploy Backend]
+    C --> D[Update Frontend]
+    D --> E[Deploy Frontend]
+    E --> F[Verify System]

@@ -9,7 +9,7 @@ from alembic import context
 
 # Import our models and config
 from src.database.base import Base
-from src.models import Account, Bill, Income  # Import models to register them
+from src.models import Account, Liability, Income, Payment, PaymentSource  # Import models to register them
 from src.utils.config import get_settings
 
 settings = get_settings()

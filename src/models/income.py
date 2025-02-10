@@ -1,10 +1,10 @@
 from datetime import date
 from decimal import Decimal
+from typing import List
 from sqlalchemy import String, Date, Boolean, Numeric, Index, ForeignKey, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.base import Base
-from .transactions import AccountTransaction
 
 class Income(Base):
     """Income model representing an income record"""
@@ -28,7 +28,7 @@ class Income(Base):
     account = relationship("Account", back_populates="income")
 
     # Relationships
-    transactions = relationship("AccountTransaction", back_populates="income")
+    payments: Mapped[List["Payment"]] = relationship("Payment", back_populates="income")
 
     # Create indexes and constraints
     __table_args__ = (

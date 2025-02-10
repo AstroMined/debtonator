@@ -69,33 +69,64 @@ class BulkImportPreview(BaseModel):
     total_records: int
 ```
 
-### Bills
+### Bills (Liabilities)
 ```python
 class Bill(BaseModel):
     id: int
-    month: str
-    day_of_month: int
-    due_date: date
-    paid_date: Optional[date]
-    bill_name: str
+    name: str
     amount: Decimal
-    up_to_date: bool
-    account_id: int
-    account_name: str
-    auto_pay: bool
-    paid: bool
-    splits: List[BillSplit]
+    due_date: date
+    description: Optional[str]
+    category: str
+    recurring: bool
+    recurrence_pattern: Optional[dict]
+    created_at: datetime
+    updated_at: datetime
+
+class BillCreate(BaseModel):
+    name: str
+    amount: Decimal
+    due_date: date
+    description: Optional[str]
+    category: str
+    recurring: bool = False
+    recurrence_pattern: Optional[dict] = None
 ```
 
-### BillSplits
+### Payments (Transactions)
 ```python
-class BillSplit(BaseModel):
+class Payment(BaseModel):
     id: int
-    bill_id: int
+    bill_id: Optional[int]  # Optional for non-bill expenses
+    amount: Decimal
+    payment_date: date
+    description: Optional[str]
+    category: str
+    created_at: datetime
+    updated_at: datetime
+
+class PaymentCreate(BaseModel):
+    bill_id: Optional[int]
+    amount: Decimal
+    payment_date: date
+    description: Optional[str]
+    category: str
+```
+
+### Payment Sources (Entries)
+```python
+class PaymentSource(BaseModel):
+    id: int
+    payment_id: int
     account_id: int
     amount: Decimal
-    created_at: date
-    updated_at: date
+    created_at: datetime
+    updated_at: datetime
+
+class PaymentSourceCreate(BaseModel):
+    payment_id: int
+    account_id: int
+    amount: Decimal
 ```
 
 ### Accounts
@@ -111,23 +142,6 @@ class Account(BaseModel):
     last_statement_date: Optional[date]
     created_at: date
     updated_at: date
-```
-
-### Bulk Import Endpoints
-```python
-@router.post("/bills/bulk-import")
-async def bulk_import_bills(
-    file: UploadFile,
-    preview: bool = True
-) -> BulkImportResponse:
-    pass
-
-@router.post("/income/bulk-import")
-async def bulk_import_income(
-    file: UploadFile,
-    preview: bool = True
-) -> BulkImportResponse:
-    pass
 ```
 
 ### Income
@@ -157,23 +171,22 @@ class CashflowForecast(BaseModel):
 
 ## Formula Translations
 
-### Bill Split Calculations
+### Payment Calculations
 ```python
-def validate_bill_splits(bill: Bill) -> bool:
-    total_split_amount = sum(split.amount for split in bill.splits)
-    return total_split_amount == bill.amount
+def validate_payment_sources(payment: Payment) -> bool:
+    total_source_amount = sum(source.amount for source in payment.sources)
+    return total_source_amount == payment.amount
 
-def get_account_total(account_id: int, bills: List[Bill]) -> Decimal:
+def get_account_payments(account_id: int, payments: List[Payment]) -> Decimal:
     total = Decimal(0)
-    for bill in bills:
-        # Add primary account amount
-        if bill.account_id == account_id:
-            total += bill.amount
-        # Add split amounts
-        for split in bill.splits:
-            if split.account_id == account_id:
-                total += split.amount
+    for payment in payments:
+        for source in payment.sources:
+            if source.account_id == account_id:
+                total += source.amount
     return total
+
+def get_bill_payments(bill_id: int) -> List[Payment]:
+    return Payment.objects.filter(bill_id=bill_id).order_by('payment_date')
 ```
 
 ### Account Calculations
@@ -220,14 +233,15 @@ def calculate_hourly_rate(required_income: Decimal, hours_per_week: int) -> Deci
 - Maintain data integrity during migration
 - Verify calculation accuracy
 - Handle date format conversions
-- Migrate account-specific amounts to bill splits
+- Convert bill splits to payment sources
+- Link existing bills to new payment records
 
 ### Performance Requirements
 - Fast cashflow calculations
 - Quick forecast updates
 - Responsive UI updates
 - Efficient database queries
-- Optimized split calculations
+- Optimized payment tracking
 
 ### Security Requirements
 - Secure user authentication
@@ -252,7 +266,7 @@ def calculate_hourly_rate(required_income: Decimal, hours_per_week: int) -> Deci
    - Schema versioning
    - Data migration scripts
    - Rollback procedures
-   - Split data migration
+   - Payment data migration
 
 2. API versioning
    - URL versioning
@@ -271,7 +285,7 @@ def calculate_hourly_rate(required_income: Decimal, hours_per_week: int) -> Deci
    - Error tracking
    - Performance monitoring
    - User analytics
-   - Account operation logging
+   - Payment tracking logs
 
 5. Backup strategy
    - Database backups

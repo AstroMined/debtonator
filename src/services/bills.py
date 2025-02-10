@@ -103,11 +103,10 @@ class BillService:
         self.db.add(db_bill)
         await self.db.flush()  # Get the bill ID without committing
 
-        # Handle bill splits
-        total_split_amount = Decimal('0')
-        
-        # Create splits if provided
+        # Handle splits
         if bill_create.splits:
+            total_split_amount = Decimal('0')
+            # Create provided splits
             for split_input in bill_create.splits:
                 await self.split_service.create_split(
                     bill_id=db_bill.id,
@@ -116,15 +115,20 @@ class BillService:
                 )
                 total_split_amount += split_input.amount
 
-        # Calculate primary account amount (total - splits)
-        primary_amount = bill_create.amount - total_split_amount
-        
-        # Create split for primary account
-        await self.split_service.create_split(
-            bill_id=db_bill.id,
-            account_id=bill_create.account_id,
-            amount=primary_amount
-        )
+            # Create primary split with remaining amount
+            primary_amount = bill_create.amount - total_split_amount
+            await self.split_service.create_split(
+                bill_id=db_bill.id,
+                account_id=bill_create.account_id,
+                amount=primary_amount
+            )
+        else:
+            # If no splits provided, create one for the full amount
+            await self.split_service.create_split(
+                bill_id=db_bill.id,
+                account_id=bill_create.account_id,
+                amount=bill_create.amount
+            )
 
         await self.db.commit()
         
@@ -143,13 +147,12 @@ class BillService:
             # Delete existing splits
             await self.split_service.delete_bill_splits(bill_id)
             
-            # Calculate total split amount
-            total_split_amount = Decimal('0')
+            bill_amount = bill_update.amount if bill_update.amount is not None else db_bill.amount
+            primary_account_id = bill_update.account_id if bill_update.account_id is not None else db_bill.account_id
+
             if bill_update.splits:
-                # Calculate total split amount
+                # Validate splits
                 total_split_amount = sum(split.amount for split in bill_update.splits)
-                bill_amount = bill_update.amount if bill_update.amount is not None else db_bill.amount
-                
                 if total_split_amount >= bill_amount:
                     raise ValueError(f"Split amounts total ({total_split_amount}) exceeds or equals bill amount ({bill_amount})")
                 
@@ -163,8 +166,8 @@ class BillService:
                     
                     if split.amount <= 0:
                         raise ValueError("Split amounts must be greater than 0")
-                
-                # Create new splits
+
+                # Create provided splits
                 for split_input in bill_update.splits:
                     await self.split_service.create_split(
                         bill_id=bill_id,
@@ -172,36 +175,23 @@ class BillService:
                         amount=split_input.amount
                     )
 
-            # Calculate and create primary account split
-            bill_amount = bill_update.amount if bill_update.amount is not None else db_bill.amount
-            primary_amount = bill_amount - total_split_amount
-            primary_account_id = bill_update.account_id if bill_update.account_id is not None else db_bill.account_id
-            
-            print(f"\nDebug - Creating splits:")
-            print(f"Bill amount: {bill_amount}")
-            print(f"Total split amount: {total_split_amount}")
-            print(f"Primary amount: {primary_amount}")
-            print(f"Primary account ID: {primary_account_id}")
-            
-            await self.split_service.create_split(
-                bill_id=bill_id,
-                account_id=primary_account_id,
-                amount=primary_amount
-            )
-            
+                # Create primary split with remaining amount
+                primary_amount = bill_amount - total_split_amount
+                await self.split_service.create_split(
+                    bill_id=bill_id,
+                    account_id=primary_account_id,
+                    amount=primary_amount
+                )
+            else:
+                # If no splits provided, create one for the full amount
+                await self.split_service.create_split(
+                    bill_id=bill_id,
+                    account_id=primary_account_id,
+                    amount=bill_amount
+                )
+
             # Commit to ensure all splits are saved
             await self.db.commit()
-            
-            # Expire the session to force reload of relationships
-            self.db.expire_all()
-            
-            # Verify splits were created
-            stmt = select(BillSplit).where(BillSplit.bill_id == bill_id)
-            result = await self.db.execute(stmt)
-            splits = result.scalars().all()
-            print(f"Debug - Final splits count: {len(splits)}")
-            for split in splits:
-                print(f"Split: account_id={split.account_id}, amount={split.amount}")
 
         # Handle other updates
         update_data = bill_update.model_dump(exclude_unset=True, exclude={'splits'})

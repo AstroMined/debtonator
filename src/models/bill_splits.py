@@ -10,7 +10,7 @@ class BillSplit(Base):
     __tablename__ = "bill_splits"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    bill_id: Mapped[int] = mapped_column(ForeignKey("bills.id"))
+    bill_id: Mapped[int] = mapped_column(ForeignKey("liabilities.id", ondelete="CASCADE"))
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
     amount: Mapped[Decimal] = mapped_column(
         Numeric(10, 2),
@@ -20,7 +20,7 @@ class BillSplit(Base):
     updated_at: Mapped[date] = mapped_column(Date, default=date.today, onupdate=date.today)
 
     # Relationships
-    bill = relationship("Bill", back_populates="splits")
+    bill = relationship("Liability", back_populates="splits")
     account = relationship("Account", back_populates="bill_splits")
 
     # Create indexes for efficient lookups

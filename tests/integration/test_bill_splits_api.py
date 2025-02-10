@@ -99,8 +99,10 @@ async def test_get_bill_splits(setup_db, client: AsyncClient, bill_split_create_
     assert response.status_code == 200
     
     data = response.json()
-    assert len(data) == 2
+    # Should have 3 splits: primary account split + 2 manual splits
+    assert len(data) == 3
     assert all(split["bill_id"] == bill_id for split in data)
+    # Total should equal bill amount
     assert sum(Decimal(split["amount"]) for split in data) == Decimal("200.00")
 
 @pytest.mark.asyncio
@@ -159,7 +161,8 @@ async def test_get_account_splits(setup_db, client: AsyncClient):
     assert response.status_code == 200
     
     data = response.json()
-    assert len(data) == 2
+    # Should have 4 splits: 2 primary account splits + 2 manual splits
+    assert len(data) == 4
     assert all(split["account_id"] == account_id for split in data)
 
 @pytest.mark.asyncio
@@ -249,7 +252,11 @@ async def test_delete_bill_split(setup_db, client: AsyncClient):
     # Verify deletion
     get_response = await client.get(f"/api/v1/bill-splits/{bill_id}")
     assert get_response.status_code == 200
-    assert len(get_response.json()) == 0
+    # Should still have primary account split
+    assert len(get_response.json()) == 1
+    split = get_response.json()[0]
+    assert split["account_id"] == account_id
+    assert Decimal(split["amount"]) == Decimal("200.00")
 
 @pytest.mark.asyncio
 async def test_delete_bill_splits(setup_db, client: AsyncClient):

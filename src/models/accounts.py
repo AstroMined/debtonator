@@ -41,11 +41,22 @@ class Account(Base):
     updated_at: Mapped[date] = mapped_column(Date, default=date.today, onupdate=date.today)
 
     # Relationships
-    transactions = relationship("AccountTransaction", back_populates="account")
-    recurring_bills = relationship("RecurringBill", back_populates="account")
-    bills = relationship("Bill", back_populates="account")
-    bill_splits: Mapped[List["BillSplit"]] = relationship("BillSplit", back_populates="account", cascade="all, delete-orphan")
-    income = relationship("Income", back_populates="account")
+    payment_sources: Mapped[List["PaymentSource"]] = relationship(
+        "PaymentSource",
+        back_populates="account",
+        cascade="all, delete-orphan"
+    )
+    bills: Mapped[List["Bill"]] = relationship("Bill", back_populates="account")
+    bill_splits: Mapped[List["BillSplit"]] = relationship(
+        "BillSplit",
+        back_populates="account",
+        cascade="all, delete-orphan"
+    )
+    income: Mapped[List["Income"]] = relationship("Income", back_populates="account")
+    recurring_bills: Mapped[List["RecurringBill"]] = relationship(
+        "RecurringBill",
+        back_populates="account"
+    )
 
     # Create indexes for efficient lookups
     __table_args__ = (
