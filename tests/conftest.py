@@ -20,6 +20,7 @@ engine = create_async_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
+    echo=True  # Enable SQL logging
 )
 
 TestingSessionLocal = sessionmaker(
@@ -29,27 +30,20 @@ TestingSessionLocal = sessionmaker(
 @pytest.fixture(scope="function")
 def event_loop() -> Generator:
     """Create an instance of the default event loop for each test case."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
+    policy = asyncio.get_event_loop_policy()
+    loop = policy.new_event_loop()
+    asyncio.set_event_loop(loop)
     yield loop
     loop.close()
+    asyncio.set_event_loop(None)
 
 @pytest.fixture(scope="function")
 async def setup_db() -> AsyncGenerator:
     print("\nSetting up test database...")
     async with engine.begin() as conn:
-        print("Dropping all tables...")
         await conn.run_sync(Base.metadata.drop_all)
-        print("Creating all tables...")
         await conn.run_sync(Base.metadata.create_all)
         print("Database tables created")
-        
-        # List all tables in Base.metadata
-        print(f"Tables in Base.metadata: {Base.metadata.tables.keys()}")
-        
-        # List actually created tables
-        result = await conn.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))
-        tables = result.scalars().all()
-        print(f"Actually created tables in database: {tables}")
     yield
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
@@ -58,10 +52,16 @@ async def setup_db() -> AsyncGenerator:
 @pytest.fixture
 async def db_session(setup_db) -> AsyncGenerator[AsyncSession, None]:
     async with TestingSessionLocal() as session:
-        # Enable foreign key constraints
+        # Enable foreign key constraints and other SQLite settings
         await session.execute(text("PRAGMA foreign_keys=ON"))
+        await session.execute(text("PRAGMA journal_mode=WAL"))
+        await session.execute(text("PRAGMA synchronous=NORMAL"))
         await session.commit()
-        yield session
+        
+        # Start a transaction
+        async with session.begin():
+            yield session
+            # Transaction will be rolled back automatically
 
 @pytest.fixture
 async def client() -> AsyncGenerator[AsyncClient, None]:

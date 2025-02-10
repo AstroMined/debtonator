@@ -8,11 +8,11 @@ from io import StringIO
 from fastapi import UploadFile
 from pydantic import BaseModel, ValidationError
 
-from src.models.bills import Bill
+from src.models.liabilities import Liability
 from src.models.income import Income
-from src.schemas.bills import BillCreate
+from src.schemas.liabilities import LiabilityCreate
 from src.schemas.income import IncomeCreate
-from src.services.bills import BillService
+from src.services.liabilities import LiabilityService
 from src.services.income import IncomeService
 
 class ImportError(BaseModel):
@@ -28,7 +28,7 @@ class BulkImportResponse(BaseModel):
     errors: Optional[List[ImportError]] = None
 
 class BulkImportPreview(BaseModel):
-    records: List[Union[BillCreate, IncomeCreate]]
+    records: List[Union[LiabilityCreate, IncomeCreate]]
     validation_errors: List[ImportError]
     total_records: int
 
@@ -41,19 +41,31 @@ async def process_json_content(content: str) -> List[dict]:
     """Process JSON content and return list of dictionaries."""
     return json.loads(content.decode('utf-8'))
 
-async def validate_bill_record(record: dict, row_num: int) -> Tuple[Optional[BillCreate], Optional[ImportError]]:
-    """Validate a single bill record."""
+async def validate_liability_record(record: dict, row_num: int) -> Tuple[Optional[LiabilityCreate], Optional[ImportError]]:
+    """Validate a single liability record."""
     try:
         # Convert string amount to Decimal
         if 'amount' in record:
             record['amount'] = Decimal(str(record['amount']))
         
-        # Parse splits if present
-        if 'splits' in record and isinstance(record['splits'], str):
-            record['splits'] = json.loads(record['splits'])
+        # Convert bill format to liability format
+        liability_data = {
+            "name": record.get("bill_name"),
+            "amount": Decimal(str(record.get("amount", 0))),
+            "due_date": datetime.strptime(
+                f"{record.get('month')}/{record.get('day_of_month')}/2025",
+                "%m/%d/%Y"
+            ).date(),
+            "category": record.get("account_name", "Uncategorized"),
+            "recurring": True,  # All imported bills are recurring by default
+            "recurrence_pattern": {
+                "frequency": "monthly",
+                "day": record.get("day_of_month")
+            }
+        }
 
-        bill = BillCreate(**record)
-        return bill, None
+        liability = LiabilityCreate(**liability_data)
+        return liability, None
     except ValidationError as e:
         error = ImportError(
             row=row_num,
@@ -94,8 +106,8 @@ async def validate_income_record(record: dict, row_num: int) -> Tuple[Optional[I
         return None, error
 
 class BulkImportService:
-    def __init__(self, bill_service: BillService, income_service: IncomeService):
-        self.bill_service = bill_service
+    def __init__(self, liability_service: LiabilityService, income_service: IncomeService):
+        self.liability_service = liability_service
         self.income_service = income_service
 
     async def process_file(self, file: UploadFile) -> List[dict]:
@@ -108,16 +120,16 @@ class BulkImportService:
         else:
             raise ValueError("Unsupported file format. Please upload CSV or JSON files only.")
 
-    async def preview_bills_import(self, file: UploadFile) -> BulkImportPreview:
-        """Preview bills import data with validation."""
+    async def preview_liabilities_import(self, file: UploadFile) -> BulkImportPreview:
+        """Preview liabilities import data with validation."""
         records = await self.process_file(file)
         validated_records = []
         validation_errors = []
 
         for i, record in enumerate(records, 1):
-            bill, error = await validate_bill_record(record, i)
-            if bill:
-                validated_records.append(bill)
+            liability, error = await validate_liability_record(record, i)
+            if liability:
+                validated_records.append(liability)
             if error:
                 validation_errors.append(error)
 
@@ -146,12 +158,12 @@ class BulkImportService:
             total_records=len(records)
         )
 
-    async def import_bills(self, file: UploadFile, preview: bool = True) -> BulkImportResponse:
-        """Import bills from file."""
+    async def import_liabilities(self, file: UploadFile, preview: bool = True) -> BulkImportResponse:
+        """Import liabilities from file."""
         if preview:
-            return await self.preview_bills_import(file)
+            return await self.preview_liabilities_import(file)
 
-        preview_result = await self.preview_bills_import(file)
+        preview_result = await self.preview_liabilities_import(file)
         if preview_result.validation_errors:
             return BulkImportResponse(
                 success=False,
@@ -165,9 +177,9 @@ class BulkImportService:
         failed = 0
         errors = []
 
-        for i, bill in enumerate(preview_result.records, 1):
+        for i, liability in enumerate(preview_result.records, 1):
             try:
-                await self.bill_service.create_bill(bill)
+                await self.liability_service.create_liability(liability)
                 succeeded += 1
             except Exception as e:
                 failed += 1

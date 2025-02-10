@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-02-10
+
+### Added
+- Migration scripts for bills to liabilities conversion
+- New API endpoints for liabilities management
+- Backward compatibility layer for bills endpoints
+- Test framework for data migrations
+- Rollback support for migrations
+
+### Changed
+- Updated database schema with new models
+- Improved relationship handling between models
+- Enhanced test infrastructure for async operations
+
+### Fixed
+- Database model relationships and constraints
+- API endpoint validation for new models
+- Service layer adaptations for new schema
+
 ## [1.0.0] - 2025-02-10
 
 ### Changed

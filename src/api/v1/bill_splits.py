@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...database.database import get_db
-from ...models.bills import Bill
+from ...models.liabilities import Liability
 from ...services.bill_splits import BillSplitService
 from ...schemas.bill_splits import (
     BillSplitCreate,
@@ -23,12 +23,12 @@ async def create_bill_split(
     """Create a new bill split"""
     service = BillSplitService(db)
     try:
-        # Verify bill exists
-        bill_result = await db.execute(
-            select(Bill).where(Bill.id == split.bill_id)
+        # Verify liability exists
+        liability_result = await db.execute(
+            select(Liability).where(Liability.id == split.bill_id)
         )
-        if not bill_result.scalar_one_or_none():
-            raise HTTPException(status_code=400, detail=f"Bill with id {split.bill_id} not found")
+        if not liability_result.scalar_one_or_none():
+            raise HTTPException(status_code=400, detail=f"Liability with id {split.bill_id} not found")
 
         db_split = await service.create_bill_split(split)
         await db.commit()
@@ -57,11 +57,11 @@ async def delete_bill_splits(
     """Delete all splits for a specific bill"""
     service = BillSplitService(db)
     try:
-        # Verify bill exists
-        bill_result = await db.execute(
-            select(Bill).where(Bill.id == bill_id)
+        # Verify liability exists
+        liability_result = await db.execute(
+            select(Liability).where(Liability.id == bill_id)
         )
-        if not bill_result.scalar_one_or_none():
+        if not liability_result.scalar_one_or_none():
             return {"message": "No splits found"}
 
         await service.delete_bill_splits(bill_id)

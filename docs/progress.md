@@ -10,23 +10,26 @@ Major architectural change to separate bills from their payment tracking.
   - [x] PaymentSource model (entries)
   - [x] Updated relationships
   - [x] Removed legacy Bill model
-- [ ] Migration Scripts
-  - [ ] Table creation
-  - [ ] Data migration
-  - [ ] Index creation
+- [x] Migration Scripts
+  - [x] Table creation
+  - [x] Data migration
+  - [x] Index creation
 - [ ] Testing
   - [x] Model unit tests created
-  - [ ] Migration tests
+  - [x] Migration test framework created
+  - [ ] Fix SQLite async connection issues
+  - [ ] Fix transaction management in tests
   - [ ] Data integrity validation
   - [ ] Performance testing
 
 ### Phase 2: API Layer (2-3 days)
-- [ ] New Schemas
-  - [ ] Liability schema
-  - [ ] Payment schema
-  - [ ] Payment source schema
-- [ ] Endpoint Updates
-  - [ ] Bill endpoints
+- [x] New Schemas
+  - [x] Liability schema
+  - [x] Payment schema
+  - [x] Payment source schema
+- [x] Endpoint Updates
+  - [x] Added new liabilities endpoints
+  - [x] Added backward compatibility for bills endpoints
   - [ ] Payment endpoints
   - [ ] Source tracking endpoints
 - [ ] Services
@@ -120,19 +123,28 @@ Major architectural change to separate bills from their payment tracking.
     - [x] Efficient state updates
 
 ## Recent Improvements
-1. Navigation structure improvements
-   - [x] Breadcrumb navigation
-   - [x] Active route highlighting
-   - [x] Collapsible account summary
-   - [x] Mobile-optimized drawer
-   - [x] Sticky positioning
-   - [x] Version display
+1. Database Architecture
+   - [x] Separated bills and payments
+   - [x] Created liability model
+   - [x] Created payment model
+   - [x] Created payment source model
+   - [x] Added migration support
+   - [x] Added rollback support
+   - [x] Created test framework
 
-2. Test Coverage Expansion
+2. API Layer Updates
+   - [x] Added new liabilities endpoints
+   - [x] Added backward compatibility for bills
+   - [x] Created new schemas
+   - [ ] Payment endpoints (in progress)
+
+3. Test Coverage Expansion
    - ✓ Test infrastructure fixes
    - ✓ Database setup improvements
    - ✓ Session handling fixes
    - ✓ Coverage analysis (70% overall)
+   - [ ] Fix SQLite async issues
+   - [ ] Fix transaction management
 
 ### Core Features
 - [x] Bill management implementation

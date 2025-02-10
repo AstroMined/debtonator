@@ -5,7 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
-from src.models.bills import Bill
+from src.models.liabilities import Liability
+from src.models.payments import Payment
 from src.models.income import Income
 
 class CashflowService:
@@ -59,16 +60,17 @@ async def calculate_forecast(
     )
     account = result.scalar_one()
     
-    # Get all bills in date range
+    # Get all unpaid liabilities in date range
     result = await db.execute(
-        select(Bill).where(
-            Bill.account_id == account_id,
-            Bill.due_date >= start_date,
-            Bill.due_date <= end_date,
-            Bill.paid == False
+        select(Liability)
+        .outerjoin(Payment)
+        .where(
+            Liability.due_date >= start_date,
+            Liability.due_date <= end_date,
+            Payment.id == None  # No associated payments
         )
     )
-    bills = result.scalars().all()
+    liabilities = result.scalars().all()
     
     # Get all income in date range
     result = await db.execute(
@@ -87,12 +89,12 @@ async def calculate_forecast(
     current_date = start_date
     
     while current_date <= end_date:
-        # Add bills due on this date
-        bills_due = sum(
-            bill.amount for bill in bills
-            if bill.due_date == current_date
+        # Add liabilities due on this date
+        liabilities_due = sum(
+            liability.amount for liability in liabilities
+            if liability.due_date == current_date
         )
-        current_balance -= bills_due
+        current_balance -= liabilities_due
         
         # Add income on this date
         income_received = sum(
@@ -118,15 +120,16 @@ async def calculate_required_funds(
 ) -> Decimal:
     """Calculate total required funds for bills in the specified date range."""
     result = await db.execute(
-        select(Bill).where(
-            Bill.account_id == account_id,
-            Bill.due_date >= start_date,
-            Bill.due_date <= end_date,
-            Bill.paid == False
+        select(Liability)
+        .outerjoin(Payment)
+        .where(
+            Liability.due_date >= start_date,
+            Liability.due_date <= end_date,
+            Payment.id == None  # No associated payments
         )
     )
-    bills = result.scalars().all()
-    return sum(bill.amount for bill in bills)
+    liabilities = result.scalars().all()
+    return sum(liability.amount for liability in liabilities)
 
 def calculate_daily_deficit(min_amount: Decimal, days: int) -> Decimal:
     """Calculate daily deficit needed to cover minimum required amount."""

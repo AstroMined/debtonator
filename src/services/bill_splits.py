@@ -4,7 +4,7 @@ from typing import List, Optional
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.bills import Bill
+from src.models.liabilities import Liability
 from src.models.bill_splits import BillSplit
 from src.schemas.bill_splits import BillSplitCreate, BillSplitUpdate
 
@@ -41,12 +41,12 @@ class BillSplitService:
 
     async def create_bill_split(self, split: BillSplitCreate) -> BillSplit:
         """Create a new bill split (API use)."""
-        # Verify bill exists
-        bill_result = await self.db.execute(
-            select(Bill).where(Bill.id == split.bill_id)
+        # Verify liability exists
+        liability_result = await self.db.execute(
+            select(Liability).where(Liability.id == split.bill_id)
         )
-        if not bill_result.scalar_one_or_none():
-            raise ValueError(f"Bill with id {split.bill_id} not found")
+        if not liability_result.scalar_one_or_none():
+            raise ValueError(f"Liability with id {split.bill_id} not found")
 
         return await self.create_split(
             bill_id=split.bill_id,
@@ -97,14 +97,14 @@ async def validate_bill_splits(db: AsyncSession, bill_id: int) -> bool:
     Validate that the sum of all splits equals the bill amount.
     Returns True if valid, False otherwise.
     """
-    # Get the bill
+    # Get the liability
     result = await db.execute(
-        select(Bill).where(Bill.id == bill_id)
+        select(Liability).where(Liability.id == bill_id)
     )
-    bill = result.scalar_one()
+    liability = result.scalar_one()
     
     # Calculate total of splits
     total_splits = await calculate_split_totals(db, bill_id)
     
-    # Compare with bill amount
-    return total_splits == bill.amount
+    # Compare with liability amount
+    return total_splits == liability.amount

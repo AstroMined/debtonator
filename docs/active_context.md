@@ -16,8 +16,11 @@ Major architectural change: Separation of Bills and Payments
    - ✓ Created PaymentSource model
    - ✓ Updated model relationships
    - ✓ Removed legacy Bill model
-   - [ ] Complete migration scripts
-   - [ ] Write data migration tests
+   - ✓ Created migration scripts
+   - ✓ Created data migration tests
+   - [ ] Fix migration test issues
+     - [ ] Resolve SQLite async connection handling
+     - [ ] Fix transaction management in tests
 
 3. **Implementation Strategy**
    - Phased approach over 2-3 weeks
@@ -34,12 +37,12 @@ Major architectural change: Separation of Bills and Payments
    - ✓ Removed legacy Bill model
    - ✓ Updated model registrations
 
-2. **Previous Work**
-   - ✓ Fixed database setup issues
-   - ✓ Resolved greenlet spawn errors
-   - ✓ Improved session handling
-   - ✓ Enhanced fixture management
-   - ✓ Generated coverage reports
+2. **Migration Implementation**
+   - ✓ Created Alembic migration script
+   - ✓ Implemented data migration logic
+   - ✓ Added rollback support
+   - ✓ Created test framework
+   - [ ] Fix test database connection issues
 
 ## Active Decisions
 
@@ -48,17 +51,20 @@ Major architectural change: Separation of Bills and Payments
   - Liability model
   - Payment model
   - PaymentSource model
-- [ ] Complete migration scripts
+- [x] Complete migration scripts
 - [x] Update database models
 - [x] Add new indexes
-- [ ] Write data migration tests
+- [x] Write data migration tests
+- [ ] Fix test issues
 
 ### Phase 2: API Layer Updates (2-3 days)
-- [ ] Create new schemas
-  - Liability schema
-  - Payment schema
-  - Payment source schema
-- [ ] Update existing endpoints
+- [x] Create new schemas
+  - [x] Liability schema
+  - [x] Payment schema
+  - [x] Payment source schema
+- [x] Update existing endpoints
+  - [x] Added new liabilities endpoints
+  - [x] Added backward compatibility for bills endpoints
 - [ ] Add new payment endpoints
 - [ ] Update validation logic
 - [ ] Add service layer methods
@@ -73,18 +79,17 @@ Major architectural change: Separation of Bills and Payments
 ## Next Steps
 
 ### Immediate Tasks
-1. Database Implementation
-   - Complete migration scripts
-   - Write data migration tests
-   - Test model relationships
-   - Validate constraints
+1. Testing Infrastructure
+   - Fix SQLite async connection handling
+   - Improve transaction management in tests
+   - Complete migration test suite
+   - Add more test cases for edge scenarios
 
 2. API Development
-   - Design new endpoints
-   - Update existing endpoints
-   - Create new schemas
-   - Update validation
-   - Add services
+   - Complete payment endpoints
+   - Implement validation logic
+   - Add service layer methods
+   - Test API endpoints
 
 3. Frontend Updates
    - Plan component changes

@@ -4,7 +4,8 @@ Start session:
 follow your custom instructions
 
 Formulate a plan to continue on with the in-progress items, but keep the scope limited to work that can completed in a single session.
-If changes are made to backend Python code, ensure the testing suite is adjusted to reflect those changes, including modify fixtures, deleting tests that are no longer relevant, and creating or updating tests to reflect new functionality.
+If changes are made to backend Python code, ensure the testing suite is adjusted to reflect those changes.
+Ensure you modify fixtures, delete tests that are no longer relevant, and create or update tests to reflect new functionality.
 
 End session:
 update memory bank
