@@ -1,4 +1,4 @@
-# Debtonator v1.0.0
+# Debtonator v1.1.0
 
 A modern bill and cashflow management system that helps track bills, income, and maintain sufficient account balances for timely bill payments.
 
@@ -30,11 +30,7 @@ debtonator/
 │   ├── schemas/        # Pydantic schemas
 │   ├── services/       # Business logic
 │   └── utils/          # Utilities
-└── tests/              # Test suites
-    ├── unit/          # Unit tests
-    │   └── test_*.py  # Model and service tests
-    └── integration/   # Integration tests
-        └── test_*.py  # API endpoint tests
+└── tests/              # Test suites (temporarily removed for restructuring)
 ```
 
 ## Core Architecture

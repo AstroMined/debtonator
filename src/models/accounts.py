@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 from typing import List, Optional
-from sqlalchemy import String, Date, Numeric, Index, event
+from sqlalchemy import String, Date, Numeric, Index, event, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from ..database.base import Base
@@ -9,15 +9,20 @@ from ..database.base import Base
 class Account(Base):
     """Account model representing a financial account"""
     __tablename__ = "accounts"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(50), unique=True)
+    
+    # Primary key and basic fields
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     type: Mapped[str] = mapped_column(
         String(20),
+        nullable=False,
         comment="Type of account (credit, checking, savings)"
     )
+    
+    # Balance and credit fields
     available_balance: Mapped[Decimal] = mapped_column(
         Numeric(10, 2),
+        nullable=False,
         default=0,
         comment="Current available balance"
     )
@@ -31,14 +36,18 @@ class Account(Base):
         nullable=True,
         comment="Total credit limit for credit accounts"
     )
+    
+    # Statement fields
     last_statement_balance: Mapped[Optional[Decimal]] = mapped_column(
         Numeric(10, 2),
         nullable=True,
         comment="Balance from last statement"
     )
-    last_statement_date: Mapped[Optional[date]]
-    created_at: Mapped[date] = mapped_column(Date, default=date.today)
-    updated_at: Mapped[date] = mapped_column(Date, default=date.today, onupdate=date.today)
+    last_statement_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    
+    # Timestamps
+    created_at: Mapped[date] = mapped_column(Date, nullable=False, default=date.today)
+    updated_at: Mapped[date] = mapped_column(Date, nullable=False, default=date.today, onupdate=date.today)
 
     # Relationships
     payment_sources: Mapped[List["PaymentSource"]] = relationship(

@@ -14,14 +14,11 @@ Major architectural change to separate bills from their payment tracking.
   - [x] Table creation
   - [x] Data migration
   - [x] Index creation
-- [x] Testing Infrastructure
-  - [x] Model unit tests created
-  - [x] Improved async connection handling
-  - [x] Enhanced transaction management
-  - [x] Removed obsolete migration tests
-  - [x] Reorganized model relationship tests
-  - [ ] Fix remaining test failures
-  - [ ] Complete test coverage
+- [ ] Testing Strategy
+  - [x] Removed existing test suite for fresh start
+  - [ ] Document critical paths
+  - [ ] Plan new test implementation
+  - [ ] Focus on integration testing
 
 ### Phase 2: API Layer (2-3 days)
 - [x] New Schemas
@@ -140,13 +137,12 @@ Major architectural change to separate bills from their payment tracking.
    - [x] Updated test fixtures
    - [ ] Fix remaining test failures
 
-3. Test Coverage Expansion
-   - ✓ Test infrastructure fixes
-   - ✓ Database setup improvements
-   - ✓ Session handling fixes
-   - ✓ Coverage analysis (70% overall)
-   - [ ] Fix SQLite async issues
-   - [ ] Fix transaction management
+3. Test Strategy Reset
+   - ✓ Removed existing test suite
+   - [ ] Document critical paths
+   - [ ] Design new test strategy
+   - [ ] Focus on integration testing
+   - [ ] Plan coverage goals
 
 ### Core Features
 - [x] Bill management implementation
