@@ -10,7 +10,7 @@ class BillSplitBase(BaseModel):
 
 class BillSplitCreate(BillSplitBase):
     """Schema for creating a new bill split"""
-    bill_id: int
+    liability_id: int
     account_id: int
 
 class BillSplitUpdate(BillSplitBase):
@@ -22,7 +22,7 @@ class BillSplitInDB(BillSplitBase):
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
     id: int
-    bill_id: int
+    liability_id: int
     account_id: int
     created_at: date
     updated_at: date

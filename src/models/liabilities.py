@@ -18,6 +18,9 @@ class Liability(Base):
     recurring: Mapped[bool] = mapped_column(Boolean, default=False)
     recurrence_pattern: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     category: Mapped[str] = mapped_column(String(100))
+    primary_account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
+    auto_pay: Mapped[bool] = mapped_column(Boolean, default=False)
+    paid: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, 
@@ -26,15 +29,20 @@ class Liability(Base):
     )
 
     # Relationships
+    primary_account: Mapped["Account"] = relationship(
+        "Account",
+        foreign_keys=[primary_account_id],
+        back_populates="liabilities"
+    )
     payments: Mapped[List["Payment"]] = relationship(
         "Payment",
-        primaryjoin="Payment.bill_id == Liability.id",
-        back_populates="bill",
+        primaryjoin="Payment.liability_id == Liability.id",
+        back_populates="liability",
         cascade="all, delete-orphan"
     )
     splits: Mapped[List["BillSplit"]] = relationship(
         "BillSplit",
-        back_populates="bill",
+        back_populates="liability",
         cascade="all, delete-orphan"
     )
 

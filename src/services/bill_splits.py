@@ -12,10 +12,10 @@ class BillSplitService:
     def __init__(self, db: AsyncSession):
         self.db = db
     
-    async def get_bill_splits(self, bill_id: int) -> List[BillSplit]:
-        """Get all splits for a specific bill."""
+    async def get_bill_splits(self, liability_id: int) -> List[BillSplit]:
+        """Get all splits for a specific liability."""
         result = await self.db.execute(
-            select(BillSplit).where(BillSplit.bill_id == bill_id)
+            select(BillSplit).where(BillSplit.liability_id == liability_id)
         )
         return result.scalars().all()
 
@@ -26,10 +26,10 @@ class BillSplitService:
         )
         return result.scalars().all()
 
-    async def create_split(self, bill_id: int, account_id: int, amount: Decimal) -> BillSplit:
+    async def create_split(self, liability_id: int, account_id: int, amount: Decimal) -> BillSplit:
         """Create a new bill split (internal use)."""
         split = BillSplit(
-            bill_id=bill_id,
+            liability_id=liability_id,
             account_id=account_id,
             amount=amount,
             created_at=date.today(),
@@ -43,13 +43,13 @@ class BillSplitService:
         """Create a new bill split (API use)."""
         # Verify liability exists
         liability_result = await self.db.execute(
-            select(Liability).where(Liability.id == split.bill_id)
+            select(Liability).where(Liability.id == split.liability_id)
         )
         if not liability_result.scalar_one_or_none():
-            raise ValueError(f"Liability with id {split.bill_id} not found")
+            raise ValueError(f"Liability with id {split.liability_id} not found")
 
         return await self.create_split(
-            bill_id=split.bill_id,
+            liability_id=split.liability_id,
             account_id=split.account_id,
             amount=split.amount
         )
@@ -77,34 +77,34 @@ class BillSplitService:
         )
         return result.rowcount > 0
 
-    async def delete_bill_splits(self, bill_id: int) -> None:
-        """Delete all splits for a bill."""
+    async def delete_bill_splits(self, liability_id: int) -> None:
+        """Delete all splits for a liability."""
         await self.db.execute(
-            delete(BillSplit).where(BillSplit.bill_id == bill_id)
+            delete(BillSplit).where(BillSplit.liability_id == liability_id)
         )
         await self.db.commit()
 
-async def calculate_split_totals(db: AsyncSession, bill_id: int) -> Decimal:
-    """Calculate the total amount of all splits for a given bill."""
+async def calculate_split_totals(db: AsyncSession, liability_id: int) -> Decimal:
+    """Calculate the total amount of all splits for a given liability."""
     result = await db.execute(
-        select(BillSplit).where(BillSplit.bill_id == bill_id)
+        select(BillSplit).where(BillSplit.liability_id == liability_id)
     )
     splits = result.scalars().all()
     return sum(split.amount for split in splits)
 
-async def validate_bill_splits(db: AsyncSession, bill_id: int) -> bool:
+async def validate_bill_splits(db: AsyncSession, liability_id: int) -> bool:
     """
-    Validate that the sum of all splits equals the bill amount.
+    Validate that the sum of all splits equals the liability amount.
     Returns True if valid, False otherwise.
     """
     # Get the liability
     result = await db.execute(
-        select(Liability).where(Liability.id == bill_id)
+        select(Liability).where(Liability.id == liability_id)
     )
     liability = result.scalar_one()
     
     # Calculate total of splits
-    total_splits = await calculate_split_totals(db, bill_id)
+    total_splits = await calculate_split_totals(db, liability_id)
     
     # Compare with liability amount
     return total_splits == liability.amount

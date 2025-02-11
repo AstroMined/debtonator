@@ -10,7 +10,7 @@ class BillSplit(Base):
     __tablename__ = "bill_splits"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    bill_id: Mapped[int] = mapped_column(ForeignKey("liabilities.id", ondelete="CASCADE"))
+    liability_id: Mapped[int] = mapped_column(ForeignKey("liabilities.id", ondelete="CASCADE"))
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
     amount: Mapped[Decimal] = mapped_column(
         Numeric(10, 2),
@@ -20,14 +20,14 @@ class BillSplit(Base):
     updated_at: Mapped[date] = mapped_column(Date, default=date.today, onupdate=date.today)
 
     # Relationships
-    bill = relationship("Liability", back_populates="splits")
+    liability = relationship("Liability", back_populates="splits")
     account = relationship("Account", back_populates="bill_splits")
 
     # Create indexes for efficient lookups
     __table_args__ = (
-        Index('idx_bill_splits_bill_id', 'bill_id'),
+        Index('idx_bill_splits_liability_id', 'liability_id'),
         Index('idx_bill_splits_account_id', 'account_id'),
     )
 
     def __repr__(self) -> str:
-        return f"<BillSplit bill_id={self.bill_id} account_id={self.account_id} amount={self.amount}>"
+        return f"<BillSplit liability_id={self.liability_id} account_id={self.account_id} amount={self.amount}>"

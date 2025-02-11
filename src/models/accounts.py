@@ -46,7 +46,11 @@ class Account(Base):
         back_populates="account",
         cascade="all, delete-orphan"
     )
-    bills: Mapped[List["Bill"]] = relationship("Bill", back_populates="account")
+    liabilities: Mapped[List["Liability"]] = relationship(
+        "Liability",
+        foreign_keys="[Liability.primary_account_id]",
+        back_populates="primary_account"
+    )
     bill_splits: Mapped[List["BillSplit"]] = relationship(
         "BillSplit",
         back_populates="account",

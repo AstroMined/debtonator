@@ -10,6 +10,7 @@ Ensure you modify fixtures, delete tests that are no longer relevant, and create
 End session:
 update memory bank
 
+Ensure you define a good starting point for our next working session.
 Update README.md, CHANGELOG.md and update major, minor, or patch semantic versioning as needed.
 Create ADRs ONLY if absolutely necessary to document a MAJOR architectural change.
 Finally, suggest a good commit message for the tasks accomplished during this session.

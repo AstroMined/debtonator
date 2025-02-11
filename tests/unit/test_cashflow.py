@@ -4,7 +4,7 @@ from datetime import date, timedelta
 from sqlalchemy import select
 
 from src.models.accounts import Account
-from src.models.bills import Bill
+from src.models.liabilities import Liability
 from src.models.income import Income
 from src.services.cashflow import (
     calculate_forecast,
@@ -28,25 +28,27 @@ async def sample_account(db_session):
     return account
 
 @pytest.fixture
-async def sample_bills(db_session, sample_account):
+async def sample_liabilities(db_session, sample_account):
     today = date.today()
-    bills = [
-        Bill(
-            month=str((today + timedelta(days=i*15)).strftime("%B")),
-            day_of_month=(today + timedelta(days=i*15)).day,
-            due_date=today + timedelta(days=i*15),
-            bill_name=f"Test Bill {i}",
+    liabilities = [
+        Liability(
+            name=f"Test Bill {i}",
             amount=Decimal("100.00"),
-            account_id=sample_account.id,
-            account_name=sample_account.name,
+            due_date=today + timedelta(days=i*15),
+            description=f"Test liability {i}",
+            category="utilities",
+            recurring=True,
+            primary_account_id=sample_account.id,
             auto_pay=False,
-            paid=False
+            paid=False,
+            created_at=today,
+            updated_at=today
         )
-        for i in range(6)  # Create 6 bills spread over 90 days
+        for i in range(6)  # Create 6 liabilities spread over 90 days
     ]
-    db_session.add_all(bills)
+    db_session.add_all(liabilities)
     await db_session.commit()
-    return bills
+    return liabilities
 
 @pytest.fixture
 async def sample_income(db_session, sample_account):
@@ -68,7 +70,7 @@ async def sample_income(db_session, sample_account):
     return income_entries
 
 @pytest.mark.asyncio
-async def test_calculate_forecast(db_session, sample_account, sample_bills, sample_income):
+async def test_calculate_forecast(db_session, sample_account, sample_liabilities, sample_income):
     today = date.today()
     forecast = await calculate_forecast(
         db_session,
@@ -81,17 +83,17 @@ async def test_calculate_forecast(db_session, sample_account, sample_bills, samp
     assert all(isinstance(f["balance"], Decimal) for f in forecast)
     assert all(isinstance(f["date"], date) for f in forecast)
     
-    # Verify forecast includes all bills and income
-    total_bills = sum(bill.amount for bill in sample_bills)
+    # Verify forecast includes all liabilities and income
+    total_liabilities = sum(liability.amount for liability in sample_liabilities)
     total_income = sum(income.amount for income in sample_income)
     
     # Last forecast entry should reflect all transactions
     final_balance = forecast[-1]["balance"]
-    expected_balance = sample_account.available_balance + total_income - total_bills
+    expected_balance = sample_account.available_balance + total_income - total_liabilities
     assert final_balance == expected_balance
 
 @pytest.mark.asyncio
-async def test_calculate_required_funds(db_session, sample_account, sample_bills):
+async def test_calculate_required_funds(db_session, sample_account, sample_liabilities):
     today = date.today()
     
     # Test 14-day outlook
@@ -102,10 +104,10 @@ async def test_calculate_required_funds(db_session, sample_account, sample_bills
         today + timedelta(days=14)
     )
     
-    # Should include only bills due within 14 days
+    # Should include only liabilities due within 14 days
     expected_14 = sum(
-        bill.amount for bill in sample_bills
-        if bill.due_date <= today + timedelta(days=14)
+        liability.amount for liability in sample_liabilities
+        if liability.due_date <= today + timedelta(days=14)
     )
     assert required_14 == expected_14
     
@@ -117,7 +119,7 @@ async def test_calculate_required_funds(db_session, sample_account, sample_bills
         today + timedelta(days=30)
     )
     
-    # Should include more bills than 14-day outlook
+    # Should include more liabilities than 14-day outlook
     assert required_30 >= required_14
 
 @pytest.mark.asyncio

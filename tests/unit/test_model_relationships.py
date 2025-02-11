@@ -55,7 +55,7 @@ async def test_payment_with_source(
     """Test creating a payment with a payment source"""
     # Create payment
     payment = Payment(
-        bill_id=sample_liability.id,
+        liability_id=sample_liability.id,
         amount=Decimal("100.00"),
         payment_date=date(2025, 1, 1),
         category="Utilities"
@@ -101,7 +101,7 @@ async def test_split_payment(
 
     # Create payment
     payment = Payment(
-        bill_id=sample_liability.id,
+        liability_id=sample_liability.id,
         amount=Decimal("100.00"),
         payment_date=date(2025, 1, 1),
         category="Utilities"
@@ -138,7 +138,7 @@ async def test_cascade_delete_payment(
     """Test that deleting a payment cascades to payment sources"""
     # Create payment with source
     payment = Payment(
-        bill_id=sample_liability.id,
+        liability_id=sample_liability.id,
         amount=Decimal("100.00"),
         payment_date=date(2025, 1, 1),
         category="Utilities"
@@ -175,7 +175,7 @@ async def test_cascade_delete_liability(
     """Test that deleting a liability cascades to payments and sources"""
     # Create payment with source
     payment = Payment(
-        bill_id=sample_liability.id,
+        liability_id=sample_liability.id,
         amount=Decimal("100.00"),
         payment_date=date(2025, 1, 1),
         category="Utilities"
@@ -197,8 +197,8 @@ async def test_cascade_delete_liability(
 
     # Verify payment and source are deleted
     payment_result = await db_session.execute(
-        text("SELECT COUNT(*) FROM payments WHERE bill_id = :bid"),
-        {"bid": sample_liability.id}
+        text("SELECT COUNT(*) FROM payments WHERE liability_id = :lid"),
+        {"lid": sample_liability.id}
     )
     source_result = await db_session.execute(
         text("SELECT COUNT(*) FROM payment_sources WHERE payment_id = :pid"),

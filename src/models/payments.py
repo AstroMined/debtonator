@@ -11,7 +11,7 @@ class Payment(Base):
     __tablename__ = "payments"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    bill_id: Mapped[Optional[int]] = mapped_column(ForeignKey("liabilities.id"), nullable=True)
+    liability_id: Mapped[Optional[int]] = mapped_column(ForeignKey("liabilities.id"), nullable=True)
     income_id: Mapped[Optional[int]] = mapped_column(ForeignKey("income.id"), nullable=True)
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     payment_date: Mapped[date] = mapped_column(Date)
@@ -25,7 +25,7 @@ class Payment(Base):
     )
 
     # Relationships
-    bill = relationship("Liability", back_populates="payments")
+    liability = relationship("Liability", back_populates="payments")
     income = relationship("Income", back_populates="payments")
     sources: Mapped[List["PaymentSource"]] = relationship(
         "PaymentSource",

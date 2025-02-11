@@ -4,7 +4,7 @@ from datetime import date
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from src.models.bills import Bill
+from src.models.liabilities import Liability
 from src.models.accounts import Account
 from src.models.bill_splits import BillSplit
 from src.services.bill_splits import validate_bill_splits, calculate_split_totals
@@ -36,28 +36,30 @@ async def sample_accounts(setup_db, db_session):
     return {"checking": checking, "credit": credit}
 
 @pytest.fixture
-async def sample_bill(db_session, sample_accounts):
-    bill = Bill(
-        month="January",
-        day_of_month=15,
-        due_date=date(2025, 1, 15),
-        bill_name="Test Bill",
+async def sample_liability(db_session, sample_accounts):
+    liability = Liability(
+        name="Test Bill",
         amount=Decimal("300.00"),
-        account_id=sample_accounts["checking"].id,
-        account_name=sample_accounts["checking"].name,  # Add account name
+        due_date=date(2025, 1, 15),
+        description="Test liability",
+        category="utilities",
+        recurring=False,
+        primary_account_id=sample_accounts["checking"].id,
         auto_pay=False,
-        paid=False
+        paid=False,
+        created_at=date.today(),
+        updated_at=date.today()
     )
     
-    db_session.add(bill)
+    db_session.add(liability)
     await db_session.commit()
-    return bill
+    return liability
 
 @pytest.mark.asyncio
-async def test_create_bill_split(setup_db, db_session, sample_bill, sample_accounts):
+async def test_create_bill_split(setup_db, db_session, sample_liability, sample_accounts):
     # Create a bill split
     split = BillSplit(
-        bill_id=sample_bill.id,
+        liability_id=sample_liability.id,
         account_id=sample_accounts["credit"].id,
         amount=Decimal("100.00"),
         created_at=date.today(),
@@ -69,27 +71,27 @@ async def test_create_bill_split(setup_db, db_session, sample_bill, sample_accou
     
     # Fetch and verify the split
     result = await db_session.execute(
-        select(BillSplit).where(BillSplit.bill_id == sample_bill.id)
+        select(BillSplit).where(BillSplit.liability_id == sample_liability.id)
     )
     db_split = result.scalar_one()
     
     assert db_split.amount == Decimal("100.00")
-    assert db_split.bill_id == sample_bill.id
+    assert db_split.liability_id == sample_liability.id
     assert db_split.account_id == sample_accounts["credit"].id
 
 @pytest.mark.asyncio
-async def test_validate_bill_splits_total(setup_db, db_session, sample_bill, sample_accounts):
-    # Create splits that sum to the bill amount
+async def test_validate_bill_splits_total(setup_db, db_session, sample_liability, sample_accounts):
+    # Create splits that sum to the liability amount
     splits = [
         BillSplit(
-            bill_id=sample_bill.id,
+            liability_id=sample_liability.id,
             account_id=sample_accounts["checking"].id,
             amount=Decimal("200.00"),
             created_at=date.today(),
             updated_at=date.today()
         ),
         BillSplit(
-            bill_id=sample_bill.id,
+            liability_id=sample_liability.id,
             account_id=sample_accounts["credit"].id,
             amount=Decimal("100.00"),
             created_at=date.today(),
@@ -101,25 +103,25 @@ async def test_validate_bill_splits_total(setup_db, db_session, sample_bill, sam
     await db_session.commit()
     
     # Validate splits
-    total = await calculate_split_totals(db_session, sample_bill.id)
-    assert total == sample_bill.amount
+    total = await calculate_split_totals(db_session, sample_liability.id)
+    assert total == sample_liability.amount
     
-    is_valid = await validate_bill_splits(db_session, sample_bill.id)
+    is_valid = await validate_bill_splits(db_session, sample_liability.id)
     assert is_valid is True
 
 @pytest.mark.asyncio
-async def test_validate_bill_splits_invalid_total(setup_db, db_session, sample_bill, sample_accounts):
-    # Create splits that don't sum to bill amount
+async def test_validate_bill_splits_invalid_total(setup_db, db_session, sample_liability, sample_accounts):
+    # Create splits that don't sum to liability amount
     splits = [
         BillSplit(
-            bill_id=sample_bill.id,
+            liability_id=sample_liability.id,
             account_id=sample_accounts["checking"].id,
             amount=Decimal("100.00"),
             created_at=date.today(),
             updated_at=date.today()
         ),
         BillSplit(
-            bill_id=sample_bill.id,
+            liability_id=sample_liability.id,
             account_id=sample_accounts["credit"].id,
             amount=Decimal("100.00"),
             created_at=date.today(),
@@ -131,17 +133,17 @@ async def test_validate_bill_splits_invalid_total(setup_db, db_session, sample_b
     await db_session.commit()
     
     # Validate splits
-    total = await calculate_split_totals(db_session, sample_bill.id)
-    assert total == Decimal("200.00")  # Less than bill amount of 300.00
+    total = await calculate_split_totals(db_session, sample_liability.id)
+    assert total == Decimal("200.00")  # Less than liability amount of 300.00
     
-    is_valid = await validate_bill_splits(db_session, sample_bill.id)
+    is_valid = await validate_bill_splits(db_session, sample_liability.id)
     assert is_valid is False
 
 @pytest.mark.asyncio
-async def test_bill_split_with_invalid_account(setup_db, db_session, sample_bill):
+async def test_bill_split_with_invalid_account(setup_db, db_session, sample_liability):
     # Try to create a split with non-existent account
     split = BillSplit(
-        bill_id=sample_bill.id,
+        liability_id=sample_liability.id,
         account_id=999,  # Non-existent account
         amount=Decimal("100.00"),
         created_at=date.today(),

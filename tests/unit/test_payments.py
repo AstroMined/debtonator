@@ -7,8 +7,9 @@ from src.models.payments import Payment, PaymentSource
 from src.models.liabilities import Liability
 from src.models.accounts import Account
 
-def test_create_payment(db_session):
-    """Test creating a basic payment without a bill"""
+@pytest.mark.asyncio
+async def test_create_payment(db_session):
+    """Test creating a basic payment without a liability"""
     payment = Payment(
         amount=Decimal("50.00"),
         payment_date=date.today(),
@@ -16,10 +17,10 @@ def test_create_payment(db_session):
         description="Weekly groceries"
     )
     db_session.add(payment)
-    db_session.commit()
+    await db_session.commit()
 
     assert payment.id is not None
-    assert payment.bill_id is None
+    assert payment.liability_id is None
     assert payment.amount == Decimal("50.00")
     assert payment.payment_date == date.today()
     assert payment.category == "Groceries"
@@ -27,38 +28,52 @@ def test_create_payment(db_session):
     assert isinstance(payment.created_at, datetime)
     assert isinstance(payment.updated_at, datetime)
 
-def test_create_bill_payment(db_session):
-    """Test creating a payment linked to a bill"""
+@pytest.mark.asyncio
+async def test_create_liability_payment(db_session):
+    """Test creating a payment linked to a liability"""
+    # Create account first since it's required for liability
+    account = Account(
+        name="Test Account",
+        type="checking",
+        available_balance=Decimal("1000.00")
+    )
+    db_session.add(account)
+    await db_session.commit()
+
     liability = Liability(
         name="Test Bill",
         amount=Decimal("100.00"),
         due_date=date.today(),
-        category="Utilities"
+        category="Utilities",
+        primary_account_id=account.id,
+        description="Test liability"
     )
     db_session.add(liability)
-    db_session.commit()
+    await db_session.commit()
 
     payment = Payment(
-        bill_id=liability.id,
+        liability_id=liability.id,
         amount=Decimal("100.00"),
         payment_date=date.today(),
         category="Utilities"
     )
     db_session.add(payment)
-    db_session.commit()
+    await db_session.commit()
 
-    assert payment.bill_id == liability.id
-    assert payment.bill.name == "Test Bill"
+    assert payment.liability_id == liability.id
+    assert payment.liability.name == "Test Bill"
 
-def test_payment_required_fields(db_session):
+@pytest.mark.asyncio
+async def test_payment_required_fields(db_session):
     """Test that required fields raise appropriate errors when missing"""
     payment = Payment()
     db_session.add(payment)
     
     with pytest.raises(IntegrityError):
-        db_session.commit()
+        await db_session.commit()
 
-def test_create_payment_source(db_session):
+@pytest.mark.asyncio
+async def test_create_payment_source(db_session):
     """Test creating a payment source"""
     # Create account
     account = Account(
@@ -67,6 +82,7 @@ def test_create_payment_source(db_session):
         available_balance=Decimal("1000.00")
     )
     db_session.add(account)
+    await db_session.commit()
     
     # Create payment
     payment = Payment(
@@ -75,7 +91,7 @@ def test_create_payment_source(db_session):
         category="Utilities"
     )
     db_session.add(payment)
-    db_session.commit()
+    await db_session.commit()
 
     # Create payment source
     source = PaymentSource(
@@ -84,7 +100,7 @@ def test_create_payment_source(db_session):
         amount=Decimal("100.00")
     )
     db_session.add(source)
-    db_session.commit()
+    await db_session.commit()
 
     assert source.id is not None
     assert source.payment_id == payment.id
@@ -93,12 +109,14 @@ def test_create_payment_source(db_session):
     assert isinstance(source.created_at, datetime)
     assert isinstance(source.updated_at, datetime)
 
-def test_payment_sources_relationship(db_session):
+@pytest.mark.asyncio
+async def test_payment_sources_relationship(db_session):
     """Test the relationship between payment and its sources"""
     # Create accounts
     account1 = Account(name="Account 1", type="checking")
     account2 = Account(name="Account 2", type="savings")
     db_session.add_all([account1, account2])
+    await db_session.commit()
     
     # Create payment
     payment = Payment(
@@ -107,7 +125,7 @@ def test_payment_sources_relationship(db_session):
         category="Utilities"
     )
     db_session.add(payment)
-    db_session.commit()
+    await db_session.commit()
 
     # Create split payment sources
     source1 = PaymentSource(
@@ -121,16 +139,18 @@ def test_payment_sources_relationship(db_session):
         amount=Decimal("40.00")
     )
     db_session.add_all([source1, source2])
-    db_session.commit()
+    await db_session.commit()
 
     assert len(payment.sources) == 2
     assert sum(source.amount for source in payment.sources) == payment.amount
 
-def test_payment_cascade_delete(db_session):
+@pytest.mark.asyncio
+async def test_payment_cascade_delete(db_session):
     """Test that deleting a payment cascades to payment sources"""
     # Create account and payment
     account = Account(name="Test Account", type="checking")
     db_session.add(account)
+    await db_session.commit()
     
     payment = Payment(
         amount=Decimal("100.00"),
@@ -138,7 +158,7 @@ def test_payment_cascade_delete(db_session):
         category="Utilities"
     )
     db_session.add(payment)
-    db_session.commit()
+    await db_session.commit()
 
     # Create payment source
     source = PaymentSource(
@@ -147,15 +167,21 @@ def test_payment_cascade_delete(db_session):
         amount=Decimal("100.00")
     )
     db_session.add(source)
-    db_session.commit()
+    await db_session.commit()
 
     # Delete payment and verify cascade
-    db_session.delete(payment)
-    db_session.commit()
+    await db_session.delete(payment)
+    await db_session.commit()
 
-    assert db_session.query(PaymentSource).filter_by(payment_id=payment.id).first() is None
+    # Query for payment source
+    result = await db_session.execute(
+        "SELECT * FROM payment_sources WHERE payment_id = :payment_id",
+        {"payment_id": payment.id}
+    )
+    assert result.first() is None
 
-def test_payment_source_account_relationship(db_session):
+@pytest.mark.asyncio
+async def test_payment_source_account_relationship(db_session):
     """Test the relationship between payment source and account"""
     account = Account(
         name="Test Account",
@@ -163,6 +189,7 @@ def test_payment_source_account_relationship(db_session):
         available_balance=Decimal("1000.00")
     )
     db_session.add(account)
+    await db_session.commit()
     
     payment = Payment(
         amount=Decimal("100.00"),
@@ -170,7 +197,7 @@ def test_payment_source_account_relationship(db_session):
         category="Utilities"
     )
     db_session.add(payment)
-    db_session.commit()
+    await db_session.commit()
 
     source = PaymentSource(
         payment_id=payment.id,
@@ -178,7 +205,7 @@ def test_payment_source_account_relationship(db_session):
         amount=Decimal("100.00")
     )
     db_session.add(source)
-    db_session.commit()
+    await db_session.commit()
 
     assert source.account.name == "Test Account"
     assert source in account.payment_sources

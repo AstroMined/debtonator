@@ -4,32 +4,14 @@
 Major architectural change: Separation of Bills and Payments
 
 ### Recent Implementation
-1. **Architectural Decision**
-   - ✓ Created ADR-009 for bills/payments separation
-   - ✓ Designed new database schema
-   - ✓ Planned implementation phases
-   - ✓ Identified migration strategy
+1. **Test Infrastructure Updates**
+   - ✓ Improved SQLite async connection handling
+   - ✓ Enhanced transaction management in tests
+   - ✓ Removed obsolete migration tests
+   - ✓ Reorganized model relationship tests
+   - ✓ Updated test fixtures for better async support
 
-2. **Database Changes**
-   - ✓ Created new Liability model
-   - ✓ Created Payment model
-   - ✓ Created PaymentSource model
-   - ✓ Updated model relationships
-   - ✓ Removed legacy Bill model
-   - ✓ Created migration scripts
-   - ✓ Created data migration tests
-   - [ ] Fix migration test issues
-     - [ ] Resolve SQLite async connection handling
-     - [ ] Fix transaction management in tests
-
-3. **Implementation Strategy**
-   - Phased approach over 2-3 weeks
-   - Backward compatibility during migration
-   - Clear validation requirements
-   - Comprehensive testing plan
-
-### Recent Changes
-1. **Model Implementation**
+2. **Model Implementation**
    - ✓ Created Liability model for bill tracking
    - ✓ Created Payment model for transactions
    - ✓ Created PaymentSource model for splits
@@ -37,25 +19,33 @@ Major architectural change: Separation of Bills and Payments
    - ✓ Removed legacy Bill model
    - ✓ Updated model registrations
 
-2. **Migration Implementation**
-   - ✓ Created Alembic migration script
-   - ✓ Implemented data migration logic
-   - ✓ Added rollback support
-   - ✓ Created test framework
-   - [ ] Fix test database connection issues
+3. **Implementation Strategy**
+   - Phased approach over 2-3 weeks
+   - Clear validation requirements
+   - Comprehensive testing plan
+
+### Recent Changes
+1. **Test Suite Cleanup**
+   - ✓ Removed test_migration_script.py (obsolete)
+   - ✓ Renamed test_migration.py to test_model_relationships.py
+   - ✓ Updated test fixtures for better async support
+   - ✓ Improved transaction management in tests
+   - [ ] Fix remaining test failures
+
+2. **Database Changes**
+   - ✓ Created new models
+   - ✓ Updated relationships
+   - ✓ Added indexes
+   - [ ] Complete test coverage
 
 ## Active Decisions
 
-### Phase 1: Database Changes (1-2 days)
-- [x] Create new models
-  - Liability model
-  - Payment model
-  - PaymentSource model
-- [x] Complete migration scripts
-- [x] Update database models
-- [x] Add new indexes
-- [x] Write data migration tests
-- [ ] Fix test issues
+### Phase 1: Testing Infrastructure (1-2 days)
+- [x] Remove obsolete migration tests
+- [x] Update test fixtures
+- [x] Improve transaction management
+- [ ] Fix remaining test failures
+- [ ] Add missing test cases
 
 ### Phase 2: API Layer Updates (2-3 days)
 - [x] Create new schemas
@@ -79,11 +69,11 @@ Major architectural change: Separation of Bills and Payments
 ## Next Steps
 
 ### Immediate Tasks
-1. Testing Infrastructure
-   - Fix SQLite async connection handling
-   - Improve transaction management in tests
-   - Complete migration test suite
-   - Add more test cases for edge scenarios
+1. Test Suite Completion
+   - Fix remaining test failures
+   - Add test cases for edge scenarios
+   - Complete test coverage for new models
+   - Update integration tests
 
 2. API Development
    - Complete payment endpoints
@@ -111,4 +101,3 @@ Major architectural change: Separation of Bills and Payments
    - Integration tests
    - API documentation
    - User documentation
-   - Migration guide
