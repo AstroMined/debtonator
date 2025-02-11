@@ -53,9 +53,20 @@ Major architectural change: Separation of Bills and Payments
 - [x] Update existing endpoints
   - [x] Added new liabilities endpoints
   - [x] Added backward compatibility for bills endpoints
-- [ ] Add new payment endpoints
-- [ ] Update validation logic
-- [ ] Add service layer methods
+- [x] Add new payment endpoints
+  - [x] CRUD operations for payments
+  - [x] Payment source management
+  - [x] Date range filtering
+  - [x] Liability-specific payments
+  - [x] Account-specific payments
+- [x] Update validation logic
+  - [x] Payment amount validation
+  - [x] Source total validation
+  - [x] Account existence validation
+- [x] Add service layer methods
+  - [x] Payment CRUD operations
+  - [x] Payment source management
+  - [x] Filtering and queries
 
 ### Phase 3: Frontend Foundation (2-3 days)
 - [ ] Create new types/interfaces
@@ -74,10 +85,10 @@ Major architectural change: Separation of Bills and Payments
    - Update integration tests
 
 2. API Development
-   - Complete payment endpoints
-   - Implement validation logic
-   - Add service layer methods
-   - Test API endpoints
+   - [x] Complete payment endpoints
+   - [x] Implement validation logic
+   - [x] Add service layer methods
+   - [ ] Test API endpoints
 
 3. Frontend Updates
    - Plan component changes

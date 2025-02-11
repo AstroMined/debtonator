@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-02-10
+
+### Added
+- Complete payment endpoints implementation
+  - CRUD operations for payments
+  - Payment source management
+  - Date range filtering
+  - Liability-specific endpoints
+  - Account-specific endpoints
+- Comprehensive payment validation
+  - Payment amount validation
+  - Source total validation
+  - Account existence validation
+- Payment service layer
+  - Payment processing with sources
+  - Bill tracking integration
+  - Balance calculations
+  - Source management
+
 ## [1.1.0] - 2025-02-10
 
 ### Changed

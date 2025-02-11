@@ -28,12 +28,25 @@ Major architectural change to separate bills from their payment tracking.
 - [x] Endpoint Updates
   - [x] Added new liabilities endpoints
   - [x] Added backward compatibility for bills endpoints
-  - [ ] Payment endpoints
-  - [ ] Source tracking endpoints
-- [ ] Services
-  - [ ] Payment processing
-  - [ ] Bill tracking
-  - [ ] Balance calculations
+  - [x] Payment endpoints
+    - [x] CRUD operations
+    - [x] Date range filtering
+    - [x] Liability-specific endpoints
+    - [x] Account-specific endpoints
+  - [x] Source tracking endpoints
+    - [x] Source creation with payments
+    - [x] Source updates with payments
+- [x] Services
+  - [x] Payment processing
+    - [x] Payment creation with sources
+    - [x] Payment updates with sources
+    - [x] Payment deletion with cascading
+  - [x] Bill tracking
+    - [x] Payment-liability relationships
+    - [x] Payment history tracking
+  - [x] Balance calculations
+    - [x] Source amount validation
+    - [x] Account balance tracking
 
 ### Phase 3: Frontend Foundation (2-3 days)
 - [ ] Core Updates
