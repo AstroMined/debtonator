@@ -1,94 +1,43 @@
 # Progress: Debtonator
 
-## Current Priority: Bills/Payments Separation
-Major architectural change to separate bills from their payment tracking.
+## Current Priority: API Cleanup & Test Coverage
+Removing deprecated code and improving test coverage.
 
-### Phase 1: Database Changes (1-2 days)
-- [x] New Schema Implementation
-  - [x] Liability model (replacing Bills)
-  - [x] Payment model (transactions)
-  - [x] PaymentSource model (entries)
-  - [x] Updated relationships
-  - [x] Removed legacy Bill model
-- [x] Migration Scripts
-  - [x] Table creation
-  - [x] Data migration
-  - [x] Index creation
-- [ ] Testing Strategy
-  - [x] Removed existing test suite for fresh start
+### Phase 1: Code Cleanup (Completed)
+- [x] Removed Deprecated Code
+  - [x] Removed bills schema
+  - [x] Removed bills service
+  - [x] Removed bills API endpoints
+  - [x] Updated router configuration
+  - [x] Verified no frontend dependencies
+- [x] Verified System State
+  - [x] All tests passing
+  - [x] No regressions
+  - [x] Core functionality intact
+  - [x] Clean architecture
+
+### Phase 2: API Testing (Next)
+- [ ] Test Strategy
   - [ ] Document critical paths
-  - [ ] Plan new test implementation
+  - [ ] Plan test implementation
   - [ ] Focus on integration testing
+- [ ] Test Implementation
+  - [ ] API endpoint tests
+  - [ ] Service layer tests
+  - [ ] Error handling tests
+  - [ ] Data validation tests
 
-### Phase 2: API Layer (2-3 days)
-- [x] New Schemas
-  - [x] Liability schema
-  - [x] Payment schema
-  - [x] Payment source schema
-- [x] Endpoint Updates
-  - [x] Added new liabilities endpoints
-  - [x] Added backward compatibility for bills endpoints
-  - [x] Payment endpoints
-    - [x] CRUD operations
-    - [x] Date range filtering
-    - [x] Liability-specific endpoints
-    - [x] Account-specific endpoints
-  - [x] Source tracking endpoints
-    - [x] Source creation with payments
-    - [x] Source updates with payments
-- [x] Services
-  - [x] Payment processing
-    - [x] Payment creation with sources
-    - [x] Payment updates with sources
-    - [x] Payment deletion with cascading
-  - [x] Bill tracking
-    - [x] Payment-liability relationships
-    - [x] Payment history tracking
-  - [x] Balance calculations
-    - [x] Source amount validation
-    - [x] Account balance tracking
-
-### Phase 3: Frontend Foundation (2-3 days)
-- [ ] Core Updates
-  - [ ] New TypeScript interfaces
-  - [ ] Redux store modifications
-  - [ ] API service updates
-- [ ] Component Updates
-  - [ ] Bill components
-  - [ ] Payment forms
-  - [ ] Account tracking
-
-### Phase 4: Frontend Features (3-4 days)
-- [ ] New Components
-  - [ ] Payment entry forms
-  - [ ] Payment history views
-  - [ ] Bill status tracking
-- [ ] Updates
-  - [ ] Cashflow calculations
-  - [ ] Filtering options
-  - [ ] Balance tracking
-
-### Phase 5: Testing/Documentation (2-3 days)
-- [x] Model Testing
-  - [x] Cashflow model tests (97% coverage)
-  - [x] Income model tests (100% coverage)
-  - [x] RecurringBill model tests (100% coverage)
-  - [x] Fixed bill/liability relationship
-  - [x] Improved calculation tests
-  - [x] Added relationship validations
-- [ ] Schema Testing
-  - [ ] Schema validation tests
-  - [ ] Data transformation tests
-  - [ ] Field constraint validation
-  - [ ] Optional field handling
-- [ ] API Testing
+### Phase 3: Coverage Improvement (Upcoming)
+- [ ] API Layer
   - [ ] Endpoint response tests
   - [ ] Request validation tests
   - [ ] Error scenario coverage
   - [ ] Data persistence verification
-- [ ] Documentation
-  - [ ] API documentation
-  - [ ] User documentation
+- [ ] Service Layer
+  - [ ] Core service tests
+  - [ ] Business logic validation
+  - [ ] Error handling coverage
+  - [ ] Integration tests
 
 ## Previously Completed Work
 
@@ -146,14 +95,14 @@ Major architectural change to separate bills from their payment tracking.
     - [x] Efficient state updates
 
 ## Recent Improvements
-1. Database Architecture
-   - [x] Separated bills and payments
-   - [x] Created liability model
-   - [x] Created payment model
-   - [x] Created payment source model
-   - [x] Added migration support
-   - [x] Added rollback support
-   - [x] Created test framework
+1. Code Cleanup
+   - [x] Removed deprecated bills schema
+   - [x] Removed unused bills service
+   - [x] Removed deprecated API endpoints
+   - [x] Updated router configuration
+   - [x] Verified no frontend dependencies
+   - [x] All tests passing
+   - [x] No regressions
 
 2. Test Infrastructure
    - [x] Improved SQLite async connection handling

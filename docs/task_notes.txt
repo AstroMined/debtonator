@@ -32,7 +32,7 @@ Finally, suggest a good commit message for the tasks accomplished during this se
 
 follow your custom instructions
 
-Formulate a plan to expand, but keep the scope limited to work that can completed in a single session.
+Formulate a plan to expand test coverage for models only, but keep the scope limited to work that can completed in a single session.
 You'll first need to get a coverage report to see where the weaknesses are.
 When running the full test suite with pytest, run it like below to keep the output limited to conserve tokens in your context window:
 pytest -q --tb=no --disable-warnings
@@ -42,4 +42,6 @@ DO NOT RUN MORE THAN ONE SINGLE SPECIFIC TEST WITH TRACEBACKS.
 
 I'll repeat it.
 ONLY USE TRACEBACKS WHEN RUNNING A SINGLE SPECIFIC TEST.
+For example:
+pytest -v tests/unit/test_accounts.py::test_create_checking_account
 You will lock up if you don't listen.

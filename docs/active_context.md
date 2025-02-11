@@ -1,97 +1,96 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Schema Testing & API Coverage
+API Cleanup & Test Coverage
 
 ### Recent Implementation
-1. **Model Test Coverage**
-   - ✓ Cashflow model tests (97% coverage)
-   - ✓ Income model tests (100% coverage)
-   - ✓ RecurringBill model tests (100% coverage)
-   - ✓ Fixed bill/liability relationship
-   - ✓ Improved calculation tests
-   - ✓ Added relationship validations
+1. **Bills to Liabilities Migration**
+   - ✓ Removed deprecated bills schema
+   - ✓ Removed unused bills service
+   - ✓ Removed deprecated bills endpoints
+   - ✓ Updated router configuration
+   - ✓ Verified no frontend dependencies
 
-2. **Test Suite Improvements**
-   - ✓ Fixed recurring bill to liability conversion
-   - ✓ Added undeposited income calculations
-   - ✓ Improved test fixtures
-   - ✓ Added comprehensive assertions
-   - ✓ Documented test cases
+2. **Test Coverage Status**
+   - Overall coverage: 57%
+   - Models maintain high coverage (94-100%)
+   - Schemas have excellent coverage (88-100%)
+   - API endpoints need coverage (28-44%)
+   - Services need coverage (20-40%)
 
-3. **Coverage Status**
-   - Overall coverage: 97%
-   - Models at 94%+ coverage
-   - Core calculations verified
-   - Relationships validated
+3. **System State**
+   - Clean architecture with no deprecated endpoints
+   - All bill functionality handled by liabilities
+   - No remaining technical debt from migration
+   - Core functionality validated
 
 ### Recent Changes
-1. **Test Suite Progress**
-   - ✓ Expanded model test coverage
-   - ✓ Fixed recurring bill implementation
-   - ✓ Added income model tests
-   - ✓ Improved cashflow tests
-   - [ ] Add schema validation tests
-   - [ ] Implement API endpoint tests
+1. **API Cleanup**
+   - ✓ Removed bills.py schema
+   - ✓ Removed bills.py service
+   - ✓ Removed bills API endpoints
+   - ✓ Updated router configuration
+   - ✓ Verified no regressions
 
-2. **Database Testing**
-   - ✓ Model creation tests
-   - ✓ Relationship validations
-   - ✓ Default value handling
-   - ✓ Transaction integrity
-   - ✓ Calculation accuracy
-   - [ ] Edge case scenarios
+2. **Test Suite Status**
+   - ✓ All 32 tests passing
+   - ✓ No regressions from cleanup
+   - ✓ Coverage slightly improved
+   - [ ] API endpoints need tests
+   - [ ] Services need tests
 
 ## Active Decisions
 
-### Phase 1: Model Testing (Completed)
-- ✓ Test basic model operations
-- ✓ Validate relationships
-- ✓ Verify default values
-- ✓ Test transaction handling
-
-### Phase 2: Schema Testing (Next)
-- [ ] Create schema validation tests
-- [ ] Test data transformations
-- [ ] Validate field constraints
-- [ ] Test optional field handling
-
-### Phase 3: API Testing (Upcoming)
-- [ ] Test endpoint responses
-- [ ] Validate request handling
+### Phase 1: API Testing (Next)
+- [ ] Design API test strategy
+- [ ] Create test data fixtures
+- [ ] Implement endpoint tests
 - [ ] Test error scenarios
 - [ ] Verify data persistence
+
+### Phase 2: Service Testing
+- [ ] Plan service test coverage
+- [ ] Create service test helpers
+- [ ] Test core service functions
+- [ ] Test edge cases
+- [ ] Verify error handling
+
+### Phase 3: Integration Testing
+- [ ] Design integration test suite
+- [ ] Create test scenarios
+- [ ] Test cross-service flows
+- [ ] Verify end-to-end paths
 
 ## Next Steps
 
 ### Immediate Tasks
-1. Schema Testing
-   - Plan schema test structure
-   - Create test fixtures
-   - Implement validation tests
-   - Test transformations
+1. API Test Coverage
+   - Focus on liabilities endpoints
+   - Test CRUD operations
+   - Verify error handling
+   - Test data validation
 
-2. API Testing
-   - Design API test strategy
-   - Create test data helpers
-   - Implement endpoint tests
-   - Test error handling
+2. Service Layer Testing
+   - Start with liabilities service
+   - Test core operations
+   - Verify business logic
+   - Test relationships
 
-3. Integration Testing
-   - Plan integration test suite
-   - Create test scenarios
-   - Implement end-to-end tests
-   - Test complex workflows
+3. Documentation
+   - Update API documentation
+   - Document test patterns
+   - Create test guidelines
+   - Update coverage reports
 
-### Future Phases
+### Future Work
 1. Frontend Testing (2-3 days)
    - Component tests
    - State management tests
    - Form validation tests
    - Integration tests
 
-2. Documentation & Coverage (1-2 days)
-   - Update test documentation
-   - Generate coverage reports
-   - Document test patterns
-   - Create test guidelines
+2. Performance Testing (1-2 days)
+   - Load testing
+   - Response times
+   - Database queries
+   - API endpoints

@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2025-02-11
+
+### Removed
+- Deprecated bills API endpoints
+- Unused bills schema
+- Legacy bills service
+- Backward compatibility layer for bills
+
+### Changed
+- Simplified API router configuration
+- Updated test coverage reporting
+- Improved project structure documentation
+- Clarified test coverage status by layer
+
+### Fixed
+- Removed technical debt from bills-to-liabilities migration
+- Cleaned up deprecated code paths
+- Eliminated unused imports
+- Streamlined API routing
+
 ## [1.4.0] - 2025-02-11
 
 ### Added

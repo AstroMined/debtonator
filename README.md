@@ -1,4 +1,4 @@
-# Debtonator v1.4.0
+# Debtonator v1.5.0
 
 [Previous content up to Project Structure remains unchanged...]
 
@@ -50,42 +50,28 @@ The project includes a comprehensive test suite focusing on data integrity and m
 - Proper async/await handling for SQLAlchemy
 - Automatic relationship loading
 
-### Test Coverage (97% Overall)
-- Account Model Tests (5 tests, 98% coverage)
-  - Account type validation
-  - Balance operations
-  - Credit limit calculations
+### Test Coverage (57% Overall)
+- Models Layer (94-100% coverage)
+  - Account operations and validation
+  - Balance and credit calculations
+  - Relationship integrity
   - Default value handling
 
-- Cashflow Model Tests (5 tests, 97% coverage)
-  - Deficit calculations
-  - Required income projections
-  - Hourly rate calculations
-  - Forecast validations
-
-- Income Model Tests (5 tests, 100% coverage)
-  - Income tracking
-  - Deposit status
-  - Undeposited calculations
-  - Account relationships
-
-- Liability Model Tests (7 tests, 96% coverage)
-  - Basic and recurring liabilities
-  - Account relationships
-  - Payment status tracking
+- Schema Layer (88-100% coverage)
+  - Data validation
+  - Field constraints
   - Optional field handling
+  - Relationship mapping
 
-- Payment Model Tests (6 tests, 94% coverage)
-  - Basic payment creation
-  - Split payment handling
-  - Source management
-  - Relationship validation
+- API Layer (28-44% coverage)
+  - Basic CRUD operations
+  - Initial error handling
+  - Needs more coverage
 
-- RecurringBill Model Tests (4 tests, 100% coverage)
-  - Template creation
-  - Liability generation
-  - Account relationships
-  - Category assignment
+- Service Layer (20-40% coverage)
+  - Core business logic
+  - Basic validations
+  - Needs more coverage
 
 ### Running Tests
 ```bash
