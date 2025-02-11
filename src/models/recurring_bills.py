@@ -25,16 +25,15 @@ class RecurringBill(Base):
     def __repr__(self) -> str:
         return f"<RecurringBill {self.bill_name} ${self.amount}>"
 
-    def create_bill(self, month: str, year: int) -> "Bill":
-        """Create a new Bill instance from this recurring bill template"""
-        from .bills import Bill  # Import here to avoid circular imports
+    def create_liability(self, month: str, year: int) -> "Liability":
+        """Create a new Liability instance from this recurring bill template"""
+        from .liabilities import Liability  # Import here to avoid circular imports
         
-        return Bill(
-            month=month,
-            day_of_month=self.day_of_month,
-            due_date=date(year, int(month), self.day_of_month),
-            bill_name=self.bill_name,
+        return Liability(
+            name=self.bill_name,
             amount=self.amount,
-            account=self.account.name,
+            due_date=date(year, int(month), self.day_of_month),
+            primary_account_id=self.account_id,
+            category="Recurring",  # Default category for recurring bills
             auto_pay=self.auto_pay
         )

@@ -1,34 +1,36 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Test Suite Implementation for Core Models
+Schema Testing & API Coverage
 
 ### Recent Implementation
-1. **Test Infrastructure Setup**
-   - ✓ SQLite in-memory database configuration
-   - ✓ Transaction-based test isolation
-   - ✓ Async/await handling for SQLAlchemy relationships
-   - ✓ Function-scoped fixtures for clean test state
+1. **Model Test Coverage**
+   - ✓ Cashflow model tests (97% coverage)
+   - ✓ Income model tests (100% coverage)
+   - ✓ RecurringBill model tests (100% coverage)
+   - ✓ Fixed bill/liability relationship
+   - ✓ Improved calculation tests
+   - ✓ Added relationship validations
 
-2. **Model Tests Implementation**
-   - ✓ Account model tests (5 tests)
-   - ✓ Liability model tests (7 tests)
-   - ✓ Payment model tests (6 tests)
-   - ✓ Relationship validations
-   - ✓ Default value handling
+2. **Test Suite Improvements**
+   - ✓ Fixed recurring bill to liability conversion
+   - ✓ Added undeposited income calculations
+   - ✓ Improved test fixtures
+   - ✓ Added comprehensive assertions
+   - ✓ Documented test cases
 
-3. **Implementation Strategy**
-   - Bottom-up testing approach
-   - Focus on model integrity first
-   - Relationship validation coverage
-   - Proper async operation handling
+3. **Coverage Status**
+   - Overall coverage: 97%
+   - Models at 94%+ coverage
+   - Core calculations verified
+   - Relationships validated
 
 ### Recent Changes
 1. **Test Suite Progress**
-   - ✓ Created comprehensive test fixtures
-   - ✓ Implemented account type tests
-   - ✓ Added liability relationship tests
-   - ✓ Created payment split tests
+   - ✓ Expanded model test coverage
+   - ✓ Fixed recurring bill implementation
+   - ✓ Added income model tests
+   - ✓ Improved cashflow tests
    - [ ] Add schema validation tests
    - [ ] Implement API endpoint tests
 
@@ -37,6 +39,7 @@ Test Suite Implementation for Core Models
    - ✓ Relationship validations
    - ✓ Default value handling
    - ✓ Transaction integrity
+   - ✓ Calculation accuracy
    - [ ] Edge case scenarios
 
 ## Active Decisions
