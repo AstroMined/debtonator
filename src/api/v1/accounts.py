@@ -18,12 +18,21 @@ from ...schemas.credit_limits import (
     CreditLimitUpdate,
     AccountCreditLimitHistoryResponse,
 )
+from ...schemas.balance_reconciliation import (
+    BalanceReconciliation,
+    BalanceReconciliationCreate,
+    BalanceReconciliationUpdate,
+)
 from ...services.accounts import AccountService
+from ...services.balance_reconciliation import BalanceReconciliationService
 
 router = APIRouter(tags=["accounts"])
 
 def get_account_service(db: AsyncSession = Depends(get_db)) -> AccountService:
     return AccountService(db)
+
+def get_reconciliation_service(db: AsyncSession = Depends(get_db)) -> BalanceReconciliationService:
+    return BalanceReconciliationService(db)
 
 @router.get("/", response_model=List[AccountResponse])
 async def get_accounts(
@@ -163,6 +172,87 @@ async def get_credit_limit_history(
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+# Balance Reconciliation Endpoints
+
+@router.post("/{account_id}/reconcile", response_model=BalanceReconciliation)
+async def create_balance_reconciliation(
+    account_id: int,
+    reconciliation_data: BalanceReconciliationCreate,
+    reconciliation_service: BalanceReconciliationService = Depends(get_reconciliation_service)
+):
+    """Create a new balance reconciliation record"""
+    if reconciliation_data.account_id != account_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Account ID in path must match account ID in request body"
+        )
+    try:
+        return await reconciliation_service.create_reconciliation(reconciliation_data)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/{account_id}/reconciliations", response_model=List[BalanceReconciliation])
+async def get_account_reconciliations(
+    account_id: int,
+    limit: int = 100,
+    offset: int = 0,
+    reconciliation_service: BalanceReconciliationService = Depends(get_reconciliation_service)
+):
+    """Get reconciliation history for an account"""
+    return await reconciliation_service.get_account_reconciliations(account_id, limit, offset)
+
+@router.get("/{account_id}/reconciliations/{reconciliation_id}", response_model=BalanceReconciliation)
+async def get_reconciliation(
+    account_id: int,
+    reconciliation_id: int,
+    reconciliation_service: BalanceReconciliationService = Depends(get_reconciliation_service)
+):
+    """Get a specific reconciliation record"""
+    reconciliation = await reconciliation_service.get_reconciliation(reconciliation_id)
+    if not reconciliation:
+        raise HTTPException(status_code=404, detail="Reconciliation record not found")
+    if reconciliation.account_id != account_id:
+        raise HTTPException(status_code=404, detail="Reconciliation record not found for this account")
+    return reconciliation
+
+@router.patch("/{account_id}/reconciliations/{reconciliation_id}", response_model=BalanceReconciliation)
+async def update_reconciliation(
+    account_id: int,
+    reconciliation_id: int,
+    update_data: BalanceReconciliationUpdate,
+    reconciliation_service: BalanceReconciliationService = Depends(get_reconciliation_service)
+):
+    """Update a reconciliation record"""
+    reconciliation = await reconciliation_service.get_reconciliation(reconciliation_id)
+    if not reconciliation:
+        raise HTTPException(status_code=404, detail="Reconciliation record not found")
+    if reconciliation.account_id != account_id:
+        raise HTTPException(status_code=404, detail="Reconciliation record not found for this account")
+    
+    updated = await reconciliation_service.update_reconciliation(reconciliation_id, update_data)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Failed to update reconciliation record")
+    return updated
+
+@router.delete("/{account_id}/reconciliations/{reconciliation_id}")
+async def delete_reconciliation(
+    account_id: int,
+    reconciliation_id: int,
+    reconciliation_service: BalanceReconciliationService = Depends(get_reconciliation_service)
+):
+    """Delete a reconciliation record"""
+    reconciliation = await reconciliation_service.get_reconciliation(reconciliation_id)
+    if not reconciliation:
+        raise HTTPException(status_code=404, detail="Reconciliation record not found")
+    if reconciliation.account_id != account_id:
+        raise HTTPException(status_code=404, detail="Reconciliation record not found for this account")
+    
+    if await reconciliation_service.delete_reconciliation(reconciliation_id):
+        return {"message": "Reconciliation record deleted successfully"}
+    raise HTTPException(status_code=400, detail="Failed to delete reconciliation record")
 
 @router.get("/{account_id}/statement-history", response_model=AccountStatementHistoryResponse)
 async def get_statement_history(

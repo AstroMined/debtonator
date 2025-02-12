@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.13] - 2025-02-12
+
+### Added
+- Balance reconciliation system
+  - New balance_reconciliation table for tracking balance adjustments
+  - Support for account balance reconciliation with history
+  - API endpoints for managing reconciliations
+  - Automatic balance updates on reconciliation
+  - Comprehensive test coverage for reconciliation service and API
+  - Validation for account balance adjustments
+  - Historical tracking of balance changes with reasons
+
+## [0.3.12] - 2025-02-12
+
 ### Added
 - Comprehensive API enhancement plan documented in ADR 010
 - Phased approach for implementing API improvements:

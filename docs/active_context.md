@@ -48,8 +48,8 @@ API Enhancement Project
 - [x] Statement balance history
 - [x] Credit limit tracking
 - [x] Transaction history
-- [ ] Balance reconciliation
-- [ ] Available credit calculation
+- [x] Balance reconciliation
+- [ ] Available credit calculation (Next Focus)
 
 ### Phase 2: Bill Management Expansion
 - [ ] Recurring bills endpoints
@@ -89,27 +89,24 @@ API Enhancement Project
 ## Next Steps
 
 ### Immediate Tasks (Phase 1)
-1. Account Management Enhancement
-   - ✓ Design statement history endpoints
-   - ✓ Implement statement history model
-   - ✓ Add statement history API endpoints
-   - ✓ Implement transaction history
-   - ✓ Add transaction history API endpoints
-   - ✓ Test transaction service
-   - [ ] Create balance reconciliation
-   - [ ] Test new endpoints
+1. Available Credit Calculation Enhancement
+   - [ ] Design calculation endpoints
+   - [ ] Implement calculation service
+   - [ ] Add API endpoints
+   - [ ] Test calculation accuracy
+   - [ ] Document calculation methods
 
-2. Documentation
-   - Update API documentation
-   - Document new endpoints
-   - Update schemas
-   - Create usage examples
+2. Testing Strategy
+   - [ ] Unit tests for calculation logic
+   - [ ] Integration tests for endpoints
+   - [ ] Performance testing for calculations
+   - [ ] Documentation testing
 
-3. Testing
-   - Unit tests for new endpoints
-   - Integration tests
-   - Performance testing
-   - Documentation testing
+3. Documentation
+   - [ ] API documentation for calculation endpoints
+   - [ ] Calculation method documentation
+   - [ ] Usage examples
+   - [ ] Testing documentation
 
 ### Future Work
 1. Bill Management (Phase 2)
