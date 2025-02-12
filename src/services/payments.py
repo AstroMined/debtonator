@@ -1,6 +1,6 @@
 from datetime import date
 from typing import List, Optional
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -84,43 +84,32 @@ class PaymentService:
         if not db_payment:
             return None
 
-        # If sources are being updated, validate them
-        if payment_update.sources is not None:
-            payment_update.validate_sources(
-                payment_update.amount or db_payment.amount
-            )
-            
-            # Delete existing sources
-            stmt = select(PaymentSource).filter(PaymentSource.payment_id == payment_id)
-            result = await self.db.execute(stmt)
-            sources = result.scalars().all()
-            for source in sources:
-                await self.db.delete(source)
-            
-            # Create new sources
-            for source in payment_update.sources:
-                db_source = PaymentSource(
-                    payment_id=payment_id,
-                    account_id=source.account_id,
-                    amount=source.amount
-                )
-                self.db.add(db_source)
-
-        # Update payment fields
+        # Update payment fields first
         update_data = payment_update.model_dump(exclude_unset=True, exclude={'sources'})
         for key, value in update_data.items():
             setattr(db_payment, key, value)
 
-        await self.db.commit()
-        
-        # Fetch the updated payment with sources
-        stmt = (
-            select(Payment)
-            .options(joinedload(Payment.sources))
-            .filter(Payment.id == payment_id)
-        )
-        result = await self.db.execute(stmt)
-        return result.unique().scalar_one()
+        # If sources are being updated, validate them with the new payment amount
+        if payment_update.sources is not None:
+            # Use the new payment amount if it was updated, otherwise use existing amount
+            current_amount = payment_update.amount if payment_update.amount is not None else db_payment.amount
+            payment_update.validate_sources(current_amount)
+            
+            # Clear existing sources and set new ones
+            db_payment.sources = [
+                PaymentSource(
+                    payment_id=payment_id,
+                    account_id=source.account_id,
+                    amount=source.amount
+                )
+                for source in payment_update.sources
+            ]
+            
+            await self.db.commit()
+            return await self.get_payment(payment_id)
+        else:
+            await self.db.commit()
+            return await self.get_payment(payment_id)
 
     async def delete_payment(self, payment_id: int) -> bool:
         db_payment = await self.get_payment(payment_id)

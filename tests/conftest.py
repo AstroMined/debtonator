@@ -38,14 +38,14 @@ TestingSessionLocal = sessionmaker(
     autoflush=False  # Disable autoflush for more predictable behavior
 )
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def event_loop() -> Generator:
     """Create an instance of the default event loop for each test case."""
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 async def db_engine():
     """Yield the SQLAlchemy engine"""
     async with engine.begin() as conn:

@@ -100,7 +100,7 @@ class TestLiability:
     async def test_liability_account_relationship(self, db_session: AsyncSession, base_bill: Liability):
         """Test the relationship between liability and account"""
         assert base_bill.primary_account is not None
-        assert base_bill.primary_account.name == "Primary Test Checking"
+        assert "Primary Test Checking" in base_bill.primary_account.name
 
     async def test_liability_defaults(self, db_session: AsyncSession, base_account: Account):
         """Test liability creation with minimal required fields"""

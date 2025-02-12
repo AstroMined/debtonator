@@ -9,7 +9,7 @@ from src.models.payments import Payment
 from src.models.accounts import Account
 from src.models.liabilities import Liability
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def payment_service(db_session: AsyncSession):
     return PaymentService(db_session)
 

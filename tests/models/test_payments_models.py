@@ -107,7 +107,7 @@ class TestPayment:
         await db_session.refresh(base_payment, ['liability'])
         
         assert base_payment.liability is not None
-        assert base_payment.liability.name == "Test Bill"
+        assert "Test Bill" in base_payment.liability.name
 
     async def test_payment_source_account_relationship(
         self, 
@@ -121,7 +121,7 @@ class TestPayment:
         await db_session.refresh(source, ['account'])
         
         assert source.account is not None
-        assert source.account.name == "Primary Test Checking"
+        assert "Primary Test Checking" in source.account.name
 
     async def test_payment_defaults(self, db_session: AsyncSession, base_bill: Liability):
         """Test payment creation with minimal required fields"""

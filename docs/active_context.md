@@ -1,15 +1,15 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Service Layer Optimization & Test Coverage
+Service Layer Testing & Relationship Management
 
 ### Recent Implementation
-1. **Service Layer Relationship Loading**
-   - ✓ Standardized relationship loading across all services
-   - ✓ Replaced .refresh() calls with proper SELECT queries
-   - ✓ Added joinedload() for all relationships
-   - ✓ Fixed relationship field names
-   - ✓ Verified no regressions
+1. **Service Layer Improvements**
+   - ✓ Fixed SQLAlchemy identity map warning in payment service
+   - ✓ Improved payment source relationship handling
+   - ✓ Enhanced session management in payment updates
+   - ✓ Leveraged SQLAlchemy's cascade behavior
+   - ✓ Verified relationship loading patterns
 
 2. **Test Coverage Status**
    - Overall coverage: 57%
