@@ -13,6 +13,12 @@ from src.schemas.accounts import (
     StatementBalanceHistory,
     AccountStatementHistoryResponse
 )
+from src.schemas.credit_limits import (
+    CreditLimitHistoryCreate,
+    CreditLimitUpdate,
+    AccountCreditLimitHistoryResponse
+)
+from src.models.credit_limit_history import CreditLimitHistory
 
 class AccountService:
     def __init__(self, session: AsyncSession):
@@ -105,6 +111,69 @@ class AccountService:
         await self.session.commit()
         await self.session.refresh(db_account)
         return AccountInDB.model_validate(db_account)
+
+    async def update_credit_limit(
+        self,
+        account_id: int,
+        credit_limit_data: CreditLimitUpdate
+    ) -> Optional[AccountInDB]:
+        """Update an account's credit limit and record in history"""
+        result = await self.session.execute(
+            select(AccountModel).where(AccountModel.id == account_id)
+        )
+        db_account = result.scalar_one_or_none()
+        if not db_account:
+            return None
+
+        if db_account.type != "credit":
+            raise ValueError("Credit limit can only be set for credit accounts")
+
+        # Update account's total limit
+        db_account.total_limit = credit_limit_data.credit_limit
+        db_account.update_available_credit()
+
+        # Create credit limit history entry
+        history_entry = CreditLimitHistory(
+            account_id=account_id,
+            credit_limit=credit_limit_data.credit_limit,
+            effective_date=credit_limit_data.effective_date,
+            reason=credit_limit_data.reason
+        )
+        self.session.add(history_entry)
+
+        await self.session.commit()
+        await self.session.refresh(db_account)
+        return AccountInDB.model_validate(db_account)
+
+    async def get_credit_limit_history(
+        self,
+        account_id: int
+    ) -> Optional[AccountCreditLimitHistoryResponse]:
+        """Get credit limit history for an account"""
+        result = await self.session.execute(
+            select(AccountModel).where(AccountModel.id == account_id)
+        )
+        db_account = result.scalar_one_or_none()
+        if not db_account:
+            return None
+
+        if db_account.type != "credit":
+            raise ValueError("Credit limit history only available for credit accounts")
+
+        # Get credit limit history ordered by effective date descending
+        history_result = await self.session.execute(
+            select(CreditLimitHistory)
+            .where(CreditLimitHistory.account_id == account_id)
+            .order_by(desc(CreditLimitHistory.effective_date))
+        )
+        history_records = history_result.scalars().all()
+
+        return AccountCreditLimitHistoryResponse(
+            account_id=db_account.id,
+            account_name=db_account.name,
+            current_credit_limit=db_account.total_limit or Decimal(0),
+            credit_limit_history=history_records
+        )
 
     async def get_statement_history(
         self, account_id: int

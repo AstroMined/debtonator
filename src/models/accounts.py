@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import List, Optional
 from sqlalchemy import String, Date, Numeric, Index, event, Integer
 from .statement_history import StatementHistory
+from .credit_limit_history import CreditLimitHistory
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from ..database.base import Base
@@ -73,6 +74,11 @@ class Account(Base):
     )
     statement_history: Mapped[List["StatementHistory"]] = relationship(
         "StatementHistory",
+        back_populates="account",
+        cascade="all, delete-orphan"
+    )
+    credit_limit_history: Mapped[List["CreditLimitHistory"]] = relationship(
+        "CreditLimitHistory",
         back_populates="account",
         cascade="all, delete-orphan"
     )

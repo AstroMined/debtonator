@@ -46,7 +46,7 @@ API Enhancement Project
 
 ### Phase 1: Account Management Enhancement
 - [x] Statement balance history
-- [ ] Credit limit tracking
+- [x] Credit limit tracking
 - [ ] Transaction history
 - [ ] Balance reconciliation
 - [ ] Available credit calculation

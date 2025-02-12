@@ -26,7 +26,8 @@ End session:
 update memory bank
 
 Ensure you define a good starting point for our next working session.
-Update README.md, CHANGELOG.md and update major, minor, or patch semantic versioning as needed.
+If you have not done so yet, update README.md, CHANGELOG.md and update minor or patch semantic versioning as needed.
+DO NOT UPDATE MAJOR VERSION, as we haven't had a full, stable release yet.
 Create ADRs ONLY if absolutely necessary to document a MAJOR architectural change.
 Finally, suggest a good commit message for the tasks accomplished during this session.
 

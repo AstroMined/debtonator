@@ -6,6 +6,8 @@ from .income import Income
 from .cashflow import CashflowForecast
 from .liabilities import Liability
 from .payments import Payment, PaymentSource
+from .statement_history import StatementHistory
+from .credit_limit_history import CreditLimitHistory
 
 __all__ = [
     "Account",
@@ -15,5 +17,7 @@ __all__ = [
     "CashflowForecast",
     "Liability",
     "Payment",
-    "PaymentSource"
+    "PaymentSource",
+    "StatementHistory",
+    "CreditLimitHistory"
 ]

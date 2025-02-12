@@ -14,6 +14,10 @@ from ...schemas.accounts import (
     AccountResponse,
     AccountStatementHistoryResponse,
 )
+from ...schemas.credit_limits import (
+    CreditLimitUpdate,
+    AccountCreditLimitHistoryResponse,
+)
 from ...services.accounts import AccountService
 
 router = APIRouter(tags=["accounts"])
@@ -127,6 +131,38 @@ async def update_statement_balance(
     if not result:
         raise HTTPException(status_code=404, detail="Account not found")
     return result
+
+@router.post("/{account_id}/credit-limit", response_model=AccountResponse)
+async def update_credit_limit(
+    account_id: int,
+    credit_limit_data: CreditLimitUpdate,
+    account_service: AccountService = Depends(get_account_service)
+):
+    """Update an account's credit limit and record in history"""
+    try:
+        result = await account_service.update_credit_limit(
+            account_id=account_id,
+            credit_limit_data=credit_limit_data
+        )
+        if not result:
+            raise HTTPException(status_code=404, detail="Account not found")
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/{account_id}/credit-limit-history", response_model=AccountCreditLimitHistoryResponse)
+async def get_credit_limit_history(
+    account_id: int,
+    account_service: AccountService = Depends(get_account_service)
+):
+    """Get credit limit history for an account"""
+    try:
+        result = await account_service.get_credit_limit_history(account_id)
+        if not result:
+            raise HTTPException(status_code=404, detail="Account not found")
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/{account_id}/statement-history", response_model=AccountStatementHistoryResponse)
 async def get_statement_history(

@@ -17,6 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Phase 5: Cashflow Analysis Extension
   - Phase 6: Reporting & Analysis
 
+## [0.3.11] - 2025-02-12
+
+### Added
+- Credit limit history tracking system
+  - New credit_limit_history table for tracking limit changes
+  - Account relationship for credit limit history
+  - API endpoints for managing credit limits
+  - Historical tracking of limit changes with reasons
+  - Validation for credit account types
+
 ## [0.3.10] - 2025-02-12
 
 ### Added

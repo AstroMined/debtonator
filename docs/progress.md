@@ -27,7 +27,7 @@ Implementing comprehensive API improvements across all domains.
 #### Phase 1: Account Management Enhancement (Current)
 - [ ] API Design
   - [x] Statement balance history endpoints
-  - [ ] Credit limit tracking endpoints
+  - [x] Credit limit tracking endpoints
   - [ ] Transaction history endpoints
   - [ ] Balance reconciliation endpoints
   - [ ] Available credit calculation endpoints
@@ -38,9 +38,13 @@ Implementing comprehensive API improvements across all domains.
   - [x] Service layer enhancements
     - [x] Statement history tracking
     - [x] History retrieval with ordering
+    - [x] Credit limit tracking
+    - [x] Credit limit history
   - [x] API endpoint creation
     - [x] Statement update endpoint
     - [x] History retrieval endpoint
+    - [x] Credit limit update endpoint
+    - [x] Credit limit history endpoint
   - [ ] Testing coverage
   - [ ] Documentation
 
