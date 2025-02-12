@@ -162,6 +162,24 @@ async def base_payment(
     return payment
 
 @pytest.fixture(scope="function")
+async def base_credit_account(db_session: AsyncSession) -> Account:
+    """Create a basic credit account for testing with unique name"""
+    unique_id = str(uuid.uuid4())[:8]
+    account = Account(
+        name=f"Test Credit Card {unique_id}",
+        type="credit",
+        available_balance=Decimal("-500.00"),
+        total_limit=Decimal("2000.00"),
+        available_credit=Decimal("1500.00"),
+        created_at=datetime.now(),
+        updated_at=datetime.now()
+    )
+    db_session.add(account)
+    await db_session.flush()
+    await db_session.refresh(account)
+    return account
+
+@pytest.fixture(scope="function")
 async def base_income(db_session: AsyncSession, base_account: Account) -> Income:
     """Create a basic income entry for testing"""
     income = Income(

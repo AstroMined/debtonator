@@ -13,6 +13,7 @@ from ...schemas.accounts import (
     AccountUpdate,
     AccountResponse,
     AccountStatementHistoryResponse,
+    AvailableCreditResponse,
 )
 from ...schemas.credit_limits import (
     CreditLimitUpdate,
@@ -253,6 +254,20 @@ async def delete_reconciliation(
     if await reconciliation_service.delete_reconciliation(reconciliation_id):
         return {"message": "Reconciliation record deleted successfully"}
     raise HTTPException(status_code=400, detail="Failed to delete reconciliation record")
+
+@router.get("/{account_id}/available-credit", response_model=AvailableCreditResponse)
+async def get_available_credit(
+    account_id: int,
+    account_service: AccountService = Depends(get_account_service)
+):
+    """Get real-time available credit calculation for a credit account"""
+    try:
+        result = await account_service.calculate_available_credit(account_id)
+        if not result:
+            raise HTTPException(status_code=404, detail="Account not found")
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/{account_id}/statement-history", response_model=AccountStatementHistoryResponse)
 async def get_statement_history(

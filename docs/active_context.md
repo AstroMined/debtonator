@@ -49,7 +49,7 @@ API Enhancement Project
 - [x] Credit limit tracking
 - [x] Transaction history
 - [x] Balance reconciliation
-- [ ] Available credit calculation (Next Focus)
+- [x] Available credit calculation
 
 ### Phase 2: Bill Management Expansion
 - [ ] Recurring bills endpoints
@@ -88,23 +88,23 @@ API Enhancement Project
 
 ## Next Steps
 
-### Immediate Tasks (Phase 1)
-1. Available Credit Calculation Enhancement
-   - [ ] Design calculation endpoints
-   - [ ] Implement calculation service
+### Phase 2: Bill Management Enhancement (Next Focus)
+1. Recurring Bills System
+   - [ ] Design recurring bill patterns
+   - [ ] Implement recurring bill service
    - [ ] Add API endpoints
-   - [ ] Test calculation accuracy
-   - [ ] Document calculation methods
+   - [ ] Test recurring bill creation
+   - [ ] Document recurring bill system
 
 2. Testing Strategy
-   - [ ] Unit tests for calculation logic
+   - [ ] Unit tests for recurring bills
    - [ ] Integration tests for endpoints
-   - [ ] Performance testing for calculations
+   - [ ] Test bill generation patterns
    - [ ] Documentation testing
 
 3. Documentation
-   - [ ] API documentation for calculation endpoints
-   - [ ] Calculation method documentation
+   - [ ] API documentation for recurring bills
+   - [ ] Bill pattern documentation
    - [ ] Usage examples
    - [ ] Testing documentation
 

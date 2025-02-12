@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Optional, List
 from enum import Enum
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, NonNegativeFloat
 
 class AccountType(str, Enum):
     """Valid account types"""
@@ -61,3 +61,15 @@ class AccountStatementHistoryResponse(BaseModel):
         default_list=[],
         description="List of historical statement balances"
     )
+
+class AvailableCreditResponse(BaseModel):
+    """Schema for available credit calculation response"""
+    account_id: int = Field(..., description="Account ID")
+    account_name: str = Field(..., description="Account name")
+    total_limit: Decimal = Field(..., description="Total credit limit")
+    current_balance: Decimal = Field(..., description="Current account balance")
+    pending_transactions: Decimal = Field(..., description="Sum of pending transactions")
+    adjusted_balance: Decimal = Field(..., description="Balance adjusted for pending transactions")
+    available_credit: Decimal = Field(..., description="Available credit after all adjustments")
+
+    model_config = ConfigDict(from_attributes=True)

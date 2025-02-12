@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
-from typing import List, Optional
-from sqlalchemy import select, desc
+from typing import List, Optional, Tuple
+from sqlalchemy import select, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account as AccountModel
@@ -11,7 +11,8 @@ from src.schemas.accounts import (
     AccountUpdate,
     AccountInDB,
     StatementBalanceHistory,
-    AccountStatementHistoryResponse
+    AccountStatementHistoryResponse,
+    AvailableCreditResponse
 )
 from src.schemas.credit_limits import (
     CreditLimitHistoryCreate,
@@ -174,6 +175,68 @@ class AccountService:
             current_credit_limit=db_account.total_limit or Decimal(0),
             credit_limit_history=history_records
         )
+
+    async def calculate_available_credit(
+        self, account_id: int
+    ) -> Optional[AvailableCreditResponse]:
+        """Calculate real-time available credit for a credit account"""
+        result = await self.session.execute(
+            select(AccountModel).where(AccountModel.id == account_id)
+        )
+        db_account = result.scalar_one_or_none()
+        if not db_account:
+            return None
+
+        if db_account.type != "credit":
+            raise ValueError("Available credit calculation only available for credit accounts")
+
+        # Get pending payments and transactions
+        pending_debits = await self._get_pending_transactions(account_id)
+        pending_credits = await self._get_pending_payments(account_id)
+
+        # Calculate real-time available credit
+        current_balance = db_account.available_balance
+        total_pending = pending_debits - pending_credits
+        adjusted_balance = current_balance + total_pending
+
+        # Calculate available credit
+        available_credit = db_account.total_limit - abs(adjusted_balance) if db_account.total_limit else Decimal(0)
+
+        return AvailableCreditResponse(
+            account_id=db_account.id,
+            account_name=db_account.name,
+            total_limit=db_account.total_limit or Decimal(0),
+            current_balance=current_balance,
+            pending_transactions=total_pending,
+            adjusted_balance=adjusted_balance,
+            available_credit=available_credit
+        )
+
+    async def _get_pending_transactions(self, account_id: int) -> Decimal:
+        """Get sum of pending debit transactions"""
+        from src.models.transaction_history import TransactionHistory
+        
+        result = await self.session.execute(
+            select(func.sum(TransactionHistory.amount))
+            .where(
+                TransactionHistory.account_id == account_id,
+                TransactionHistory.transaction_type == "debit"
+            )
+        )
+        return result.scalar_one_or_none() or Decimal(0)
+
+    async def _get_pending_payments(self, account_id: int) -> Decimal:
+        """Get sum of pending credit transactions"""
+        from src.models.transaction_history import TransactionHistory
+        
+        result = await self.session.execute(
+            select(func.sum(TransactionHistory.amount))
+            .where(
+                TransactionHistory.account_id == account_id,
+                TransactionHistory.transaction_type == "credit"
+            )
+        )
+        return result.scalar_one_or_none() or Decimal(0)
 
     async def get_statement_history(
         self, account_id: int

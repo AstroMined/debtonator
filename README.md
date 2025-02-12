@@ -1,4 +1,4 @@
-# Debtonator v0.3.13
+# Debtonator v0.3.14
 
 A modern bill and cashflow management system that helps track bills, income, and maintain sufficient account balances for timely bill payments.
 
@@ -11,6 +11,7 @@ A modern bill and cashflow management system that helps track bills, income, and
   - Comprehensive transaction history with credit/debit tracking
   - Account-specific transaction history
   - Balance reconciliation with history tracking
+  - Real-time available credit calculation with pending transaction support
 
 - **Bill Management**
   - Track bills with due dates and payment status
