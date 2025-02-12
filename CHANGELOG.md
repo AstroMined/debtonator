@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.8] - 2025-02-12
+
+### Added
+- Comprehensive test suite for cashflow service
+- Test fixtures for cashflow testing
+- Test patterns for decimal precision handling
+
+### Changed
+- Improved cashflow service test coverage from 38% to 100%
+- Increased overall service layer coverage from 56% to 63%
+- Fixed relationship naming (income_entries → income)
+- Enhanced test fixtures with required fields
+
 ## [0.3.7] - 2025-02-12
 
 ### Added

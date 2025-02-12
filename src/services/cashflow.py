@@ -2,6 +2,7 @@ from decimal import Decimal
 from datetime import date, timedelta
 from typing import List, Dict, Union
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
@@ -58,7 +59,7 @@ async def calculate_forecast(
     stmt = (
         select(Account)
         .options(
-            joinedload(Account.income_entries),
+            joinedload(Account.income),
             joinedload(Account.payment_sources)
         )
         .where(Account.id == account_id)
