@@ -13,6 +13,7 @@ from src.database.base import Base
 from src.database.database import get_db
 from src.main import app
 from src.models.accounts import Account
+from src.models.income import Income
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
 
@@ -159,3 +160,20 @@ async def base_payment(
     await db_session.refresh(payment_source)  # Ensure we have latest data
     
     return payment
+
+@pytest.fixture(scope="function")
+async def base_income(db_session: AsyncSession, base_account: Account) -> Income:
+    """Create a basic income entry for testing"""
+    income = Income(
+        date=date(2025, 2, 15),
+        source=f"Test Income {str(uuid.uuid4())[:8]}",  # Make source unique
+        amount=Decimal("1000.00"),
+        deposited=False,
+        account_id=base_account.id,
+        created_at=datetime.now(),
+        updated_at=datetime.now()
+    )
+    db_session.add(income)
+    await db_session.flush()
+    await db_session.refresh(income)  # Ensure we have latest data
+    return income

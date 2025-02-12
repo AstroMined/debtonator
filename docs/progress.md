@@ -1,40 +1,50 @@
 # Progress: Debtonator
 
-## Current Priority: Service Layer Optimization & Test Coverage
-Standardizing relationship loading patterns and improving test coverage.
+## Current Priority: Service Layer Test Coverage
+Implementing comprehensive test coverage for all services.
 
-### Phase 1: Service Layer Optimization (Completed)
-- [x] Service Layer Standardization
-  - [x] Standardized relationship loading across all services
-  - [x] Replaced .refresh() calls with proper SELECT queries
-  - [x] Added joinedload() for all relationships
-  - [x] Fixed relationship field names
+### Phase 1: Income Service Testing (Completed)
+- [x] Test Implementation
+  - [x] Created comprehensive test suite
+  - [x] Covered all CRUD operations
+  - [x] Implemented error handling tests
+  - [x] Verified account balance updates
+  - [x] Tested relationship loading
+  - [x] Validated business logic
+- [x] Coverage Improvements
+  - [x] Increased income service coverage to 86%
+  - [x] Improved overall service coverage to 56%
+  - [x] Added base_income test fixture
   - [x] Verified no regressions
-- [x] Service Updates
-  - [x] Updated payments service (already followed pattern)
-  - [x] Updated bill_splits service with proper relationship loading
-  - [x] Updated income service with correct relationship names
-  - [x] Updated liabilities service with correct field names
-  - [x] Updated cashflow service with relationship loading
-  - [x] Verified bulk_import service (uses updated services)
-- [x] Verified System State
-  - [x] All tests passing
-  - [x] No regressions
-  - [x] Core functionality intact
-  - [x] Clean architecture
+- [x] Test Patterns
+  - [x] Established fixture patterns
+  - [x] Standardized test structure
+  - [x] Documented test approaches
+  - [x] Validated SQLite async handling
 
-### Phase 2: Service Testing (Next)
-- [ ] Test Strategy
-  - [ ] Document critical paths
-  - [ ] Plan test implementation
-  - [ ] Focus on relationship loading
-- [ ] Test Implementation
-  - [ ] Service layer tests
-  - [ ] Relationship loading tests
+### Phase 2: Remaining Services (Next)
+- [ ] Bill Splits Service (32% coverage)
+  - [ ] CRUD operation tests
+  - [ ] Split validation tests
   - [ ] Error handling tests
-  - [ ] Data validation tests
+  - [ ] Account balance tests
+- [ ] Bulk Import Service (31% coverage)
+  - [ ] Import validation tests
+  - [ ] Error handling tests
+  - [ ] Data transformation tests
+  - [ ] Integration tests
+- [ ] Cashflow Service (38% coverage)
+  - [ ] Calculation tests
+  - [ ] Forecast tests
+  - [ ] Date range tests
+  - [ ] Balance tests
+- [ ] Liabilities Service (32% coverage)
+  - [ ] CRUD operation tests
+  - [ ] Payment tracking tests
+  - [ ] Recurring bill tests
+  - [ ] Account tests
 
-### Phase 3: Coverage Improvement (Upcoming)
+### Phase 3: API Testing (Upcoming)
 - [ ] API Layer
   - [ ] Endpoint response tests
   - [ ] Request validation tests

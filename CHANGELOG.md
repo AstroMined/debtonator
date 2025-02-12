@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.7] - 2025-02-12
+
+### Added
+- Comprehensive test suite for income service
+- Base income fixture for testing
+- Test patterns for service layer testing
+
+### Changed
+- Improved income service test coverage from 19% to 86%
+- Increased overall service layer coverage from 38% to 56%
+- Enhanced test infrastructure with better async handling
+
 ## [0.3.6] - 2025-02-12
 
 ### Fixed

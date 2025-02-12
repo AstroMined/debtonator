@@ -1,45 +1,48 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Service Layer Testing & Relationship Management
+Service Layer Test Coverage Expansion
 
 ### Recent Implementation
-1. **Service Layer Improvements**
-   - ✓ Fixed SQLAlchemy identity map warning in payment service
-   - ✓ Improved payment source relationship handling
-   - ✓ Enhanced session management in payment updates
-   - ✓ Leveraged SQLAlchemy's cascade behavior
-   - ✓ Verified relationship loading patterns
+1. **Income Service Test Coverage**
+   - ✓ Created comprehensive test suite
+   - ✓ Covered CRUD operations
+   - ✓ Tested error handling
+   - ✓ Verified account balance updates
+   - ✓ Validated relationship loading
+   - ✓ Improved coverage from 19% to 86%
 
 2. **Test Coverage Status**
-   - Overall coverage: 57%
-   - Models maintain high coverage (94-100%)
-   - Schemas have excellent coverage (88-100%)
-   - API endpoints need coverage (28-44%)
-   - Services need coverage (20-40%)
+   - Overall service coverage: 56% (↑18%)
+   - High coverage services:
+     * Payments: 100%
+     * Income: 86%
+   - Services needing coverage:
+     * Bill Splits: 32%
+     * Bulk Import: 31%
+     * Cashflow: 38%
+     * Liabilities: 32%
 
 3. **System State**
-   - Clean architecture with no deprecated endpoints
-   - All bill functionality handled by liabilities
-   - Consistent relationship loading pattern
-   - Core functionality validated
-   - N+1 query issues prevented
+   - All 59 tests passing
+   - No regressions from new tests
+   - Established test patterns
+   - Clean test fixtures
+   - Verified relationship loading
 
 ### Recent Changes
-1. **Service Layer Optimization**
-   - ✓ Updated payments service (already followed pattern)
-   - ✓ Updated bill_splits service with proper relationship loading
-   - ✓ Updated income service with correct relationship names
-   - ✓ Updated liabilities service with correct field names
-   - ✓ Updated cashflow service with relationship loading
-   - ✓ Verified bulk_import service (uses updated services)
+1. **Test Infrastructure**
+   - ✓ Added base_income fixture
+   - ✓ Implemented income service tests
+   - ✓ Verified SQLite async handling
+   - ✓ Validated test patterns
 
 2. **Test Suite Status**
-   - ✓ All 32 tests passing
-   - ✓ No regressions from cleanup
-   - ✓ Coverage slightly improved
+   - ✓ All 59 tests passing
+   - ✓ No regressions
+   - ✓ Coverage improved significantly
+   - [ ] Remaining services need coverage
    - [ ] API endpoints need tests
-   - [ ] Services need tests
 
 ## Active Decisions
 
