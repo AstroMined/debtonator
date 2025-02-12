@@ -62,7 +62,8 @@ class LiabilityService:
             description=liability_create.description,
             category=liability_create.category,
             recurring=liability_create.recurring,
-            recurrence_pattern=liability_create.recurrence_pattern
+            recurrence_pattern=liability_create.recurrence_pattern,
+            primary_account_id=liability_create.primary_account_id
         )
         
         self.db.add(db_liability)

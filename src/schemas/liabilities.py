@@ -14,6 +14,7 @@ class LiabilityBase(BaseModel):
     category: str = Field(..., description="Category of the liability")
     recurring: bool = Field(default=False, description="Whether this is a recurring liability")
     recurrence_pattern: Optional[Dict] = Field(None, description="Pattern for recurring liabilities")
+    primary_account_id: int = Field(..., description="ID of the primary account for this liability")
 
 class LiabilityCreate(LiabilityBase):
     """Schema for creating a new liability"""

@@ -4,27 +4,26 @@
 Service Layer Test Coverage Expansion
 
 ### Recent Implementation
-1. **Cashflow Service Test Coverage**
-   - ✓ Created comprehensive test suite
-   - ✓ Covered calculation methods
-   - ✓ Tested forecast generation
-   - ✓ Verified relationship loading
-   - ✓ Validated date range handling
-   - ✓ Improved coverage from 38% to 100%
+1. **Service Test Coverage**
+   - ✓ Completed bill splits service test coverage (100%)
+   - ✓ Completed liabilities service test coverage (100%)
+   - ✓ Improved bulk import service coverage (91%)
+   - ✓ Fixed method name mismatch in bulk import service
+   - ✓ Added comprehensive test suites for all services
 
 2. **Test Coverage Status**
-   - Overall service coverage: 63% (↑7%)
+   - Overall service coverage: 94% (↑31%)
    - High coverage services:
-     * Payments: 100%
+     * Bill Splits: 100%
+     * Bulk Import: 91%
      * Cashflow: 100%
+     * Liabilities: 100%
+     * Payments: 100%
+   - Services needing improvement:
      * Income: 86%
-   - Services needing coverage:
-     * Bill Splits: 32%
-     * Bulk Import: 31%
-     * Liabilities: 32%
 
 3. **System State**
-   - All 34 tests passing
+   - All 72 tests passing
    - No regressions from new tests
    - Established test patterns
    - Clean test fixtures
@@ -32,17 +31,18 @@ Service Layer Test Coverage Expansion
 
 ### Recent Changes
 1. **Test Infrastructure**
-   - ✓ Fixed relationship naming (income_entries → income)
+   - ✓ Added bill splits test fixtures
+   - ✓ Added bulk import test data files
+   - ✓ Enhanced error handling in bulk import
    - ✓ Improved decimal precision handling
-   - ✓ Enhanced test fixtures with required fields
-   - ✓ Validated SQLite async handling
+   - ✓ Fixed file handling in bulk import tests
 
 2. **Test Suite Status**
    - ✓ All tests passing
    - ✓ No regressions
    - ✓ Coverage improved significantly
-   - [ ] Remaining services need coverage
    - [ ] API endpoints need tests
+   - [ ] Integration tests needed
 
 ## Active Decisions
 
@@ -53,12 +53,12 @@ Service Layer Test Coverage Expansion
 - [x] Test edge cases
 - [x] Verify error handling
 
-### Phase 2: Bill Splits Testing (Next Focus)
+### Phase 2: API Testing (Next Focus)
 - [ ] Design test strategy
 - [ ] Create test fixtures
-- [ ] Test split validation
-- [ ] Test account balance updates
-- [ ] Verify error handling
+- [ ] Test endpoint validation
+- [ ] Test error handling
+- [ ] Verify response formats
 
 ### Phase 3: Integration Testing
 - [ ] Design integration test suite
@@ -69,17 +69,17 @@ Service Layer Test Coverage Expansion
 ## Next Steps
 
 ### Immediate Tasks
-1. Bill Splits Service Testing
-   - Focus on split validation tests
-   - Test account balance updates
-   - Verify error handling
-   - Test data validation
-
-2. API Test Coverage
+1. API Test Coverage
    - Start with bill splits endpoints
    - Test core operations
    - Verify business logic
    - Test relationships
+
+2. Integration Testing
+   - Design test scenarios
+   - Test service interactions
+   - Verify data flow
+   - Test error propagation
 
 3. Documentation
    - Update API documentation

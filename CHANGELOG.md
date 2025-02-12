@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.9] - 2025-02-12
+
+### Added
+- Comprehensive test suite for bill splits service
+- Comprehensive test suite for liabilities service
+- Test fixtures for bulk import testing
+- Test data files for CSV and JSON imports
+
+### Changed
+- Improved bill splits service test coverage from 32% to 100%
+- Improved liabilities service test coverage from 32% to 100%
+- Improved bulk import service test coverage from 31% to 91%
+- Increased overall service layer coverage from 63% to 94%
+- Fixed method name mismatch in bulk import service
+- Enhanced error handling in bulk import service
+- Improved file handling in bulk import tests
+
 ## [0.3.8] - 2025-02-12
 
 ### Added

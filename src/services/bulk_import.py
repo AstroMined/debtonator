@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from typing import List, Optional, Tuple, Union
 import csv
 import json
@@ -32,26 +32,31 @@ class BulkImportPreview(BaseModel):
     validation_errors: List[ImportError]
     total_records: int
 
-async def process_csv_content(content: str) -> List[dict]:
+async def process_csv_content(content: bytes) -> List[dict]:
     """Process CSV content and return list of dictionaries."""
     reader = csv.DictReader(StringIO(content.decode('utf-8')))
     return [row for row in reader]
 
-async def process_json_content(content: str) -> List[dict]:
+async def process_json_content(content: bytes) -> List[dict]:
     """Process JSON content and return list of dictionaries."""
     return json.loads(content.decode('utf-8'))
 
 async def validate_liability_record(record: dict, row_num: int) -> Tuple[Optional[LiabilityCreate], Optional[ImportError]]:
     """Validate a single liability record."""
     try:
-        # Convert string amount to Decimal
-        if 'amount' in record:
-            record['amount'] = Decimal(str(record['amount']))
-        
         # Convert bill format to liability format
+        try:
+            amount = Decimal(str(record.get("amount", "0")))
+        except (ValueError, InvalidOperation):
+            return None, ImportError(
+                row=row_num,
+                field="amount",
+                message="Invalid amount format"
+            )
+
         liability_data = {
             "name": record.get("bill_name"),
-            "amount": Decimal(str(record.get("amount", 0))),
+            "amount": amount,
             "due_date": datetime.strptime(
                 f"{record.get('month')}/{record.get('day_of_month')}/2025",
                 "%m/%d/%Y"
@@ -61,7 +66,8 @@ async def validate_liability_record(record: dict, row_num: int) -> Tuple[Optiona
             "recurrence_pattern": {
                 "frequency": "monthly",
                 "day": record.get("day_of_month")
-            }
+            },
+            "primary_account_id": int(record.get("primary_account_id"))
         }
 
         liability = LiabilityCreate(**liability_data)
@@ -84,9 +90,27 @@ async def validate_liability_record(record: dict, row_num: int) -> Tuple[Optiona
 async def validate_income_record(record: dict, row_num: int) -> Tuple[Optional[IncomeCreate], Optional[ImportError]]:
     """Validate a single income record."""
     try:
-        # Convert string amount to Decimal
-        if 'amount' in record:
-            record['amount'] = Decimal(str(record['amount']))
+        # Convert amount to Decimal
+        try:
+            if 'amount' in record:
+                record['amount'] = Decimal(str(record['amount']))
+        except (ValueError, InvalidOperation):
+            return None, ImportError(
+                row=row_num,
+                field="amount",
+                message="Invalid amount format"
+            )
+
+        # Convert date string to date object
+        try:
+            if 'date' in record:
+                record['date'] = datetime.strptime(record['date'], "%Y-%m-%d").date()
+        except ValueError:
+            return None, ImportError(
+                row=row_num,
+                field="date",
+                message="Invalid date format"
+            )
         
         income = IncomeCreate(**record)
         return income, None
@@ -113,6 +137,7 @@ class BulkImportService:
     async def process_file(self, file: UploadFile) -> List[dict]:
         """Process uploaded file and return list of records."""
         content = await file.read()
+        await file.seek(0)  # Reset file position for future reads
         if file.filename.endswith('.csv'):
             return await process_csv_content(content)
         elif file.filename.endswith('.json'):
@@ -123,6 +148,7 @@ class BulkImportService:
     async def preview_liabilities_import(self, file: UploadFile) -> BulkImportPreview:
         """Preview liabilities import data with validation."""
         records = await self.process_file(file)
+        await file.seek(0)  # Reset file position for future reads
         validated_records = []
         validation_errors = []
 
@@ -142,6 +168,7 @@ class BulkImportService:
     async def preview_income_import(self, file: UploadFile) -> BulkImportPreview:
         """Preview income import data with validation."""
         records = await self.process_file(file)
+        await file.seek(0)  # Reset file position for future reads
         validated_records = []
         validation_errors = []
 
@@ -158,11 +185,12 @@ class BulkImportService:
             total_records=len(records)
         )
 
-    async def import_liabilities(self, file: UploadFile, preview: bool = True) -> BulkImportResponse:
+    async def import_liabilities(self, file: UploadFile, preview: bool = True) -> Union[BulkImportResponse, BulkImportPreview]:
         """Import liabilities from file."""
         if preview:
             return await self.preview_liabilities_import(file)
 
+        await file.seek(0)  # Reset file position
         preview_result = await self.preview_liabilities_import(file)
         if preview_result.validation_errors:
             return BulkImportResponse(
@@ -197,11 +225,12 @@ class BulkImportService:
             errors=errors if errors else None
         )
 
-    async def import_income(self, file: UploadFile, preview: bool = True) -> BulkImportResponse:
+    async def import_income(self, file: UploadFile, preview: bool = True) -> Union[BulkImportResponse, BulkImportPreview]:
         """Import income records from file."""
         if preview:
             return await self.preview_income_import(file)
 
+        await file.seek(0)  # Reset file position
         preview_result = await self.preview_income_import(file)
         if preview_result.validation_errors:
             return BulkImportResponse(
@@ -218,7 +247,7 @@ class BulkImportService:
 
         for i, income in enumerate(preview_result.records, 1):
             try:
-                await self.income_service.create_income(income)
+                await self.income_service.create(income)
                 succeeded += 1
             except Exception as e:
                 failed += 1

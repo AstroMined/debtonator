@@ -1,0 +1,16 @@
+[
+  {
+    "date": "invalid-date",
+    "source": "Salary",
+    "amount": "not-a-number",
+    "deposited": false,
+    "account_id": 1
+  },
+  {
+    "date": "2025-03-30",
+    "source": "",
+    "amount": "1000.00",
+    "deposited": "invalid-bool",
+    "account_id": "invalid-id"
+  }
+]

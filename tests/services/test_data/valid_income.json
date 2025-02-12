@@ -1,0 +1,16 @@
+[
+  {
+    "date": "2025-03-15",
+    "source": "Salary",
+    "amount": "5000.00",
+    "deposited": false,
+    "account_id": 1
+  },
+  {
+    "date": "2025-03-30",
+    "source": "Freelance",
+    "amount": "1000.00",
+    "deposited": false,
+    "account_id": 1
+  }
+]
