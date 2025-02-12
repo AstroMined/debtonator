@@ -1,4 +1,4 @@
-# Debtonator v0.3.14
+# Debtonator v0.3.15
 
 A modern bill and cashflow management system that helps track bills, income, and maintain sufficient account balances for timely bill payments.
 
@@ -15,6 +15,7 @@ A modern bill and cashflow management system that helps track bills, income, and
 
 - **Bill Management**
   - Track bills with due dates and payment status
+  - Recurring bill templates with automatic generation
   - Split payment support across multiple accounts
   - Auto-pay status tracking
   - Payment history and tracking
@@ -160,6 +161,7 @@ The service layer implements consistent patterns for efficient data access and r
 
 ### Service Components
 - **Bill Splits Service**: Handles split payment logic and validation
+- **Recurring Bills Service**: Manages recurring bill templates and generation
 - **Cashflow Service**: Manages cashflow calculations and forecasting
 - **Income Service**: Handles income tracking and deposit management
 - **Liabilities Service**: Manages bill/liability operations

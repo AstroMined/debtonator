@@ -21,6 +21,7 @@ class RecurringBill(Base):
 
     # Relationships
     account = relationship("Account", back_populates="recurring_bills")
+    liabilities = relationship("Liability", back_populates="recurring_bill", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return f"<RecurringBill {self.bill_name} ${self.amount}>"
@@ -35,5 +36,7 @@ class RecurringBill(Base):
             due_date=date(year, int(month), self.day_of_month),
             primary_account_id=self.account_id,
             category="Recurring",  # Default category for recurring bills
-            auto_pay=self.auto_pay
+            auto_pay=self.auto_pay,
+            recurring=True,
+            recurring_bill_id=self.id
         )

@@ -16,6 +16,7 @@ class Liability(Base):
     due_date: Mapped[date] = mapped_column(Date)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     recurring: Mapped[bool] = mapped_column(Boolean, default=False)
+    recurring_bill_id: Mapped[Optional[int]] = mapped_column(ForeignKey("recurring_bills.id"), nullable=True)
     recurrence_pattern: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     category: Mapped[str] = mapped_column(String(100))
     primary_account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
@@ -29,6 +30,7 @@ class Liability(Base):
     )
 
     # Relationships
+    recurring_bill: Mapped[Optional["RecurringBill"]] = relationship("RecurringBill", back_populates="liabilities")
     primary_account: Mapped["Account"] = relationship(
         "Account",
         foreign_keys=[primary_account_id],

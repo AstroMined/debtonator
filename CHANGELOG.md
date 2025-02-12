@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.15] - 2025-02-12
+
+### Added
+- Recurring bills system
+  - New recurring_bills table for bill templates
+  - Support for generating liabilities from recurring patterns
+  - API endpoints for managing recurring bills
+  - Monthly bill generation capability
+  - Proper relationship handling between accounts, recurring bills, and liabilities
+  - Automatic recurring flag setting on generated liabilities
+  - Support for auto-pay configuration
+
 ## [0.3.14] - 2025-02-12
 
 ### Added
