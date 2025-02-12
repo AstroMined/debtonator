@@ -1,4 +1,5 @@
 import asyncio
+import uuid
 from datetime import date, datetime
 from decimal import Decimal
 from typing import AsyncGenerator, Generator
@@ -18,10 +19,15 @@ from src.models.payments import Payment, PaymentSource
 # Test database URL - use in-memory database
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
-# Create async engine for tests
+# Create async engine for tests with improved configuration
 engine = create_async_engine(
     SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
+    connect_args={
+        "check_same_thread": False,
+        "timeout": 30.0  # Add timeout for better async handling
+    },
+    pool_pre_ping=True,  # Add connection health checks
+    echo=True  # Enable SQL logging for debugging
 )
 
 # Create async session factory
@@ -29,6 +35,7 @@ TestingSessionLocal = sessionmaker(
     engine,
     class_=AsyncSession,
     expire_on_commit=False,
+    autoflush=False  # Disable autoflush for more predictable behavior
 )
 
 @pytest.fixture(scope="session")
@@ -49,52 +56,64 @@ async def db_engine():
 
 @pytest.fixture(scope="function")
 async def db_session(db_engine) -> AsyncGenerator[AsyncSession, None]:
-    """Get a TestingSessionLocal instance that rolls back all changes"""
+    """Create a new session and transaction for each test."""
     connection = await db_engine.connect()
-    transaction = await connection.begin()
     
+    # Start an outer transaction that we'll roll back
+    await connection.begin()
+    
+    # Begin a nested transaction that the service can commit
     session = TestingSessionLocal(bind=connection)
+    await session.begin_nested()
     
     try:
         yield session
     finally:
         await session.close()
-        await transaction.rollback()
+        await connection.rollback()
         await connection.close()
 
 @pytest.fixture(scope="function")
-async def client(db_session) -> Generator:
-    """Create a new FastAPI TestClient that uses the `db_session` fixture to override
-    the `get_db` dependency that is injected into routes.
-    """
-    async def _get_test_db():
-        yield db_session
+async def client(db_session) -> AsyncGenerator:
+    """Create a new FastAPI TestClient with async context."""
+    def override_get_db():
+        # Create a new scope for each request
+        try:
+            yield db_session
+        except Exception:
+            pass
 
-    app.dependency_overrides[get_db] = _get_test_db
+    app.dependency_overrides[get_db] = override_get_db
+    try:
+        with TestClient(app) as test_client:
+            yield test_client
+    finally:
+        app.dependency_overrides.clear()
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
 
 @pytest.fixture(scope="function")
 async def base_account(db_session: AsyncSession) -> Account:
-    """Create a basic checking account for testing"""
+    """Create a basic checking account for testing with unique name"""
+    unique_id = str(uuid.uuid4())[:8]
     account = Account(
-        name="Primary Test Checking",
+        name=f"Primary Test Checking {unique_id}",  # Make name unique
         type="checking",
         available_balance=Decimal("1000.00"),
         created_at=datetime.now(),
         updated_at=datetime.now()
     )
     db_session.add(account)
-    await db_session.commit()
-    await db_session.refresh(account)
+    await db_session.flush()
+    await db_session.refresh(account)  # Ensure we have latest data
     return account
 
 @pytest.fixture(scope="function")
 async def base_bill(db_session: AsyncSession, base_account: Account) -> Liability:
     """Create a basic bill for testing"""
     bill = Liability(
-        name="Test Bill",
+        name=f"Test Bill {str(uuid.uuid4())[:8]}",  # Make name unique
         amount=Decimal("100.00"),
         due_date=date(2025, 3, 1),
         category="Utilities",
@@ -104,8 +123,8 @@ async def base_bill(db_session: AsyncSession, base_account: Account) -> Liabilit
         updated_at=datetime.now()
     )
     db_session.add(bill)
-    await db_session.commit()
-    await db_session.refresh(bill)
+    await db_session.flush()
+    await db_session.refresh(bill)  # Ensure we have latest data
     return bill
 
 @pytest.fixture(scope="function")
@@ -124,8 +143,8 @@ async def base_payment(
         updated_at=datetime.now()
     )
     db_session.add(payment)
-    await db_session.commit()
-    await db_session.refresh(payment)
+    await db_session.flush()
+    await db_session.refresh(payment)  # Ensure we have latest data
 
     # Create payment source
     payment_source = PaymentSource(
@@ -136,6 +155,7 @@ async def base_payment(
         updated_at=datetime.now()
     )
     db_session.add(payment_source)
-    await db_session.commit()
+    await db_session.flush()
+    await db_session.refresh(payment_source)  # Ensure we have latest data
     
     return payment

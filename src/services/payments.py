@@ -32,18 +32,6 @@ class PaymentService:
         result = await self.db.execute(stmt)
         return result.unique().scalar_one_or_none()
 
-    async def get_payments_by_date_range(
-        self, start_date: date, end_date: date
-    ) -> List[Payment]:
-        stmt = (
-            select(Payment)
-            .options(joinedload(Payment.sources))
-            .filter(Payment.payment_date.between(start_date, end_date))
-            .order_by(Payment.payment_date.desc())
-        )
-        result = await self.db.execute(stmt)
-        return result.unique().scalars().all()
-
     async def create_payment(self, payment_create: PaymentCreate) -> Payment:
         # Validate payment sources
         payment_create.validate_sources()
@@ -58,7 +46,7 @@ class PaymentService:
 
         # Create payment
         db_payment = Payment(
-            bill_id=payment_create.bill_id,
+            liability_id=payment_create.liability_id,
             income_id=payment_create.income_id,
             amount=payment_create.amount,
             payment_date=payment_create.payment_date,
@@ -66,7 +54,7 @@ class PaymentService:
             category=payment_create.category
         )
         self.db.add(db_payment)
-        await self.db.flush()  # Get payment ID without committing
+        await self.db.flush()
 
         # Create payment sources
         for source in payment_create.sources:
@@ -78,12 +66,20 @@ class PaymentService:
             self.db.add(db_source)
 
         await self.db.commit()
-        await self.db.refresh(db_payment)
-        return db_payment
+        
+        # Fetch the complete payment with sources
+        stmt = (
+            select(Payment)
+            .options(joinedload(Payment.sources))
+            .filter(Payment.id == db_payment.id)
+        )
+        result = await self.db.execute(stmt)
+        return result.unique().scalar_one()
 
     async def update_payment(
         self, payment_id: int, payment_update: PaymentUpdate
     ) -> Optional[Payment]:
+        # Get existing payment with sources
         db_payment = await self.get_payment(payment_id)
         if not db_payment:
             return None
@@ -95,11 +91,11 @@ class PaymentService:
             )
             
             # Delete existing sources
-            await self.db.execute(
-                select(PaymentSource)
-                .filter(PaymentSource.payment_id == payment_id)
-                .delete()
-            )
+            stmt = select(PaymentSource).filter(PaymentSource.payment_id == payment_id)
+            result = await self.db.execute(stmt)
+            sources = result.scalars().all()
+            for source in sources:
+                await self.db.delete(source)
             
             # Create new sources
             for source in payment_update.sources:
@@ -116,32 +112,48 @@ class PaymentService:
             setattr(db_payment, key, value)
 
         await self.db.commit()
-        await self.db.refresh(db_payment)
-        return db_payment
+        
+        # Fetch the updated payment with sources
+        stmt = (
+            select(Payment)
+            .options(joinedload(Payment.sources))
+            .filter(Payment.id == payment_id)
+        )
+        result = await self.db.execute(stmt)
+        return result.unique().scalar_one()
 
     async def delete_payment(self, payment_id: int) -> bool:
         db_payment = await self.get_payment(payment_id)
         if not db_payment:
             return False
         
-        # The cascade will handle deleting associated payment sources
         await self.db.delete(db_payment)
         await self.db.commit()
         return True
 
-    async def get_payments_for_liability(self, liability_id: int) -> List[Payment]:
-        """Get all payments associated with a liability"""
+    async def get_payments_by_date_range(
+        self, start_date: date, end_date: date
+    ) -> List[Payment]:
         stmt = (
             select(Payment)
             .options(joinedload(Payment.sources))
-            .filter(Payment.bill_id == liability_id)
+            .filter(Payment.payment_date.between(start_date, end_date))
+            .order_by(Payment.payment_date.desc())
+        )
+        result = await self.db.execute(stmt)
+        return result.unique().scalars().all()
+
+    async def get_payments_for_liability(self, liability_id: int) -> List[Payment]:
+        stmt = (
+            select(Payment)
+            .options(joinedload(Payment.sources))
+            .filter(Payment.liability_id == liability_id)
             .order_by(Payment.payment_date.desc())
         )
         result = await self.db.execute(stmt)
         return result.unique().scalars().all()
 
     async def get_payments_for_account(self, account_id: int) -> List[Payment]:
-        """Get all payments that have sources from a specific account"""
         stmt = (
             select(Payment)
             .options(joinedload(Payment.sources))

@@ -67,9 +67,15 @@ class LiabilityService:
         
         self.db.add(db_liability)
         await self.db.commit()
-        await self.db.refresh(db_liability)
-        
-        return db_liability
+
+        # Fetch fresh copy with relationships
+        stmt = (
+            select(Liability)
+            .options(joinedload(Liability.payments))
+            .filter(Liability.id == db_liability.id)
+        )
+        result = await self.db.execute(stmt)
+        return result.unique().scalar_one()
 
     async def update_liability(
         self, liability_id: int, liability_update: LiabilityUpdate
@@ -84,8 +90,15 @@ class LiabilityService:
             setattr(db_liability, key, value)
 
         await self.db.commit()
-        await self.db.refresh(db_liability)
-        return db_liability
+
+        # Fetch fresh copy with relationships
+        stmt = (
+            select(Liability)
+            .options(joinedload(Liability.payments))
+            .filter(Liability.id == liability_id)
+        )
+        result = await self.db.execute(stmt)
+        return result.unique().scalar_one()
 
     async def delete_liability(self, liability_id: int) -> bool:
         db_liability = await self.get_liability(liability_id)
@@ -101,7 +114,11 @@ class LiabilityService:
         """Check if a liability has any associated payments"""
         stmt = (
             select(Payment)
-            .filter(Payment.bill_id == liability_id)
+            .options(
+                joinedload(Payment.sources),
+                joinedload(Payment.liability)
+            )
+            .filter(Payment.liability_id == liability_id)
         )
         result = await self.db.execute(stmt)
-        return result.first() is not None
+        return result.unique().first() is not None

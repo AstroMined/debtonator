@@ -54,15 +54,25 @@ async def calculate_forecast(
     end_date: date
 ) -> List[Dict[str, Union[date, Decimal]]]:
     """Calculate daily cashflow forecast for the specified date range."""
-    # Get account
-    result = await db.execute(
-        select(Account).where(Account.id == account_id)
+    # Get account with relationships
+    stmt = (
+        select(Account)
+        .options(
+            joinedload(Account.income_entries),
+            joinedload(Account.payment_sources)
+        )
+        .where(Account.id == account_id)
     )
-    account = result.scalar_one()
+    result = await db.execute(stmt)
+    account = result.unique().scalar_one()
     
-    # Get all unpaid liabilities in date range
-    result = await db.execute(
+    # Get all unpaid liabilities in date range with relationships
+    stmt = (
         select(Liability)
+        .options(
+            joinedload(Liability.payments),
+            joinedload(Liability.splits)
+        )
         .outerjoin(Payment)
         .where(
             Liability.due_date >= start_date,
@@ -70,18 +80,22 @@ async def calculate_forecast(
             Payment.id == None  # No associated payments
         )
     )
-    liabilities = result.scalars().all()
+    result = await db.execute(stmt)
+    liabilities = result.unique().scalars().all()
     
-    # Get all income in date range
-    result = await db.execute(
-        select(Income).where(
+    # Get all income in date range with relationships
+    stmt = (
+        select(Income)
+        .options(joinedload(Income.account))
+        .where(
             Income.account_id == account_id,
             Income.date >= start_date,
             Income.date <= end_date,
             Income.deposited == False
         )
     )
-    income_entries = result.scalars().all()
+    result = await db.execute(stmt)
+    income_entries = result.unique().scalars().all()
     
     # Create daily forecast
     forecast = []
@@ -119,8 +133,12 @@ async def calculate_required_funds(
     end_date: date
 ) -> Decimal:
     """Calculate total required funds for bills in the specified date range."""
-    result = await db.execute(
+    stmt = (
         select(Liability)
+        .options(
+            joinedload(Liability.payments),
+            joinedload(Liability.splits)
+        )
         .outerjoin(Payment)
         .where(
             Liability.due_date >= start_date,
@@ -128,7 +146,8 @@ async def calculate_required_funds(
             Payment.id == None  # No associated payments
         )
     )
-    liabilities = result.scalars().all()
+    result = await db.execute(stmt)
+    liabilities = result.unique().scalars().all()
     return sum(liability.amount for liability in liabilities)
 
 def calculate_daily_deficit(min_amount: Decimal, days: int) -> Decimal:

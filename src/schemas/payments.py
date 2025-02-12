@@ -38,7 +38,7 @@ class PaymentBase(BaseModel):
 
 class PaymentCreate(PaymentBase):
     """Schema for creating a new payment"""
-    bill_id: Optional[int] = Field(None, description="ID of the associated liability")
+    liability_id: Optional[int] = Field(None, description="ID of the associated liability")
     income_id: Optional[int] = Field(None, description="ID of the associated income")
     sources: List[PaymentSourceCreate] = Field(..., description="Payment sources")
 
@@ -74,7 +74,7 @@ class PaymentInDB(PaymentBase):
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
     id: int
-    bill_id: Optional[int]
+    liability_id: Optional[int]
     income_id: Optional[int]
     created_at: datetime
     updated_at: datetime

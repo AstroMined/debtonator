@@ -1,29 +1,36 @@
 # Progress: Debtonator
 
-## Current Priority: API Cleanup & Test Coverage
-Removing deprecated code and improving test coverage.
+## Current Priority: Service Layer Optimization & Test Coverage
+Standardizing relationship loading patterns and improving test coverage.
 
-### Phase 1: Code Cleanup (Completed)
-- [x] Removed Deprecated Code
-  - [x] Removed bills schema
-  - [x] Removed bills service
-  - [x] Removed bills API endpoints
-  - [x] Updated router configuration
-  - [x] Verified no frontend dependencies
+### Phase 1: Service Layer Optimization (Completed)
+- [x] Service Layer Standardization
+  - [x] Standardized relationship loading across all services
+  - [x] Replaced .refresh() calls with proper SELECT queries
+  - [x] Added joinedload() for all relationships
+  - [x] Fixed relationship field names
+  - [x] Verified no regressions
+- [x] Service Updates
+  - [x] Updated payments service (already followed pattern)
+  - [x] Updated bill_splits service with proper relationship loading
+  - [x] Updated income service with correct relationship names
+  - [x] Updated liabilities service with correct field names
+  - [x] Updated cashflow service with relationship loading
+  - [x] Verified bulk_import service (uses updated services)
 - [x] Verified System State
   - [x] All tests passing
   - [x] No regressions
   - [x] Core functionality intact
   - [x] Clean architecture
 
-### Phase 2: API Testing (Next)
+### Phase 2: Service Testing (Next)
 - [ ] Test Strategy
   - [ ] Document critical paths
   - [ ] Plan test implementation
-  - [ ] Focus on integration testing
+  - [ ] Focus on relationship loading
 - [ ] Test Implementation
-  - [ ] API endpoint tests
   - [ ] Service layer tests
+  - [ ] Relationship loading tests
   - [ ] Error handling tests
   - [ ] Data validation tests
 
@@ -95,14 +102,13 @@ Removing deprecated code and improving test coverage.
     - [x] Efficient state updates
 
 ## Recent Improvements
-1. Code Cleanup
-   - [x] Removed deprecated bills schema
-   - [x] Removed unused bills service
-   - [x] Removed deprecated API endpoints
-   - [x] Updated router configuration
-   - [x] Verified no frontend dependencies
+1. Service Layer Optimization
+   - [x] Standardized relationship loading
+   - [x] Improved query efficiency
+   - [x] Fixed relationship names
+   - [x] Updated field names
+   - [x] Verified no regressions
    - [x] All tests passing
-   - [x] No regressions
 
 2. Test Infrastructure
    - [x] Improved SQLite async connection handling

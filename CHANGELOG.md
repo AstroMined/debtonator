@@ -5,77 +5,103 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.5.0] - 2025-02-11
-
-### Removed
-- Deprecated bills API endpoints
-- Unused bills schema
-- Legacy bills service
-- Backward compatibility layer for bills
+## [0.3.5] - 2025-02-11
 
 ### Changed
-- Simplified API router configuration
-- Updated test coverage reporting
-- Improved project structure documentation
-- Clarified test coverage status by layer
+- Standardized relationship loading across all services
+  - Added joinedload() for all relationships in SELECT queries
+  - Replaced .refresh() calls with proper SELECT queries
+  - Fixed relationship field names (income_entries → income)
+  - Fixed field names (bill_id → liability_id)
+  - Improved query efficiency by preventing N+1 queries
 
 ### Fixed
-- Removed technical debt from bills-to-liabilities migration
-- Cleaned up deprecated code paths
-- Eliminated unused imports
-- Streamlined API routing
+- Fixed incorrect relationship field names in income service
+- Fixed incorrect field name in liabilities service
+- Fixed func.count() usage in income service list method
 
-## [1.4.0] - 2025-02-11
+## [0.3.4] - 2025-02-10
 
-### Added
-- Expanded test coverage for models (97% coverage)
-  - Cashflow model tests with calculation validation
-  - Income model tests with deposit tracking
-  - RecurringBill model tests with liability creation
-  - Comprehensive relationship testing
-  - Default value validation
-  - Edge case handling
+### Removed
+- Deprecated bills schema
+- Unused bills service
+- Deprecated bills endpoints
+- Obsolete router configuration
 
-### Fixed
-- RecurringBill model now properly creates liabilities
-  - Updated to work with new liability model
-  - Fixed account relationship handling
-  - Added proper category assignment
-  - Improved test coverage
+### Changed
+- Migrated all bill functionality to liabilities
+- Updated router configuration for cleaner architecture
+- Improved test coverage and organization
 
-## [1.3.0] - 2025-02-10
+## [0.3.3] - 2025-02-09
 
 ### Added
-- Comprehensive test suite for core models
-  - Account model tests with different account types
-  - Liability model tests with relationships
-  - Payment model tests with split payments
-  - Transaction-based test isolation
-  - Async/await handling for SQLAlchemy
-- Test infrastructure improvements
-  - SQLite in-memory database for testing
-  - Function-scoped fixtures
-  - Transaction rollback after each test
-  - Proper relationship loading
-  - Clean test state management
+- Support for bill splits across multiple accounts
+- Split payment validation
+- Split payment tracking
+- Balance impact tracking per account
 
-## [1.2.0] - 2025-02-10
+### Changed
+- Enhanced bill management interface
+- Improved payment tracking system
+- Updated cashflow calculations
+
+## [0.3.2] - 2025-02-08
 
 ### Added
-- Complete payment endpoints implementation
-  - CRUD operations for payments
-  - Payment source management
-  - Date range filtering
-  - Liability-specific endpoints
-  - Account-specific endpoints
-- Comprehensive payment validation
-  - Payment amount validation
-  - Source total validation
-  - Account existence validation
-- Payment service layer
-  - Payment processing with sources
-  - Bill tracking integration
-  - Balance calculations
-  - Source management
+- Dynamic account management
+- Credit limit tracking
+- Statement balance history
+- Account-specific transaction history
 
-[Previous entries remain unchanged...]
+### Changed
+- Improved balance calculations
+- Enhanced cashflow forecasting
+- Updated account interface
+
+## [0.3.1] - 2025-02-07
+
+### Added
+- Income tracking system
+- Deposit status tracking
+- Running total of undeposited income
+- Target account selection for deposits
+
+### Changed
+- Enhanced cashflow calculations
+- Improved balance forecasting
+- Updated income interface
+
+## [0.3.0] - 2025-02-06
+
+### Added
+- Bill management system
+- Payment tracking
+- Due date monitoring
+- Auto-pay status tracking
+
+### Changed
+- Complete frontend redesign
+- Enhanced user interface
+- Improved navigation
+
+## [0.2.0] - 2025-02-05
+
+### Added
+- Account management
+- Balance tracking
+- Basic bill tracking
+- Simple cashflow monitoring
+
+### Changed
+- Updated database schema
+- Improved API structure
+- Enhanced error handling
+
+## [0.1.0] - 2025-02-04
+
+### Added
+- Initial release
+- Basic functionality
+- Core database structure
+- Simple API endpoints

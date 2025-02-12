@@ -1,15 +1,15 @@
 # Active Context: Debtonator
 
 ## Current Focus
-API Cleanup & Test Coverage
+Service Layer Optimization & Test Coverage
 
 ### Recent Implementation
-1. **Bills to Liabilities Migration**
-   - ✓ Removed deprecated bills schema
-   - ✓ Removed unused bills service
-   - ✓ Removed deprecated bills endpoints
-   - ✓ Updated router configuration
-   - ✓ Verified no frontend dependencies
+1. **Service Layer Relationship Loading**
+   - ✓ Standardized relationship loading across all services
+   - ✓ Replaced .refresh() calls with proper SELECT queries
+   - ✓ Added joinedload() for all relationships
+   - ✓ Fixed relationship field names
+   - ✓ Verified no regressions
 
 2. **Test Coverage Status**
    - Overall coverage: 57%
@@ -21,16 +21,18 @@ API Cleanup & Test Coverage
 3. **System State**
    - Clean architecture with no deprecated endpoints
    - All bill functionality handled by liabilities
-   - No remaining technical debt from migration
+   - Consistent relationship loading pattern
    - Core functionality validated
+   - N+1 query issues prevented
 
 ### Recent Changes
-1. **API Cleanup**
-   - ✓ Removed bills.py schema
-   - ✓ Removed bills.py service
-   - ✓ Removed bills API endpoints
-   - ✓ Updated router configuration
-   - ✓ Verified no regressions
+1. **Service Layer Optimization**
+   - ✓ Updated payments service (already followed pattern)
+   - ✓ Updated bill_splits service with proper relationship loading
+   - ✓ Updated income service with correct relationship names
+   - ✓ Updated liabilities service with correct field names
+   - ✓ Updated cashflow service with relationship loading
+   - ✓ Verified bulk_import service (uses updated services)
 
 2. **Test Suite Status**
    - ✓ All 32 tests passing
@@ -41,19 +43,19 @@ API Cleanup & Test Coverage
 
 ## Active Decisions
 
-### Phase 1: API Testing (Next)
+### Phase 1: Service Testing
+- [ ] Plan service test coverage
+- [ ] Create service test helpers
+- [ ] Test relationship loading
+- [ ] Test edge cases
+- [ ] Verify error handling
+
+### Phase 2: API Testing
 - [ ] Design API test strategy
 - [ ] Create test data fixtures
 - [ ] Implement endpoint tests
 - [ ] Test error scenarios
 - [ ] Verify data persistence
-
-### Phase 2: Service Testing
-- [ ] Plan service test coverage
-- [ ] Create service test helpers
-- [ ] Test core service functions
-- [ ] Test edge cases
-- [ ] Verify error handling
 
 ### Phase 3: Integration Testing
 - [ ] Design integration test suite
@@ -64,14 +66,14 @@ API Cleanup & Test Coverage
 ## Next Steps
 
 ### Immediate Tasks
-1. API Test Coverage
-   - Focus on liabilities endpoints
+1. Service Layer Testing
+   - Focus on relationship loading tests
    - Test CRUD operations
    - Verify error handling
    - Test data validation
 
-2. Service Layer Testing
-   - Start with liabilities service
+2. API Test Coverage
+   - Start with liabilities endpoints
    - Test core operations
    - Verify business logic
    - Test relationships

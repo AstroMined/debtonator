@@ -1,4 +1,4 @@
-# Debtonator v1.5.0
+# Debtonator v0.3.5
 
 [Previous content up to Project Structure remains unchanged...]
 
@@ -27,6 +27,11 @@ debtonator/
 │   │   └── ...            # Other models
 │   ├── schemas/        # Pydantic schemas
 │   ├── services/       # Business logic
+│   │   ├── bill_splits.py  # Split payment handling
+│   │   ├── cashflow.py     # Cashflow calculations
+│   │   ├── income.py       # Income management
+│   │   ├── liabilities.py  # Liability operations
+│   │   └── payments.py     # Payment processing
 │   └── utils/          # Utilities
 └── tests/              # Test suites
     ├── conftest.py    # Test configuration and fixtures
@@ -37,6 +42,58 @@ debtonator/
         ├── test_liabilities.py  # Liability model tests
         ├── test_payments.py     # Payment model tests
         └── test_recurring_bills.py  # Recurring bill templates
+```
+
+## Service Layer Design
+
+The service layer implements consistent patterns for efficient data access and relationship handling:
+
+### Key Features
+- Automatic relationship loading using SQLAlchemy's joinedload()
+- Proper transaction management
+- Fresh data fetching after modifications
+- N+1 query prevention
+- Consistent error handling
+
+### Service Components
+- **Bill Splits Service**: Handles split payment logic and validation
+- **Cashflow Service**: Manages cashflow calculations and forecasting
+- **Income Service**: Handles income tracking and deposit management
+- **Liabilities Service**: Manages bill/liability operations
+- **Payments Service**: Processes payments and payment sources
+
+### Design Patterns
+```python
+# Example service method pattern
+async def get_entity(self, entity_id: int) -> Optional[Entity]:
+    stmt = (
+        select(Entity)
+        .options(
+            joinedload(Entity.relationship1),
+            joinedload(Entity.relationship2)
+        )
+        .filter(Entity.id == entity_id)
+    )
+    result = await self.db.execute(stmt)
+    return result.unique().scalar_one_or_none()
+
+# Example create pattern
+async def create_entity(self, data: EntityCreate) -> Entity:
+    db_entity = Entity(**data.model_dump())
+    self.db.add(db_entity)
+    await self.db.commit()
+    
+    # Fetch fresh copy with relationships
+    stmt = (
+        select(Entity)
+        .options(
+            joinedload(Entity.relationship1),
+            joinedload(Entity.relationship2)
+        )
+        .filter(Entity.id == db_entity.id)
+    )
+    result = await self.db.execute(stmt)
+    return result.unique().scalar_one()
 ```
 
 ## Testing
@@ -71,6 +128,8 @@ The project includes a comprehensive test suite focusing on data integrity and m
 - Service Layer (20-40% coverage)
   - Core business logic
   - Basic validations
+  - Relationship loading patterns
+  - Transaction management
   - Needs more coverage
 
 ### Running Tests
