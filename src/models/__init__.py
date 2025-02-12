@@ -8,6 +8,7 @@ from .liabilities import Liability
 from .payments import Payment, PaymentSource
 from .statement_history import StatementHistory
 from .credit_limit_history import CreditLimitHistory
+from .transaction_history import TransactionHistory, TransactionType
 
 __all__ = [
     "Account",
@@ -19,5 +20,7 @@ __all__ = [
     "Payment",
     "PaymentSource",
     "StatementHistory",
-    "CreditLimitHistory"
+    "CreditLimitHistory",
+    "TransactionHistory",
+    "TransactionType"
 ]

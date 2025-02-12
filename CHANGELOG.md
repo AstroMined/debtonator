@@ -17,6 +17,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Phase 5: Cashflow Analysis Extension
   - Phase 6: Reporting & Analysis
 
+## [0.3.12] - 2025-02-12
+
+### Added
+- Transaction history system
+  - New transaction_history table for tracking account transactions
+  - Support for credit and debit transactions
+  - Account relationship for transaction history
+  - API endpoints for managing transactions
+  - Balance impact tracking for each transaction
+  - Comprehensive test coverage for transaction service
+- Service layer improvements
+  - Transaction service with 100% test coverage
+  - Automatic balance updates on transactions
+  - Proper relationship loading
+  - Error handling and validation
+
 ## [0.3.11] - 2025-02-12
 
 ### Added

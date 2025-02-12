@@ -1,4 +1,4 @@
-# Debtonator v0.3.11
+# Debtonator v0.3.12
 
 A modern bill and cashflow management system that helps track bills, income, and maintain sufficient account balances for timely bill payments.
 
@@ -8,6 +8,7 @@ A modern bill and cashflow management system that helps track bills, income, and
   - Multiple account types (credit, checking, savings)
   - Balance tracking and credit limit monitoring
   - Statement balance history with minimum payments and due dates
+  - Comprehensive transaction history with credit/debit tracking
   - Account-specific transaction history
 
 - **Bill Management**
@@ -161,6 +162,7 @@ The service layer implements consistent patterns for efficient data access and r
 - **Income Service**: Handles income tracking and deposit management
 - **Liabilities Service**: Manages bill/liability operations
 - **Payments Service**: Processes payments and payment sources
+- **Transaction Service**: Manages account transaction history
 
 ### Design Patterns
 ```python
@@ -248,6 +250,11 @@ The project includes a comprehensive test suite focusing on data integrity and m
     * Data validation
     * Import processing
     * Error handling
+  - Transaction Service (100% coverage)
+    * Credit/debit transaction handling
+    * Balance impact tracking
+    * Transaction history management
+    * Error scenarios
 
 ### Running Tests
 ```bash

@@ -82,6 +82,11 @@ class Account(Base):
         back_populates="account",
         cascade="all, delete-orphan"
     )
+    transactions: Mapped[List["TransactionHistory"]] = relationship(
+        "TransactionHistory",
+        back_populates="account",
+        cascade="all, delete-orphan"
+    )
 
     # Create indexes for efficient lookups
     __table_args__ = (

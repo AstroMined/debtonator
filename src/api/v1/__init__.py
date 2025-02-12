@@ -6,6 +6,7 @@ from .income import router as income_router
 from .cashflow import router as cashflow_router
 from .bulk_import import router as bulk_import_router
 from .payments import router as payments_router
+from .transactions import router as transactions_router
 
 api_v1_router = APIRouter()
 
@@ -21,3 +22,4 @@ api_v1_router.include_router(accounts_router, prefix="/accounts", tags=["account
 api_v1_router.include_router(income_router, prefix="/income", tags=["income"])
 api_v1_router.include_router(cashflow_router, prefix="/cashflow", tags=["cashflow"])
 api_v1_router.include_router(bulk_import_router, tags=["bulk-import"])
+api_v1_router.include_router(transactions_router, tags=["transactions"])
