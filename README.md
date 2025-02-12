@@ -1,4 +1,4 @@
-# Debtonator v0.3.7
+# Debtonator v0.3.10
 
 A modern bill and cashflow management system that helps track bills, income, and maintain sufficient account balances for timely bill payments.
 
@@ -7,7 +7,7 @@ A modern bill and cashflow management system that helps track bills, income, and
 - **Dynamic Account Management**
   - Multiple account types (credit, checking, savings)
   - Balance tracking and credit limit monitoring
-  - Statement balance history
+  - Statement balance history with minimum payments and due dates
   - Account-specific transaction history
 
 - **Bill Management**
@@ -207,7 +207,7 @@ The project includes a comprehensive test suite focusing on data integrity and m
 - Proper async/await handling for SQLAlchemy
 - Automatic relationship loading
 
-### Test Coverage (56% Overall)
+### Test Coverage (94% Overall)
 - Models Layer (94-100% coverage)
   - Account operations and validation
   - Balance and credit calculations
@@ -236,10 +236,18 @@ The project includes a comprehensive test suite focusing on data integrity and m
     * Account balance updates
     * Deposit status handling
     * Error scenarios
-  - Other Services (31-38% coverage)
-    * Basic validations
-    * Core operations
-    * Needs more coverage
+  - Bill Splits Service (100% coverage)
+    * Split validation
+    * Balance tracking
+    * Error handling
+  - Liabilities Service (100% coverage)
+    * CRUD operations
+    * Relationship management
+    * Error scenarios
+  - Bulk Import Service (91% coverage)
+    * Data validation
+    * Import processing
+    * Error handling
 
 ### Running Tests
 ```bash

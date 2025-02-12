@@ -1,6 +1,6 @@
 from datetime import date
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, List
 from enum import Enum
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -42,6 +42,22 @@ class AccountInDB(AccountBase):
     created_at: date
     updated_at: date
 
+class StatementBalanceHistory(BaseModel):
+    """Schema for statement balance history"""
+    statement_date: date = Field(..., description="Date of the statement")
+    statement_balance: Decimal = Field(..., description="Balance on statement date")
+    minimum_payment: Optional[Decimal] = Field(None, description="Minimum payment due")
+    due_date: Optional[date] = Field(None, description="Payment due date")
+
 class AccountResponse(AccountInDB):
     """Schema for account data in API responses"""
     pass
+
+class AccountStatementHistoryResponse(BaseModel):
+    """Schema for account statement history response"""
+    account_id: int = Field(..., description="Account ID")
+    account_name: str = Field(..., description="Account name")
+    statement_history: List[StatementBalanceHistory] = Field(
+        default_list=[],
+        description="List of historical statement balances"
+    )

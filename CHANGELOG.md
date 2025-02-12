@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Comprehensive API enhancement plan documented in ADR 010
+- Phased approach for implementing API improvements:
+  - Phase 1: Account Management Enhancement
+  - Phase 2: Bill Management Expansion
+  - Phase 3: Bill Splits Optimization
+  - Phase 4: Income System Enhancement
+  - Phase 5: Cashflow Analysis Extension
+  - Phase 6: Reporting & Analysis
+
+## [0.3.10] - 2025-02-12
+
+### Added
+- Statement balance history tracking system
+  - New statement_history table for historical records
+  - Account relationship for tracking statement history
+  - API endpoints for managing statement history
+  - Ordered retrieval of statement records
+  - Support for minimum payments and due dates
+
 ## [0.3.9] - 2025-02-12
 
 ### Added

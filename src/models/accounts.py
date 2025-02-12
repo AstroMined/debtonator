@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 from typing import List, Optional
 from sqlalchemy import String, Date, Numeric, Index, event, Integer
+from .statement_history import StatementHistory
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from ..database.base import Base
@@ -69,6 +70,11 @@ class Account(Base):
     recurring_bills: Mapped[List["RecurringBill"]] = relationship(
         "RecurringBill",
         back_populates="account"
+    )
+    statement_history: Mapped[List["StatementHistory"]] = relationship(
+        "StatementHistory",
+        back_populates="account",
+        cascade="all, delete-orphan"
     )
 
     # Create indexes for efficient lookups

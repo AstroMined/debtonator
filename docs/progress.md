@@ -1,9 +1,9 @@
 # Progress: Debtonator
 
-## Current Priority: Service Layer Test Coverage
-Implementing comprehensive test coverage for all services.
+## Current Priority: API Enhancement Project
+Implementing comprehensive API improvements across all domains.
 
-### Phase 1: Income Service Testing (Completed)
+### Previous Work: Service Layer Test Coverage (Completed)
 - [x] Test Implementation
   - [x] Created comprehensive test suite
   - [x] Covered all CRUD operations
@@ -22,55 +22,97 @@ Implementing comprehensive test coverage for all services.
   - [x] Documented test approaches
   - [x] Validated SQLite async handling
 
-### Phase 2: Cashflow Service Testing (Completed)
-- [x] Test Implementation
-  - [x] Created comprehensive test suite
-  - [x] Covered calculation methods
-  - [x] Tested forecast generation
-  - [x] Verified relationship loading
-  - [x] Validated date range handling
-- [x] Coverage Improvements
-  - [x] Increased cashflow service coverage to 100%
-  - [x] Improved overall service coverage to 63%
-  - [x] Fixed relationship naming
-  - [x] Enhanced decimal precision handling
-- [x] Test Infrastructure
-  - [x] Enhanced test fixtures
-  - [x] Added required fields
-  - [x] Verified SQLite async handling
-  - [x] Validated test patterns
+### API Enhancement Project Phases
 
-### Phase 3: Remaining Services (Completed)
-- [x] Bill Splits Service
-  - [x] CRUD operation tests
-  - [x] Split validation tests
-  - [x] Error handling tests
-  - [x] Account balance tests
-  - [x] Achieved 100% coverage
-- [x] Bulk Import Service
-  - [x] Import validation tests
-  - [x] Error handling tests
-  - [x] Data transformation tests
-  - [x] Integration tests
-  - [x] Achieved 91% coverage
-- [x] Liabilities Service
-  - [x] CRUD operation tests
-  - [x] Payment tracking tests
-  - [x] Recurring bill tests
-  - [x] Account tests
-  - [x] Achieved 100% coverage
+#### Phase 1: Account Management Enhancement (Current)
+- [ ] API Design
+  - [x] Statement balance history endpoints
+  - [ ] Credit limit tracking endpoints
+  - [ ] Transaction history endpoints
+  - [ ] Balance reconciliation endpoints
+  - [ ] Available credit calculation endpoints
+- [ ] Implementation
+  - [x] Schema updates
+    - [x] Statement history model
+    - [x] Account relationships
+  - [x] Service layer enhancements
+    - [x] Statement history tracking
+    - [x] History retrieval with ordering
+  - [x] API endpoint creation
+    - [x] Statement update endpoint
+    - [x] History retrieval endpoint
+  - [ ] Testing coverage
+  - [ ] Documentation
 
-### Phase 4: API Testing (Next)
-- [ ] API Layer
-  - [ ] Endpoint response tests
-  - [ ] Request validation tests
-  - [ ] Error scenario coverage
-  - [ ] Data persistence verification
-- [ ] Service Layer
-  - [ ] Core service tests
-  - [ ] Business logic validation
-  - [ ] Error handling coverage
-  - [ ] Integration tests
+#### Phase 2: Bill Management Expansion (Planned)
+- [ ] API Design
+  - [ ] Recurring bills system
+  - [ ] Auto-pay functionality
+  - [ ] Bill categorization
+  - [ ] Payment scheduling
+  - [ ] Bulk operations
+- [ ] Implementation
+  - [ ] Schema updates
+  - [ ] Service layer enhancements
+  - [ ] API endpoint creation
+  - [ ] Testing coverage
+  - [ ] Documentation
+
+#### Phase 3: Bill Splits Optimization (Planned)
+- [ ] API Design
+  - [ ] Split validation system
+  - [ ] Split suggestions
+  - [ ] Historical analysis
+  - [ ] Bulk operations
+  - [ ] Impact analysis
+- [ ] Implementation
+  - [ ] Schema updates
+  - [ ] Service layer enhancements
+  - [ ] API endpoint creation
+  - [ ] Testing coverage
+  - [ ] Documentation
+
+#### Phase 4: Income System Enhancement (Planned)
+- [ ] API Design
+  - [ ] Income categorization
+  - [ ] Trends analysis
+  - [ ] Deposit scheduling
+  - [ ] Recurring income
+  - [ ] Analysis endpoints
+- [ ] Implementation
+  - [ ] Schema updates
+  - [ ] Service layer enhancements
+  - [ ] API endpoint creation
+  - [ ] Testing coverage
+  - [ ] Documentation
+
+#### Phase 5: Cashflow Analysis Extension (Planned)
+- [ ] API Design
+  - [ ] Real-time tracking
+  - [ ] Cross-account analysis
+  - [ ] Custom forecasts
+  - [ ] Historical trends
+  - [ ] Account-specific forecasts
+- [ ] Implementation
+  - [ ] Schema updates
+  - [ ] Service layer enhancements
+  - [ ] API endpoint creation
+  - [ ] Testing coverage
+  - [ ] Documentation
+
+#### Phase 6: Reporting & Analysis (Planned)
+- [ ] API Design
+  - [ ] Balance history reporting
+  - [ ] Payment pattern analysis
+  - [ ] Split analysis system
+  - [ ] Recommendation engine
+  - [ ] Trend reporting
+- [ ] Implementation
+  - [ ] Schema updates
+  - [ ] Service layer enhancements
+  - [ ] API endpoint creation
+  - [ ] Testing coverage
+  - [ ] Documentation
 
 ## Previously Completed Work
 
@@ -128,6 +170,14 @@ Implementing comprehensive test coverage for all services.
     - [x] Efficient state updates
 
 ## Recent Improvements
+1. Statement History Implementation
+   - [x] Created statement_history table
+   - [x] Added account relationship
+   - [x] Implemented service methods
+   - [x] Added API endpoints
+   - [x] Verified functionality
+   - [x] Proper date ordering
+
 1. Service Layer Testing
    - [x] Completed bill splits service test coverage (100%)
    - [x] Completed liabilities service test coverage (100%)
