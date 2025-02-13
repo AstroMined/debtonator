@@ -6,6 +6,7 @@ from typing import AsyncGenerator, Generator
 
 import pytest
 from fastapi.testclient import TestClient
+from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -75,22 +76,17 @@ async def db_session(db_engine) -> AsyncGenerator[AsyncSession, None]:
         await connection.close()
 
 @pytest.fixture(scope="function")
-async def client(db_session) -> AsyncGenerator:
-    """Create a new FastAPI TestClient with async context."""
-    def override_get_db():
-        # Create a new scope for each request
+async def client(db_session) -> AsyncGenerator[AsyncClient, None]:
+    """Create a new AsyncClient that uses the test database."""
+    async def override_get_db():
         try:
             yield db_session
-        except Exception:
+        finally:
             pass
 
     app.dependency_overrides[get_db] = override_get_db
-    try:
-        with TestClient(app) as test_client:
-            yield test_client
-    finally:
-        app.dependency_overrides.clear()
-    with TestClient(app) as test_client:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as test_client:
         yield test_client
     app.dependency_overrides.clear()
 

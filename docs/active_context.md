@@ -98,15 +98,22 @@ API Enhancement Project
 
 2. Testing Strategy
    - [x] Unit tests for recurring bills
-   - [ ] Integration tests for endpoints
-   - [ ] Test bill generation patterns
+   - [x] Integration tests for endpoints
+   - [x] Test bill generation patterns
    - [ ] Documentation testing
 
 3. Documentation
    - [ ] API documentation for recurring bills
    - [ ] Bill pattern documentation
    - [ ] Usage examples
-   - [ ] Testing documentation
+   - [x] Testing documentation
+
+4. Next Focus: Auto-pay Implementation
+   - [ ] Design auto-pay workflow
+   - [ ] Define auto-pay rules
+   - [ ] Implement auto-pay service
+   - [ ] Add auto-pay endpoints
+   - [ ] Test auto-pay functionality
 
 ### Future Work
 1. Bill Management (Phase 2)

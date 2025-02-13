@@ -3,9 +3,11 @@ from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
+from fastapi import HTTPException
 
 from ..models.recurring_bills import RecurringBill
 from ..models.liabilities import Liability
+from ..models.accounts import Account
 from ..schemas.recurring_bills import RecurringBillCreate, RecurringBillUpdate
 
 class RecurringBillService:
@@ -49,6 +51,14 @@ class RecurringBillService:
         self, recurring_bill_create: RecurringBillCreate
     ) -> RecurringBill:
         """Create a new recurring bill"""
+        # Verify account exists
+        account_result = await self.db.execute(
+            select(Account).where(Account.id == recurring_bill_create.account_id)
+        )
+        account = account_result.scalar_one_or_none()
+        if not account:
+            raise HTTPException(status_code=404, detail="Account not found")
+
         db_recurring_bill = RecurringBill(
             bill_name=recurring_bill_create.bill_name,
             amount=recurring_bill_create.amount,

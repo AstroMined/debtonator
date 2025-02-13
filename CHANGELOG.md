@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.17] - 2025-02-12
+
+### Added
+- Integration tests for recurring bills API
+  - Complete test coverage for all endpoints
+  - Proper async/await patterns
+  - Account validation in service layer
+  - Test fixtures with model defaults
+  - Edge case handling
+  - Response validation
+  - Bill generation testing
+
+### Changed
+- Improved test infrastructure
+  - Switched to HTTPX AsyncClient for better async testing
+  - Enhanced fixture management
+  - Standardized timestamp handling
+  - Better error handling in recurring bills service
+
 ## [0.3.16] - 2025-02-12
 
 ### Added
