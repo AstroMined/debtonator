@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.16] - 2025-02-12
+
+### Added
+- Comprehensive test suite for recurring bills service
+  - 100% test coverage achieved
+  - Test fixtures for accounts and recurring bills
+  - CRUD operation testing
+  - Bill generation functionality testing
+  - Edge case handling
+  - Duplicate prevention testing
+  - Active/inactive bill filtering tests
+  - 12 test cases covering all functionality
+
+### Changed
+- Improved test infrastructure
+  - Enhanced database initialization
+  - Better async operation handling
+  - Standardized test patterns
+  - Cleaner test organization
+
+## [Unreleased]
+
 ## [0.3.15] - 2025-02-12
 
 ### Added

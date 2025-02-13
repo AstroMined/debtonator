@@ -1,4 +1,4 @@
-# Debtonator v0.3.15
+# Debtonator v0.3.16
 
 A modern bill and cashflow management system that helps track bills, income, and maintain sufficient account balances for timely bill payments.
 
@@ -264,6 +264,13 @@ The project includes a comprehensive test suite focusing on data integrity and m
     * Reconciliation history
     * Account balance updates
     * Error handling
+  - Recurring Bills Service (100% coverage)
+    * CRUD operations with 100% coverage
+    * Bill generation functionality
+    * Active/inactive bill filtering
+    * Edge case handling
+    * Duplicate prevention
+    * Comprehensive test fixtures
 
 ### Running Tests
 ```bash
