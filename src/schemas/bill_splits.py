@@ -1,6 +1,6 @@
 from datetime import date
 from decimal import Decimal
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field, validator
 
 class BillSplitBase(BaseModel):
@@ -60,3 +60,28 @@ class BillSplitValidation(BaseModel):
             )
         
         return v
+
+class SplitSuggestion(BaseModel):
+    """Schema for individual split suggestion"""
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    account_id: int = Field(..., gt=0)
+    amount: Decimal = Field(..., gt=0)
+    confidence_score: float = Field(..., ge=0, le=1, description="Confidence score between 0 and 1")
+    reason: str = Field(..., description="Explanation for the suggested split")
+
+class BillSplitSuggestionResponse(BaseModel):
+    """Schema for bill split suggestions response"""
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    liability_id: int = Field(..., gt=0)
+    total_amount: Decimal = Field(..., gt=0)
+    suggestions: List[SplitSuggestion]
+    historical_pattern: Optional[bool] = Field(
+        default=False, 
+        description="Whether this suggestion is based on historical patterns"
+    )
+    pattern_frequency: Optional[int] = Field(
+        default=None,
+        description="Number of times this pattern was found in history"
+    )

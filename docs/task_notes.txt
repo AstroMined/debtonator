@@ -28,6 +28,7 @@ update memory bank
 Ensure you define a good starting point for our next working session.
 If you have not done so yet, update README.md, CHANGELOG.md and update minor or patch semantic versioning as needed.
 DO NOT UPDATE MAJOR VERSION, as we haven't had a full, stable release yet.
+PLEASE TAKE GREAT CARE TO ENSURE YOUR CHANGES TO README.md AND CHANGELOG.md CONTAIN THE FULL OUTPUT; DO NOT USE PLACEHOLDERS.
 Create ADRs ONLY if absolutely necessary to document a MAJOR architectural change.
 Finally, suggest a good commit message for the tasks accomplished during this session.
 
@@ -48,8 +49,9 @@ Occasionally, we run into problems with re-initializing the database.
 This is what we've found to work smoothly in the past:
 rm -f debtonator.db && python -m src.database.init_db
 
-When running the full test suite with pytest, run it like below to keep the output limited to conserve tokens in your context window:
+When running the test suite with pytest, run it like below to keep the output limited to conserve tokens in your context window:
 pytest -q --tb=no --disable-warnings
+You aren't required to run the FULL suite, that's just an example.
 
 If you need to run a specific single test to get more error context, you can do it with tracebacks if needed.
 DO NOT RUN MORE THAN ONE SINGLE SPECIFIC TEST WITH TRACEBACKS.

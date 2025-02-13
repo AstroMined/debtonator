@@ -4,7 +4,15 @@
 API Enhancement Project - Phase 3: Bill Splits Optimization
 
 ### Recent Changes
-1. **Bill Splits Validation System Implementation**
+1. **Bill Splits Suggestion System Implementation**
+   - ✓ Created suggestion schema with confidence scoring
+   - ✓ Implemented historical pattern analysis
+   - ✓ Added available funds-based suggestions
+   - ✓ Added API endpoint for suggestions
+   - ✓ Added comprehensive test coverage
+   - ✓ Fixed all test failures
+
+2. **Bill Splits Validation System Implementation**
    - ✓ Created validation schema with Pydantic
    - ✓ Implemented comprehensive validation rules
    - ✓ Added balance/credit limit validation
@@ -47,8 +55,8 @@ API Enhancement Project - Phase 3: Bill Splits Optimization
 
 ### Phase 3: Bill Splits Optimization (Current Focus)
 - [x] Split validation endpoints
-- [ ] Split suggestions
-- [ ] Historical analysis
+- [x] Split suggestions
+- [x] Historical analysis
 - [ ] Bulk operations
 - [ ] Impact analysis
 
@@ -77,12 +85,12 @@ API Enhancement Project - Phase 3: Bill Splits Optimization
 ## Next Steps
 
 ### Phase 3: Bill Splits Optimization (Current Focus)
-1. Split Suggestions System
-   - [ ] Design suggestion algorithm
-   - [ ] Define suggestion schema
-   - [ ] Implement suggestion service
-   - [ ] Add suggestion endpoints
-   - [ ] Test suggestion functionality
+1. Bulk Operations System
+   - [ ] Design bulk operations schema
+   - [ ] Implement bulk operations service
+   - [ ] Add bulk operations endpoints
+   - [ ] Test bulk operations functionality
+   - [ ] Document bulk operations system
 
 2. Testing Strategy
    - [ ] Unit tests for split suggestions

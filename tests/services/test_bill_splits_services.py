@@ -173,6 +173,113 @@ async def test_validate_splits_nonexistent_account(db_session, liability):
     assert is_valid is False
     assert "Accounts not found" in error
 
+async def test_suggest_splits_historical_pattern(db_session, checking_account, credit_account, liability):
+    """Test split suggestions based on historical patterns"""
+    service = BillSplitService(db_session)
+
+    # Create two similar liabilities to meet min_frequency requirement
+    for i in range(2):
+        similar_liability = Liability(
+            name=liability.name,  # Same name to trigger pattern matching
+            amount=Decimal("300.00"),
+            due_date=date.today(),
+            category_id=liability.category_id,
+            primary_account_id=checking_account.id,
+            auto_pay=False,
+            auto_pay_enabled=False,
+            paid=False,
+            created_at=date.today(),
+            updated_at=date.today()
+        )
+        db_session.add(similar_liability)
+        await db_session.flush()
+
+        # Add historical splits
+        historical_split1 = BillSplit(
+            liability_id=similar_liability.id,
+            account_id=checking_account.id,
+            amount=Decimal("200.00"),
+            created_at=date.today(),
+            updated_at=date.today()
+        )
+        historical_split2 = BillSplit(
+            liability_id=similar_liability.id,
+            account_id=credit_account.id,
+            amount=Decimal("100.00"),
+            created_at=date.today(),
+            updated_at=date.today()
+        )
+        db_session.add(historical_split1)
+        db_session.add(historical_split2)
+        await db_session.flush()
+
+    # Get suggestions
+    suggestions = await service.suggest_splits(liability.id)
+    
+    assert suggestions.liability_id == liability.id
+    assert suggestions.total_amount == liability.amount
+    assert suggestions.historical_pattern is True
+    assert len(suggestions.suggestions) == 2
+    
+    # Verify suggestions match historical pattern proportions
+    checking_suggestion = next(s for s in suggestions.suggestions if s.account_id == checking_account.id)
+    credit_suggestion = next(s for s in suggestions.suggestions if s.account_id == credit_account.id)
+    
+    assert checking_suggestion.amount == Decimal("200.00")
+    assert credit_suggestion.amount == Decimal("100.00")
+    assert checking_suggestion.confidence_score == 0.8
+    assert credit_suggestion.confidence_score == 0.8
+
+async def test_suggest_splits_available_funds(db_session, checking_account, credit_account, liability):
+    """Test split suggestions based on available funds when no historical pattern exists"""
+    service = BillSplitService(db_session)
+    
+    # Update liability to use checking account as primary
+    liability.primary_account_id = checking_account.id
+    await db_session.flush()
+    
+    # Get suggestions
+    suggestions = await service.suggest_splits(liability.id)
+    
+    assert suggestions.liability_id == liability.id
+    assert suggestions.total_amount == liability.amount
+    assert suggestions.historical_pattern is False
+    assert len(suggestions.suggestions) == 1  # Should only suggest primary account since it has sufficient funds
+    
+    primary_suggestion = suggestions.suggestions[0]
+    assert primary_suggestion.account_id == checking_account.id
+    assert primary_suggestion.amount == liability.amount
+    assert primary_suggestion.confidence_score == 0.6
+    assert "sufficient funds" in primary_suggestion.reason
+
+async def test_suggest_splits_multiple_accounts(db_session, checking_account, credit_account, liability):
+    """Test split suggestions across multiple accounts when primary account has insufficient funds"""
+    service = BillSplitService(db_session)
+    
+    # Update liability amount to require multiple accounts
+    liability.amount = Decimal("1200.00")  # More than any single account's available funds
+    liability.primary_account_id = checking_account.id
+    await db_session.flush()
+    
+    # Get suggestions
+    suggestions = await service.suggest_splits(liability.id)
+    
+    assert suggestions.liability_id == liability.id
+    assert suggestions.total_amount == liability.amount
+    assert suggestions.historical_pattern is False
+    assert len(suggestions.suggestions) == 2  # Should suggest both accounts
+    
+    total_suggested = sum(s.amount for s in suggestions.suggestions)
+    assert total_suggested == liability.amount
+    
+    # Verify suggestions use available funds appropriately
+    for suggestion in suggestions.suggestions:
+        if suggestion.account_id == checking_account.id:
+            assert suggestion.amount <= checking_account.available_balance
+        elif suggestion.account_id == credit_account.id:
+            available_credit = credit_account.total_limit + credit_account.available_balance
+            assert suggestion.amount <= available_credit
+
 async def test_validate_splits_insufficient_funds(db_session, checking_account, liability):
     service = BillSplitService(db_session)
     

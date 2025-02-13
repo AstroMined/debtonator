@@ -80,12 +80,13 @@
   - [x] Validation rules implementation
   - [x] Testing coverage
   - [x] Documentation
-- [ ] Split Suggestions
-  - [ ] Schema updates
-  - [ ] Service layer enhancements
-  - [ ] API endpoint creation
-  - [ ] Testing coverage
-  - [ ] Documentation
+- [x] Split Suggestions
+  - [x] Schema updates for suggestions and confidence scoring
+  - [x] Historical pattern analysis service
+  - [x] Available funds-based suggestions
+  - [x] API endpoint for suggestions
+  - [x] Comprehensive test coverage
+  - [x] Documentation
 - [ ] Historical Analysis
   - [ ] Schema updates
   - [ ] Service layer enhancements
@@ -142,7 +143,15 @@
   - [ ] Documentation
 
 ## Recent Improvements
-1. Bill Splits Validation System
+1. Bill Splits Suggestion System
+   - [x] Implemented historical pattern analysis
+   - [x] Added available funds-based suggestions
+   - [x] Created confidence scoring system
+   - [x] Added suggestion API endpoint
+   - [x] Added comprehensive test coverage
+   - [x] Fixed all test failures
+
+2. Bill Splits Validation System
    - [x] Created validation schema
    - [x] Added balance/credit validation
    - [x] Added duplicate detection

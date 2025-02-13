@@ -9,10 +9,25 @@ from ...services.bill_splits import BillSplitService
 from ...schemas.bill_splits import (
     BillSplitCreate,
     BillSplitUpdate,
-    BillSplitResponse
+    BillSplitResponse,
+    BillSplitSuggestionResponse
 )
 
 router = APIRouter(tags=["bill-splits"])
+
+# Suggestions endpoint
+@router.get("/suggestions/{bill_id}", response_model=BillSplitSuggestionResponse)
+async def get_split_suggestions(
+    bill_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """Get split suggestions for a bill based on historical patterns and available funds"""
+    service = BillSplitService(db)
+    try:
+        suggestions = await service.suggest_splits(bill_id)
+        return suggestions
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 # More specific routes first
 @router.post("/", response_model=BillSplitResponse, status_code=201)
