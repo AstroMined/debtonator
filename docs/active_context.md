@@ -4,7 +4,14 @@
 API Enhancement Project - Bill Management Phase
 
 ### Recent Changes
-1. **Auto-pay System Improvements**
+1. **Test Infrastructure Improvements**
+   - ✓ Fixed category relationship handling in liability tests
+   - ✓ Updated test cases to use proper Category instances
+   - ✓ Fixed '_sa_instance_state' errors
+   - ✓ Improved test assertions for relationships
+   - ✓ Standardized category handling across tests
+
+2. **Auto-pay System Improvements**
    - ✓ Fixed Decimal serialization in auto-pay settings
    - ✓ Improved auto-pay state management
    - ✓ Enhanced auto-pay candidates functionality

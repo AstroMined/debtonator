@@ -6,17 +6,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.liabilities import Liability
+from src.models.categories import Category
 
 pytestmark = pytest.mark.asyncio
 
 class TestLiability:
     async def test_create_basic_liability(self, db_session: AsyncSession, base_account: Account):
         """Test creating a basic liability (bill)"""
+        # Create category first
+        utilities_category = Category(name="Utilities")
+        db_session.add(utilities_category)
+        await db_session.commit()
+
         liability = Liability(
             name="Internet Bill",
             amount=Decimal("89.99"),
             due_date=date(2025, 3, 15),
-            category="Utilities",
+            category_id=utilities_category.id,
             recurring=False,
             primary_account_id=base_account.id,
             created_at=datetime.now(),
@@ -30,7 +36,7 @@ class TestLiability:
         assert liability.name == "Internet Bill"
         assert liability.amount == Decimal("89.99")
         assert liability.due_date == date(2025, 3, 15)
-        assert liability.category == "Utilities"
+        assert liability.category.name == "Utilities"
         assert liability.recurring is False
         assert liability.primary_account_id == base_account.id
         assert liability.paid is False
@@ -38,11 +44,16 @@ class TestLiability:
 
     async def test_create_recurring_liability(self, db_session: AsyncSession, base_account: Account):
         """Test creating a recurring liability"""
+        # Create category first
+        entertainment_category = Category(name="Entertainment")
+        db_session.add(entertainment_category)
+        await db_session.commit()
+
         liability = Liability(
             name="Netflix Subscription",
             amount=Decimal("19.99"),
             due_date=date(2025, 3, 1),
-            category="Entertainment",
+            category_id=entertainment_category.id,
             recurring=True,
             recurrence_pattern={"frequency": "monthly", "day": 1},
             primary_account_id=base_account.id,
@@ -72,11 +83,16 @@ class TestLiability:
 
     async def test_liability_with_description(self, db_session: AsyncSession, base_account: Account):
         """Test creating a liability with an optional description"""
+        # Create category first
+        insurance_category = Category(name="Insurance")
+        db_session.add(insurance_category)
+        await db_session.commit()
+
         liability = Liability(
             name="Car Insurance",
             amount=Decimal("200.00"),
             due_date=date(2025, 3, 1),
-            category="Insurance",
+            category_id=insurance_category.id,
             description="Semi-annual premium payment",
             recurring=False,
             primary_account_id=base_account.id,
@@ -104,11 +120,16 @@ class TestLiability:
 
     async def test_liability_defaults(self, db_session: AsyncSession, base_account: Account):
         """Test liability creation with minimal required fields"""
+        # Create category first
+        other_category = Category(name="Other")
+        db_session.add(other_category)
+        await db_session.commit()
+
         liability = Liability(
             name="Simple Bill",
             amount=Decimal("50.00"),
             due_date=date(2025, 3, 1),
-            category="Other",
+            category_id=other_category.id,
             primary_account_id=base_account.id
         )
         db_session.add(liability)
