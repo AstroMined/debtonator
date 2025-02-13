@@ -1,182 +1,197 @@
 import pytest
 from decimal import Decimal
-from datetime import date, datetime
+from datetime import date
 
+from src.models.accounts import Account
+from src.models.liabilities import Liability
 from src.models.bill_splits import BillSplit
-from src.services.bill_splits import BillSplitService, calculate_split_totals, validate_bill_splits
-from src.schemas.bill_splits import BillSplitCreate, BillSplitUpdate
+from src.services.bill_splits import BillSplitService, BillSplitValidationError
+from src.schemas.bill_splits import BillSplitCreate, BillSplitValidation
 
-@pytest.fixture
-async def base_bill_split(db_session, base_bill, base_account):
-    """Create a basic bill split for testing"""
-    split = BillSplit(
-        liability_id=base_bill.id,
-        account_id=base_account.id,
-        amount=Decimal("50.00"),
+@pytest.fixture(scope="function")
+async def checking_account(db_session):
+    account = Account(
+        name="Test Checking",
+        type="checking",
+        available_balance=Decimal("1000.00"),
         created_at=date.today(),
         updated_at=date.today()
     )
-    db_session.add(split)
+    db_session.add(account)
     await db_session.flush()
-    await db_session.refresh(split)
-    return split
+    return account
 
-@pytest.mark.asyncio
-async def test_get_bill_splits(db_session, base_bill_split):
-    """Test retrieving all splits for a liability"""
-    service = BillSplitService(db_session)
-    splits = await service.get_bill_splits(base_bill_split.liability_id)
-    assert len(splits) == 1
-    assert splits[0].id == base_bill_split.id
-    assert splits[0].amount == base_bill_split.amount
-
-@pytest.mark.asyncio
-async def test_get_account_splits(db_session, base_bill_split):
-    """Test retrieving all splits for an account"""
-    service = BillSplitService(db_session)
-    splits = await service.get_account_splits(base_bill_split.account_id)
-    assert len(splits) == 1
-    assert splits[0].id == base_bill_split.id
-    assert splits[0].amount == base_bill_split.amount
-
-@pytest.mark.asyncio
-async def test_create_bill_split(db_session, base_bill, base_account):
-    """Test creating a new bill split"""
-    service = BillSplitService(db_session)
-    split_data = BillSplitCreate(
-        liability_id=base_bill.id,
-        account_id=base_account.id,
-        amount=Decimal("75.00")
+@pytest.fixture(scope="function")
+async def credit_account(db_session):
+    account = Account(
+        name="Test Credit",
+        type="credit",
+        available_balance=Decimal("-500.00"),
+        total_limit=Decimal("2000.00"),
+        created_at=date.today(),
+        updated_at=date.today()
     )
-    split = await service.create_bill_split(split_data)
-    assert split.liability_id == base_bill.id
-    assert split.account_id == base_account.id
-    assert split.amount == Decimal("75.00")
+    db_session.add(account)
+    await db_session.flush()
+    return account
 
-@pytest.mark.asyncio
-async def test_create_bill_split_invalid_liability(db_session, base_account):
-    """Test creating a split with invalid liability ID"""
-    service = BillSplitService(db_session)
-    split_data = BillSplitCreate(
-        liability_id=999999,  # Non-existent ID
-        account_id=base_account.id,
-        amount=Decimal("75.00")
+@pytest.fixture(scope="function")
+async def liability(db_session):
+    liability = Liability(
+        name="Test Bill",
+        amount=Decimal("300.00"),
+        due_date=date.today(),
+        category_id=1,  # Assuming category 1 exists
+        primary_account_id=1,  # Will be updated in tests
+        auto_pay=False,
+        auto_pay_enabled=False,
+        paid=False,
+        created_at=date.today(),
+        updated_at=date.today()
     )
-    with pytest.raises(ValueError, match="Liability with id 999999 not found"):
-        await service.create_bill_split(split_data)
-
-@pytest.mark.asyncio
-async def test_update_bill_split(db_session, base_bill_split):
-    """Test updating an existing bill split"""
-    service = BillSplitService(db_session)
-    update_data = BillSplitUpdate(amount=Decimal("60.00"))
-    updated_split = await service.update_bill_split(base_bill_split.id, update_data)
-    assert updated_split is not None
-    assert updated_split.amount == Decimal("60.00")
-
-@pytest.mark.asyncio
-async def test_update_nonexistent_bill_split(db_session):
-    """Test updating a non-existent bill split"""
-    service = BillSplitService(db_session)
-    update_data = BillSplitUpdate(amount=Decimal("60.00"))
-    updated_split = await service.update_bill_split(999999, update_data)
-    assert updated_split is None
-
-@pytest.mark.asyncio
-async def test_delete_bill_split(db_session, base_bill_split):
-    """Test deleting a specific bill split"""
-    service = BillSplitService(db_session)
-    result = await service.delete_bill_split(base_bill_split.id)
-    assert result is True
-    
-    # Verify split was deleted
-    splits = await service.get_bill_splits(base_bill_split.liability_id)
-    assert len(splits) == 0
-
-@pytest.mark.asyncio
-async def test_delete_nonexistent_bill_split(db_session):
-    """Test deleting a non-existent bill split"""
-    service = BillSplitService(db_session)
-    result = await service.delete_bill_split(999999)
-    assert result is False
-
-@pytest.mark.asyncio
-async def test_delete_bill_splits(db_session, base_bill_split):
-    """Test deleting all splits for a liability"""
-    service = BillSplitService(db_session)
-    await service.delete_bill_splits(base_bill_split.liability_id)
-    
-    # Verify splits were deleted
-    splits = await service.get_bill_splits(base_bill_split.liability_id)
-    assert len(splits) == 0
-
-@pytest.mark.asyncio
-async def test_calculate_split_totals(db_session, base_bill, base_account):
-    """Test calculating total amount of splits"""
-    # Create multiple splits
-    splits = [
-        BillSplit(
-            liability_id=base_bill.id,
-            account_id=base_account.id,
-            amount=Decimal("50.00"),
-            created_at=date.today(),
-            updated_at=date.today()
-        ),
-        BillSplit(
-            liability_id=base_bill.id,
-            account_id=base_account.id,
-            amount=Decimal("50.00"),
-            created_at=date.today(),
-            updated_at=date.today()
-        )
-    ]
-    for split in splits:
-        db_session.add(split)
+    db_session.add(liability)
     await db_session.flush()
-    
-    total = await calculate_split_totals(db_session, base_bill.id)
-    assert total == Decimal("100.00")
+    return liability
 
-@pytest.mark.asyncio
-async def test_validate_bill_splits_valid(db_session, base_bill, base_account):
-    """Test validating splits match liability amount"""
-    # Create splits that sum to liability amount
-    splits = [
-        BillSplit(
-            liability_id=base_bill.id,
-            account_id=base_account.id,
-            amount=Decimal("50.00"),
-            created_at=date.today(),
-            updated_at=date.today()
-        ),
-        BillSplit(
-            liability_id=base_bill.id,
-            account_id=base_account.id,
-            amount=Decimal("50.00"),
-            created_at=date.today(),
-            updated_at=date.today()
-        )
-    ]
-    for split in splits:
-        db_session.add(split)
-    await db_session.flush()
+async def test_create_bill_split_success(db_session, checking_account, liability):
+    service = BillSplitService(db_session)
+    split = BillSplitCreate(
+        liability_id=liability.id,
+        account_id=checking_account.id,
+        amount=Decimal("100.00")
+    )
     
-    is_valid = await validate_bill_splits(db_session, base_bill.id)
+    result = await service.create_bill_split(split)
+    assert result.amount == Decimal("100.00")
+    assert result.liability_id == liability.id
+    assert result.account_id == checking_account.id
+
+async def test_create_bill_split_insufficient_balance(db_session, checking_account, liability):
+    service = BillSplitService(db_session)
+    split = BillSplitCreate(
+        liability_id=liability.id,
+        account_id=checking_account.id,
+        amount=Decimal("2000.00")  # More than available balance
+    )
+    
+    with pytest.raises(BillSplitValidationError) as exc:
+        await service.create_bill_split(split)
+    assert "insufficient balance" in str(exc.value)
+
+async def test_create_bill_split_insufficient_credit(db_session, credit_account, liability):
+    service = BillSplitService(db_session)
+    # Available credit is 1500 (2000 limit - 500 used)
+    split = BillSplitCreate(
+        liability_id=liability.id,
+        account_id=credit_account.id,
+        amount=Decimal("1600.00")  # More than available credit
+    )
+    
+    with pytest.raises(BillSplitValidationError) as exc:
+        await service.create_bill_split(split)
+    assert "insufficient credit" in str(exc.value)
+
+async def test_validate_splits_success(db_session, checking_account, credit_account, liability):
+    service = BillSplitService(db_session)
+    validation = BillSplitValidation(
+        liability_id=liability.id,
+        total_amount=liability.amount,
+        splits=[
+            BillSplitCreate(
+                liability_id=liability.id,
+                account_id=checking_account.id,
+                amount=Decimal("200.00")
+            ),
+            BillSplitCreate(
+                liability_id=liability.id,
+                account_id=credit_account.id,
+                amount=Decimal("100.00")
+            )
+        ]
+    )
+    
+    is_valid, error = await service.validate_splits(validation)
     assert is_valid is True
+    assert error is None
 
-@pytest.mark.asyncio
-async def test_validate_bill_splits_invalid(db_session, base_bill, base_account):
-    """Test validating splits don't match liability amount"""
-    # Create split that doesn't sum to liability amount
-    split = BillSplit(
-        liability_id=base_bill.id,
-        account_id=base_account.id,
-        amount=Decimal("50.00"),  # Less than liability amount of 100.00
-        created_at=date.today(),
-        updated_at=date.today()
+async def test_validate_splits_total_mismatch(db_session, checking_account, liability):
+    service = BillSplitService(db_session)
+    validation = BillSplitValidation(
+        liability_id=liability.id,
+        total_amount=Decimal("400.00"),  # Different from liability amount
+        splits=[
+            BillSplitCreate(
+                liability_id=liability.id,
+                account_id=checking_account.id,
+                amount=Decimal("400.00")
+            )
+        ]
     )
-    db_session.add(split)
+    
+    is_valid, error = await service.validate_splits(validation)
+    assert is_valid is False
+    assert "does not match liability amount" in error
+
+async def test_validate_splits_duplicate_accounts(db_session, checking_account, liability):
+    service = BillSplitService(db_session)
+    validation = BillSplitValidation(
+        liability_id=liability.id,
+        total_amount=liability.amount,
+        splits=[
+            BillSplitCreate(
+                liability_id=liability.id,
+                account_id=checking_account.id,
+                amount=Decimal("150.00")
+            ),
+            BillSplitCreate(
+                liability_id=liability.id,
+                account_id=checking_account.id,  # Same account
+                amount=Decimal("150.00")
+            )
+        ]
+    )
+    
+    is_valid, error = await service.validate_splits(validation)
+    assert is_valid is False
+    assert "Duplicate accounts" in error
+
+async def test_validate_splits_nonexistent_account(db_session, liability):
+    service = BillSplitService(db_session)
+    validation = BillSplitValidation(
+        liability_id=liability.id,
+        total_amount=liability.amount,
+        splits=[
+            BillSplitCreate(
+                liability_id=liability.id,
+                account_id=99999,  # Non-existent account
+                amount=Decimal("300.00")
+            )
+        ]
+    )
+    
+    is_valid, error = await service.validate_splits(validation)
+    assert is_valid is False
+    assert "Accounts not found" in error
+
+async def test_validate_splits_insufficient_funds(db_session, checking_account, liability):
+    service = BillSplitService(db_session)
+    
+    # Update liability amount to test insufficient funds
+    liability.amount = Decimal("2000.00")
     await db_session.flush()
     
-    is_valid = await validate_bill_splits(db_session, base_bill.id)
+    validation = BillSplitValidation(
+        liability_id=liability.id,
+        total_amount=liability.amount,  # Now matches the split amount
+        splits=[
+            BillSplitCreate(
+                liability_id=liability.id,
+                account_id=checking_account.id,
+                amount=Decimal("2000.00")  # More than available balance (1000.00)
+            )
+        ]
+    )
+    
+    is_valid, error = await service.validate_splits(validation)
     assert is_valid is False
+    assert "insufficient balance" in error

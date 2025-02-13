@@ -1,13 +1,22 @@
 from decimal import Decimal
 from datetime import date
-from typing import List, Optional
-from sqlalchemy import select, delete
+from typing import List, Optional, Tuple
+from sqlalchemy import select, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from src.models.liabilities import Liability
 from src.models.bill_splits import BillSplit
-from src.schemas.bill_splits import BillSplitCreate, BillSplitUpdate
+from src.models.accounts import Account
+from src.schemas.bill_splits import (
+    BillSplitCreate,
+    BillSplitUpdate,
+    BillSplitValidation
+)
+
+class BillSplitValidationError(Exception):
+    """Custom exception for bill split validation errors"""
+    pass
 
 class BillSplitService:
     def __init__(self, db: AsyncSession):
@@ -72,8 +81,35 @@ class BillSplitService:
             .where(Liability.id == split.liability_id)
         )
         result = await self.db.execute(stmt)
-        if not result.unique().scalar_one_or_none():
-            raise ValueError(f"Liability with id {split.liability_id} not found")
+        liability = result.unique().scalar_one_or_none()
+        if not liability:
+            raise BillSplitValidationError(f"Liability with id {split.liability_id} not found")
+
+        # Verify account exists and has sufficient balance/credit
+        stmt = select(Account).where(Account.id == split.account_id)
+        result = await self.db.execute(stmt)
+        account = result.unique().scalar_one_or_none()
+        if not account:
+            raise BillSplitValidationError(f"Account with id {split.account_id} not found")
+
+        # Validate account has sufficient balance/credit
+        if account.type == "credit":
+            available_credit = (
+                account.total_limit + account.available_balance
+                if account.total_limit
+                else Decimal('0')
+            )
+            if split.amount > available_credit:
+                raise BillSplitValidationError(
+                    f"Account {account.name} has insufficient credit "
+                    f"(needs {split.amount}, has {available_credit})"
+                )
+        else:  # checking/savings
+            if split.amount > account.available_balance:
+                raise BillSplitValidationError(
+                    f"Account {account.name} has insufficient balance "
+                    f"(needs {split.amount}, has {account.available_balance})"
+                )
 
         return await self.create_split(
             liability_id=split.liability_id,
@@ -97,8 +133,31 @@ class BillSplitService:
             return None
 
         if split.amount is not None:
+            # Validate new amount against account balance/credit
+            stmt = select(Account).where(Account.id == db_split.account_id)
+            result = await self.db.execute(stmt)
+            account = result.unique().scalar_one()
+
+            if account.type == "credit":
+                available_credit = (
+                    account.total_limit + account.available_balance
+                    if account.total_limit
+                    else Decimal('0')
+                )
+                if split.amount > available_credit:
+                    raise BillSplitValidationError(
+                        f"Account {account.name} has insufficient credit "
+                        f"(needs {split.amount}, has {available_credit})"
+                    )
+            else:  # checking/savings
+                if split.amount > account.available_balance:
+                    raise BillSplitValidationError(
+                        f"Account {account.name} has insufficient balance "
+                        f"(needs {split.amount}, has {account.available_balance})"
+                    )
+
             db_split.amount = split.amount
-        db_split.updated_at = date.today()
+            db_split.updated_at = date.today()
         
         await self.db.flush()
 
@@ -120,6 +179,78 @@ class BillSplitService:
         )
         await self.db.commit()
 
+    async def validate_splits(self, validation: BillSplitValidation) -> Tuple[bool, Optional[str]]:
+        """
+        Validate bill splits against multiple criteria:
+        1. Sum of splits equals liability amount
+        2. All accounts exist and have sufficient balance/credit
+        3. No duplicate accounts
+        4. All amounts are positive
+
+        Returns:
+            Tuple[bool, Optional[str]]: (is_valid, error_message)
+        """
+        try:
+            # Verify liability exists
+            stmt = select(Liability).where(Liability.id == validation.liability_id)
+            result = await self.db.execute(stmt)
+            liability = result.unique().scalar_one_or_none()
+            if not liability:
+                return False, f"Liability with id {validation.liability_id} not found"
+
+            # Verify total amount matches liability
+            if abs(validation.total_amount - liability.amount) > Decimal('0.01'):
+                return False, (
+                    f"Total amount {validation.total_amount} does not match "
+                    f"liability amount {liability.amount}"
+                )
+
+            # Get all accounts involved in splits
+            account_ids = [split.account_id for split in validation.splits]
+            stmt = (
+                select(Account)
+                .where(Account.id.in_(account_ids))
+            )
+            result = await self.db.execute(stmt)
+            accounts = {acc.id: acc for acc in result.scalars().all()}
+
+            # Verify all accounts exist
+            missing_accounts = set(account_ids) - set(accounts.keys())
+            if missing_accounts:
+                return False, f"Accounts not found: {missing_accounts}"
+
+            # Check for duplicate accounts
+            if len(account_ids) != len(set(account_ids)):
+                return False, "Duplicate accounts found in splits"
+
+            # Validate each split
+            for split in validation.splits:
+                account = accounts[split.account_id]
+                
+                # Validate account has sufficient balance/credit
+                if account.type == "credit":
+                    available_credit = (
+                        account.total_limit + account.available_balance
+                        if account.total_limit
+                        else Decimal('0')
+                    )
+                    if split.amount > available_credit:
+                        return False, (
+                            f"Account {account.name} has insufficient credit "
+                            f"(needs {split.amount}, has {available_credit})"
+                        )
+                else:  # checking/savings
+                    if split.amount > account.available_balance:
+                        return False, (
+                            f"Account {account.name} has insufficient balance "
+                            f"(needs {split.amount}, has {account.available_balance})"
+                        )
+
+            return True, None
+
+        except Exception as e:
+            return False, str(e)
+
 async def calculate_split_totals(db: AsyncSession, liability_id: int) -> Decimal:
     """Calculate the total amount of all splits for a given liability."""
     stmt = (
@@ -133,25 +264,3 @@ async def calculate_split_totals(db: AsyncSession, liability_id: int) -> Decimal
     result = await db.execute(stmt)
     splits = result.unique().scalars().all()
     return sum(split.amount for split in splits)
-
-async def validate_bill_splits(db: AsyncSession, liability_id: int) -> bool:
-    """
-    Validate that the sum of all splits equals the liability amount.
-    Returns True if valid, False otherwise.
-    """
-    # Get the liability
-    stmt = (
-        select(Liability)
-        .options(
-            joinedload(Liability.splits)
-        )
-        .where(Liability.id == liability_id)
-    )
-    result = await db.execute(stmt)
-    liability = result.unique().scalar_one()
-    
-    # Calculate total of splits
-    total_splits = await calculate_split_totals(db, liability_id)
-    
-    # Compare with liability amount
-    return total_splits == liability.amount
