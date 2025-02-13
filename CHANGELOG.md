@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.21] - 2025-02-13
+
+### Fixed
+- Fixed recurring bills test suite
+  - Added category_id to all test fixtures
+  - Updated test assertions for generated bills
+  - Fixed category relationship testing
+  - Standardized category handling in tests
+  - Fixed all test failures
+  - Improved test coverage for bill generation
+
 ## [0.3.20] - 2025-02-13
 
 ### Fixed

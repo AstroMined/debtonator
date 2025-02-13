@@ -8,7 +8,7 @@ from src.models.accounts import Account
 from src.models.recurring_bills import RecurringBill
 from src.models.liabilities import Liability
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def test_account(db_session):
     """Create a test account"""
     account = Account(
@@ -21,14 +21,15 @@ async def test_account(db_session):
     await db_session.refresh(account)
     return account
 
-@pytest.fixture
-async def test_recurring_bill(db_session, test_account):
+@pytest.fixture(scope="function")
+async def test_recurring_bill(db_session, test_account, base_category):
     """Create a test recurring bill"""
     bill = RecurringBill(
         bill_name="Test Bill",
         amount=Decimal("100.00"),
         day_of_month=15,
         account_id=test_account.id,
+        category_id=base_category.id,
         auto_pay=False,
         active=True
     )
@@ -37,7 +38,7 @@ async def test_recurring_bill(db_session, test_account):
     await db_session.refresh(bill)
     return bill
 
-async def test_create_recurring_bill(client: AsyncClient, test_account):
+async def test_create_recurring_bill(client: AsyncClient, test_account, base_category):
     """Test creating a new recurring bill via API"""
     response = await client.post(
         "/api/v1/recurring-bills",
@@ -46,6 +47,7 @@ async def test_create_recurring_bill(client: AsyncClient, test_account):
             "amount": "150.00",
             "day_of_month": 20,
             "account_id": test_account.id,
+            "category_id": base_category.id,
             "auto_pay": True,
             "active": True
         }
@@ -57,10 +59,11 @@ async def test_create_recurring_bill(client: AsyncClient, test_account):
     assert data["amount"] == "150.00"
     assert data["day_of_month"] == 20
     assert data["account_id"] == test_account.id
+    assert data["category_id"] == base_category.id
     assert data["auto_pay"] is True
     assert data["active"] is True
 
-async def test_create_recurring_bill_invalid_account(client: AsyncClient):
+async def test_create_recurring_bill_invalid_account(client: AsyncClient, base_category):
     """Test creating a recurring bill with nonexistent account"""
     response = await client.post(
         "/api/v1/recurring-bills",
@@ -69,6 +72,7 @@ async def test_create_recurring_bill_invalid_account(client: AsyncClient):
             "amount": "150.00",
             "day_of_month": 20,
             "account_id": 999,
+            "category_id": base_category.id,
             "auto_pay": True,
             "active": True
         }
@@ -87,7 +91,7 @@ async def test_get_recurring_bills(client: AsyncClient, test_recurring_bill):
     assert data[0]["id"] == test_recurring_bill.id
     assert data[0]["bill_name"] == test_recurring_bill.bill_name
 
-async def test_get_recurring_bills_inactive(client: AsyncClient, db_session, test_account):
+async def test_get_recurring_bills_inactive(client: AsyncClient, db_session, test_account, base_category):
     """Test retrieving inactive bills"""
     # Create an inactive bill
     inactive_bill = RecurringBill(
@@ -95,6 +99,7 @@ async def test_get_recurring_bills_inactive(client: AsyncClient, db_session, tes
         amount=Decimal("75.00"),
         day_of_month=10,
         account_id=test_account.id,
+        category_id=base_category.id,
         auto_pay=False,
         active=False
     )
@@ -172,7 +177,7 @@ async def test_generate_bills(client: AsyncClient, test_recurring_bill):
     assert data[0]["amount"] == "100.00"
     assert data[0]["recurring"] is True
     assert data[0]["recurring_bill_id"] == test_recurring_bill.id
-    assert data[0]["category"] == "Recurring"  # Default category for generated bills
+    assert data[0]["category_id"] == test_recurring_bill.category_id  # Category should match the recurring bill
     assert data[0]["auto_pay"] is False
 
 async def test_generate_bills_for_month(client: AsyncClient, test_recurring_bill):
@@ -192,7 +197,7 @@ async def test_generate_bills_for_month(client: AsyncClient, test_recurring_bill
     assert generated_bill["name"] == test_recurring_bill.bill_name
     assert generated_bill["amount"] == "100.00"
     assert generated_bill["recurring"] is True
-    assert generated_bill["category"] == "Recurring"
+    assert generated_bill["category_id"] == test_recurring_bill.category_id
     assert generated_bill["auto_pay"] is False
 
 async def test_generate_bills_duplicate_period(client: AsyncClient, test_recurring_bill):

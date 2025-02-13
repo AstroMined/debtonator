@@ -10,6 +10,8 @@ API Enhancement Project - Bill Management Phase
    - ✓ Updated test infrastructure
    - ✓ Fixed all '_sa_instance_state' errors
    - ✓ Improved test coverage
+   - ✓ Fixed recurring bills test suite
+   - ✓ Standardized category_id usage
 
 2. **Bill Management Progress**
    - ✓ Recurring bills system complete
