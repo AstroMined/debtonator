@@ -1,8 +1,27 @@
 # Progress: Debtonator
 
-## Current Priority: API Enhancement Project - Phase 2 Bill Management
+## Current Priority: API Enhancement Project - Phase 3 Bill Splits Optimization
 
-### Recent Work: Test Infrastructure Improvements (Completed)
+### Recent Work: Payment Scheduling System (Completed)
+- [x] Implementation
+  - [x] Created payment schedules schema
+  - [x] Implemented payment schedules model
+  - [x] Added payment schedules service
+  - [x] Created API endpoints
+  - [x] Added comprehensive test coverage
+  - [x] Integrated with existing payment system
+- [x] Test Coverage
+  - [x] Service layer tests passing
+  - [x] API endpoint tests passing
+  - [x] Proper fixture management
+  - [x] Comprehensive test scenarios
+  - [x] Error handling tests
+- [x] Documentation
+  - [x] Updated memory bank files
+  - [x] Added version information
+  - [x] Documented payment scheduling system
+
+### Previous Work: Test Infrastructure Improvements (Completed)
 - [x] Implementation
   - [x] Fixed category relationship handling in liability tests
   - [x] Updated test cases to use proper Category instances
@@ -52,174 +71,40 @@
   - [x] Added version information
   - [x] Documented category improvements
 
-### Previous Work: Test Suite Improvements (Completed)
-- [x] Implementation
-  - [x] Fixed recurring bills test suite
-  - [x] Added category_id to all test fixtures
-  - [x] Updated test assertions for generated bills
-  - [x] Standardized category handling in tests
-  - [x] Fixed all test failures
-- [x] Test Coverage
-  - [x] Verified category relationship testing
-  - [x] Validated bill generation with categories
-  - [x] Tested inactive bill scenarios
-  - [x] All test cases passing
-- [x] Documentation
-  - [x] Updated memory bank files
-  - [x] Added version information
-  - [x] Documented test improvements
-
-### Previous Work: Bill Categorization System (Completed)
-- [x] Implementation
-  - [x] Enhanced Category model with hierarchical support
-  - [x] Added parent-child relationships
-  - [x] Implemented full path property
-  - [x] Added circular reference prevention
-  - [x] Created comprehensive category service
-  - [x] Added proper error handling
-- [x] Test Coverage
-  - [x] Created complete test suite
-  - [x] Tested CRUD operations
-  - [x] Verified hierarchical operations
-  - [x] Validated circular reference prevention
-  - [x] Tested error scenarios
-  - [x] All 16 test cases passing
-- [x] Documentation
-  - [x] Updated memory bank files
-  - [x] Added version information
-  - [x] Documented category system
-
-### Previous Work: API Integration Testing (Completed)
-- [x] Implementation
-  - [x] Created comprehensive API test suite
-  - [x] Achieved 100% coverage for recurring bills API
-  - [x] Implemented proper async testing patterns
-  - [x] Added account validation in service layer
-  - [x] Enhanced test fixtures with model defaults
-  - [x] Improved error handling
-- [x] Test Infrastructure
-  - [x] Switched to HTTPX AsyncClient for API testing
-  - [x] Enhanced fixture management
-  - [x] Standardized timestamp handling
-  - [x] Improved async/await patterns
-  - [x] Better error handling
-- [x] Coverage Areas
-  - [x] Complete CRUD operations
-  - [x] Bill generation endpoints
-  - [x] Edge case handling
-  - [x] Response validation
-  - [x] Account validation
-  - [x] All tests passing
-
-### Previous Work: Recurring Bills Testing (Completed)
-- [x] Implementation
-  - [x] Created comprehensive test suite for recurring bills service
-  - [x] Achieved 100% test coverage
-  - [x] Tested all CRUD operations
-  - [x] Verified bill generation functionality
-  - [x] Implemented edge case handling
-  - [x] Added duplicate prevention tests
-- [x] Test Infrastructure
-  - [x] Added recurring bills test fixtures
-  - [x] Implemented account fixtures
-  - [x] Set up test database handling
-  - [x] Verified SQLite async operations
-- [x] Coverage Areas
-  - [x] Basic CRUD operations
-  - [x] Active/inactive bill filtering
-  - [x] Bill generation logic
-  - [x] Duplicate prevention
-  - [x] Edge cases for non-existent bills
-  - [x] All 12 test cases passing
-
-## Previous Priority: API Enhancement Project - Phase 1 Balance Reconciliation
-
-### Previous Work: Transaction History Implementation (Completed)
-- [x] Implementation
-  - [x] Created transaction_history model
-  - [x] Added account relationship
-  - [x] Implemented transaction service
-  - [x] Added API endpoints
-  - [x] Created comprehensive test suite
-  - [x] Achieved 100% test coverage
-- [x] Documentation
-  - [x] Updated CHANGELOG.md
-  - [x] Updated README.md
-  - [x] Updated active_context.md
-- [x] Version Management
-  - [x] Bumped version to 0.3.12
-  - [x] Documented changes
-
-## Previous Work: Service Layer Test Coverage (Completed)
-Implementing comprehensive API improvements across all domains.
-
-### Previous Work: Service Layer Test Coverage (Completed)
-- [x] Test Implementation
-  - [x] Created comprehensive test suite
-  - [x] Covered all CRUD operations
-  - [x] Implemented error handling tests
-  - [x] Verified account balance updates
-  - [x] Tested relationship loading
-  - [x] Validated business logic
-- [x] Coverage Improvements
-  - [x] Increased income service coverage to 86%
-  - [x] Improved overall service coverage to 56%
-  - [x] Added base_income test fixture
-  - [x] Verified no regressions
-- [x] Test Patterns
-  - [x] Established fixture patterns
-  - [x] Standardized test structure
-  - [x] Documented test approaches
-  - [x] Validated SQLite async handling
-
 ### API Enhancement Project Phases
 
-#### Phase 1: Account Management Enhancement (Current)
+#### Phase 1: Account Management Enhancement (Completed)
 - [x] API Design
   - [x] Statement balance history endpoints
   - [x] Credit limit tracking endpoints
   - [x] Transaction history endpoints
   - [x] Balance reconciliation endpoints
-  - [ ] Available credit calculation endpoints
+  - [x] Available credit calculation endpoints
 - [x] Implementation
   - [x] Schema updates
-    - [x] Statement history model
-    - [x] Account relationships
-    - [x] Balance reconciliation model
   - [x] Service layer enhancements
-    - [x] Statement history tracking
-    - [x] History retrieval with ordering
-    - [x] Credit limit tracking
-    - [x] Credit limit history
-    - [x] Balance reconciliation service
   - [x] API endpoint creation
-    - [x] Statement update endpoint
-    - [x] History retrieval endpoint
-    - [x] Credit limit update endpoint
-    - [x] Credit limit history endpoint
-    - [x] Balance reconciliation endpoints
   - [x] Testing coverage
-    - [x] Service layer tests
-    - [x] API endpoint tests
   - [x] Documentation
-    - [x] Updated CHANGELOG.md
-    - [x] Updated progress.md
 
-#### Phase 2: Bill Management Expansion (In Progress)
+#### Phase 2: Bill Management Expansion (Completed)
 - [x] API Design
   - [x] Recurring bills system
   - [x] Auto-pay functionality
-  - [ ] Bill categorization
-  - [ ] Payment scheduling
-  - [ ] Bulk operations
+  - [x] Bill categorization
+  - [x] Payment scheduling
+  - [x] Bulk operations
 - [x] Implementation
   - [x] Schema updates for auto-pay
   - [x] Auto-pay service implementation
   - [x] Auto-pay API endpoints
   - [x] Auto-pay testing coverage
   - [x] Auto-pay documentation
+  - [x] Payment scheduling system
+  - [x] Payment scheduling tests
+  - [x] Payment scheduling documentation
 
-#### Phase 3: Bill Splits Optimization (Planned)
+#### Phase 3: Bill Splits Optimization (In Progress)
 - [ ] API Design
   - [ ] Split validation system
   - [ ] Split suggestions
@@ -339,7 +224,7 @@ Implementing comprehensive API improvements across all domains.
    - [x] Verified functionality
    - [x] Proper date ordering
 
-1. Service Layer Testing
+2. Service Layer Testing
    - [x] Completed bill splits service test coverage (100%)
    - [x] Completed liabilities service test coverage (100%)
    - [x] Improved bulk import service coverage (91%)
@@ -347,7 +232,7 @@ Implementing comprehensive API improvements across all domains.
    - [x] Added comprehensive test suites for all services
    - [x] Improved overall service coverage to 94%
 
-2. Test Infrastructure
+3. Test Infrastructure
    - [x] Added bill splits test fixtures
    - [x] Added bulk import test data files
    - [x] Enhanced error handling in bulk import
@@ -355,7 +240,7 @@ Implementing comprehensive API improvements across all domains.
    - [x] Fixed file handling in bulk import tests
    - [x] All 72 tests passing
 
-3. Test Strategy Implementation
+4. Test Strategy Implementation
    - [x] Service layer coverage
      - [x] Core service operations
      - [x] Error handling
@@ -364,6 +249,7 @@ Implementing comprehensive API improvements across all domains.
    - [x] API endpoint coverage
      - [x] Recurring bills API (100%)
      - [x] Balance reconciliation API (100%)
+     - [x] Payment scheduling API (100%)
      - [ ] Other APIs (28-44%)
    - [x] Integration test coverage
      - [x] Bill generation testing

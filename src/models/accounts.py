@@ -5,6 +5,7 @@ from sqlalchemy import String, Date, Numeric, Index, event, Integer
 from .statement_history import StatementHistory
 from .credit_limit_history import CreditLimitHistory
 from .balance_reconciliation import BalanceReconciliation
+from .payment_schedules import PaymentSchedule
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from ..database.base import Base
@@ -90,6 +91,11 @@ class Account(Base):
     )
     balance_reconciliations: Mapped[List["BalanceReconciliation"]] = relationship(
         "BalanceReconciliation",
+        back_populates="account",
+        cascade="all, delete-orphan"
+    )
+    payment_schedules: Mapped[List["PaymentSchedule"]] = relationship(
+        "PaymentSchedule",
         back_populates="account",
         cascade="all, delete-orphan"
     )

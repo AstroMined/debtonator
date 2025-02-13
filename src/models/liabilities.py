@@ -5,6 +5,7 @@ from sqlalchemy import String, Date, Boolean, Numeric, Text, JSON, DateTime, For
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.base import Base
+from src.models.payment_schedules import PaymentSchedule
 
 class Liability(Base):
     """Liability model representing a bill that needs to be paid"""
@@ -48,6 +49,11 @@ class Liability(Base):
     )
     splits: Mapped[List["BillSplit"]] = relationship(
         "BillSplit",
+        back_populates="liability",
+        cascade="all, delete-orphan"
+    )
+    payment_schedules: Mapped[List["PaymentSchedule"]] = relationship(
+        "PaymentSchedule",
         back_populates="liability",
         cascade="all, delete-orphan"
     )
