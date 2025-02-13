@@ -17,6 +17,7 @@ from src.models.accounts import Account
 from src.models.income import Income
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
+from src.models.categories import Category
 
 # Test database URL - use in-memory database
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -107,15 +108,32 @@ async def base_account(db_session: AsyncSession) -> Account:
     return account
 
 @pytest.fixture(scope="function")
-async def base_bill(db_session: AsyncSession, base_account: Account) -> Liability:
+async def base_category(db_session: AsyncSession) -> Category:
+    """Create a basic category for testing"""
+    category = Category(
+        name="Utilities",
+        description="Utility bills and services",
+        created_at=datetime.now(),
+        updated_at=datetime.now()
+    )
+    db_session.add(category)
+    await db_session.flush()
+    await db_session.refresh(category)
+    return category
+
+@pytest.fixture(scope="function")
+async def base_bill(db_session: AsyncSession, base_account: Account, base_category: Category) -> Liability:
     """Create a basic bill for testing"""
     bill = Liability(
         name=f"Test Bill {str(uuid.uuid4())[:8]}",  # Make name unique
         amount=Decimal("100.00"),
         due_date=date(2025, 3, 1),
-        category="Utilities",
+        category_id=base_category.id,
         recurring=False,
         primary_account_id=base_account.id,
+        auto_pay=False,
+        auto_pay_enabled=False,
+        paid=False,
         created_at=datetime.now(),
         updated_at=datetime.now()
     )

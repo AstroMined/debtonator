@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.recurring_bills import RecurringBill
 from src.models.liabilities import Liability
 from src.models.accounts import Account
+from src.models.categories import Category
 from src.services.recurring_bills import RecurringBillService
 from src.schemas.recurring_bills import RecurringBillCreate, RecurringBillUpdate
 
@@ -25,13 +26,28 @@ async def account(db_session: AsyncSession) -> Account:
     return account
 
 @pytest.fixture
-async def recurring_bill(db_session: AsyncSession, account: Account) -> RecurringBill:
+async def test_category(db_session: AsyncSession) -> Category:
+    """Create a test category"""
+    category = Category(
+        name="Test Category",
+        description="Test Description",
+        created_at=date.today(),
+        updated_at=date.today()
+    )
+    db_session.add(category)
+    await db_session.commit()
+    await db_session.refresh(category)
+    return category
+
+@pytest.fixture
+async def recurring_bill(db_session: AsyncSession, account: Account, test_category: Category) -> RecurringBill:
     """Create a test recurring bill"""
     bill = RecurringBill(
         bill_name="Test Bill",
         amount=Decimal("100.00"),
         day_of_month=15,
         account_id=account.id,
+        category_id=test_category.id,
         auto_pay=False,
         active=True,
         created_at=date.today(),
@@ -43,7 +59,7 @@ async def recurring_bill(db_session: AsyncSession, account: Account) -> Recurrin
     return bill
 
 @pytest.mark.asyncio
-async def test_create_recurring_bill(db_session: AsyncSession, account: Account):
+async def test_create_recurring_bill(db_session: AsyncSession, account: Account, test_category: Category):
     """Test creating a recurring bill"""
     service = RecurringBillService(db_session)
     bill_create = RecurringBillCreate(
@@ -51,6 +67,7 @@ async def test_create_recurring_bill(db_session: AsyncSession, account: Account)
         amount=Decimal("150.00"),
         day_of_month=20,
         account_id=account.id,
+        category_id=test_category.id,
         auto_pay=True
     )
     
@@ -59,6 +76,7 @@ async def test_create_recurring_bill(db_session: AsyncSession, account: Account)
     assert bill.amount == Decimal("150.00")
     assert bill.day_of_month == 20
     assert bill.account_id == account.id
+    assert bill.category_id == test_category.id
     assert bill.auto_pay is True
     assert bill.active is True
 
@@ -92,6 +110,7 @@ async def test_get_recurring_bills_active_only(db_session: AsyncSession, recurri
         amount=Decimal("75.00"),
         day_of_month=10,
         account_id=recurring_bill.account_id,
+        category_id=recurring_bill.category_id,
         active=False
     )
     db_session.add(inactive_bill)
@@ -126,7 +145,6 @@ async def test_update_recurring_bill(db_session: AsyncSession, recurring_bill: R
     assert updated_bill.day_of_month == recurring_bill.day_of_month
 
 @pytest.mark.asyncio
-@pytest.mark.asyncio
 async def test_update_nonexistent_recurring_bill(db_session: AsyncSession):
     """Test updating a non-existent recurring bill"""
     service = RecurringBillService(db_session)
@@ -153,7 +171,6 @@ async def test_delete_recurring_bill(db_session: AsyncSession, recurring_bill: R
     assert deleted_bill is None
 
 @pytest.mark.asyncio
-@pytest.mark.asyncio
 async def test_delete_nonexistent_recurring_bill(db_session: AsyncSession):
     """Test deleting a non-existent recurring bill"""
     service = RecurringBillService(db_session)
@@ -179,6 +196,7 @@ async def test_generate_bills(db_session: AsyncSession, recurring_bill: Recurrin
     assert liability.amount == recurring_bill.amount
     assert liability.due_date == date(next_year, next_month, recurring_bill.day_of_month)
     assert liability.recurring_bill_id == recurring_bill.id
+    assert liability.category_id == recurring_bill.category_id
 
 @pytest.mark.asyncio
 async def test_generate_bills_duplicate_prevention(
@@ -232,6 +250,7 @@ async def test_generate_bills_for_month(
         amount=Decimal("75.00"),
         day_of_month=20,
         account_id=account.id,
+        category_id=recurring_bill.category_id,
         auto_pay=False,
         active=True
     )

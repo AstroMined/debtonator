@@ -7,8 +7,9 @@ from src.models.accounts import Account
 from src.models.liabilities import Liability
 from src.models.payments import Payment
 from src.models.income import Income
+from src.models.categories import Category
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def test_account(db_session):
     account = Account(
         name="Test Checking",
@@ -20,30 +21,61 @@ async def test_account(db_session):
     await db_session.refresh(account)
     return account
 
-@pytest.fixture
-async def test_liabilities(db_session, test_account):
+@pytest.fixture(scope="function")
+async def test_categories(db_session):
+    categories = [
+        Category(
+            name="Housing",
+            description="Housing related expenses"
+        ),
+        Category(
+            name="Utilities",
+            description="Utility bills"
+        )
+    ]
+    for category in categories:
+        db_session.add(category)
+    await db_session.commit()
+    for category in categories:
+        await db_session.refresh(category)
+    return {cat.name: cat for cat in categories}
+
+@pytest.fixture(scope="function")
+async def test_liabilities(db_session, test_account, test_categories):
     today = date.today()
     liabilities = [
             Liability(
                 name="Rent",
                 amount=Decimal("800.00"),
                 due_date=today + timedelta(days=5),
-                category="Housing",
-                primary_account_id=test_account.id
+                category_id=test_categories["Housing"].id,
+                primary_account_id=test_account.id,
+                recurring=False,
+                auto_pay=False,
+                auto_pay_enabled=False,
+                paid=False
             ),
             Liability(
                 name="Utilities",
                 amount=Decimal("100.00"),
                 due_date=today + timedelta(days=10),
-                category="Utilities",
-                primary_account_id=test_account.id
+                category_id=test_categories["Utilities"].id,
+                primary_account_id=test_account.id,
+                recurring=False,
+                auto_pay=False,
+                auto_pay_enabled=False,
+                paid=False
             ),
             Liability(
                 name="Internet",
                 amount=Decimal("50.00"),
                 due_date=today + timedelta(days=15),
-                category="Utilities",
-                primary_account_id=test_account.id
+                category_id=test_categories["Utilities"].id,
+                primary_account_id=test_account.id,
+                recurring=False,
+                auto_pay=False,
+                auto_pay_enabled=False,
+                paid=False
             )
     ]
     for liability in liabilities:
@@ -53,7 +85,7 @@ async def test_liabilities(db_session, test_account):
         await db_session.refresh(liability)
     return liabilities
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def test_income(db_session, test_account):
     today = date.today()
     income_entries = [

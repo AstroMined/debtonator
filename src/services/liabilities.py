@@ -65,7 +65,7 @@ class LiabilityService:
             amount=liability_create.amount,
             due_date=liability_create.due_date,
             description=liability_create.description,
-            category=liability_create.category,
+            category_id=liability_create.category_id,
             recurring=liability_create.recurring,
             recurrence_pattern=liability_create.recurrence_pattern,
             primary_account_id=liability_create.primary_account_id

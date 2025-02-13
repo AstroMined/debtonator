@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.20] - 2025-02-13
+
+### Fixed
+- Fixed category handling in liabilities and recurring bills
+  - Added proper category_id field to RecurringBill model
+  - Updated RecurringBill schemas to include category_id
+  - Fixed category relationship in RecurringBill service
+  - Updated test fixtures to use category_id
+  - Fixed string category usage in liability generation
+  - Improved test coverage for category relationships
+  - Fixed '_sa_instance_state' errors in tests
+
+### Changed
+- Enhanced recurring bills system
+  - Added category relationship to RecurringBill model
+  - Improved liability generation with proper category handling
+  - Updated test infrastructure for better category support
+
 ## [0.3.19] - 2025-02-12
 
 ### Added

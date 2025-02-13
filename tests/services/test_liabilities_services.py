@@ -70,7 +70,7 @@ async def test_get_unpaid_liabilities_with_payment(db_session, base_bill, base_p
     assert len(unpaid) == 0
 
 @pytest.mark.asyncio
-async def test_create_liability(db_session, base_account):
+async def test_create_liability(db_session, base_account, base_category):
     """Test creating a new liability"""
     service = LiabilityService(db_session)
     liability_data = LiabilityCreate(
@@ -78,10 +78,13 @@ async def test_create_liability(db_session, base_account):
         amount=Decimal("150.00"),
         due_date=date(2025, 3, 15),
         description="Test description",
-        category="Test",
+        category_id=base_category.id,
         recurring=True,
         recurrence_pattern={"frequency": "monthly", "day": 15},
-        primary_account_id=base_account.id
+        primary_account_id=base_account.id,
+        auto_pay=False,
+        auto_pay_enabled=False,
+        paid=False
     )
     
     liability = await service.create_liability(liability_data)
@@ -89,7 +92,7 @@ async def test_create_liability(db_session, base_account):
     assert liability.amount == liability_data.amount
     assert liability.due_date == liability_data.due_date
     assert liability.description == liability_data.description
-    assert liability.category == liability_data.category
+    assert liability.category_id == liability_data.category_id
     assert liability.recurring == liability_data.recurring
     assert liability.recurrence_pattern == liability_data.recurrence_pattern
 
@@ -110,7 +113,7 @@ async def test_update_liability(db_session, base_bill):
     assert updated.description == update_data.description
     # Unchanged fields should remain the same
     assert updated.due_date == base_bill.due_date
-    assert updated.category == base_bill.category
+    assert updated.category_id == base_bill.category_id
 
 @pytest.mark.asyncio
 async def test_update_nonexistent_liability(db_session):

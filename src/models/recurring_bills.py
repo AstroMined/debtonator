@@ -14,6 +14,7 @@ class RecurringBill(Base):
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     day_of_month: Mapped[int]
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
+    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
     auto_pay: Mapped[bool] = mapped_column(Boolean, default=False)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[date] = mapped_column(Date, default=date.today)
@@ -21,6 +22,7 @@ class RecurringBill(Base):
 
     # Relationships
     account = relationship("Account", back_populates="recurring_bills")
+    category = relationship("Category")
     liabilities = relationship("Liability", back_populates="recurring_bill", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
@@ -35,7 +37,7 @@ class RecurringBill(Base):
             amount=self.amount,
             due_date=date(year, int(month), self.day_of_month),
             primary_account_id=self.account_id,
-            category="Recurring",  # Default category for recurring bills
+            category_id=self.category_id,
             auto_pay=self.auto_pay,
             recurring=True,
             recurring_bill_id=self.id

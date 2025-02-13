@@ -31,7 +31,7 @@ class LiabilityBase(BaseModel):
     amount: Decimal = Field(..., description="Total amount of the liability")
     due_date: date = Field(..., description="Due date of the liability")
     description: Optional[str] = Field(None, description="Optional description")
-    category: str = Field(..., description="Category of the liability")
+    category_id: int = Field(..., description="ID of the category for this liability")
     recurring: bool = Field(default=False, description="Whether this is a recurring liability")
     recurring_bill_id: Optional[int] = Field(None, description="ID of the associated recurring bill")
     recurrence_pattern: Optional[Dict] = Field(None, description="Pattern for recurring liabilities")
@@ -54,7 +54,7 @@ class LiabilityUpdate(BaseModel):
     amount: Optional[Decimal] = None
     due_date: Optional[date] = None
     description: Optional[str] = None
-    category: Optional[str] = None
+    category_id: Optional[int] = None
     recurring: Optional[bool] = None
     recurrence_pattern: Optional[Dict] = None
     auto_pay: Optional[bool] = None

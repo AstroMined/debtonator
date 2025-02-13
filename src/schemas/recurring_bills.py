@@ -9,6 +9,7 @@ class RecurringBillBase(BaseModel):
     amount: Decimal = Field(..., gt=0)
     day_of_month: int = Field(..., ge=1, le=31)
     account_id: int
+    category_id: int
     auto_pay: bool = False
 
 class RecurringBillCreate(RecurringBillBase):
@@ -21,6 +22,7 @@ class RecurringBillUpdate(BaseModel):
     amount: Optional[Decimal] = Field(None, gt=0)
     day_of_month: Optional[int] = Field(None, ge=1, le=31)
     account_id: Optional[int] = None
+    category_id: Optional[int] = None
     auto_pay: Optional[bool] = None
     active: Optional[bool] = None
 

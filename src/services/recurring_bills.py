@@ -64,6 +64,7 @@ class RecurringBillService:
             amount=recurring_bill_create.amount,
             day_of_month=recurring_bill_create.day_of_month,
             account_id=recurring_bill_create.account_id,
+            category_id=recurring_bill_create.category_id,
             auto_pay=recurring_bill_create.auto_pay
         )
         
