@@ -4,22 +4,22 @@
 API Enhancement Project - Bill Management Phase
 
 ### Recent Changes
-1. **Test Infrastructure Improvements**
+1. **Auto-pay System Improvements**
+   - ✓ Fixed Decimal serialization in auto-pay settings JSON storage
+   - ✓ Updated test assertions for string representation of Decimal values
+   - ✓ Improved auto-pay candidates test with proper date range
+   - ✓ Enhanced test coverage for auto-pay functionality
+   - ✓ Standardized model_dump usage
+   - ✓ Fixed auto-pay state management
+
+2. **Test Infrastructure Improvements**
    - ✓ Fixed category relationship handling in liability tests
    - ✓ Updated test cases to use proper Category instances
    - ✓ Fixed '_sa_instance_state' errors
    - ✓ Improved test assertions for relationships
    - ✓ Standardized category handling across tests
 
-2. **Auto-pay System Improvements**
-   - ✓ Fixed Decimal serialization in auto-pay settings
-   - ✓ Improved auto-pay state management
-   - ✓ Enhanced auto-pay candidates functionality
-   - ✓ Fixed validation for preferred_pay_date
-   - ✓ Improved test robustness and assertions
-   - ✓ Standardized model_dump usage
-
-2. **Category System Improvements**
+3. **Category System Improvements**
    - ✓ Fixed category handling in liabilities
    - ✓ Enhanced recurring bills with proper category support
    - ✓ Updated test infrastructure
@@ -30,17 +30,18 @@ API Enhancement Project - Bill Management Phase
    - ✓ Fixed category API error handling
    - ✓ Resolved Pydantic circular imports
 
-2. **Bill Management Progress**
+4. **Bill Management Progress**
    - ✓ Recurring bills system complete
    - ✓ Auto-pay functionality complete
    - ✓ Bill categorization complete
    - [ ] Payment scheduling in progress
    - [ ] Bulk operations pending
 
-3. **System State**
+5. **System State**
    - Service layer stable
    - Test coverage improved
    - Category system robust
+   - Auto-pay system reliable
    - Ready for payment scheduling
 
 ### Recent Decisions
@@ -49,6 +50,7 @@ API Enhancement Project - Bill Management Phase
    - Proper relationship management
    - Strong type safety
    - Comprehensive test coverage
+   - JSON serialization standardized for Decimal values
 
 2. **Enhancement Priorities**
    - [x] Account management complete

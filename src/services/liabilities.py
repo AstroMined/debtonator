@@ -135,13 +135,17 @@ class LiabilityService:
         if not db_liability:
             return None
 
-        # Update auto-pay state
-        db_liability.auto_pay = True
+        # Update auto-pay state and settings
         db_liability.auto_pay_enabled = auto_pay_update.enabled
+        db_liability.auto_pay = auto_pay_update.enabled  # Sync auto_pay with enabled state
         
+        # Update settings if provided
         if auto_pay_update.settings:
             # FastAPI will handle validation before this point
-            settings_dict = auto_pay_update.settings.model_dump(mode='json', exclude_none=True)
+            # Convert settings to dict and handle Decimal serialization
+            settings_dict = auto_pay_update.settings.model_dump(exclude_none=True)
+            if 'minimum_balance_required' in settings_dict:
+                settings_dict['minimum_balance_required'] = str(settings_dict['minimum_balance_required'])
             db_liability.auto_pay_settings = settings_dict
         elif not auto_pay_update.enabled:
             # Clear settings when disabling auto-pay
