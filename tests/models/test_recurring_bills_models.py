@@ -65,10 +65,14 @@ async def test_recurring_bill_creation(recurring_bill):
     assert recurring_bill.active is True
 
 @pytest.mark.asyncio
-async def test_recurring_bill_account_relationship(recurring_bill, checking_account):
+async def test_recurring_bill_account_relationship(db_session, recurring_bill, checking_account):
     """Test relationship with Account model"""
+    # Refresh the objects to ensure relationships are loaded
+    await db_session.refresh(recurring_bill, ['account'])
+    await db_session.refresh(checking_account, ['recurring_bills'])
+    
     assert recurring_bill.account == checking_account
-    assert recurring_bill in checking_account.recurring_bills
+    assert any(bill.id == recurring_bill.id for bill in checking_account.recurring_bills)
 
 @pytest.mark.asyncio
 async def test_recurring_bill_create_liability(db_session, recurring_bill):
