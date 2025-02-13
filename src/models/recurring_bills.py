@@ -32,7 +32,7 @@ class RecurringBill(Base):
         """Create a new Liability instance from this recurring bill template"""
         from .liabilities import Liability  # Import here to avoid circular imports
         
-        return Liability(
+        liability = Liability(
             name=self.bill_name,
             amount=self.amount,
             due_date=date(year, int(month), self.day_of_month),
@@ -40,5 +40,7 @@ class RecurringBill(Base):
             category_id=self.category_id,
             auto_pay=self.auto_pay,
             recurring=True,
-            recurring_bill_id=self.id
+            recurring_bill_id=self.id,
+            category=self.category  # Set the relationship directly
         )
+        return liability

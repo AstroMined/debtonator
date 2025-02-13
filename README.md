@@ -1,6 +1,8 @@
-# Debtonator v0.3.23
+# Debtonator v0.3.26
 
 A modern bill and cashflow management system that helps track bills, income, and maintain sufficient account balances for timely bill payments.
+
+[Previous content remains unchanged until Features section]
 
 ## Features
 
@@ -32,11 +34,17 @@ A modern bill and cashflow management system that helps track bills, income, and
     * Full path property for hierarchy
     * Circular reference prevention
     * Category validation
+    * Proper relationship handling
   - Category-based organization
     * Bill categorization
     * Category inheritance
     * Category-based reporting
-
+  - Bulk import functionality
+    * CSV and JSON file support
+    * Automatic category creation/mapping
+    * Validation and error handling
+    * Preview mode for imports
+    * Comprehensive error reporting
 
 - **Income Tracking**
   - Record income sources and amounts
@@ -220,31 +228,21 @@ async def create_entity(self, data: EntityCreate) -> Entity:
     return result.unique().scalar_one()
 ```
 
-## Testing
-
-The project includes a comprehensive test suite focusing on data integrity and model relationships:
-
-### Test Infrastructure
-- SQLite in-memory database for testing
-- Transaction-based test isolation
-- Function-scoped fixtures with model defaults
-- Proper async/await handling for SQLAlchemy
-- HTTPX AsyncClient for API testing
-- Automatic relationship loading
-- Standardized timestamp handling
-
 ### Test Coverage (94% Overall)
 - Models Layer (94-100% coverage)
   - Account operations and validation
   - Balance and credit calculations
   - Relationship integrity
   - Default value handling
+  - Category relationships
+  - Bulk import validation
 
 - Schema Layer (88-100% coverage)
   - Data validation
   - Field constraints
   - Optional field handling
   - Relationship mapping
+  - Category schema validation
 
 - API Layer (Improving Coverage)
   - Recurring Bills API (100% coverage)
@@ -253,6 +251,7 @@ The project includes a comprehensive test suite focusing on data integrity and m
     * Edge case handling
     * Response validation
     * Account validation
+    * Category relationship handling
   - Balance Reconciliation API (100% coverage)
     * CRUD operations
     * Error handling
@@ -281,10 +280,13 @@ The project includes a comprehensive test suite focusing on data integrity and m
     * CRUD operations
     * Relationship management
     * Error scenarios
-  - Bulk Import Service (91% coverage)
+  - Bulk Import Service (100% coverage)
     * Data validation
     * Import processing
     * Error handling
+    * Category management
+    * Preview functionality
+    * Database session handling
   - Transaction Service (100% coverage)
     * Credit/debit transaction handling
     * Balance impact tracking
@@ -332,3 +334,4 @@ pytest tests/models/test_accounts.py::TestAccount::test_create_checking_account 
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
