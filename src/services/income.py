@@ -153,13 +153,14 @@ class IncomeService:
         if conditions:
             query = query.where(and_(*conditions))
         
-        # Get total count
-        count_result = await self.db.execute(
-            select(func.count(Income.id)).select_from(query.subquery())
-        )
+        # Get total count (without joins to avoid cartesian product)
+        count_query = select(func.count(Income.id))
+        if conditions:
+            count_query = count_query.where(and_(*conditions))
+        count_result = await self.db.execute(count_query)
         total = count_result.scalar_one()
         
-        # Get paginated results
+        # Get paginated results (with joins)
         query = query.offset(skip).limit(limit)
         result = await self.db.execute(query)
         items = result.scalars().all()
