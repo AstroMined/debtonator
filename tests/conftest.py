@@ -30,7 +30,7 @@ engine = create_async_engine(
         "timeout": 30.0  # Add timeout for better async handling
     },
     pool_pre_ping=True,  # Add connection health checks
-    echo=True  # Enable SQL logging for debugging
+    echo=False  # True = Enable SQL logging for debugging
 )
 
 # Create async session factory

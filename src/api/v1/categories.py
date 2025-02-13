@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...database.database import get_db
 from ...schemas.categories import Category, CategoryCreate, CategoryUpdate, CategoryWithBills
-from ...services.categories import CategoryService
+from ...services.categories import CategoryService, CategoryError
 
 router = APIRouter(prefix="/categories", tags=["categories"])
 
@@ -17,7 +17,7 @@ async def create_category(
     try:
         category_service = CategoryService(db)
         return await category_service.create_category(category)
-    except ValueError as e:
+    except (ValueError, CategoryError) as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/", response_model=List[Category])
@@ -67,7 +67,7 @@ async def update_category(
         if not category:
             raise HTTPException(status_code=404, detail="Category not found")
         return category
-    except ValueError as e:
+    except (ValueError, CategoryError) as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.delete("/{category_id}")
@@ -82,5 +82,5 @@ async def delete_category(
         if not success:
             raise HTTPException(status_code=404, detail="Category not found")
         return {"message": "Category deleted successfully"}
-    except ValueError as e:
+    except (ValueError, CategoryError) as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.22] - 2025-02-13
+
+### Fixed
+- Fixed category API error handling
+  - Added proper CategoryError handling in API endpoints
+  - Updated error response status codes
+  - Fixed Pydantic circular imports in schemas
+  - Updated validator methods for Pydantic v2 compatibility
+  - Improved error messages for duplicate categories
+
 ## [0.3.21] - 2025-02-13
 
 ### Fixed

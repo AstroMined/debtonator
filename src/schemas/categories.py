@@ -1,9 +1,6 @@
 from datetime import datetime
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field, validator
-
-if TYPE_CHECKING:
-    from ..models.liabilities import Liability
 
 class CategoryBase(BaseModel):
     name: str
@@ -11,8 +8,9 @@ class CategoryBase(BaseModel):
     parent_id: Optional[int] = None
 
 class CategoryCreate(CategoryBase):
-    @validator('parent_id')
-    def validate_parent_id(cls, v, values):
+    @validator("parent_id")
+    @classmethod
+    def validate_parent_id(cls, v: Optional[int], values: dict) -> Optional[int]:
         if v is not None and v == values.get('id'):
             raise ValueError("Category cannot be its own parent")
         return v
@@ -20,8 +18,9 @@ class CategoryCreate(CategoryBase):
 class CategoryUpdate(CategoryBase):
     name: Optional[str] = None
     
-    @validator('parent_id')
-    def validate_parent_id(cls, v, values):
+    @validator("parent_id")
+    @classmethod
+    def validate_parent_id(cls, v: Optional[int], values: dict) -> Optional[int]:
         if v is not None and v == values.get('id'):
             raise ValueError("Category cannot be its own parent")
         return v
@@ -41,7 +40,11 @@ class CategoryWithParent(Category):
     parent: Optional[CategoryWithChildren] = None
 
 class CategoryWithBills(CategoryWithChildren):
-    bills: List["Liability"] = []
+    bills: List["LiabilityBase"] = []
+
+# Import after class definitions to avoid circular imports
+from .liabilities import LiabilityBase
 
 # Needed for forward references
 CategoryWithChildren.model_rebuild()
+CategoryWithBills.model_rebuild()

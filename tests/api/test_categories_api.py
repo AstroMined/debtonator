@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.categories import Category
 from src.schemas.categories import CategoryCreate
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def test_category(db_session: AsyncSession) -> Category:
     category = Category(name="Test Category", description="Test Description")
     db_session.add(category)

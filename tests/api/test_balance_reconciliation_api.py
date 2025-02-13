@@ -7,7 +7,7 @@ from sqlalchemy import select
 from src.models.accounts import Account
 from src.models.balance_reconciliation import BalanceReconciliation
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def test_account(db_session):
     """Create a test account"""
     account = Account(
@@ -22,7 +22,7 @@ async def test_account(db_session):
     await db_session.refresh(account)
     return account
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def test_reconciliation(db_session, test_account):
     """Create a test reconciliation record"""
     reconciliation = BalanceReconciliation(
