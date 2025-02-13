@@ -135,19 +135,26 @@ class LiabilityService:
         if not db_liability:
             return None
 
+        # Update auto-pay state
         db_liability.auto_pay = True
         db_liability.auto_pay_enabled = auto_pay_update.enabled
         
         if auto_pay_update.settings:
-            db_liability.auto_pay_settings = auto_pay_update.settings.model_dump()
+            # FastAPI will handle validation before this point
+            settings_dict = auto_pay_update.settings.model_dump(mode='json', exclude_none=True)
+            db_liability.auto_pay_settings = settings_dict
+        elif not auto_pay_update.enabled:
+            # Clear settings when disabling auto-pay
+            db_liability.auto_pay_settings = None
 
         await self.db.commit()
-        return await self.get_liability(liability_id)
+        await self.db.refresh(db_liability)  # Ensure we have latest data
+        return db_liability
 
     async def get_auto_pay_candidates(self, days_ahead: int = 7) -> List[Liability]:
         """Get liabilities that are candidates for auto-pay processing"""
-        target_date = date.today()
-        end_date = date.today().replace(day=target_date.day + days_ahead)
+        from datetime import timedelta
+        end_date = date.today() + timedelta(days=days_ahead)
         
         stmt = (
             select(Liability)
@@ -194,9 +201,13 @@ class LiabilityService:
         if not db_liability:
             return None
 
+        db_liability.auto_pay = False
         db_liability.auto_pay_enabled = False
+        db_liability.auto_pay_settings = None
+        
         await self.db.commit()
-        return await self.get_liability(liability_id)
+        await self.db.refresh(db_liability)  # Ensure we have latest data
+        return db_liability
 
     async def get_auto_pay_status(self, liability_id: int) -> Optional[Dict]:
         """Get auto-pay status and settings for a liability"""

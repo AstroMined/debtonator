@@ -6,7 +6,11 @@ from pydantic import BaseModel, Field, ConfigDict, validator
 # Forward declarations
 class LiabilityBase(BaseModel):
     """Base schema for liability data"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,
+        json_encoders={Decimal: str}
+    )
     
     name: str = Field(..., description="Name of the liability")
     amount: Decimal = Field(..., description="Total amount of the liability")
@@ -25,7 +29,11 @@ class LiabilityBase(BaseModel):
 
 class AutoPaySettings(BaseModel):
     """Schema for auto-pay settings"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,
+        json_encoders={Decimal: str}
+    )
     
     preferred_pay_date: Optional[int] = Field(None, description="Preferred day of month for payment (1-31)", ge=1, le=31)
     days_before_due: Optional[int] = Field(None, description="Days before due date to process payment", ge=0)
@@ -34,20 +42,17 @@ class AutoPaySettings(BaseModel):
     retry_on_failure: bool = Field(default=True, description="Whether to retry failed auto-payments")
     notification_email: Optional[str] = Field(None, description="Email for auto-pay notifications")
 
-    @validator("preferred_pay_date")
-    @classmethod
-    def validate_preferred_pay_date(cls, v: Optional[int]) -> Optional[int]:
-        if v is not None and (v < 1 or v > 31):
-            raise ValueError('Preferred pay date must be between 1 and 31')
-        return v
-
 class LiabilityCreate(LiabilityBase):
     """Schema for creating a new liability"""
     pass
 
 class LiabilityUpdate(BaseModel):
     """Schema for updating an existing liability"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,
+        json_encoders={Decimal: str}
+    )
     
     name: Optional[str] = None
     amount: Optional[Decimal] = None
@@ -62,14 +67,22 @@ class LiabilityUpdate(BaseModel):
 
 class AutoPayUpdate(BaseModel):
     """Schema for updating auto-pay settings"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,
+        json_encoders={Decimal: str}
+    )
     
     enabled: bool = Field(..., description="Whether to enable or disable auto-pay")
     settings: Optional[AutoPaySettings] = Field(None, description="Auto-pay settings to update")
 
 class LiabilityInDB(LiabilityBase):
     """Schema for liability data as stored in the database"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,
+        json_encoders={Decimal: str}
+    )
 
     id: int
     created_at: datetime
@@ -77,11 +90,19 @@ class LiabilityInDB(LiabilityBase):
 
 class LiabilityResponse(LiabilityInDB):
     """Schema for liability data in API responses"""
-    pass
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,
+        json_encoders={Decimal: str}
+    )
 
 class LiabilityDateRange(BaseModel):
     """Schema for specifying a date range for liability queries"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,
+        json_encoders={Decimal: str}
+    )
     
     start_date: date = Field(..., description="Start date for liability range")
     end_date: date = Field(..., description="End date for liability range")

@@ -4,7 +4,15 @@
 API Enhancement Project - Bill Management Phase
 
 ### Recent Changes
-1. **Category System Improvements**
+1. **Auto-pay System Improvements**
+   - ✓ Fixed Decimal serialization in auto-pay settings
+   - ✓ Improved auto-pay state management
+   - ✓ Enhanced auto-pay candidates functionality
+   - ✓ Fixed validation for preferred_pay_date
+   - ✓ Improved test robustness and assertions
+   - ✓ Standardized model_dump usage
+
+2. **Category System Improvements**
    - ✓ Fixed category handling in liabilities
    - ✓ Enhanced recurring bills with proper category support
    - ✓ Updated test infrastructure

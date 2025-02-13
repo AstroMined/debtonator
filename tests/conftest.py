@@ -124,10 +124,14 @@ async def base_category(db_session: AsyncSession) -> Category:
 @pytest.fixture(scope="function")
 async def base_bill(db_session: AsyncSession, base_account: Account, base_category: Category) -> Liability:
     """Create a basic bill for testing"""
+    # Set due_date to 15 days from today for auto-pay testing
+    from datetime import timedelta
+    future_date = date.today() + timedelta(days=15)
+    
     bill = Liability(
         name=f"Test Bill {str(uuid.uuid4())[:8]}",  # Make name unique
         amount=Decimal("100.00"),
-        due_date=date(2025, 3, 1),
+        due_date=future_date,
         category_id=base_category.id,
         recurring=False,
         primary_account_id=base_account.id,

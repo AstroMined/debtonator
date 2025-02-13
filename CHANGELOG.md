@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.23] - 2025-02-13
+
+### Fixed
+- Fixed auto-pay functionality and validation
+  - Fixed Decimal serialization in auto-pay settings
+  - Improved auto-pay state management
+  - Enhanced auto-pay candidates functionality
+  - Fixed validation for preferred_pay_date
+  - Removed redundant custom validator in favor of Pydantic Field validation
+  - Enhanced test coverage for invalid settings
+  - Improved validation error handling in API
+  - Added detailed error response validation in tests
+  - Standardized model_dump usage across all serialization points
 
 ## [0.3.22] - 2025-02-13
 
