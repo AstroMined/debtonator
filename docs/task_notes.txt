@@ -35,6 +35,19 @@ follow your custom instructions
 
 Formulate a plan to expand test coverage for services only, but keep the scope limited to work that can completed in a single session.
 You'll first need to get a coverage report to see where the weaknesses are.
+
+
+
+follow your custom instructions
+
+Formulate a plan to continue on with the in-progress items, but keep the scope limited to work that can completed in a single session.
+If you plan any database changes, I would suggest that you delete the DB and re-initialize instead of fighting with Alembic migrations.
+This is just a dev environment, so there's no data loss to worry about in the DB.
+
+Occasionally, we run into problems with re-initializing the database.
+This is what we've found to work smoothly in the past:
+rm -f debtonator.db && python -m src.database.init_db
+
 When running the full test suite with pytest, run it like below to keep the output limited to conserve tokens in your context window:
 pytest -q --tb=no --disable-warnings
 

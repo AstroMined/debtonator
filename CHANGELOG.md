@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.19] - 2025-02-12
+
+### Added
+- Hierarchical category management system
+  - Parent-child category relationships
+  - Full path property for category hierarchy
+  - Circular reference prevention
+  - Comprehensive validation
+  - Category service with CRUD operations
+  - Support for nested categories
+  - Category error handling
+  - Complete test coverage
+    - Service layer tests
+    - Hierarchical operations
+    - Error scenarios
+    - 16 test cases covering all functionality
+
+### Changed
+- Enhanced category model with hierarchical support
+- Improved category service with validation
+- Updated test infrastructure for categories
+
 ## [0.3.18] - 2025-02-12
 
 ### Added

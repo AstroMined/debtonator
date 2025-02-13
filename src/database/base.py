@@ -28,7 +28,16 @@ class Base(DeclarativeBase):
     metadata = metadata
 
 # Import all models at the bottom to avoid circular imports
-from ..models import accounts, bill_splits, recurring_bills, income, cashflow, liabilities, payments
+from ..models import (
+    accounts,
+    bill_splits,
+    recurring_bills,
+    income,
+    cashflow,
+    liabilities,
+    payments,
+    categories
+)
 
 __all__ = [
     "Base",
@@ -38,5 +47,6 @@ __all__ = [
     "income",
     "cashflow",
     "liabilities",
-    "payments"
+    "payments",
+    "categories"
 ]

@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from .categories import router as categories_router
 from .liabilities import router as liabilities_router
 from .bill_splits import router as bill_splits_router
 from .accounts import router as accounts_router
@@ -11,7 +12,8 @@ from .recurring_bills import router as recurring_bills_router
 
 api_v1_router = APIRouter()
 
-# Include liabilities router
+# Include categories and liabilities routers
+api_v1_router.include_router(categories_router, tags=["categories"])
 api_v1_router.include_router(liabilities_router, prefix="/liabilities", tags=["liabilities"])
 
 # Payment and bill split routers
