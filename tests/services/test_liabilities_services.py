@@ -3,7 +3,12 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from src.services.liabilities import LiabilityService
-from src.schemas.liabilities import LiabilityCreate, LiabilityUpdate
+from src.schemas.liabilities import (
+    LiabilityCreate, 
+    LiabilityUpdate,
+    AutoPayUpdate,
+    AutoPaySettings
+)
 
 @pytest.mark.asyncio
 async def test_get_liabilities(db_session, base_bill):
@@ -146,3 +151,109 @@ async def test_is_paid_without_payment(db_session, base_bill):
     service = LiabilityService(db_session)
     is_paid = await service.is_paid(base_bill.id)
     assert is_paid is False
+
+@pytest.mark.asyncio
+async def test_update_auto_pay(db_session, base_bill):
+    """Test updating auto-pay settings"""
+    service = LiabilityService(db_session)
+    
+    settings = AutoPaySettings(
+        preferred_pay_date=15,
+        days_before_due=5,
+        payment_method="bank_transfer",
+        minimum_balance_required=Decimal("100.00"),
+        retry_on_failure=True,
+        notification_email="test@example.com"
+    )
+    
+    update = AutoPayUpdate(enabled=True, settings=settings)
+    updated = await service.update_auto_pay(base_bill.id, update)
+    
+    assert updated is not None
+    assert updated.auto_pay is True
+    assert updated.auto_pay_enabled is True
+    assert updated.auto_pay_settings == settings.model_dump()
+
+@pytest.mark.asyncio
+async def test_get_auto_pay_candidates(db_session, base_bill):
+    """Test getting auto-pay candidates"""
+    service = LiabilityService(db_session)
+    
+    # First enable auto-pay
+    settings = AutoPaySettings(payment_method="bank_transfer")
+    update = AutoPayUpdate(enabled=True, settings=settings)
+    await service.update_auto_pay(base_bill.id, update)
+    
+    # Get candidates
+    candidates = await service.get_auto_pay_candidates(days_ahead=7)
+    assert len(candidates) == 1
+    assert candidates[0].id == base_bill.id
+
+@pytest.mark.asyncio
+async def test_process_auto_pay(db_session, base_bill):
+    """Test processing auto-pay"""
+    service = LiabilityService(db_session)
+    
+    # First enable auto-pay
+    settings = AutoPaySettings(payment_method="bank_transfer")
+    update = AutoPayUpdate(enabled=True, settings=settings)
+    await service.update_auto_pay(base_bill.id, update)
+    
+    # Process auto-pay
+    result = await service.process_auto_pay(base_bill.id)
+    assert result is True
+    
+    # Verify last attempt was updated
+    liability = await service.get_liability(base_bill.id)
+    assert liability.last_auto_pay_attempt is not None
+
+@pytest.mark.asyncio
+async def test_disable_auto_pay(db_session, base_bill):
+    """Test disabling auto-pay"""
+    service = LiabilityService(db_session)
+    
+    # First enable auto-pay
+    settings = AutoPaySettings(payment_method="bank_transfer")
+    update = AutoPayUpdate(enabled=True, settings=settings)
+    await service.update_auto_pay(base_bill.id, update)
+    
+    # Then disable it
+    disabled = await service.disable_auto_pay(base_bill.id)
+    assert disabled is not None
+    assert disabled.auto_pay_enabled is False
+
+@pytest.mark.asyncio
+async def test_get_auto_pay_status(db_session, base_bill):
+    """Test getting auto-pay status"""
+    service = LiabilityService(db_session)
+    
+    # First enable auto-pay with settings
+    settings = AutoPaySettings(
+        preferred_pay_date=15,
+        payment_method="bank_transfer"
+    )
+    update = AutoPayUpdate(enabled=True, settings=settings)
+    await service.update_auto_pay(base_bill.id, update)
+    
+    # Get status
+    status = await service.get_auto_pay_status(base_bill.id)
+    assert status is not None
+    assert status["auto_pay"] is True
+    assert status["enabled"] is True
+    assert status["settings"]["preferred_pay_date"] == 15
+    assert status["settings"]["payment_method"] == "bank_transfer"
+    assert status["last_attempt"] is None
+
+@pytest.mark.asyncio
+async def test_auto_pay_with_nonexistent_liability(db_session):
+    """Test auto-pay operations with non-existent liability"""
+    service = LiabilityService(db_session)
+    
+    settings = AutoPaySettings(payment_method="bank_transfer")
+    update = AutoPayUpdate(enabled=True, settings=settings)
+    
+    # Test various operations
+    assert await service.update_auto_pay(999999, update) is None
+    assert await service.get_auto_pay_status(999999) is None
+    assert await service.process_auto_pay(999999) is False
+    assert await service.disable_auto_pay(999999) is None

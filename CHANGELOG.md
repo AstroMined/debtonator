@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.18] - 2025-02-12
+
+### Added
+- Auto-pay functionality for bills
+  - Auto-pay settings management
+  - Preferred payment date configuration
+  - Payment method selection
+  - Minimum balance requirements
+  - Retry on failure options
+  - Email notification support
+  - Auto-pay status tracking
+  - Last attempt tracking
+  - Candidate bill identification
+  - Manual processing capability
+  - Comprehensive test coverage
+    - Service layer tests
+    - API endpoint tests
+    - Edge case handling
+    - Validation testing
+
+### Changed
+- Enhanced liability model with auto-pay fields
+- Improved payment processing system
+- Updated API documentation
+
 ## [0.3.17] - 2025-02-12
 
 ### Added

@@ -21,6 +21,9 @@ class Liability(Base):
     category: Mapped[str] = mapped_column(String(100))
     primary_account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
     auto_pay: Mapped[bool] = mapped_column(Boolean, default=False)
+    auto_pay_settings: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)  # For preferred payment date, method, etc.
+    last_auto_pay_attempt: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    auto_pay_enabled: Mapped[bool] = mapped_column(Boolean, default=False)  # Separate from auto_pay flag for temporary enable/disable
     paid: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(

@@ -1,12 +1,17 @@
-from datetime import date
-from typing import List, Optional
-from sqlalchemy import select
+from datetime import date, datetime
+from typing import List, Optional, Dict
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from ..models.liabilities import Liability
 from ..models.payments import Payment
-from ..schemas.liabilities import LiabilityCreate, LiabilityUpdate
+from ..schemas.liabilities import (
+    LiabilityCreate, 
+    LiabilityUpdate, 
+    AutoPayUpdate,
+    AutoPaySettings
+)
 
 class LiabilityService:
     def __init__(self, db: AsyncSession):
@@ -123,3 +128,85 @@ class LiabilityService:
         )
         result = await self.db.execute(stmt)
         return result.unique().first() is not None
+
+    async def update_auto_pay(self, liability_id: int, auto_pay_update: AutoPayUpdate) -> Optional[Liability]:
+        """Update auto-pay settings for a liability"""
+        db_liability = await self.get_liability(liability_id)
+        if not db_liability:
+            return None
+
+        db_liability.auto_pay = True
+        db_liability.auto_pay_enabled = auto_pay_update.enabled
+        
+        if auto_pay_update.settings:
+            db_liability.auto_pay_settings = auto_pay_update.settings.model_dump()
+
+        await self.db.commit()
+        return await self.get_liability(liability_id)
+
+    async def get_auto_pay_candidates(self, days_ahead: int = 7) -> List[Liability]:
+        """Get liabilities that are candidates for auto-pay processing"""
+        target_date = date.today()
+        end_date = date.today().replace(day=target_date.day + days_ahead)
+        
+        stmt = (
+            select(Liability)
+            .options(joinedload(Liability.payments))
+            .filter(
+                and_(
+                    Liability.auto_pay == True,
+                    Liability.auto_pay_enabled == True,
+                    Liability.paid == False,
+                    Liability.due_date <= end_date
+                )
+            )
+            .order_by(Liability.due_date.asc())
+        )
+        result = await self.db.execute(stmt)
+        return result.unique().scalars().all()
+
+    async def process_auto_pay(self, liability_id: int) -> bool:
+        """Process auto-pay for a specific liability"""
+        db_liability = await self.get_liability(liability_id)
+        if not db_liability or not db_liability.auto_pay_enabled:
+            return False
+
+        try:
+            # Update last attempt timestamp
+            db_liability.last_auto_pay_attempt = datetime.utcnow()
+            
+            # TODO: Implement actual payment processing logic here
+            # This would involve:
+            # 1. Checking account balances
+            # 2. Creating payment record
+            # 3. Processing payment through payment service
+            # 4. Updating liability status
+            
+            await self.db.commit()
+            return True
+        except Exception:
+            await self.db.rollback()
+            return False
+
+    async def disable_auto_pay(self, liability_id: int) -> Optional[Liability]:
+        """Disable auto-pay for a liability"""
+        db_liability = await self.get_liability(liability_id)
+        if not db_liability:
+            return None
+
+        db_liability.auto_pay_enabled = False
+        await self.db.commit()
+        return await self.get_liability(liability_id)
+
+    async def get_auto_pay_status(self, liability_id: int) -> Optional[Dict]:
+        """Get auto-pay status and settings for a liability"""
+        db_liability = await self.get_liability(liability_id)
+        if not db_liability:
+            return None
+
+        return {
+            "auto_pay": db_liability.auto_pay,
+            "enabled": db_liability.auto_pay_enabled,
+            "settings": db_liability.auto_pay_settings,
+            "last_attempt": db_liability.last_auto_pay_attempt
+        }

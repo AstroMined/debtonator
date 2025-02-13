@@ -8,7 +8,8 @@ from src.schemas.liabilities import (
     LiabilityResponse,
     LiabilityCreate,
     LiabilityUpdate,
-    LiabilityDateRange
+    LiabilityDateRange,
+    AutoPayUpdate
 )
 from src.schemas.payments import PaymentCreate, PaymentResponse
 from src.services.liabilities import LiabilityService
@@ -176,3 +177,74 @@ async def get_payments_for_liability(
     # Get payments
     payment_service = PaymentService(db)
     return await payment_service.get_payments_for_liability(liability_id)
+
+@router.put("/{liability_id}/auto-pay", response_model=LiabilityResponse)
+async def update_auto_pay_settings(
+    liability_id: int,
+    auto_pay_update: AutoPayUpdate,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Update auto-pay settings for a liability.
+    """
+    liability_service = LiabilityService(db)
+    liability = await liability_service.update_auto_pay(liability_id, auto_pay_update)
+    if not liability:
+        raise HTTPException(status_code=404, detail="Liability not found")
+    return liability
+
+@router.get("/{liability_id}/auto-pay", response_model=dict)
+async def get_auto_pay_status(
+    liability_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get auto-pay status and settings for a liability.
+    """
+    liability_service = LiabilityService(db)
+    status = await liability_service.get_auto_pay_status(liability_id)
+    if not status:
+        raise HTTPException(status_code=404, detail="Liability not found")
+    return status
+
+@router.post("/{liability_id}/auto-pay/process")
+async def process_auto_pay(
+    liability_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Manually trigger auto-pay processing for a liability.
+    """
+    liability_service = LiabilityService(db)
+    success = await liability_service.process_auto_pay(liability_id)
+    if not success:
+        raise HTTPException(
+            status_code=400,
+            detail="Failed to process auto-pay. Check if auto-pay is enabled and properly configured."
+        )
+    return {"message": "Auto-pay processed successfully"}
+
+@router.delete("/{liability_id}/auto-pay", response_model=LiabilityResponse)
+async def disable_auto_pay(
+    liability_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Disable auto-pay for a liability.
+    """
+    liability_service = LiabilityService(db)
+    liability = await liability_service.disable_auto_pay(liability_id)
+    if not liability:
+        raise HTTPException(status_code=404, detail="Liability not found")
+    return liability
+
+@router.get("/auto-pay/candidates", response_model=List[LiabilityResponse])
+async def get_auto_pay_candidates(
+    days_ahead: int = Query(7, ge=1, le=30),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get liabilities that are candidates for auto-pay processing.
+    """
+    liability_service = LiabilityService(db)
+    return await liability_service.get_auto_pay_candidates(days_ahead)

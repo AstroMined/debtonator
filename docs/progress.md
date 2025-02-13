@@ -118,19 +118,19 @@ Implementing comprehensive API improvements across all domains.
     - [x] Updated CHANGELOG.md
     - [x] Updated progress.md
 
-#### Phase 2: Bill Management Expansion (Planned)
-- [ ] API Design
-  - [ ] Recurring bills system
-  - [ ] Auto-pay functionality
+#### Phase 2: Bill Management Expansion (In Progress)
+- [x] API Design
+  - [x] Recurring bills system
+  - [x] Auto-pay functionality
   - [ ] Bill categorization
   - [ ] Payment scheduling
   - [ ] Bulk operations
-- [ ] Implementation
-  - [ ] Schema updates
-  - [ ] Service layer enhancements
-  - [ ] API endpoint creation
-  - [ ] Testing coverage
-  - [ ] Documentation
+- [x] Implementation
+  - [x] Schema updates for auto-pay
+  - [x] Auto-pay service implementation
+  - [x] Auto-pay API endpoints
+  - [x] Auto-pay testing coverage
+  - [x] Auto-pay documentation
 
 #### Phase 3: Bill Splits Optimization (Planned)
 - [ ] API Design
