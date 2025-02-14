@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.33] - 2025-02-13
+
+### Added
+- Bill splits bulk operations system
+  - Bulk operation schema with create/update support
+  - Transaction-based bulk processing
+  - Validation-only mode for dry runs
+  - Comprehensive error tracking
+  - Rollback support for failed operations
+  - Detailed operation results
+  - Success/failure tracking per split
+  - Complete test coverage including:
+    * Successful bulk operations
+    * Partial failure scenarios
+    * Validation-only operations
+    * Transaction rollback
+    * Error handling
+
 ## [0.3.32] - 2025-02-13
 
 ### Added

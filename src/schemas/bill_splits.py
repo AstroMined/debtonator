@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
-from typing import Dict, List, Optional
-from pydantic import BaseModel, ConfigDict, Field, validator
+from typing import Dict, List, Optional, Union
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 class BillSplitBase(BaseModel):
     """Base schema for bill split data"""
@@ -14,16 +14,17 @@ class BillSplitCreate(BillSplitBase):
     liability_id: int = Field(..., gt=0)
     account_id: int = Field(..., gt=0)
 
-    @validator('amount')
-    @classmethod
-    def validate_amount(cls, v):
-        if v <= 0:
+    @model_validator(mode='after')
+    def validate_amount(self) -> 'BillSplitCreate':
+        if self.amount <= 0:
             raise ValueError("Split amount must be greater than 0")
-        return v
+        return self
 
 class BillSplitUpdate(BillSplitBase):
     """Schema for updating an existing bill split"""
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    
+    id: int = Field(..., gt=0, description="ID of the split to update")
 
 class BillSplitInDB(BillSplitBase):
     """Schema for bill split data as stored in the database"""
@@ -47,19 +48,18 @@ class BillSplitValidation(BaseModel):
     total_amount: Decimal = Field(..., gt=0)
     splits: List[BillSplitCreate]
 
-    @validator('splits')
-    @classmethod
-    def validate_splits(cls, v, values):
-        if not v:
+    @model_validator(mode='after')
+    def validate_splits(self) -> 'BillSplitValidation':
+        if not self.splits:
             raise ValueError("At least one split is required")
         
-        total_split = sum(split.amount for split in v)
-        if 'total_amount' in values and abs(total_split - values['total_amount']) > Decimal('0.01'):
+        total_split = sum(split.amount for split in self.splits)
+        if abs(total_split - self.total_amount) > Decimal('0.01'):
             raise ValueError(
-                f"Sum of splits ({total_split}) must equal total amount ({values['total_amount']})"
+                f"Sum of splits ({total_split}) must equal total amount ({self.total_amount})"
             )
         
-        return v
+        return self
 
 class SplitSuggestion(BaseModel):
     """Schema for individual split suggestion"""
@@ -141,3 +141,71 @@ class HistoricalAnalysis(BaseModel):
         None,
         description="Split patterns grouped by season/time period"
     )
+
+class BulkSplitOperation(BaseModel):
+    """Schema for bulk bill split operations"""
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    operation_type: str = Field(
+        ..., 
+        description="Type of operation (create/update)",
+        pattern="^(create|update)$"
+    )
+    splits: List[Union[BillSplitCreate, BillSplitUpdate]] = Field(
+        ...,
+        min_items=1,
+        description="List of bill splits to process"
+    )
+    validate_only: bool = Field(
+        False,
+        description="If true, only validate the operation without executing"
+    )
+
+    @model_validator(mode='after')
+    def validate_operation(self) -> 'BulkSplitOperation':
+        if not self.splits:
+            raise ValueError("At least one split is required")
+        
+        if self.operation_type == 'update':
+            if not all(isinstance(split, BillSplitUpdate) for split in self.splits):
+                raise ValueError("Update operation requires BillSplitUpdate instances")
+        elif self.operation_type == 'create':
+            if not all(isinstance(split, BillSplitCreate) for split in self.splits):
+                raise ValueError("Create operation requires BillSplitCreate instances")
+        
+        return self
+
+class BulkOperationError(BaseModel):
+    """Schema for bulk operation errors"""
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    index: int = Field(..., description="Index of the failed split in the input list")
+    split_data: Union[BillSplitCreate, BillSplitUpdate] = Field(
+        ..., 
+        description="Original split data that caused the error"
+    )
+    error_message: str = Field(..., description="Detailed error message")
+    error_type: str = Field(..., description="Type of error (validation/processing)")
+
+class BulkOperationResult(BaseModel):
+    """Schema for bulk operation results"""
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    success: bool = Field(..., description="Overall operation success status")
+    processed_count: int = Field(..., ge=0, description="Number of splits processed")
+    success_count: int = Field(..., ge=0, description="Number of successful operations")
+    failure_count: int = Field(..., ge=0, description="Number of failed operations")
+    successful_splits: List[BillSplitResponse] = Field(
+        default_factory=list,
+        description="Successfully processed splits"
+    )
+    errors: List[BulkOperationError] = Field(
+        default_factory=list,
+        description="Errors encountered during processing"
+    )
+
+    @model_validator(mode='after')
+    def validate_counts(self) -> 'BulkOperationResult':
+        if self.failure_count != self.processed_count - self.success_count:
+            raise ValueError("Failure count must equal processed count minus success count")
+        return self

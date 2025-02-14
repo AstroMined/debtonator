@@ -1,6 +1,6 @@
 from decimal import Decimal
 from datetime import date, datetime
-from typing import List, Optional, Tuple, Dict
+from typing import List, Optional, Tuple, Dict, Union
 from sqlalchemy import select, delete, and_, func, or_, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -16,7 +16,10 @@ from src.schemas.bill_splits import (
     BillSplitSuggestionResponse,
     SplitPattern,
     PatternMetrics,
-    HistoricalAnalysis
+    HistoricalAnalysis,
+    BulkSplitOperation,
+    BulkOperationError,
+    BulkOperationResult
 )
 
 class BillSplitValidationError(Exception):
@@ -655,3 +658,85 @@ class BillSplitService:
         result = await self.db.execute(stmt)
         splits = result.unique().scalars().all()
         return sum(split.amount for split in splits)
+
+    async def process_bulk_operation(
+        self,
+        operation: BulkSplitOperation
+    ) -> BulkOperationResult:
+        """
+        Process a bulk bill split operation with transaction support.
+        Validates and processes multiple splits in a single transaction.
+        """
+        processed_count = len(operation.splits)
+        result = BulkOperationResult(
+            success=True,
+            processed_count=processed_count,
+            success_count=0,
+            failure_count=processed_count,  # Initially all are considered failed
+            successful_splits=list(),
+            errors=list()
+        )
+
+        try:
+            # Start transaction
+            async with self.db.begin_nested() as nested:
+                for index, split in enumerate(operation.splits):
+                    try:
+                        # Process based on operation type
+                        if operation.operation_type == "create":
+                            processed_split = await self.create_bill_split(split)
+                            result.successful_splits = [*result.successful_splits, processed_split]
+                            result.success_count += 1
+                            result.failure_count -= 1
+                        elif operation.operation_type == "update":
+                            if not hasattr(split, 'id'):
+                                raise ValueError("Update operation requires split ID")
+                            processed_split = await self.update_bill_split(split.id, split)
+                            if processed_split:
+                                result.successful_splits = [*result.successful_splits, processed_split]
+                                result.success_count += 1
+                                result.failure_count -= 1
+                            else:
+                                raise ValueError(f"Split with ID {split.id} not found")
+
+                    except Exception as e:
+                        result.errors = [*result.errors, BulkOperationError(
+                            index=index,
+                            split_data=split,
+                            error_message=str(e),
+                            error_type="validation" if isinstance(e, BillSplitValidationError) else "processing"
+                        )]
+                        if operation.validate_only:
+                            result.success = False
+                            await nested.rollback()
+                            return result
+                        continue
+
+                if operation.validate_only:
+                    await nested.rollback()
+                else:
+                    await nested.commit()
+
+        except Exception as e:
+            result.success = False
+            result.errors = [*result.errors, BulkOperationError(
+                index=-1,
+                split_data=operation.splits[0] if operation.splits else None,
+                error_message=f"Transaction error: {str(e)}",
+                error_type="transaction"
+            )]
+            return result
+
+        result.success = result.failure_count == 0 and len(result.errors) == 0
+        return result
+
+    async def validate_bulk_operation(
+        self,
+        operation: BulkSplitOperation
+    ) -> BulkOperationResult:
+        """
+        Validate a bulk operation without executing it.
+        This is a dry-run that checks all validations but doesn't commit changes.
+        """
+        operation.validate_only = True
+        return await self.process_bulk_operation(operation)
