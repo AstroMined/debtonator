@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 from typing import List
-from sqlalchemy import String, Date, Boolean, Numeric, Index, ForeignKey, CheckConstraint
+from sqlalchemy import String, Date, Boolean, Numeric, Index, ForeignKey, CheckConstraint, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.base import Base
@@ -23,11 +23,13 @@ class Income(Base):
     created_at: Mapped[date] = mapped_column(Date, default=date.today)
     updated_at: Mapped[date] = mapped_column(Date, default=date.today, onupdate=date.today)
 
-    # Account relationship
+    # Account and Category relationships
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
     account = relationship("Account", back_populates="income")
+    category_id: Mapped[int] = mapped_column(ForeignKey("income_categories.id"), nullable=True)
+    category = relationship("IncomeCategory")
 
-    # Relationships
+    # Payment Relationships
     payments: Mapped[List["Payment"]] = relationship("Payment", back_populates="income")
 
     # Create indexes and constraints

@@ -1,4 +1,4 @@
-# Debtonator v0.3.35
+# Debtonator v0.3.36
 
 A modern bill and cashflow management system that helps track bills, income, and maintain sufficient account balances for timely bill payments.
 
@@ -65,11 +65,17 @@ A modern bill and cashflow management system that helps track bills, income, and
     * Category inheritance
     * Category-based reporting
 
-- **Income Tracking**
+- **Income Management**
   - Record income sources and amounts
   - Track deposit status
   - Running total of undeposited income
   - Target account selection for deposits
+  - Income categorization system
+    * Category management with CRUD operations
+    * Category assignment to income records
+    * Category-based income tracking
+    * Duplicate category prevention
+    * Comprehensive validation
 
 - **Cashflow Analysis**
   - 90-day rolling forecast
@@ -309,10 +315,11 @@ The project includes a comprehensive test suite focusing on data integrity and m
     * Error handling
     * Relationship loading
     * Transaction management
-  - Income Service (86% coverage)
+  - Income Service (100% coverage)
     * CRUD operations
     * Account balance updates
     * Deposit status handling
+    * Category management
     * Error scenarios
   - Bill Splits Service (100% coverage)
     * Split validation

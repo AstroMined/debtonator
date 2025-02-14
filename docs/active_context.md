@@ -63,7 +63,7 @@ API Enhancement Project - Phase 3: Bill Splits Optimization
 
 ### Phase 4: Income System Enhancement (Next Focus)
 - [x] Query optimization
-- [ ] Income categorization (Next Priority)
+- [x] Income categorization
 - [ ] Trends analysis
 - [ ] Deposit scheduling
 - [ ] Recurring income
@@ -86,22 +86,19 @@ API Enhancement Project - Phase 3: Bill Splits Optimization
 ## Next Steps
 
 ### Phase 4: Income System Enhancement (Next Focus)
-1. Income Categorization System
-   - [ ] Design categorization schema
-   - [ ] Implement categorization service
-   - [ ] Add category relationship to income
+1. Trends Analysis System (Next Priority)
+   - [ ] Design trends analysis schema
+   - [ ] Implement trends analysis service
    - [ ] Create API endpoints
    - [ ] Add comprehensive test coverage
-   - [ ] Document categorization system
+   - [ ] Document trends analysis system
 
 2. Testing Strategy
-   - [ ] Service layer tests for categorization
+   - [ ] Service layer tests for trends analysis
    - [ ] API endpoint tests
-   - [ ] Category relationship tests
    - [ ] Error handling scenarios
 
 3. Documentation
-   - [ ] API documentation for categorization
-   - [ ] Category relationship guidelines
-   - [ ] Error handling procedures
+   - [ ] API documentation for trends analysis
+   - [ ] Analysis guidelines
    - [ ] Performance considerations

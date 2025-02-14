@@ -10,6 +10,7 @@ from .payments import router as payments_router
 from .transactions import router as transactions_router
 from .recurring_bills import router as recurring_bills_router
 from .payment_schedules import router as payment_schedules_router
+from .income_categories import router as income_categories_router
 
 api_v1_router = APIRouter()
 
@@ -23,6 +24,7 @@ api_v1_router.include_router(payments_router, tags=["payments"])
 # Other routers
 api_v1_router.include_router(bill_splits_router, prefix="/bill-splits", tags=["bill-splits"])
 api_v1_router.include_router(accounts_router, prefix="/accounts", tags=["accounts"])
+api_v1_router.include_router(income_categories_router, prefix="/income/categories")  # Tags already set in router
 api_v1_router.include_router(income_router, prefix="/income", tags=["income"])
 api_v1_router.include_router(cashflow_router, prefix="/cashflow", tags=["cashflow"])
 api_v1_router.include_router(bulk_import_router, tags=["bulk-import"])

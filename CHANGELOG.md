@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.36] - 2025-02-14
+
+### Added
+- Income categorization system
+  - New income_categories table for managing income categories
+  - Category relationship added to income records
+  - RESTful API endpoints for category management:
+    * Create, read, update, delete operations
+    * List all categories
+    * Assign categories to income
+  - Comprehensive validation at schema and service levels
+  - Complete test coverage including:
+    * Service layer tests (8 test cases)
+    * API endpoint tests (9 test cases)
+    * Error handling scenarios
+    * Duplicate category prevention
+
 ## [0.3.35] - 2025-02-14
 
 ### Added

@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Optional, List
 from pydantic import BaseModel, Field
+from .income_categories import IncomeCategory
 
 class IncomeBase(BaseModel):
     """Base schema for income data"""
@@ -10,6 +11,7 @@ class IncomeBase(BaseModel):
     amount: Decimal = Field(..., ge=0, description="Income amount")
     deposited: bool = Field(default=False)
     account_id: int = Field(..., description="ID of the account this income belongs to")
+    category_id: Optional[int] = Field(None, description="ID of the income category")
 
 class IncomeCreate(IncomeBase):
     """Schema for creating a new income record"""
@@ -21,6 +23,7 @@ class IncomeUpdate(BaseModel):
     source: Optional[str] = Field(None, min_length=1, max_length=255)
     amount: Optional[Decimal] = Field(None, ge=0)
     deposited: Optional[bool] = None
+    category_id: Optional[int] = None
 
 class IncomeInDB(IncomeBase):
     """Schema for income record in database"""
@@ -33,7 +36,7 @@ class IncomeInDB(IncomeBase):
 
 class IncomeResponse(IncomeInDB):
     """Schema for income response"""
-    pass
+    category: Optional[IncomeCategory] = None
 
 class IncomeList(BaseModel):
     """Schema for list of income records"""
@@ -49,3 +52,4 @@ class IncomeFilters(BaseModel):
     min_amount: Optional[Decimal] = Field(None, ge=0)
     max_amount: Optional[Decimal] = Field(None, ge=0)
     account_id: Optional[int] = None
+    category_id: Optional[int] = None
