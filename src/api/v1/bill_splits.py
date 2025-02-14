@@ -11,10 +11,52 @@ from ...schemas.bill_splits import (
     BillSplitUpdate,
     BillSplitResponse,
     BillSplitSuggestionResponse,
-    HistoricalAnalysis
+    HistoricalAnalysis,
+    BulkSplitOperation,
+    BulkOperationResult
 )
 
 router = APIRouter(tags=["bill-splits"])
+
+@router.post(
+    "/bulk",
+    response_model=BulkOperationResult,
+    description="Process a bulk operation for bill splits"
+)
+async def process_bulk_operation(
+    operation: BulkSplitOperation,
+    db: AsyncSession = Depends(get_db)
+):
+    """Process a bulk operation for bill splits (create/update)"""
+    service = BillSplitService(db)
+    try:
+        result = await service.process_bulk_operation(operation)
+        if result.success:
+            await db.commit()
+        else:
+            await db.rollback()
+        return result
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post(
+    "/bulk/validate",
+    response_model=BulkOperationResult,
+    description="Validate a bulk operation without executing it"
+)
+async def validate_bulk_operation(
+    operation: BulkSplitOperation,
+    db: AsyncSession = Depends(get_db)
+):
+    """Validate a bulk operation without executing it"""
+    service = BillSplitService(db)
+    try:
+        result = await service.validate_bulk_operation(operation)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 @router.get(
     "/analysis/{bill_id}",

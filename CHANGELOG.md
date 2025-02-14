@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.34] - 2025-02-14
+
+### Added
+- Bill splits bulk operations API endpoints
+  - New POST `/api/v1/bill-splits/bulk` endpoint for processing bulk operations
+  - New POST `/api/v1/bill-splits/bulk/validate` endpoint for validation-only mode
+  - Comprehensive integration tests for API endpoints
+  - Fixed decimal serialization in API tests
+  - Complete test coverage including:
+    * Successful bulk operations
+    * Validation failures
+    * Invalid liability scenarios
+    * Transaction rollback testing
+
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ## [0.3.33] - 2025-02-13
 
 ### Added
