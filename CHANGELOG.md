@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.35] - 2025-02-14
+
+### Added
+- Bill splits impact analysis system
+  - Account impact calculations with projected balances
+  - Credit utilization tracking and projections
+  - Cashflow impact analysis with deficit detection
+  - Risk scoring system with weighted factors
+  - Recommendation generation based on risk factors
+  - Comprehensive test coverage including:
+    * Basic split impact scenarios
+    * High-risk scenarios
+    * Cashflow impact calculations
+    * Credit utilization risk detection
+
 ## [0.3.34] - 2025-02-14
 
 ### Added
@@ -18,13 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * Validation failures
     * Invalid liability scenarios
     * Transaction rollback testing
-
-# Changelog
-
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.3.33] - 2025-02-13
 
