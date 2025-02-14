@@ -10,10 +10,29 @@ from ...schemas.bill_splits import (
     BillSplitCreate,
     BillSplitUpdate,
     BillSplitResponse,
-    BillSplitSuggestionResponse
+    BillSplitSuggestionResponse,
+    HistoricalAnalysis
 )
 
 router = APIRouter(tags=["bill-splits"])
+
+@router.get(
+    "/analysis/{bill_id}",
+    response_model=HistoricalAnalysis,
+    description="Get comprehensive historical analysis of bill splits"
+)
+async def get_historical_analysis(
+    bill_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """Get comprehensive historical analysis of bill splits patterns"""
+    service = BillSplitService(db)
+    try:
+        analysis = await service.analyze_historical_patterns(bill_id)
+        return analysis
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 # Suggestions endpoint
 @router.get("/suggestions/{bill_id}", response_model=BillSplitSuggestionResponse)

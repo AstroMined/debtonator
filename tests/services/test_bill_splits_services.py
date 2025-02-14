@@ -280,6 +280,137 @@ async def test_suggest_splits_multiple_accounts(db_session, checking_account, cr
             available_credit = credit_account.total_limit + credit_account.available_balance
             assert suggestion.amount <= available_credit
 
+async def test_analyze_historical_patterns(db_session, checking_account, credit_account, liability):
+    """Test comprehensive historical pattern analysis"""
+    service = BillSplitService(db_session)
+
+    # Create historical data with consistent patterns
+    for i in range(3):  # Create 3 similar liabilities
+        similar_liability = Liability(
+            name=liability.name,
+            amount=Decimal("300.00"),
+            due_date=date.today(),
+            category_id=liability.category_id,
+            primary_account_id=checking_account.id,
+            auto_pay=False,
+            auto_pay_enabled=False,
+            paid=False,
+            created_at=date.today(),
+            updated_at=date.today()
+        )
+        db_session.add(similar_liability)
+        await db_session.flush()
+
+        # Add consistent split pattern
+        splits = [
+            BillSplit(
+                liability_id=similar_liability.id,
+                account_id=checking_account.id,
+                amount=Decimal("200.00"),
+                created_at=date.today(),
+                updated_at=date.today()
+            ),
+            BillSplit(
+                liability_id=similar_liability.id,
+                account_id=credit_account.id,
+                amount=Decimal("100.00"),
+                created_at=date.today(),
+                updated_at=date.today()
+            )
+        ]
+        for split in splits:
+            db_session.add(split)
+        await db_session.flush()
+
+    # Get analysis
+    analysis = await service.analyze_historical_patterns(liability.id)
+    
+    # Verify basic analysis properties
+    assert analysis.liability_id == liability.id
+    assert analysis.analysis_date == date.today()
+    
+    # Verify patterns were identified
+    assert len(analysis.patterns) > 0
+    most_common = analysis.patterns[0]  # Should be sorted by confidence
+    assert most_common.total_occurrences == 3
+    assert abs(most_common.account_splits[checking_account.id] - Decimal("0.67")) < Decimal("0.01")  # ~67% split
+    assert abs(most_common.account_splits[credit_account.id] - Decimal("0.33")) < Decimal("0.01")  # ~33% split
+    
+    # Verify metrics
+    assert analysis.metrics.total_splits == 6  # 2 splits * 3 liabilities
+    assert analysis.metrics.unique_patterns == 1
+    assert analysis.metrics.average_splits_per_bill == 2.0
+    assert analysis.metrics.most_common_pattern is not None
+    assert checking_account.id in analysis.metrics.account_usage_frequency
+    assert credit_account.id in analysis.metrics.account_usage_frequency
+    
+    # Verify category patterns
+    assert liability.category_id in analysis.category_patterns
+    assert len(analysis.category_patterns[liability.category_id]) > 0
+    
+    # Verify seasonal patterns
+    current_month = date.today().strftime("%B")
+    assert current_month in analysis.seasonal_patterns
+    assert len(analysis.seasonal_patterns[current_month]) > 0
+
+async def test_pattern_confidence_scoring(db_session, checking_account, credit_account, liability):
+    """Test confidence score calculation for patterns"""
+    service = BillSplitService(db_session)
+    
+    # Create test data with varying dates to test recency impact
+    dates = [
+        date.today(),  # Recent
+        date(2024, 1, 1),  # A bit older
+        date(2023, 6, 1),  # Much older
+    ]
+    
+    for test_date in dates:
+        similar_liability = Liability(
+            name=liability.name,
+            amount=Decimal("300.00"),
+            due_date=test_date,
+            category_id=liability.category_id,
+            primary_account_id=checking_account.id,
+            auto_pay=False,
+            auto_pay_enabled=False,
+            paid=False,
+            created_at=test_date,
+            updated_at=test_date
+        )
+        db_session.add(similar_liability)
+        await db_session.flush()
+
+        splits = [
+            BillSplit(
+                liability_id=similar_liability.id,
+                account_id=checking_account.id,
+                amount=Decimal("200.00"),
+                created_at=test_date,
+                updated_at=test_date
+            ),
+            BillSplit(
+                liability_id=similar_liability.id,
+                account_id=credit_account.id,
+                amount=Decimal("100.00"),
+                created_at=test_date,
+                updated_at=test_date
+            )
+        ]
+        for split in splits:
+            db_session.add(split)
+        await db_session.flush()
+
+    # Get analysis
+    analysis = await service.analyze_historical_patterns(liability.id)
+    
+    # Verify confidence scoring
+    assert len(analysis.patterns) > 0
+    pattern = analysis.patterns[0]
+    
+    # Pattern should have high frequency score (3 occurrences)
+    # but lower recency score due to older entries
+    assert 0.3 < pattern.confidence_score < 0.9  # Reasonable range for mixed recency
+
 async def test_validate_splits_insufficient_funds(db_session, checking_account, liability):
     service = BillSplitService(db_session)
     

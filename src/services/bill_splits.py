@@ -1,7 +1,7 @@
 from decimal import Decimal
-from datetime import date
+from datetime import date, datetime
 from typing import List, Optional, Tuple, Dict
-from sqlalchemy import select, delete, and_, func, or_
+from sqlalchemy import select, delete, and_, func, or_, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -13,7 +13,10 @@ from src.schemas.bill_splits import (
     BillSplitUpdate,
     BillSplitValidation,
     SplitSuggestion,
-    BillSplitSuggestionResponse
+    BillSplitSuggestionResponse,
+    SplitPattern,
+    PatternMetrics,
+    HistoricalAnalysis
 )
 
 class BillSplitValidationError(Exception):
@@ -252,6 +255,179 @@ class BillSplitService:
 
         except Exception as e:
             return False, str(e)
+
+    def _generate_pattern_id(self, splits: List[Dict[str, any]]) -> str:
+        """Generate a unique pattern ID from a set of splits."""
+        # Sort splits by account ID to ensure consistent pattern IDs
+        sorted_splits = sorted(splits, key=lambda x: x['account_id'])
+        pattern_parts = []
+        for split in sorted_splits:
+            # Use percentage of total to identify similar patterns with different absolute amounts
+            pattern_parts.append(f"{split['account_id']}:{split['percentage']:.2f}")
+        return "|".join(pattern_parts)
+
+    def _calculate_confidence_score(
+        self,
+        occurrences: int,
+        total_patterns: int,
+        first_seen: date,
+        last_seen: date
+    ) -> float:
+        """Calculate a confidence score based on frequency and recency."""
+        today = date.today()
+        days_since_first = (today - first_seen).days
+        days_since_last = (today - last_seen).days
+        
+        # Frequency score (0-0.6)
+        # Adjust frequency score based on proportion of total patterns
+        frequency_score = min(0.6, (occurrences / max(total_patterns, 1)) * 0.6)
+        
+        # Recency score (0-0.4)
+        # More recent patterns get higher scores
+        max_history = 365 * 2  # 2 years
+        days_since_last = min(days_since_last, max_history)  # Cap at max history
+        recency_score = 0.4 * (1 - (days_since_last / max_history))
+        
+        # Weight recent patterns more heavily if they occur frequently
+        weighted_score = (frequency_score * 0.7) + (recency_score * 0.3)
+        
+        return min(0.9, max(0.1, weighted_score))  # Ensure score is between 0.1 and 0.9
+
+    async def analyze_historical_patterns(self, liability_id: int) -> HistoricalAnalysis:
+        """Perform comprehensive historical analysis of bill splits."""
+        # Get the liability and its category
+        stmt = (
+            select(Liability)
+            .options(joinedload(Liability.category))
+            .where(Liability.id == liability_id)
+        )
+        result = await self.db.execute(stmt)
+        liability = result.unique().scalar_one_or_none()
+        if not liability:
+            raise BillSplitValidationError(f"Liability with id {liability_id} not found")
+
+        # Get all splits for similar liabilities
+        similar_stmt = (
+            select(BillSplit)
+            .join(BillSplit.liability)
+            .options(
+                joinedload(BillSplit.liability),
+                joinedload(BillSplit.account)
+            )
+            .where(
+                or_(
+                    Liability.name == liability.name,
+                    Liability.category_id == liability.category_id
+                )
+            )
+            .order_by(BillSplit.created_at)
+        )
+        result = await self.db.execute(similar_stmt)
+        all_splits = result.unique().scalars().all()
+
+        # Group splits by liability
+        liability_splits: Dict[int, List[Dict]] = {}
+        total_splits = 0
+        for split in all_splits:
+            total_splits += 1
+            if split.liability_id not in liability_splits:
+                liability_splits[split.liability_id] = []
+            
+            # Calculate total for this liability's splits
+            liability_total = sum(s.amount for s in all_splits if s.liability_id == split.liability_id)
+            
+            liability_splits[split.liability_id].append({
+                'account_id': split.account_id,
+                'amount': split.amount,
+                'percentage': (split.amount / liability_total) if liability_total else 0,
+                'created_at': split.created_at
+            })
+
+        # Analyze patterns
+        patterns: Dict[str, Dict] = {}
+        account_usage: Dict[int, int] = {}
+        
+        for splits in liability_splits.values():
+            pattern_id = self._generate_pattern_id(splits)
+            
+            if pattern_id not in patterns:
+                total_amount = sum(split['amount'] for split in splits)
+                patterns[pattern_id] = {
+                    'pattern_id': pattern_id,
+                    'account_splits': {
+                        split['account_id']: split['percentage']
+                        for split in splits
+                    },
+                    'total_occurrences': 0,
+                    'first_seen': splits[0]['created_at'],
+                    'last_seen': splits[0]['created_at'],
+                    'total_amount': total_amount,
+                    'amounts': []
+                }
+            
+            pattern = patterns[pattern_id]
+            pattern['total_occurrences'] += 1
+            pattern['amounts'].append(sum(split['amount'] for split in splits))
+            pattern['last_seen'] = max(pattern['last_seen'], splits[-1]['created_at'])
+            
+            # Track account usage
+            for split in splits:
+                account_usage[split['account_id']] = account_usage.get(split['account_id'], 0) + 1
+
+        # Convert patterns to SplitPattern objects
+        pattern_objects = []
+        for pattern in patterns.values():
+            average_total = sum(pattern['amounts']) / len(pattern['amounts'])
+            confidence_score = self._calculate_confidence_score(
+                pattern['total_occurrences'],
+                len(liability_splits),
+                pattern['first_seen'],
+                pattern['last_seen']
+            )
+            
+            pattern_objects.append(SplitPattern(
+                pattern_id=pattern['pattern_id'],
+                account_splits=pattern['account_splits'],
+                total_occurrences=pattern['total_occurrences'],
+                first_seen=pattern['first_seen'],
+                last_seen=pattern['last_seen'],
+                average_total=average_total,
+                confidence_score=confidence_score
+            ))
+
+        # Sort patterns by confidence score
+        pattern_objects.sort(key=lambda x: x.confidence_score, reverse=True)
+
+        # Calculate metrics
+        metrics = PatternMetrics(
+            total_splits=total_splits,
+            unique_patterns=len(patterns),
+            most_common_pattern=pattern_objects[0] if pattern_objects else None,
+            average_splits_per_bill=total_splits / len(liability_splits) if liability_splits else 0,
+            account_usage_frequency=account_usage
+        )
+
+        # Group patterns by category
+        category_patterns: Dict[int, List[SplitPattern]] = {}
+        if liability.category_id:
+            category_patterns[liability.category_id] = pattern_objects
+
+        # Analyze seasonal patterns (group by month)
+        seasonal_patterns: Dict[str, List[SplitPattern]] = {}
+        for pattern in pattern_objects:
+            month = pattern.last_seen.strftime("%B")
+            if month not in seasonal_patterns:
+                seasonal_patterns[month] = []
+            seasonal_patterns[month].append(pattern)
+
+        return HistoricalAnalysis(
+            liability_id=liability_id,
+            analysis_date=date.today(),
+            patterns=pattern_objects,
+            metrics=metrics,
+            category_patterns=category_patterns,
+            seasonal_patterns=seasonal_patterns
+        )
 
     async def get_historical_split_patterns(
         self,
