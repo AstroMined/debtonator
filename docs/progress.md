@@ -115,7 +115,12 @@
   - [x] Seasonality analysis
   - [x] Source statistics
   - [x] Confidence scoring
-- [ ] Deposit scheduling
+- [x] Deposit scheduling
+  - [x] Schema design
+  - [x] Service implementation
+  - [x] API endpoints
+  - [x] Test coverage
+  - [x] Documentation
 - [ ] Recurring income
 - [ ] Analysis endpoints
 
@@ -148,7 +153,14 @@
   - [ ] Documentation
 
 ## Recent Improvements
-1. Income Trends Analysis System
+1. Deposit Scheduling System
+   - [x] Created deposit scheduling schema
+   - [x] Implemented scheduling service with validation
+   - [x] Added API endpoints with proper error handling
+   - [x] Added comprehensive test coverage
+   - [x] All tests passing
+
+2. Income Trends Analysis System
    - [x] Added pattern detection with confidence scoring
    - [x] Implemented seasonality analysis
    - [x] Added source statistics tracking
@@ -174,8 +186,7 @@
    - [x] Fixed all test failures
 
 ## Future Enhancements
-1. Deposit scheduling system
-2. Recurring income support
-3. Enhanced analysis endpoints
-4. Real-time cashflow tracking
-5. Cross-account analysis
+1. Recurring income support
+2. Enhanced analysis endpoints
+3. Real-time cashflow tracking
+4. Cross-account analysis

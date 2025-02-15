@@ -11,6 +11,7 @@ from .transactions import router as transactions_router
 from .recurring_bills import router as recurring_bills_router
 from .payment_schedules import router as payment_schedules_router
 from .income_categories import router as income_categories_router
+from .deposit_schedules import router as deposit_schedules_router
 
 api_v1_router = APIRouter()
 
@@ -31,3 +32,4 @@ api_v1_router.include_router(bulk_import_router, tags=["bulk-import"])
 api_v1_router.include_router(transactions_router, tags=["transactions"])
 api_v1_router.include_router(recurring_bills_router, prefix="/recurring-bills", tags=["recurring-bills"])
 api_v1_router.include_router(payment_schedules_router, tags=["payment-schedules"])
+api_v1_router.include_router(deposit_schedules_router, tags=["deposit-schedules"])

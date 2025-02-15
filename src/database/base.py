@@ -37,7 +37,8 @@ from ..models import (
     liabilities,
     payments,
     categories,
-    income_categories
+    income_categories,
+    deposit_schedules
 )
 
 __all__ = [
@@ -50,5 +51,6 @@ __all__ = [
     "liabilities",
     "payments",
     "categories",
-    "income_categories"
+    "income_categories",
+    "deposit_schedules"
 ]
