@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
 from sqlalchemy import String, Date, Numeric, Text, DateTime, ForeignKey
@@ -14,7 +14,7 @@ class Payment(Base):
     liability_id: Mapped[Optional[int]] = mapped_column(ForeignKey("liabilities.id"), nullable=True)
     income_id: Mapped[Optional[int]] = mapped_column(ForeignKey("income.id"), nullable=True)
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
-    payment_date: Mapped[date] = mapped_column(Date)
+    payment_date: Mapped[datetime] = mapped_column(DateTime)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     category: Mapped[str] = mapped_column(String(100))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

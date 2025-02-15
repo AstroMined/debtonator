@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from enum import Enum
 from typing import Dict, List, Optional
@@ -46,6 +46,14 @@ class PaymentPatternAnalysis(BaseModel):
     notes: Optional[List[str]] = None
     seasonal_metrics: Optional[Dict[int, SeasonalMetrics]] = None
 
+    def __init__(self, **data):
+        super().__init__(**data)
+        # Ensure analysis period dates are UTC
+        if self.analysis_period_start and not self.analysis_period_start.tzinfo:
+            self.analysis_period_start = self.analysis_period_start.replace(tzinfo=timezone.utc)
+        if self.analysis_period_end and not self.analysis_period_end.tzinfo:
+            self.analysis_period_end = self.analysis_period_end.replace(tzinfo=timezone.utc)
+
     class Config:
         json_encoders = {
             Decimal: lambda v: float(v)
@@ -59,3 +67,11 @@ class PaymentPatternRequest(BaseModel):
     end_date: Optional[datetime] = None
     min_sample_size: int = Field(default=3, ge=2, description="Minimum number of payments required for analysis (2 for bill-specific analysis, 3 for general analysis)")
     liability_id: Optional[int] = None
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        # Ensure any provided dates are UTC
+        if self.start_date and not self.start_date.tzinfo:
+            self.start_date = self.start_date.replace(tzinfo=timezone.utc)
+        if self.end_date and not self.end_date.tzinfo:
+            self.end_date = self.end_date.replace(tzinfo=timezone.utc)

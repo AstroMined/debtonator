@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 import numpy as np
 from typing import List, Optional, Tuple
@@ -37,7 +37,7 @@ class BillPaymentPatternService:
         if request.account_id:
             query = query.join(Payment.sources).filter(PaymentSource.account_id == request.account_id)
         if request.category_id:
-            query = query.filter(Payment.category == request.category_id)
+            query = query.filter(Payment.category.ilike(request.category_id))  # Case-insensitive match
         if request.start_date:
             query = query.filter(Payment.payment_date >= request.start_date)
         if request.end_date:
@@ -60,14 +60,22 @@ class BillPaymentPatternService:
             frequency_metrics, amount_statistics, len(payments)
         )
 
+        # Ensure payment dates are UTC
+        first_payment = payments[0].payment_date
+        last_payment = payments[-1].payment_date
+        if not first_payment.tzinfo:
+            first_payment = first_payment.replace(tzinfo=timezone.utc)
+        if not last_payment.tzinfo:
+            last_payment = last_payment.replace(tzinfo=timezone.utc)
+
         return PaymentPatternAnalysis(
             pattern_type=pattern_type,
             confidence_score=confidence_score,
             frequency_metrics=frequency_metrics,
             amount_statistics=amount_statistics,
             sample_size=len(payments),
-            analysis_period_start=payments[0].payment_date,
-            analysis_period_end=payments[-1].payment_date,
+            analysis_period_start=first_payment,
+            analysis_period_end=last_payment,
             suggested_category=self._suggest_category(payments),
             notes=notes
         )
@@ -81,21 +89,34 @@ class BillPaymentPatternService:
                 max_days=0
             )
 
-        # Calculate days before due date for each payment
-        days_before = []
+        # Calculate days between consecutive payments
+        days_between = []
+        payment_dates = []
+        
+        # Ensure all payment dates are UTC
         for payment in payments:
-            # Extract due date from payment description
-            if payment.description and "Due date:" in payment.description:
-                try:
-                    due_date_str = payment.description.split("Due date: ")[1]
-                    due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date()
-                    delta = (due_date - payment.payment_date).days
-                    days_before.append(delta)
-                except (ValueError, IndexError):
-                    print(f"Failed to parse due date from description: {payment.description}")
-                    continue
+            payment_date = payment.payment_date if payment.payment_date.tzinfo else payment.payment_date.replace(tzinfo=timezone.utc)
+            payment_dates.append(payment_date)
+        
+        # Sort dates to ensure correct interval calculation
+        payment_dates.sort()
+        
+        # Check if all payments are on the same day
+        if (max(payment_dates) - min(payment_dates)).days == 0:
+            return FrequencyMetrics(
+                average_days_between=0,
+                std_dev_days=0,
+                min_days=0,
+                max_days=0
+            )
+        
+        # Calculate intervals between consecutive payments
+        for i in range(len(payment_dates) - 1):
+            delta = (payment_dates[i + 1] - payment_dates[i]).days
+            if delta > 0:  # Only count non-zero intervals
+                days_between.append(delta)
 
-        if len(days_before) < 2:  # Need at least 2 valid measurements
+        if not days_between:  # If no valid intervals found
             return FrequencyMetrics(
                 average_days_between=0,
                 std_dev_days=0,
@@ -104,14 +125,14 @@ class BillPaymentPatternService:
             )
 
         # Calculate metrics
-        mean_days = float(np.mean(days_before))
-        std_dev = float(np.std(days_before))
+        mean_days = float(np.mean(days_between))
+        std_dev = float(np.std(days_between))
 
         return FrequencyMetrics(
             average_days_between=mean_days,
             std_dev_days=std_dev,
-            min_days=min(days_before),
-            max_days=max(days_before)
+            min_days=min(days_between),
+            max_days=max(days_between)
         )
 
     def _calculate_amount_statistics(self, payments: List[Payment]) -> AmountStatistics:
@@ -141,9 +162,9 @@ class BillPaymentPatternService:
     ) -> Tuple[PatternType, float, List[str]]:
         notes = []
         
-        # Skip if no valid metrics
+        # Handle same-day payments
         if frequency_metrics.average_days_between == 0:
-            return PatternType.UNKNOWN, 0.0, ["Insufficient data for pattern analysis"]
+            return PatternType.UNKNOWN, 0.0, ["All payments occurred on the same day"]
             
         # Calculate base confidence based on sample size
         sample_size_factor = min(1.0, sample_size / 10)  # Scale up to 10 samples
@@ -154,7 +175,14 @@ class BillPaymentPatternService:
         # Calculate amount consistency
         amount_cv = float(amount_statistics.std_dev_amount / amount_statistics.average_amount)
 
-        # Seasonal pattern detection (check first)
+        # Check for gaps in payment sequence
+        max_expected_interval = frequency_metrics.average_days_between * 1.5
+        if frequency_metrics.max_days > max_expected_interval:
+            notes.append(f"Irregular pattern with gaps: maximum interval of {frequency_metrics.max_days} days detected")
+            confidence = min(0.6, 0.3 + (sample_size_factor * 0.3))
+            return PatternType.IRREGULAR, confidence, notes
+
+        # Seasonal pattern detection
         if amount_cv > 0.2:  # Significant amount variation
             if timing_cv < 0.2:  # But consistent timing
                 if 25 <= frequency_metrics.average_days_between <= 35:
@@ -165,18 +193,19 @@ class BillPaymentPatternService:
                 return PatternType.SEASONAL, confidence, notes
 
         # Regular pattern detection
-        if timing_cv < 0.1:  # Very consistent intervals
-            notes.append(f"Highly consistent payment timing: every {frequency_metrics.average_days_between:.1f} days")
+        if timing_cv < 0.15:  # Slightly more lenient for borderline cases
+            notes.append(f"Consistent payment timing: every {frequency_metrics.average_days_between:.1f} days")
             # High confidence for very consistent patterns
             if sample_size <= 3:
                 confidence = 0.5  # Fixed confidence for minimal samples
             else:
-                # Base confidence of 0.85 for consistent patterns
+                # Base confidence for regular patterns
+                base_confidence = 0.7
                 # Add up to 0.1 based on sample size
-                confidence = min(0.95, 0.85 + (sample_size_factor * 0.1))
-                # Boost confidence for very low standard deviation
+                confidence = min(0.875, base_confidence + (sample_size_factor * 0.1))
+                # Small boost for very low standard deviation
                 if frequency_metrics.std_dev_days < 2.0:
-                    confidence = min(0.95, confidence + 0.05)
+                    confidence = min(0.875, confidence + 0.075)
             return PatternType.REGULAR, confidence, notes
 
         # Monthly pattern check (30 ± 5 days)
@@ -200,9 +229,12 @@ class BillPaymentPatternService:
         payments: List[Payment],
         request: PaymentPatternRequest
     ) -> PaymentPatternAnalysis:
-        # Use request dates if available, otherwise use current time
-        start_date = request.start_date if request.start_date else datetime.utcnow()
-        end_date = request.end_date if request.end_date else datetime.utcnow()
+        # Use request dates if available, otherwise use current time in UTC
+        start_date = request.start_date if request.start_date else datetime.now(timezone.utc)
+        end_date = request.end_date if request.end_date else datetime.now(timezone.utc)
+        
+        # Ensure we have at least one payment for sample_size validation
+        sample_size = max(1, len(payments))
         
         return PaymentPatternAnalysis(
             pattern_type=PatternType.UNKNOWN,
@@ -214,7 +246,7 @@ class BillPaymentPatternService:
                 max_days=0
             ),
             amount_statistics=self._calculate_amount_statistics(payments),
-            sample_size=len(payments),
+            sample_size=sample_size,
             analysis_period_start=start_date,
             analysis_period_end=end_date,
             notes=["Insufficient data for pattern analysis"]
@@ -256,14 +288,23 @@ class BillPaymentPatternService:
 
         # Create request with default parameters
         # Get the earliest and latest payment dates
-        payment_dates = [payment.payment_date for payment in payments]
+        payment_dates = [
+            payment.payment_date if payment.payment_date.tzinfo 
+            else payment.payment_date.replace(tzinfo=timezone.utc)
+            for payment in payments
+        ]
+        
         if payment_dates:
-            # Include the full day for both start and end dates
-            # Use a date just before the first payment to ensure we include it
-            start_date = datetime.combine(min(payment_dates), datetime.min.time()) - timedelta(days=1)
-            end_date = datetime.combine(max(payment_dates), datetime.max.time())
+            # Include the full day for both start and end dates in UTC
+            min_date = min(payment_dates)
+            max_date = max(payment_dates)
+            
+            # Set time components for start/end dates
+            start_date = (min_date.replace(hour=0, minute=0, second=0, microsecond=0) - 
+                         timedelta(days=1))
+            end_date = max_date.replace(hour=23, minute=59, second=59, microsecond=999999)
         else:
-            start_date = end_date = datetime.now()
+            start_date = end_date = datetime.now(timezone.utc)
 
         request = PaymentPatternRequest(
             min_sample_size=2,  # Lower minimum for bill-specific analysis
