@@ -80,13 +80,21 @@ class PaymentPatternService:
                 max_days=0
             )
 
-        # Calculate days between consecutive payments
-        days_between = []
-        for i in range(len(payments) - 1):
-            delta = (payments[i + 1].payment_date - payments[i].payment_date).days
-            days_between.append(delta)
+        # Calculate days before due date for each payment
+        days_before = []
+        for payment in payments:
+            # Extract due date from payment description
+            if payment.description and "Due date:" in payment.description:
+                try:
+                    due_date_str = payment.description.split("Due date: ")[1]
+                    due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date()
+                    delta = (due_date - payment.payment_date).days
+                    days_before.append(delta)
+                except (ValueError, IndexError):
+                    print(f"Failed to parse due date from description: {payment.description}")
+                    continue
 
-        if not days_between:
+        if len(days_before) < 2:  # Need at least 2 valid measurements
             return FrequencyMetrics(
                 average_days_between=0,
                 std_dev_days=0,
@@ -95,14 +103,14 @@ class PaymentPatternService:
             )
 
         # Calculate metrics
-        mean_days = float(np.mean(days_between))
-        std_dev = float(np.std(days_between))
+        mean_days = float(np.mean(days_before))
+        std_dev = float(np.std(days_before))
 
         return FrequencyMetrics(
             average_days_between=mean_days,
             std_dev_days=std_dev,
-            min_days=min(days_between),
-            max_days=max(days_between)
+            min_days=min(days_before),
+            max_days=max(days_before)
         )
 
     def _calculate_amount_statistics(self, payments: List[Payment]) -> AmountStatistics:
@@ -158,11 +166,16 @@ class PaymentPatternService:
         # Regular pattern detection
         if timing_cv < 0.1:  # Very consistent intervals
             notes.append(f"Highly consistent payment timing: every {frequency_metrics.average_days_between:.1f} days")
-            # High confidence for very consistent patterns, but lower for minimal samples
+            # High confidence for very consistent patterns
             if sample_size <= 3:
                 confidence = 0.5  # Fixed confidence for minimal samples
             else:
-                confidence = min(0.95, 0.8 + (sample_size_factor * 0.15))
+                # Base confidence of 0.85 for consistent patterns
+                # Add up to 0.1 based on sample size
+                confidence = min(0.95, 0.85 + (sample_size_factor * 0.1))
+                # Boost confidence for very low standard deviation
+                if frequency_metrics.std_dev_days < 2.0:
+                    confidence = min(0.95, confidence + 0.05)
             return PatternType.REGULAR, confidence, notes
 
         # Monthly pattern check (30 ± 5 days)

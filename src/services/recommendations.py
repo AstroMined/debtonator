@@ -15,7 +15,7 @@ from src.schemas.recommendations import (
     ImpactMetrics,
     RecommendationResponse,
 )
-from src.schemas.payment_patterns import PatternType
+from src.schemas.payment_patterns import PatternType, PaymentPatternAnalysis
 from src.services.payment_patterns import PaymentPatternService
 from src.services.cashflow import CashflowService
 
@@ -68,10 +68,10 @@ class RecommendationService:
     ) -> Optional[BillPaymentTimingRecommendation]:
         """Analyze payment patterns for a bill and generate timing recommendations."""
         # Get payment patterns
-        patterns = await self.pattern_service.analyze_bill_payments(bill.id)
-        print(f"\nAnalyzing bill {bill.id} with patterns: {patterns}")
-        if not patterns:
-            print("No patterns found")
+        pattern_analysis: Optional[PaymentPatternAnalysis] = await self.pattern_service.analyze_bill_payments(bill.id)
+        print(f"\nAnalyzing bill {bill.id} with pattern analysis: {pattern_analysis}")
+        if not pattern_analysis:
+            print("No pattern analysis found")
             return None
 
         # Get affected accounts
@@ -85,7 +85,7 @@ class RecommendationService:
 
         # Analyze optimal payment timing
         optimal_date, confidence, reason = await self._calculate_optimal_payment_date(
-            bill, patterns, affected_accounts
+            bill, pattern_analysis, affected_accounts
         )
         print(f"Optimal payment date: {optimal_date}, confidence: {confidence}, reason: {reason}")
         if not optimal_date:
@@ -104,7 +104,7 @@ class RecommendationService:
             reason=reason,
             confidence=confidence,
             impact=impact,
-            historical_pattern_strength=patterns.confidence_score,
+            historical_pattern_strength=pattern_analysis.confidence_score,
             affected_accounts=[acc.id for acc in affected_accounts],
         )
 
@@ -144,21 +144,21 @@ class RecommendationService:
     async def _calculate_optimal_payment_date(
         self,
         bill: Liability,
-        patterns: any,  # PaymentPatternResponse type
+        pattern_analysis: PaymentPatternAnalysis,
         accounts: List[Account],
     ) -> Tuple[Optional[date], ConfidenceLevel, str]:
         """Calculate the optimal payment date based on patterns and account status."""
-        if patterns.pattern_type == PatternType.REGULAR:
+        if pattern_analysis.pattern_type == PatternType.REGULAR:
             return await self._analyze_regular_pattern(
-                bill, patterns, accounts
+                bill, pattern_analysis, accounts
             )
-        elif patterns.pattern_type == PatternType.IRREGULAR:
+        elif pattern_analysis.pattern_type == PatternType.IRREGULAR:
             return await self._analyze_irregular_pattern(
-                bill, patterns, accounts
+                bill, pattern_analysis, accounts
             )
-        elif patterns.pattern_type == PatternType.SEASONAL:
+        elif pattern_analysis.pattern_type == PatternType.SEASONAL:
             return await self._analyze_seasonal_pattern(
-                bill, patterns, accounts
+                bill, pattern_analysis, accounts
             )
         
         # Default case for UNKNOWN pattern type
@@ -272,27 +272,27 @@ class RecommendationService:
     async def _analyze_regular_pattern(
         self,
         bill: Liability,
-        patterns: any,
+        pattern_analysis: PaymentPatternAnalysis,
         accounts: List[Account],
     ) -> Tuple[Optional[date], ConfidenceLevel, str]:
         """Analyze regular payment patterns for optimal timing."""
         # For regular patterns, use the average days before due date
-        days_before = int(patterns.frequency_metrics.average_days_between)
+        days_before = int(pattern_analysis.frequency_metrics.average_days_between)
         optimal_date = bill.due_date - timedelta(days=days_before)
         
         # Set confidence based on standard deviation and pattern confidence
-        if patterns.frequency_metrics.std_dev_days <= 1:  # Very consistent (±1 day)
+        if pattern_analysis.frequency_metrics.std_dev_days <= 1:  # Very consistent (±1 day)
             confidence = ConfidenceLevel.HIGH
-            reason = f"Highly consistent payment pattern {days_before} days before due date (±{patterns.frequency_metrics.std_dev_days:.1f} days)"
-        elif patterns.frequency_metrics.std_dev_days <= 3:  # Fairly consistent (±3 days)
+            reason = f"Highly consistent payment pattern {days_before} days before due date (±{pattern_analysis.frequency_metrics.std_dev_days:.1f} days)"
+        elif pattern_analysis.frequency_metrics.std_dev_days <= 3:  # Fairly consistent (±3 days)
             confidence = ConfidenceLevel.MEDIUM
-            reason = f"Consistent payment pattern {days_before} days before due date (±{patterns.frequency_metrics.std_dev_days:.1f} days)"
+            reason = f"Consistent payment pattern {days_before} days before due date (±{pattern_analysis.frequency_metrics.std_dev_days:.1f} days)"
         else:  # More variable
             confidence = ConfidenceLevel.LOW
-            reason = f"Variable payment pattern averaging {days_before} days before due date (±{patterns.frequency_metrics.std_dev_days:.1f} days)"
+            reason = f"Variable payment pattern averaging {days_before} days before due date (±{pattern_analysis.frequency_metrics.std_dev_days:.1f} days)"
         
         # Adjust confidence based on pattern's confidence score
-        if patterns.confidence_score < 0.5:
+        if pattern_analysis.confidence_score < 0.5:
             confidence = ConfidenceLevel.LOW
             reason += " (Limited historical data)"
         
@@ -301,7 +301,7 @@ class RecommendationService:
     async def _analyze_irregular_pattern(
         self,
         bill: Liability,
-        patterns: any,
+        pattern_analysis: PaymentPatternAnalysis,
         accounts: List[Account],
     ) -> Tuple[Optional[date], ConfidenceLevel, str]:
         """Analyze irregular payment patterns for optimal timing."""
@@ -330,16 +330,16 @@ class RecommendationService:
     async def _analyze_seasonal_pattern(
         self,
         bill: Liability,
-        patterns: any,
+        pattern_analysis: PaymentPatternAnalysis,
         accounts: List[Account],
     ) -> Tuple[Optional[date], ConfidenceLevel, str]:
         """Analyze seasonal payment patterns for optimal timing."""
         # For seasonal patterns, consider the current season's typical behavior
         current_month = datetime.now().month
-        if not patterns.seasonal_metrics:
+        if not pattern_analysis.seasonal_metrics:
             return None, None, ""
 
-        season_data = patterns.seasonal_metrics.get((current_month - 1) // 3)
+        season_data = pattern_analysis.seasonal_metrics.get((current_month - 1) // 3)
         
         if season_data:
             days_before = int(season_data.avg_days_before_due)

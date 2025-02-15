@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.50] - 2025-02-15
+
+### Changed
+- Refactored payment pattern service to focus on bill-specific patterns:
+  * Renamed PaymentPatternService to BillPaymentPatternService
+  * Updated service to focus on bill payment patterns
+  * Improved pattern detection relative to bill due dates
+  * Added TODO comments for future ExpensePatternService
+  * Updated test fixtures to use proper bill-payment relationships
+  * Removed non-bill pattern detection tests
+  * Maintained full test coverage
+
 ## [0.3.49] - 2025-02-15
 
 ### Fixed

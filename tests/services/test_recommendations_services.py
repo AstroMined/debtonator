@@ -70,26 +70,36 @@ async def test_payments(db_session: AsyncSession, test_bill, test_accounts):
     """Create a consistent payment pattern: always 5 days before due date."""
     payments = []
     days_before_due = 5  # Consistent pattern of paying 5 days before due
+    base_date = date.today()
     
     # Create 6 monthly payments
     for i in range(6):
-        # Calculate this month's due date
-        due_date = date.today() + timedelta(days=15)  # Always 15 days from today
+        # Calculate this month's due date (15th of each month)
+        month_offset = i
+        if base_date.month + month_offset > 12:
+            year_offset = (base_date.month + month_offset - 1) // 12
+            month = (base_date.month + month_offset - 1) % 12 + 1
+            due_date = date(base_date.year + year_offset, month, 15)
+        else:
+            due_date = date(base_date.year, base_date.month + month_offset, 15)
+        
         # Calculate payment date to be exactly 5 days before due date
         payment_date = due_date - timedelta(days=days_before_due)
         
-        # Set the bill's due date
-        test_bill.due_date = due_date
-        await db_session.commit()
+        # Set the bill's due date to the latest due date
+        if i == 5:  # Last iteration
+            test_bill.due_date = due_date
+            await db_session.commit()
         
         print(f"Creating payment {i+1}: payment_date={payment_date}, due_date={due_date}, days_before={days_before_due}")
         
-        # Create payment with exact timing
+        # Create payment with exact timing and store due date in description
         payment = Payment(
             liability_id=test_bill.id,
             amount=Decimal("100"),
             payment_date=payment_date,  # Exactly 5 days before due date
             category="utilities",
+            description=f"Due date: {due_date}",  # Store due date in description
             created_at=datetime.now(),
             updated_at=datetime.now()
         )

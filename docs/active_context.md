@@ -26,6 +26,11 @@ API Enhancement Project - Phase 6: Reporting & Analysis
      * Added single-day difference tests
      * Fixed edge case handling
    - ✓ Fixed all test failures
+   - [In Progress] Refactoring to bill-specific patterns:
+     * Rename to BillPaymentPatternService
+     * Update tests for bill-payment relationships
+     * Remove non-bill pattern tests
+     * Add TODO for future ExpensePatternService
 
 3. **Previous Work: Account-specific Forecasts Implementation**
    - ✓ Created account-specific forecast schemas
@@ -45,6 +50,8 @@ API Enhancement Project - Phase 6: Reporting & Analysis
    - Proper error handling
    - Improved test coverage
    - Account-level risk assessment
+   - Focus payment pattern analysis on bill-specific patterns
+   - Plan for separate expense pattern analysis service
 
 2. **Enhancement Priorities**
    - [x] Account management complete
@@ -94,12 +101,15 @@ API Enhancement Project - Phase 6: Reporting & Analysis
    - [x] Add balance trend analysis
    - [x] Add comprehensive test coverage
 
-2. Payment Pattern Analysis (Completed)
+2. Payment Pattern Analysis (In Progress)
    - [x] Design payment pattern schemas
    - [x] Implement pattern detection
    - [x] Add regular/irregular pattern detection
    - [x] Add seasonal pattern detection
    - [x] Add comprehensive test coverage
+   - [ ] Refactor to BillPaymentPatternService
+   - [ ] Update test fixtures for bill-payment focus
+   - [ ] Plan future ExpensePatternService
 
 3. Split Analysis System (Completed)
    - [x] Design split analysis schemas
