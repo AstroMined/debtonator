@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.42] - 2025-02-14
+
+### Added
+- Cross-account analysis system
+  - Account correlation analysis
+    * Transfer frequency tracking
+    * Common category identification
+    * Relationship type detection (complementary/supplementary/independent)
+    * Correlation scoring
+  - Transfer pattern analysis
+    * Average transfer amounts
+    * Transfer frequency tracking
+    * Category distribution analysis
+    * Typical transfer timing detection
+  - Usage pattern analysis
+    * Primary use detection
+    * Average transaction size calculation
+    * Common merchant tracking
+    * Peak usage day identification
+    * Category preference analysis
+    * Credit utilization tracking
+  - Balance distribution analysis
+    * Average balance tracking
+    * Balance volatility calculation
+    * 30-day min/max tracking
+    * Typical balance range analysis
+    * Total funds percentage calculation
+  - Risk assessment system
+    * Overdraft risk calculation
+    * Credit utilization risk tracking
+    * Payment failure risk assessment
+    * Volatility scoring
+    * Overall risk scoring
+  - New API endpoint `/realtime-cashflow/cross-account-analysis`
+  - Comprehensive test coverage including:
+    * Account correlation scenarios
+    * Transfer pattern detection
+    * Usage pattern analysis
+    * Balance distribution calculations
+    * Risk assessment accuracy
+    * All tests passing
+
 ## [0.3.41] - 2025-02-14
 
 ### Added

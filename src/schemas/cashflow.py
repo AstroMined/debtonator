@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
-from typing import Optional, List
-from pydantic import BaseModel, Field
+from typing import Optional, List, Dict
+from pydantic import BaseModel, Field, conlist
 
 class CashflowBase(BaseModel):
     """Base schema for cashflow data"""
@@ -86,3 +86,57 @@ class HourlyRates(BaseModel):
     hourly_rate_40: Decimal
     hourly_rate_30: Decimal
     hourly_rate_20: Decimal
+
+class AccountCorrelation(BaseModel):
+    """Schema for account correlation data"""
+    correlation_score: Decimal = Field(..., ge=-1, le=1)
+    transfer_frequency: int = Field(..., ge=0)
+    common_categories: List[str]
+    relationship_type: str = Field(..., pattern="^(complementary|supplementary|independent)$")
+
+class TransferPattern(BaseModel):
+    """Schema for transfer pattern data"""
+    source_account_id: int
+    target_account_id: int
+    average_amount: Decimal
+    frequency: int = Field(..., ge=0)
+    typical_day_of_month: Optional[int] = Field(None, ge=1, le=31)
+    category_distribution: Dict[str, Decimal]
+
+class AccountUsagePattern(BaseModel):
+    """Schema for account usage pattern data"""
+    account_id: int
+    primary_use: str
+    average_transaction_size: Decimal
+    common_merchants: List[str]
+    peak_usage_days: List[int] = Field(..., max_items=31)
+    category_preferences: Dict[str, Decimal]
+    utilization_rate: Optional[Decimal] = Field(None, ge=0, le=1)
+
+class BalanceDistribution(BaseModel):
+    """Schema for balance distribution data"""
+    account_id: int
+    average_balance: Decimal
+    balance_volatility: Decimal
+    min_balance_30d: Decimal
+    max_balance_30d: Decimal
+    typical_balance_range: tuple[Decimal, Decimal]
+    percentage_of_total: Decimal = Field(..., ge=0, le=1)
+
+class AccountRiskAssessment(BaseModel):
+    """Schema for account risk assessment data"""
+    account_id: int
+    overdraft_risk: Decimal = Field(..., ge=0, le=1)
+    credit_utilization_risk: Optional[Decimal] = Field(None, ge=0, le=1)
+    payment_failure_risk: Decimal = Field(..., ge=0, le=1)
+    volatility_score: Decimal = Field(..., ge=0, le=1)
+    overall_risk_score: Decimal = Field(..., ge=0, le=1)
+
+class CrossAccountAnalysis(BaseModel):
+    """Schema for comprehensive cross-account analysis"""
+    correlations: Dict[str, Dict[str, AccountCorrelation]]
+    transfer_patterns: List[TransferPattern]
+    usage_patterns: Dict[int, AccountUsagePattern]
+    balance_distribution: Dict[int, BalanceDistribution]
+    risk_assessment: Dict[int, AccountRiskAssessment]
+    timestamp: date

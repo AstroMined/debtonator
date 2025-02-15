@@ -1,4 +1,4 @@
-# Debtonator v0.3.41
+# Debtonator v0.3.42
 
 A modern bill and cashflow management system that helps track bills, income, and maintain sufficient account balances for timely bill payments.
 
@@ -115,6 +115,36 @@ A modern bill and cashflow management system that helps track bills, income, and
     * Projected deficit calculation
     * Comprehensive test coverage
     * RESTful API endpoint
+  - Cross-account analysis system
+    * Account correlation analysis
+      - Transfer frequency tracking
+      - Common category identification
+      - Relationship type detection (complementary/supplementary/independent)
+      - Correlation scoring
+    * Transfer pattern analysis
+      - Average transfer amounts
+      - Transfer frequency tracking
+      - Category distribution analysis
+      - Typical transfer timing detection
+    * Usage pattern analysis
+      - Primary use detection
+      - Average transaction size calculation
+      - Common merchant tracking
+      - Peak usage day identification
+      - Category preference analysis
+      - Credit utilization tracking
+    * Balance distribution analysis
+      - Average balance tracking
+      - Balance volatility calculation
+      - 30-day min/max tracking
+      - Typical balance range analysis
+      - Total funds percentage calculation
+    * Risk assessment system
+      - Overdraft risk calculation
+      - Credit utilization risk tracking
+      - Payment failure risk assessment
+      - Volatility scoring
+      - Overall risk scoring
   - 90-day rolling forecast
   - Available credit/balance tracking
   - Minimum required funds calculation
