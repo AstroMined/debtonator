@@ -123,6 +123,14 @@ A modern bill and cashflow management system that helps track bills, income, and
     * Contributing factor tracking
     * Summary statistics
     * Comprehensive test coverage
+  - Historical trends analysis
+    * Pattern detection with confidence scoring
+    * Holiday impact analysis with ±7 day range
+    * Significant event detection with type-based thresholds
+    * Seasonality analysis with multiple pattern types
+    * Monthly, daily, and weekly pattern tracking
+    * Transaction type-based averages
+    * Comprehensive test coverage
   - Cross-account analysis system
     * Account correlation analysis
       - Transfer frequency tracking

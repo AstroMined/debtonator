@@ -161,6 +161,42 @@ class CustomForecastResponse(BaseModel):
     summary_statistics: Dict[str, Decimal]
     timestamp: date
 
+class HistoricalTrendMetrics(BaseModel):
+    """Schema for historical trend metrics"""
+    average_daily_change: Decimal
+    volatility: Decimal
+    trend_direction: str = Field(..., pattern="^(increasing|decreasing|stable)$")
+    trend_strength: Decimal = Field(..., ge=0, le=1)
+    seasonal_factors: Dict[str, Decimal]
+    confidence_score: Decimal = Field(..., ge=0, le=1)
+
+class HistoricalPeriodAnalysis(BaseModel):
+    """Schema for analyzing specific historical periods"""
+    period_start: date
+    period_end: date
+    average_balance: Decimal
+    peak_balance: Decimal
+    lowest_balance: Decimal
+    total_inflow: Decimal
+    total_outflow: Decimal
+    net_change: Decimal
+    significant_events: List[Dict[str, str]]
+
+class SeasonalityAnalysis(BaseModel):
+    """Schema for seasonal patterns"""
+    monthly_patterns: Dict[int, Decimal]  # 1-12 for months
+    day_of_week_patterns: Dict[int, Decimal]  # 0-6 for days
+    day_of_month_patterns: Dict[int, Decimal]  # 1-31 for days
+    holiday_impacts: Dict[str, Decimal]
+    seasonal_strength: Decimal = Field(..., ge=0, le=1)
+
+class HistoricalTrendsResponse(BaseModel):
+    """Schema for historical trends analysis response"""
+    metrics: HistoricalTrendMetrics
+    period_analysis: List[HistoricalPeriodAnalysis]
+    seasonality: SeasonalityAnalysis
+    timestamp: date
+
 class CrossAccountAnalysis(BaseModel):
     """Schema for comprehensive cross-account analysis"""
     correlations: Dict[str, Dict[str, AccountCorrelation]]

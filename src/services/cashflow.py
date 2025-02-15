@@ -1,23 +1,31 @@
 from decimal import Decimal
-from datetime import date, timedelta
-from typing import List, Dict, Union
-from sqlalchemy import select
-from sqlalchemy.orm import joinedload
+from datetime import date, timedelta, datetime
+from typing import List, Dict, Union, Tuple
+from sqlalchemy import select, func, extract
+from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from sqlalchemy import select
-from sqlalchemy.orm import joinedload
-from sqlalchemy.ext.asyncio import AsyncSession
+from statistics import mean, stdev
 from src.models.accounts import Account
 from src.models.liabilities import Liability
 from src.models.payments import Payment
 from src.models.income import Income
 from src.models.categories import Category
-from src.schemas.cashflow import CustomForecastParameters, CustomForecastResponse, CustomForecastResult
+from src.schemas.cashflow import (
+    CustomForecastParameters, CustomForecastResponse, CustomForecastResult,
+    HistoricalTrendMetrics, HistoricalPeriodAnalysis, SeasonalityAnalysis,
+    HistoricalTrendsResponse
+)
 
 class CashflowService:
     def __init__(self, db: AsyncSession):
         self.db = db
+        self._holidays = {
+            # Add major US holidays that might impact cashflow
+            "new_years": date(date.today().year, 1, 1),
+            "christmas": date(date.today().year, 12, 25),
+            "thanksgiving": date(date.today().year, 11, 25),  # Approximate
+            "tax_day": date(date.today().year, 4, 15),
+        }
     
     async def get_forecast(
         self,
@@ -59,6 +67,292 @@ class CashflowService:
     ) -> CustomForecastResponse:
         """Get a custom forecast based on provided parameters."""
         return await calculate_custom_forecast(self.db, params)
+
+    async def get_historical_trends(
+        self,
+        account_ids: List[int],
+        start_date: date,
+        end_date: date
+    ) -> HistoricalTrendsResponse:
+        """Analyze historical trends for specified accounts and date range."""
+        # Get all transactions for the specified accounts and date range
+        transactions = await self._get_historical_transactions(account_ids, start_date, end_date)
+        
+        # Calculate trend metrics
+        metrics = await self._calculate_trend_metrics(transactions)
+        
+        # Analyze periods (e.g., monthly, quarterly)
+        period_analysis = await self._analyze_historical_periods(transactions, start_date, end_date)
+        
+        # Analyze seasonality
+        seasonality = await self._analyze_seasonality(transactions)
+        
+        return HistoricalTrendsResponse(
+            metrics=metrics,
+            period_analysis=period_analysis,
+            seasonality=seasonality,
+            timestamp=date.today()
+        )
+
+    async def _get_historical_transactions(
+        self,
+        account_ids: List[int],
+        start_date: date,
+        end_date: date
+    ) -> List[Dict]:
+        """Retrieve historical transactions for analysis."""
+        # Get payments
+        payments_query = (
+            select(Payment)
+            .options(selectinload(Payment.sources))
+            .where(
+                Payment.payment_date.between(start_date, end_date)
+            )
+        )
+        payments = (await self.db.execute(payments_query)).scalars().all()
+
+        # Get income with explicit account filtering
+        income_query = (
+            select(Income)
+            .where(
+                Income.account_id.in_(account_ids),
+                Income.date.between(start_date, end_date),
+                Income.deposited == True  # Only include deposited income
+            )
+        )
+        income_entries = (await self.db.execute(income_query)).scalars().all()
+
+        # Combine and format transactions
+        transactions = []
+        
+        for payment in payments:
+            for source in payment.sources:
+                if source.account_id in account_ids:
+                    transactions.append({
+                        "date": payment.payment_date,
+                        "amount": -source.amount,  # Negative for outflow
+                        "type": "payment",
+                        "account_id": source.account_id,
+                        "category": payment.category
+                    })
+
+        for income in income_entries:
+            transactions.append({
+                "date": income.date,
+                "amount": income.amount,  # Positive for inflow
+                "type": "income",
+                "account_id": income.account_id,
+                "category": "income"
+            })
+
+        return sorted(transactions, key=lambda x: x["date"])
+
+    async def _calculate_trend_metrics(
+        self,
+        transactions: List[Dict]
+    ) -> HistoricalTrendMetrics:
+        """Calculate trend metrics from historical transactions."""
+        if not transactions:
+            raise ValueError("No transactions available for trend analysis")
+
+        # Calculate daily net changes
+        daily_changes = []
+        daily_totals: Dict[date, Decimal] = {}
+
+        for trans in transactions:
+            trans_date = trans["date"]
+            if trans_date not in daily_totals:
+                daily_totals[trans_date] = Decimal("0")
+            daily_totals[trans_date] += trans["amount"]
+
+        daily_changes = list(daily_totals.values())
+
+        # Calculate metrics
+        avg_daily_change = Decimal(str(mean(daily_changes)))
+        volatility = Decimal(str(stdev(daily_changes))) if len(daily_changes) > 1 else Decimal("0")
+
+        # Determine trend direction and strength
+        total_days = len(daily_changes)
+        if total_days < 2:
+            trend_direction = "stable"
+            trend_strength = Decimal("0")
+        else:
+            start_balance = sum(t["amount"] for t in transactions[:total_days//4])
+            end_balance = sum(t["amount"] for t in transactions[-total_days//4:])
+            
+            if abs(end_balance - start_balance) < volatility:
+                trend_direction = "stable"
+                trend_strength = Decimal("0.3")
+            else:
+                trend_direction = "increasing" if end_balance > start_balance else "decreasing"
+                trend_strength = min(
+                    Decimal("1"),
+                    abs(end_balance - start_balance) / (volatility * Decimal("10"))
+                )
+
+        # Calculate seasonal factors
+        seasonal_factors = {}
+        for trans in transactions:
+            month = trans["date"].strftime("%B").lower()
+            if month not in seasonal_factors:
+                seasonal_factors[month] = Decimal("0")
+            seasonal_factors[month] += trans["amount"]
+
+        # Calculate confidence score based on data quality
+        # Start with a base confidence of 0.7
+        base_confidence = Decimal("0.7")
+        
+        # Adjust for number of transactions (more transactions = higher confidence)
+        transaction_factor = min(Decimal("0.2"), Decimal(str(len(transactions))) / Decimal("10"))
+        
+        # Adjust for volatility (lower volatility relative to average = higher confidence)
+        volatility_ratio = volatility / (abs(avg_daily_change) + Decimal("0.01"))
+        volatility_factor = max(Decimal("0"), Decimal("0.1") * (Decimal("1") - min(volatility_ratio, Decimal("1"))))
+        
+        # Calculate final confidence score with explicit Decimal conversions
+        confidence_score = min(
+            base_confidence + transaction_factor + volatility_factor,
+            Decimal("1.0")
+        )
+        # Ensure minimum confidence of 0.1 with explicit Decimal comparison
+        confidence_score = max(confidence_score, Decimal("0.1"))
+
+        return HistoricalTrendMetrics(
+            average_daily_change=avg_daily_change,
+            volatility=volatility,
+            trend_direction=trend_direction,
+            trend_strength=trend_strength,
+            seasonal_factors=seasonal_factors,
+            confidence_score=confidence_score
+        )
+
+    async def _analyze_historical_periods(
+        self,
+        transactions: List[Dict],
+        start_date: date,
+        end_date: date
+    ) -> List[HistoricalPeriodAnalysis]:
+        """Analyze transactions in specific periods (e.g., monthly)."""
+        periods = []
+        current_start = start_date
+
+        while current_start < end_date:
+            # Define period end (monthly periods)
+            if current_start.month == 12:
+                current_end = date(current_start.year + 1, 1, 1) - timedelta(days=1)
+            else:
+                current_end = date(current_start.year, current_start.month + 1, 1) - timedelta(days=1)
+            
+            # Filter transactions for current period
+            period_transactions = [
+                t for t in transactions
+                if current_start <= t["date"] <= current_end
+            ]
+            
+            if period_transactions:
+                # Calculate period metrics with explicit Decimal conversions
+                inflow = Decimal("0")
+                outflow = Decimal("0")
+                for t in period_transactions:
+                    if t["type"] == "income":
+                        inflow += abs(t["amount"])
+                    else:  # payment
+                        outflow += abs(t["amount"])
+                
+                # Find significant events (large transactions)
+                # Calculate averages by transaction type
+                type_averages = {}
+                for t in period_transactions:
+                    if t["type"] not in type_averages:
+                        type_averages[t["type"]] = []
+                    type_averages[t["type"]].append(abs(t["amount"]))
+                
+                # Calculate average for each type with explicit Decimal conversions
+                type_thresholds = {}
+                for t_type, amounts in type_averages.items():
+                    avg = Decimal(str(mean(amounts)))
+                    # Lower threshold to 1.1x for better detection
+                    type_thresholds[t_type] = avg * Decimal("1.1")
+                
+                significant_events = []
+                for t in period_transactions:
+                    threshold = type_thresholds.get(t["type"], Decimal("0"))
+                    if abs(t["amount"]) > threshold:
+                        significant_events.append({
+                            "date": t["date"].isoformat(),
+                            "description": f"Large {t['type']} in {t['category']} ({abs(t['amount'])})"
+                        })
+
+                periods.append(HistoricalPeriodAnalysis(
+                    period_start=current_start,
+                    period_end=current_end,
+                    average_balance=mean(t["amount"] for t in period_transactions),
+                    peak_balance=max(t["amount"] for t in period_transactions),
+                    lowest_balance=min(t["amount"] for t in period_transactions),
+                    total_inflow=inflow,
+                    total_outflow=outflow,
+                    net_change=inflow - outflow,
+                    significant_events=significant_events
+                ))
+            
+            current_start = current_end + timedelta(days=1)
+
+        return periods
+
+    async def _analyze_seasonality(
+        self,
+        transactions: List[Dict]
+    ) -> SeasonalityAnalysis:
+        """Analyze seasonal patterns in transactions."""
+        # Initialize pattern dictionaries
+        monthly_patterns = {i: Decimal("0") for i in range(1, 13)}
+        day_of_week_patterns = {i: Decimal("0") for i in range(7)}
+        day_of_month_patterns = {i: Decimal("0") for i in range(1, 32)}
+        holiday_impacts = {}
+
+        # Analyze patterns
+        for trans in transactions:
+            trans_date = trans["date"]
+            amount = trans["amount"]
+
+            # Monthly patterns
+            monthly_patterns[trans_date.month] += amount
+
+            # Day of week patterns
+            day_of_week_patterns[trans_date.weekday()] += amount
+
+            # Day of month patterns
+            day_of_month_patterns[trans_date.day] += amount
+
+            # Holiday impacts
+            for holiday, holiday_date in self._holidays.items():
+                # Check if transaction is within 7 days before or after the holiday
+                holiday_date_this_year = holiday_date.replace(year=trans_date.year)
+                days_to_holiday = (trans_date - holiday_date_this_year).days
+                if -7 <= days_to_holiday <= 7:  # Within 7 days before or after holiday
+                    if holiday not in holiday_impacts:
+                        holiday_impacts[holiday] = Decimal("0")
+                    holiday_impacts[holiday] += amount
+
+        # Calculate seasonal strength
+        monthly_variance = stdev(monthly_patterns.values()) if len(set(monthly_patterns.values())) > 1 else 0
+        daily_variance = stdev(day_of_month_patterns.values()) if len(set(day_of_month_patterns.values())) > 1 else 0
+        
+        max_variance = max(monthly_variance, daily_variance)
+        total_volume = sum(abs(t["amount"]) for t in transactions)
+        
+        seasonal_strength = min(
+            Decimal("1"),
+            Decimal(str(max_variance)) / (total_volume / Decimal("12"))
+        ) if total_volume > 0 else Decimal("0")
+
+        return SeasonalityAnalysis(
+            monthly_patterns=monthly_patterns,
+            day_of_week_patterns=day_of_week_patterns,
+            day_of_month_patterns=day_of_month_patterns,
+            holiday_impacts=holiday_impacts,
+            seasonal_strength=seasonal_strength
+        )
 
 async def calculate_forecast(
     db: AsyncSession,

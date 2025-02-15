@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.44] - 2025-02-15
+
+### Added
+- Historical trends analysis system
+  - Pattern detection with confidence scoring
+    * Transaction type-based averages
+    * 1.1x threshold for significant events
+    * Explicit decimal conversions
+    * Minimum confidence floor of 0.1
+  - Holiday impact analysis
+    * Extended date range to ±7 days
+    * Proper holiday date calculations
+    * Improved impact detection
+  - Seasonality analysis
+    * Monthly patterns tracking
+    * Day of week patterns
+    * Day of month patterns
+    * Holiday impact tracking
+  - Significant event detection
+    * Transaction type-based thresholds
+    * Amount-based event descriptions
+    * Improved detection accuracy
+  - Comprehensive test coverage including:
+    * Empty data handling
+    * Significant event detection
+    * Seasonal pattern analysis
+    * Holiday impact verification
+    * All tests passing
+
 ## [0.3.43] - 2025-02-14
 
 ### Added
