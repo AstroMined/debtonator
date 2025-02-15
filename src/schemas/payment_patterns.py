@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -28,6 +28,12 @@ class AmountStatistics(BaseModel):
     total_amount: Decimal = Field(..., description="Total amount of all payments")
 
 
+class SeasonalMetrics(BaseModel):
+    avg_days_before_due: float = Field(..., description="Average days before due date")
+    std_dev_days: float = Field(..., description="Standard deviation of days before due date")
+    sample_size: int = Field(..., description="Number of payments in this season")
+
+
 class PaymentPatternAnalysis(BaseModel):
     pattern_type: PatternType
     confidence_score: float = Field(..., ge=0, le=1, description="Confidence score between 0 and 1")
@@ -38,6 +44,7 @@ class PaymentPatternAnalysis(BaseModel):
     analysis_period_end: datetime
     suggested_category: Optional[str] = None
     notes: Optional[List[str]] = None
+    seasonal_metrics: Optional[Dict[int, SeasonalMetrics]] = None
 
     class Config:
         json_encoders = {
@@ -51,3 +58,4 @@ class PaymentPatternRequest(BaseModel):
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     min_sample_size: int = Field(default=3, ge=3, description="Minimum number of payments required for analysis")
+    liability_id: Optional[int] = None

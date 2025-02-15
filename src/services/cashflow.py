@@ -1,6 +1,6 @@
 from decimal import Decimal
 from datetime import date, timedelta, datetime
-from typing import List, Dict, Union, Tuple
+from typing import List, Dict, Union, Tuple, Optional
 from sqlalchemy import select, func, extract
 from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -358,6 +358,63 @@ class CashflowService:
             avg_confidence *= Decimal("0.9")
 
         return max(min(Decimal(str(avg_confidence)), Decimal("1.0")), Decimal("0.1"))
+
+    async def get_metrics_for_date(
+        self,
+        target_date: date
+    ) -> Optional[CustomForecastResult]:
+        """Get cashflow metrics for a specific date."""
+        # Get all accounts
+        accounts_query = select(Account)
+        accounts = (await self.db.execute(accounts_query)).scalars().all()
+        
+        if not accounts:
+            return None
+
+        # Get day's transactions
+        day_transactions = []
+        total_balance = Decimal("0")
+        total_inflow = Decimal("0")
+        total_outflow = Decimal("0")
+
+        for account in accounts:
+            transactions = await self._get_day_transactions(
+                account,
+                target_date,
+                include_pending=True,
+                include_recurring=True,
+                include_transfers=True
+            )
+            day_transactions.extend(transactions)
+            
+            # Update totals
+            total_balance += account.available_balance
+            for trans in transactions:
+                if trans["amount"] > 0:
+                    total_inflow += trans["amount"]
+                else:
+                    total_outflow += abs(trans["amount"])
+
+        # Calculate confidence score
+        confidence_score = self._calculate_day_confidence(
+            accounts[0],  # Use first account for base calculation
+            total_balance,
+            day_transactions,
+            []  # No warning flags for this calculation
+        )
+
+        return CustomForecastResult(
+            date=target_date,
+            projected_balance=total_balance,
+            projected_income=total_inflow,
+            projected_expenses=total_outflow,
+            confidence_score=confidence_score,
+            contributing_factors={
+                "total_accounts": len(accounts),
+                "total_transactions": len(day_transactions)
+            },
+            risk_factors={}
+        )
 
     async def get_forecast(
         self,
