@@ -37,7 +37,7 @@ class BillPaymentPatternService:
         if request.account_id:
             query = query.join(Payment.sources).filter(PaymentSource.account_id == request.account_id)
         if request.category_id:
-            query = query.filter(Payment.category.ilike(request.category_id))  # Case-insensitive match
+            query = query.filter(Payment.category.ilike(f"%{request.category_id}%"))  # Case-insensitive partial match
         if request.start_date:
             query = query.filter(Payment.payment_date >= request.start_date)
         if request.end_date:
@@ -176,9 +176,16 @@ class BillPaymentPatternService:
         amount_cv = float(amount_statistics.std_dev_amount / amount_statistics.average_amount)
 
         # Check for gaps in payment sequence
-        max_expected_interval = frequency_metrics.average_days_between * 1.5
+        max_expected_interval = frequency_metrics.average_days_between * 1.25  # More sensitive gap detection
         if frequency_metrics.max_days > max_expected_interval:
-            notes.append(f"Irregular pattern with gaps: maximum interval of {frequency_metrics.max_days} days detected")
+            gap_size = frequency_metrics.max_days - frequency_metrics.average_days_between
+            notes.append(f"Irregular pattern with significant gap: {gap_size:.1f} days longer than expected interval")
+            confidence = min(0.5, 0.2 + (sample_size_factor * 0.3))  # Lower confidence for gapped patterns
+            return PatternType.IRREGULAR, confidence, notes
+
+        # Check for irregular timing patterns
+        if timing_cv > 0.12:  # More strict timing variation threshold
+            notes.append(f"Irregular payment timing: {frequency_metrics.average_days_between:.1f} days between payments (±{frequency_metrics.std_dev_days:.1f} days)")
             confidence = min(0.6, 0.3 + (sample_size_factor * 0.3))
             return PatternType.IRREGULAR, confidence, notes
 

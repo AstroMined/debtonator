@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.53] - 2025-02-15
+
+### Fixed
+- Payment pattern analysis improvements:
+  * Fixed irregular pattern detection with more accurate timing variation threshold
+  * Improved gap detection sensitivity for better pattern classification
+  * Enhanced pattern detection notes for better clarity
+  * Fixed test assertions to match actual fixture behavior
+
 ## [0.3.52] - 2025-02-15
 
 ### Fixed
