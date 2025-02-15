@@ -67,7 +67,7 @@ API Enhancement Project - Phase 5: Cashflow Analysis Extension
 ### Phase 5: Cashflow Analysis Extension (In Progress)
 - [x] Real-time tracking
 - [x] Cross-account analysis
-- [ ] Custom forecasts
+- [x] Custom forecasts
 - [ ] Historical trends
 - [ ] Account-specific forecasts
 
@@ -91,7 +91,14 @@ API Enhancement Project - Phase 5: Cashflow Analysis Extension
    - [x] Add comprehensive test coverage
    - [x] All tests passing
 
-2. Next Features (Pending)
-   - [ ] Custom forecasts development
+2. Custom Forecasts System (Completed)
+   - [x] Design custom forecast schemas
+   - [x] Implement forecast calculations
+   - [x] Add category filtering
+   - [x] Add confidence scoring
+   - [x] Add comprehensive test coverage
+   - [x] All tests passing
+
+3. Next Features (Pending)
    - [ ] Historical trends tracking
    - [ ] Account-specific forecasts

@@ -8,6 +8,7 @@ from src.models.liabilities import Liability
 from src.models.payments import Payment
 from src.models.income import Income
 from src.models.categories import Category
+from src.schemas.cashflow import CustomForecastParameters
 
 @pytest.fixture(scope="function")
 async def test_account(db_session):
@@ -235,3 +236,108 @@ async def test_get_required_funds_empty_range(db_session, test_account):
     )
     
     assert required_funds == Decimal("0.00")
+
+@pytest.mark.asyncio
+async def test_get_custom_forecast(
+    db_session,
+    test_account,
+    test_liabilities,
+    test_income
+):
+    """Test getting custom forecast with specific parameters."""
+    service = CashflowService(db_session)
+    today = date.today()
+    
+    params = CustomForecastParameters(
+        start_date=today,
+        end_date=today + timedelta(days=20),
+        include_pending=True,
+        account_ids=[test_account.id],
+        confidence_threshold=Decimal("0.8")
+    )
+    
+    forecast = await service.get_custom_forecast(params)
+    
+    # Verify response structure
+    assert forecast.parameters == params
+    assert len(forecast.results) == 21  # 21 days including start and end
+    assert forecast.overall_confidence >= Decimal("0.0")
+    assert forecast.overall_confidence <= Decimal("1.0")
+    
+    # Verify summary statistics
+    assert "total_projected_income" in forecast.summary_statistics
+    assert "total_projected_expenses" in forecast.summary_statistics
+    assert "average_confidence" in forecast.summary_statistics
+    assert "min_balance" in forecast.summary_statistics
+    assert "max_balance" in forecast.summary_statistics
+    
+    # Verify first day's projections
+    first_day = forecast.results[0]
+    assert first_day.date == today
+    assert first_day.projected_balance == test_account.available_balance
+    assert first_day.confidence_score >= Decimal("0.0")
+    assert first_day.confidence_score <= Decimal("1.0")
+    
+    # Verify income day projections (day 3)
+    income_day = forecast.results[3]
+    assert income_day.projected_income == Decimal("2000.00")
+    assert "income_Salary" in income_day.contributing_factors
+    
+    # Verify expense day projections (day 5)
+    expense_day = forecast.results[5]
+    assert expense_day.projected_expenses == Decimal("800.00")
+    assert "liability_Housing" in expense_day.contributing_factors
+
+@pytest.mark.asyncio
+async def test_get_custom_forecast_filtered(
+    db_session,
+    test_account,
+    test_liabilities,
+    test_income,
+    test_categories
+):
+    """Test getting custom forecast with category filters."""
+    service = CashflowService(db_session)
+    today = date.today()
+    
+    params = CustomForecastParameters(
+        start_date=today,
+        end_date=today + timedelta(days=20),
+        include_pending=True,
+        account_ids=[test_account.id],
+        categories=["Utilities"],  # Only include utilities
+        confidence_threshold=Decimal("0.8")
+    )
+    
+    forecast = await service.get_custom_forecast(params)
+    
+    # Verify utilities expenses are included but housing is not
+    utilities_total = Decimal("0.0")
+    housing_total = Decimal("0.0")
+    
+    for day in forecast.results:
+        for factor, amount in day.contributing_factors.items():
+            if f"liability_{test_categories['Utilities'].name}" in factor:
+                utilities_total += amount
+            elif f"liability_{test_categories['Housing'].name}" in factor:
+                housing_total += amount
+    
+    assert utilities_total == Decimal("150.00")  # 100 + 50
+    assert housing_total == Decimal("0.00")  # Housing category was filtered out
+
+@pytest.mark.asyncio
+async def test_get_custom_forecast_no_accounts(db_session):
+    """Test custom forecast with no valid accounts."""
+    service = CashflowService(db_session)
+    today = date.today()
+    
+    params = CustomForecastParameters(
+        start_date=today,
+        end_date=today + timedelta(days=20),
+        include_pending=True,
+        account_ids=[999],  # Non-existent account
+        confidence_threshold=Decimal("0.8")
+    )
+    
+    with pytest.raises(ValueError, match="No valid accounts found for analysis"):
+        await service.get_custom_forecast(params)

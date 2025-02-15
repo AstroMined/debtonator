@@ -132,6 +132,35 @@ class AccountRiskAssessment(BaseModel):
     volatility_score: Decimal = Field(..., ge=0, le=1)
     overall_risk_score: Decimal = Field(..., ge=0, le=1)
 
+class CustomForecastParameters(BaseModel):
+    """Schema for custom forecast parameters"""
+    start_date: date
+    end_date: date
+    include_pending: bool = True
+    account_ids: Optional[List[int]] = None
+    categories: Optional[List[str]] = None
+    confidence_threshold: Decimal = Field(default=Decimal('0.8'), ge=0, le=1)
+    include_recurring: bool = True
+    include_historical_patterns: bool = True
+
+class CustomForecastResult(BaseModel):
+    """Schema for custom forecast results"""
+    date: date
+    projected_balance: Decimal
+    projected_income: Decimal
+    projected_expenses: Decimal
+    confidence_score: Decimal = Field(..., ge=0, le=1)
+    contributing_factors: Dict[str, Decimal]
+    risk_factors: Dict[str, Decimal]
+
+class CustomForecastResponse(BaseModel):
+    """Schema for custom forecast response"""
+    parameters: CustomForecastParameters
+    results: List[CustomForecastResult]
+    overall_confidence: Decimal = Field(..., ge=0, le=1)
+    summary_statistics: Dict[str, Decimal]
+    timestamp: date
+
 class CrossAccountAnalysis(BaseModel):
     """Schema for comprehensive cross-account analysis"""
     correlations: Dict[str, Dict[str, AccountCorrelation]]
