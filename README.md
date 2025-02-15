@@ -1,4 +1,4 @@
-# Debtonator v0.3.40
+# Debtonator v0.3.41
 
 A modern bill and cashflow management system that helps track bills, income, and maintain sufficient account balances for timely bill payments.
 
@@ -113,6 +113,8 @@ A modern bill and cashflow management system that helps track bills, income, and
     * Days until next bill calculation
     * Minimum balance requirements
     * Projected deficit calculation
+    * Comprehensive test coverage
+    * RESTful API endpoint
   - 90-day rolling forecast
   - Available credit/balance tracking
   - Minimum required funds calculation

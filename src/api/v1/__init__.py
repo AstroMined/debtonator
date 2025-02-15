@@ -14,6 +14,7 @@ from .income_categories import router as income_categories_router
 from .deposit_schedules import router as deposit_schedules_router
 from .recurring_income import router as recurring_income_router
 from .income_analysis import router as income_analysis_router
+from .realtime_cashflow import router as realtime_cashflow_router
 
 api_v1_router = APIRouter()
 
@@ -37,3 +38,4 @@ api_v1_router.include_router(payment_schedules_router, tags=["payment-schedules"
 api_v1_router.include_router(deposit_schedules_router, tags=["deposit-schedules"])
 api_v1_router.include_router(recurring_income_router, tags=["recurring-income"])
 api_v1_router.include_router(income_analysis_router, tags=["income-analysis"])
+api_v1_router.include_router(realtime_cashflow_router, tags=["realtime-cashflow"])
