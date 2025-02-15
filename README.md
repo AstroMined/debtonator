@@ -105,6 +105,14 @@ A modern bill and cashflow management system that helps track bills, income, and
     * SQLite-compatible date handling
 
 - **Cashflow Analysis**
+  - Real-time cashflow tracking
+    * Account balance aggregation across all accounts
+    * Real-time available funds calculation
+    * Available credit tracking
+    * Next bill due date tracking
+    * Days until next bill calculation
+    * Minimum balance requirements
+    * Projected deficit calculation
   - 90-day rolling forecast
   - Available credit/balance tracking
   - Minimum required funds calculation

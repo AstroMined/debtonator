@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.41] - 2025-02-14
+
+### Added
+- Real-time cashflow tracking system
+  - Account balance aggregation across all accounts
+  - Real-time available funds calculation
+  - Available credit tracking
+  - Next bill due date tracking
+  - Days until next bill calculation
+  - Minimum balance requirements
+  - Projected deficit calculation
+  - Comprehensive test coverage including:
+    * Account balance aggregation
+    * Available funds calculation
+    * Next bill identification
+    * Deficit scenarios
+    * All tests passing
+
+
 ## [0.3.40] - 2025-02-14
 
 ### Added
