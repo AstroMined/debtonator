@@ -27,34 +27,36 @@ class PaymentPatternService:
     async def analyze_payment_patterns(
         self, request: PaymentPatternRequest
     ) -> PaymentPatternAnalysis:
-        # Build query based on request filters
-        query = (
-            select(Payment)
-            .where(Payment.liability_id == request.liability_id)  # Add liability_id filter first
-            .order_by(Payment.payment_date.asc())  # Order by payment date ascending
-        )
+        # Build base query
+        query = select(Payment).order_by(Payment.payment_date.asc())
         
-        # Add other filters
-        
+        # Add filters
+        if request.liability_id:
+            query = query.where(Payment.liability_id == request.liability_id)
         if request.account_id:
             query = query.join(Payment.sources).filter(PaymentSource.account_id == request.account_id)
         if request.category_id:
             query = query.filter(Payment.category == request.category_id)
-        # Don't filter by dates since we want all payments for the bill
+        if request.start_date:
+            query = query.filter(Payment.payment_date >= request.start_date)
+        if request.end_date:
+            query = query.filter(Payment.payment_date <= request.end_date)
 
         # Execute query
         result = await self.session.execute(query)
         payments = result.scalars().all()
-        print(f"\nGot {len(payments)} payments for liability {request.liability_id} between {request.start_date} and {request.end_date}: {payments}")  # Debug print
+        print(f"\nGot {len(payments)} payments for liability {request.liability_id} between {request.start_date} and {request.end_date}")
+        for p in payments:
+            print(f"  Payment: {p.amount} on {p.payment_date} (liability_id={p.liability_id})")
 
         if len(payments) < request.min_sample_size:
             return self._create_unknown_pattern(payments, request)
 
         # Calculate metrics
-        frequency_metrics, days_before_due = await self._calculate_frequency_metrics(payments)
+        frequency_metrics = await self._calculate_frequency_metrics(payments)
         amount_statistics = self._calculate_amount_statistics(payments)
         pattern_type, confidence_score, notes = self._determine_pattern_type(
-            frequency_metrics, amount_statistics, len(payments), days_before_due
+            frequency_metrics, amount_statistics, len(payments)
         )
 
         return PaymentPatternAnalysis(
@@ -69,57 +71,39 @@ class PaymentPatternService:
             notes=notes
         )
 
-    async def _calculate_frequency_metrics(self, payments: List[Payment]) -> Tuple[FrequencyMetrics, List[float]]:
+    async def _calculate_frequency_metrics(self, payments: List[Payment]) -> FrequencyMetrics:
         if len(payments) < 2:
-            return (
-                FrequencyMetrics(
-                    average_days_between=0,
-                    std_dev_days=0,
-                    min_days=0,
-                    max_days=0
-                ),
-                []
+            return FrequencyMetrics(
+                average_days_between=0,
+                std_dev_days=0,
+                min_days=0,
+                max_days=0
             )
 
-        # Calculate days before due date using actual Liability records
-        days_before_due = []
-        for payment in payments:
-            # Get liability record for actual due date
-            liability = await self.session.get(Liability, payment.liability_id)
-            if liability:
-                days_before = abs((liability.due_date - payment.payment_date).days)
-                days_before_due.append(days_before)
-        
-        if not days_before_due:
-            return (
-                FrequencyMetrics(
-                    average_days_between=0,
-                    std_dev_days=0,
-                    min_days=0,
-                    max_days=0
-                ),
-                []
+        # Calculate days between consecutive payments
+        days_between = []
+        for i in range(len(payments) - 1):
+            delta = (payments[i + 1].payment_date - payments[i].payment_date).days
+            days_between.append(delta)
+
+        if not days_between:
+            return FrequencyMetrics(
+                average_days_between=0,
+                std_dev_days=0,
+                min_days=0,
+                max_days=0
             )
-            
-        # Calculate metrics based on days before due date
-        deviations = [abs(d - self.TARGET_DAYS) for d in days_before_due]
-        
-        # Calculate mean and standard deviation
-        mean_days = float(np.mean(days_before_due))  # Average days before due date
-        std_dev = float(np.std(deviations))  # Standard deviation from target
-        
-        # Debug print
-        print(f"\nDays before due: {days_before_due}")
-        print(f"Mean days: {mean_days}, Std dev: {std_dev}")
-        
-        # For consistent patterns, all payments should be made the same number of days before due date
-        metrics = FrequencyMetrics(
-            average_days_between=self.TARGET_DAYS,  # Use target days as the expected pattern
-            std_dev_days=std_dev,  # Standard deviation from target
-            min_days=min(days_before_due),
-            max_days=max(days_before_due)
+
+        # Calculate metrics
+        mean_days = float(np.mean(days_between))
+        std_dev = float(np.std(days_between))
+
+        return FrequencyMetrics(
+            average_days_between=mean_days,
+            std_dev_days=std_dev,
+            min_days=min(days_between),
+            max_days=max(days_between)
         )
-        return metrics, days_before_due
 
     def _calculate_amount_statistics(self, payments: List[Payment]) -> AmountStatistics:
         if not payments:
@@ -144,8 +128,7 @@ class PaymentPatternService:
         self,
         frequency_metrics: FrequencyMetrics,
         amount_statistics: AmountStatistics,
-        sample_size: int,
-        days_before_due: List[float]
+        sample_size: int
     ) -> Tuple[PatternType, float, List[str]]:
         notes = []
         
@@ -153,37 +136,49 @@ class PaymentPatternService:
         if frequency_metrics.average_days_between == 0:
             return PatternType.UNKNOWN, 0.0, ["Insufficient data for pattern analysis"]
             
-        # Calculate base confidence based on sample size and consistency
+        # Calculate base confidence based on sample size
         sample_size_factor = min(1.0, sample_size / 10)  # Scale up to 10 samples
-        consistency_factor = max(0.0, 1.0 - (frequency_metrics.std_dev_days / self.TARGET_DAYS))
-        base_confidence = sample_size_factor * consistency_factor
 
-        # Calculate amount coefficient of variation
+        # Calculate timing consistency
+        timing_cv = frequency_metrics.std_dev_days / frequency_metrics.average_days_between if frequency_metrics.average_days_between > 0 else float('inf')
+        
+        # Calculate amount consistency
         amount_cv = float(amount_statistics.std_dev_amount / amount_statistics.average_amount)
 
-        # Very consistent pattern (within 1 day of target)
-        if frequency_metrics.std_dev_days < 1:
-            notes.append(f"Highly consistent payment timing: {frequency_metrics.average_days_between:.1f} days before due date")
-            confidence = min(0.95, base_confidence)
+        # Seasonal pattern detection (check first)
+        if amount_cv > 0.2:  # Significant amount variation
+            if timing_cv < 0.2:  # But consistent timing
+                if 25 <= frequency_metrics.average_days_between <= 35:
+                    notes.append("Monthly payments with seasonal amount variation")
+                else:
+                    notes.append(f"Regular {frequency_metrics.average_days_between:.1f}-day intervals with seasonal amount variation")
+                confidence = min(0.8, sample_size_factor)
+                return PatternType.SEASONAL, confidence, notes
+
+        # Regular pattern detection
+        if timing_cv < 0.1:  # Very consistent intervals
+            notes.append(f"Highly consistent payment timing: every {frequency_metrics.average_days_between:.1f} days")
+            # High confidence for very consistent patterns, but lower for minimal samples
+            if sample_size <= 3:
+                confidence = 0.5  # Fixed confidence for minimal samples
+            else:
+                confidence = min(0.95, 0.8 + (sample_size_factor * 0.15))
             return PatternType.REGULAR, confidence, notes
 
-        # Fairly consistent pattern (within 2 days of target)
-        if frequency_metrics.std_dev_days < 2:
-            notes.append(f"Consistent payment timing with minor variations: {frequency_metrics.average_days_between:.1f} days before due date (±{frequency_metrics.std_dev_days:.1f} days)")
-            confidence = min(0.8, base_confidence)
-            return PatternType.REGULAR, confidence, notes
-
-        # Monthly pattern check
-        if abs(frequency_metrics.average_days_between - self.TARGET_DAYS) < 2:
-            if amount_cv > 0.2:  # Variable amounts suggest seasonal
-                notes.append("Monthly payments with seasonal amount variation")
-                return PatternType.SEASONAL, min(0.8, base_confidence), notes
+        # Monthly pattern check (30 ± 5 days)
+        if 25 <= frequency_metrics.average_days_between <= 35 and timing_cv < 0.2:
             notes.append("Regular monthly payment pattern")
-            return PatternType.REGULAR, min(0.7, base_confidence), notes
+            # Moderate confidence for monthly patterns
+            if timing_cv < 0.15:  # More consistent timing
+                confidence = min(0.8, 0.6 + (sample_size_factor * 0.2))
+            else:  # Less consistent timing
+                confidence = min(0.7, 0.5 + (sample_size_factor * 0.2))
+            return PatternType.REGULAR, confidence, notes
 
         # Irregular pattern (high variation)
-        notes.append(f"Variable payment timing: {frequency_metrics.average_days_between:.1f} days before due date (±{frequency_metrics.std_dev_days:.1f} days)")
-        confidence = max(0.3, min(0.6, base_confidence))
+        notes.append(f"Irregular payment pattern with variable timing: {frequency_metrics.average_days_between:.1f} days between payments (±{frequency_metrics.std_dev_days:.1f} days)")
+        # Lower confidence for irregular patterns
+        confidence = min(0.6, 0.3 + (sample_size_factor * 0.3))
         return PatternType.IRREGULAR, confidence, notes
 
     def _create_unknown_pattern(
@@ -233,13 +228,15 @@ class PaymentPatternService:
         # Build query for bill payments
         query = select(Payment).where(
             Payment.liability_id == liability_id
-        ).order_by(Payment.payment_date.desc())  # Get most recent payments first
+        ).order_by(Payment.payment_date.asc())  # Order by ascending date to match other methods
 
         # Execute query
         result = await self.session.execute(query)
         payments = result.scalars().all()
 
-        print(f"\nFound {len(payments)} payments: {payments}")  # Debug print
+        print(f"\nFound {len(payments)} payments:")
+        for p in payments:
+            print(f"  Payment: {p.amount} on {p.payment_date} (liability_id={p.liability_id})")
         
         if not payments:
             return None
@@ -248,13 +245,15 @@ class PaymentPatternService:
         # Get the earliest and latest payment dates
         payment_dates = [payment.payment_date for payment in payments]
         if payment_dates:
-            start_date = datetime.combine(min(payment_dates), datetime.min.time())
-            end_date = datetime.combine(max(payment_dates), datetime.min.time())
+            # Include the full day for both start and end dates
+            # Use a date just before the first payment to ensure we include it
+            start_date = datetime.combine(min(payment_dates), datetime.min.time()) - timedelta(days=1)
+            end_date = datetime.combine(max(payment_dates), datetime.max.time())
         else:
             start_date = end_date = datetime.now()
 
         request = PaymentPatternRequest(
-            min_sample_size=3,  # Minimum required by schema
+            min_sample_size=2,  # Lower minimum for bill-specific analysis
             start_date=start_date,
             end_date=end_date,
             account_id=None,

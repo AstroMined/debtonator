@@ -57,5 +57,5 @@ class PaymentPatternRequest(BaseModel):
     category_id: Optional[str] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
-    min_sample_size: int = Field(default=3, ge=3, description="Minimum number of payments required for analysis")
+    min_sample_size: int = Field(default=3, ge=2, description="Minimum number of payments required for analysis (2 for bill-specific analysis, 3 for general analysis)")
     liability_id: Optional[int] = None
