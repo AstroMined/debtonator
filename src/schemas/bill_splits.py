@@ -125,6 +125,87 @@ class PatternMetrics(BaseModel):
         description="Frequency of each account's appearance in splits"
     )
 
+class OptimizationMetrics(BaseModel):
+    """Schema for split optimization metrics"""
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    credit_utilization: Dict[int, float] = Field(
+        ...,
+        description="Credit utilization percentage per credit account"
+    )
+    balance_impact: Dict[int, Decimal] = Field(
+        ...,
+        description="Impact on available balance per account"
+    )
+    risk_score: float = Field(
+        ...,
+        ge=0,
+        le=1,
+        description="Risk score for the split configuration"
+    )
+    optimization_score: float = Field(
+        ...,
+        ge=0,
+        le=1,
+        description="Overall optimization score"
+    )
+
+class OptimizationSuggestion(BaseModel):
+    """Schema for split optimization suggestions"""
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    original_splits: List[BillSplitCreate] = Field(
+        ...,
+        description="Original split configuration"
+    )
+    suggested_splits: List[BillSplitCreate] = Field(
+        ...,
+        description="Suggested optimized splits"
+    )
+    improvement_metrics: OptimizationMetrics = Field(
+        ...,
+        description="Metrics showing improvement"
+    )
+    reasoning: List[str] = Field(
+        ...,
+        description="List of reasons for the suggested changes"
+    )
+    priority: int = Field(
+        ...,
+        ge=1,
+        le=5,
+        description="Priority level of the suggestion (1-5)"
+    )
+
+class ImpactAnalysis(BaseModel):
+    """Schema for split impact analysis"""
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    split_configuration: List[BillSplitCreate] = Field(
+        ...,
+        description="Split configuration being analyzed"
+    )
+    metrics: OptimizationMetrics = Field(
+        ...,
+        description="Current configuration metrics"
+    )
+    short_term_impact: Dict[int, Decimal] = Field(
+        ...,
+        description="30-day impact per account"
+    )
+    long_term_impact: Dict[int, Decimal] = Field(
+        ...,
+        description="90-day impact per account"
+    )
+    risk_factors: List[str] = Field(
+        ...,
+        description="Identified risk factors"
+    )
+    recommendations: List[str] = Field(
+        ...,
+        description="Recommendations for improvement"
+    )
+
 class HistoricalAnalysis(BaseModel):
     """Schema for comprehensive historical analysis results"""
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
@@ -140,6 +221,14 @@ class HistoricalAnalysis(BaseModel):
     seasonal_patterns: Optional[Dict[str, List[SplitPattern]]] = Field(
         None,
         description="Split patterns grouped by season/time period"
+    )
+    optimization_suggestions: Optional[List[OptimizationSuggestion]] = Field(
+        None,
+        description="Suggestions for optimizing splits"
+    )
+    impact_analysis: Optional[ImpactAnalysis] = Field(
+        None,
+        description="Impact analysis of current splits"
     )
 
 class BulkSplitOperation(BaseModel):

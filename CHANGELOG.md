@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.48] - 2025-02-15
+
+### Added
+- Split analysis system
+  - Optimization metrics calculation:
+    * Credit utilization tracking per account
+    * Balance impact analysis
+    * Risk scoring system
+    * Optimization scoring
+  - Impact analysis features:
+    * Short-term (30-day) projections
+    * Long-term (90-day) projections
+    * Risk factor identification
+    * Smart recommendations
+  - Optimization suggestions:
+    * Credit utilization balancing
+    * Mixed account type strategies
+    * Priority-based suggestions
+  - Comprehensive test coverage including:
+    * Metrics calculation scenarios
+    * Impact analysis verification
+    * Suggestion generation testing
+    * All tests passing
+
+### Fixed
+- Decimal precision handling in financial calculations
+- Type safety improvements in optimization metrics
+
 ## [0.3.47] - 2025-02-15
 
 ### Added
@@ -778,4 +806,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic functionality
 - Core database structure
 - Simple API endpoints
-

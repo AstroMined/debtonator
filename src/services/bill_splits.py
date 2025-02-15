@@ -1,5 +1,5 @@
 from decimal import Decimal
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import List, Optional, Tuple, Dict, Union
 from sqlalchemy import select, delete, and_, func, or_, desc
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,7 +19,10 @@ from src.schemas.bill_splits import (
     HistoricalAnalysis,
     BulkSplitOperation,
     BulkOperationError,
-    BulkOperationResult
+    BulkOperationResult,
+    OptimizationMetrics,
+    OptimizationSuggestion,
+    ImpactAnalysis
 )
 
 class BillSplitValidationError(Exception):
@@ -729,6 +732,310 @@ class BillSplitService:
 
         result.success = result.failure_count == 0 and len(result.errors) == 0
         return result
+
+    async def calculate_optimization_metrics(
+        self,
+        splits: List[BillSplitCreate],
+        accounts: Dict[int, Account]
+    ) -> OptimizationMetrics:
+        """Calculate optimization metrics for a set of splits."""
+        credit_utilization = {}
+        balance_impact = {}
+        total_risk_score = 0
+        total_accounts = len(splits)
+
+        for split in splits:
+            account = accounts[split.account_id]
+            
+            # Calculate credit utilization for credit accounts
+            if account.type == "credit" and account.total_limit:
+                current_balance = abs(account.available_balance)
+                new_balance = current_balance + split.amount
+                utilization = (new_balance / account.total_limit) * 100
+                credit_utilization[account.id] = utilization
+                
+                # Higher utilization = higher risk
+                risk_factor = min(Decimal('1.0'), utilization / Decimal('90'))  # 90% utilization = max risk
+                total_risk_score += risk_factor
+            
+            # Calculate balance impact for all accounts
+            if account.type == "credit":
+                balance_impact[account.id] = -split.amount
+            else:
+                balance_impact[account.id] = -split.amount
+                # Higher percentage of available balance = higher risk
+                risk_factor = min(Decimal('1.0'), split.amount / max(account.available_balance, Decimal('0.01')))
+                total_risk_score += risk_factor
+
+        # Calculate average risk score (0-1)
+        risk_score = total_risk_score / Decimal(total_accounts) if total_accounts > 0 else Decimal('1.0')
+        
+        # Calculate optimization score (inverse of risk score)
+        optimization_score = Decimal('1.0') - (risk_score * Decimal('0.8'))  # Scale to allow some room for improvement
+
+        return OptimizationMetrics(
+            credit_utilization=credit_utilization,
+            balance_impact=balance_impact,
+            risk_score=risk_score,
+            optimization_score=optimization_score
+        )
+
+    async def analyze_split_impact(
+        self,
+        splits: List[BillSplitCreate]
+    ) -> ImpactAnalysis:
+        """Analyze the impact of a split configuration."""
+        # Get all accounts involved
+        account_ids = [split.account_id for split in splits]
+        stmt = select(Account).where(Account.id.in_(account_ids))
+        result = await self.db.execute(stmt)
+        accounts = {acc.id: acc for acc in result.scalars().all()}
+
+        # Calculate current metrics
+        metrics = await self.calculate_optimization_metrics(splits, accounts)
+
+        # Calculate short-term impact (30 days)
+        short_term_impact = {}
+        for split in splits:
+            account = accounts[split.account_id]
+            # Project 30-day impact considering recurring bills
+            stmt = (
+                select(func.sum(BillSplit.amount))
+                .join(BillSplit.liability)
+                .where(
+                    and_(
+                        BillSplit.account_id == account.id,
+                        Liability.due_date <= date.today() + timedelta(days=30)
+                    )
+                )
+            )
+            result = await self.db.execute(stmt)
+            upcoming_bills = result.scalar() or Decimal('0')
+            short_term_impact[account.id] = -(upcoming_bills + split.amount)
+
+        # Calculate long-term impact (90 days)
+        long_term_impact = {}
+        for split in splits:
+            account = accounts[split.account_id]
+            # Project 90-day impact considering recurring bills
+            stmt = (
+                select(func.sum(BillSplit.amount))
+                .join(BillSplit.liability)
+                .where(
+                    and_(
+                        BillSplit.account_id == account.id,
+                        Liability.due_date <= date.today() + timedelta(days=90)
+                    )
+                )
+            )
+            result = await self.db.execute(stmt)
+            upcoming_bills = result.scalar() or Decimal('0')
+            long_term_impact[account.id] = -(upcoming_bills + split.amount)
+
+        # Identify risk factors
+        risk_factors = []
+        for account_id, utilization in metrics.credit_utilization.items():
+            if utilization > 80:
+                risk_factors.append(f"High credit utilization ({utilization:.1f}%) on account {accounts[account_id].name}")
+        
+        for account_id, impact in short_term_impact.items():
+            account = accounts[account_id]
+            if account.type != "credit" and abs(impact) > account.available_balance:
+                risk_factors.append(f"Insufficient 30-day funds in account {account.name}")
+
+        # Generate recommendations
+        recommendations = []
+        if risk_factors:
+            if any(utilization > 80 for utilization in metrics.credit_utilization.values()):
+                recommendations.append("Consider redistributing credit usage across accounts")
+            
+            if any(abs(impact) > accounts[acc_id].available_balance 
+                  for acc_id, impact in short_term_impact.items() 
+                  if accounts[acc_id].type != "credit"):
+                recommendations.append("Consider using credit accounts for short-term flexibility")
+
+        return ImpactAnalysis(
+            split_configuration=splits,
+            metrics=metrics,
+            short_term_impact=short_term_impact,
+            long_term_impact=long_term_impact,
+            risk_factors=risk_factors,
+            recommendations=recommendations
+        )
+
+    async def generate_optimization_suggestions(
+        self,
+        liability_id: int
+    ) -> List[OptimizationSuggestion]:
+        """Generate optimization suggestions for bill splits."""
+        # Get current splits if they exist
+        current_splits = await self.get_bill_splits(liability_id)
+        
+        # Get the liability
+        stmt = select(Liability).where(Liability.id == liability_id)
+        result = await self.db.execute(stmt)
+        liability = result.unique().scalar_one_or_none()
+        if not liability:
+            raise BillSplitValidationError(f"Liability with id {liability_id} not found")
+
+        # Get all active accounts
+        stmt = select(Account)
+        result = await self.db.execute(stmt)
+        accounts = {acc.id: acc for acc in result.scalars().all()}
+
+        suggestions = []
+
+        # Convert current splits to BillSplitCreate objects
+        original_splits = [
+            BillSplitCreate(
+                liability_id=split.liability_id,
+                account_id=split.account_id,
+                amount=split.amount
+            ) for split in current_splits
+        ] if current_splits else []
+
+        # If no current splits, use primary account as original
+        if not original_splits:
+            original_splits = [BillSplitCreate(
+                liability_id=liability_id,
+                account_id=liability.primary_account_id,
+                amount=liability.amount
+            )]
+
+        # Get current metrics
+        current_metrics = await self.calculate_optimization_metrics(
+            original_splits,
+            accounts
+        )
+
+        # Strategy 1: Balance credit utilization
+        if any(util > 50 for util in current_metrics.credit_utilization.values()):
+            credit_accounts = {
+                id: acc for id, acc in accounts.items()
+                if acc.type == "credit" and acc.total_limit
+            }
+            
+            if len(credit_accounts) > 1:
+                # Distribute amount across credit accounts based on available credit
+                total_available = sum(
+                    acc.total_limit + acc.available_balance
+                    for acc in credit_accounts.values()
+                )
+                
+                suggested_splits = []
+                remaining_amount = liability.amount
+                
+                for acc_id, account in credit_accounts.items():
+                    if remaining_amount <= 0:
+                        break
+                    
+                    available_credit = account.total_limit + account.available_balance
+                    split_amount = min(
+                        (available_credit / total_available) * liability.amount,
+                        remaining_amount
+                    )
+                    
+                    suggested_splits.append(BillSplitCreate(
+                        liability_id=liability_id,
+                        account_id=acc_id,
+                        amount=split_amount
+                    ))
+                    remaining_amount -= split_amount
+
+                if suggested_splits:
+                    metrics = await self.calculate_optimization_metrics(
+                        suggested_splits,
+                        accounts
+                    )
+                    
+                    if metrics.optimization_score > current_metrics.optimization_score:
+                        suggestions.append(OptimizationSuggestion(
+                            original_splits=original_splits,
+                            suggested_splits=suggested_splits,
+                            improvement_metrics=metrics,
+                            reasoning=[
+                                "Balances credit utilization across accounts",
+                                "Reduces risk of high utilization on single account"
+                            ],
+                            priority=1 if metrics.optimization_score > current_metrics.optimization_score + 0.2 else 2
+                        ))
+
+        # Strategy 2: Mix credit and checking accounts for large amounts
+        if liability.amount > Decimal('1000'):
+            checking_accounts = {
+                id: acc for id, acc in accounts.items()
+                if acc.type in ["checking", "savings"]
+            }
+            
+            if checking_accounts and any(acc.type == "credit" for acc in accounts.values()):
+                suggested_splits = []
+                remaining_amount = liability.amount
+                
+                # Use checking accounts for 40% if possible
+                checking_portion = liability.amount * Decimal('0.4')
+                for acc_id, account in checking_accounts.items():
+                    if remaining_amount <= 0:
+                        break
+                    
+                    split_amount = min(
+                        checking_portion,
+                        account.available_balance,
+                        remaining_amount
+                    )
+                    
+                    if split_amount > 0:
+                        suggested_splits.append(BillSplitCreate(
+                            liability_id=liability_id,
+                            account_id=acc_id,
+                            amount=split_amount
+                        ))
+                        remaining_amount -= split_amount
+
+                # Use credit accounts for remaining amount
+                if remaining_amount > 0:
+                    credit_accounts = {
+                        id: acc for id, acc in accounts.items()
+                        if acc.type == "credit" and acc.total_limit
+                    }
+                    
+                    for acc_id, account in credit_accounts.items():
+                        if remaining_amount <= 0:
+                            break
+                        
+                        available_credit = account.total_limit + account.available_balance
+                        split_amount = min(
+                            available_credit,
+                            remaining_amount
+                        )
+                        
+                        if split_amount > 0:
+                            suggested_splits.append(BillSplitCreate(
+                                liability_id=liability_id,
+                                account_id=acc_id,
+                                amount=split_amount
+                            ))
+                            remaining_amount -= split_amount
+
+                if suggested_splits and remaining_amount <= 0:
+                    metrics = await self.calculate_optimization_metrics(
+                        suggested_splits,
+                        accounts
+                    )
+                    
+                    if metrics.optimization_score > current_metrics.optimization_score:
+                        suggestions.append(OptimizationSuggestion(
+                            original_splits=original_splits,
+                            suggested_splits=suggested_splits,
+                            improvement_metrics=metrics,
+                            reasoning=[
+                                "Balances usage between checking and credit accounts",
+                                "Preserves credit availability for emergencies",
+                                "Utilizes available checking balance effectively"
+                            ],
+                            priority=2 if metrics.optimization_score > current_metrics.optimization_score + 0.15 else 3
+                        ))
+
+        return suggestions
 
     async def validate_bulk_operation(
         self,
