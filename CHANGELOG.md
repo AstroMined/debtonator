@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.47] - 2025-02-15
+
+### Added
+- Payment pattern analysis system
+  - Pattern detection with confidence scoring:
+    * Regular payment pattern detection
+    * Irregular payment identification
+    * Seasonal pattern recognition
+    * Monthly pattern analysis
+  - Comprehensive metrics tracking:
+    * Frequency metrics (average days between, std dev, min/max)
+    * Amount statistics (average, std dev, min/max, total)
+    * Pattern-specific confidence scoring
+  - Features include:
+    * Account-specific pattern analysis
+    * Category-based pattern detection
+    * Date range filtering
+    * Minimum sample size configuration
+    * Pattern type classification
+    * Detailed analysis notes
+  - Comprehensive test coverage including:
+    * Regular payment scenarios
+    * Irregular payment detection
+    * Seasonal pattern identification
+    * Insufficient data handling
+    * Date range filtering
+    * All tests passing
+
 ## [0.3.46] - 2025-02-15
 
 ### Added
@@ -750,3 +778,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic functionality
 - Core database structure
 - Simple API endpoints
+
