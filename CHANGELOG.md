@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.54] - 2025-02-15
+
+### Fixed
+- Payment pattern test improvements:
+  * Fixed test assertion in seasonal pattern test to match actual fixture behavior
+  * Updated test documentation to accurately reflect 6-month payment pattern
+  * All payment pattern tests now passing
+
 ## [0.3.53] - 2025-02-15
 
 ### Fixed

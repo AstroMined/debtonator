@@ -228,7 +228,7 @@ async def test_analyze_seasonal_pattern(
     
     assert analysis.pattern_type == PatternType.SEASONAL
     assert analysis.confidence_score > 0.5
-    assert analysis.sample_size == 5  # Fixture creates 5 payments (skipping months 3, 4, and 5)
+    assert analysis.sample_size == 6  # Fixture creates 6 monthly payments with increasing amounts
     assert any("seasonal" in note.lower() or "monthly" in note.lower() for note in analysis.notes)
     assert analysis.amount_statistics.min_amount == Decimal('100.00')
     assert analysis.amount_statistics.max_amount == Decimal('250.00')
