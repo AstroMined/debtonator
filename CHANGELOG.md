@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.39] - 2025-02-14
+
+### Added
+- Recurring income system
+  - New recurring_income table for managing recurring income templates
+  - Support for generating income entries from recurring patterns
+  - Auto-deposit configuration
+  - Monthly income generation capability
+  - Proper relationship handling between accounts, recurring income, and income entries
+  - Comprehensive test coverage including:
+    * Template creation and validation
+    * Income generation functionality
+    * Auto-deposit handling
+    * SQLite-compatible date handling
+    * All tests passing with 100% coverage
+
 ## [0.3.38] - 2025-02-14
 
 ### Added

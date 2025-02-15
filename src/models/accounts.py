@@ -74,6 +74,11 @@ class Account(Base):
         "RecurringBill",
         back_populates="account"
     )
+    recurring_income: Mapped[List["RecurringIncome"]] = relationship(
+        "RecurringIncome",
+        back_populates="account",
+        cascade="all, delete-orphan"
+    )
     statement_history: Mapped[List["StatementHistory"]] = relationship(
         "StatementHistory",
         back_populates="account",
