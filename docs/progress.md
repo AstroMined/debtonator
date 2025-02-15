@@ -1,22 +1,54 @@
 # Progress: Debtonator
 
-## Current Priority: API Enhancement Project - Phase 6 Reporting & Analysis
+## Current Priority: Datetime Standardization Project
 
-### Current Work: Datetime Standardization (In Progress)
-- [ ] Implementation
-  - [x] Updated schemas:
-    * Impact analysis schema using timezone-aware datetime
-    * Income trends schema using timezone-aware datetime
-    * Cashflow schema using timezone-aware datetime
-  - [x] Fixed test datetime handling:
-    * Account forecast tests updated for timezone awareness
-    * Added explicit UTC timezone handling
-  - [ ] Remaining tasks:
-    * Complete cashflow service datetime updates
-    * Update remaining test files
-    * Update models for timezone awareness
+### Phase 1: Core Updates (Current)
+- [ ] BaseModel Changes
+  - [ ] Update created_at/updated_at defaults to enforce UTC
+  - [ ] Remove all date field usage
+  - [ ] Add datetime validation to ensure UTC
+  - [ ] Update model relationships to use UTC datetime
+- [ ] Model Updates
+  - [ ] Payment dates to UTC datetime
+  - [ ] Bill due dates to UTC datetime
+  - [ ] Income dates to UTC datetime
+  - [ ] Transaction dates to UTC datetime
+  - [ ] Statement dates to UTC datetime
+  - [ ] Schedule dates to UTC datetime
 
-### Recent Work: Payment Pattern Test Improvements (Completed)
+### Phase 2: Service Updates (Next)
+- [ ] Cashflow Service
+  - [ ] Update all datetime creation points
+  - [ ] Fix date arithmetic to use UTC datetime
+  - [ ] Update forecast calculations
+  - [ ] Fix historical analysis
+  - [ ] Update tests with UTC fixtures
+- [ ] Payment Services
+  - [ ] Update pattern detection datetime handling
+  - [ ] Fix scheduling logic to use UTC
+  - [ ] Update recurring payment calculations
+  - [ ] Fix test fixtures
+- [ ] Analysis Services
+  - [ ] Update historical analysis periods
+  - [ ] Fix trend calculations
+  - [ ] Update seasonal analysis
+  - [ ] Fix test data
+
+### Phase 3: Schema Updates (After Services)
+- [ ] Pydantic Schemas
+  - [ ] Remove all date type usage
+  - [ ] Update validation rules for UTC
+  - [ ] Fix request/response models
+  - [ ] Update API documentation
+- [ ] Test Coverage
+  - [ ] Update all test fixtures to UTC
+  - [ ] Add datetime validation tests
+  - [ ] Add timezone edge case tests
+  - [ ] Verify UTC consistency
+
+### Paused Work
+
+### API Enhancement Project - Phase 6 (Paused)
 - [x] Test Fixes
   - [x] Fixed seasonal pattern test:
     * Updated assertion to expect 6 payments

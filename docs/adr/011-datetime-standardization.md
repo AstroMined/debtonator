@@ -1,54 +1,141 @@
-# 11. Standardize on Timezone-Aware Datetime Fields
+# 11. Standardize on UTC Timezone-Aware Datetime
 
 ## Status
-Proposed
+Accepted
 
 ## Context
-Recent migration to datetime objects in UTC revealed inconsistencies in our schema definitions. Some schemas use date while others use datetime, leading to timezone-related bugs. This became apparent when working with the historical analysis system, where date comparisons between timezone-aware and naive datetime objects caused errors.
+The application must handle datetime values consistently to prevent timezone-related bugs and ensure accurate financial calculations. Previous implementation allowed mixing of date and datetime types, leading to inconsistencies and potential errors.
 
 ## Decision
-Standardize on timezone-aware datetime fields throughout the application to maintain consistency and prevent timezone-related issues. This includes:
+We will enforce strict UTC timezone-aware datetime usage throughout the backend:
 
-1. Using `DateTime(timezone=True)` in SQLAlchemy models
-2. Using `datetime` with explicit timezone info in Pydantic schemas
-3. Converting any date-only fields to datetime where timezone context is important
-4. Maintaining UTC as the standard timezone for stored data
-5. Handling timezone conversion in the UI layer
+### Mandated
+- All datetime objects MUST be timezone-aware with UTC
+- All datetime creation MUST use `datetime.now(ZoneInfo("UTC"))`
+- All model fields MUST use `DateTime(timezone=True)`
+- All Pydantic schemas MUST use `datetime` (not date)
+- All tests MUST create datetime objects with UTC timezone
+- All database queries MUST compare timezone-aware datetime objects
+- All date arithmetic MUST use datetime objects
+
+### Prohibited
+- No timezone-naive datetime objects
+- No use of `date` objects
+- No timezone conversion utilities
+- No mixing of date/datetime types
+- No automatic conversion from naive to aware
+- No datetime.combine() with naive times
+- No storing dates as strings
+- No storing timezone-naive datetimes
+
+### Exceptions
+Only two places may perform timezone conversions:
+1. Bulk Import: When importing external data
+2. API Layer: When receiving dates from frontend
+
+## Implementation
+
+### Correct Patterns
+```python
+# Creating current timestamp
+created_at = datetime.now(ZoneInfo("UTC"))
+
+# Creating specific datetime
+due_date = datetime(2025, 1, 1, tzinfo=ZoneInfo("UTC"))
+
+# Model definition
+class Payment(Base):
+    payment_date = Column(DateTime(timezone=True))
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(ZoneInfo("UTC"))
+    )
+
+# Pydantic schema
+class PaymentCreate(BaseModel):
+    payment_date: datetime  # Must be UTC aware
+
+    @validator("payment_date")
+    def ensure_utc(cls, v):
+        if not v.tzinfo or v.tzinfo != ZoneInfo("UTC"):
+            raise ValueError("datetime must be UTC timezone-aware")
+        return v
+
+# Test fixtures
+@pytest.fixture
+def test_payment():
+    return Payment(
+        amount=Decimal("50.00"),
+        payment_date=datetime.now(ZoneInfo("UTC"))
+    )
+```
+
+### Incorrect Patterns
+```python
+# INCORRECT: Naive datetime
+created_at = datetime.now()
+
+# INCORRECT: Date object
+due_date = date(2025, 1, 1)
+
+# INCORRECT: Naive datetime in model
+payment_date = Column(DateTime())
+
+# INCORRECT: Date field in schema
+class PaymentCreate(BaseModel):
+    payment_date: date
+
+# INCORRECT: Naive datetime in tests
+payment_date = datetime(2025, 1, 1)
+```
 
 ## Consequences
 
 ### Positive
 - Consistent datetime handling across the application
-- Proper timezone support for international users
 - Prevention of timezone-related bugs
 - More accurate historical analysis
 - Better support for time-sensitive operations
 - Clearer audit trails with precise timestamps
+- Simplified date arithmetic (no date/datetime conversions)
+- Reduced cognitive overhead (only one way to handle dates)
 
 ### Negative
-- Need to update multiple schemas and tests
-- Temporary increase in complexity during migration
-- Need to handle timezone conversion in UI layer
-- Slightly increased storage requirements for datetime vs date
-- More complex date/time comparisons in queries
+- More verbose datetime creation
+- Slightly increased storage requirements
+- Need to update existing code base
 
-### Neutral
-- Need to maintain clear documentation about timezone handling
-- May need to provide helper functions for common timezone operations
-- Will need to update existing tests to use timezone-aware datetime objects
-
-## Implementation Notes
-
-1. Start with core models (Payment, Income, Transaction)
-2. Update related schemas (HistoricalPeriodAnalysis, etc.)
-3. Add timezone handling utilities if needed
-4. Update tests to use timezone-aware datetime objects
-5. Document timezone handling expectations in README
+### Mitigation
+- Clear documentation and examples
+- Comprehensive test coverage
+- Static analysis to catch naive datetime usage
+- Code review checklist item for datetime handling
 
 ## Migration Strategy
 
-1. Identify all date/datetime fields in models and schemas
-2. Prioritize fields where timezone information is critical
-3. Update models and schemas in small, testable batches
-4. Add comprehensive tests for timezone handling
-5. Document any breaking changes in CHANGELOG
+### Phase 1: Core Updates
+1. Update BaseModel datetime handling
+2. Fix all model datetime fields
+3. Update all service datetime creation
+4. Fix all test datetime objects
+
+### Phase 2: Service Refactor
+1. Update cashflow services
+2. Update payment services
+3. Update income services
+4. Update analysis services
+
+### Phase 3: Schema Updates
+1. Update all Pydantic schemas
+2. Remove any date type usage
+3. Update API endpoint documentation
+
+### Phase 4: Test Coverage
+1. Update all test fixtures
+2. Add datetime validation tests
+3. Verify UTC consistency
+
+## References
+- [Python datetime documentation](https://docs.python.org/3/library/datetime.html)
+- [SQLAlchemy DateTime documentation](https://docs.sqlalchemy.org/en/14/core/type_basics.html#sqlalchemy.types.DateTime)
+- [Pydantic datetime handling](https://pydantic-docs.helpmanual.io/usage/types/#datetime-types)

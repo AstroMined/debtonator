@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- **Breaking**: Enforced strict UTC timezone-aware datetime usage throughout backend
+  - All datetime objects must be timezone-aware with UTC
+  - Removed support for date objects and naive datetimes
+  - Updated ADR-011 with explicit requirements
+  - Paused other development until datetime standardization complete
+  - See ADR-011 for migration details and correct patterns
+
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),

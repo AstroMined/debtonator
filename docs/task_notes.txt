@@ -44,6 +44,7 @@ follow your custom instructions
 Formulate a plan to continue on with the in-progress items, but keep the scope limited to work that can completed in a single session.
 If you plan any database changes, I would suggest that you delete the DB and re-initialize instead of fighting with Alembic migrations.
 This is just a dev environment, so there's no data loss to worry about in the DB.
+The test DB is re-initialized between every test run, so there's no need to manually to it for tests.
 
 Occasionally, we run into problems with re-initializing the database.
 This is what we've found to work smoothly in the past:
@@ -61,28 +62,3 @@ ONLY USE TRACEBACKS OR THE -v FLAG WHEN RUNNING A SINGLE SPECIFIC FUNCTION IN A 
 For example:
 pytest -v tests/unit/test_accounts.py::test_create_checking_account
 You will lock up if you don't listen.
-
-
-Current Status:
-
-Started implementing timezone-aware datetime standardization (ADR 011)
-Updated schemas (impact_analysis.py, income_trends.py, cashflow.py) to use datetime instead of date
-Began updating tests to handle timezone-aware datetimes
-Initialized database changes to support timezone-aware fields
-Next Session Starting Point:
-
-Continue updating src/services/cashflow.py:
-
-Complete the timezone-aware datetime conversion
-Update all date comparisons to handle timezone-aware datetimes
-Ensure consistent UTC timezone usage throughout
-Update remaining tests:
-
-Fix test_historical_trends_services.py datetime comparisons
-Fix test_account_specific_forecasts.py remaining date usages
-Fix test_cashflow_services.py datetime assertions
-Fix test_cross_account_analysis_services.py datetime comparisons
-Update models to ensure timezone awareness:
-
-Review all models using date/datetime fields
-Update SQLAlchemy column definitions to use timezone=True

@@ -1,21 +1,23 @@
 # Active Context: Debtonator
 
 ## Current Focus
-API Enhancement Project - Phase 6: Reporting & Analysis
+Datetime Standardization Project
 
 ### Recent Changes
-1. **Datetime Standardization (In Progress)**
-   - ✓ Updated schemas:
-     * Impact analysis schema using timezone-aware datetime
-     * Income trends schema using timezone-aware datetime
-     * Cashflow schema using timezone-aware datetime
-   - ✓ Fixed test datetime handling:
-     * Account forecast tests updated for timezone awareness
-     * Added explicit UTC timezone handling
-   - Next steps:
-     * Complete cashflow service datetime updates
-     * Update remaining test files
-     * Update models for timezone awareness
+1. **Datetime Standardization (High Priority)**
+   - ADR-011 updated with strict requirements:
+     * Mandated UTC timezone-aware datetime throughout
+     * Prohibited date objects and naive datetimes
+     * Defined correct and incorrect patterns
+   - Previous Progress:
+     * ✓ Some schemas updated with timezone-aware datetime
+     * ✓ Some test files fixed for timezone awareness
+   - Next Steps (Blocking All Other Work):
+     * Update BaseModel datetime handling
+     * Convert all date fields to UTC datetime
+     * Remove all timezone conversion utilities
+     * Fix all datetime creation points
+     * Update all test fixtures
 
 2. **Payment Pattern Test Improvements (Completed)**
    - ✓ Fixed test assertions:
@@ -68,16 +70,13 @@ API Enhancement Project - Phase 6: Reporting & Analysis
 
 ### Recent Decisions
 1. **Implementation Strategy**
-   - Decimal precision handling for financial calculations
-   - Comprehensive pattern detection with confidence scoring
-   - Strong type safety throughout
-   - Proper error handling
-   - Improved test coverage
-   - Account-level risk assessment
-   - Focus payment pattern analysis on bill-specific patterns
-   - Plan for separate expense pattern analysis service
-   - Decision to update datetime handling in schemas to maintain timezone information
-   - Identified need to update HistoricalPeriodAnalysis and related schemas to use datetime instead of date
+   - Strict enforcement of UTC timezone-aware datetime
+   - No date/datetime flexibility allowed
+   - Create datetime objects correctly from the start
+   - No conversion utilities or helpers
+   - Only bulk import and API may handle timezone conversion
+   - All existing work paused until datetime standardization complete
+   - Comprehensive testing for UTC compliance
 
 2. **Enhancement Priorities**
    - [x] Account management complete
@@ -95,65 +94,52 @@ API Enhancement Project - Phase 6: Reporting & Analysis
 
 ## Active Decisions
 
-### Phase 4: Income System Enhancement (Completed)
-- [x] Query optimization
-- [x] Income categorization
-- [x] Trends analysis
-- [x] Deposit scheduling
-- [x] Recurring income
-- [x] Analysis endpoints
+### Phase 1: Core Datetime Updates (Current)
+- [ ] BaseModel Changes
+  - [ ] Update created_at/updated_at defaults
+  - [ ] Remove any date field usage
+  - [ ] Add datetime validation
+- [ ] Model Updates
+  - [ ] Payment dates to UTC datetime
+  - [ ] Bill due dates to UTC datetime
+  - [ ] Income dates to UTC datetime
+  - [ ] Transaction dates to UTC datetime
 
-### Phase 5: Cashflow Analysis Extension (Completed)
-- [x] Real-time tracking
-- [x] Cross-account analysis
-- [x] Custom forecasts
-- [x] Historical trends
-- [x] Account-specific forecasts
+### Phase 2: Service Updates (Next)
+- [ ] Cashflow Service
+  - [ ] Update all datetime creation
+  - [ ] Fix date arithmetic
+  - [ ] Update tests
+- [ ] Payment Services
+  - [ ] Update pattern detection
+  - [ ] Fix scheduling logic
+  - [ ] Update tests
+- [ ] Analysis Services
+  - [ ] Update historical analysis
+  - [ ] Fix period calculations
+  - [ ] Update tests
 
-### Phase 6: Reporting & Analysis (In Progress)
-- [x] Balance history endpoints
-- [x] Payment patterns
-- [x] Split analysis
-- [ ] Recommendations
-- [ ] Trend reporting
+### Paused Work (Pending Datetime Standardization)
+- API Enhancement Project - Phase 6
+  - Recommendations (paused)
+  - Trend reporting (paused)
 
 ## Next Steps
 
-### Phase 6: Reporting & Analysis (Current Focus)
-1. Balance History System (Completed)
-   - [x] Design balance history schemas
-   - [x] Implement balance tracking
-   - [x] Add historical reconciliation
-   - [x] Add balance trend analysis
-   - [x] Add comprehensive test coverage
+### Phase 3: Schema Updates (After Services)
+- [ ] Update all Pydantic schemas
+- [ ] Remove any date type usage
+- [ ] Update validation rules
+- [ ] Update API documentation
 
-2. Payment Pattern Analysis (Completed)
-   - [x] Design payment pattern schemas
-   - [x] Implement pattern detection
-   - [x] Add regular/irregular pattern detection
-   - [x] Add seasonal pattern detection
-   - [x] Add comprehensive test coverage
-   - [x] Refactor to BillPaymentPatternService
-   - [x] Update test fixtures for bill-payment focus
-   - [x] Plan future ExpensePatternService
+### Phase 4: Test Coverage (Final)
+- [ ] Update all test fixtures
+- [ ] Add datetime validation tests
+- [ ] Verify UTC consistency
+- [ ] Add timezone edge case tests
 
-3. Split Analysis System (Completed)
-   - [x] Design split analysis schemas
-   - [x] Implement split pattern detection
-   - [x] Add optimization suggestions
-   - [x] Add impact analysis
-   - [x] Add comprehensive test coverage
-
-4. Recommendation Engine (Current Focus)
-   - [✓] Design recommendation schemas
-   - [In Progress] Implement pattern-based recommendations
-   - [ ] Add optimization suggestions
-   - [ ] Add impact analysis
-   - [ ] Add comprehensive test coverage
-
-5. Trend Reporting System (Upcoming)
-   - [ ] Design trend report schemas
-   - [ ] Implement trend detection
-   - [ ] Add visualization support
-   - [ ] Add export capabilities
-   - [ ] Add comprehensive test coverage
+### Future Work (After Datetime Standardization)
+1. Resume API Enhancement Project
+   - Complete recommendation engine
+   - Implement trend reporting
+   - Add remaining analysis features
