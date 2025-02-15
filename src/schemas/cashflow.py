@@ -1,11 +1,12 @@
-from datetime import date
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from decimal import Decimal
 from typing import Optional, List, Dict, Union
 from pydantic import BaseModel, Field, conlist
 
 class CashflowBase(BaseModel):
     """Base schema for cashflow data"""
-    forecast_date: date
+    forecast_date: datetime = Field(default_factory=lambda: datetime.now(ZoneInfo("UTC")))
     total_bills: Decimal = Field(..., ge=0)
     total_income: Decimal = Field(..., ge=0)
     balance: Decimal
@@ -27,7 +28,7 @@ class CashflowCreate(CashflowBase):
 
 class CashflowUpdate(BaseModel):
     """Schema for updating a cashflow forecast"""
-    forecast_date: Optional[date] = None
+    forecast_date: Optional[datetime] = None
     total_bills: Optional[Decimal] = Field(None, ge=0)
     total_income: Optional[Decimal] = Field(None, ge=0)
     balance: Optional[Decimal] = None
@@ -46,8 +47,8 @@ class CashflowUpdate(BaseModel):
 class CashflowInDB(CashflowBase):
     """Schema for cashflow forecast in database"""
     id: int
-    created_at: date
-    updated_at: date
+    created_at: datetime = Field(default_factory=lambda: datetime.now(ZoneInfo("UTC")))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(ZoneInfo("UTC")))
 
     class Config:
         from_attributes = True
@@ -63,8 +64,8 @@ class CashflowList(BaseModel):
 
 class CashflowFilters(BaseModel):
     """Schema for cashflow filtering parameters"""
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
     min_balance: Optional[Decimal] = None
     max_balance: Optional[Decimal] = None
 
@@ -134,8 +135,8 @@ class AccountRiskAssessment(BaseModel):
 
 class CustomForecastParameters(BaseModel):
     """Schema for custom forecast parameters"""
-    start_date: date
-    end_date: date
+    start_date: datetime
+    end_date: datetime
     include_pending: bool = True
     account_ids: Optional[List[int]] = None
     categories: Optional[List[str]] = None
@@ -145,7 +146,7 @@ class CustomForecastParameters(BaseModel):
 
 class CustomForecastResult(BaseModel):
     """Schema for custom forecast results"""
-    date: date
+    date: datetime
     projected_balance: Decimal
     projected_income: Decimal
     projected_expenses: Decimal
@@ -159,7 +160,7 @@ class CustomForecastResponse(BaseModel):
     results: List[CustomForecastResult]
     overall_confidence: Decimal = Field(..., ge=0, le=1)
     summary_statistics: Dict[str, Decimal]
-    timestamp: date
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(ZoneInfo("UTC")))
 
 class HistoricalTrendMetrics(BaseModel):
     """Schema for historical trend metrics"""
@@ -172,8 +173,8 @@ class HistoricalTrendMetrics(BaseModel):
 
 class HistoricalPeriodAnalysis(BaseModel):
     """Schema for analyzing specific historical periods"""
-    period_start: date
-    period_end: date
+    period_start: datetime
+    period_end: datetime
     average_balance: Decimal
     peak_balance: Decimal
     lowest_balance: Decimal
@@ -195,13 +196,13 @@ class HistoricalTrendsResponse(BaseModel):
     metrics: HistoricalTrendMetrics
     period_analysis: List[HistoricalPeriodAnalysis]
     seasonality: SeasonalityAnalysis
-    timestamp: date
+    timestamp: datetime
 
 class AccountForecastRequest(BaseModel):
     """Schema for account-specific forecast request"""
     account_id: int
-    start_date: date
-    end_date: date
+    start_date: datetime
+    end_date: datetime
     include_pending: bool = True
     include_recurring: bool = True
     include_transfers: bool = True
@@ -214,14 +215,14 @@ class AccountForecastMetrics(BaseModel):
     maximum_projected_balance: Decimal
     average_inflow: Decimal
     average_outflow: Decimal
-    projected_low_balance_dates: List[date]
+    projected_low_balance_dates: List[datetime]
     credit_utilization: Optional[Decimal] = Field(None, ge=0, le=1)  # Only for credit accounts
     balance_volatility: Decimal
     forecast_confidence: Decimal = Field(..., ge=0, le=1)
 
 class AccountForecastResult(BaseModel):
     """Schema for account-specific forecast result"""
-    date: date
+    date: datetime
     projected_balance: Decimal
     projected_inflow: Decimal
     projected_outflow: Decimal
@@ -232,11 +233,11 @@ class AccountForecastResult(BaseModel):
 class AccountForecastResponse(BaseModel):
     """Schema for account-specific forecast response"""
     account_id: int
-    forecast_period: tuple[date, date]
+    forecast_period: tuple[datetime, datetime]
     metrics: AccountForecastMetrics
     daily_forecasts: List[AccountForecastResult]
     overall_confidence: Decimal = Field(..., ge=0, le=1)
-    timestamp: date
+    timestamp: datetime
 
 class CrossAccountAnalysis(BaseModel):
     """Schema for comprehensive cross-account analysis"""
@@ -245,4 +246,4 @@ class CrossAccountAnalysis(BaseModel):
     usage_patterns: Dict[int, AccountUsagePattern]
     balance_distribution: Dict[int, BalanceDistribution]
     risk_assessment: Dict[int, AccountRiskAssessment]
-    timestamp: date
+    timestamp: datetime

@@ -1,5 +1,6 @@
 import pytest
-from datetime import date, timedelta
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.accounts import Account
@@ -47,7 +48,7 @@ async def test_category(db_session: AsyncSession):
 
 @pytest.fixture
 async def test_bills(db_session: AsyncSession, test_account: Account, test_category):
-    today = date.today()
+    today = datetime.now(ZoneInfo("UTC")).replace(hour=0, minute=0, second=0, microsecond=0)
     bills = [
         Liability(
             name="Rent",
@@ -74,7 +75,7 @@ async def test_bills(db_session: AsyncSession, test_account: Account, test_categ
 
 @pytest.fixture
 async def test_income(db_session: AsyncSession, test_account: Account):
-    today = date.today()
+    today = datetime.now(ZoneInfo("UTC")).replace(hour=0, minute=0, second=0, microsecond=0)
     income_entries = [
         Income(
             source="Salary",
@@ -103,7 +104,7 @@ async def test_get_account_forecast_basic(
     test_income
 ):
     service = CashflowService(db_session)
-    today = date.today()
+    today = datetime.now(ZoneInfo("UTC")).replace(hour=0, minute=0, second=0, microsecond=0)
     
     request = AccountForecastRequest(
         account_id=test_account.id,
@@ -136,7 +137,7 @@ async def test_get_account_forecast_credit_account(
     test_credit_account: Account
 ):
     service = CashflowService(db_session)
-    today = date.today()
+    today = datetime.now(ZoneInfo("UTC")).replace(hour=0, minute=0, second=0, microsecond=0)
     
     request = AccountForecastRequest(
         account_id=test_credit_account.id,
@@ -160,7 +161,7 @@ async def test_get_account_forecast_warning_flags(
     test_bills
 ):
     service = CashflowService(db_session)
-    today = date.today()
+    today = datetime.now(ZoneInfo("UTC")).replace(hour=0, minute=0, second=0, microsecond=0)
     
     # Set low balance to trigger warnings
     test_account.available_balance = Decimal("50.00")
@@ -193,7 +194,7 @@ async def test_get_account_forecast_recurring_bills(
     test_bills
 ):
     service = CashflowService(db_session)
-    today = date.today()
+    today = datetime.now(ZoneInfo("UTC")).replace(hour=0, minute=0, second=0, microsecond=0)
     
     request = AccountForecastRequest(
         account_id=test_account.id,
@@ -218,7 +219,7 @@ async def test_get_account_forecast_recurring_bills(
 
 async def test_get_account_forecast_invalid_account(db_session: AsyncSession):
     service = CashflowService(db_session)
-    today = date.today()
+    today = datetime.now(ZoneInfo("UTC")).replace(hour=0, minute=0, second=0, microsecond=0)
     
     request = AccountForecastRequest(
         account_id=999999,  # Non-existent account

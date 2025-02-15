@@ -1,4 +1,5 @@
-from datetime import date
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from decimal import Decimal
 from typing import List, Optional
 from pydantic import BaseModel, Field
@@ -9,8 +10,8 @@ class IncomePattern(BaseModel):
     frequency: str  # 'weekly', 'biweekly', 'monthly', 'irregular'
     average_amount: Decimal
     confidence_score: float = Field(ge=0.0, le=1.0)
-    last_occurrence: date
-    next_predicted: Optional[date]
+    last_occurrence: datetime = Field(default_factory=lambda: datetime.now(ZoneInfo("UTC")))
+    next_predicted: Optional[datetime]
 
 class SeasonalityMetrics(BaseModel):
     """Seasonal patterns in income"""
@@ -36,14 +37,14 @@ class IncomeTrendsAnalysis(BaseModel):
     patterns: List[IncomePattern]
     seasonality: Optional[SeasonalityMetrics]
     source_statistics: List[SourceStatistics]
-    analysis_date: date
-    data_start_date: date
-    data_end_date: date
+    analysis_date: datetime = Field(default_factory=lambda: datetime.now(ZoneInfo("UTC")))
+    data_start_date: datetime
+    data_end_date: datetime
     overall_predictability_score: float = Field(ge=0.0, le=1.0)
 
 class IncomeTrendsRequest(BaseModel):
     """Request parameters for trends analysis"""
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
     source: Optional[str] = None
     min_confidence: float = Field(default=0.5, ge=0.0, le=1.0)

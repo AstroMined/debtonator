@@ -24,6 +24,7 @@
   - Data validation
   - Settings management
   - Schema definition
+  - Timezone-aware datetime handling
 
 ### Frontend
 - **Framework**: React with TypeScript
@@ -46,6 +47,16 @@
   - Error handling
   - Field-level validation
   - Form submission handling
+
+## Technical Standards
+
+### Datetime Handling
+- All datetime fields use timezone-aware datetime objects
+- UTC is used as the standard timezone for stored data
+- SQLAlchemy models use `DateTime(timezone=True)`
+- Pydantic schemas use `datetime` with explicit timezone info
+- Timezone conversion is handled in the UI layer
+- All tests use timezone-aware datetime objects
 
 ## Data Models
 
@@ -75,7 +86,7 @@ class Bill(BaseModel):
     id: int
     name: str
     amount: Decimal
-    due_date: date
+    due_date: datetime
     description: Optional[str]
     category: str
     recurring: bool
@@ -86,7 +97,7 @@ class Bill(BaseModel):
 class BillCreate(BaseModel):
     name: str
     amount: Decimal
-    due_date: date
+    due_date: datetime
     description: Optional[str]
     category: str
     recurring: bool = False
@@ -99,7 +110,7 @@ class Payment(BaseModel):
     id: int
     bill_id: Optional[int]  # Optional for non-bill expenses
     amount: Decimal
-    payment_date: date
+    payment_date: datetime
     description: Optional[str]
     category: str
     created_at: datetime
@@ -108,7 +119,7 @@ class Payment(BaseModel):
 class PaymentCreate(BaseModel):
     bill_id: Optional[int]
     amount: Decimal
-    payment_date: date
+    payment_date: datetime
     description: Optional[str]
     category: str
 ```
@@ -139,16 +150,16 @@ class Account(BaseModel):
     available_credit: Optional[Decimal]
     total_limit: Optional[Decimal]
     last_statement_balance: Optional[Decimal]
-    last_statement_date: Optional[date]
-    created_at: date
-    updated_at: date
+    last_statement_date: Optional[datetime]
+    created_at: datetime
+    updated_at: datetime
 ```
 
 ### Income
 ```python
 class Income(BaseModel):
     id: int
-    date: date
+    date: datetime
     source: str
     amount: Decimal
     deposited: bool
@@ -158,7 +169,7 @@ class Income(BaseModel):
 ### Cashflow
 ```python
 class CashflowForecast(BaseModel):
-    date: date
+    date: datetime
     total_bills: Decimal
     total_income: Decimal
     balance: Decimal

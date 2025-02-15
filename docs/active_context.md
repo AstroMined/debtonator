@@ -4,7 +4,20 @@
 API Enhancement Project - Phase 6: Reporting & Analysis
 
 ### Recent Changes
-1. **Payment Pattern Test Improvements (Completed)**
+1. **Datetime Standardization (In Progress)**
+   - ✓ Updated schemas:
+     * Impact analysis schema using timezone-aware datetime
+     * Income trends schema using timezone-aware datetime
+     * Cashflow schema using timezone-aware datetime
+   - ✓ Fixed test datetime handling:
+     * Account forecast tests updated for timezone awareness
+     * Added explicit UTC timezone handling
+   - Next steps:
+     * Complete cashflow service datetime updates
+     * Update remaining test files
+     * Update models for timezone awareness
+
+2. **Payment Pattern Test Improvements (Completed)**
    - ✓ Fixed test assertions:
      * Updated seasonal pattern test to expect 6 payments
      * Corrected test documentation to reflect actual fixture behavior

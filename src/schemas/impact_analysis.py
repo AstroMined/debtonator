@@ -1,4 +1,5 @@
-from datetime import date
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from decimal import Decimal
 from typing import List, Optional
 from pydantic import BaseModel, Field
@@ -12,7 +13,7 @@ class AccountImpact(BaseModel):
     risk_score: int = Field(ge=0, le=100)
 
 class CashflowImpact(BaseModel):
-    date: date
+    date: datetime = Field(default_factory=lambda: datetime.now(ZoneInfo("UTC")))
     total_bills: Decimal
     available_funds: Decimal
     projected_deficit: Optional[Decimal] = None
