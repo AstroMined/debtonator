@@ -29,8 +29,9 @@ class Income(Base):
     category_id: Mapped[int] = mapped_column(ForeignKey("income_categories.id"), nullable=True)
     category = relationship("IncomeCategory")
 
-    # Payment Relationships
+    # Payment and Schedule Relationships
     payments: Mapped[List["Payment"]] = relationship("Payment", back_populates="income")
+    deposit_schedules: Mapped[List["DepositSchedule"]] = relationship("DepositSchedule", back_populates="income")
 
     # Create indexes and constraints
     __table_args__ = (

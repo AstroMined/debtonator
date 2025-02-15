@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.38] - 2025-02-14
+
+### Added
+- Deposit scheduling system
+  - New deposit_schedules table for managing income deposits
+  - Support for scheduling deposits to specific accounts
+  - Recurring deposit configuration
+  - Validation for deposit amounts against income
+  - Relationship tracking between income and accounts
+  - Comprehensive test coverage including:
+    * Schedule creation and validation
+    * Amount validation against income
+    * Schedule updates and deletions
+    * Pending deposit tracking
+    * Account-specific filtering
+
 ## [0.3.37] - 2025-02-14
 
 ### Added

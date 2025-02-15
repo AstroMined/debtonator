@@ -99,6 +99,11 @@ class Account(Base):
         back_populates="account",
         cascade="all, delete-orphan"
     )
+    deposit_schedules: Mapped[List["DepositSchedule"]] = relationship(
+        "DepositSchedule",
+        back_populates="account",
+        cascade="all, delete-orphan"
+    )
 
     # Create indexes for efficient lookups
     __table_args__ = (
