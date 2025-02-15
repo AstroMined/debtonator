@@ -1,30 +1,29 @@
 from datetime import datetime
 from decimal import Decimal
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Numeric, Enum
-from sqlalchemy.orm import relationship
-import enum
+from enum import Enum
+from sqlalchemy import String, DateTime, ForeignKey, Numeric, Enum as SQLEnum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from zoneinfo import ZoneInfo
 
-from ..database.base import Base
+from .base_model import BaseDBModel
 
-class TransactionType(str, enum.Enum):
+class TransactionType(str, Enum):
     CREDIT = "credit"
     DEBIT = "debit"
 
-class TransactionHistory(Base):
+class TransactionHistory(BaseDBModel):
     """Model for tracking account transactions"""
     __tablename__ = "transaction_history"
 
-    id = Column(Integer, primary_key=True, index=True)
-    account_id = Column(Integer, ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False)
-    amount = Column(Numeric(10, 2), nullable=False)
-    transaction_type = Column(Enum(TransactionType), nullable=False)
-    description = Column(String, nullable=True)
-    transaction_date = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False)
+    amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    transaction_type: Mapped[TransactionType] = mapped_column(SQLEnum(TransactionType), nullable=False)
+    description: Mapped[str] = mapped_column(String, nullable=True)
+    transaction_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     # Relationships
-    account = relationship("Account", back_populates="transactions")
+    account: Mapped["Account"] = relationship("Account", back_populates="transactions")
 
     def __repr__(self):
         return (

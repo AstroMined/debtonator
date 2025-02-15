@@ -1,25 +1,22 @@
-from datetime import date
+from datetime import datetime
 from decimal import Decimal
-from sqlalchemy import String, Date, Numeric, ForeignKey, Integer
+from sqlalchemy import String, DateTime, Numeric, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from zoneinfo import ZoneInfo
 
-from ..database.base import Base
+from .base_model import BaseDBModel
 
-class StatementHistory(Base):
+class StatementHistory(BaseDBModel):
     """Model for tracking account statement history"""
     __tablename__ = "statement_history"
     
     # Primary key and foreign key
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    account_id: Mapped[int] = mapped_column(
-        Integer,
-        ForeignKey("accounts.id", ondelete="CASCADE"),
-        nullable=False
-    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False)
     
     # Statement details
-    statement_date: Mapped[date] = mapped_column(
-        Date,
+    statement_date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
         nullable=False,
         comment="Date of the statement"
     )
@@ -33,15 +30,11 @@ class StatementHistory(Base):
         nullable=True,
         comment="Minimum payment due"
     )
-    due_date: Mapped[date] = mapped_column(
-        Date,
+    due_date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
         nullable=True,
         comment="Payment due date"
     )
-    
-    # Timestamps
-    created_at: Mapped[date] = mapped_column(Date, nullable=False, default=date.today)
-    updated_at: Mapped[date] = mapped_column(Date, nullable=False, default=date.today, onupdate=date.today)
     
     # Relationships
     account: Mapped["Account"] = relationship("Account", back_populates="statement_history")

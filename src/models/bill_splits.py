@@ -1,11 +1,10 @@
-from datetime import date
 from decimal import Decimal
-from sqlalchemy import ForeignKey, Numeric, Date, Index
+from sqlalchemy import ForeignKey, Numeric, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..database.base import Base
+from .base_model import BaseDBModel
 
-class BillSplit(Base):
+class BillSplit(BaseDBModel):
     """Model representing a bill payment split across multiple accounts"""
     __tablename__ = "bill_splits"
 
@@ -16,9 +15,6 @@ class BillSplit(Base):
         Numeric(10, 2),
         comment="Amount of the bill allocated to this account"
     )
-    created_at: Mapped[date] = mapped_column(Date, default=date.today)
-    updated_at: Mapped[date] = mapped_column(Date, default=date.today, onupdate=date.today)
-
     # Relationships
     liability = relationship("Liability", back_populates="splits")
     account = relationship("Account", back_populates="bill_splits")

@@ -1,22 +1,23 @@
-from datetime import date
+from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
-from sqlalchemy import String, Date, Numeric, Index, event, Integer
+from sqlalchemy import String, DateTime, Numeric, Index, event
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
+from zoneinfo import ZoneInfo
+
+from .base_model import BaseDBModel
 from .statement_history import StatementHistory
 from .credit_limit_history import CreditLimitHistory
 from .balance_reconciliation import BalanceReconciliation
 from .payment_schedules import PaymentSchedule
 from .balance_history import BalanceHistory
-from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from ..database.base import Base
-
-class Account(Base):
+class Account(BaseDBModel):
     """Account model representing a financial account"""
     __tablename__ = "accounts"
     
     # Primary key and basic fields
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     type: Mapped[str] = mapped_column(
         String(20),
@@ -48,12 +49,8 @@ class Account(Base):
         nullable=True,
         comment="Balance from last statement"
     )
-    last_statement_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    last_statement_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     
-    # Timestamps
-    created_at: Mapped[date] = mapped_column(Date, nullable=False, default=date.today)
-    updated_at: Mapped[date] = mapped_column(Date, nullable=False, default=date.today, onupdate=date.today)
-
     # Relationships
     payment_sources: Mapped[List["PaymentSource"]] = relationship(
         "PaymentSource",

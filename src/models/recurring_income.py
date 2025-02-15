@@ -1,11 +1,12 @@
-from datetime import date
+from datetime import datetime
 from decimal import Decimal
-from sqlalchemy import String, Date, Boolean, Numeric, ForeignKey
+from sqlalchemy import String, DateTime, Boolean, Numeric, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from zoneinfo import ZoneInfo
 
-from ..database.base import Base
+from .base_model import BaseDBModel
 
-class RecurringIncome(Base):
+class RecurringIncome(BaseDBModel):
     """RecurringIncome model representing template for recurring income"""
     __tablename__ = "recurring_income"
 
@@ -17,9 +18,6 @@ class RecurringIncome(Base):
     category_id: Mapped[int] = mapped_column(ForeignKey("income_categories.id"), nullable=True)
     auto_deposit: Mapped[bool] = mapped_column(Boolean, default=False)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[date] = mapped_column(Date, default=date.today)
-    updated_at: Mapped[date] = mapped_column(Date, default=date.today, onupdate=date.today)
-
     # Relationships
     account = relationship("Account", back_populates="recurring_income")
     category = relationship("IncomeCategory")
@@ -35,7 +33,7 @@ class RecurringIncome(Base):
         income_entry = Income(
             source=self.source,
             amount=self.amount,
-            date=date(year, month, self.day_of_month),
+            date=datetime(year, month, self.day_of_month, tzinfo=ZoneInfo("UTC")),
             account_id=self.account_id,
             category_id=self.category_id,
             deposited=self.auto_deposit,

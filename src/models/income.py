@@ -5,14 +5,14 @@ from sqlalchemy import String, DateTime, Boolean, Numeric, Index, ForeignKey, Ch
 from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..database.base import Base
+from .base_model import BaseDBModel
 
-class Income(Base):
+class Income(BaseDBModel):
     """Income model representing an income record"""
     __tablename__ = "income"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(DateTime)
+    date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     source: Mapped[str] = mapped_column(String(255))
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     deposited: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -21,16 +21,6 @@ class Income(Base):
         default=0,
         comment="Calculated field for undeposited amounts"
     )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, 
-        default=lambda: datetime.now(ZoneInfo("UTC"))
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, 
-        default=lambda: datetime.now(ZoneInfo("UTC")),
-        onupdate=lambda: datetime.now(ZoneInfo("UTC"))
-    )
-
     # Account and Category relationships
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
     account = relationship("Account", back_populates="income")

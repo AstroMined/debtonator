@@ -1,11 +1,12 @@
-from datetime import date
+from datetime import datetime
 from decimal import Decimal
-from sqlalchemy import String, Date, Boolean, Numeric, ForeignKey
+from sqlalchemy import String, Boolean, Numeric, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from zoneinfo import ZoneInfo
 
-from ..database.base import Base
+from .base_model import BaseDBModel
 
-class RecurringBill(Base):
+class RecurringBill(BaseDBModel):
     """RecurringBill model representing template for recurring bills"""
     __tablename__ = "recurring_bills"
 
@@ -17,8 +18,6 @@ class RecurringBill(Base):
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
     auto_pay: Mapped[bool] = mapped_column(Boolean, default=False)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[date] = mapped_column(Date, default=date.today)
-    updated_at: Mapped[date] = mapped_column(Date, default=date.today, onupdate=date.today)
 
     # Relationships
     account = relationship("Account", back_populates="recurring_bills")
@@ -35,7 +34,7 @@ class RecurringBill(Base):
         liability = Liability(
             name=self.bill_name,
             amount=self.amount,
-            due_date=date(year, int(month), self.day_of_month),
+            due_date=datetime(year, int(month), self.day_of_month, tzinfo=ZoneInfo("UTC")),
             primary_account_id=self.account_id,
             category_id=self.category_id,
             auto_pay=self.auto_pay,

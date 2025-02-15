@@ -1,20 +1,18 @@
-from datetime import date
+from datetime import datetime
 from decimal import Decimal
-from sqlalchemy import String, Date, Numeric, ForeignKey, Integer
+from sqlalchemy import String, DateTime, Numeric, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from zoneinfo import ZoneInfo
 
-from ..database.base import Base
+from .base_model import BaseDBModel
 
-class CreditLimitHistory(Base):
+class CreditLimitHistory(BaseDBModel):
     """Model for tracking credit limit changes over time"""
     __tablename__ = "credit_limit_history"
     
     # Primary key and foreign key
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    account_id: Mapped[int] = mapped_column(
-        ForeignKey("accounts.id", ondelete="CASCADE"),
-        nullable=False
-    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False)
     
     # Credit limit fields
     credit_limit: Mapped[Decimal] = mapped_column(
@@ -22,8 +20,8 @@ class CreditLimitHistory(Base):
         nullable=False,
         comment="Credit limit at this point in time"
     )
-    effective_date: Mapped[date] = mapped_column(
-        Date,
+    effective_date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
         nullable=False,
         comment="Date when this credit limit became effective"
     )
@@ -32,9 +30,6 @@ class CreditLimitHistory(Base):
         nullable=True,
         comment="Reason for credit limit change"
     )
-    
-    # Timestamps
-    created_at: Mapped[date] = mapped_column(Date, nullable=False, default=date.today)
     
     # Relationships
     account: Mapped["Account"] = relationship("Account", back_populates="credit_limit_history")

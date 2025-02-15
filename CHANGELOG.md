@@ -1,20 +1,35 @@
 # Changelog
 
-## [Unreleased]
-
-### Changed
-- **Breaking**: Enforced strict UTC timezone-aware datetime usage throughout backend
-  - All datetime objects must be timezone-aware with UTC
-  - Removed support for date objects and naive datetimes
-  - Updated ADR-011 with explicit requirements
-  - Paused other development until datetime standardization complete
-  - See ADR-011 for migration details and correct patterns
-
-
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.3.57] - 2025-02-15
+
+### Changed
+- Completed Phase 1 of datetime standardization:
+  * Created BaseDBModel with UTC timezone-aware created_at/updated_at fields
+  * Updated all models to inherit from BaseDBModel
+  * Converted all date fields to timezone-aware datetime fields
+  * Reinitialized database with new schema
+  * Standardized datetime handling across all models:
+    - Account
+    - BillSplit
+    - CashflowForecast
+    - CreditLimitHistory
+    - DepositSchedule
+    - Income
+    - Liability
+    - Payment
+    - PaymentSchedule
+    - PaymentSource
+    - RecurringBill
+    - RecurringIncome
+    - StatementHistory
+    - TransactionHistory
+    - BalanceHistory
+    - BalanceReconciliation
 
 ## [0.3.56] - 2025-02-15
 
