@@ -1,7 +1,8 @@
-from datetime import date
+from datetime import datetime
 from decimal import Decimal
 from typing import List
-from sqlalchemy import String, Date, Boolean, Numeric, Index, ForeignKey, CheckConstraint
+from sqlalchemy import String, DateTime, Boolean, Numeric, Index, ForeignKey, CheckConstraint
+from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.base import Base
@@ -11,7 +12,7 @@ class Income(Base):
     __tablename__ = "income"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[date]
+    date: Mapped[datetime] = mapped_column(DateTime)
     source: Mapped[str] = mapped_column(String(255))
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     deposited: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -20,8 +21,15 @@ class Income(Base):
         default=0,
         comment="Calculated field for undeposited amounts"
     )
-    created_at: Mapped[date] = mapped_column(Date, default=date.today)
-    updated_at: Mapped[date] = mapped_column(Date, default=date.today, onupdate=date.today)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, 
+        default=lambda: datetime.now(ZoneInfo("UTC"))
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, 
+        default=lambda: datetime.now(ZoneInfo("UTC")),
+        onupdate=lambda: datetime.now(ZoneInfo("UTC"))
+    )
 
     # Account and Category relationships
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))

@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.55] - 2025-02-15
+
+### Changed
+- Started migration to timezone-aware datetime fields in schemas:
+  * Updated Payment model to use timezone-aware datetime fields
+  * Fixed datetime handling in payment model tests
+  * Identified need to update historical analysis schemas
+
 ## [0.3.54] - 2025-02-15
 
 ### Fixed

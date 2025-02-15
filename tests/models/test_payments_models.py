@@ -1,8 +1,8 @@
 from decimal import Decimal
-from datetime import date, datetime
-
+from datetime import datetime
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
+from zoneinfo import ZoneInfo
 
 from src.models.accounts import Account
 from src.models.liabilities import Liability
@@ -16,10 +16,10 @@ class TestPayment:
         payment = Payment(
             liability_id=base_bill.id,
             amount=Decimal("100.00"),
-            payment_date=date(2025, 2, 15),
+            payment_date=datetime(2025, 2, 15, tzinfo=ZoneInfo("UTC")),
             category="Utilities",
-            created_at=datetime.now(),
-            updated_at=datetime.now()
+            created_at=datetime.now(ZoneInfo("UTC")),
+            updated_at=datetime.now(ZoneInfo("UTC"))
         )
         db_session.add(payment)
         await db_session.commit()
@@ -28,7 +28,10 @@ class TestPayment:
         assert payment.id is not None
         assert payment.liability_id == base_bill.id
         assert payment.amount == Decimal("100.00")
-        assert payment.payment_date == date(2025, 2, 15)
+        # Compare date components since SQLite might not preserve timezone info
+        assert payment.payment_date.year == 2025
+        assert payment.payment_date.month == 2
+        assert payment.payment_date.day == 15
         assert payment.category == "Utilities"
 
     async def test_payment_with_source(self, db_session: AsyncSession, base_payment: Payment):
@@ -53,8 +56,8 @@ class TestPayment:
             name="Split Payment Test Account",
             type="savings",
             available_balance=Decimal("2000.00"),
-            created_at=datetime.now(),
-            updated_at=datetime.now()
+            created_at=datetime.now(ZoneInfo("UTC")),
+            updated_at=datetime.now(ZoneInfo("UTC"))
         )
         db_session.add(second_account)
         await db_session.commit()
@@ -63,10 +66,10 @@ class TestPayment:
         payment = Payment(
             liability_id=base_bill.id,
             amount=Decimal("100.00"),
-            payment_date=date(2025, 2, 15),
+            payment_date=datetime(2025, 2, 15, tzinfo=ZoneInfo("UTC")),
             category="Utilities",
-            created_at=datetime.now(),
-            updated_at=datetime.now()
+            created_at=datetime.now(ZoneInfo("UTC")),
+            updated_at=datetime.now(ZoneInfo("UTC"))
         )
         db_session.add(payment)
         await db_session.commit()
@@ -78,15 +81,15 @@ class TestPayment:
                 payment_id=payment.id,
                 account_id=base_account.id,
                 amount=Decimal("60.00"),
-                created_at=datetime.now(),
-                updated_at=datetime.now()
+            created_at=datetime.now(ZoneInfo("UTC")),
+            updated_at=datetime.now(ZoneInfo("UTC"))
             ),
             PaymentSource(
                 payment_id=payment.id,
                 account_id=second_account.id,
                 amount=Decimal("40.00"),
-                created_at=datetime.now(),
-                updated_at=datetime.now()
+                created_at=datetime.now(ZoneInfo("UTC")),
+                updated_at=datetime.now(ZoneInfo("UTC"))
             )
         ]
         db_session.add_all(sources)
@@ -128,7 +131,7 @@ class TestPayment:
         payment = Payment(
             liability_id=base_bill.id,
             amount=Decimal("100.00"),
-            payment_date=date(2025, 2, 15),
+            payment_date=datetime(2025, 2, 15, tzinfo=ZoneInfo("UTC")),
             category="Utilities"
         )
         db_session.add(payment)

@@ -2,6 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
 from sqlalchemy import String, Date, Numeric, Text, DateTime, ForeignKey
+from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.base import Base
@@ -14,14 +15,20 @@ class Payment(Base):
     liability_id: Mapped[Optional[int]] = mapped_column(ForeignKey("liabilities.id"), nullable=True)
     income_id: Mapped[Optional[int]] = mapped_column(ForeignKey("income.id"), nullable=True)
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
-    payment_date: Mapped[datetime] = mapped_column(DateTime)
+    payment_date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(ZoneInfo("UTC"))
+    )
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     category: Mapped[str] = mapped_column(String(100))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), 
+        default=lambda: datetime.now(ZoneInfo("UTC"))
+    )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, 
-        default=datetime.utcnow, 
-        onupdate=datetime.utcnow
+        DateTime(timezone=True), 
+        default=lambda: datetime.now(ZoneInfo("UTC")), 
+        onupdate=lambda: datetime.now(ZoneInfo("UTC"))
     )
 
     # Relationships
@@ -45,11 +52,14 @@ class PaymentSource(Base):
     payment_id: Mapped[int] = mapped_column(ForeignKey("payments.id", ondelete="CASCADE"))
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), 
+        default=lambda: datetime.now(ZoneInfo("UTC"))
+    )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, 
-        default=datetime.utcnow, 
-        onupdate=datetime.utcnow
+        DateTime(timezone=True), 
+        default=lambda: datetime.now(ZoneInfo("UTC")), 
+        onupdate=lambda: datetime.now(ZoneInfo("UTC"))
     )
 
     # Relationships

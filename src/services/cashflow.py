@@ -2,6 +2,7 @@ from decimal import Decimal
 from datetime import date, timedelta, datetime
 from typing import List, Dict, Union, Tuple, Optional
 from sqlalchemy import select, func, extract
+from zoneinfo import ZoneInfo
 from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from statistics import mean, stdev
@@ -518,7 +519,7 @@ class CashflowService:
             for source in payment.sources:
                 if source.account_id in account_ids:
                     transactions.append({
-                        "date": payment.payment_date,
+                        "date": payment.payment_date if payment.payment_date.tzinfo else payment.payment_date.replace(tzinfo=ZoneInfo("UTC")),
                         "amount": -source.amount,  # Negative for outflow
                         "type": "payment",
                         "account_id": source.account_id,
@@ -527,7 +528,7 @@ class CashflowService:
 
         for income in income_entries:
             transactions.append({
-                "date": income.date,
+                "date": datetime.combine(income.date, datetime.min.time(), tzinfo=ZoneInfo("UTC")),
                 "amount": income.amount,  # Positive for inflow
                 "type": "income",
                 "account_id": income.account_id,
@@ -628,9 +629,9 @@ class CashflowService:
         while current_start < end_date:
             # Define period end (monthly periods)
             if current_start.month == 12:
-                current_end = date(current_start.year + 1, 1, 1) - timedelta(days=1)
+                current_end = datetime(current_start.year + 1, 1, 1, tzinfo=ZoneInfo("UTC")) - timedelta(days=1)
             else:
-                current_end = date(current_start.year, current_start.month + 1, 1) - timedelta(days=1)
+                current_end = datetime(current_start.year, current_start.month + 1, 1, tzinfo=ZoneInfo("UTC")) - timedelta(days=1)
             
             # Filter transactions for current period
             period_transactions = [
@@ -685,6 +686,8 @@ class CashflowService:
                 ))
             
             current_start = current_end + timedelta(days=1)
+            if not isinstance(current_start, datetime):
+                current_start = datetime.combine(current_start, datetime.min.time(), tzinfo=ZoneInfo("UTC"))
 
         return periods
 

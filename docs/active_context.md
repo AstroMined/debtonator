@@ -63,6 +63,8 @@ API Enhancement Project - Phase 6: Reporting & Analysis
    - Account-level risk assessment
    - Focus payment pattern analysis on bill-specific patterns
    - Plan for separate expense pattern analysis service
+   - Decision to update datetime handling in schemas to maintain timezone information
+   - Identified need to update HistoricalPeriodAnalysis and related schemas to use datetime instead of date
 
 2. **Enhancement Priorities**
    - [x] Account management complete

@@ -1,7 +1,8 @@
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
+from zoneinfo import ZoneInfo
 
 from src.services.cashflow import CashflowService
 from src.models.accounts import Account
@@ -15,21 +16,21 @@ async def setup_test_data(db_session: AsyncSession):
         name="Test Checking",
         type="checking",
         available_balance=Decimal("1000.00"),
-        created_at=date.today(),
-        updated_at=date.today()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     savings = Account(
         name="Test Savings",
         type="savings",
         available_balance=Decimal("5000.00"),
-        created_at=date.today(),
-        updated_at=date.today()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add_all([checking, savings])
     await db_session.flush()
 
     # Create test payments
-    base_date = date.today() - timedelta(days=90)
+    base_date = datetime.now(ZoneInfo("UTC")) - timedelta(days=90)
     payments = []
     payment_sources = []
     
@@ -40,36 +41,36 @@ async def setup_test_data(db_session: AsyncSession):
             payment_date=base_date + timedelta(days=30*i),
             category="utilities",
             description="Monthly utility payment",
-            created_at=date.today(),
-            updated_at=date.today()
+            created_at=datetime.now(ZoneInfo("UTC")),
+            updated_at=datetime.now(ZoneInfo("UTC"))
         )
         payments.append(payment)
         
         source = PaymentSource(
             account_id=checking.id,
             amount=Decimal("500.00"),
-            created_at=date.today(),
-            updated_at=date.today()
+            created_at=datetime.now(ZoneInfo("UTC")),
+            updated_at=datetime.now(ZoneInfo("UTC"))
         )
         payment_sources.append((payment, source))
 
     # Holiday season increased spending
-    holiday_date = base_date.replace(month=12, day=20)
+    holiday_date = datetime(base_date.year, 12, 20, tzinfo=ZoneInfo("UTC"))
     holiday_payment = Payment(
         amount=Decimal("1000.00"),
         payment_date=holiday_date,
         category="shopping",
         description="Holiday shopping",
-        created_at=date.today(),
-        updated_at=date.today()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     payments.append(holiday_payment)
     
     holiday_source = PaymentSource(
         account_id=checking.id,
         amount=Decimal("1000.00"),
-        created_at=date.today(),
-        updated_at=date.today()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     payment_sources.append((holiday_payment, holiday_source))
 
@@ -92,8 +93,8 @@ async def setup_test_data(db_session: AsyncSession):
             undeposited_amount=Decimal("0.00"),
             account_id=checking.id,
             recurring=True,
-            created_at=date.today(),
-            updated_at=date.today()
+            created_at=datetime.now(ZoneInfo("UTC")),
+            updated_at=datetime.now(ZoneInfo("UTC"))
         ),
         Income(
             date=base_date + timedelta(days=45),
@@ -103,8 +104,8 @@ async def setup_test_data(db_session: AsyncSession):
             undeposited_amount=Decimal("0.00"),
             account_id=checking.id,
             recurring=True,
-            created_at=date.today(),
-            updated_at=date.today()
+            created_at=datetime.now(ZoneInfo("UTC")),
+            updated_at=datetime.now(ZoneInfo("UTC"))
         ),
         Income(
             date=base_date + timedelta(days=75),
@@ -114,8 +115,8 @@ async def setup_test_data(db_session: AsyncSession):
             undeposited_amount=Decimal("0.00"),
             account_id=savings.id,
             recurring=False,
-            created_at=date.today(),
-            updated_at=date.today()
+            created_at=datetime.now(ZoneInfo("UTC")),
+            updated_at=datetime.now(ZoneInfo("UTC"))
         )
     ]
     db_session.add_all(income_entries)
@@ -131,15 +132,16 @@ async def setup_test_data(db_session: AsyncSession):
 async def test_historical_trends_analysis(db_session: AsyncSession, setup_test_data):
     service = CashflowService(db_session)
     base_date = setup_test_data["base_date"]
+    now = datetime.now(ZoneInfo("UTC"))
     
     # Get historical trends for both accounts
     # Print the date range we're analyzing
-    print(f"\nAnalyzing date range: {base_date} to {date.today()}")
+    print(f"\nAnalyzing date range: {base_date} to {now}")
     
     trends = await service.get_historical_trends(
         account_ids=[setup_test_data["checking"].id, setup_test_data["savings"].id],
         start_date=base_date,
-        end_date=date.today()
+        end_date=now
     )
     
     # Verify trend metrics
@@ -163,14 +165,15 @@ async def test_historical_trends_analysis(db_session: AsyncSession, setup_test_d
 @pytest.mark.asyncio
 async def test_historical_trends_empty_data(db_session: AsyncSession):
     service = CashflowService(db_session)
+    now = datetime.now(ZoneInfo("UTC"))
     
     # Create an account with no transactions
     account = Account(
         name="Empty Account",
         type="checking",
         available_balance=Decimal("0.00"),
-        created_at=date.today(),
-        updated_at=date.today()
+        created_at=now,
+        updated_at=now
     )
     db_session.add(account)
     await db_session.commit()
@@ -179,19 +182,20 @@ async def test_historical_trends_empty_data(db_session: AsyncSession):
     with pytest.raises(ValueError, match="No transactions available for trend analysis"):
         await service.get_historical_trends(
             account_ids=[account.id],
-            start_date=date.today() - timedelta(days=30),
-            end_date=date.today()
+            start_date=now - timedelta(days=30),
+            end_date=now
         )
 
 @pytest.mark.asyncio
 async def test_historical_trends_significant_events(db_session: AsyncSession, setup_test_data):
     service = CashflowService(db_session)
     base_date = setup_test_data["base_date"]
+    now = datetime.now(ZoneInfo("UTC"))
     
     trends = await service.get_historical_trends(
         account_ids=[setup_test_data["checking"].id],
         start_date=base_date,
-        end_date=date.today()
+        end_date=now
     )
     
     # Verify that the holiday payment was detected as a significant event
@@ -204,7 +208,7 @@ async def test_historical_trends_significant_events(db_session: AsyncSession, se
     transactions = await service._get_historical_transactions(
         account_ids=[setup_test_data["checking"].id],
         start_date=base_date,
-        end_date=date.today()
+        end_date=now
     )
     print("\nTransactions:")
     for t in transactions:
@@ -222,11 +226,12 @@ async def test_historical_trends_significant_events(db_session: AsyncSession, se
 async def test_historical_trends_seasonal_patterns(db_session: AsyncSession, setup_test_data):
     service = CashflowService(db_session)
     base_date = setup_test_data["base_date"]
+    now = datetime.now(ZoneInfo("UTC"))
     
     trends = await service.get_historical_trends(
         account_ids=[setup_test_data["checking"].id],
         start_date=base_date,
-        end_date=date.today()
+        end_date=now
     )
     
     # Verify monthly patterns
