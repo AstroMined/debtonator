@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.40] - 2025-02-14
+
+### Added
+- Income analysis API endpoints
+  - New POST `/api/v1/income-analysis/trends` endpoint for comprehensive income analysis
+  - New GET `/api/v1/income-analysis/trends/source/{source}` endpoint for source-specific analysis
+  - New GET `/api/v1/income-analysis/trends/period` endpoint for period-based analysis
+  - Features include:
+    * Pattern detection with confidence scoring
+    * Source-specific trend analysis
+    * Period-based income analysis
+    * Seasonality metrics
+    * Source statistics
+  - Comprehensive test coverage including:
+    * Empty data handling
+    * Source-specific analysis
+    * Period-based analysis
+    * Invalid parameter handling
+    * All tests passing with proper fixtures
+
 ## [0.3.39] - 2025-02-14
 
 ### Added

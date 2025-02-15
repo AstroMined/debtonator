@@ -1,4 +1,4 @@
-# Debtonator v0.3.39
+# Debtonator v0.3.40
 
 A modern bill and cashflow management system that helps track bills, income, and maintain sufficient account balances for timely bill payments.
 
@@ -83,12 +83,16 @@ A modern bill and cashflow management system that helps track bills, income, and
     * Category-based income tracking
     * Duplicate category prevention
     * Comprehensive validation
-  - Income trends analysis system
+  - Income Analysis System
+    * Comprehensive income trends analysis
+    * Source-specific trend analysis
+    * Period-based income analysis
     * Pattern detection with confidence scoring
     * Weekly, monthly, and irregular pattern detection
     * Next occurrence prediction for reliable patterns
     * Seasonality analysis with peak/trough detection
     * Source statistics with reliability scoring
+    * RESTful API endpoints for analysis
     * Comprehensive test coverage
     * Decimal precision handling
   - Recurring income system
