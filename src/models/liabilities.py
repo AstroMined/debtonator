@@ -24,7 +24,11 @@ class Liability(BaseDBModel):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(255))
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
-    due_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    due_date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(ZoneInfo("UTC"))
+    )
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     recurring: Mapped[bool] = mapped_column(Boolean, default=False)
     recurring_bill_id: Mapped[Optional[int]] = mapped_column(ForeignKey("recurring_bills.id"), nullable=True)
@@ -42,6 +46,7 @@ class Liability(BaseDBModel):
     )
     paid: Mapped[bool] = mapped_column(Boolean, default=False)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+
     # Relationships
     recurring_bill: Mapped[Optional["RecurringBill"]] = relationship("RecurringBill", back_populates="liabilities")
     primary_account: Mapped["Account"] = relationship(
@@ -65,6 +70,13 @@ class Liability(BaseDBModel):
         back_populates="liability",
         cascade="all, delete-orphan"
     )
+
+    def __init__(self, **kwargs):
+        # Ensure due_date is timezone-aware
+        if 'due_date' in kwargs and kwargs['due_date'] is not None:
+            if isinstance(kwargs['due_date'], datetime) and not kwargs['due_date'].tzinfo:
+                kwargs['due_date'] = kwargs['due_date'].replace(tzinfo=ZoneInfo("UTC"))
+        super().__init__(**kwargs)
 
     def __repr__(self) -> str:
         return f"<Liability {self.name} due {self.due_date}>"

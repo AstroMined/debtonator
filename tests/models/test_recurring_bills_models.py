@@ -1,5 +1,6 @@
 import pytest
-from datetime import date, datetime
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from decimal import Decimal
 
 from src.models.recurring_bills import RecurringBill
@@ -46,8 +47,8 @@ async def recurring_bill(db_session, checking_account, recurring_category):
         category=recurring_category,
         auto_pay=True,
         active=True,
-        created_at=date.today(),
-        updated_at=date.today()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(bill)
     await db_session.flush()
@@ -86,7 +87,7 @@ async def test_recurring_bill_create_liability(db_session, recurring_bill):
     # Verify the liability
     assert liability.name == "Netflix"
     assert liability.amount == Decimal('19.99')
-    assert liability.due_date == date(2025, 3, 15)
+    assert liability.due_date == datetime(2025, 3, 15, tzinfo=ZoneInfo("UTC"))
     assert liability.auto_pay is True
     assert liability.primary_account_id == recurring_bill.account_id
     assert liability.category_id == recurring_bill.category_id

@@ -1,28 +1,38 @@
 from datetime import datetime
-from typing import Optional
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
+from typing import Optional, List
+from sqlalchemy import String, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from zoneinfo import ZoneInfo
 
-from src.database.base import Base
+from .base_model import BaseDBModel
 
-class Category(Base):
+class Category(BaseDBModel):
+    """Category model for organizing bills and expenses"""
     __tablename__ = "categories"
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True, nullable=False)
-    description = Column(String, nullable=True)
-    parent_id = Column(Integer, ForeignKey('categories.id', ondelete='CASCADE'), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    parent_id: Mapped[Optional[int]] = mapped_column(ForeignKey('categories.id', ondelete='CASCADE'), nullable=True)
 
     # Relationship with liabilities (bills)
-    bills = relationship("Liability", back_populates="category")
+    bills: Mapped[List["Liability"]] = relationship("Liability", back_populates="category")
 
     # Hierarchical relationships
-    parent = relationship("Category", remote_side=[id], back_populates="children")
-    children = relationship("Category", back_populates="parent", cascade="all, delete-orphan")
+    parent: Mapped[Optional["Category"]] = relationship(
+        "Category",
+        remote_side=[id],
+        back_populates="children",
+        lazy="joined"
+    )
+    children: Mapped[List["Category"]] = relationship(
+        "Category",
+        back_populates="parent",
+        cascade="all, delete-orphan",
+        lazy="joined"
+    )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Category(id={self.id}, name='{self.name}', parent_id={self.parent_id})>"
 
     @property

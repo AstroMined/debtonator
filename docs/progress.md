@@ -2,6 +2,13 @@
 
 ## Current Priority: Datetime Standardization Project - Phase 2
 
+### SQLite Configuration (Completed)
+- [x] SQLite Timezone Support
+  - [x] Added proper UTC timezone support in SQLite configuration
+  - [x] Fixed timezone-aware datetime handling in database engine
+  - [x] Updated SQLite connection settings for consistent UTC handling
+  - [x] Fixed failing tests in liabilities and recurring bills
+
 ### Phase 1: Core Updates (Completed)
 - [x] BaseModel Changes
   - [x] Created BaseDBModel with UTC timezone-aware created_at/updated_at fields

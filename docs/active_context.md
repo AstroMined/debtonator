@@ -4,7 +4,13 @@
 Datetime Standardization Project - Phase 2
 
 ### Recent Changes
-1. **Datetime Standardization Phase 1 (Completed)**
+1. **SQLite Timezone Configuration (Completed)**
+   - ✓ Added proper UTC timezone support in SQLite configuration
+   - ✓ Fixed timezone-aware datetime handling in database engine
+   - ✓ Updated SQLite connection settings for consistent UTC handling
+   - ✓ Fixed failing tests in liabilities and recurring bills
+
+2. **Datetime Standardization Phase 1 (Completed)**
    - ✓ Created BaseDBModel with UTC timezone-aware created_at/updated_at fields
    - ✓ Updated all models to inherit from BaseDBModel
    - ✓ Converted all date fields to timezone-aware datetime fields

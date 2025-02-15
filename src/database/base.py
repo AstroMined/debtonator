@@ -15,6 +15,13 @@ metadata = MetaData(
     naming_convention=NAMING_CONVENTION
 )
 
+# Configure SQLite dialect options
+from sqlalchemy.dialects import sqlite
+sqlite.DATETIME = sqlite.DATETIME(
+    timezone=True,
+    storage_format="%(year)04d-%(month)02d-%(day)02d %(hour)02d:%(minute)02d:%(second)02d%(tz_name)s"
+)
+
 class Base(DeclarativeBase):
     """Base class for all database models"""
     

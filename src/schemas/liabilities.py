@@ -1,4 +1,5 @@
-from datetime import date, datetime
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from decimal import Decimal
 from typing import List, Optional, Dict, Union
 from pydantic import BaseModel, Field, ConfigDict, validator
@@ -14,7 +15,13 @@ class LiabilityBase(BaseModel):
     
     name: str = Field(..., description="Name of the liability")
     amount: Decimal = Field(..., description="Total amount of the liability")
-    due_date: date = Field(..., description="Due date of the liability")
+    due_date: datetime = Field(..., description="Due date of the liability")
+
+    @validator("due_date")
+    def ensure_utc_datetime(cls, v: datetime) -> datetime:
+        if not v.tzinfo or v.tzinfo != ZoneInfo("UTC"):
+            raise ValueError("datetime must be UTC timezone-aware")
+        return v
     description: Optional[str] = Field(None, description="Optional description")
     category_id: int = Field(..., description="ID of the category for this liability")
     recurring: bool = Field(default=False, description="Whether this is a recurring liability")
@@ -56,7 +63,7 @@ class LiabilityUpdate(BaseModel):
     
     name: Optional[str] = None
     amount: Optional[Decimal] = None
-    due_date: Optional[date] = None
+    due_date: Optional[datetime] = None
     description: Optional[str] = None
     category_id: Optional[int] = None
     recurring: Optional[bool] = None
@@ -104,5 +111,11 @@ class LiabilityDateRange(BaseModel):
         json_encoders={Decimal: str}
     )
     
-    start_date: date = Field(..., description="Start date for liability range")
-    end_date: date = Field(..., description="End date for liability range")
+    start_date: datetime = Field(..., description="Start date for liability range")
+    end_date: datetime = Field(..., description="End date for liability range")
+
+    @validator("start_date", "end_date")
+    def ensure_utc_range_datetime(cls, v: datetime) -> datetime:
+        if not v.tzinfo or v.tzinfo != ZoneInfo("UTC"):
+            raise ValueError("datetime must be UTC timezone-aware")
+        return v

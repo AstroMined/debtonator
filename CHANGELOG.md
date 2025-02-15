@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.58] - 2025-02-15
+
+### Fixed
+- Improved SQLite timezone handling:
+  * Added proper UTC timezone support in SQLite configuration
+  * Fixed timezone-aware datetime handling in database engine
+  * Updated SQLite connection settings for consistent UTC handling
+  * Fixed failing tests in liabilities and recurring bills
+
 ## [0.3.57] - 2025-02-15
 
 ### Changed

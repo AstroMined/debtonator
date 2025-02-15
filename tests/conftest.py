@@ -1,6 +1,7 @@
 import asyncio
 import uuid
-from datetime import date, datetime
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from decimal import Decimal
 from typing import AsyncGenerator, Generator
 
@@ -22,16 +23,25 @@ from src.models.categories import Category
 # Test database URL - use in-memory database
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
+from sqlalchemy import event
+
 # Create async engine for tests with improved configuration
 engine = create_async_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args={
         "check_same_thread": False,
-        "timeout": 30.0  # Add timeout for better async handling
+        "timeout": 30.0,  # Add timeout for better async handling
     },
     pool_pre_ping=True,  # Add connection health checks
     echo=False  # True = Enable SQL logging for debugging
 )
+
+# Configure SQLite connection to handle timezone-aware datetimes
+@event.listens_for(engine.sync_engine, "connect")
+def _set_sqlite_timezone(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA timezone='UTC'")
+    cursor.close()
 
 # Create async session factory
 TestingSessionLocal = sessionmaker(
@@ -99,8 +109,8 @@ async def base_account(db_session: AsyncSession) -> Account:
         name=f"Primary Test Checking {unique_id}",  # Make name unique
         type="checking",
         available_balance=Decimal("1000.00"),
-        created_at=datetime.now(),
-        updated_at=datetime.now()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(account)
     await db_session.flush()
@@ -113,8 +123,8 @@ async def base_category(db_session: AsyncSession) -> Category:
     category = Category(
         name="Utilities",
         description="Utility bills and services",
-        created_at=datetime.now(),
-        updated_at=datetime.now()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(category)
     await db_session.flush()
@@ -124,9 +134,9 @@ async def base_category(db_session: AsyncSession) -> Category:
 @pytest.fixture(scope="function")
 async def base_bill(db_session: AsyncSession, base_account: Account, base_category: Category) -> Liability:
     """Create a basic bill for testing"""
-    # Set due_date to 15 days from today for auto-pay testing
+    # Set due_date to 15 days from now for auto-pay testing
     from datetime import timedelta
-    future_date = date.today() + timedelta(days=15)
+    future_date = (datetime.now(ZoneInfo("UTC")) + timedelta(days=15)).replace(hour=0, minute=0, second=0, microsecond=0)
     
     bill = Liability(
         name=f"Test Bill {str(uuid.uuid4())[:8]}",  # Make name unique
@@ -138,8 +148,8 @@ async def base_bill(db_session: AsyncSession, base_account: Account, base_catego
         auto_pay=False,
         auto_pay_enabled=False,
         paid=False,
-        created_at=datetime.now(),
-        updated_at=datetime.now()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(bill)
     await db_session.flush()
@@ -156,10 +166,10 @@ async def base_payment(
     payment = Payment(
         liability_id=base_bill.id,
         amount=Decimal("100.00"),
-        payment_date=date(2025, 2, 15),
+        payment_date=datetime(2025, 2, 15, tzinfo=ZoneInfo("UTC")),
         category="Utilities",
-        created_at=datetime.now(),
-        updated_at=datetime.now()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(payment)
     await db_session.flush()
@@ -170,8 +180,8 @@ async def base_payment(
         payment_id=payment.id,
         account_id=base_account.id,
         amount=Decimal("100.00"),
-        created_at=datetime.now(),
-        updated_at=datetime.now()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(payment_source)
     await db_session.flush()
@@ -189,8 +199,8 @@ async def base_credit_account(db_session: AsyncSession) -> Account:
         available_balance=Decimal("-500.00"),
         total_limit=Decimal("2000.00"),
         available_credit=Decimal("1500.00"),
-        created_at=datetime.now(),
-        updated_at=datetime.now()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(account)
     await db_session.flush()
@@ -201,13 +211,13 @@ async def base_credit_account(db_session: AsyncSession) -> Account:
 async def base_income(db_session: AsyncSession, base_account: Account) -> Income:
     """Create a basic income entry for testing"""
     income = Income(
-        date=date(2025, 2, 15),
+        date=datetime(2025, 2, 15, tzinfo=ZoneInfo("UTC")),
         source=f"Test Income {str(uuid.uuid4())[:8]}",  # Make source unique
         amount=Decimal("1000.00"),
         deposited=False,
         account_id=base_account.id,
-        created_at=datetime.now(),
-        updated_at=datetime.now()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(income)
     await db_session.flush()
