@@ -13,12 +13,18 @@ from src.models.categories import Category
 from src.schemas.cashflow import (
     CustomForecastParameters, CustomForecastResponse, CustomForecastResult,
     HistoricalTrendMetrics, HistoricalPeriodAnalysis, SeasonalityAnalysis,
-    HistoricalTrendsResponse
+    HistoricalTrendsResponse, AccountForecastRequest, AccountForecastResponse,
+    AccountForecastMetrics, AccountForecastResult
 )
 
 class CashflowService:
     def __init__(self, db: AsyncSession):
         self.db = db
+        self._warning_thresholds = {
+            "low_balance": Decimal("100.00"),  # Warning when balance drops below $100
+            "high_credit_utilization": Decimal("0.80"),  # Warning at 80% credit utilization
+            "large_outflow": Decimal("1000.00")  # Warning for outflows over $1000
+        }
         self._holidays = {
             # Add major US holidays that might impact cashflow
             "new_years": date(date.today().year, 1, 1),
@@ -27,6 +33,332 @@ class CashflowService:
             "tax_day": date(date.today().year, 4, 15),
         }
     
+    async def get_account_forecast(
+        self,
+        params: AccountForecastRequest
+    ) -> AccountForecastResponse:
+        """Generate account-specific forecast with detailed metrics."""
+        # Verify account exists and get its details
+        account = await self.db.get(Account, params.account_id)
+        if not account:
+            raise ValueError(f"Account with id {params.account_id} not found")
+
+        # Initialize metrics
+        metrics = await self._calculate_account_metrics(
+            account,
+            params.start_date,
+            params.end_date,
+            params.include_pending,
+            params.include_recurring
+        )
+
+        # Generate daily forecasts
+        daily_forecasts = await self._generate_account_daily_forecasts(
+            account,
+            params.start_date,
+            params.end_date,
+            params.include_pending,
+            params.include_recurring,
+            params.include_transfers
+        )
+
+        # Calculate overall confidence
+        overall_confidence = await self._calculate_forecast_confidence(
+            account,
+            daily_forecasts,
+            metrics
+        )
+
+        return AccountForecastResponse(
+            account_id=account.id,
+            forecast_period=(params.start_date, params.end_date),
+            metrics=metrics,
+            daily_forecasts=daily_forecasts,
+            overall_confidence=overall_confidence,
+            timestamp=date.today()
+        )
+
+    async def _calculate_account_metrics(
+        self,
+        account: Account,
+        start_date: date,
+        end_date: date,
+        include_pending: bool,
+        include_recurring: bool
+    ) -> AccountForecastMetrics:
+        """Calculate account-specific forecast metrics."""
+        # Get historical transactions for volatility calculation
+        historical_start = start_date - timedelta(days=90)  # Look back 90 days
+        transactions = await self._get_historical_transactions(
+            [account.id],
+            historical_start,
+            start_date
+        )
+
+        # Calculate projected transactions
+        projected_transactions = await self._get_projected_transactions(
+            account,
+            start_date,
+            end_date,
+            include_pending,
+            include_recurring
+        )
+
+        # Calculate metrics
+        daily_balances = []
+        inflows = []
+        outflows = []
+        current_balance = account.available_balance
+
+        for trans in projected_transactions:
+            current_balance += trans["amount"]
+            daily_balances.append(current_balance)
+            if trans["amount"] > 0:
+                inflows.append(trans["amount"])
+            else:
+                outflows.append(abs(trans["amount"]))
+
+        # Identify low balance dates
+        low_balance_dates = [
+            trans["date"] for trans in projected_transactions
+            if (current_balance + trans["amount"]) < self._warning_thresholds["low_balance"]
+        ]
+
+        # Calculate credit utilization for credit accounts
+        credit_utilization = None
+        if account.type == "credit" and account.total_limit:
+            if daily_balances:
+                credit_utilization = abs(min(daily_balances)) / account.total_limit
+            else:
+                credit_utilization = abs(account.available_balance) / account.total_limit
+
+        # Calculate balance volatility
+        balance_volatility = Decimal(str(stdev(daily_balances))) if len(daily_balances) > 1 else Decimal("0")
+
+        return AccountForecastMetrics(
+            average_daily_balance=Decimal(str(mean(daily_balances))) if daily_balances else Decimal("0"),
+            minimum_projected_balance=min(daily_balances) if daily_balances else account.available_balance,
+            maximum_projected_balance=max(daily_balances) if daily_balances else account.available_balance,
+            average_inflow=Decimal(str(mean(inflows))) if inflows else Decimal("0"),
+            average_outflow=Decimal(str(mean(outflows))) if outflows else Decimal("0"),
+            projected_low_balance_dates=low_balance_dates,
+            credit_utilization=credit_utilization,
+            balance_volatility=balance_volatility,
+            forecast_confidence=Decimal("0.9")  # Will be adjusted in _calculate_forecast_confidence
+        )
+
+    async def _generate_account_daily_forecasts(
+        self,
+        account: Account,
+        start_date: date,
+        end_date: date,
+        include_pending: bool,
+        include_recurring: bool,
+        include_transfers: bool
+    ) -> List[AccountForecastResult]:
+        """Generate daily forecast results for an account."""
+        daily_forecasts = []
+        current_balance = account.available_balance
+        current_date = start_date
+
+        while current_date <= end_date:
+            # Get day's transactions
+            day_transactions = await self._get_day_transactions(
+                account,
+                current_date,
+                include_pending,
+                include_recurring,
+                include_transfers
+            )
+
+            # Calculate day's inflow/outflow
+            day_inflow = sum(t["amount"] for t in day_transactions if t["amount"] > 0)
+            day_outflow = sum(abs(t["amount"]) for t in day_transactions if t["amount"] < 0)
+
+            # Update balance
+            current_balance += (day_inflow - day_outflow)
+
+            # Generate warning flags
+            warning_flags = []
+            if current_balance < self._warning_thresholds["low_balance"]:
+                warning_flags.append("low_balance")
+            if account.type == "credit" and account.total_limit:
+                utilization = abs(current_balance) / account.total_limit
+                if utilization > self._warning_thresholds["high_credit_utilization"]:
+                    warning_flags.append("high_credit_utilization")
+            if day_outflow > self._warning_thresholds["large_outflow"]:
+                warning_flags.append("large_outflow")
+
+            # Calculate confidence score for the day
+            confidence_score = self._calculate_day_confidence(
+                account,
+                current_balance,
+                day_transactions,
+                warning_flags
+            )
+
+            daily_forecasts.append(AccountForecastResult(
+                date=current_date,
+                projected_balance=current_balance,
+                projected_inflow=day_inflow,
+                projected_outflow=day_outflow,
+                confidence_score=confidence_score,
+                contributing_transactions=[
+                    {"amount": t["amount"], "description": t["description"]}
+                    for t in day_transactions
+                ],
+                warning_flags=warning_flags
+            ))
+
+            current_date += timedelta(days=1)
+
+        return daily_forecasts
+
+    async def _get_day_transactions(
+        self,
+        account: Account,
+        target_date: date,
+        include_pending: bool,
+        include_recurring: bool,
+        include_transfers: bool
+    ) -> List[Dict]:
+        """Get all transactions for a specific day."""
+        transactions = []
+
+        # Get bills due on this date
+        bills_query = (
+            select(Liability)
+            .where(
+                Liability.primary_account_id == account.id,
+                Liability.due_date == target_date
+            )
+        )
+        if not include_pending:
+            bills_query = bills_query.where(Liability.status != "pending")
+        bills = (await self.db.execute(bills_query)).scalars().all()
+        
+        for bill in bills:
+            transactions.append({
+                "amount": -bill.amount,
+                "description": f"Bill: {bill.name}",
+                "type": "bill"
+            })
+
+        # Get income expected on this date
+        income_query = (
+            select(Income)
+            .where(
+                Income.account_id == account.id,
+                Income.date == target_date
+            )
+        )
+        if not include_pending:
+            income_query = income_query.where(Income.deposited == True)
+        income_entries = (await self.db.execute(income_query)).scalars().all()
+
+        for income in income_entries:
+            transactions.append({
+                "amount": income.amount,
+                "description": f"Income: {income.source}",
+                "type": "income"
+            })
+
+        # Add recurring transactions if requested
+        if include_recurring:
+            recurring_query = (
+                select(Liability)
+                .where(
+                    Liability.primary_account_id == account.id,
+                    Liability.recurring == True
+                )
+            )
+            recurring_bills = (await self.db.execute(recurring_query)).scalars().all()
+            
+            for bill in recurring_bills:
+                # Check if this is a recurring instance for this date
+                current_date = bill.due_date
+                while current_date <= target_date:
+                    if current_date == target_date:
+                        transactions.append({
+                            "amount": -bill.amount,
+                            "description": f"Recurring Bill: {bill.name}",
+                            "type": "recurring_bill"
+                        })
+                        break
+                    # Advance to next occurrence
+                    # Advance to next occurrence
+                    next_month = current_date.month + 1
+                    next_year = current_date.year
+                    if next_month > 12:
+                        next_month = 1
+                        next_year += 1
+                    current_date = date(next_year, next_month, current_date.day)
+
+        # Add transfers if requested
+        if include_transfers:
+            # Implementation for transfers would go here
+            pass
+
+        return transactions
+
+    def _calculate_day_confidence(
+        self,
+        account: Account,
+        balance: Decimal,
+        transactions: List[Dict],
+        warning_flags: List[str]
+    ) -> Decimal:
+        """Calculate confidence score for a day's forecast."""
+        base_confidence = Decimal("0.9")  # Start with 90% confidence
+
+        # Reduce confidence based on warning flags
+        confidence_deductions = {
+            "low_balance": Decimal("0.2"),
+            "high_credit_utilization": Decimal("0.15"),
+            "large_outflow": Decimal("0.1")
+        }
+        
+        for flag in warning_flags:
+            if flag in confidence_deductions:
+                base_confidence -= confidence_deductions[flag]
+
+        # Adjust for transaction volume
+        if len(transactions) > 5:  # High transaction volume increases uncertainty
+            base_confidence -= Decimal("0.1")
+
+        # Ensure confidence stays within valid range
+        return max(min(base_confidence, Decimal("1.0")), Decimal("0.1"))
+
+    async def _calculate_forecast_confidence(
+        self,
+        account: Account,
+        daily_forecasts: List[AccountForecastResult],
+        metrics: AccountForecastMetrics
+    ) -> Decimal:
+        """Calculate overall confidence score for the forecast."""
+        if not daily_forecasts:
+            return Decimal("0.0")
+
+        # Average of daily confidence scores
+        avg_confidence = mean(f.confidence_score for f in daily_forecasts)
+
+        # Adjust for account type specific factors
+        if account.type == "credit":
+            # Lower confidence if projected to exceed credit limit
+            if metrics.credit_utilization and metrics.credit_utilization > Decimal("0.9"):
+                avg_confidence *= Decimal("0.8")
+        else:  # checking/savings
+            # Lower confidence if multiple low balance warnings
+            low_balance_days = len([f for f in daily_forecasts if "low_balance" in f.warning_flags])
+            if low_balance_days > len(daily_forecasts) // 4:  # More than 25% of days
+                avg_confidence *= Decimal("0.85")
+
+        # Adjust for volatility
+        if metrics.balance_volatility > metrics.average_daily_balance * Decimal("0.2"):
+            avg_confidence *= Decimal("0.9")
+
+        return max(min(Decimal(str(avg_confidence)), Decimal("1.0")), Decimal("0.1"))
+
     async def get_forecast(
         self,
         account_id: int,
@@ -298,6 +630,93 @@ class CashflowService:
             current_start = current_end + timedelta(days=1)
 
         return periods
+
+    async def _get_projected_transactions(
+        self,
+        account: Account,
+        start_date: date,
+        end_date: date,
+        include_pending: bool,
+        include_recurring: bool
+    ) -> List[Dict]:
+        """Get projected transactions for an account in the specified date range."""
+        transactions = []
+
+        # Get bills due in the date range
+        bills_query = (
+            select(Liability)
+            .where(
+                Liability.primary_account_id == account.id,
+                Liability.due_date.between(start_date, end_date)
+            )
+        )
+        if not include_pending:
+            bills_query = bills_query.where(Liability.status != "pending")
+        bills = (await self.db.execute(bills_query)).scalars().all()
+        
+        for bill in bills:
+            transactions.append({
+                "date": bill.due_date,
+                "amount": -bill.amount,  # Negative for outflow
+                "description": f"Bill: {bill.name}",
+                "type": "bill"
+            })
+
+        # Get expected income in the date range
+        income_query = (
+            select(Income)
+            .where(
+                Income.account_id == account.id,
+                Income.date.between(start_date, end_date)
+            )
+        )
+        if not include_pending:
+            income_query = income_query.where(Income.deposited == True)
+        income_entries = (await self.db.execute(income_query)).scalars().all()
+
+        for income in income_entries:
+            transactions.append({
+                "date": income.date,
+                "amount": income.amount,  # Positive for inflow
+                "description": f"Income: {income.source}",
+                "type": "income"
+            })
+
+        # Add recurring transactions if requested
+        if include_recurring:
+            recurring_query = (
+                select(Liability)
+                .where(
+                    Liability.primary_account_id == account.id,
+                    Liability.recurring == True
+                )
+            )
+            recurring_bills = (await self.db.execute(recurring_query)).scalars().all()
+            
+            for bill in recurring_bills:
+                # Generate recurring instances within date range
+                current_date = bill.due_date
+                while current_date <= end_date:
+                    if current_date >= start_date:
+                        transactions.append({
+                            "date": current_date,
+                            "amount": -bill.amount,
+                            "description": f"Recurring Bill: {bill.name}",
+                            "type": "recurring_bill"
+                        })
+                    # Advance to next occurrence based on recurrence pattern
+                    # This is a simplified version - would need more complex logic
+                    # for different recurrence patterns
+                    # Advance to next occurrence
+                    next_month = current_date.month + 1
+                    next_year = current_date.year
+                    if next_month > 12:
+                        next_month = 1
+                        next_year += 1
+                    current_date = date(next_year, next_month, current_date.day)
+
+        # Sort transactions by date
+        return sorted(transactions, key=lambda x: x["date"])
 
     async def _analyze_seasonality(
         self,

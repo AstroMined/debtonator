@@ -1,11 +1,20 @@
 from datetime import date, datetime
 from decimal import Decimal
+from enum import Enum
 from typing import List, Optional
-from sqlalchemy import String, Date, Boolean, Numeric, Text, JSON, DateTime, ForeignKey
+from sqlalchemy import String, Date, Boolean, Numeric, Text, JSON, DateTime, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.base import Base
 from src.models.payment_schedules import PaymentSchedule
+
+class LiabilityStatus(str, Enum):
+    """Enum for liability status"""
+    PENDING = "pending"
+    SCHEDULED = "scheduled"
+    PAID = "paid"
+    CANCELLED = "cancelled"
+    OVERDUE = "overdue"
 
 class Liability(Base):
     """Liability model representing a bill that needs to be paid"""
@@ -26,6 +35,10 @@ class Liability(Base):
     auto_pay_settings: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)  # For preferred payment date, method, etc.
     last_auto_pay_attempt: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     auto_pay_enabled: Mapped[bool] = mapped_column(Boolean, default=False)  # Separate from auto_pay flag for temporary enable/disable
+    status: Mapped[LiabilityStatus] = mapped_column(
+        SQLEnum(LiabilityStatus),
+        default=LiabilityStatus.PENDING
+    )
     paid: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(

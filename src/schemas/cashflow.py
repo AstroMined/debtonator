@@ -1,6 +1,6 @@
 from datetime import date
 from decimal import Decimal
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union
 from pydantic import BaseModel, Field, conlist
 
 class CashflowBase(BaseModel):
@@ -195,6 +195,47 @@ class HistoricalTrendsResponse(BaseModel):
     metrics: HistoricalTrendMetrics
     period_analysis: List[HistoricalPeriodAnalysis]
     seasonality: SeasonalityAnalysis
+    timestamp: date
+
+class AccountForecastRequest(BaseModel):
+    """Schema for account-specific forecast request"""
+    account_id: int
+    start_date: date
+    end_date: date
+    include_pending: bool = True
+    include_recurring: bool = True
+    include_transfers: bool = True
+    confidence_threshold: Decimal = Field(default=Decimal('0.8'), ge=0, le=1)
+
+class AccountForecastMetrics(BaseModel):
+    """Schema for account-specific forecast metrics"""
+    average_daily_balance: Decimal
+    minimum_projected_balance: Decimal
+    maximum_projected_balance: Decimal
+    average_inflow: Decimal
+    average_outflow: Decimal
+    projected_low_balance_dates: List[date]
+    credit_utilization: Optional[Decimal] = Field(None, ge=0, le=1)  # Only for credit accounts
+    balance_volatility: Decimal
+    forecast_confidence: Decimal = Field(..., ge=0, le=1)
+
+class AccountForecastResult(BaseModel):
+    """Schema for account-specific forecast result"""
+    date: date
+    projected_balance: Decimal
+    projected_inflow: Decimal
+    projected_outflow: Decimal
+    confidence_score: Decimal = Field(..., ge=0, le=1)
+    contributing_transactions: List[Dict[str, Union[Decimal, str]]]
+    warning_flags: List[str] = Field(default_factory=list)
+
+class AccountForecastResponse(BaseModel):
+    """Schema for account-specific forecast response"""
+    account_id: int
+    forecast_period: tuple[date, date]
+    metrics: AccountForecastMetrics
+    daily_forecasts: List[AccountForecastResult]
+    overall_confidence: Decimal = Field(..., ge=0, le=1)
     timestamp: date
 
 class CrossAccountAnalysis(BaseModel):
