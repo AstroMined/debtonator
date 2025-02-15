@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.37] - 2025-02-14
+
+### Added
+- Income trends analysis system
+  - Pattern detection with confidence scoring
+    * Weekly, monthly, and irregular pattern detection
+    * Confidence scoring for pattern reliability
+    * Next occurrence prediction for reliable patterns
+  - Seasonality analysis
+    * Monthly peak and trough detection
+    * Variance coefficient calculation
+    * Confidence scoring for seasonal patterns
+  - Source statistics tracking
+    * Total and average amount calculations
+    * Reliability scoring based on consistency
+    * Standard deviation and variance tracking
+  - Comprehensive test coverage including:
+    * Pattern detection scenarios
+    * Seasonality analysis
+    * Source statistics calculation
+    * Error handling
+    * Edge cases
+  - Technical improvements:
+    * Proper Decimal type handling
+    * Strong type safety with Pydantic
+    * Efficient database queries
+
 ## [0.3.36] - 2025-02-14
 
 ### Added
