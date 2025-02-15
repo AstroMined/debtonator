@@ -16,14 +16,14 @@ from src.schemas.recommendations import (
     RecommendationResponse,
 )
 from src.schemas.payment_patterns import PatternType, PaymentPatternAnalysis
-from src.services.payment_patterns import PaymentPatternService
+from src.services.payment_patterns import BillPaymentPatternService
 from src.services.cashflow import CashflowService
 
 
 class RecommendationService:
     def __init__(self, session: AsyncSession):
         self.session = session
-        self.pattern_service = PaymentPatternService(session)
+        self.pattern_service = BillPaymentPatternService(session)
         self.cashflow_service = CashflowService(session)
 
     async def get_bill_payment_recommendations(

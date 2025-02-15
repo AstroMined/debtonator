@@ -5,32 +5,90 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.payments import Payment, PaymentSource
+from src.models.liabilities import Liability, LiabilityStatus
+from src.models.categories import Category
+from src.models.accounts import Account
 from src.schemas.payment_patterns import PaymentPatternRequest, PatternType
-from src.services.payment_patterns import PaymentPatternService
+from src.services.payment_patterns import BillPaymentPatternService
+
+
+@pytest.fixture(scope="function")
+async def test_accounts(db_session: AsyncSession):
+    """Create test accounts for payment patterns"""
+    accounts = [
+        Account(
+            name="Test Credit",
+            type="credit",
+            available_balance=Decimal("-500"),
+            total_limit=Decimal("1000"),
+            available_credit=Decimal("500"),
+            created_at=datetime.now(),
+            updated_at=datetime.now()
+        ),
+        Account(
+            name="Test Checking",
+            type="checking",
+            available_balance=Decimal("1000"),
+            created_at=datetime.now(),
+            updated_at=datetime.now()
+        ),
+    ]
+    for account in accounts:
+        db_session.add(account)
+    await db_session.commit()
+    return accounts
+
+
+@pytest.fixture(scope="function")
+async def test_bill(db_session: AsyncSession, base_category: Category, test_accounts):
+    """Create a test bill for payment pattern analysis"""
+    bill = Liability(
+        name="Test Bill",
+        amount=Decimal("100"),
+        due_date=datetime.now().date() + timedelta(days=15),
+        description="Test bill for payment patterns",
+        category_id=base_category.id,
+        active=True,
+        status=LiabilityStatus.PENDING,
+        auto_pay=False,
+        auto_pay_enabled=False,
+        paid=False,
+        primary_account_id=test_accounts[0].id,  # Use credit account as primary
+        created_at=datetime.now(),
+        updated_at=datetime.now()
+    )
+    db_session.add(bill)
+    await db_session.commit()
+    return bill
 
 
 @pytest.fixture(scope="function")
 def payment_pattern_service(db_session: AsyncSession):
-    return PaymentPatternService(db_session)
+    return BillPaymentPatternService(db_session)
 
 
 @pytest.fixture(scope="function")
-async def regular_payments(db_session: AsyncSession):
-    """Create a set of regular monthly payments"""
+async def regular_payments(db_session: AsyncSession, test_bill, test_accounts):
+    """Create a set of regular monthly payments for a specific bill"""
     base_date = datetime(2024, 1, 1)
     payments = []
     
     for i in range(6):
+        due_date = base_date + timedelta(days=30 * i)
+        payment_date = due_date - timedelta(days=5)  # Pay 5 days before due date
+        
         payment = Payment(
             amount=Decimal('100.00'),
-            payment_date=base_date + timedelta(days=30 * i),
-            category="utilities"
+            payment_date=payment_date,
+            category="utilities",
+            liability_id=test_bill.id,
+            description=f"Due date: {due_date.date()}"
         )
         db_session.add(payment)
         # Add payment source
         source = PaymentSource(
             payment=payment,
-            account_id=1,
+            account_id=test_accounts[0].id,  # Use credit account
             amount=Decimal('100.00')
         )
         db_session.add(source)
@@ -41,24 +99,29 @@ async def regular_payments(db_session: AsyncSession):
 
 
 @pytest.fixture(scope="function")
-async def irregular_payments(db_session: AsyncSession):
-    """Create a set of irregular payments with varying amounts and dates"""
+async def irregular_payments(db_session: AsyncSession, test_bill, test_accounts):
+    """Create a set of irregular payments with varying amounts and dates for a specific bill"""
     base_date = datetime(2024, 1, 1)
     amounts = [Decimal('75.50'), Decimal('120.25'), Decimal('95.75'), Decimal('150.00')]
-    days = [0, 15, 45, 90]  # Irregular intervals
+    # Due dates are monthly, but payments are made at irregular intervals before due
+    due_dates = [base_date + timedelta(days=30 * i) for i in range(4)]
+    days_before = [3, 7, 2, 5]  # Irregular days before due date
     payments = []
     
-    for amount, day in zip(amounts, days):
+    for amount, due_date, days in zip(amounts, due_dates, days_before):
+        payment_date = due_date - timedelta(days=days)
         payment = Payment(
             amount=amount,
-            payment_date=base_date + timedelta(days=day),
-            category="groceries"
+            payment_date=payment_date,
+            category="utilities",
+            liability_id=test_bill.id,
+            description=f"Due date: {due_date.date()}"
         )
         db_session.add(payment)
         # Add payment source
         source = PaymentSource(
             payment=payment,
-            account_id=1,
+            account_id=test_accounts[0].id,  # Use credit account
             amount=amount
         )
         db_session.add(source)
@@ -69,8 +132,8 @@ async def irregular_payments(db_session: AsyncSession):
 
 
 @pytest.fixture(scope="function")
-async def seasonal_payments(db_session: AsyncSession):
-    """Create a set of monthly payments with seasonal variations"""
+async def seasonal_payments(db_session: AsyncSession, test_bill, test_accounts):
+    """Create a set of monthly payments with seasonal variations for a specific bill"""
     base_date = datetime(2024, 1, 1)
     # Simulate higher amounts in summer months
     amounts = [
@@ -84,16 +147,20 @@ async def seasonal_payments(db_session: AsyncSession):
     payments = []
     
     for i, amount in enumerate(amounts):
+        due_date = base_date + timedelta(days=30 * i)
+        payment_date = due_date - timedelta(days=5)  # Consistent 5 days before due
         payment = Payment(
             amount=amount,
-            payment_date=base_date + timedelta(days=30 * i),
-            category="utilities"
+            payment_date=payment_date,
+            category="utilities",
+            liability_id=test_bill.id,
+            description=f"Due date: {due_date.date()}"
         )
         db_session.add(payment)
         # Add payment source
         source = PaymentSource(
             payment=payment,
-            account_id=1,
+            account_id=test_accounts[0].id,  # Use credit account
             amount=amount
         )
         db_session.add(source)
@@ -104,11 +171,12 @@ async def seasonal_payments(db_session: AsyncSession):
 
 
 async def test_analyze_regular_pattern(
-    payment_pattern_service: PaymentPatternService,
-    regular_payments
+    payment_pattern_service: BillPaymentPatternService,
+    regular_payments,
+    test_accounts
 ):
     request = PaymentPatternRequest(
-        account_id=1,
+        account_id=test_accounts[0].id,
         category_id="utilities"
     )
     
@@ -124,11 +192,12 @@ async def test_analyze_regular_pattern(
 
 
 async def test_analyze_irregular_pattern(
-    payment_pattern_service: PaymentPatternService,
-    irregular_payments
+    payment_pattern_service: BillPaymentPatternService,
+    irregular_payments,
+    test_accounts
 ):
     request = PaymentPatternRequest(
-        account_id=1,
+        account_id=test_accounts[0].id,
         category_id="groceries"
     )
     
@@ -144,11 +213,12 @@ async def test_analyze_irregular_pattern(
 
 
 async def test_analyze_seasonal_pattern(
-    payment_pattern_service: PaymentPatternService,
-    seasonal_payments
+    payment_pattern_service: BillPaymentPatternService,
+    seasonal_payments,
+    test_accounts
 ):
     request = PaymentPatternRequest(
-        account_id=1,
+        account_id=test_accounts[0].id,
         category_id="utilities"
     )
     
@@ -164,27 +234,33 @@ async def test_analyze_seasonal_pattern(
 
 
 async def test_insufficient_data_pattern(
-    payment_pattern_service: PaymentPatternService,
-    db_session: AsyncSession
+    payment_pattern_service: BillPaymentPatternService,
+    db_session: AsyncSession,
+    test_bill,
+    test_accounts
 ):
     # Create just one payment (below min_sample_size)
+    due_date = datetime(2024, 1, 1)
+    payment_date = due_date - timedelta(days=5)
     payment = Payment(
         amount=Decimal('100.00'),
-        payment_date=datetime(2024, 1, 1),
-        category="misc"
+        payment_date=payment_date,
+        category="misc",
+        liability_id=test_bill.id,
+        description=f"Due date: {due_date.date()}"
     )
     db_session.add(payment)
     # Add payment source
     source = PaymentSource(
         payment=payment,
-        account_id=1,
+        account_id=test_accounts[0].id,  # Use credit account
         amount=Decimal('100.00')
     )
     db_session.add(source)
     await db_session.commit()
     
     request = PaymentPatternRequest(
-        account_id=1,
+        account_id=test_accounts[0].id,
         category_id="misc",
         min_sample_size=3  # Require at least 3 samples
     )
@@ -198,15 +274,16 @@ async def test_insufficient_data_pattern(
 
 
 async def test_date_range_filter(
-    payment_pattern_service: PaymentPatternService,
-    regular_payments
+    payment_pattern_service: BillPaymentPatternService,
+    regular_payments,
+    test_accounts
 ):
     # Get total number of payments first
     total_payments = len(regular_payments)
     
     # Create request with date range that should exclude some payments
     request = PaymentPatternRequest(
-        account_id=1,
+        account_id=test_accounts[0].id,
         start_date=datetime(2024, 2, 1),
         end_date=datetime(2024, 4, 1)
     )
@@ -220,23 +297,27 @@ async def test_date_range_filter(
 
 
 @pytest.fixture(scope="function")
-async def mixed_interval_payments(db_session: AsyncSession):
-    """Create payments with mostly regular intervals but some outliers"""
+async def mixed_interval_payments(db_session: AsyncSession, test_bill, test_accounts):
+    """Create payments with mostly regular intervals but some outliers for a specific bill"""
     base_date = datetime(2024, 1, 1)
-    # Intervals: 30, 35, 30, 25, 30 days (mostly monthly with some variation)
-    intervals = [0, 30, 65, 95, 120, 150]
+    # Due dates are monthly, payments made at varying intervals before due
+    due_dates = [base_date + timedelta(days=30 * i) for i in range(6)]
+    days_before = [5, 3, 7, 2, 6, 4]  # Varying days before due date
     payments = []
     
-    for days in intervals:
+    for due_date, days in zip(due_dates, days_before):
+        payment_date = due_date - timedelta(days=days)
         payment = Payment(
             amount=Decimal('100.00'),
-            payment_date=base_date + timedelta(days=days),
-            category="utilities"
+            payment_date=payment_date,
+            category="utilities",
+            liability_id=test_bill.id,
+            description=f"Due date: {due_date.date()}"
         )
         db_session.add(payment)
         source = PaymentSource(
             payment=payment,
-            account_id=1,
+            account_id=test_accounts[0].id,  # Use credit account
             amount=Decimal('100.00')
         )
         db_session.add(source)
@@ -247,21 +328,25 @@ async def mixed_interval_payments(db_session: AsyncSession):
 
 
 @pytest.fixture(scope="function")
-async def minimal_regular_payments(db_session: AsyncSession):
-    """Create exactly 3 payments with regular intervals"""
+async def minimal_regular_payments(db_session: AsyncSession, test_bill, test_accounts):
+    """Create exactly 3 payments with regular intervals for a specific bill"""
     base_date = datetime(2024, 1, 1)
     payments = []
     
     for i in range(3):
+        due_date = base_date + timedelta(days=30 * i)
+        payment_date = due_date - timedelta(days=5)  # Consistently 5 days before due
         payment = Payment(
             amount=Decimal('100.00'),
-            payment_date=base_date + timedelta(days=30 * i),
-            category="utilities"
+            payment_date=payment_date,
+            category="utilities",
+            liability_id=test_bill.id,
+            description=f"Due date: {due_date.date()}"
         )
         db_session.add(payment)
         source = PaymentSource(
             payment=payment,
-            account_id=1,
+            account_id=test_accounts[0].id,  # Use credit account
             amount=Decimal('100.00')
         )
         db_session.add(source)
@@ -272,38 +357,45 @@ async def minimal_regular_payments(db_session: AsyncSession):
 
 
 @pytest.fixture(scope="function")
-async def gapped_payments(db_session: AsyncSession):
-    """Create payments with a significant gap in the middle"""
+async def gapped_payments(db_session: AsyncSession, test_bill, test_accounts):
+    """Create payments with a significant gap in the middle for a specific bill"""
     base_date = datetime(2024, 1, 1)
-    # Regular monthly payments, then a 3-month gap, then regular again
-    days = [0, 30, 60, 150, 180, 210]
+    # Monthly due dates
+    due_dates = [base_date + timedelta(days=30 * i) for i in range(8)]
+    # Skip payments for months 3, 4, and 5
+    skip_months = {3, 4, 5}
     payments = []
     
-    for day in days:
-        payment = Payment(
-            amount=Decimal('100.00'),
-            payment_date=base_date + timedelta(days=day),
-            category="utilities"
-        )
-        db_session.add(payment)
-        source = PaymentSource(
-            payment=payment,
-            account_id=1,
-            amount=Decimal('100.00')
-        )
-        db_session.add(source)
-        payments.append(payment)
+    for i, due_date in enumerate(due_dates):
+        if i not in skip_months:
+            payment_date = due_date - timedelta(days=5)  # 5 days before due
+            payment = Payment(
+                amount=Decimal('100.00'),
+                payment_date=payment_date,
+                category="utilities",
+                liability_id=test_bill.id,
+                description=f"Due date: {due_date.date()}"
+            )
+            db_session.add(payment)
+            source = PaymentSource(
+                payment=payment,
+                account_id=test_accounts[0].id,  # Use credit account
+                amount=Decimal('100.00')
+            )
+            db_session.add(source)
+            payments.append(payment)
     
     await db_session.commit()
     return payments
 
 
 async def test_mixed_interval_pattern(
-    payment_pattern_service: PaymentPatternService,
-    mixed_interval_payments
+    payment_pattern_service: BillPaymentPatternService,
+    mixed_interval_payments,
+    test_accounts
 ):
     request = PaymentPatternRequest(
-        account_id=1,
+        account_id=test_accounts[0].id,
         category_id="utilities"
     )
     
@@ -316,11 +408,12 @@ async def test_mixed_interval_pattern(
 
 
 async def test_minimal_sample_regular_pattern(
-    payment_pattern_service: PaymentPatternService,
-    minimal_regular_payments
+    payment_pattern_service: BillPaymentPatternService,
+    minimal_regular_payments,
+    test_accounts
 ):
     request = PaymentPatternRequest(
-        account_id=1,
+        account_id=test_accounts[0].id,
         category_id="utilities"
     )
     
@@ -333,11 +426,12 @@ async def test_minimal_sample_regular_pattern(
 
 
 async def test_gapped_payment_pattern(
-    payment_pattern_service: PaymentPatternService,
-    gapped_payments
+    payment_pattern_service: BillPaymentPatternService,
+    gapped_payments,
+    test_accounts
 ):
     request = PaymentPatternRequest(
-        account_id=1,
+        account_id=test_accounts[0].id,
         category_id="utilities"
     )
     
@@ -350,7 +444,7 @@ async def test_gapped_payment_pattern(
 
 
 async def test_analyze_bill_payments_no_payments(
-    payment_pattern_service: PaymentPatternService,
+    payment_pattern_service: BillPaymentPatternService,
     db_session: AsyncSession
 ):
     """Test analyzing a bill with no payments"""
@@ -359,26 +453,29 @@ async def test_analyze_bill_payments_no_payments(
 
 
 async def test_analyze_bill_payments_with_pattern(
-    payment_pattern_service: PaymentPatternService,
-    db_session: AsyncSession
+    payment_pattern_service: BillPaymentPatternService,
+    db_session: AsyncSession,
+    test_bill,
+    test_accounts
 ):
     """Test analyzing a bill with regular payments"""
-    # Create a set of regular payments for a specific bill
     base_date = datetime(2024, 1, 1)
-    liability_id = 1
     payments = []
     
     for i in range(3):  # Reduce to 3 payments to match test expectations
+        due_date = base_date + timedelta(days=30 * i)
+        payment_date = due_date - timedelta(days=5)  # Consistently 5 days before due
         payment = Payment(
             amount=Decimal('200.00'),
-            payment_date=base_date + timedelta(days=30 * i),
+            payment_date=payment_date,
             category="rent",
-            liability_id=liability_id
+            liability_id=test_bill.id,
+            description=f"Due date: {due_date.date()}"
         )
         db_session.add(payment)
         source = PaymentSource(
             payment=payment,
-            account_id=1,
+            account_id=test_accounts[0].id,  # Use credit account
             amount=Decimal('200.00')
         )
         db_session.add(source)
@@ -387,12 +484,12 @@ async def test_analyze_bill_payments_with_pattern(
     await db_session.commit()
     
     # Debug print
-    query = select(Payment).where(Payment.liability_id == liability_id)
+    query = select(Payment).where(Payment.liability_id == test_bill.id)
     debug_result = await db_session.execute(query)
     debug_payments = debug_result.scalars().all()
     print(f"\nDebug: Found {len(debug_payments)} payments in test: {[f'Payment({p.amount} on {p.payment_date})' for p in debug_payments]}")
     
-    result = await payment_pattern_service.analyze_bill_payments(liability_id)
+    result = await payment_pattern_service.analyze_bill_payments(test_bill.id)
     
     assert result is not None
     assert result.pattern_type == PatternType.REGULAR
@@ -402,8 +499,10 @@ async def test_analyze_bill_payments_with_pattern(
 
 
 async def test_category_suggestion_mixed(
-    payment_pattern_service: PaymentPatternService,
-    db_session: AsyncSession
+    payment_pattern_service: BillPaymentPatternService,
+    db_session: AsyncSession,
+    test_bill,
+    test_accounts
 ):
     """Test category suggestion with mixed categories"""
     # Create payments with different categories
@@ -412,15 +511,19 @@ async def test_category_suggestion_mixed(
     payments = []
     
     for i, category in enumerate(categories):
+        due_date = base_date + timedelta(days=30)  # Same due date for all
+        payment_date = due_date - timedelta(days=5 + i)  # Different days before due
         payment = Payment(
             amount=Decimal('100.00'),
-            payment_date=base_date + timedelta(days=i),
-            category=category
+            payment_date=payment_date,
+            category=category,
+            liability_id=test_bill.id,
+            description=f"Due date: {due_date.date()}"
         )
         db_session.add(payment)
         source = PaymentSource(
             payment=payment,
-            account_id=1,
+            account_id=test_accounts[0].id,  # Use credit account
             amount=Decimal('100.00')
         )
         db_session.add(source)
@@ -428,31 +531,36 @@ async def test_category_suggestion_mixed(
     
     await db_session.commit()
     
-    request = PaymentPatternRequest(account_id=1)
+    request = PaymentPatternRequest(account_id=test_accounts[0].id)
     analysis = await payment_pattern_service.analyze_payment_patterns(request)
     
     assert analysis.suggested_category == "utilities"  # Most frequent category
 
 
 async def test_category_suggestion_no_categories(
-    payment_pattern_service: PaymentPatternService,
-    db_session: AsyncSession
+    payment_pattern_service: BillPaymentPatternService,
+    db_session: AsyncSession,
+    test_bill,
+    test_accounts
 ):
     """Test category suggestion with no categories"""
-    # Create payments without categories
     base_date = datetime(2024, 1, 1)
     payments = []
     
     for i in range(3):
+        due_date = base_date + timedelta(days=30)  # Same due date for all
+        payment_date = due_date - timedelta(days=5 + i)  # Different days before due
         payment = Payment(
             amount=Decimal('100.00'),
-            payment_date=base_date + timedelta(days=i),
-            category="uncategorized"  # Default category instead of None
+            payment_date=payment_date,
+            category="uncategorized",  # Default category instead of None
+            liability_id=test_bill.id,
+            description=f"Due date: {due_date.date()}"
         )
         db_session.add(payment)
         source = PaymentSource(
             payment=payment,
-            account_id=1,
+            account_id=test_accounts[0].id,  # Use credit account
             amount=Decimal('100.00')
         )
         db_session.add(source)
@@ -460,31 +568,36 @@ async def test_category_suggestion_no_categories(
     
     await db_session.commit()
     
-    request = PaymentPatternRequest(account_id=1)
+    request = PaymentPatternRequest(account_id=test_accounts[0].id)
     analysis = await payment_pattern_service.analyze_payment_patterns(request)
     
     assert analysis.suggested_category == "uncategorized"
 
 
 async def test_analyze_same_day_payments(
-    payment_pattern_service: PaymentPatternService,
-    db_session: AsyncSession
+    payment_pattern_service: BillPaymentPatternService,
+    db_session: AsyncSession,
+    test_bill,
+    test_accounts
 ):
     """Test analyzing payments made on the same day"""
     # Create multiple payments on the same day
-    payment_date = datetime(2024, 1, 1)
+    due_date = datetime(2024, 1, 15)
+    payment_date = due_date - timedelta(days=5)  # All payments 5 days before due
     payments = []
     
     for i in range(3):
         payment = Payment(
             amount=Decimal('100.00'),
             payment_date=payment_date,
-            category="utilities"
+            category="utilities",
+            liability_id=test_bill.id,
+            description=f"Due date: {due_date.date()}"
         )
         db_session.add(payment)
         source = PaymentSource(
             payment=payment,
-            account_id=1,
+            account_id=test_accounts[0].id,  # Use credit account
             amount=Decimal('100.00')
         )
         db_session.add(source)
@@ -492,7 +605,7 @@ async def test_analyze_same_day_payments(
     
     await db_session.commit()
     
-    request = PaymentPatternRequest(account_id=1)
+    request = PaymentPatternRequest(account_id=test_accounts[0].id)
     analysis = await payment_pattern_service.analyze_payment_patterns(request)
     
     assert analysis.pattern_type == PatternType.UNKNOWN
@@ -501,26 +614,30 @@ async def test_analyze_same_day_payments(
 
 
 async def test_filter_combination(
-    payment_pattern_service: PaymentPatternService,
-    db_session: AsyncSession
+    payment_pattern_service: BillPaymentPatternService,
+    db_session: AsyncSession,
+    test_bill,
+    test_accounts
 ):
     """Test analyzing payments with multiple filter combinations"""
     # Create payments with various attributes
     base_date = datetime(2024, 1, 1)
-    liability_id = 1
+    due_date = base_date + timedelta(days=30)  # Common due date
     payments = []
     
     for i in range(6):
+        payment_date = base_date + timedelta(days=i)  # Different payment dates
         payment = Payment(
             amount=Decimal('100.00'),
-            payment_date=base_date + timedelta(days=i),
+            payment_date=payment_date,
             category="utilities",
-            liability_id=liability_id if i < 3 else None  # Mix of liability and non-liability payments
+            liability_id=test_bill.id if i < 3 else None,  # Mix of liability and non-liability payments
+            description=f"Due date: {due_date.date()}" if i < 3 else None
         )
         db_session.add(payment)
         source = PaymentSource(
             payment=payment,
-            account_id=1 if i % 2 == 0 else 2,  # Mix of account IDs
+            account_id=test_accounts[0].id if i % 2 == 0 else test_accounts[1].id,  # Mix of credit and checking accounts
             amount=Decimal('100.00')
         )
         db_session.add(source)
@@ -530,9 +647,9 @@ async def test_filter_combination(
     
     # Test with multiple filters
     request = PaymentPatternRequest(
-        account_id=1,
+        account_id=test_accounts[0].id,
         category_id="utilities",
-        liability_id=liability_id,
+        liability_id=test_bill.id,
         start_date=base_date,
         end_date=base_date + timedelta(days=2)
     )
@@ -545,8 +662,10 @@ async def test_filter_combination(
 
 
 async def test_amount_statistics_edge_cases(
-    payment_pattern_service: PaymentPatternService,
-    db_session: AsyncSession
+    payment_pattern_service: BillPaymentPatternService,
+    db_session: AsyncSession,
+    test_bill,
+    test_accounts
 ):
     """Test amount statistics with edge case values"""
     base_date = datetime(2024, 1, 1)
@@ -559,15 +678,19 @@ async def test_amount_statistics_edge_cases(
     payments = []
     
     for i, amount in enumerate(amounts):
+        due_date = base_date + timedelta(days=30 * i)
+        payment_date = due_date - timedelta(days=5)  # Consistent 5 days before due
         payment = Payment(
             amount=amount,
-            payment_date=base_date + timedelta(days=30 * i),
-            category="misc"
+            payment_date=payment_date,
+            category="misc",
+            liability_id=test_bill.id,
+            description=f"Due date: {due_date.date()}"
         )
         db_session.add(payment)
         source = PaymentSource(
             payment=payment,
-            account_id=1,
+            account_id=test_accounts[0].id,  # Use credit account
             amount=amount
         )
         db_session.add(source)
@@ -575,7 +698,7 @@ async def test_amount_statistics_edge_cases(
     
     await db_session.commit()
     
-    request = PaymentPatternRequest(account_id=1)
+    request = PaymentPatternRequest(account_id=test_accounts[0].id)
     analysis = await payment_pattern_service.analyze_payment_patterns(request)
     
     assert analysis.amount_statistics.min_amount == Decimal('0.00')
@@ -585,25 +708,31 @@ async def test_amount_statistics_edge_cases(
 
 
 async def test_borderline_regular_pattern(
-    payment_pattern_service: PaymentPatternService,
-    db_session: AsyncSession
+    payment_pattern_service: BillPaymentPatternService,
+    db_session: AsyncSession,
+    test_bill,
+    test_accounts
 ):
     """Test pattern detection with borderline regular intervals"""
     base_date = datetime(2024, 1, 1)
-    # Intervals that are almost regular (30 days ± 1-2 days)
-    days = [0, 31, 59, 90, 119]  # Slightly off from perfect 30-day intervals
+    # Due dates are monthly, payments made at slightly varying intervals
+    due_dates = [base_date + timedelta(days=30 * i) for i in range(5)]
+    days_before = [4, 6, 3, 5, 7]  # Varying days before due date
     payments = []
     
-    for day in days:
+    for due_date, days in zip(due_dates, days_before):
+        payment_date = due_date - timedelta(days=days)
         payment = Payment(
             amount=Decimal('100.00'),
-            payment_date=base_date + timedelta(days=day),
-            category="utilities"
+            payment_date=payment_date,
+            category="utilities",
+            liability_id=test_bill.id,
+            description=f"Due date: {due_date.date()}"
         )
         db_session.add(payment)
         source = PaymentSource(
             payment=payment,
-            account_id=1,
+            account_id=test_accounts[0].id,  # Use credit account
             amount=Decimal('100.00')
         )
         db_session.add(source)
@@ -611,7 +740,7 @@ async def test_borderline_regular_pattern(
     
     await db_session.commit()
     
-    request = PaymentPatternRequest(account_id=1)
+    request = PaymentPatternRequest(account_id=test_accounts[0].id)
     analysis = await payment_pattern_service.analyze_payment_patterns(request)
     
     # Should still be detected as regular but with lower confidence
@@ -621,8 +750,10 @@ async def test_borderline_regular_pattern(
 
 
 async def test_borderline_seasonal_pattern(
-    payment_pattern_service: PaymentPatternService,
-    db_session: AsyncSession
+    payment_pattern_service: BillPaymentPatternService,
+    db_session: AsyncSession,
+    test_bill,
+    test_accounts
 ):
     """Test pattern detection with borderline seasonal variation"""
     base_date = datetime(2024, 1, 1)
@@ -637,15 +768,19 @@ async def test_borderline_seasonal_pattern(
     payments = []
     
     for i, amount in enumerate(amounts):
+        due_date = base_date + timedelta(days=30 * i)
+        payment_date = due_date - timedelta(days=5)  # Consistent 5 days before due
         payment = Payment(
             amount=amount,
-            payment_date=base_date + timedelta(days=30 * i),
-            category="utilities"
+            payment_date=payment_date,
+            category="utilities",
+            liability_id=test_bill.id,
+            description=f"Due date: {due_date.date()}"
         )
         db_session.add(payment)
         source = PaymentSource(
             payment=payment,
-            account_id=1,
+            account_id=test_accounts[0].id,  # Use credit account
             amount=amount
         )
         db_session.add(source)
@@ -653,7 +788,7 @@ async def test_borderline_seasonal_pattern(
     
     await db_session.commit()
     
-    request = PaymentPatternRequest(account_id=1)
+    request = PaymentPatternRequest(account_id=test_accounts[0].id)
     analysis = await payment_pattern_service.analyze_payment_patterns(request)
     
     # Should be regular due to consistent timing and moderate amount variation
@@ -663,24 +798,30 @@ async def test_borderline_seasonal_pattern(
 
 
 async def test_single_day_difference_payments(
-    payment_pattern_service: PaymentPatternService,
-    db_session: AsyncSession
+    payment_pattern_service: BillPaymentPatternService,
+    db_session: AsyncSession,
+    test_bill,
+    test_accounts
 ):
     """Test analyzing payments with single day differences"""
     base_date = datetime(2024, 1, 1)
-    # Create payments on consecutive days
+    # Due date is fixed, payments made on consecutive days before
+    due_date = base_date + timedelta(days=10)
     payments = []
     
     for i in range(4):
+        payment_date = due_date - timedelta(days=i + 1)  # 1, 2, 3, 4 days before due date
         payment = Payment(
             amount=Decimal('100.00'),
-            payment_date=base_date + timedelta(days=i),
-            category="utilities"
+            payment_date=payment_date,
+            category="utilities",
+            liability_id=test_bill.id,
+            description=f"Due date: {due_date.date()}"
         )
         db_session.add(payment)
         source = PaymentSource(
             payment=payment,
-            account_id=1,
+            account_id=test_accounts[0].id,  # Use credit account
             amount=Decimal('100.00')
         )
         db_session.add(source)
@@ -688,7 +829,7 @@ async def test_single_day_difference_payments(
     
     await db_session.commit()
     
-    request = PaymentPatternRequest(account_id=1)
+    request = PaymentPatternRequest(account_id=test_accounts[0].id)
     analysis = await payment_pattern_service.analyze_payment_patterns(request)
     
     assert analysis.pattern_type == PatternType.REGULAR

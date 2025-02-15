@@ -1,4 +1,4 @@
-# Debtonator v0.3.49
+# Debtonator v0.3.51
 
 A modern bill and cashflow management system that helps track bills, income, and maintain sufficient account balances for timely bill payments.
 
@@ -130,7 +130,7 @@ A modern bill and cashflow management system that helps track bills, income, and
     * SQLite-compatible date handling
 
 - **Cashflow Analysis**
-  - Payment pattern analysis system
+  - Bill payment pattern analysis system
     * Pattern detection with confidence scoring
       - Regular payment pattern detection
       - Irregular payment identification
@@ -141,12 +141,13 @@ A modern bill and cashflow management system that helps track bills, income, and
       - Amount statistics (average, std dev, min/max, total)
       - Pattern-specific confidence scoring
     * Features include
-      - Account-specific pattern analysis
+      - Bill-specific pattern analysis
       - Category-based pattern detection
       - Date range filtering
       - Minimum sample size configuration
       - Pattern type classification
       - Detailed analysis notes
+      - Due date proximity warnings
   - Real-time cashflow tracking
     * Account balance aggregation across all accounts
     * Real-time available funds calculation

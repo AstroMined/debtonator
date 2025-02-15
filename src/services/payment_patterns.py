@@ -17,7 +17,8 @@ from src.schemas.payment_patterns import (
 )
 
 
-class PaymentPatternService:
+# TODO: Create a separate ExpensePatternService for analyzing non-bill payment patterns
+class BillPaymentPatternService:
     # Expected days before due date
     TARGET_DAYS = 5
 
@@ -236,7 +237,6 @@ class PaymentPatternService:
         return most_common
 
     async def analyze_bill_payments(self, liability_id: int) -> Optional[PaymentPatternAnalysis]:
-        """Analyze payment patterns for a specific bill."""
         """Analyze payment patterns for a specific bill."""
         # Build query for bill payments
         query = select(Payment).where(
