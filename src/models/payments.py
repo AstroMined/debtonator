@@ -8,7 +8,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base_model import BaseDBModel
 
 class Payment(BaseDBModel):
-    """Payment model representing a transaction made to pay a bill or other expense"""
+    """
+    Payment model representing a transaction made to pay a bill or other expense.
+    
+    All datetime fields are stored in UTC format, with timezone validation enforced
+    through Pydantic schemas.
+    """
     __tablename__ = "payments"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -16,8 +21,9 @@ class Payment(BaseDBModel):
     income_id: Mapped[Optional[int]] = mapped_column(ForeignKey("income.id"), nullable=True)
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     payment_date: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(ZoneInfo("UTC"))
+        DateTime(),  # No timezone parameter - enforced by schema
+        default=lambda: datetime.now(ZoneInfo("UTC")),
+        doc="UTC timestamp of when the payment was made"
     )
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     category: Mapped[str] = mapped_column(String(100))

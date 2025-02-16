@@ -13,7 +13,12 @@ from .payment_schedules import PaymentSchedule
 from .balance_history import BalanceHistory
 
 class Account(BaseDBModel):
-    """Account model representing a financial account"""
+    """
+    Account model representing a financial account.
+    
+    All datetime fields are stored in UTC format, with timezone validation enforced
+    through Pydantic schemas.
+    """
     __tablename__ = "accounts"
     
     # Primary key and basic fields
@@ -49,7 +54,11 @@ class Account(BaseDBModel):
         nullable=True,
         comment="Balance from last statement"
     )
-    last_statement_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_statement_date: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(),  # No timezone parameter - enforced by schema
+        nullable=True,
+        doc="UTC timestamp of the last statement date"
+    )
     
     # Relationships
     payment_sources: Mapped[List["PaymentSource"]] = relationship(

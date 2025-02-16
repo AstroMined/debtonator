@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.65] - 2025-02-16
+
+### Changed
+- Completed Model Simplification phase of datetime standardization:
+  * Removed timezone=True from all DateTime columns
+  * Updated datetime field documentation with UTC requirements
+  * Reinitialized database with new schema
+  * Completed Phase 2 of datetime standardization project
+  * All models now use simple DateTime() columns
+  * UTC enforcement moved entirely to Pydantic schemas
+  * Improved documentation clarity around UTC storage
+
 ## [0.3.64] - 2025-02-16
 
 ### Changed

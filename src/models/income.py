@@ -8,11 +8,19 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base_model import BaseDBModel
 
 class Income(BaseDBModel):
-    """Income model representing an income record"""
+    """
+    Income model representing an income record.
+    
+    All datetime fields are stored in UTC format, with timezone validation enforced
+    through Pydantic schemas.
+    """
     __tablename__ = "income"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    date: Mapped[datetime] = mapped_column(
+        DateTime(),  # No timezone parameter - enforced by schema
+        doc="UTC timestamp of when the income was received"
+    )
     source: Mapped[str] = mapped_column(String(255))
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     deposited: Mapped[bool] = mapped_column(Boolean, default=False)

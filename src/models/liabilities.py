@@ -18,16 +18,22 @@ class LiabilityStatus(str, Enum):
     OVERDUE = "overdue"
 
 class Liability(BaseDBModel):
-    """Liability model representing a bill that needs to be paid"""
+    """
+    Liability model representing a bill that needs to be paid.
+    
+    All datetime fields are stored in UTC format, with timezone validation enforced
+    through Pydantic schemas.
+    """
     __tablename__ = "liabilities"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(255))
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     due_date: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
+        DateTime(),  # No timezone parameter - enforced by schema
         nullable=False,
-        default=lambda: datetime.now(ZoneInfo("UTC"))
+        default=lambda: datetime.now(ZoneInfo("UTC")),
+        doc="UTC timestamp of when the bill is due"
     )
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     recurring: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -38,7 +44,11 @@ class Liability(BaseDBModel):
     primary_account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
     auto_pay: Mapped[bool] = mapped_column(Boolean, default=False)
     auto_pay_settings: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)  # For preferred payment date, method, etc.
-    last_auto_pay_attempt: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_auto_pay_attempt: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(),  # No timezone parameter - enforced by schema
+        nullable=True,
+        doc="UTC timestamp of the last auto-pay attempt"
+    )
     auto_pay_enabled: Mapped[bool] = mapped_column(Boolean, default=False)  # Separate from auto_pay flag for temporary enable/disable
     status: Mapped[LiabilityStatus] = mapped_column(
         SQLEnum(LiabilityStatus),
