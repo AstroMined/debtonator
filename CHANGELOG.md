@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.66] - 2025-02-16
+
+### Fixed
+- Removed model-level timezone handling to align with ADR-011:
+  * Removed __init__ timezone handling from Liability model
+  * Fixed test assertions to expect naive datetimes
+  * Fixed failing tests in liabilities and recurring bills
+  * Identified remaining models with timezone handling for future cleanup
+
+### Added
+- Comprehensive model audit for datetime standardization:
+  * Identified 8 models still using timezone=True
+  * Found 2 models with direct timezone manipulation
+  * Documented 4 models already conforming to ADR-011
+  * Created detailed cleanup plan in active_context.md
+
 ## [0.3.65] - 2025-02-16
 
 ### Changed

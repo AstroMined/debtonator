@@ -41,7 +41,7 @@
   - [x] Update seasonal analysis
   - [x] Fix test data
 
-### Phase 3: Schema-based Validation (Current)
+### Phase 3: Schema-based Validation and Model Cleanup (Current)
 1. **Base Schema Validator Implementation** ✓
    - [x] Create BaseSchemaValidator class
      * Added UTC validation for datetime fields
@@ -118,7 +118,28 @@
      * Checked default values
      * Validated relationships
 
-5. **Next Phase: Service Layer Updates**
+5. **Model Timezone Audit**
+   - [ ] Remove timezone=True Parameters
+     * BalanceHistory (timestamp)
+     * StatementHistory (statement_date, due_date)
+     * CreditLimitHistory (effective_date)
+     * TransactionHistory (transaction_date)
+     * PaymentSchedule (scheduled_date, processed_date)
+     * DepositSchedule (schedule_date)
+     * BalanceReconciliation (reconciliation_date)
+   - [ ] Remove Direct Timezone Handling
+     * RecurringIncome (create_income_entry method)
+     * BalanceReconciliation (default lambda)
+   - [ ] Update Test Files
+     * Update test data creation to use naive datetimes
+     * Fix assertions to expect naive datetimes
+     * Update fixtures to align with schema validation
+   - [ ] Verify Schema Validation
+     * Confirm all models have corresponding schemas
+     * Verify UTC enforcement in schemas
+     * Add missing validators if needed
+
+6. **Next Phase: Service Layer Updates**
    - [ ] Update Cashflow Service
      * Update datetime creation
      * Fix date arithmetic

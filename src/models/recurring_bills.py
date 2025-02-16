@@ -34,7 +34,7 @@ class RecurringBill(BaseDBModel):
         liability = Liability(
             name=self.bill_name,
             amount=self.amount,
-            due_date=datetime(year, int(month), self.day_of_month, tzinfo=ZoneInfo("UTC")),
+            due_date=datetime(year, int(month), self.day_of_month),
             primary_account_id=self.account_id,
             category_id=self.category_id,
             auto_pay=self.auto_pay,

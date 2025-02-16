@@ -22,7 +22,7 @@ class TestLiability:
         liability = Liability(
             name="Internet Bill",
             amount=Decimal("89.99"),
-            due_date=datetime(2025, 3, 15, tzinfo=ZoneInfo("UTC")),
+            due_date=datetime(2025, 3, 15),
             category_id=utilities_category.id,
             recurring=False,
             primary_account_id=base_account.id,
@@ -36,7 +36,7 @@ class TestLiability:
         assert liability.id is not None
         assert liability.name == "Internet Bill"
         assert liability.amount == Decimal("89.99")
-        assert liability.due_date == datetime(2025, 3, 15, tzinfo=ZoneInfo("UTC"))
+        assert liability.due_date == datetime(2025, 3, 15)
         assert liability.category.name == "Utilities"
         assert liability.recurring is False
         assert liability.primary_account_id == base_account.id
@@ -53,7 +53,7 @@ class TestLiability:
         liability = Liability(
             name="Netflix Subscription",
             amount=Decimal("19.99"),
-            due_date=datetime(2025, 3, 1, tzinfo=ZoneInfo("UTC")),
+            due_date=datetime(2025, 3, 1),
             category_id=entertainment_category.id,
             recurring=True,
             recurrence_pattern={"frequency": "monthly", "day": 1},
@@ -92,13 +92,13 @@ class TestLiability:
         liability = Liability(
             name="Car Insurance",
             amount=Decimal("200.00"),
-            due_date=datetime(2025, 3, 1, tzinfo=ZoneInfo("UTC")),
+            due_date=datetime(2025, 3, 1),
             category_id=insurance_category.id,
             description="Semi-annual premium payment",
             recurring=False,
             primary_account_id=base_account.id,
-            created_at=datetime.now(ZoneInfo("UTC")),
-            updated_at=datetime.now(ZoneInfo("UTC"))
+            created_at=datetime.now(),
+            updated_at=datetime.now()
         )
         db_session.add(liability)
         await db_session.commit()
@@ -129,7 +129,7 @@ class TestLiability:
         liability = Liability(
             name="Simple Bill",
             amount=Decimal("50.00"),
-            due_date=datetime(2025, 3, 1, tzinfo=ZoneInfo("UTC")),
+            due_date=datetime(2025, 3, 1),
             category_id=other_category.id,
             primary_account_id=base_account.id
         )

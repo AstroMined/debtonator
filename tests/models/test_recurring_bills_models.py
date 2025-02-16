@@ -13,8 +13,8 @@ async def recurring_category(db_session):
     category = Category(
         name="Recurring",
         description="Recurring monthly bills",
-        created_at=datetime.now(),
-        updated_at=datetime.now()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(category)
     await db_session.flush()
@@ -28,8 +28,8 @@ async def checking_account(db_session):
         name="Test Checking",
         type="checking",
         available_balance=Decimal('1000.00'),
-        created_at=datetime.now(),
-        updated_at=datetime.now()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(account)
     await db_session.flush()
@@ -87,7 +87,7 @@ async def test_recurring_bill_create_liability(db_session, recurring_bill):
     # Verify the liability
     assert liability.name == "Netflix"
     assert liability.amount == Decimal('19.99')
-    assert liability.due_date == datetime(2025, 3, 15, tzinfo=ZoneInfo("UTC"))
+    assert liability.due_date == datetime(2025, 3, 15)
     assert liability.auto_pay is True
     assert liability.primary_account_id == recurring_bill.account_id
     assert liability.category_id == recurring_bill.category_id

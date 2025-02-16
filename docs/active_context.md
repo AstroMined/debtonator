@@ -3,6 +3,29 @@
 ## Current Focus
 Datetime Standardization Project - Phase 3: Schema-based Validation
 
+### Model Audit Findings
+1. **Models with Timezone Parameters**
+   - Found 8 models still using `timezone=True`:
+     * BalanceHistory (timestamp)
+     * StatementHistory (statement_date, due_date)
+     * CreditLimitHistory (effective_date)
+     * TransactionHistory (transaction_date)
+     * PaymentSchedule (scheduled_date, processed_date)
+     * DepositSchedule (schedule_date)
+     * BalanceReconciliation (reconciliation_date)
+
+2. **Models with Direct Timezone Handling**
+   - Found direct timezone manipulation:
+     * RecurringIncome (create_income_entry method)
+     * BalanceReconciliation (default lambda)
+
+3. **Models Already Conforming**
+   - Following models correctly implement ADR-011:
+     * Income
+     * Payments
+     * BaseDBModel
+     * Liabilities (after recent fix)
+
 ### Recent Changes
 1. **SQLite Timezone Configuration (Completed)**
    - ✓ Added proper UTC timezone support in SQLite configuration
@@ -221,6 +244,25 @@ Datetime Standardization Project - Phase 3: Schema-based Validation
   - Recommendations (paused)
   - Trend reporting (paused)
   - Frontend development (paused)
+
+### Required Model Updates
+1. **Remove timezone=True Parameters**
+   - [ ] BalanceHistory
+   - [ ] StatementHistory
+   - [ ] CreditLimitHistory
+   - [ ] TransactionHistory
+   - [ ] PaymentSchedule
+   - [ ] DepositSchedule
+   - [ ] BalanceReconciliation
+
+2. **Remove Direct Timezone Handling**
+   - [ ] RecurringIncome
+   - [ ] BalanceReconciliation
+
+3. **Update Test Files**
+   - [ ] Update test data creation
+   - [ ] Fix assertions
+   - [ ] Update fixtures
 
 ## Next Steps
 1. Continue schema updates with remaining schemas:

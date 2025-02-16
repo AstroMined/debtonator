@@ -81,12 +81,5 @@ class Liability(BaseDBModel):
         cascade="all, delete-orphan"
     )
 
-    def __init__(self, **kwargs):
-        # Ensure due_date is timezone-aware
-        if 'due_date' in kwargs and kwargs['due_date'] is not None:
-            if isinstance(kwargs['due_date'], datetime) and not kwargs['due_date'].tzinfo:
-                kwargs['due_date'] = kwargs['due_date'].replace(tzinfo=ZoneInfo("UTC"))
-        super().__init__(**kwargs)
-
     def __repr__(self) -> str:
         return f"<Liability {self.name} due {self.due_date}>"
