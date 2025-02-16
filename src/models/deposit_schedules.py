@@ -1,9 +1,8 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import List, Optional
+from typing import Optional
 from sqlalchemy import String, DateTime, Boolean, Numeric, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from zoneinfo import ZoneInfo
 
 from .base_model import BaseDBModel
 
@@ -13,7 +12,7 @@ class DepositSchedule(BaseDBModel):
     id: Mapped[int] = mapped_column(primary_key=True)
     income_id: Mapped[int] = mapped_column(ForeignKey("income.id"))
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
-    schedule_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    schedule_date: Mapped[datetime] = mapped_column(DateTime)
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     recurring: Mapped[bool] = mapped_column(Boolean, default=False)
     recurrence_pattern: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)

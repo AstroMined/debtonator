@@ -119,7 +119,7 @@
      * Validated relationships
 
 5. **Model Timezone Audit**
-   - [ ] Remove timezone=True Parameters
+   - [x] Remove timezone=True Parameters
      * BalanceHistory (timestamp)
      * StatementHistory (statement_date, due_date)
      * CreditLimitHistory (effective_date)
@@ -127,14 +127,14 @@
      * PaymentSchedule (scheduled_date, processed_date)
      * DepositSchedule (schedule_date)
      * BalanceReconciliation (reconciliation_date)
-   - [ ] Remove Direct Timezone Handling
+   - [x] Remove Direct Timezone Handling
      * RecurringIncome (create_income_entry method)
      * BalanceReconciliation (default lambda)
-   - [ ] Update Test Files
+   - [x] Update Test Files
      * Update test data creation to use naive datetimes
      * Fix assertions to expect naive datetimes
      * Update fixtures to align with schema validation
-   - [ ] Verify Schema Validation
+   - [x] Verify Schema Validation
      * Confirm all models have corresponding schemas
      * Verify UTC enforcement in schemas
      * Add missing validators if needed

@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 import pytest
 from sqlalchemy import select
@@ -9,25 +9,25 @@ from src.models.accounts import Account
 from src.schemas.payment_schedules import PaymentScheduleCreate
 from src.services.payment_schedules import PaymentScheduleService
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def test_account(db_session):
     account = Account(
         name="Test Account",
         type="checking",
         available_balance=Decimal("1000.00"),
-        created_at=date.today(),
-        updated_at=date.today()
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
     )
     db_session.add(account)
     await db_session.commit()
     return account
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def test_liability(db_session, test_account, base_category):
     liability = Liability(
         name="Test Bill",
         amount=Decimal("100.00"),
-        due_date=date.today() + timedelta(days=7),
+        due_date=datetime.utcnow() + timedelta(days=7),
         category_id=base_category.id,
         primary_account_id=test_account.id,
         auto_pay=False,
@@ -40,12 +40,12 @@ async def test_liability(db_session, test_account, base_category):
     await db_session.commit()
     return liability
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def test_schedule(db_session, test_liability, test_account):
     schedule = PaymentSchedule(
         liability_id=test_liability.id,
         account_id=test_account.id,
-        scheduled_date=date.today() + timedelta(days=5),
+        scheduled_date=datetime.utcnow() + timedelta(days=5),
         amount=Decimal("100.00"),
         description="Test schedule",
         auto_process=False,
@@ -62,7 +62,7 @@ async def test_create_schedule(db_session, test_liability, test_account):
     schedule_data = PaymentScheduleCreate(
         liability_id=test_liability.id,
         account_id=test_account.id,
-        scheduled_date=date.today() + timedelta(days=5),
+        scheduled_date=datetime.utcnow() + timedelta(days=5),
         amount=100.00,
         description="Test schedule"
     )
@@ -82,7 +82,7 @@ async def test_create_schedule_paid_liability(db_session, test_liability, test_a
     schedule_data = PaymentScheduleCreate(
         liability_id=test_liability.id,
         account_id=test_account.id,
-        scheduled_date=date.today() + timedelta(days=5),
+        scheduled_date=datetime.utcnow() + timedelta(days=5),
         amount=100.00
     )
     
@@ -97,8 +97,8 @@ async def test_get_schedule(db_session, test_schedule):
 
 async def test_get_schedules_by_date_range(db_session, test_schedule):
     service = PaymentScheduleService(db_session)
-    start_date = date.today()
-    end_date = date.today() + timedelta(days=7)
+    start_date = datetime.utcnow()
+    end_date = datetime.utcnow() + timedelta(days=7)
     
     schedules = await service.get_schedules_by_date_range(start_date, end_date)
     assert len(schedules) == 1
@@ -157,7 +157,7 @@ async def test_delete_processed_schedule(db_session, test_schedule):
 async def test_process_due_schedules(db_session, test_schedule):
     # Set schedule to auto-process and due today
     test_schedule.auto_process = True
-    test_schedule.scheduled_date = date.today()
+    test_schedule.scheduled_date = datetime.utcnow()
     await db_session.commit()
 
     service = PaymentScheduleService(db_session)

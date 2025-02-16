@@ -2,7 +2,6 @@ from datetime import datetime
 from decimal import Decimal
 from sqlalchemy import String, DateTime, Numeric, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from zoneinfo import ZoneInfo
 
 from .base_model import BaseDBModel
 
@@ -21,7 +20,7 @@ class CreditLimitHistory(BaseDBModel):
         comment="Credit limit at this point in time"
     )
     effective_date: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
+        DateTime,
         nullable=False,
         comment="Date when this credit limit became effective"
     )

@@ -1,5 +1,5 @@
 import pytest
-from datetime import date
+from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,21 +9,21 @@ from src.models.accounts import Account
 from src.schemas.income import RecurringIncomeCreate, RecurringIncomeUpdate, GenerateIncomeRequest
 from src.services.recurring_income import RecurringIncomeService
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def test_account(db_session: AsyncSession) -> Account:
     account = Account(
         name="Test Account",
         type="checking",
         available_balance=Decimal("1000.00"),
-        created_at=date.today(),
-        updated_at=date.today()
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
     )
     db_session.add(account)
     await db_session.commit()
     await db_session.refresh(account)
     return account
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def test_recurring_income(db_session: AsyncSession, test_account: Account) -> RecurringIncome:
     recurring_income = RecurringIncome(
         source="Test Income",
@@ -32,8 +32,8 @@ async def test_recurring_income(db_session: AsyncSession, test_account: Account)
         account_id=test_account.id,
         auto_deposit=False,
         active=True,
-        created_at=date.today(),
-        updated_at=date.today()
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
     )
     db_session.add(recurring_income)
     await db_session.commit()
@@ -117,7 +117,8 @@ async def test_generate_income(
 ):
     """Test generating income entries from recurring templates."""
     service = RecurringIncomeService(db_session)
-    request = GenerateIncomeRequest(month=date.today().month, year=date.today().year)
+    now = datetime.utcnow()
+    request = GenerateIncomeRequest(month=now.month, year=now.year)
     
     results = await service.generate_income(request)
     assert len(results) > 0

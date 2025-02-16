@@ -3,7 +3,6 @@ from decimal import Decimal
 from typing import Optional
 from sqlalchemy import Boolean, DateTime, ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from zoneinfo import ZoneInfo
 
 from .base_model import BaseDBModel
 
@@ -17,8 +16,8 @@ class BalanceHistory(BaseDBModel):
     is_reconciled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     notes: Mapped[Optional[str]] = mapped_column(String)
     timestamp: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(ZoneInfo("UTC")),
+        DateTime,
+        default=datetime.utcnow,
         nullable=False
     )
 

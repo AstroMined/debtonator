@@ -3,7 +3,6 @@ from decimal import Decimal
 from typing import Optional
 from sqlalchemy import Boolean, DateTime, ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from zoneinfo import ZoneInfo
 
 from .base_model import BaseDBModel
 
@@ -13,12 +12,12 @@ class PaymentSchedule(BaseDBModel):
     id: Mapped[int] = mapped_column(primary_key=True)
     liability_id: Mapped[int] = mapped_column(ForeignKey("liabilities.id"), nullable=False)
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), nullable=False)
-    scheduled_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    scheduled_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String)
     auto_process: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     processed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    processed_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    processed_date: Mapped[Optional[datetime]] = mapped_column(DateTime)
 
     # Relationships
     liability: Mapped["Liability"] = relationship("Liability", back_populates="payment_schedules")

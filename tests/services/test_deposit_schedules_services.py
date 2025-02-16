@@ -1,5 +1,5 @@
 import pytest
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import AsyncGenerator
 
@@ -9,11 +9,11 @@ from src.models.accounts import Account
 from src.schemas.deposit_schedules import DepositScheduleCreate, DepositScheduleUpdate
 from src.services.deposit_schedules import DepositScheduleService
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def deposit_schedule_service(db_session) -> AsyncGenerator[DepositScheduleService, None]:
     yield DepositScheduleService(db_session)
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def test_account(db_session) -> AsyncGenerator[Account, None]:
     account = Account(
         name="Test Checking",
@@ -24,10 +24,10 @@ async def test_account(db_session) -> AsyncGenerator[Account, None]:
     await db_session.commit()
     yield account
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def test_income(db_session, test_account) -> AsyncGenerator[Income, None]:
     income = Income(
-        date=date.today(),
+        date=datetime.utcnow(),
         source="Test Income",
         amount=Decimal("2000.00"),
         deposited=False,
@@ -37,14 +37,14 @@ async def test_income(db_session, test_account) -> AsyncGenerator[Income, None]:
     await db_session.commit()
     yield income
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def test_deposit_schedule(
     db_session, test_income, test_account
 ) -> AsyncGenerator[DepositSchedule, None]:
     schedule = DepositSchedule(
         income_id=test_income.id,
         account_id=test_account.id,
-        schedule_date=date.today() + timedelta(days=1),
+        schedule_date=datetime.utcnow() + timedelta(days=1),
         amount=Decimal("1000.00"),
         recurring=False,
         status="pending"
@@ -61,7 +61,7 @@ async def test_create_deposit_schedule(
     schedule_data = DepositScheduleCreate(
         income_id=test_income.id,
         account_id=test_account.id,
-        schedule_date=date.today() + timedelta(days=1),
+        schedule_date=datetime.utcnow() + timedelta(days=1),
         amount=Decimal("1000.00"),
         recurring=False,
         status="pending"
@@ -83,7 +83,7 @@ async def test_create_deposit_schedule_invalid_amount(
     schedule_data = DepositScheduleCreate(
         income_id=test_income.id,
         account_id=test_account.id,
-        schedule_date=date.today() + timedelta(days=1),
+        schedule_date=datetime.utcnow() + timedelta(days=1),
         amount=Decimal("3000.00"),  # More than income amount
         recurring=False,
         status="pending"

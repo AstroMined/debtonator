@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.67] - 2025-02-16
+
+### Added
+- Comprehensive model test coverage:
+  * Added test_recurring_income_models.py with create_income_entry tests
+  * Added test_balance_reconciliation_models.py with edge case tests
+  * Added test_credit_limit_history_models.py with validation tests
+  * Added test_statement_history_models.py with date handling tests
+  * Added test_transaction_history_models.py with transaction type tests
+  * All new tests using datetime.utcnow() for consistency
+  * Improved overall model test coverage to 97%
+
 ## [0.3.66] - 2025-02-16
 
 ### Fixed

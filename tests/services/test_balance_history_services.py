@@ -9,14 +9,14 @@ from src.schemas.balance_history import BalanceHistoryCreate
 from src.services.balance_history import BalanceHistoryService
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 async def test_account(db_session):
     account = Account(
         name="Test Account",
         type="checking",
         available_balance=Decimal("1000.00"),
-        created_at=datetime.now(),
-        updated_at=datetime.now()
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
     )
     db_session.add(account)
     await db_session.flush()
@@ -24,7 +24,7 @@ async def test_account(db_session):
     return account
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def balance_history_service(db_session):
     return BalanceHistoryService(db_session)
 

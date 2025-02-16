@@ -247,22 +247,22 @@ Datetime Standardization Project - Phase 3: Schema-based Validation
 
 ### Required Model Updates
 1. **Remove timezone=True Parameters**
-   - [ ] BalanceHistory
-   - [ ] StatementHistory
-   - [ ] CreditLimitHistory
-   - [ ] TransactionHistory
-   - [ ] PaymentSchedule
-   - [ ] DepositSchedule
-   - [ ] BalanceReconciliation
+   - [x] BalanceHistory
+   - [x] StatementHistory
+   - [x] CreditLimitHistory
+   - [x] TransactionHistory
+   - [x] PaymentSchedule
+   - [x] DepositSchedule
+   - [x] BalanceReconciliation
 
 2. **Remove Direct Timezone Handling**
-   - [ ] RecurringIncome
-   - [ ] BalanceReconciliation
+   - [x] RecurringIncome
+   - [x] BalanceReconciliation
 
 3. **Update Test Files**
-   - [ ] Update test data creation
-   - [ ] Fix assertions
-   - [ ] Update fixtures
+   - [x] Update test data creation to use naive datetimes
+   - [x] Fix assertions to expect naive datetimes
+   - [x] Update fixtures to align with schema validation
 
 ## Next Steps
 1. Continue schema updates with remaining schemas:

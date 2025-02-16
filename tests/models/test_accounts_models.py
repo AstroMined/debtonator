@@ -15,8 +15,8 @@ class TestAccount:
             name="Basic Checking Account",
             type="checking",
             available_balance=Decimal("1000.00"),
-            created_at=datetime.now(),
-            updated_at=datetime.now()
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
         )
         db_session.add(account)
         await db_session.commit()
@@ -36,8 +36,8 @@ class TestAccount:
             name="Basic Credit Card",
             type="credit",
             total_limit=Decimal("2000.00"),
-            created_at=datetime.now(),
-            updated_at=datetime.now()
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
         )
         db_session.add(account)
         await db_session.commit()
@@ -62,8 +62,8 @@ class TestAccount:
             name="Basic Savings Account",
             type="savings",
             available_balance=Decimal("5000.00"),
-            created_at=datetime.now(),
-            updated_at=datetime.now()
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
         )
         db_session.add(account)
         await db_session.commit()
@@ -91,8 +91,8 @@ class TestAccount:
             name="Available Credit Test Card",
             type="credit",
             total_limit=Decimal("1000.00"),
-            created_at=datetime.now(),
-            updated_at=datetime.now()
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
         )
         db_session.add(account)
         await db_session.commit()

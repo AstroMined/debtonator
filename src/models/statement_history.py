@@ -2,7 +2,6 @@ from datetime import datetime
 from decimal import Decimal
 from sqlalchemy import String, DateTime, Numeric, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from zoneinfo import ZoneInfo
 
 from .base_model import BaseDBModel
 
@@ -16,7 +15,7 @@ class StatementHistory(BaseDBModel):
     
     # Statement details
     statement_date: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
+        DateTime,
         nullable=False,
         comment="Date of the statement"
     )
@@ -31,7 +30,7 @@ class StatementHistory(BaseDBModel):
         comment="Minimum payment due"
     )
     due_date: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
+        DateTime,
         nullable=True,
         comment="Payment due date"
     )

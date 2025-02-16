@@ -2,7 +2,6 @@ from datetime import datetime
 from decimal import Decimal
 from sqlalchemy import String, DateTime, Boolean, Numeric, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from zoneinfo import ZoneInfo
 
 from .base_model import BaseDBModel
 
@@ -33,7 +32,7 @@ class RecurringIncome(BaseDBModel):
         income_entry = Income(
             source=self.source,
             amount=self.amount,
-            date=datetime(year, month, self.day_of_month, tzinfo=ZoneInfo("UTC")),
+            date=datetime(year, month, self.day_of_month),
             account_id=self.account_id,
             category_id=self.category_id,
             deposited=self.auto_deposit,
