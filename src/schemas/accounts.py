@@ -1,8 +1,9 @@
-from datetime import date
+from datetime import datetime
 from decimal import Decimal
 from typing import Optional, List
 from enum import Enum
-from pydantic import BaseModel, ConfigDict, Field, NonNegativeFloat
+from pydantic import BaseModel, ConfigDict, Field, NonNegativeFloat, field_validator
+from zoneinfo import ZoneInfo
 
 class AccountType(str, Enum):
     """Valid account types"""
@@ -18,7 +19,21 @@ class AccountBase(BaseModel):
     available_credit: Optional[Decimal] = Field(None, description="Available credit for credit accounts")
     total_limit: Optional[Decimal] = Field(None, description="Total credit limit for credit accounts")
     last_statement_balance: Optional[Decimal] = Field(None, description="Balance from last statement")
-    last_statement_date: Optional[date] = Field(None, description="Date of last statement")
+    last_statement_date: Optional[datetime] = Field(None, description="Date of last statement (UTC)")
+
+    @field_validator("last_statement_date", mode="before")
+    @classmethod
+    def validate_statement_date(cls, value: Optional[datetime]) -> Optional[datetime]:
+        """Ensure statement date is UTC"""
+        if value is None:
+            return None
+        if not isinstance(value, datetime):
+            raise ValueError("Statement date must be a datetime object")
+        if value.tzinfo is None:
+            raise ValueError("Statement date must be timezone-aware")
+        if value.tzinfo != ZoneInfo("UTC"):
+            raise ValueError("Statement date must be in UTC timezone")
+        return value
 
 class AccountCreate(AccountBase):
     """Schema for creating a new account"""
@@ -32,22 +47,62 @@ class AccountUpdate(BaseModel):
     available_credit: Optional[Decimal] = None
     total_limit: Optional[Decimal] = None
     last_statement_balance: Optional[Decimal] = None
-    last_statement_date: Optional[date] = None
+    last_statement_date: Optional[datetime] = None
+
+    @field_validator("last_statement_date", mode="before")
+    @classmethod
+    def validate_statement_date(cls, value: Optional[datetime]) -> Optional[datetime]:
+        """Ensure statement date is UTC"""
+        if value is None:
+            return None
+        if not isinstance(value, datetime):
+            raise ValueError("Statement date must be a datetime object")
+        if value.tzinfo is None:
+            raise ValueError("Statement date must be timezone-aware")
+        if value.tzinfo != ZoneInfo("UTC"):
+            raise ValueError("Statement date must be in UTC timezone")
+        return value
 
 class AccountInDB(AccountBase):
     """Schema for account data as stored in the database"""
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    created_at: date
-    updated_at: date
+    created_at: datetime
+    updated_at: datetime
+
+    @field_validator("created_at", "updated_at", mode="before")
+    @classmethod
+    def validate_timestamps(cls, value: datetime) -> datetime:
+        """Ensure timestamps are UTC"""
+        if not isinstance(value, datetime):
+            raise ValueError("Timestamp must be a datetime object")
+        if value.tzinfo is None:
+            raise ValueError("Timestamp must be timezone-aware")
+        if value.tzinfo != ZoneInfo("UTC"):
+            raise ValueError("Timestamp must be in UTC timezone")
+        return value
 
 class StatementBalanceHistory(BaseModel):
     """Schema for statement balance history"""
-    statement_date: date = Field(..., description="Date of the statement")
+    statement_date: datetime = Field(..., description="Date of the statement (UTC)")
     statement_balance: Decimal = Field(..., description="Balance on statement date")
     minimum_payment: Optional[Decimal] = Field(None, description="Minimum payment due")
-    due_date: Optional[date] = Field(None, description="Payment due date")
+    due_date: Optional[datetime] = Field(None, description="Payment due date (UTC)")
+
+    @field_validator("statement_date", "due_date", mode="before")
+    @classmethod
+    def validate_dates(cls, value: Optional[datetime]) -> Optional[datetime]:
+        """Ensure dates are UTC"""
+        if value is None:
+            return None
+        if not isinstance(value, datetime):
+            raise ValueError("Date must be a datetime object")
+        if value.tzinfo is None:
+            raise ValueError("Date must be timezone-aware")
+        if value.tzinfo != ZoneInfo("UTC"):
+            raise ValueError("Date must be in UTC timezone")
+        return value
 
 class AccountResponse(AccountInDB):
     """Schema for account data in API responses"""

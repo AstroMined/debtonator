@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.63] - 2025-02-16
+
+### Changed
+- Updated Account/Transaction schemas to use BaseSchemaValidator
+  * Converted all date fields to timezone-aware datetime
+  * Added UTC validation for statement dates and timestamps
+  * Updated field descriptions to indicate UTC requirement
+  * Added comprehensive test coverage for UTC validation
+  * Fixed AccountUpdate schema to use datetime instead of date
+  * All account and transaction schema tests passing
+
 ## [0.3.62] - 2025-02-16
 
 ### Changed

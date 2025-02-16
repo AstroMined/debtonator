@@ -77,11 +77,11 @@
      * Updated IncomeResponse schema
      * Added income date validators
      * Added comprehensive test coverage
-   - [ ] Account/Transaction Schemas
-     * Update transaction date handling
-     * Update statement date validation
-     * Add transaction-specific validators
-     * Test date range validation
+   - [x] Account/Transaction Schemas
+     * Updated transaction date handling
+     * Implemented statement date validation
+     * Added transaction-specific validators
+     * Added comprehensive test coverage
    - [ ] Analysis/Forecast Schemas
      * Update period calculations
      * Update date range handling
