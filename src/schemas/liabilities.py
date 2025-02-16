@@ -1,27 +1,19 @@
 from datetime import datetime
-from zoneinfo import ZoneInfo
 from decimal import Decimal
 from typing import List, Optional, Dict, Union
-from pydantic import BaseModel, Field, ConfigDict, validator
+from pydantic import Field, ConfigDict
+
+from . import BaseSchemaValidator
 
 # Forward declarations
-class LiabilityBase(BaseModel):
+class LiabilityBase(BaseSchemaValidator):
     """Base schema for liability data"""
-    model_config = ConfigDict(
-        from_attributes=True,
-        populate_by_name=True,
-        json_encoders={Decimal: str}
-    )
+    model_config = ConfigDict(from_attributes=True)
     
     name: str = Field(..., description="Name of the liability")
     amount: Decimal = Field(..., description="Total amount of the liability")
-    due_date: datetime = Field(..., description="Due date of the liability")
+    due_date: datetime = Field(..., description="Due date of the liability (UTC)")
 
-    @validator("due_date")
-    def ensure_utc_datetime(cls, v: datetime) -> datetime:
-        if not v.tzinfo or v.tzinfo != ZoneInfo("UTC"):
-            raise ValueError("datetime must be UTC timezone-aware")
-        return v
     description: Optional[str] = Field(None, description="Optional description")
     category_id: int = Field(..., description="ID of the category for this liability")
     recurring: bool = Field(default=False, description="Whether this is a recurring liability")
@@ -30,17 +22,13 @@ class LiabilityBase(BaseModel):
     primary_account_id: int = Field(..., description="ID of the primary account for this liability")
     auto_pay: bool = Field(default=False, description="Whether this liability is set for auto-pay")
     auto_pay_settings: Optional["AutoPaySettings"] = Field(None, description="Auto-pay configuration settings")
-    last_auto_pay_attempt: Optional[datetime] = Field(None, description="Timestamp of last auto-pay attempt")
+    last_auto_pay_attempt: Optional[datetime] = Field(None, description="Timestamp of last auto-pay attempt (UTC)")
     auto_pay_enabled: bool = Field(default=False, description="Whether auto-pay is currently enabled")
     paid: bool = Field(default=False, description="Whether this liability has been paid")
 
-class AutoPaySettings(BaseModel):
+class AutoPaySettings(BaseSchemaValidator):
     """Schema for auto-pay settings"""
-    model_config = ConfigDict(
-        from_attributes=True,
-        populate_by_name=True,
-        json_encoders={Decimal: str}
-    )
+    model_config = ConfigDict(from_attributes=True)
     
     preferred_pay_date: Optional[int] = Field(None, description="Preferred day of month for payment (1-31)", ge=1, le=31)
     days_before_due: Optional[int] = Field(None, description="Days before due date to process payment", ge=0)
@@ -53,13 +41,9 @@ class LiabilityCreate(LiabilityBase):
     """Schema for creating a new liability"""
     pass
 
-class LiabilityUpdate(BaseModel):
+class LiabilityUpdate(BaseSchemaValidator):
     """Schema for updating an existing liability"""
-    model_config = ConfigDict(
-        from_attributes=True,
-        populate_by_name=True,
-        json_encoders={Decimal: str}
-    )
+    model_config = ConfigDict(from_attributes=True)
     
     name: Optional[str] = None
     amount: Optional[Decimal] = None
@@ -72,24 +56,16 @@ class LiabilityUpdate(BaseModel):
     auto_pay_settings: Optional[AutoPaySettings] = None
     auto_pay_enabled: Optional[bool] = None
 
-class AutoPayUpdate(BaseModel):
+class AutoPayUpdate(BaseSchemaValidator):
     """Schema for updating auto-pay settings"""
-    model_config = ConfigDict(
-        from_attributes=True,
-        populate_by_name=True,
-        json_encoders={Decimal: str}
-    )
+    model_config = ConfigDict(from_attributes=True)
     
     enabled: bool = Field(..., description="Whether to enable or disable auto-pay")
     settings: Optional[AutoPaySettings] = Field(None, description="Auto-pay settings to update")
 
 class LiabilityInDB(LiabilityBase):
     """Schema for liability data as stored in the database"""
-    model_config = ConfigDict(
-        from_attributes=True,
-        populate_by_name=True,
-        json_encoders={Decimal: str}
-    )
+    model_config = ConfigDict(from_attributes=True)
 
     id: int
     created_at: datetime
@@ -97,25 +73,11 @@ class LiabilityInDB(LiabilityBase):
 
 class LiabilityResponse(LiabilityInDB):
     """Schema for liability data in API responses"""
-    model_config = ConfigDict(
-        from_attributes=True,
-        populate_by_name=True,
-        json_encoders={Decimal: str}
-    )
+    model_config = ConfigDict(from_attributes=True)
 
-class LiabilityDateRange(BaseModel):
+class LiabilityDateRange(BaseSchemaValidator):
     """Schema for specifying a date range for liability queries"""
-    model_config = ConfigDict(
-        from_attributes=True,
-        populate_by_name=True,
-        json_encoders={Decimal: str}
-    )
+    model_config = ConfigDict(from_attributes=True)
     
-    start_date: datetime = Field(..., description="Start date for liability range")
-    end_date: datetime = Field(..., description="End date for liability range")
-
-    @validator("start_date", "end_date")
-    def ensure_utc_range_datetime(cls, v: datetime) -> datetime:
-        if not v.tzinfo or v.tzinfo != ZoneInfo("UTC"):
-            raise ValueError("datetime must be UTC timezone-aware")
-        return v
+    start_date: datetime = Field(..., description="Start date for liability range (UTC)")
+    end_date: datetime = Field(..., description="End date for liability range (UTC)")

@@ -42,35 +42,35 @@
   - [x] Fix test data
 
 ### Phase 3: Schema-based Validation (Current)
-1. **Base Schema Validator Implementation**
-   - [ ] Create BaseSchemaValidator class
-     * Add UTC validation for datetime fields
-     * Implement timezone checking
-     * Add conversion rejection
-     * Document validation behavior
-   - [ ] Create test suite for base validator
-     * Test UTC enforcement
-     * Test timezone rejection
-     * Test edge cases
-     * Test invalid inputs
-   - [ ] Add validation error messages
+1. **Base Schema Validator Implementation** ✓
+   - [x] Create BaseSchemaValidator class
+     * Added UTC validation for datetime fields
+     * Implemented timezone checking
+     * Added conversion rejection
+     * Documented validation behavior
+   - [x] Create test suite for base validator
+     * Tested UTC enforcement
+     * Tested timezone rejection
+     * Tested edge cases
+     * Tested invalid inputs
+   - [x] Add validation error messages
      * Clear error descriptions
      * Helpful correction suggestions
      * Debugging information
 
 2. **Schema Updates (Priority Order)**
-   - [ ] Payment Schemas
-     * Update PaymentCreate schema
-     * Update PaymentUpdate schema
-     * Update PaymentResponse schema
-     * Add payment-specific validators
-     * Test payment date validation
-   - [ ] Bill/Liability Schemas
-     * Update BillCreate schema
-     * Update BillUpdate schema
-     * Update BillResponse schema
-     * Add due date validators
-     * Test due date validation
+   - [x] Payment Schemas
+     * Updated PaymentCreate schema
+     * Updated PaymentUpdate schema
+     * Updated PaymentResponse schema
+     * Added payment-specific validators
+     * Tested payment date validation
+   - [x] Bill/Liability Schemas
+     * Updated BillCreate schema
+     * Updated BillUpdate schema
+     * Updated BillResponse schema
+     * Added due date validators
+     * Added comprehensive schema test coverage
    - [ ] Income Schemas
      * Update IncomeCreate schema
      * Update IncomeUpdate schema
@@ -361,7 +361,9 @@
    - [x] Updated ADR-011 with new schema-based approach
    - [x] Removed SQLAlchemy timezone parameters
    - [x] Centralized UTC enforcement in Pydantic
-   - [ ] Remaining work in progress
+   - [x] Completed Base Schema Validator implementation
+   - [x] Updated Payment and Bill/Liability schemas
+   - [ ] Remaining schema updates in progress
 
 ## Future Enhancements
 1. Complete datetime standardization
