@@ -1,141 +1,162 @@
-# 11. Standardize on UTC Timezone-Aware Datetime
+# ADR 11: Standardize on UTC DateTime Storage
 
 ## Status
-Accepted
+**Superseded** - See update section below
 
 ## Context
-The application must handle datetime values consistently to prevent timezone-related bugs and ensure accurate financial calculations. Previous implementation allowed mixing of date and datetime types, leading to inconsistencies and potential errors.
 
-## Decision
-We will enforce strict UTC timezone-aware datetime usage throughout the backend:
+We need consistent handling of date/time values across the application to avoid time zone–related bugs and inaccuracies. Our environment setup involves:
+
+- **SQLite** for local development and testing
+- **MariaDB** for production
+
+Both engines can store datetime data, but they do not inherently attach time zone information to those fields—even if `DateTime(timezone=True)` is used in SQLAlchemy.
+
+We want to store and handle all datetimes as UTC internally, while still accommodating differences in how each database engine handles time zone data.
+
+## Original Decision
+
+**We will store all timestamps as UTC (Universal Coordinated Time) throughout the application.**  
+
+This applies to:
+- **SQLAlchemy models** (regardless of `timezone=True` usage)
+- **Pydantic models**, which validate incoming/outgoing data
+- **Service layer** logic for business operations
+- **Test code** for local development and CI
+
+## Update (2025-02-15)
+
+After implementation experience, we've refined our approach to simplify datetime handling:
+
+### Key Changes
+1. **Remove SQLAlchemy timezone parameters**
+   - Remove all `timezone=True` parameters from DateTime columns
+   - These parameters provide no actual benefit as the DB engines don't store timezone data
+   - Reduces confusion about where timezone enforcement happens
+
+2. **Centralize UTC enforcement in Pydantic**
+   - Move ALL timezone validation to Pydantic schemas
+   - Create a base validator for consistent enforcement
+   - Reject non-UTC datetimes at the schema level
+   - No timezone conversion utilities - enforce correct input
+
+3. **Simplify model definitions**
+   ```python
+   # Before
+   created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+   
+   # After
+   created_at = Column(DateTime(), default=lambda: datetime.now(timezone.utc))
+   ```
 
 ### Mandated
-- All datetime objects MUST be timezone-aware with UTC
-- All datetime creation MUST use `datetime.now(ZoneInfo("UTC"))`
-- All model fields MUST use `DateTime(timezone=True)`
-- All Pydantic schemas MUST use `datetime` (not date)
-- All tests MUST create datetime objects with UTC timezone
-- All database queries MUST compare timezone-aware datetime objects
-- All date arithmetic MUST use datetime objects
+
+1. **UTC for storage**: All date/time columns in the database are treated as UTC. Use simple `Column(DateTime())` without timezone parameter.
+2. **UTC for Python code**: All new Python datetimes are created with UTC explicitly set, such as `datetime.now(timezone.utc)`.
+3. **UTC validation in Pydantic**: Pydantic validators ensure that incoming/outgoing datetimes have a `tzinfo` matching UTC (offset zero).
+4. **Front-end** or external clients submit datetimes in UTC format (ISO-8601 with `Z` suffix).
+
+### Implementation Guidelines
+
+#### Base Pydantic Validator
+```python
+from datetime import datetime, timezone
+from pydantic import BaseModel, validator
+from typing import Any
+
+class BaseSchemaValidator(BaseModel):
+    @validator("*", pre=True)
+    def validate_datetime_fields(cls, value: Any, field: ModelField) -> Any:
+        if isinstance(value, datetime):
+            if value.tzinfo is None or value.utcoffset().total_seconds() != 0:
+                raise ValueError(
+                    f"Field {field.name} must be a UTC datetime. "
+                    f"Got: {value} {'(naive)' if value.tzinfo is None else f'(offset: {value.utcoffset()})'}. "
+                    "Please provide datetime with UTC timezone (offset zero)."
+                )
+        return value
+
+class PaymentCreate(BaseSchemaValidator):
+    payment_date: datetime
+    # The base validator will handle UTC enforcement
+```
+
+#### SQLAlchemy Model
+```python
+from sqlalchemy import Column, Integer, DateTime, func
+from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime, timezone
+
+Base = declarative_base()
+
+class Payment(Base):
+    __tablename__ = "payment"
+    id = Column(Integer, primary_key=True)
+    payment_date = Column(
+        DateTime(),  # No timezone parameter needed
+        nullable=False
+    )
+    created_at = Column(
+        DateTime(),
+        server_default=func.now(),  # Server's NOW() is fine, treated as UTC
+        nullable=False
+    )
+```
 
 ### Prohibited
-- No timezone-naive datetime objects
-- No use of `date` objects
-- No timezone conversion utilities
-- No mixing of date/datetime types
-- No automatic conversion from naive to aware
-- No datetime.combine() with naive times
-- No storing dates as strings
-- No storing timezone-naive datetimes
 
-### Exceptions
-Only two places may perform timezone conversions:
-1. Bulk Import: When importing external data
-2. API Layer: When receiving dates from frontend
+1. **Naive datetimes** in Python code that lack a `tzinfo` attribute.
+2. **timezone=True parameter** in SQLAlchemy DateTime columns.
+3. **Timezone conversion utilities** - enforce correct UTC input instead.
+4. **Multiple validation layers** - rely on Pydantic schemas only.
 
-## Implementation
+## Implementation Strategy
 
-### Correct Patterns
-```python
-# Creating current timestamp
-created_at = datetime.now(ZoneInfo("UTC"))
+1. **Schema Enhancement**
+   - Create BaseSchemaValidator with UTC enforcement
+   - Update all Pydantic schemas to inherit from base
+   - Add comprehensive schema tests
+   - Document validation behavior
 
-# Creating specific datetime
-due_date = datetime(2025, 1, 1, tzinfo=ZoneInfo("UTC"))
+2. **Model Simplification**
+   - Remove timezone=True from all DateTime columns
+   - Update created_at/updated_at defaults
+   - Clean up any timezone-specific logic
+   - Reinitialize database (development only)
 
-# Model definition
-class Payment(Base):
-    payment_date = Column(DateTime(timezone=True))
-    created_at = Column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(ZoneInfo("UTC"))
-    )
+3. **Service Layer Updates**
+   - Update datetime creation points
+   - Fix date arithmetic for UTC
+   - Update tests with UTC fixtures
+   - Fix historical analysis
 
-# Pydantic schema
-class PaymentCreate(BaseModel):
-    payment_date: datetime  # Must be UTC aware
-
-    @validator("payment_date")
-    def ensure_utc(cls, v):
-        if not v.tzinfo or v.tzinfo != ZoneInfo("UTC"):
-            raise ValueError("datetime must be UTC timezone-aware")
-        return v
-
-# Test fixtures
-@pytest.fixture
-def test_payment():
-    return Payment(
-        amount=Decimal("50.00"),
-        payment_date=datetime.now(ZoneInfo("UTC"))
-    )
-```
-
-### Incorrect Patterns
-```python
-# INCORRECT: Naive datetime
-created_at = datetime.now()
-
-# INCORRECT: Date object
-due_date = date(2025, 1, 1)
-
-# INCORRECT: Naive datetime in model
-payment_date = Column(DateTime())
-
-# INCORRECT: Date field in schema
-class PaymentCreate(BaseModel):
-    payment_date: date
-
-# INCORRECT: Naive datetime in tests
-payment_date = datetime(2025, 1, 1)
-```
+4. **Documentation**
+   - Update technical documentation
+   - Add schema validation examples
+   - Include test cases
+   - Document error handling
 
 ## Consequences
 
 ### Positive
-- Consistent datetime handling across the application
-- Prevention of timezone-related bugs
-- More accurate historical analysis
-- Better support for time-sensitive operations
-- Clearer audit trails with precise timestamps
-- Simplified date arithmetic (no date/datetime conversions)
-- Reduced cognitive overhead (only one way to handle dates)
+- Simpler, more consistent datetime handling
+- Clear separation of concerns (validation in schemas only)
+- Reduced confusion about timezone storage
+- Better error messages from schema validation
+- Simplified model definitions
 
 ### Negative
-- More verbose datetime creation
-- Slightly increased storage requirements
-- Need to update existing code base
+- Strict UTC requirement may require more frontend work
+- No automatic timezone conversion (by design)
+- Migration needed for existing code
 
 ### Mitigation
-- Clear documentation and examples
-- Comprehensive test coverage
-- Static analysis to catch naive datetime usage
-- Code review checklist item for datetime handling
-
-## Migration Strategy
-
-### Phase 1: Core Updates
-1. Update BaseModel datetime handling
-2. Fix all model datetime fields
-3. Update all service datetime creation
-4. Fix all test datetime objects
-
-### Phase 2: Service Refactor
-1. Update cashflow services
-2. Update payment services
-3. Update income services
-4. Update analysis services
-
-### Phase 3: Schema Updates
-1. Update all Pydantic schemas
-2. Remove any date type usage
-3. Update API endpoint documentation
-
-### Phase 4: Test Coverage
-1. Update all test fixtures
-2. Add datetime validation tests
-3. Verify UTC consistency
+- Clear error messages help developers provide correct UTC values
+- Comprehensive documentation and examples
+- Extensive test suite for validation behavior
 
 ## References
-- [Python datetime documentation](https://docs.python.org/3/library/datetime.html)
-- [SQLAlchemy DateTime documentation](https://docs.sqlalchemy.org/en/14/core/type_basics.html#sqlalchemy.types.DateTime)
-- [Pydantic datetime handling](https://pydantic-docs.helpmanual.io/usage/types/#datetime-types)
+- [Python datetime docs](https://docs.python.org/3/library/datetime.html)  
+- [SQLAlchemy DateTime docs](https://docs.sqlalchemy.org/en/14/core/type_basics.html#sqlalchemy.types.DateTime)  
+- [Pydantic datetime docs](https://docs.pydantic.dev/latest/usage/types/#datetime-types)  
+- [MariaDB Timestamp docs](https://mariadb.com/kb/en/datetime/)

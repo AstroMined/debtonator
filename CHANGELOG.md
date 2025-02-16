@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.59] - 2025-02-15
+
+### Changed
+- Updated datetime standardization approach:
+  * Removed SQLAlchemy timezone parameters
+  * Moved timezone enforcement to Pydantic schemas
+  * Simplified model definitions
+  * Enhanced validation error messages
+  * Updated ADR-011 with new implementation strategy
+  * Documented schema-based validation approach
+
+### Deprecated
+- SQLAlchemy timezone=True parameter usage
+- Multiple layers of timezone enforcement
+
 ## [0.3.58] - 2025-02-15
 
 ### Fixed
@@ -915,3 +930,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic functionality
 - Core database structure
 - Simple API endpoints
+

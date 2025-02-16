@@ -1,6 +1,6 @@
 # Progress: Debtonator
 
-## Current Priority: Datetime Standardization Project - Phase 2
+## Current Priority: Datetime Standardization Project - Phase 3
 
 ### SQLite Configuration (Completed)
 - [x] SQLite Timezone Support
@@ -23,35 +23,127 @@
   - [x] Statement dates to UTC datetime
   - [x] Schedule dates to UTC datetime
 
-### Phase 2: Service Updates (Current)
-- [ ] Cashflow Service
-  - [ ] Update all datetime creation points
-  - [ ] Fix date arithmetic to use UTC datetime
-  - [ ] Update forecast calculations
-  - [ ] Fix historical analysis
-  - [ ] Update tests with UTC fixtures
-- [ ] Payment Services
-  - [ ] Update pattern detection datetime handling
-  - [ ] Fix scheduling logic to use UTC
-  - [ ] Update recurring payment calculations
-  - [ ] Fix test fixtures
-- [ ] Analysis Services
-  - [ ] Update historical analysis periods
-  - [ ] Fix trend calculations
-  - [ ] Update seasonal analysis
-  - [ ] Fix test data
+### Phase 2: Service Updates (Completed)
+- [x] Cashflow Service
+  - [x] Update all datetime creation points
+  - [x] Fix date arithmetic to use UTC datetime
+  - [x] Update forecast calculations
+  - [x] Fix historical analysis
+  - [x] Update tests with UTC fixtures
+- [x] Payment Services
+  - [x] Update pattern detection datetime handling
+  - [x] Fix scheduling logic to use UTC
+  - [x] Update recurring payment calculations
+  - [x] Fix test fixtures
+- [x] Analysis Services
+  - [x] Update historical analysis periods
+  - [x] Fix trend calculations
+  - [x] Update seasonal analysis
+  - [x] Fix test data
 
-### Phase 3: Schema Updates (After Services)
-- [ ] Pydantic Schemas
-  - [ ] Remove all date type usage
-  - [ ] Update validation rules for UTC
-  - [ ] Fix request/response models
-  - [ ] Update API documentation
-- [ ] Test Coverage
-  - [ ] Update all test fixtures to UTC
-  - [ ] Add datetime validation tests
-  - [ ] Add timezone edge case tests
-  - [ ] Verify UTC consistency
+### Phase 3: Schema-based Validation (Current)
+1. **Base Schema Validator Implementation**
+   - [ ] Create BaseSchemaValidator class
+     * Add UTC validation for datetime fields
+     * Implement timezone checking
+     * Add conversion rejection
+     * Document validation behavior
+   - [ ] Create test suite for base validator
+     * Test UTC enforcement
+     * Test timezone rejection
+     * Test edge cases
+     * Test invalid inputs
+   - [ ] Add validation error messages
+     * Clear error descriptions
+     * Helpful correction suggestions
+     * Debugging information
+
+2. **Schema Updates (Priority Order)**
+   - [ ] Payment Schemas
+     * Update PaymentCreate schema
+     * Update PaymentUpdate schema
+     * Update PaymentResponse schema
+     * Add payment-specific validators
+     * Test payment date validation
+   - [ ] Bill/Liability Schemas
+     * Update BillCreate schema
+     * Update BillUpdate schema
+     * Update BillResponse schema
+     * Add due date validators
+     * Test due date validation
+   - [ ] Income Schemas
+     * Update IncomeCreate schema
+     * Update IncomeUpdate schema
+     * Update IncomeResponse schema
+     * Add income date validators
+     * Test income date validation
+   - [ ] Account/Transaction Schemas
+     * Update transaction date handling
+     * Update statement date validation
+     * Add transaction-specific validators
+     * Test date range validation
+   - [ ] Analysis/Forecast Schemas
+     * Update period calculations
+     * Update date range handling
+     * Add forecast-specific validators
+     * Test forecast period validation
+
+3. **Model Simplification**
+   - [ ] Remove timezone=True
+     * Update DateTime column definitions
+     * Remove timezone parameters
+     * Update column documentation
+   - [ ] Update Default Values
+     * Modify created_at default
+     * Modify updated_at default
+     * Ensure UTC creation
+   - [ ] Documentation
+     * Document UTC convention
+     * Add migration notes
+     * Update examples
+
+4. **Database Reinitialization**
+   - [ ] Cleanup
+     * Remove existing database
+     * Clear any temporary files
+     * Verify clean state
+   - [ ] Reinitialization
+     * Run init_db script
+     * Verify schema creation
+     * Check constraints
+   - [ ] Validation
+     * Verify column types
+     * Check default values
+     * Validate relationships
+
+### Documentation Updates
+1. **ADR-011 Updates**
+   - [x] Document Changes
+     * Updated implementation approach
+     * Documented schema validation
+     * Added code examples
+   - [x] Migration Notes
+     * Documented model changes
+     * Added schema updates
+     * Included test updates
+   - [x] Validation Examples
+     * Added schema examples
+     * Included test cases
+     * Documented error handling
+
+2. **Technical Documentation**
+   - [ ] Schema Documentation
+     * Document validators
+     * Add usage examples
+     * Include error handling
+   - [ ] Testing Guide
+     * Document test approach
+     * Add fixture examples
+     * Include edge cases
+   - [ ] Migration Guide
+     * Document model updates
+     * Include schema changes
+     * Add validation notes
 
 ### Paused Work
 
@@ -262,29 +354,22 @@
 - [x] Split analysis
 - [ ] Recommendations
 - [ ] Trend reporting
+- [ ] Frontend development
 
 ## Recent Improvements
 1. Datetime Standardization
-   - [x] Updated schemas to use timezone-aware datetime
-   - [x] Fixed test datetime handling
-   - [x] Added explicit UTC timezone handling
+   - [x] Updated ADR-011 with new schema-based approach
+   - [x] Removed SQLAlchemy timezone parameters
+   - [x] Centralized UTC enforcement in Pydantic
    - [ ] Remaining work in progress
-
-2. Income Analysis Endpoints
-   - [x] Created income trends analysis endpoints
-   - [x] Implemented source-specific analysis
-   - [x] Added period-based analysis
-   - [x] Added comprehensive test coverage
-   - [x] All tests passing
-
-3. Deposit Scheduling System
-   - [x] Created deposit scheduling schema
-   - [x] Implemented scheduling service with validation
-   - [x] Added API endpoints with proper error handling
-   - [x] Added comprehensive test coverage
-   - [x] All tests passing
 
 ## Future Enhancements
 1. Complete datetime standardization
-2. Recommendation engine implementation
-3. Trend reporting system
+2. Resume API Enhancement Project
+   - Complete recommendation engine
+   - Implement trend reporting
+   - Add remaining analysis features
+3. Begin Frontend Development
+   - Implement datetime handling
+   - Add timezone display
+   - Update validation
