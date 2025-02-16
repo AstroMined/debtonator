@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,8 +15,8 @@ async def test_account(db_session: AsyncSession) -> Account:
         name="Test Account",
         type="checking",
         available_balance=Decimal("1000.00"),
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(account)
     await db_session.commit()
@@ -33,7 +34,7 @@ async def test_create_balance_reconciliation(
         new_balance=Decimal("1100.00"),
         adjustment_amount=Decimal("100.00"),
         reason="Test reconciliation",
-        reconciliation_date=datetime.utcnow()
+        reconciliation_date=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(reconciliation)
     await db_session.commit()
@@ -68,8 +69,10 @@ async def test_balance_reconciliation_default_date(
     assert reconciliation.reconciliation_date is not None
     assert isinstance(reconciliation.reconciliation_date, datetime)
     # Verify it's a recent timestamp (within last minute)
-    now = datetime.utcnow()
-    diff = now - reconciliation.reconciliation_date
+    now = datetime.now(ZoneInfo("UTC"))
+    assert isinstance(reconciliation.reconciliation_date, datetime)
+    assert reconciliation.reconciliation_date.tzinfo is not None  # Ensure timezone-aware
+    diff = now - reconciliation.reconciliation_date.replace(tzinfo=ZoneInfo("UTC"))
     assert diff.total_seconds() < 60
 
 async def test_balance_reconciliation_relationships(
@@ -83,11 +86,14 @@ async def test_balance_reconciliation_relationships(
         new_balance=Decimal("1100.00"),
         adjustment_amount=Decimal("100.00"),
         reason="Test reconciliation",
-        reconciliation_date=datetime.utcnow()
+        reconciliation_date=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(reconciliation)
     await db_session.commit()
     await db_session.refresh(reconciliation)
+
+    # Refresh test_account to load specific relationship
+    await db_session.refresh(test_account, ['balance_reconciliations'])
 
     # Test account relationship
     assert reconciliation.account is not None
@@ -108,7 +114,7 @@ async def test_balance_reconciliation_string_representation(
         new_balance=Decimal("1100.00"),
         adjustment_amount=Decimal("100.00"),
         reason="Test reconciliation",
-        reconciliation_date=datetime.utcnow()
+        reconciliation_date=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(reconciliation)
     await db_session.commit()
@@ -128,7 +134,7 @@ async def test_balance_reconciliation_cascade_delete(
         new_balance=Decimal("1100.00"),
         adjustment_amount=Decimal("100.00"),
         reason="Test reconciliation",
-        reconciliation_date=datetime.utcnow()
+        reconciliation_date=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(reconciliation)
     await db_session.commit()

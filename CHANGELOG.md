@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.68] - 2025-02-16
+
+### Fixed
+- Improved SQLAlchemy async relationship loading in history model tests:
+  * Fixed greenlet_spawn errors by using specific relationship loading
+  * Updated test_balance_reconciliation_models.py
+  * Updated test_credit_limit_history_models.py
+  * Updated test_statement_history_models.py
+  * Updated test_transaction_history_models.py
+- Removed timezone PRAGMA from database.py to align with ADR-011 principles
+- Added SQLAlchemy async relationship loading best practices to .clinerules
+
 ## [0.3.67] - 2025-02-16
 
 ### Added

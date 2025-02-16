@@ -1,7 +1,8 @@
 from datetime import datetime
 from decimal import Decimal
-from sqlalchemy import String, DateTime, Numeric, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from zoneinfo import ZoneInfo
+from sqlalchemy import String, DateTime, Numeric, ForeignKey, event
+from sqlalchemy.orm import Mapped, mapped_column, relationship, Session
 
 from .base_model import BaseDBModel
 
@@ -22,6 +23,8 @@ class CreditLimitHistory(BaseDBModel):
     effective_date: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
+        default=lambda: datetime.now(ZoneInfo("UTC")),
+        server_default="CURRENT_TIMESTAMP",
         comment="Date when this credit limit became effective"
     )
     reason: Mapped[str] = mapped_column(
@@ -35,3 +38,14 @@ class CreditLimitHistory(BaseDBModel):
 
     def __repr__(self) -> str:
         return f"<CreditLimitHistory account_id={self.account_id} limit={self.credit_limit}>"
+
+@event.listens_for(CreditLimitHistory, 'before_insert')
+@event.listens_for(CreditLimitHistory, 'before_update')
+def validate_credit_account(mapper, connection, target):
+    """Ensure credit limit history can only be created for credit accounts."""
+    session = Session(bind=connection)
+    from .accounts import Account  # Import here to avoid circular imports
+    
+    account = session.get(Account, target.account_id)
+    if account and account.type != "credit":
+        raise ValueError("Credit limit history can only be created for credit accounts")

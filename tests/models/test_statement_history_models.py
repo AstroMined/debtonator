@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,8 +16,8 @@ async def test_account(db_session: AsyncSession) -> Account:
         type="credit",
         available_balance=Decimal("-500.00"),
         total_limit=Decimal("2000.00"),
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(account)
     await db_session.commit()
@@ -30,10 +31,10 @@ async def test_create_statement_history(
     """Test creating a statement history record."""
     statement = StatementHistory(
         account_id=test_account.id,
-        statement_date=datetime.utcnow(),
+        statement_date=datetime.now(ZoneInfo("UTC")),
         statement_balance=Decimal("500.00"),
         minimum_payment=Decimal("25.00"),
-        due_date=datetime.utcnow() + timedelta(days=25)
+        due_date=datetime.now(ZoneInfo("UTC")) + timedelta(days=25)
     )
     db_session.add(statement)
     await db_session.commit()
@@ -55,14 +56,17 @@ async def test_statement_history_relationships(
     """Test statement history relationships."""
     statement = StatementHistory(
         account_id=test_account.id,
-        statement_date=datetime.utcnow(),
+        statement_date=datetime.now(ZoneInfo("UTC")),
         statement_balance=Decimal("500.00"),
         minimum_payment=Decimal("25.00"),
-        due_date=datetime.utcnow() + timedelta(days=25)
+        due_date=datetime.now(ZoneInfo("UTC")) + timedelta(days=25)
     )
     db_session.add(statement)
     await db_session.commit()
     await db_session.refresh(statement)
+
+    # Refresh test_account to load specific relationship
+    await db_session.refresh(test_account, ['statement_history'])
 
     # Test account relationship
     assert statement.account is not None
@@ -77,7 +81,7 @@ async def test_statement_history_string_representation(
     test_account: Account
 ):
     """Test the string representation of a statement history record."""
-    statement_date = datetime.utcnow()
+    statement_date = datetime.now(ZoneInfo("UTC"))
     statement = StatementHistory(
         account_id=test_account.id,
         statement_date=statement_date,
@@ -99,10 +103,10 @@ async def test_statement_history_cascade_delete(
     """Test that statement history records are deleted when account is deleted."""
     statement = StatementHistory(
         account_id=test_account.id,
-        statement_date=datetime.utcnow(),
+        statement_date=datetime.now(ZoneInfo("UTC")),
         statement_balance=Decimal("500.00"),
         minimum_payment=Decimal("25.00"),
-        due_date=datetime.utcnow() + timedelta(days=25)
+        due_date=datetime.now(ZoneInfo("UTC")) + timedelta(days=25)
     )
     db_session.add(statement)
     await db_session.commit()
@@ -123,7 +127,7 @@ async def test_statement_history_optional_fields(
     # Create statement without minimum payment and due date
     statement = StatementHistory(
         account_id=test_account.id,
-        statement_date=datetime.utcnow(),
+        statement_date=datetime.now(ZoneInfo("UTC")),
         statement_balance=Decimal("500.00")
     )
     db_session.add(statement)
@@ -142,10 +146,10 @@ async def test_multiple_statement_history(
     # First statement
     statement1 = StatementHistory(
         account_id=test_account.id,
-        statement_date=datetime.utcnow() - timedelta(days=30),
+        statement_date=datetime.now(ZoneInfo("UTC")) - timedelta(days=30),
         statement_balance=Decimal("500.00"),
         minimum_payment=Decimal("25.00"),
-        due_date=datetime.utcnow() - timedelta(days=5)
+        due_date=datetime.now(ZoneInfo("UTC")) - timedelta(days=5)
     )
     db_session.add(statement1)
     await db_session.commit()
@@ -153,13 +157,16 @@ async def test_multiple_statement_history(
     # Second statement
     statement2 = StatementHistory(
         account_id=test_account.id,
-        statement_date=datetime.utcnow(),
+        statement_date=datetime.now(ZoneInfo("UTC")),
         statement_balance=Decimal("600.00"),
         minimum_payment=Decimal("30.00"),
-        due_date=datetime.utcnow() + timedelta(days=25)
+        due_date=datetime.now(ZoneInfo("UTC")) + timedelta(days=25)
     )
     db_session.add(statement2)
     await db_session.commit()
+
+    # Refresh test_account to load specific relationship
+    await db_session.refresh(test_account, ['statement_history'])
 
     # Verify both records exist and are correctly ordered by statement_date
     statements = test_account.statement_history

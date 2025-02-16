@@ -27,11 +27,12 @@ Datetime Standardization Project - Phase 3: Schema-based Validation
      * Liabilities (after recent fix)
 
 ### Recent Changes
-1. **SQLite Timezone Configuration (Completed)**
-   - ✓ Added proper UTC timezone support in SQLite configuration
-   - ✓ Fixed timezone-aware datetime handling in database engine
-   - ✓ Updated SQLite connection settings for consistent UTC handling
-   - ✓ Fixed failing tests in liabilities and recurring bills
+1. **SQLAlchemy Async Relationship Loading (Completed)**
+   - ✓ Fixed greenlet_spawn errors in history model tests
+   - ✓ Implemented specific relationship loading pattern
+   - ✓ Removed timezone PRAGMA from database.py
+   - ✓ Added relationship loading best practices to .clinerules
+   - ✓ Fixed failing tests in all history models
 
 2. **Datetime Standardization Phase 1 & 2 (Completed)**
    - ✓ Created BaseDBModel with UTC timezone-aware created_at/updated_at fields
@@ -246,7 +247,7 @@ Datetime Standardization Project - Phase 3: Schema-based Validation
   - Frontend development (paused)
 
 ### Required Model Updates
-1. **Remove timezone=True Parameters**
+1. **Remove timezone=True Parameters** ✓
    - [x] BalanceHistory
    - [x] StatementHistory
    - [x] CreditLimitHistory
@@ -255,14 +256,21 @@ Datetime Standardization Project - Phase 3: Schema-based Validation
    - [x] DepositSchedule
    - [x] BalanceReconciliation
 
-2. **Remove Direct Timezone Handling**
+2. **Remove Direct Timezone Handling** ✓
    - [x] RecurringIncome
    - [x] BalanceReconciliation
 
-3. **Update Test Files**
+3. **Update Test Files** ✓
    - [x] Update test data creation to use naive datetimes
    - [x] Fix assertions to expect naive datetimes
    - [x] Update fixtures to align with schema validation
+   - [x] Fix relationship loading in history model tests
+
+4. **SQLAlchemy Best Practices**
+   - [x] Document relationship loading patterns
+   - [x] Remove timezone handling from database layer
+   - [x] Standardize async relationship loading
+   - [x] Update .clinerules with best practices
 
 ## Next Steps
 1. Continue schema updates with remaining schemas:

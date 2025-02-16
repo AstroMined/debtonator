@@ -1,34 +1,40 @@
-from datetime import datetime
-from typing import Optional
+from datetime import datetime, timezone
 from sqlalchemy import DateTime
 from sqlalchemy.orm import Mapped, mapped_column
-from zoneinfo import ZoneInfo
 
 from ..database.base import Base
+
+def naive_utc_now() -> datetime:
+    """
+    Returns a naive datetime representing the current UTC time.
+    This function ensures that we drop any tzinfo before storing in the DB.
+    """
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 class BaseDBModel(Base):
     """
     Base model class that provides common fields and functionality for all models.
     
-    All datetime fields are stored in UTC format. Timezone awareness is enforced through
-    Pydantic schemas rather than SQLAlchemy models. This approach provides:
-    - Consistent UTC storage in the database
-    - Schema-level validation of UTC datetimes
-    - Clear separation of storage and validation concerns
+    **Key Points**:
+    - All datetime columns here are "naive" in the database, but semantically represent UTC.
+    - Timezone enforcement is handled at the Pydantic layer (validation/conversion).
+    - This approach provides:
+      - Consistent UTC storage (though naive in DB)
+      - Clear separation of storage vs. validation/logic
     """
-    
+
     __abstract__ = True
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(),  # No timezone parameter - enforced by schema
-        default=lambda: datetime.now(ZoneInfo("UTC")),
+        DateTime(),            # Naive in the DB, but logically UTC
+        default=naive_utc_now, # Store the current UTC time, minus tzinfo
         nullable=False,
-        doc="UTC timestamp of when the record was created"
+        doc="Naive UTC timestamp of when the record was created"
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(),  # No timezone parameter - enforced by schema
-        default=lambda: datetime.now(ZoneInfo("UTC")),
-        onupdate=lambda: datetime.now(ZoneInfo("UTC")),
+        DateTime(),            # Naive in the DB, but logically UTC
+        default=naive_utc_now, # Store the current UTC time, minus tzinfo
+        onupdate=naive_utc_now,
         nullable=False,
-        doc="UTC timestamp of when the record was last updated"
+        doc="Naive UTC timestamp of when the record was last updated"
     )

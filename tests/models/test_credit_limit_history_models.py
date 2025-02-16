@@ -1,7 +1,9 @@
 from datetime import datetime
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import event
 
 from src.models.accounts import Account
 from src.models.credit_limit_history import CreditLimitHistory
@@ -15,8 +17,8 @@ async def test_credit_account(db_session: AsyncSession) -> Account:
         type="credit",
         available_balance=Decimal("-500.00"),
         total_limit=Decimal("2000.00"),
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(account)
     await db_session.commit()
@@ -31,7 +33,7 @@ async def test_create_credit_limit_history(
     history = CreditLimitHistory(
         account_id=test_credit_account.id,
         credit_limit=Decimal("2000.00"),
-        effective_date=datetime.utcnow(),
+        effective_date=datetime.now(ZoneInfo("UTC")),
         reason="Initial credit limit"
     )
     db_session.add(history)
@@ -54,12 +56,15 @@ async def test_credit_limit_history_relationships(
     history = CreditLimitHistory(
         account_id=test_credit_account.id,
         credit_limit=Decimal("2000.00"),
-        effective_date=datetime.utcnow(),
+        effective_date=datetime.now(ZoneInfo("UTC")),
         reason="Initial credit limit"
     )
     db_session.add(history)
     await db_session.commit()
     await db_session.refresh(history)
+
+    # Refresh test_credit_account to load specific relationship
+    await db_session.refresh(test_credit_account, ['credit_limit_history'])
 
     # Test account relationship
     assert history.account is not None
@@ -77,7 +82,7 @@ async def test_credit_limit_history_string_representation(
     history = CreditLimitHistory(
         account_id=test_credit_account.id,
         credit_limit=Decimal("2000.00"),
-        effective_date=datetime.utcnow(),
+        effective_date=datetime.now(ZoneInfo("UTC")),
         reason="Initial credit limit"
     )
     db_session.add(history)
@@ -95,7 +100,7 @@ async def test_credit_limit_history_cascade_delete(
     history = CreditLimitHistory(
         account_id=test_credit_account.id,
         credit_limit=Decimal("2000.00"),
-        effective_date=datetime.utcnow(),
+        effective_date=datetime.now(ZoneInfo("UTC")),
         reason="Initial credit limit"
     )
     db_session.add(history)
@@ -118,7 +123,7 @@ async def test_multiple_credit_limit_changes(
     history1 = CreditLimitHistory(
         account_id=test_credit_account.id,
         credit_limit=Decimal("2000.00"),
-        effective_date=datetime.utcnow(),
+        effective_date=datetime.now(ZoneInfo("UTC")),
         reason="Initial credit limit"
     )
     db_session.add(history1)
@@ -128,11 +133,14 @@ async def test_multiple_credit_limit_changes(
     history2 = CreditLimitHistory(
         account_id=test_credit_account.id,
         credit_limit=Decimal("3000.00"),
-        effective_date=datetime.utcnow(),
+        effective_date=datetime.now(ZoneInfo("UTC")),
         reason="Credit limit increase"
     )
     db_session.add(history2)
     await db_session.commit()
+
+    # Refresh test_credit_account to load specific relationship
+    await db_session.refresh(test_credit_account, ['credit_limit_history'])
 
     # Verify both records exist and are correctly ordered
     assert len(test_credit_account.credit_limit_history) == 2
@@ -147,8 +155,8 @@ async def test_credit_limit_history_non_credit_account(
         name="Test Checking",
         type="checking",
         available_balance=Decimal("1000.00"),
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        created_at=datetime.now(ZoneInfo("UTC")),
+        updated_at=datetime.now(ZoneInfo("UTC"))
     )
     db_session.add(checking_account)
     await db_session.commit()
@@ -156,7 +164,7 @@ async def test_credit_limit_history_non_credit_account(
     history = CreditLimitHistory(
         account_id=checking_account.id,
         credit_limit=Decimal("2000.00"),
-        effective_date=datetime.utcnow(),
+        effective_date=datetime.now(ZoneInfo("UTC")),
         reason="Invalid credit limit"
     )
     db_session.add(history)

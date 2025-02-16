@@ -1,5 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 from sqlalchemy import String, DateTime, Numeric, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,6 +18,8 @@ class StatementHistory(BaseDBModel):
     statement_date: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
+        default=lambda: datetime.now(ZoneInfo("UTC")),
+        server_default="CURRENT_TIMESTAMP",
         comment="Date of the statement"
     )
     statement_balance: Mapped[Decimal] = mapped_column(
@@ -32,6 +35,7 @@ class StatementHistory(BaseDBModel):
     due_date: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=True,
+        default=lambda: datetime.now(ZoneInfo("UTC")) + timedelta(days=25),
         comment="Payment due date"
     )
     
