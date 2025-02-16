@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.62] - 2025-02-16
+
+### Changed
+- Updated Income schemas to use BaseSchemaValidator
+  * Converted all date fields to timezone-aware datetime
+  * Updated model configurations to Pydantic V2 style
+  * Added comprehensive test coverage for UTC validation
+  * Added recurring income validation tests
+  * All income schema tests passing
+
 ## [0.3.61] - 2025-02-16
 
 ### Changed

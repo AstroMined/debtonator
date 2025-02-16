@@ -71,12 +71,12 @@
      * Updated BillResponse schema
      * Added due date validators
      * Added comprehensive schema test coverage
-   - [ ] Income Schemas
-     * Update IncomeCreate schema
-     * Update IncomeUpdate schema
-     * Update IncomeResponse schema
-     * Add income date validators
-     * Test income date validation
+   - [x] Income Schemas
+     * Updated IncomeCreate schema
+     * Updated IncomeUpdate schema
+     * Updated IncomeResponse schema
+     * Added income date validators
+     * Added comprehensive test coverage
    - [ ] Account/Transaction Schemas
      * Update transaction date handling
      * Update statement date validation
