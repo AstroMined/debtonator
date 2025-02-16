@@ -2,7 +2,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from decimal import Decimal
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 class AccountImpact(BaseModel):
     account_id: int
@@ -17,6 +17,17 @@ class CashflowImpact(BaseModel):
     total_bills: Decimal
     available_funds: Decimal
     projected_deficit: Optional[Decimal] = None
+
+    @field_validator("date", mode="before")
+    @classmethod
+    def validate_timezone(cls, value: datetime) -> datetime:
+        if not isinstance(value, datetime):
+            raise ValueError("Must be a datetime object")
+        if value.tzinfo is None:
+            raise ValueError("Datetime must be timezone-aware")
+        if value.tzinfo != ZoneInfo("UTC"):
+            raise ValueError("Datetime must be in UTC timezone")
+        return value
 
 class RiskFactor(BaseModel):
     name: str
@@ -35,3 +46,17 @@ class SplitImpactRequest(BaseModel):
     liability_id: int
     splits: List[dict]
     analysis_period_days: int = Field(default=90, ge=14, le=365)
+    start_date: Optional[datetime] = Field(default_factory=lambda: datetime.now(ZoneInfo("UTC")))
+
+    @field_validator("start_date", mode="before")
+    @classmethod
+    def validate_timezone(cls, value: Optional[datetime]) -> Optional[datetime]:
+        if value is None:
+            return None
+        if not isinstance(value, datetime):
+            raise ValueError("Must be a datetime object")
+        if value.tzinfo is None:
+            raise ValueError("Datetime must be timezone-aware")
+        if value.tzinfo != ZoneInfo("UTC"):
+            raise ValueError("Datetime must be in UTC timezone")
+        return value

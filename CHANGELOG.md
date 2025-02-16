@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.64] - 2025-02-16
+
+### Changed
+- Updated Analysis/Forecast schemas to use BaseSchemaValidator
+  * Added UTC timezone validation to realtime_cashflow schemas
+  * Added UTC timezone validation to impact_analysis schemas
+  * Converted date fields to timezone-aware datetime in recommendations schemas
+  * Added comprehensive test coverage for schema validation
+  * Updated period calculations to use UTC datetime
+  * Added validation for date ranges and forecast periods
+  * All analysis schema tests passing
+
 ## [0.3.63] - 2025-02-16
 
 ### Changed
