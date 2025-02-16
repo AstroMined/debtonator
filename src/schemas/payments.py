@@ -1,11 +1,13 @@
-from datetime import date, datetime
+from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import Field, ConfigDict
 
-class PaymentSourceBase(BaseModel):
+from . import BaseSchemaValidator
+
+class PaymentSourceBase(BaseSchemaValidator):
     """Base schema for payment source data"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    model_config = ConfigDict(from_attributes=True)
     
     account_id: int = Field(..., description="ID of the account used for payment")
     amount: Decimal = Field(..., description="Amount paid from this account")
@@ -27,12 +29,12 @@ class PaymentSourceResponse(PaymentSourceInDB):
     """Schema for payment source data in API responses"""
     pass
 
-class PaymentBase(BaseModel):
+class PaymentBase(BaseSchemaValidator):
     """Base schema for payment data"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    model_config = ConfigDict(from_attributes=True)
     
     amount: Decimal = Field(..., description="Total payment amount")
-    payment_date: date = Field(..., description="Date of payment")
+    payment_date: datetime = Field(..., description="Date and time of payment (UTC)")
     description: Optional[str] = Field(None, description="Optional payment description")
     category: str = Field(..., description="Payment category")
 
@@ -50,12 +52,12 @@ class PaymentCreate(PaymentBase):
                 f"Sum of payment sources ({total_sources}) must equal payment amount ({self.amount})"
             )
 
-class PaymentUpdate(BaseModel):
+class PaymentUpdate(BaseSchemaValidator):
     """Schema for updating an existing payment"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    model_config = ConfigDict(from_attributes=True)
     
     amount: Optional[Decimal] = None
-    payment_date: Optional[date] = None
+    payment_date: Optional[datetime] = None
     description: Optional[str] = None
     category: Optional[str] = None
     sources: Optional[List[PaymentSourceCreate]] = None
@@ -84,9 +86,9 @@ class PaymentResponse(PaymentInDB):
     """Schema for payment data in API responses"""
     pass
 
-class PaymentDateRange(BaseModel):
+class PaymentDateRange(BaseSchemaValidator):
     """Schema for specifying a date range for payment queries"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    model_config = ConfigDict(from_attributes=True)
     
-    start_date: date = Field(..., description="Start date for payment range")
-    end_date: date = Field(..., description="End date for payment range")
+    start_date: datetime = Field(..., description="Start date and time for payment range (UTC)")
+    end_date: datetime = Field(..., description="End date and time for payment range (UTC)")

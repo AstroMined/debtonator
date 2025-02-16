@@ -61,16 +61,17 @@ After implementation experience, we've refined our approach to simplify datetime
 #### Base Pydantic Validator
 ```python
 from datetime import datetime, timezone
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator  # Updated to V2 style
 from typing import Any
 
 class BaseSchemaValidator(BaseModel):
-    @validator("*", pre=True)
-    def validate_datetime_fields(cls, value: Any, field: ModelField) -> Any:
+    @field_validator("*", mode="before")  # Updated to V2 style validator
+    @classmethod  # Required for V2 field validators
+    def validate_datetime_fields(cls, value: Any) -> Any:
         if isinstance(value, datetime):
             if value.tzinfo is None or value.utcoffset().total_seconds() != 0:
                 raise ValueError(
-                    f"Field {field.name} must be a UTC datetime. "
+                    f"Datetime must be UTC. "
                     f"Got: {value} {'(naive)' if value.tzinfo is None else f'(offset: {value.utcoffset()})'}. "
                     "Please provide datetime with UTC timezone (offset zero)."
                 )
@@ -80,6 +81,8 @@ class PaymentCreate(BaseSchemaValidator):
     payment_date: datetime
     # The base validator will handle UTC enforcement
 ```
+
+Note: As of 2025, we use Pydantic V2 style validators with `@field_validator` instead of the deprecated V1 style `@validator`.
 
 #### SQLAlchemy Model
 ```python

@@ -19,30 +19,30 @@ Datetime Standardization Project - Phase 3: Schema-based Validation
 
 ### Current Implementation Plan
 
-#### Phase 1: Schema Enhancement
-1. **Base Schema Validator Implementation**
-   - [ ] Create BaseSchemaValidator class
-     * Add UTC validation for datetime fields
-     * Implement timezone checking
-     * Add conversion rejection
-     * Document validation behavior
-   - [ ] Create test suite for base validator
-     * Test UTC enforcement
-     * Test timezone rejection
-     * Test edge cases
-     * Test invalid inputs
-   - [ ] Add validation error messages
+#### Phase 1: Schema Enhancement (In Progress)
+1. **Base Schema Validator Implementation** ✓
+   - [x] Create BaseSchemaValidator class
+     * Added UTC validation for datetime fields
+     * Implemented timezone checking with Pydantic V2
+     * Added conversion rejection
+     * Documented validation behavior
+   - [x] Create test suite for base validator
+     * Tested UTC enforcement
+     * Tested timezone rejection
+     * Tested edge cases
+     * Tested invalid inputs
+   - [x] Add validation error messages
      * Clear error descriptions
      * Helpful correction suggestions
      * Debugging information
 
 2. **Schema Updates (Priority Order)**
-   - [ ] Payment Schemas
-     * Update PaymentCreate schema
-     * Update PaymentUpdate schema
-     * Update PaymentResponse schema
-     * Add payment-specific validators
-     * Test payment date validation
+   - [x] Payment Schemas
+     * Updated PaymentCreate schema
+     * Updated PaymentUpdate schema
+     * Updated PaymentResponse schema
+     * Added payment-specific validators
+     * Tested payment date validation
    - [ ] Bill/Liability Schemas
      * Update BillCreate schema
      * Update BillUpdate schema
@@ -214,13 +214,14 @@ Datetime Standardization Project - Phase 3: Schema-based Validation
 
 ### Recent Decisions
 1. **Implementation Strategy**
-   - Move timezone enforcement to Pydantic schemas
-   - Remove timezone=True from SQLAlchemy models
-   - Enforce UTC through schema validation
-   - Reject non-UTC datetimes at schema level
-   - No timezone conversion utilities
-   - Clean database reinitialization instead of migrations
-   - Frontend updates deferred until backend stabilization
+   - [x] Moved timezone enforcement to Pydantic schemas
+   - [x] Removed timezone=True from SQLAlchemy models
+   - [x] Enforced UTC through schema validation
+   - [x] Rejected non-UTC datetimes at schema level
+   - [x] No timezone conversion utilities
+   - [x] Clean database reinitialization instead of migrations
+   - [x] Frontend updates deferred until backend stabilization
+   - [x] Using Pydantic V2 style validators (field_validator)
 
 2. **Enhancement Priorities**
    - [x] Account management complete
@@ -243,8 +244,15 @@ Datetime Standardization Project - Phase 3: Schema-based Validation
   - Frontend development (paused)
 
 ## Next Steps
-1. Begin schema validator implementation
-2. Start model simplification
+1. Continue schema updates with remaining schemas:
+   - [ ] Bill/Liability Schemas
+   - [ ] Income Schemas
+   - [ ] Account/Transaction Schemas
+   - [ ] Analysis/Forecast Schemas
+2. Complete model simplification:
+   - [ ] Remove timezone=True parameters
+   - [ ] Update default values
+   - [ ] Update documentation
 3. Update service layer datetime handling
 4. Complete documentation updates
 

@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.60] - 2025-02-16
+
+### Added
+- Implemented BaseSchemaValidator with Pydantic V2 style validators
+  * UTC timezone enforcement for all datetime fields
+  * Clear validation error messages
+  * Proper JSON encoding for UTC datetimes
+  * Comprehensive test coverage
+
+### Changed
+- Updated Payment schemas to use BaseSchemaValidator
+  * Converted date fields to timezone-aware datetime
+  * Updated model configurations to Pydantic V2 style
+  * Improved field descriptions for UTC requirement
+  * All payment service tests passing
+
+### Fixed
+- Switched to Pydantic V2 style field_validator from deprecated validator
+- Reinitialized database with proper datetime columns
+
 ## [0.3.59] - 2025-02-15
 
 ### Changed
@@ -930,4 +950,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic functionality
 - Core database structure
 - Simple API endpoints
-
