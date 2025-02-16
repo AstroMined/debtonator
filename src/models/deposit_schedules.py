@@ -12,11 +12,18 @@ class DepositSchedule(BaseDBModel):
     id: Mapped[int] = mapped_column(primary_key=True)
     income_id: Mapped[int] = mapped_column(ForeignKey("income.id"))
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
-    schedule_date: Mapped[datetime] = mapped_column(DateTime)
-    amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
+    schedule_date: Mapped[datetime] = mapped_column(
+        DateTime(),
+        nullable=False,
+        comment="Scheduled deposit date (naive UTC)"
+    )
+    amount: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2),
+        nullable=False
+    )
     recurring: Mapped[bool] = mapped_column(Boolean, default=False)
     recurrence_pattern: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     status: Mapped[str] = mapped_column(String(50), default="pending")
     # Relationships
-    income = relationship("Income", back_populates="deposit_schedules")
-    account = relationship("Account", back_populates="deposit_schedules")
+    income: Mapped["Income"] = relationship("Income", back_populates="deposit_schedules")
+    account: Mapped["Account"] = relationship("Account", back_populates="deposit_schedules")

@@ -1,9 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from sqlalchemy import String, DateTime, Boolean, Numeric, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base_model import BaseDBModel
+from .base_model import BaseDBModel, naive_utc_now
 
 class RecurringIncome(BaseDBModel):
     """RecurringIncome model representing template for recurring income"""
@@ -26,18 +26,28 @@ class RecurringIncome(BaseDBModel):
         return f"<RecurringIncome {self.source} ${self.amount}>"
 
     def create_income_entry(self, month: int, year: int) -> "Income":
-        """Create a new Income instance from this recurring income template"""
+        """
+        Create a new Income instance from this recurring income template.
+        
+        Creates a naive UTC datetime for the income entry date by:
+        1. Creating a timezone-aware UTC datetime
+        2. Converting it to naive by dropping tzinfo
+        """
         from .income import Income  # Import here to avoid circular imports
+        
+        # Create timezone-aware UTC datetime and convert to naive
+        aware_date = datetime(year, month, self.day_of_month, tzinfo=timezone.utc)
+        naive_date = aware_date.replace(tzinfo=None)
         
         income_entry = Income(
             source=self.source,
             amount=self.amount,
-            date=datetime(year, month, self.day_of_month),
+            date=naive_date,  # Store as naive UTC
             account_id=self.account_id,
             category_id=self.category_id,
             deposited=self.auto_deposit,
             recurring=True,
             recurring_income_id=self.id,
-            category=self.category  # Set the relationship directly
+            category=self.category
         )
         return income_entry

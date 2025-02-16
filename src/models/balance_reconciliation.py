@@ -1,10 +1,9 @@
 from datetime import datetime
 from decimal import Decimal
-from zoneinfo import ZoneInfo
 from sqlalchemy import String, DateTime, ForeignKey, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base_model import BaseDBModel
+from .base_model import BaseDBModel, naive_utc_now
 
 class BalanceReconciliation(BaseDBModel):
     """Model for tracking balance reconciliation history"""
@@ -17,10 +16,10 @@ class BalanceReconciliation(BaseDBModel):
     adjustment_amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     reason: Mapped[str] = mapped_column(String(255))
     reconciliation_date: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(),
         nullable=False,
-        default=lambda: datetime.now(ZoneInfo("UTC")),
-        server_default="CURRENT_TIMESTAMP"
+        default=naive_utc_now,
+        comment="Date of balance reconciliation (naive UTC)"
     )
     
     # Relationships

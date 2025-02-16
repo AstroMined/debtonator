@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.69] - 2025-02-16
+
+### Changed
+- Standardized datetime handling across all models:
+  * Updated StatementHistory to use naive_utc_now
+  * Updated BalanceHistory to use naive_utc_now
+  * Updated CreditLimitHistory to use naive_utc_now
+  * Updated PaymentSchedule datetime columns
+  * Updated DepositSchedule datetime columns
+  * Updated BalanceReconciliation to use naive_utc_now
+  * Updated RecurringIncome to handle UTC dates properly
+- Removed all direct timezone manipulation from models
+- Improved datetime field documentation
+- All models now consistently use naive UTC datetimes
+
 ## [0.3.68] - 2025-02-16
 
 ### Fixed

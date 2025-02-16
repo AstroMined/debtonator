@@ -41,7 +41,7 @@
   - [x] Update seasonal analysis
   - [x] Fix test data
 
-### Phase 3: Schema-based Validation and Model Cleanup (Current)
+### Phase 3: Schema-based Validation and Model Cleanup (Completed)
 1. **Base Schema Validator Implementation** ✓
    - [x] Create BaseSchemaValidator class
      * Added UTC validation for datetime fields
@@ -118,26 +118,27 @@
      * Checked default values
      * Validated relationships
 
-5. **Model Timezone Audit**
-   - [x] Remove timezone=True Parameters
-     * BalanceHistory (timestamp)
-     * StatementHistory (statement_date, due_date)
-     * CreditLimitHistory (effective_date)
-     * TransactionHistory (transaction_date)
-     * PaymentSchedule (scheduled_date, processed_date)
-     * DepositSchedule (schedule_date)
-     * BalanceReconciliation (reconciliation_date)
-   - [x] Remove Direct Timezone Handling
-     * RecurringIncome (create_income_entry method)
-     * BalanceReconciliation (default lambda)
-   - [x] Update Test Files
-     * Update test data creation to use naive datetimes
-     * Fix assertions to expect naive datetimes
-     * Update fixtures to align with schema validation
-   - [x] Verify Schema Validation
-     * Confirm all models have corresponding schemas
-     * Verify UTC enforcement in schemas
-     * Add missing validators if needed
+5. **Model Timezone Audit (Completed)** ✓
+   - [x] Standardized datetime handling across all models:
+     * StatementHistory (naive_utc_now)
+     * BalanceHistory (naive_utc_now)
+     * CreditLimitHistory (naive_utc_now)
+     * PaymentSchedule (DateTime())
+     * DepositSchedule (DateTime())
+     * BalanceReconciliation (naive_utc_now)
+     * RecurringIncome (UTC-aware to naive conversion)
+     * TransactionHistory (naive_utc_now)
+   - [x] Key Improvements:
+     * Removed all timezone=True parameters
+     * Eliminated direct timezone manipulation
+     * Standardized on naive_utc_now for defaults
+     * Added clear UTC documentation in comments
+     * Improved datetime field definitions
+   - [x] Test Updates:
+     * Updated test data creation
+     * Fixed datetime assertions
+     * Updated test fixtures
+     * Fixed relationship loading
 
 6. **Next Phase: Service Layer Updates**
    - [ ] Update Cashflow Service
@@ -399,8 +400,8 @@
    - [x] Removed SQLAlchemy timezone parameters
    - [x] Centralized UTC enforcement in Pydantic
    - [x] Completed Base Schema Validator implementation
-   - [x] Updated Payment and Bill/Liability schemas
-   - [ ] Remaining schema updates in progress
+   - [x] Updated all model datetime handling
+   - [x] Standardized on naive UTC storage
 
 ## Future Enhancements
 1. Complete datetime standardization

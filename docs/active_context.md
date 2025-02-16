@@ -3,28 +3,24 @@
 ## Current Focus
 Datetime Standardization Project - Phase 3: Schema-based Validation
 
-### Model Audit Findings
-1. **Models with Timezone Parameters**
-   - Found 8 models still using `timezone=True`:
-     * BalanceHistory (timestamp)
-     * StatementHistory (statement_date, due_date)
-     * CreditLimitHistory (effective_date)
-     * TransactionHistory (transaction_date)
-     * PaymentSchedule (scheduled_date, processed_date)
-     * DepositSchedule (schedule_date)
-     * BalanceReconciliation (reconciliation_date)
+### Model Standardization Status
+1. **All Models Now Conform to ADR-011**
+   - Completed datetime standardization across all models:
+     * StatementHistory (naive_utc_now)
+     * BalanceHistory (naive_utc_now)
+     * CreditLimitHistory (naive_utc_now)
+     * PaymentSchedule (DateTime())
+     * DepositSchedule (DateTime())
+     * BalanceReconciliation (naive_utc_now)
+     * RecurringIncome (UTC-aware to naive conversion)
+     * TransactionHistory (naive_utc_now)
 
-2. **Models with Direct Timezone Handling**
-   - Found direct timezone manipulation:
-     * RecurringIncome (create_income_entry method)
-     * BalanceReconciliation (default lambda)
-
-3. **Models Already Conforming**
-   - Following models correctly implement ADR-011:
-     * Income
-     * Payments
-     * BaseDBModel
-     * Liabilities (after recent fix)
+2. **Key Improvements**
+   - Removed all timezone=True parameters
+   - Eliminated direct timezone manipulation
+   - Standardized on naive_utc_now for defaults
+   - Added clear UTC documentation in comments
+   - Improved datetime field definitions
 
 ### Recent Changes
 1. **SQLAlchemy Async Relationship Loading (Completed)**
@@ -246,44 +242,38 @@ Datetime Standardization Project - Phase 3: Schema-based Validation
   - Trend reporting (paused)
   - Frontend development (paused)
 
-### Required Model Updates
-1. **Remove timezone=True Parameters** ✓
-   - [x] BalanceHistory
-   - [x] StatementHistory
-   - [x] CreditLimitHistory
-   - [x] TransactionHistory
-   - [x] PaymentSchedule
-   - [x] DepositSchedule
-   - [x] BalanceReconciliation
+### Completed Tasks
+1. **Model Updates** ✓
+   - [x] Removed all timezone=True parameters
+   - [x] Standardized datetime field definitions
+   - [x] Updated default values to use naive_utc_now
+   - [x] Added clear UTC documentation
+   - [x] Fixed RecurringIncome UTC handling
 
-2. **Remove Direct Timezone Handling** ✓
-   - [x] RecurringIncome
-   - [x] BalanceReconciliation
+2. **Test Updates** ✓
+   - [x] Updated test data creation
+   - [x] Fixed datetime assertions
+   - [x] Updated test fixtures
+   - [x] Fixed relationship loading
 
-3. **Update Test Files** ✓
-   - [x] Update test data creation to use naive datetimes
-   - [x] Fix assertions to expect naive datetimes
-   - [x] Update fixtures to align with schema validation
-   - [x] Fix relationship loading in history model tests
-
-4. **SQLAlchemy Best Practices**
-   - [x] Document relationship loading patterns
-   - [x] Remove timezone handling from database layer
-   - [x] Standardize async relationship loading
-   - [x] Update .clinerules with best practices
+3. **Documentation** ✓
+   - [x] Updated model documentation
+   - [x] Added UTC requirements to comments
+   - [x] Documented naive datetime usage
+   - [x] Updated .clinerules
 
 ## Next Steps
-1. Continue schema updates with remaining schemas:
-   - [✓] Bill/Liability Schemas
-   - [ ] Income Schemas
-   - [ ] Account/Transaction Schemas
-   - [ ] Analysis/Forecast Schemas
-2. Complete model simplification:
-   - [ ] Remove timezone=True parameters
-   - [ ] Update default values
-   - [ ] Update documentation
-3. Update service layer datetime handling
-4. Complete documentation updates
+1. **Service Layer Updates**
+   - [ ] Update Cashflow Service datetime handling
+   - [ ] Fix Payment Services date calculations
+   - [ ] Update Analysis Services period handling
+   - [ ] Update test fixtures and assertions
+
+2. **Documentation Updates**
+   - [ ] Update ADR-011 with implementation details
+   - [ ] Document schema validation approach
+   - [ ] Create migration guide
+   - [ ] Update technical documentation
 
 ### Future Work (After Datetime Standardization)
 1. Resume API Enhancement Project

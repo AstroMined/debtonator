@@ -1,10 +1,9 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
-from zoneinfo import ZoneInfo
 from sqlalchemy import String, DateTime, Numeric, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base_model import BaseDBModel
+from .base_model import BaseDBModel, naive_utc_now
 
 class StatementHistory(BaseDBModel):
     """Model for tracking account statement history"""
@@ -16,11 +15,10 @@ class StatementHistory(BaseDBModel):
     
     # Statement details
     statement_date: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(),
         nullable=False,
-        default=lambda: datetime.now(ZoneInfo("UTC")),
-        server_default="CURRENT_TIMESTAMP",
-        comment="Date of the statement"
+        default=naive_utc_now,
+        comment="Date of the statement (naive UTC)"
     )
     statement_balance: Mapped[Decimal] = mapped_column(
         Numeric(10, 2),
@@ -33,10 +31,10 @@ class StatementHistory(BaseDBModel):
         comment="Minimum payment due"
     )
     due_date: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(),
         nullable=True,
-        default=lambda: datetime.now(ZoneInfo("UTC")) + timedelta(days=25),
-        comment="Payment due date"
+        default=lambda: naive_utc_now() + timedelta(days=25),
+        comment="Payment due date (naive UTC)"
     )
     
     # Relationships

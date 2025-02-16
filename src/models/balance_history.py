@@ -4,7 +4,7 @@ from typing import Optional
 from sqlalchemy import Boolean, DateTime, ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base_model import BaseDBModel
+from .base_model import BaseDBModel, naive_utc_now
 
 class BalanceHistory(BaseDBModel):
     __tablename__ = "balance_history"
@@ -16,9 +16,10 @@ class BalanceHistory(BaseDBModel):
     is_reconciled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     notes: Mapped[Optional[str]] = mapped_column(String)
     timestamp: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
-        nullable=False
+        DateTime(),
+        default=naive_utc_now,
+        nullable=False,
+        comment="Time of balance record (naive UTC)"
     )
 
     # Relationships

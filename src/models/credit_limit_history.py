@@ -1,10 +1,9 @@
 from datetime import datetime
 from decimal import Decimal
-from zoneinfo import ZoneInfo
 from sqlalchemy import String, DateTime, Numeric, ForeignKey, event
 from sqlalchemy.orm import Mapped, mapped_column, relationship, Session
 
-from .base_model import BaseDBModel
+from .base_model import BaseDBModel, naive_utc_now
 
 class CreditLimitHistory(BaseDBModel):
     """Model for tracking credit limit changes over time"""
@@ -21,11 +20,10 @@ class CreditLimitHistory(BaseDBModel):
         comment="Credit limit at this point in time"
     )
     effective_date: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(),
         nullable=False,
-        default=lambda: datetime.now(ZoneInfo("UTC")),
-        server_default="CURRENT_TIMESTAMP",
-        comment="Date when this credit limit became effective"
+        default=naive_utc_now,
+        comment="Date when this credit limit became effective (naive UTC)"
     )
     reason: Mapped[str] = mapped_column(
         String(100),
