@@ -1,7 +1,32 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Datetime Standardization Project - Phase 3: Schema-based Validation
+Datetime Standardization Project - Phase 3: Service Layer Updates
+
+### Model Test Standardization Status
+1. **All Model Tests Now Comply with ADR-011** ✓
+   - Completed datetime standardization across all test files:
+     * test_accounts_models.py
+     * test_balance_history_models.py
+     * test_balance_reconciliation_models.py
+     * test_cashflow_models.py
+     * test_categories_models.py
+     * test_credit_limit_history_models.py
+     * test_income_models.py
+     * test_liabilities_models.py
+     * test_payments_models.py
+     * test_recurring_bills_models.py
+     * test_recurring_income_models.py
+     * test_statement_history_models.py
+     * test_transaction_history_models.py
+
+2. **Key Test Improvements**
+   - Replaced all datetime.now(ZoneInfo("UTC")) with naive_utc_now()
+   - Added comprehensive test_datetime_handling functions
+   - Fixed timezone assertions to verify naive UTC
+   - Updated test fixtures to use naive UTC datetime
+   - Added proper datetime validation across all tests
+   - Improved test documentation and assertions
 
 ### Model Standardization Status
 1. **All Models Now Conform to ADR-011**

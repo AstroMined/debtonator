@@ -1,14 +1,17 @@
 import pytest
-from datetime import date
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 from src.models.cashflow import CashflowForecast
+from src.models.base_model import naive_utc_now, naive_utc_from_date
+
+pytestmark = pytest.mark.asyncio
 
 @pytest.fixture
 def cashflow_forecast():
     """Create a test cashflow forecast instance"""
     return CashflowForecast(
-        forecast_date=date.today(),
+        forecast_date=naive_utc_now(),
         total_bills=Decimal('1000.00'),
         total_income=Decimal('800.00'),
         balance=Decimal('-200.00'),
@@ -79,3 +82,32 @@ async def test_calculate_hourly_rates(cashflow_forecast):
     assert cashflow_forecast.hourly_rate_40 == weekly / 40  # ~$31.25/hr
     assert cashflow_forecast.hourly_rate_30 == weekly / 30  # ~$41.67/hr
     assert cashflow_forecast.hourly_rate_20 == weekly / 20  # ~$62.50/hr
+
+@pytest.mark.asyncio
+async def test_datetime_handling():
+    """Test proper datetime handling in cashflow forecast"""
+    # Create forecast with explicit datetime values
+    forecast = CashflowForecast(
+        forecast_date=naive_utc_from_date(2025, 3, 15),
+        total_bills=Decimal('1000.00'),
+        total_income=Decimal('800.00'),
+        balance=Decimal('-200.00'),
+        forecast=Decimal('-200.00'),
+        min_14_day=Decimal('-300.00'),
+        min_30_day=Decimal('-400.00'),
+        min_60_day=Decimal('-500.00'),
+        min_90_day=Decimal('-600.00')
+    )
+
+    # Verify all datetime fields are naive (no tzinfo)
+    assert forecast.forecast_date.tzinfo is None
+    assert forecast.created_at.tzinfo is None
+    assert forecast.updated_at.tzinfo is None
+
+    # Verify forecast_date components
+    assert forecast.forecast_date.year == 2025
+    assert forecast.forecast_date.month == 3
+    assert forecast.forecast_date.day == 15
+    assert forecast.forecast_date.hour == 0
+    assert forecast.forecast_date.minute == 0
+    assert forecast.forecast_date.second == 0

@@ -1,12 +1,13 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
-from zoneinfo import ZoneInfo
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import event
 
 from src.models.accounts import Account
 from src.models.credit_limit_history import CreditLimitHistory
+from src.models.base_model import naive_utc_now, naive_utc_from_date
+
 
 pytestmark = pytest.mark.asyncio
 
@@ -17,8 +18,8 @@ async def test_credit_account(db_session: AsyncSession) -> Account:
         type="credit",
         available_balance=Decimal("-500.00"),
         total_limit=Decimal("2000.00"),
-        created_at=datetime.now(ZoneInfo("UTC")),
-        updated_at=datetime.now(ZoneInfo("UTC"))
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now()
     )
     db_session.add(account)
     await db_session.commit()
@@ -33,7 +34,7 @@ async def test_create_credit_limit_history(
     history = CreditLimitHistory(
         account_id=test_credit_account.id,
         credit_limit=Decimal("2000.00"),
-        effective_date=datetime.now(ZoneInfo("UTC")),
+        effective_date=naive_utc_now(),
         reason="Initial credit limit"
     )
     db_session.add(history)
@@ -56,7 +57,7 @@ async def test_credit_limit_history_relationships(
     history = CreditLimitHistory(
         account_id=test_credit_account.id,
         credit_limit=Decimal("2000.00"),
-        effective_date=datetime.now(ZoneInfo("UTC")),
+        effective_date=naive_utc_now(),
         reason="Initial credit limit"
     )
     db_session.add(history)
@@ -82,7 +83,7 @@ async def test_credit_limit_history_string_representation(
     history = CreditLimitHistory(
         account_id=test_credit_account.id,
         credit_limit=Decimal("2000.00"),
-        effective_date=datetime.now(ZoneInfo("UTC")),
+        effective_date=naive_utc_now(),
         reason="Initial credit limit"
     )
     db_session.add(history)
@@ -100,7 +101,7 @@ async def test_credit_limit_history_cascade_delete(
     history = CreditLimitHistory(
         account_id=test_credit_account.id,
         credit_limit=Decimal("2000.00"),
-        effective_date=datetime.now(ZoneInfo("UTC")),
+        effective_date=naive_utc_now(),
         reason="Initial credit limit"
     )
     db_session.add(history)
@@ -123,7 +124,7 @@ async def test_multiple_credit_limit_changes(
     history1 = CreditLimitHistory(
         account_id=test_credit_account.id,
         credit_limit=Decimal("2000.00"),
-        effective_date=datetime.now(ZoneInfo("UTC")),
+        effective_date=naive_utc_now(),
         reason="Initial credit limit"
     )
     db_session.add(history1)
@@ -133,7 +134,7 @@ async def test_multiple_credit_limit_changes(
     history2 = CreditLimitHistory(
         account_id=test_credit_account.id,
         credit_limit=Decimal("3000.00"),
-        effective_date=datetime.now(ZoneInfo("UTC")),
+        effective_date=naive_utc_now(),
         reason="Credit limit increase"
     )
     db_session.add(history2)
@@ -155,8 +156,8 @@ async def test_credit_limit_history_non_credit_account(
         name="Test Checking",
         type="checking",
         available_balance=Decimal("1000.00"),
-        created_at=datetime.now(ZoneInfo("UTC")),
-        updated_at=datetime.now(ZoneInfo("UTC"))
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now()
     )
     db_session.add(checking_account)
     await db_session.commit()
@@ -164,7 +165,7 @@ async def test_credit_limit_history_non_credit_account(
     history = CreditLimitHistory(
         account_id=checking_account.id,
         credit_limit=Decimal("2000.00"),
-        effective_date=datetime.now(ZoneInfo("UTC")),
+        effective_date=naive_utc_now(),
         reason="Invalid credit limit"
     )
     db_session.add(history)
@@ -172,3 +173,32 @@ async def test_credit_limit_history_non_credit_account(
     # This should raise an error since checking accounts shouldn't have credit limits
     with pytest.raises(ValueError, match="Credit limit history can only be created for credit accounts"):
         await db_session.commit()
+
+async def test_datetime_handling(
+    db_session: AsyncSession,
+    test_credit_account: Account
+):
+    """Test proper datetime handling in credit limit history"""
+    # Create history with explicit datetime values
+    history = CreditLimitHistory(
+        account_id=test_credit_account.id,
+        credit_limit=Decimal("2000.00"),
+        effective_date=naive_utc_from_date(2025, 3, 15),
+        reason="Test credit limit"
+    )
+    db_session.add(history)
+    await db_session.commit()
+    await db_session.refresh(history)
+
+    # Verify all datetime fields are naive (no tzinfo)
+    assert history.effective_date.tzinfo is None
+    assert history.created_at.tzinfo is None
+    assert history.updated_at.tzinfo is None
+
+    # Verify effective_date components
+    assert history.effective_date.year == 2025
+    assert history.effective_date.month == 3
+    assert history.effective_date.day == 15
+    assert history.effective_date.hour == 0
+    assert history.effective_date.minute == 0
+    assert history.effective_date.second == 0

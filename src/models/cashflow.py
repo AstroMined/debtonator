@@ -11,7 +11,11 @@ class CashflowForecast(BaseDBModel):
     __tablename__ = "cashflow_forecasts"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    forecast_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    forecast_date: Mapped[datetime] = mapped_column(
+        DateTime(),
+        nullable=False,
+        doc="UTC timestamp of the forecast (naive UTC)"
+    )
     total_bills: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     total_income: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     balance: Mapped[Decimal] = mapped_column(Numeric(10, 2))

@@ -1,11 +1,11 @@
 from datetime import datetime
 from decimal import Decimal
-from zoneinfo import ZoneInfo
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.balance_reconciliation import BalanceReconciliation
+from src.models.base_model import naive_utc_now, naive_utc_from_date
 
 pytestmark = pytest.mark.asyncio
 
@@ -15,8 +15,8 @@ async def test_account(db_session: AsyncSession) -> Account:
         name="Test Account",
         type="checking",
         available_balance=Decimal("1000.00"),
-        created_at=datetime.now(ZoneInfo("UTC")),
-        updated_at=datetime.now(ZoneInfo("UTC"))
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now()
     )
     db_session.add(account)
     await db_session.commit()
@@ -34,7 +34,7 @@ async def test_create_balance_reconciliation(
         new_balance=Decimal("1100.00"),
         adjustment_amount=Decimal("100.00"),
         reason="Test reconciliation",
-        reconciliation_date=datetime.now(ZoneInfo("UTC"))
+        reconciliation_date=naive_utc_now()
     )
     db_session.add(reconciliation)
     await db_session.commit()
@@ -69,10 +69,10 @@ async def test_balance_reconciliation_default_date(
     assert reconciliation.reconciliation_date is not None
     assert isinstance(reconciliation.reconciliation_date, datetime)
     # Verify it's a recent timestamp (within last minute)
-    now = datetime.now(ZoneInfo("UTC"))
+    now = naive_utc_now()
     assert isinstance(reconciliation.reconciliation_date, datetime)
-    assert reconciliation.reconciliation_date.tzinfo is not None  # Ensure timezone-aware
-    diff = now - reconciliation.reconciliation_date.replace(tzinfo=ZoneInfo("UTC"))
+    assert reconciliation.reconciliation_date.tzinfo is None  # Ensure naive UTC
+    diff = now - reconciliation.reconciliation_date
     assert diff.total_seconds() < 60
 
 async def test_balance_reconciliation_relationships(
@@ -86,7 +86,7 @@ async def test_balance_reconciliation_relationships(
         new_balance=Decimal("1100.00"),
         adjustment_amount=Decimal("100.00"),
         reason="Test reconciliation",
-        reconciliation_date=datetime.now(ZoneInfo("UTC"))
+        reconciliation_date=naive_utc_now()
     )
     db_session.add(reconciliation)
     await db_session.commit()
@@ -114,7 +114,7 @@ async def test_balance_reconciliation_string_representation(
         new_balance=Decimal("1100.00"),
         adjustment_amount=Decimal("100.00"),
         reason="Test reconciliation",
-        reconciliation_date=datetime.now(ZoneInfo("UTC"))
+        reconciliation_date=naive_utc_now()
     )
     db_session.add(reconciliation)
     await db_session.commit()
@@ -134,7 +134,7 @@ async def test_balance_reconciliation_cascade_delete(
         new_balance=Decimal("1100.00"),
         adjustment_amount=Decimal("100.00"),
         reason="Test reconciliation",
-        reconciliation_date=datetime.now(ZoneInfo("UTC"))
+        reconciliation_date=naive_utc_now()
     )
     db_session.add(reconciliation)
     await db_session.commit()
@@ -146,3 +146,36 @@ async def test_balance_reconciliation_cascade_delete(
     # Verify reconciliation is also deleted
     result = await db_session.get(BalanceReconciliation, reconciliation.id)
     assert result is None
+
+async def test_datetime_handling(
+    db_session: AsyncSession,
+    test_account: Account
+):
+    """Test proper datetime handling in balance reconciliation"""
+    # Create reconciliation with explicit datetime values
+    reconciliation = BalanceReconciliation(
+        account_id=test_account.id,
+        previous_balance=Decimal("1000.00"),
+        new_balance=Decimal("1100.00"),
+        adjustment_amount=Decimal("100.00"),
+        reason="Test reconciliation",
+        reconciliation_date=naive_utc_from_date(2025, 3, 15),
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now()
+    )
+    db_session.add(reconciliation)
+    await db_session.commit()
+    await db_session.refresh(reconciliation)
+
+    # Verify all datetime fields are naive (no tzinfo)
+    assert reconciliation.reconciliation_date.tzinfo is None
+    assert reconciliation.created_at.tzinfo is None
+    assert reconciliation.updated_at.tzinfo is None
+
+    # Verify reconciliation_date components
+    assert reconciliation.reconciliation_date.year == 2025
+    assert reconciliation.reconciliation_date.month == 3
+    assert reconciliation.reconciliation_date.day == 15
+    assert reconciliation.reconciliation_date.hour == 0
+    assert reconciliation.reconciliation_date.minute == 0
+    assert reconciliation.reconciliation_date.second == 0
