@@ -1,30 +1,14 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import event
 
 from src.models.accounts import Account
 from src.models.credit_limit_history import CreditLimitHistory
 from src.models.base_model import naive_utc_now, naive_utc_from_date
 
-
 pytestmark = pytest.mark.asyncio
 
-@pytest.fixture(scope="function")
-async def test_credit_account(db_session: AsyncSession) -> Account:
-    account = Account(
-        name="Test Credit Card",
-        type="credit",
-        available_balance=Decimal("-500.00"),
-        total_limit=Decimal("2000.00"),
-        created_at=naive_utc_now(),
-        updated_at=naive_utc_now()
-    )
-    db_session.add(account)
-    await db_session.commit()
-    await db_session.refresh(account)
-    return account
 
 async def test_create_credit_limit_history(
     db_session: AsyncSession,
@@ -149,21 +133,13 @@ async def test_multiple_credit_limit_changes(
     assert test_credit_account.credit_limit_history[1].credit_limit == Decimal("3000.00")
 
 async def test_credit_limit_history_non_credit_account(
-    db_session: AsyncSession
+    db_session: AsyncSession,
+    test_checking_account: Account
 ):
     """Test that credit limit history can't be created for non-credit accounts."""
-    checking_account = Account(
-        name="Test Checking",
-        type="checking",
-        available_balance=Decimal("1000.00"),
-        created_at=naive_utc_now(),
-        updated_at=naive_utc_now()
-    )
-    db_session.add(checking_account)
-    await db_session.commit()
 
     history = CreditLimitHistory(
-        account_id=checking_account.id,
+        account_id=test_checking_account.id,
         credit_limit=Decimal("2000.00"),
         effective_date=naive_utc_now(),
         reason="Invalid credit limit"

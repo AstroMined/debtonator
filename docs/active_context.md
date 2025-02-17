@@ -61,7 +61,14 @@ Datetime Standardization Project - Phase 3: Service Layer Updates
    - Improved datetime field definitions
 
 ### Recent Changes
-1. **Test Suite Standardization (Completed)** ✓
+1. **Test Fixture Centralization (Completed)** ✓
+   - Moved duplicate fixtures to tests/models/conftest.py
+   - Standardized fixture scope and naming
+   - Improved relationship handling in fixtures
+   - Enhanced database state management
+   - Fixed hardcoded ID references
+
+2. **Test Suite Standardization (Completed)** ✓
    - Created all missing test files with proper datetime handling
    - Updated existing tests to use naive_utc_now()
    - Added comprehensive datetime component verification
