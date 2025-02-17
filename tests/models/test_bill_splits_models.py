@@ -1,4 +1,5 @@
 import pytest
+from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
@@ -7,6 +8,57 @@ from src.models.liabilities import Liability
 from src.models.base_model import naive_utc_from_date, naive_utc_now
 
 pytestmark = pytest.mark.asyncio
+
+async def test_bill_split_crud(
+    db_session: AsyncSession,
+    test_checking_account: Account,
+    test_liability: Liability
+):
+    """Test basic CRUD operations for BillSplit model"""
+    # Create
+    bill_split = BillSplit(
+        liability_id=test_liability.id,
+        account_id=test_checking_account.id,
+        amount=Decimal("500.00")
+    )
+    db_session.add(bill_split)
+    await db_session.commit()
+    
+    # Read
+    await db_session.refresh(bill_split)
+    assert bill_split.id is not None
+    assert bill_split.liability_id == test_liability.id
+    assert bill_split.account_id == test_checking_account.id
+    assert bill_split.amount == Decimal("500.00")
+    
+    # Update
+    bill_split.amount = Decimal("600.00")
+    await db_session.commit()
+    await db_session.refresh(bill_split)
+    assert bill_split.amount == Decimal("600.00")
+    
+    # Test __repr__
+    expected_repr = f"<BillSplit liability_id={test_liability.id} account_id={test_checking_account.id} amount={Decimal('600.00')}>"
+    assert repr(bill_split) == expected_repr
+
+async def test_bill_split_relationships(
+    db_session: AsyncSession,
+    test_checking_account: Account,
+    test_liability: Liability
+):
+    """Test relationship loading for BillSplit model"""
+    bill_split = BillSplit(
+        liability_id=test_liability.id,
+        account_id=test_checking_account.id,
+        amount=Decimal("500.00")
+    )
+    db_session.add(bill_split)
+    await db_session.commit()
+    
+    # Test relationship loading
+    await db_session.refresh(bill_split, ['liability', 'account'])
+    assert bill_split.liability.id == test_liability.id
+    assert bill_split.account.id == test_checking_account.id
 
 
 async def test_datetime_handling(

@@ -11,6 +11,80 @@ from src.models.base_model import naive_utc_now, naive_utc_from_date
 
 pytestmark = pytest.mark.asyncio
 
+async def test_recurring_income_repr(
+    db_session: AsyncSession,
+    test_checking_account: Account,
+    test_income_category: IncomeCategory
+):
+    """Test string representation of RecurringIncome"""
+    recurring_income = RecurringIncome(
+        source="Test Income",
+        amount=Decimal("1000.00"),
+        day_of_month=15,
+        account_id=test_checking_account.id,
+        category_id=test_income_category.id
+    )
+    db_session.add(recurring_income)
+    await db_session.commit()
+    
+    expected_repr = "<RecurringIncome Test Income $1000.00>"
+    assert repr(recurring_income) == expected_repr
+
+async def test_cascade_delete_income_entries(
+    db_session: AsyncSession,
+    test_recurring_income: RecurringIncome
+):
+    """Test cascading delete of income entries when recurring income is deleted"""
+    # Create income entries
+    now = naive_utc_now()
+    income_entry1 = test_recurring_income.create_income_entry(now.month, now.year)
+    income_entry2 = test_recurring_income.create_income_entry(now.month + 1, now.year)
+    
+    db_session.add_all([income_entry1, income_entry2])
+    await db_session.commit()
+    
+    # Get income entry IDs
+    entry_ids = [income_entry1.id, income_entry2.id]
+    
+    # Delete recurring income
+    await db_session.delete(test_recurring_income)
+    await db_session.commit()
+    
+    # Verify income entries were deleted
+    for entry_id in entry_ids:
+        result = await db_session.get(Income, entry_id)
+        assert result is None
+
+async def test_nullable_category(
+    db_session: AsyncSession,
+    test_checking_account: Account
+):
+    """Test that category_id is nullable"""
+    recurring_income = RecurringIncome(
+        source="No Category Income",
+        amount=Decimal("1000.00"),
+        day_of_month=15,
+        account_id=test_checking_account.id,
+        category_id=None
+    )
+    db_session.add(recurring_income)
+    await db_session.commit()
+    
+    await db_session.refresh(recurring_income)
+    assert recurring_income.category_id is None
+    assert recurring_income.category is None
+
+async def test_relationship_loading(
+    db_session: AsyncSession,
+    test_recurring_income: RecurringIncome
+):
+    """Test loading of relationships"""
+    await db_session.refresh(test_recurring_income, ['account', 'category', 'income_entries'])
+    
+    assert test_recurring_income.account is not None
+    assert test_recurring_income.category is not None
+    assert isinstance(test_recurring_income.income_entries, list)
+
 
 async def test_create_recurring_income(
     db_session: AsyncSession,

@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.income import Income
@@ -6,6 +7,56 @@ from src.models.income_categories import IncomeCategory
 from src.models.base_model import naive_utc_from_date
 
 pytestmark = pytest.mark.asyncio
+
+async def test_income_category_crud(db_session: AsyncSession):
+    """Test basic CRUD operations for IncomeCategory model"""
+    # Create
+    income_category = IncomeCategory(
+        name="Salary",
+        description="Monthly salary income"
+    )
+    db_session.add(income_category)
+    await db_session.commit()
+    
+    # Read
+    await db_session.refresh(income_category)
+    assert income_category.id is not None
+    assert income_category.name == "Salary"
+    assert income_category.description == "Monthly salary income"
+    
+    # Update
+    income_category.name = "Updated Salary"
+    await db_session.commit()
+    await db_session.refresh(income_category)
+    assert income_category.name == "Updated Salary"
+    
+    # Test __repr__
+    expected_repr = "<IncomeCategory Updated Salary>"
+    assert repr(income_category) == expected_repr
+
+async def test_unique_name_constraint(db_session: AsyncSession):
+    """Test unique constraint on name field"""
+    # Create first category
+    first_category = IncomeCategory(name="Unique Name")
+    db_session.add(first_category)
+    await db_session.commit()
+    
+    # Try to create second category with same name
+    second_category = IncomeCategory(name="Unique Name")
+    db_session.add(second_category)
+    
+    with pytest.raises(IntegrityError):
+        await db_session.commit()
+    await db_session.rollback()
+
+async def test_nullable_description(db_session: AsyncSession):
+    """Test that description field is optional"""
+    income_category = IncomeCategory(name="No Description")
+    db_session.add(income_category)
+    await db_session.commit()
+    
+    await db_session.refresh(income_category)
+    assert income_category.description is None
 
 
 async def test_datetime_handling(db_session: AsyncSession):

@@ -1,13 +1,81 @@
 import pytest
 from datetime import datetime
 from sqlalchemy import select, func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models.categories import Category
+from src.models.liabilities import Liability
 from src.models.base_model import naive_utc_from_date, naive_utc_now
 
 pytestmark = pytest.mark.asyncio
+
+async def test_bills_relationship(
+    db_session: AsyncSession,
+    test_category: Category
+):
+    """Test the relationship between Category and Liability"""
+    # Create a bill in the category
+    bill = Liability(
+        name="Test Bill",
+        amount=100.00,
+        due_date=naive_utc_from_date(2025, 2, 15),
+        category_id=test_category.id,
+        primary_account_id=1
+    )
+    db_session.add(bill)
+    await db_session.commit()
+    
+    # Refresh category to load bills relationship
+    await db_session.refresh(test_category, ['bills'])
+    
+    assert len(test_category.bills) == 1
+    assert test_category.bills[0].name == "Test Bill"
+
+async def test_unique_name_constraint(db_session: AsyncSession):
+    """Test that category names must be unique"""
+    # Create first category
+    category1 = Category(name="Unique Name")
+    db_session.add(category1)
+    await db_session.commit()
+    
+    # Try to create second category with same name
+    category2 = Category(name="Unique Name")
+    db_session.add(category2)
+    
+    with pytest.raises(IntegrityError):
+        await db_session.commit()
+    await db_session.rollback()
+
+async def test_is_ancestor_of_none(
+    db_session: AsyncSession,
+    test_category: Category
+):
+    """Test is_ancestor_of with None parameter"""
+    result = await test_category.is_ancestor_of(None)
+    assert result is False
+
+async def test_lazy_loading_config(
+    db_session: AsyncSession,
+    test_category: Category
+):
+    """Test lazy loading configuration of relationships"""
+    # Create child category
+    child = Category(
+        name="Child Category",
+        parent_id=test_category.id
+    )
+    db_session.add(child)
+    await db_session.commit()
+    
+    # Get fresh instances with specific relationship loading
+    await db_session.refresh(test_category, ['children'])
+    await db_session.refresh(child, ['parent'])
+    
+    # Verify relationships are loaded
+    assert test_category.children[0].name == "Child Category"
+    assert child.parent.name == test_category.name
 
 
 async def test_datetime_handling(db_session: AsyncSession):
@@ -119,7 +187,7 @@ async def test_create_hierarchical_categories(db_session: AsyncSession):
     assert parent.created_at.tzinfo is None
     assert parent.updated_at.tzinfo is None
 
-async def test_category_full_path(db_session: AsyncSession):
+async def test_category_full_path_with_parent(db_session: AsyncSession):
     """Test the full_path property for nested categories"""
     grandparent = Category(name="Grandparent")
     db_session.add(grandparent)
@@ -151,6 +219,14 @@ async def test_category_full_path(db_session: AsyncSession):
     assert child.parent.parent.full_path == "Grandparent"
     assert child.created_at.tzinfo is None
     assert child.updated_at.tzinfo is None
+
+async def test_category_full_path_no_parent(db_session: AsyncSession):
+    """Test the full_path property for category without parent"""
+    category = Category(name="Solo Category")
+    db_session.add(category)
+    await db_session.commit()
+    
+    assert category.full_path == "Solo Category"
 
 async def test_is_ancestor_of(db_session: AsyncSession):
     """Test the is_ancestor_of method"""

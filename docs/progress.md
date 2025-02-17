@@ -130,7 +130,11 @@ API Enhancement Project - Phase 6 (Paused)
 - Frontend development
 
 ### Recent Improvements
-1. **Test Improvements** ✓
+1. **Test Coverage Improvements** ✓
+   - Added test for Account after_insert event listener
+   - Added test for Category full_path with no parent
+   - Removed unused imports from models
+   - Improved overall model test coverage to 99%
    - Fixed statement history due date calculation to use statement_date
    - Fixed transaction history string representation test
    - Added comprehensive due date handling test

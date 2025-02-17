@@ -1,4 +1,4 @@
-# Debtonator v0.3.72
+# Debtonator v0.3.74
 
 A modern bill and cashflow management system that helps track bills, income, and maintain sufficient account balances for timely bill payments.
 
@@ -326,7 +326,7 @@ debtonator/
 │   └── utils/          # Utilities
 └── tests/              # Test suites
     ├── conftest.py    # Test configuration and fixtures
-    └── models/        # Model-specific tests (97% coverage)
+    └── models/        # Model-specific tests (99% coverage)
         ├── test_accounts.py     # Account model tests
         ├── test_cashflow.py     # Cashflow calculations
         ├── test_income.py       # Income tracking

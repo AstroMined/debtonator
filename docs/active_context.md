@@ -61,7 +61,11 @@ Datetime Standardization Project - Phase 3: Service Layer Updates
    - Improved datetime field definitions
 
 ### Recent Changes
-1. **Test Improvements (Completed)** ✓
+1. **Test Coverage Improvements (Completed)** ✓
+   - Added test for Account after_insert event listener
+   - Added test for Category full_path with no parent
+   - Removed unused imports from models
+   - Improved overall model test coverage to 99%
    - Fixed statement history due date calculation to use statement_date
    - Fixed transaction history string representation test
    - Added comprehensive due date handling test

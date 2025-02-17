@@ -4,6 +4,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
+from src.models.income import Income
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
 from src.models.base_model import naive_utc_now, naive_utc_from_date
@@ -48,7 +49,7 @@ class TestPayment:
         self, 
         db_session: AsyncSession, 
         base_bill: Liability, 
-        base_account: Account
+        test_checking_account: Account
     ):
         """Test creating a payment split across multiple sources"""
         # Create another account for split
@@ -79,7 +80,7 @@ class TestPayment:
         sources = [
             PaymentSource(
                 payment_id=payment.id,
-                account_id=base_account.id,
+                account_id=test_checking_account.id,
                 amount=Decimal("60.00"),
             created_at=naive_utc_now(),
             updated_at=naive_utc_now()
@@ -125,6 +126,116 @@ class TestPayment:
         
         assert source.account is not None
         assert "Primary Test Checking" in source.account.name
+
+    async def test_payment_repr(self, db_session: AsyncSession, base_bill: Liability):
+        """Test the string representation of Payment"""
+        payment_date = naive_utc_from_date(2025, 2, 15)
+        payment = Payment(
+            liability_id=base_bill.id,
+            amount=Decimal("100.00"),
+            payment_date=payment_date,
+            category="Utilities"
+        )
+        db_session.add(payment)
+        await db_session.commit()
+        
+        expected_repr = f"<Payment {Decimal('100.00')} on {payment_date}>"
+        assert repr(payment) == expected_repr
+
+    async def test_payment_source_repr(
+        self,
+        db_session: AsyncSession,
+        base_payment: Payment,
+        test_checking_account: Account
+    ):
+        """Test the string representation of PaymentSource"""
+        source = PaymentSource(
+            payment_id=base_payment.id,
+            account_id=test_checking_account.id,
+            amount=Decimal("75.00")
+        )
+        db_session.add(source)
+        await db_session.commit()
+        
+        expected_repr = f"<PaymentSource {Decimal('75.00')} from account {test_checking_account.id}>"
+        assert repr(source) == expected_repr
+
+    async def test_payment_with_description(self, db_session: AsyncSession, base_bill: Liability):
+        """Test payment with description field"""
+        payment = Payment(
+            liability_id=base_bill.id,
+            amount=Decimal("100.00"),
+            payment_date=naive_utc_from_date(2025, 2, 15),
+            category="Utilities",
+            description="Test payment description"
+        )
+        db_session.add(payment)
+        await db_session.commit()
+        await db_session.refresh(payment)
+        
+        assert payment.description == "Test payment description"
+
+    async def test_payment_cascade_delete(
+        self,
+        db_session: AsyncSession,
+        base_payment: Payment,
+        test_checking_account: Account
+    ):
+        """Test cascading delete of payment sources when payment is deleted"""
+        # Create additional payment source
+        source = PaymentSource(
+            payment_id=base_payment.id,
+            account_id=test_checking_account.id,
+            amount=Decimal("50.00")
+        )
+        db_session.add(source)
+        await db_session.commit()
+        
+        # Verify sources exist
+        await db_session.refresh(base_payment, ['sources'])
+        assert len(base_payment.sources) > 0
+        source_ids = [s.id for s in base_payment.sources]
+        
+        # Delete payment
+        await db_session.delete(base_payment)
+        await db_session.commit()
+        
+        # Verify sources were deleted
+        for source_id in source_ids:
+            result = await db_session.get(PaymentSource, source_id)
+            assert result is None
+
+    async def test_payment_with_income(
+        self,
+        db_session: AsyncSession,
+        test_checking_account: Account
+    ):
+        """Test payment linked to income"""
+        # Create income
+        income = Income(
+            date=naive_utc_from_date(2025, 2, 1),
+            source="Test Income",
+            amount=Decimal("1000.00"),
+            deposited=True,
+            account_id=test_checking_account.id
+        )
+        db_session.add(income)
+        await db_session.commit()
+        
+        # Create payment linked to income
+        payment = Payment(
+            income_id=income.id,
+            amount=Decimal("100.00"),
+            payment_date=naive_utc_from_date(2025, 2, 15),
+            category="Income Payment"
+        )
+        db_session.add(payment)
+        await db_session.commit()
+        
+        # Test income relationship
+        await db_session.refresh(payment, ['income'])
+        assert payment.income_id == income.id
+        assert payment.income.source == "Test Income"
 
     async def test_payment_defaults(self, db_session: AsyncSession, base_bill: Liability):
         """Test payment creation with minimal required fields"""
