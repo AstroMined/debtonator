@@ -144,9 +144,9 @@ async def test_transaction_history_string_representation(db_session: AsyncSessio
     expected_str = (
         f"<TransactionHistory(id={transaction.id}, "
         f"account_id={test_checking_account.id}, "
-        f"amount=100.00, "
-        f"type=debit, "
-        f"date={transaction.transaction_date})>"
+        f"amount={transaction.amount}, "
+        f"type={transaction.transaction_type}, "
+        f"transaction_date={transaction.transaction_date})>"
     )
     assert str(transaction) == expected_str
     assert repr(transaction) == expected_str

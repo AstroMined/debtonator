@@ -130,7 +130,13 @@ API Enhancement Project - Phase 6 (Paused)
 - Frontend development
 
 ### Recent Improvements
-1. **Test Fixture Centralization** ✓
+1. **Test Improvements** ✓
+   - Fixed statement history due date calculation to use statement_date
+   - Fixed transaction history string representation test
+   - Added comprehensive due date handling test
+   - Updated test assertions to match model implementation
+
+2. **Test Fixture Centralization** ✓
    - [x] Moved duplicate fixtures to tests/models/conftest.py
    - [x] Standardized fixture scope and naming
    - [x] Improved relationship handling in fixtures

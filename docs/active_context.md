@@ -61,7 +61,13 @@ Datetime Standardization Project - Phase 3: Service Layer Updates
    - Improved datetime field definitions
 
 ### Recent Changes
-1. **Test Fixture Centralization (Completed)** ✓
+1. **Test Improvements (Completed)** ✓
+   - Fixed statement history due date calculation to use statement_date
+   - Fixed transaction history string representation test
+   - Added comprehensive due date handling test
+   - Updated test assertions to match model implementation
+
+2. **Test Fixture Centralization (Completed)** ✓
    - Moved duplicate fixtures to tests/models/conftest.py
    - Standardized fixture scope and naming
    - Improved relationship handling in fixtures

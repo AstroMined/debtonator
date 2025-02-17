@@ -105,24 +105,54 @@ async def test_statement_history_cascade_delete(
     result = await db_session.get(StatementHistory, statement.id)
     assert result is None
 
-async def test_statement_history_optional_fields(
+async def test_statement_history_due_date_handling(
     db_session: AsyncSession,
     test_credit_account: Account
 ):
-    """Test creating statement history with optional fields."""
-    # Create statement without minimum payment and due date
-    statement = StatementHistory(
+    """Test due date handling in statement history."""
+    statement_date = naive_utc_now()
+
+    # Test 1: Default due date (25 days from statement date)
+    statement1 = StatementHistory(
         account_id=test_credit_account.id,
-        statement_date=naive_utc_now(),
+        statement_date=statement_date,
         statement_balance=Decimal("500.00")
     )
-    db_session.add(statement)
+    db_session.add(statement1)
     await db_session.commit()
-    await db_session.refresh(statement)
+    await db_session.refresh(statement1)
 
-    assert statement.id is not None
-    assert statement.minimum_payment is None
-    assert statement.due_date is None
+    assert statement1.id is not None
+    assert statement1.due_date is not None
+    assert statement1.due_date == statement_date + timedelta(days=25)
+    assert statement1.minimum_payment is None  # Minimum payment remains optional
+
+    # Test 2: Explicit due date
+    explicit_due_date = naive_utc_now() + timedelta(days=30)
+    statement2 = StatementHistory(
+        account_id=test_credit_account.id,
+        statement_date=statement_date,
+        statement_balance=Decimal("600.00"),
+        due_date=explicit_due_date
+    )
+    db_session.add(statement2)
+    await db_session.commit()
+    await db_session.refresh(statement2)
+
+    assert statement2.due_date == explicit_due_date
+
+    # Test 3: Explicitly set due date to None
+    statement3 = StatementHistory(
+        account_id=test_credit_account.id,
+        statement_date=statement_date,
+        statement_balance=Decimal("700.00"),
+        due_date=None
+    )
+    db_session.add(statement3)
+    await db_session.commit()
+    await db_session.refresh(statement3)
+
+    assert statement3.due_date is None
 
 async def test_multiple_statement_history(
     db_session: AsyncSession,

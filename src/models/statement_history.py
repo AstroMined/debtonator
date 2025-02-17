@@ -33,9 +33,14 @@ class StatementHistory(BaseDBModel):
     due_date: Mapped[datetime] = mapped_column(
         DateTime(),
         nullable=True,
-        default=lambda: naive_utc_now() + timedelta(days=25),
         comment="Payment due date (naive UTC)"
     )
+
+    def __init__(self, **kwargs):
+        # If due_date not provided, set it to 25 days after statement_date
+        if 'due_date' not in kwargs and 'statement_date' in kwargs:
+            kwargs['due_date'] = kwargs['statement_date'] + timedelta(days=25)
+        super().__init__(**kwargs)
     
     # Relationships
     account: Mapped["Account"] = relationship("Account", back_populates="statement_history")
