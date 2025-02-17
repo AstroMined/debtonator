@@ -1,15 +1,58 @@
 import pytest
 from datetime import datetime
-from zoneinfo import ZoneInfo
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models.categories import Category
+from src.models.base_model import naive_utc_from_date, naive_utc_now
 
 pytestmark = pytest.mark.asyncio
 
 class TestCategory:
+    async def test_datetime_handling(self):
+        """Test proper datetime handling in Category model"""
+        # Create instance with explicit datetime values
+        instance = Category(
+            name="Test Category",
+            description="Test Description",
+            created_at=naive_utc_from_date(2025, 3, 15),
+            updated_at=naive_utc_from_date(2025, 3, 15)
+        )
+
+        # Verify all datetime fields are naive (no tzinfo)
+        assert instance.created_at.tzinfo is None
+        assert instance.updated_at.tzinfo is None
+
+        # Verify created_at components
+        assert instance.created_at.year == 2025
+        assert instance.created_at.month == 3
+        assert instance.created_at.day == 15
+        assert instance.created_at.hour == 0
+        assert instance.created_at.minute == 0
+        assert instance.created_at.second == 0
+
+        # Verify updated_at components
+        assert instance.updated_at.year == 2025
+        assert instance.updated_at.month == 3
+        assert instance.updated_at.day == 15
+        assert instance.updated_at.hour == 0
+        assert instance.updated_at.minute == 0
+        assert instance.updated_at.second == 0
+
+    async def test_default_datetime_handling(self):
+        """Test default datetime values are properly set"""
+        instance = Category(
+            name="Test Category",
+            description="Test Description"
+        )
+
+        # Verify created_at and updated_at are set and naive
+        assert instance.created_at is not None
+        assert instance.updated_at is not None
+        assert instance.created_at.tzinfo is None
+        assert instance.updated_at.tzinfo is None
+
     async def test_create_basic_category(self, db_session: AsyncSession):
         """Test creating a basic category"""
         category = Category(
@@ -26,6 +69,8 @@ class TestCategory:
         assert category.parent_id is None
         assert isinstance(category.created_at, datetime)
         assert isinstance(category.updated_at, datetime)
+        assert category.created_at.tzinfo is None
+        assert category.updated_at.tzinfo is None
 
     async def test_create_hierarchical_categories(self, db_session: AsyncSession):
         """Test creating categories with parent-child relationships"""
@@ -61,6 +106,10 @@ class TestCategory:
         assert child.parent.name == "Parent Category"
         assert len(parent.children) == 1
         assert parent.children[0].name == "Child Category"
+        assert child.created_at.tzinfo is None
+        assert child.updated_at.tzinfo is None
+        assert parent.created_at.tzinfo is None
+        assert parent.updated_at.tzinfo is None
 
     async def test_category_full_path(self, db_session: AsyncSession):
         """Test the full_path property for nested categories"""
@@ -92,6 +141,8 @@ class TestCategory:
         assert child.full_path == "Grandparent > Parent > Child"
         assert child.parent.full_path == "Grandparent > Parent"
         assert child.parent.parent.full_path == "Grandparent"
+        assert child.created_at.tzinfo is None
+        assert child.updated_at.tzinfo is None
 
     async def test_is_ancestor_of(self, db_session: AsyncSession):
         """Test the is_ancestor_of method"""
@@ -143,6 +194,14 @@ class TestCategory:
         assert not await child.is_ancestor_of(grandparent)
         assert not await parent.is_ancestor_of(grandparent)
 
+        # Verify datetime fields remain naive
+        assert grandparent.created_at.tzinfo is None
+        assert grandparent.updated_at.tzinfo is None
+        assert parent.created_at.tzinfo is None
+        assert parent.updated_at.tzinfo is None
+        assert child.created_at.tzinfo is None
+        assert child.updated_at.tzinfo is None
+
     async def test_category_str_representation(self, db_session: AsyncSession):
         """Test the string representation of Category"""
         category = Category(
@@ -154,6 +213,8 @@ class TestCategory:
 
         expected = f"<Category(id={category.id}, name='Test Category', parent_id=None)>"
         assert str(category) == expected
+        assert category.created_at.tzinfo is None
+        assert category.updated_at.tzinfo is None
 
     async def test_category_relationships_cascade(self, db_session: AsyncSession):
         """Test that deleting a parent category cascades to children"""
@@ -198,6 +259,8 @@ class TestCategory:
         assert retrieved_parent is not None
         assert retrieved_parent.id == parent.id
         assert retrieved_parent.name == "Parent"
+        assert retrieved_parent.created_at.tzinfo is None
+        assert retrieved_parent.updated_at.tzinfo is None
 
         # Test with category having no parent
         stmt = select(Category).where(Category.id == parent.id).options(

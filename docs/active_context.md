@@ -4,29 +4,42 @@
 Datetime Standardization Project - Phase 3: Service Layer Updates
 
 ### Model Test Standardization Status
-1. **All Model Tests Now Comply with ADR-011** ✓
-   - Completed datetime standardization across all test files:
-     * test_accounts_models.py
-     * test_balance_history_models.py
-     * test_balance_reconciliation_models.py
-     * test_cashflow_models.py
-     * test_categories_models.py
-     * test_credit_limit_history_models.py
-     * test_income_models.py
-     * test_liabilities_models.py
-     * test_payments_models.py
-     * test_recurring_bills_models.py
-     * test_recurring_income_models.py
-     * test_statement_history_models.py
-     * test_transaction_history_models.py
+1. **Model Test Compliance Review Completed** ✓
+   - Identified gaps in test coverage and improvements needed
+   - Created ADR-011 compliance review document
+   - Implemented all required test improvements
+   - Completed test standardization across all files
 
-2. **Key Test Improvements**
-   - Replaced all datetime.now(ZoneInfo("UTC")) with naive_utc_now()
-   - Added comprehensive test_datetime_handling functions
-   - Fixed timezone assertions to verify naive UTC
-   - Updated test fixtures to use naive UTC datetime
-   - Added proper datetime validation across all tests
-   - Improved test documentation and assertions
+2. **Missing Test Files (Completed)** ✓
+   - [x] test_balance_history_models.py
+   - [x] test_bill_splits_models.py
+   - [x] test_deposit_schedules_models.py
+   - [x] test_income_categories_models.py
+   - [x] test_payment_schedules_models.py
+
+3. **Tests Needing Improvement (Completed)** ✓
+   - [x] test_accounts_models.py: Updated to use naive_utc_now()
+   - [x] test_categories_models.py: Added test_datetime_handling function
+   - [x] test_transaction_history_models.py: Added datetime component verification
+
+4. **Fully Compliant Test Files** ✓
+   - test_balance_reconciliation_models.py
+   - test_cashflow_models.py
+   - test_credit_limit_history_models.py
+   - test_income_models.py
+   - test_liabilities_models.py
+   - test_payments_models.py
+   - test_recurring_bills_models.py
+   - test_recurring_income_models.py
+   - test_statement_history_models.py
+   - test_balance_history_models.py
+   - test_bill_splits_models.py
+   - test_deposit_schedules_models.py
+   - test_income_categories_models.py
+   - test_payment_schedules_models.py
+   - test_accounts_models.py
+   - test_categories_models.py
+   - test_transaction_history_models.py
 
 ### Model Standardization Status
 1. **All Models Now Conform to ADR-011**
@@ -48,30 +61,30 @@ Datetime Standardization Project - Phase 3: Service Layer Updates
    - Improved datetime field definitions
 
 ### Recent Changes
-1. **SQLAlchemy Async Relationship Loading (Completed)**
-   - ✓ Fixed greenlet_spawn errors in history model tests
-   - ✓ Implemented specific relationship loading pattern
-   - ✓ Removed timezone PRAGMA from database.py
-   - ✓ Added relationship loading best practices to .clinerules
-   - ✓ Fixed failing tests in all history models
+1. **Test Suite Standardization (Completed)** ✓
+   - Created all missing test files with proper datetime handling
+   - Updated existing tests to use naive_utc_now()
+   - Added comprehensive datetime component verification
+   - Standardized test patterns across all files
+   - Improved relationship loading tests
 
-2. **Datetime Standardization Phase 1 & 2 (Completed)**
-   - ✓ Created BaseDBModel with UTC timezone-aware created_at/updated_at fields
-   - ✓ Updated all models to inherit from BaseDBModel
-   - ✓ Converted all date fields to timezone-aware datetime fields
-   - ✓ Reinitialized database with new schema
-   - ✓ Standardized datetime handling across all models
+2. **SQLAlchemy Async Relationship Loading (Completed)** ✓
+   - Fixed greenlet_spawn errors in history model tests
+   - Implemented specific relationship loading pattern
+   - Removed timezone PRAGMA from database.py
+   - Added relationship loading best practices to .clinerules
+   - Fixed failing tests in all history models
 
-3. **Test Suite Enhancement (Completed)**
-   - ✓ Added naive_utc_from_date utility function
-   - ✓ Updated all model tests to use utility functions
-   - ✓ Added comprehensive datetime handling tests
-   - ✓ Standardized fixture scoping
-   - ✓ Enhanced test assertions for naive datetime validation
+3. **Datetime Standardization Phase 1 & 2 (Completed)** ✓
+   - Created BaseDBModel with UTC timezone-aware created_at/updated_at fields
+   - Updated all models to inherit from BaseDBModel
+   - Converted all date fields to timezone-aware datetime fields
+   - Reinitialized database with new schema
+   - Standardized datetime handling across all models
 
 ### Current Implementation Plan
 
-#### Phase 1: Schema Enhancement (Completed)
+#### Phase 1: Schema Enhancement (Completed) ✓
 1. **Base Schema Validator Implementation** ✓
    - [x] Create BaseSchemaValidator class
      * Added UTC validation for datetime fields
@@ -88,7 +101,7 @@ Datetime Standardization Project - Phase 3: Service Layer Updates
      * Helpful correction suggestions
      * Debugging information
 
-2. **Schema Updates (Completed)**
+2. **Schema Updates (Completed)** ✓
    - [x] Payment Schemas
      * Updated PaymentCreate schema
      * Updated PaymentUpdate schema
@@ -120,7 +133,7 @@ Datetime Standardization Project - Phase 3: Service Layer Updates
      * Converted date fields to UTC datetime
      * Implemented timezone validation
 
-#### Phase 2: Model Simplification (Completed)
+#### Phase 2: Model Simplification (Completed) ✓
 1. **BaseModel Updates** ✓
    - [x] Remove timezone=True
      * Updated DateTime column definitions
@@ -167,7 +180,7 @@ Datetime Standardization Project - Phase 3: Service Layer Updates
      * Checked default values
      * Validated relationships
 
-#### Phase 3: Service Layer Updates
+#### Phase 3: Service Layer Updates (Next Focus)
 1. **Cashflow Service**
    - [ ] DateTime Creation
      * Update all datetime.now() calls
@@ -287,6 +300,9 @@ Datetime Standardization Project - Phase 3: Service Layer Updates
    - [x] Fixed datetime assertions
    - [x] Updated test fixtures
    - [x] Fixed relationship loading
+   - [x] Created all missing test files
+   - [x] Updated existing tests for datetime handling
+   - [x] Added comprehensive datetime verification
 
 3. **Documentation** ✓
    - [x] Updated model documentation

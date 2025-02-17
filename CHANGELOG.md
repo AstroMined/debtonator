@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.71] - 2025-02-16
+
+### Added
+- Created missing model test files:
+  * test_balance_history_models.py with timestamp field testing
+  * test_bill_splits_models.py with base model datetime testing
+  * test_deposit_schedules_models.py with schedule_date testing
+  * test_income_categories_models.py with base model datetime testing
+  * test_payment_schedules_models.py with scheduled_date testing
+
+### Changed
+- Updated test_accounts_models.py to use naive_utc_now() and naive_utc_from_date()
+- Added test_datetime_handling function to test_categories_models.py
+- Enhanced test_transaction_history_models.py with datetime component verification
+- Standardized datetime testing patterns across all test files
+- Improved relationship loading tests with proper refresh patterns
+
 ## [0.3.70] - 2025-02-16
 
 ### Added
