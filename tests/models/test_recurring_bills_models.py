@@ -1,11 +1,11 @@
 import pytest
 from datetime import datetime
-from zoneinfo import ZoneInfo
 from decimal import Decimal
 
 from src.models.recurring_bills import RecurringBill
 from src.models.accounts import Account
 from src.models.categories import Category
+from src.models.base_model import naive_utc_now, naive_utc_from_date
 
 @pytest.fixture(scope="function")
 async def recurring_category(db_session):
@@ -13,8 +13,8 @@ async def recurring_category(db_session):
     category = Category(
         name="Recurring",
         description="Recurring monthly bills",
-        created_at=datetime.now(ZoneInfo("UTC")),
-        updated_at=datetime.now(ZoneInfo("UTC"))
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now()
     )
     db_session.add(category)
     await db_session.flush()
@@ -28,8 +28,8 @@ async def checking_account(db_session):
         name="Test Checking",
         type="checking",
         available_balance=Decimal('1000.00'),
-        created_at=datetime.now(ZoneInfo("UTC")),
-        updated_at=datetime.now(ZoneInfo("UTC"))
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now()
     )
     db_session.add(account)
     await db_session.flush()
@@ -47,8 +47,8 @@ async def recurring_bill(db_session, checking_account, recurring_category):
         category=recurring_category,
         auto_pay=True,
         active=True,
-        created_at=datetime.now(ZoneInfo("UTC")),
-        updated_at=datetime.now(ZoneInfo("UTC"))
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now()
     )
     db_session.add(bill)
     await db_session.flush()
@@ -87,7 +87,7 @@ async def test_recurring_bill_create_liability(db_session, recurring_bill):
     # Verify the liability
     assert liability.name == "Netflix"
     assert liability.amount == Decimal('19.99')
-    assert liability.due_date == datetime(2025, 3, 15)
+    assert liability.due_date == naive_utc_from_date(2025, 3, 15)
     assert liability.auto_pay is True
     assert liability.primary_account_id == recurring_bill.account_id
     assert liability.category_id == recurring_bill.category_id
@@ -98,3 +98,45 @@ async def test_recurring_bill_str_representation(recurring_bill):
     """Test string representation of recurring bill"""
     expected = "<RecurringBill Netflix $19.99>"
     assert str(recurring_bill) == expected
+
+@pytest.mark.asyncio
+async def test_datetime_handling(db_session, checking_account, recurring_category):
+    """Test proper datetime handling in recurring bills and generated liabilities"""
+    # Create recurring bill
+    bill = RecurringBill(
+        bill_name="Test Bill",
+        amount=Decimal('19.99'),
+        day_of_month=15,
+        account=checking_account,
+        category=recurring_category,
+        auto_pay=True,
+        active=True,
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now()
+    )
+    db_session.add(bill)
+    await db_session.flush()
+    await db_session.refresh(bill)
+
+    # Verify recurring bill datetime fields are naive
+    assert bill.created_at.tzinfo is None
+    assert bill.updated_at.tzinfo is None
+
+    # Create and verify liability datetime handling
+    liability = bill.create_liability("03", 2025)
+    db_session.add(liability)
+    await db_session.flush()
+    await db_session.refresh(liability)
+
+    # Verify liability datetime fields are naive and correct
+    assert liability.due_date.tzinfo is None
+    assert liability.created_at.tzinfo is None
+    assert liability.updated_at.tzinfo is None
+
+    # Verify due_date components
+    assert liability.due_date.year == 2025
+    assert liability.due_date.month == 3
+    assert liability.due_date.day == 15
+    assert liability.due_date.hour == 0
+    assert liability.due_date.minute == 0
+    assert liability.due_date.second == 0

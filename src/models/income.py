@@ -2,10 +2,9 @@ from datetime import datetime
 from decimal import Decimal
 from typing import List
 from sqlalchemy import String, DateTime, Boolean, Numeric, Index, ForeignKey, CheckConstraint
-from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base_model import BaseDBModel
+from .base_model import BaseDBModel, naive_utc_now, naive_utc_from_date
 
 class Income(BaseDBModel):
     """
@@ -19,7 +18,7 @@ class Income(BaseDBModel):
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[datetime] = mapped_column(
         DateTime(),  # No timezone parameter - enforced by schema
-        doc="UTC timestamp of when the income was received"
+        doc="UTC timestamp of when the income was received. Use naive_utc_from_date or naive_utc_now to create."
     )
     source: Mapped[str] = mapped_column(String(255))
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))

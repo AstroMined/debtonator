@@ -4,9 +4,14 @@ from typing import Optional
 from sqlalchemy import String, DateTime, Boolean, Numeric, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base_model import BaseDBModel
+from .base_model import BaseDBModel, naive_utc_now, naive_utc_from_date
 
 class DepositSchedule(BaseDBModel):
+    """
+    Model for scheduling income deposits.
+    All datetime fields are stored as naive UTC, with timezone validation enforced
+    through Pydantic schemas.
+    """
     __tablename__ = "deposit_schedules"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -15,7 +20,7 @@ class DepositSchedule(BaseDBModel):
     schedule_date: Mapped[datetime] = mapped_column(
         DateTime(),
         nullable=False,
-        comment="Scheduled deposit date (naive UTC)"
+        doc="Scheduled deposit date (naive UTC). Use naive_utc_from_date to create."
     )
     amount: Mapped[Decimal] = mapped_column(
         Numeric(10, 2),

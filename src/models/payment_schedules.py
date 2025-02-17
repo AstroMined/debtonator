@@ -4,7 +4,7 @@ from typing import Optional
 from sqlalchemy import Boolean, DateTime, ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base_model import BaseDBModel
+from .base_model import BaseDBModel, naive_utc_now, naive_utc_from_date
 
 class PaymentSchedule(BaseDBModel):
     __tablename__ = "payment_schedules"
@@ -15,7 +15,7 @@ class PaymentSchedule(BaseDBModel):
     scheduled_date: Mapped[datetime] = mapped_column(
         DateTime(),
         nullable=False,
-        comment="Scheduled payment date (naive UTC)"
+        doc="Scheduled payment date (naive UTC). Use naive_utc_from_date to create."
     )
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String)
@@ -23,7 +23,7 @@ class PaymentSchedule(BaseDBModel):
     processed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     processed_date: Mapped[Optional[datetime]] = mapped_column(
         DateTime(),
-        comment="Date when payment was processed (naive UTC)"
+        doc="Date when payment was processed (naive UTC). Set using naive_utc_now."
     )
 
     # Relationships

@@ -2,11 +2,11 @@ from decimal import Decimal
 from datetime import datetime
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
-from zoneinfo import ZoneInfo
 
 from src.models.accounts import Account
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
+from src.models.base_model import naive_utc_now, naive_utc_from_date
 
 pytestmark = pytest.mark.asyncio
 
@@ -16,10 +16,10 @@ class TestPayment:
         payment = Payment(
             liability_id=base_bill.id,
             amount=Decimal("100.00"),
-            payment_date=datetime(2025, 2, 15, tzinfo=ZoneInfo("UTC")),
+            payment_date=naive_utc_from_date(2025, 2, 15),
             category="Utilities",
-            created_at=datetime.now(ZoneInfo("UTC")),
-            updated_at=datetime.now(ZoneInfo("UTC"))
+            created_at=naive_utc_now(),
+            updated_at=naive_utc_now()
         )
         db_session.add(payment)
         await db_session.commit()
@@ -56,8 +56,8 @@ class TestPayment:
             name="Split Payment Test Account",
             type="savings",
             available_balance=Decimal("2000.00"),
-            created_at=datetime.now(ZoneInfo("UTC")),
-            updated_at=datetime.now(ZoneInfo("UTC"))
+            created_at=naive_utc_now(),
+            updated_at=naive_utc_now()
         )
         db_session.add(second_account)
         await db_session.commit()
@@ -66,10 +66,10 @@ class TestPayment:
         payment = Payment(
             liability_id=base_bill.id,
             amount=Decimal("100.00"),
-            payment_date=datetime(2025, 2, 15, tzinfo=ZoneInfo("UTC")),
+            payment_date=naive_utc_from_date(2025, 2, 15),
             category="Utilities",
-            created_at=datetime.now(ZoneInfo("UTC")),
-            updated_at=datetime.now(ZoneInfo("UTC"))
+            created_at=naive_utc_now(),
+            updated_at=naive_utc_now()
         )
         db_session.add(payment)
         await db_session.commit()
@@ -81,15 +81,15 @@ class TestPayment:
                 payment_id=payment.id,
                 account_id=base_account.id,
                 amount=Decimal("60.00"),
-            created_at=datetime.now(ZoneInfo("UTC")),
-            updated_at=datetime.now(ZoneInfo("UTC"))
+            created_at=naive_utc_now(),
+            updated_at=naive_utc_now()
             ),
             PaymentSource(
                 payment_id=payment.id,
                 account_id=second_account.id,
                 amount=Decimal("40.00"),
-                created_at=datetime.now(ZoneInfo("UTC")),
-                updated_at=datetime.now(ZoneInfo("UTC"))
+                created_at=naive_utc_now(),
+                updated_at=naive_utc_now()
             )
         ]
         db_session.add_all(sources)
@@ -131,7 +131,7 @@ class TestPayment:
         payment = Payment(
             liability_id=base_bill.id,
             amount=Decimal("100.00"),
-            payment_date=datetime(2025, 2, 15, tzinfo=ZoneInfo("UTC")),
+            payment_date=naive_utc_from_date(2025, 2, 15),
             category="Utilities"
         )
         db_session.add(payment)
@@ -145,3 +145,46 @@ class TestPayment:
         # Load relationships
         await db_session.refresh(payment, ['sources'])
         assert len(payment.sources) == 0
+
+    async def test_datetime_handling(self, db_session: AsyncSession, base_bill: Liability):
+        """Test proper datetime handling in payments"""
+        payment = Payment(
+            liability_id=base_bill.id,
+            amount=Decimal("100.00"),
+            payment_date=naive_utc_from_date(2025, 2, 15),
+            category="Utilities",
+            created_at=naive_utc_now(),
+            updated_at=naive_utc_now()
+        )
+        db_session.add(payment)
+        await db_session.commit()
+        await db_session.refresh(payment)
+
+        # Verify all datetime fields are naive (no tzinfo)
+        assert payment.payment_date.tzinfo is None
+        assert payment.created_at.tzinfo is None
+        assert payment.updated_at.tzinfo is None
+
+        # Verify payment_date components
+        assert payment.payment_date.year == 2025
+        assert payment.payment_date.month == 2
+        assert payment.payment_date.day == 15
+        assert payment.payment_date.hour == 0
+        assert payment.payment_date.minute == 0
+        assert payment.payment_date.second == 0
+
+        # Test payment source datetime handling
+        source = PaymentSource(
+            payment_id=payment.id,
+            account_id=base_bill.primary_account_id,
+            amount=Decimal("100.00"),
+            created_at=naive_utc_now(),
+            updated_at=naive_utc_now()
+        )
+        db_session.add(source)
+        await db_session.commit()
+        await db_session.refresh(source)
+
+        # Verify source datetime fields are naive
+        assert source.created_at.tzinfo is None
+        assert source.updated_at.tzinfo is None

@@ -2,10 +2,9 @@ from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
 from sqlalchemy import String, Numeric, Text, DateTime, ForeignKey
-from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base_model import BaseDBModel
+from .base_model import BaseDBModel, naive_utc_now
 
 class Payment(BaseDBModel):
     """
@@ -22,7 +21,7 @@ class Payment(BaseDBModel):
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     payment_date: Mapped[datetime] = mapped_column(
         DateTime(),  # No timezone parameter - enforced by schema
-        default=lambda: datetime.now(ZoneInfo("UTC")),
+        default=naive_utc_now,
         doc="UTC timestamp of when the payment was made"
     )
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

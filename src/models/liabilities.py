@@ -4,9 +4,8 @@ from enum import Enum
 from typing import List, Optional
 from sqlalchemy import String, Boolean, Numeric, Text, JSON, DateTime, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from zoneinfo import ZoneInfo
 
-from .base_model import BaseDBModel
+from .base_model import BaseDBModel, naive_utc_now
 from src.models.payment_schedules import PaymentSchedule
 
 class LiabilityStatus(str, Enum):
@@ -32,7 +31,7 @@ class Liability(BaseDBModel):
     due_date: Mapped[datetime] = mapped_column(
         DateTime(),  # No timezone parameter - enforced by schema
         nullable=False,
-        default=lambda: datetime.now(ZoneInfo("UTC")),
+        default=naive_utc_now,
         doc="UTC timestamp of when the bill is due"
     )
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

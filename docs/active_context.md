@@ -37,6 +37,13 @@ Datetime Standardization Project - Phase 3: Schema-based Validation
    - ✓ Reinitialized database with new schema
    - ✓ Standardized datetime handling across all models
 
+3. **Test Suite Enhancement (Completed)**
+   - ✓ Added naive_utc_from_date utility function
+   - ✓ Updated all model tests to use utility functions
+   - ✓ Added comprehensive datetime handling tests
+   - ✓ Standardized fixture scoping
+   - ✓ Enhanced test assertions for naive datetime validation
+
 ### Current Implementation Plan
 
 #### Phase 1: Schema Enhancement (Completed)

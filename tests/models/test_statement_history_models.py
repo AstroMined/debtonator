@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
-from zoneinfo import ZoneInfo
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.statement_history import StatementHistory
+from src.models.base_model import naive_utc_now, naive_utc_from_date
 
 pytestmark = pytest.mark.asyncio
 
@@ -16,8 +16,8 @@ async def test_account(db_session: AsyncSession) -> Account:
         type="credit",
         available_balance=Decimal("-500.00"),
         total_limit=Decimal("2000.00"),
-        created_at=datetime.now(ZoneInfo("UTC")),
-        updated_at=datetime.now(ZoneInfo("UTC"))
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now()
     )
     db_session.add(account)
     await db_session.commit()
@@ -31,10 +31,10 @@ async def test_create_statement_history(
     """Test creating a statement history record."""
     statement = StatementHistory(
         account_id=test_account.id,
-        statement_date=datetime.now(ZoneInfo("UTC")),
+        statement_date=naive_utc_now(),
         statement_balance=Decimal("500.00"),
         minimum_payment=Decimal("25.00"),
-        due_date=datetime.now(ZoneInfo("UTC")) + timedelta(days=25)
+        due_date=naive_utc_now() + timedelta(days=25)
     )
     db_session.add(statement)
     await db_session.commit()
@@ -56,10 +56,10 @@ async def test_statement_history_relationships(
     """Test statement history relationships."""
     statement = StatementHistory(
         account_id=test_account.id,
-        statement_date=datetime.now(ZoneInfo("UTC")),
+        statement_date=naive_utc_now(),
         statement_balance=Decimal("500.00"),
         minimum_payment=Decimal("25.00"),
-        due_date=datetime.now(ZoneInfo("UTC")) + timedelta(days=25)
+        due_date=naive_utc_now() + timedelta(days=25)
     )
     db_session.add(statement)
     await db_session.commit()
@@ -81,7 +81,7 @@ async def test_statement_history_string_representation(
     test_account: Account
 ):
     """Test the string representation of a statement history record."""
-    statement_date = datetime.now(ZoneInfo("UTC"))
+    statement_date = naive_utc_now()
     statement = StatementHistory(
         account_id=test_account.id,
         statement_date=statement_date,
@@ -103,10 +103,10 @@ async def test_statement_history_cascade_delete(
     """Test that statement history records are deleted when account is deleted."""
     statement = StatementHistory(
         account_id=test_account.id,
-        statement_date=datetime.now(ZoneInfo("UTC")),
+        statement_date=naive_utc_now(),
         statement_balance=Decimal("500.00"),
         minimum_payment=Decimal("25.00"),
-        due_date=datetime.now(ZoneInfo("UTC")) + timedelta(days=25)
+        due_date=naive_utc_now() + timedelta(days=25)
     )
     db_session.add(statement)
     await db_session.commit()
@@ -127,7 +127,7 @@ async def test_statement_history_optional_fields(
     # Create statement without minimum payment and due date
     statement = StatementHistory(
         account_id=test_account.id,
-        statement_date=datetime.now(ZoneInfo("UTC")),
+        statement_date=naive_utc_now(),
         statement_balance=Decimal("500.00")
     )
     db_session.add(statement)
@@ -146,10 +146,10 @@ async def test_multiple_statement_history(
     # First statement
     statement1 = StatementHistory(
         account_id=test_account.id,
-        statement_date=datetime.now(ZoneInfo("UTC")) - timedelta(days=30),
+        statement_date=naive_utc_now() - timedelta(days=30),
         statement_balance=Decimal("500.00"),
         minimum_payment=Decimal("25.00"),
-        due_date=datetime.now(ZoneInfo("UTC")) - timedelta(days=5)
+        due_date=naive_utc_now() - timedelta(days=5)
     )
     db_session.add(statement1)
     await db_session.commit()
@@ -157,10 +157,10 @@ async def test_multiple_statement_history(
     # Second statement
     statement2 = StatementHistory(
         account_id=test_account.id,
-        statement_date=datetime.now(ZoneInfo("UTC")),
+        statement_date=naive_utc_now(),
         statement_balance=Decimal("600.00"),
         minimum_payment=Decimal("30.00"),
-        due_date=datetime.now(ZoneInfo("UTC")) + timedelta(days=25)
+        due_date=naive_utc_now() + timedelta(days=25)
     )
     db_session.add(statement2)
     await db_session.commit()
@@ -173,3 +173,44 @@ async def test_multiple_statement_history(
     assert len(statements) == 2
     assert statements[0].statement_balance == Decimal("500.00")
     assert statements[1].statement_balance == Decimal("600.00")
+
+async def test_datetime_handling(
+    db_session: AsyncSession,
+    test_account: Account
+):
+    """Test proper datetime handling in statement history"""
+    # Create statement with explicit datetime values
+    statement = StatementHistory(
+        account_id=test_account.id,
+        statement_date=naive_utc_from_date(2025, 3, 15),
+        statement_balance=Decimal("500.00"),
+        minimum_payment=Decimal("25.00"),
+        due_date=naive_utc_from_date(2025, 4, 10),
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now()
+    )
+    db_session.add(statement)
+    await db_session.commit()
+    await db_session.refresh(statement)
+
+    # Verify all datetime fields are naive (no tzinfo)
+    assert statement.statement_date.tzinfo is None
+    assert statement.due_date.tzinfo is None
+    assert statement.created_at.tzinfo is None
+    assert statement.updated_at.tzinfo is None
+
+    # Verify statement_date components
+    assert statement.statement_date.year == 2025
+    assert statement.statement_date.month == 3
+    assert statement.statement_date.day == 15
+    assert statement.statement_date.hour == 0
+    assert statement.statement_date.minute == 0
+    assert statement.statement_date.second == 0
+
+    # Verify due_date components
+    assert statement.due_date.year == 2025
+    assert statement.due_date.month == 4
+    assert statement.due_date.day == 10
+    assert statement.due_date.hour == 0
+    assert statement.due_date.minute == 0
+    assert statement.due_date.second == 0

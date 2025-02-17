@@ -2,9 +2,8 @@ from datetime import datetime
 from decimal import Decimal
 from sqlalchemy import String, Boolean, Numeric, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from zoneinfo import ZoneInfo
 
-from .base_model import BaseDBModel
+from .base_model import BaseDBModel, naive_utc_from_date
 
 class RecurringBill(BaseDBModel):
     """RecurringBill model representing template for recurring bills"""
@@ -28,13 +27,25 @@ class RecurringBill(BaseDBModel):
         return f"<RecurringBill {self.bill_name} ${self.amount}>"
 
     def create_liability(self, month: str, year: int) -> "Liability":
-        """Create a new Liability instance from this recurring bill template"""
+        """
+        Create a new Liability instance from this recurring bill template.
+        
+        Args:
+            month: Month number as string (1-12)
+            year: Full year (e.g., 2025)
+            
+        Returns:
+            Liability: New liability instance with proper UTC due date
+            
+        Note:
+            Uses naive_utc_from_date to create a proper UTC datetime for the due date.
+        """
         from .liabilities import Liability  # Import here to avoid circular imports
         
         liability = Liability(
             name=self.bill_name,
             amount=self.amount,
-            due_date=datetime(year, int(month), self.day_of_month),
+            due_date=naive_utc_from_date(year, int(month), self.day_of_month),
             primary_account_id=self.account_id,
             category_id=self.category_id,
             auto_pay=self.auto_pay,

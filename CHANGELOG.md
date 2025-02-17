@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.70] - 2025-02-16
+
+### Added
+- Added naive_utc_from_date utility function to base_model.py for standardized date creation
+- Added comprehensive datetime handling tests to all model test files
+- Added explicit UTC validation tests across all models
+
+### Changed
+- Updated all model tests to use naive_utc_now() and naive_utc_from_date()
+- Improved test coverage for datetime handling
+- Enhanced test assertions for naive datetime validation
+- Standardized fixture scoping with scope="function"
+
+### Removed
+- Removed all direct datetime.now(ZoneInfo("UTC")) usage
+- Eliminated redundant timezone handling in tests
+
 ## [0.3.69] - 2025-02-16
 
 ### Changed
