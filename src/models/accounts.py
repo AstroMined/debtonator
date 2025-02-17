@@ -135,11 +135,14 @@ class Account(BaseDBModel):
         if self.type == "credit" and self.total_limit is not None:
             self.available_credit = self.total_limit - abs(self.available_balance)
 
-    @validates('available_balance')
-    def validate_balance(self, key: str, value: Decimal) -> Decimal:
-        """Validate and update available credit when balance changes"""
-        if hasattr(self, 'type') and self.type == "credit" and hasattr(self, 'total_limit') and self.total_limit is not None:
-            self.available_credit = self.total_limit - abs(value)
+    @validates('available_balance', 'total_limit')
+    def validate_fields(self, key: str, value: Decimal) -> Decimal:
+        """Validate and update available credit when balance or limit changes"""
+        if hasattr(self, 'type') and self.type == "credit":
+            if key == 'total_limit' and value is not None and hasattr(self, 'available_balance'):
+                self.available_credit = value - abs(self.available_balance)
+            elif key == 'available_balance' and hasattr(self, 'total_limit') and self.total_limit is not None:
+                self.available_credit = self.total_limit - abs(value)
         return value
 
 # Set up event listeners

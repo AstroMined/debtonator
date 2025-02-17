@@ -321,6 +321,24 @@ async def test_category_relationships_cascade(db_session: AsyncSession):
     count = result.scalar()
     assert count == 0
 
+async def test_get_parent_helper_with_invalid_parent(db_session: AsyncSession):
+    """Test the _get_parent helper method with invalid parent_id"""
+    # Create a category with a non-existent parent_id
+    category = Category(name="Orphan", parent_id=999)  # Non-existent parent_id
+    db_session.add(category)
+    await db_session.commit()
+
+    # Fetch fresh instance with parent relationship loaded
+    stmt = select(Category).where(Category.id == category.id).options(
+        selectinload(Category.parent)
+    )
+    result = await db_session.execute(stmt)
+    category = result.unique().scalar_one()
+
+    # Test getting non-existent parent
+    no_parent = await Category._get_parent(category)
+    assert no_parent is None
+
 async def test_get_parent_helper(db_session: AsyncSession):
     """Test the _get_parent helper method"""
     parent = Category(name="Parent")

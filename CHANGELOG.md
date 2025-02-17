@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.75] - 2025-02-17
+
+### Added
+- ADR-012: Validation Layer Standardization
+  * Defined clear validation boundaries
+  * Established schema-based validation patterns
+  * Documented service layer business logic
+  * Created comprehensive migration strategy
+
+### Changed
+- Improved model test coverage to 100%
+  * Fixed accounts model after_update event listener test
+  * Added test for invalid parent_id in categories
+  * Added test for Liability string representation
+
 ## [0.3.74] - 2025-02-17
 
 ### Changed

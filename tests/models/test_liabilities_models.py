@@ -145,6 +145,29 @@ class TestLiability:
         assert isinstance(liability.created_at, datetime)
         assert isinstance(liability.updated_at, datetime)
 
+    async def test_repr_method(self, db_session: AsyncSession, base_account: Account):
+        """Test the string representation of Liability"""
+        # Create category first
+        category = Category(name="Test Category")
+        db_session.add(category)
+        await db_session.commit()
+
+        # Create liability with specific due date for consistent repr
+        due_date = naive_utc_from_date(2025, 3, 15)
+        liability = Liability(
+            name="Test Bill",
+            amount=Decimal("100.00"),
+            due_date=due_date,
+            category_id=category.id,
+            primary_account_id=base_account.id
+        )
+        db_session.add(liability)
+        await db_session.commit()
+        await db_session.refresh(liability)
+
+        expected = f"<Liability Test Bill due {due_date}>"
+        assert str(liability) == expected
+
     async def test_datetime_handling(self, db_session: AsyncSession, base_account: Account):
         """Test proper datetime handling in liabilities"""
         # Create category first
