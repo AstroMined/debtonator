@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.76] - 2025-02-17
+
+### Changed
+- Enhanced accounts schema validation:
+  * Added comprehensive field validation with proper constraints
+  * Implemented credit account specific business rules
+  * Added proper datetime handling with UTC enforcement
+  * Updated to Pydantic V2 compliant validation patterns
+  * Added complete test coverage with all tests passing
+
 ## [0.3.75] - 2025-02-17
 
 ### Added

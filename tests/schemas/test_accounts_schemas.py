@@ -27,10 +27,72 @@ def test_account_base_valid():
     assert account.available_balance == Decimal("1000.00")
     assert account.last_statement_date == statement_date
 
+def test_account_base_name_validation():
+    """Test name field validation"""
+    # Test empty name
+    with pytest.raises(ValidationError, match="String should have at least 1 character"):
+        AccountBase(
+            name="",
+            type=AccountType.CHECKING
+        )
+    
+    # Test too long name
+    with pytest.raises(ValidationError, match="String should have at most 50 characters"):
+        AccountBase(
+            name="A" * 51,
+            type=AccountType.CHECKING
+        )
+
+def test_account_base_decimal_validation():
+    """Test decimal field validation"""
+    # Test decimal places
+    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+        AccountBase(
+            name="Test Account",
+            type=AccountType.CHECKING,
+            available_balance=Decimal("100.123")
+        )
+    
+    # Test negative available credit
+    with pytest.raises(ValidationError, match="Input should be greater than or equal to 0"):
+        AccountBase(
+            name="Test Account",
+            type=AccountType.CREDIT,
+            available_credit=Decimal("-100.00")
+        )
+
+def test_account_base_credit_validation():
+    """Test credit account specific validation"""
+    # Test total_limit on non-credit account
+    with pytest.raises(ValidationError, match="Total limit can only be set for credit accounts"):
+        AccountBase(
+            name="Test Account",
+            type=AccountType.CHECKING,
+            total_limit=Decimal("1000.00")
+        )
+    
+    # Test available_credit on non-credit account
+    with pytest.raises(ValidationError, match="Available credit can only be set for credit accounts"):
+        AccountBase(
+            name="Test Account",
+            type=AccountType.CHECKING,
+            available_credit=Decimal("1000.00")
+        )
+    
+    # Test valid credit account
+    account = AccountBase(
+        name="Credit Card",
+        type=AccountType.CREDIT,
+        total_limit=Decimal("5000.00"),
+        available_credit=Decimal("3000.00")
+    )
+    assert account.total_limit == Decimal("5000.00")
+    assert account.available_credit == Decimal("3000.00")
+
 def test_account_base_invalid_statement_date():
     """Test invalid statement date validation"""
     # Test naive datetime
-    with pytest.raises(ValidationError, match="Statement date must be timezone-aware"):
+    with pytest.raises(ValidationError, match="Datetime must be UTC"):
         AccountBase(
             name="Test Account",
             type=AccountType.CHECKING,
@@ -39,7 +101,7 @@ def test_account_base_invalid_statement_date():
 
     # Test non-UTC timezone
     non_utc_date = datetime.now(ZoneInfo("America/New_York"))
-    with pytest.raises(ValidationError, match="Statement date must be in UTC timezone"):
+    with pytest.raises(ValidationError, match="Datetime must be UTC"):
         AccountBase(
             name="Test Account",
             type=AccountType.CHECKING,
@@ -58,10 +120,38 @@ def test_account_update_valid():
     assert update.type == AccountType.SAVINGS
     assert update.last_statement_date == statement_date
 
+def test_account_update_validation():
+    """Test account update validation"""
+    # Test name length
+    with pytest.raises(ValidationError, match="String should have at least 1 character"):
+        AccountUpdate(name="")
+    
+    # Test credit account validation
+    with pytest.raises(ValidationError, match="Total limit can only be set for credit accounts"):
+        AccountUpdate(
+            type=AccountType.CHECKING,
+            total_limit=Decimal("1000.00")
+        )
+    
+    # Test decimal places
+    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+        AccountUpdate(
+            available_balance=Decimal("100.123")
+        )
+    
+    # Test valid credit account update
+    update = AccountUpdate(
+        type=AccountType.CREDIT,
+        total_limit=Decimal("5000.00"),
+        available_credit=Decimal("3000.00")
+    )
+    assert update.total_limit == Decimal("5000.00")
+    assert update.available_credit == Decimal("3000.00")
+
 def test_account_update_invalid_statement_date():
     """Test invalid statement date in update"""
     # Test naive datetime
-    with pytest.raises(ValidationError, match="Statement date must be timezone-aware"):
+    with pytest.raises(ValidationError, match="Datetime must be UTC"):
         AccountUpdate(
             name="Updated Account",
             last_statement_date=datetime.now()
@@ -69,7 +159,7 @@ def test_account_update_invalid_statement_date():
 
     # Test non-UTC timezone
     non_utc_date = datetime.now(ZoneInfo("America/New_York"))
-    with pytest.raises(ValidationError, match="Statement date must be in UTC timezone"):
+    with pytest.raises(ValidationError, match="Datetime must be UTC"):
         AccountUpdate(
             name="Updated Account",
             last_statement_date=non_utc_date
@@ -92,13 +182,37 @@ def test_account_in_db_valid():
     assert account.created_at == now
     assert account.updated_at == now
 
+def test_account_in_db_validation():
+    """Test account in DB validation"""
+    now = datetime.now(ZoneInfo("UTC"))
+    
+    # Test invalid ID
+    with pytest.raises(ValidationError, match="Input should be greater than 0"):
+        AccountInDB(
+            id=0,
+            name="Test Account",
+            type=AccountType.CREDIT,
+            created_at=now,
+            updated_at=now
+        )
+    
+    # Test name length
+    with pytest.raises(ValidationError, match="String should have at least 1 character"):
+        AccountInDB(
+            id=1,
+            name="",
+            type=AccountType.CREDIT,
+            created_at=now,
+            updated_at=now
+        )
+
 def test_account_in_db_invalid_timestamps():
     """Test invalid timestamps in DB schema"""
     now = datetime.now(ZoneInfo("UTC"))
     naive_now = datetime.now()
 
     # Test naive created_at
-    with pytest.raises(ValidationError, match="Timestamp must be timezone-aware"):
+    with pytest.raises(ValidationError, match="Datetime must be UTC"):
         AccountInDB(
             id=1,
             name="Test Account",
@@ -108,7 +222,7 @@ def test_account_in_db_invalid_timestamps():
         )
 
     # Test naive updated_at
-    with pytest.raises(ValidationError, match="Timestamp must be timezone-aware"):
+    with pytest.raises(ValidationError, match="Datetime must be UTC"):
         AccountInDB(
             id=1,
             name="Test Account",
@@ -119,7 +233,7 @@ def test_account_in_db_invalid_timestamps():
 
     # Test non-UTC timezone
     non_utc = datetime.now(ZoneInfo("America/New_York"))
-    with pytest.raises(ValidationError, match="Timestamp must be in UTC timezone"):
+    with pytest.raises(ValidationError, match="Datetime must be UTC"):
         AccountInDB(
             id=1,
             name="Test Account",
@@ -142,13 +256,32 @@ def test_statement_balance_history_valid():
     assert history.minimum_payment == Decimal("25.00")
     assert history.due_date == now
 
+def test_statement_balance_history_validation():
+    """Test statement balance history validation"""
+    now = datetime.now(ZoneInfo("UTC"))
+    
+    # Test decimal places
+    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+        StatementBalanceHistory(
+            statement_date=now,
+            statement_balance=Decimal("1000.123")
+        )
+    
+    # Test negative minimum payment
+    with pytest.raises(ValidationError, match="Input should be greater than or equal to 0"):
+        StatementBalanceHistory(
+            statement_date=now,
+            statement_balance=Decimal("1000.00"),
+            minimum_payment=Decimal("-25.00")
+        )
+
 def test_statement_balance_history_invalid_dates():
     """Test invalid dates in statement balance history"""
     now = datetime.now(ZoneInfo("UTC"))
     naive_now = datetime.now()
 
     # Test naive statement date
-    with pytest.raises(ValidationError, match="Date must be timezone-aware"):
+    with pytest.raises(ValidationError, match="Datetime must be UTC"):
         StatementBalanceHistory(
             statement_date=naive_now,
             statement_balance=Decimal("1000.00"),
@@ -156,7 +289,7 @@ def test_statement_balance_history_invalid_dates():
         )
 
     # Test naive due date
-    with pytest.raises(ValidationError, match="Date must be timezone-aware"):
+    with pytest.raises(ValidationError, match="Datetime must be UTC"):
         StatementBalanceHistory(
             statement_date=now,
             statement_balance=Decimal("1000.00"),
@@ -165,7 +298,7 @@ def test_statement_balance_history_invalid_dates():
 
     # Test non-UTC timezone
     non_utc = datetime.now(ZoneInfo("America/New_York"))
-    with pytest.raises(ValidationError, match="Date must be in UTC timezone"):
+    with pytest.raises(ValidationError, match="Datetime must be UTC"):
         StatementBalanceHistory(
             statement_date=non_utc,
             statement_balance=Decimal("1000.00"),

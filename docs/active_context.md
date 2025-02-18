@@ -58,11 +58,11 @@ Validation Layer Standardization - Phase 1: Schema Enhancement
    - [ ] Implement cross-field validation
    - [ ] Document validation patterns
 
-2. **Account Schemas**
-   - [ ] Update AccountBase schema
-   - [ ] Add field validation
-   - [ ] Add relationship validation
-   - [ ] Update tests
+2. **Account Schemas** ✓
+   - [x] Update AccountBase schema
+   - [x] Add field validation
+   - [x] Add relationship validation
+   - [x] Update tests
 
 3. **Payment Schemas**
    - [ ] Update PaymentBase schema
@@ -152,10 +152,10 @@ Validation Layer Standardization - Phase 1: Schema Enhancement
   - Frontend development (paused)
 
 ## Next Steps
-1. **Begin Schema Enhancement**
-   - Create BaseValidationSchema
-   - Update Account schemas
+1. **Continue Schema Enhancement**
    - Update Payment schemas
+   - Update Bill/Liability schemas
+   - Update Income schemas
    - Update tests
 
 2. **Documentation Updates**
