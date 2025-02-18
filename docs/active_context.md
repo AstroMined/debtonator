@@ -37,7 +37,15 @@ Validation Layer Standardization - Phase 1: Schema Enhancement
    - Document service patterns
 
 ### Recent Changes
-1. **Payment Schema Enhancement (Completed)** ✓
+1. **Bill/Liability Schema Enhancement (Completed)** ✓
+   - Added comprehensive field validation with proper constraints
+   - Implemented V2-style validators for all liability schemas
+   - Added proper UTC datetime handling
+   - Added amount precision validation
+   - Added auto-pay settings validation
+   - Added complete test coverage with all tests passing
+
+2. **Payment Schema Enhancement (Completed)** ✓
    - Added comprehensive field validation with proper constraints
    - Implemented V2-style validators for all payment schemas
    - Added proper UTC datetime handling
@@ -45,7 +53,7 @@ Validation Layer Standardization - Phase 1: Schema Enhancement
    - Added payment source validation with duplicate checks
    - Added complete test coverage with all tests passing
 
-2. **Account Schema Enhancement (Completed)** ✓
+3. **Account Schema Enhancement (Completed)** ✓
    - Added comprehensive field validation with proper constraints
    - Implemented credit account specific business rules
    - Added proper datetime handling with UTC enforcement
@@ -73,11 +81,11 @@ Validation Layer Standardization - Phase 1: Schema Enhancement
    - [x] Add relationship validation
    - [x] Update tests
 
-4. **Bill/Liability Schemas**
-   - [ ] Update LiabilityBase schema
-   - [ ] Add amount validation
-   - [ ] Add date validation
-   - [ ] Update tests
+4. **Bill/Liability Schemas** ✓
+   - [x] Update LiabilityBase schema
+   - [x] Add amount validation
+   - [x] Add date validation
+   - [x] Update tests
 
 5. **Income Schemas**
    - [ ] Update IncomeBase schema
@@ -156,7 +164,6 @@ Validation Layer Standardization - Phase 1: Schema Enhancement
 
 ## Next Steps
 1. **Continue Schema Enhancement**
-   - Update Bill/Liability schemas
    - Update Income schemas
    - Update tests
 

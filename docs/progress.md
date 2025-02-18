@@ -19,7 +19,13 @@
      * Added amount precision validation
      * Added payment source validation with duplicate checks
      * Added complete test coverage with all tests passing
-   - [ ] Bill/Liability Schemas
+   - [x] Bill/Liability Schemas ✓
+     * Added comprehensive field validation with proper constraints
+     * Implemented V2-style validators for all liability schemas
+     * Added proper UTC datetime handling
+     * Added amount precision validation
+     * Added auto-pay settings validation
+     * Added complete test coverage with all tests passing
    - [ ] Income Schemas
    - [ ] Analysis/Forecast Schemas
 

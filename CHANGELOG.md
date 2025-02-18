@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.78] - 2025-02-17
+
+### Changed
+- Enhanced bill/liability schema validation:
+  * Added comprehensive field validation with proper constraints
+  * Implemented V2-style validators for all liability schemas
+  * Added proper UTC datetime handling
+  * Added amount precision validation
+  * Added auto-pay settings validation
+  * Added complete test coverage with all tests passing
+
 ## [0.3.77] - 2025-02-17
 
 ### Added
