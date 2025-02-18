@@ -87,11 +87,11 @@ Validation Layer Standardization - Phase 1: Schema Enhancement
    - [x] Add date validation
    - [x] Update tests
 
-5. **Income Schemas**
-   - [ ] Update IncomeBase schema
-   - [ ] Add amount validation
-   - [ ] Add date validation
-   - [ ] Update tests
+5. **Income Schemas (Completed)** ✓
+   - [x] Update IncomeBase schema
+   - [x] Add amount validation
+   - [x] Add date validation
+   - [x] Update tests
 
 #### Phase 2: Model Simplification
 1. **Account Model**
@@ -164,7 +164,7 @@ Validation Layer Standardization - Phase 1: Schema Enhancement
 
 ## Next Steps
 1. **Continue Schema Enhancement**
-   - Update Income schemas
+   - Update Analysis/Forecast schemas
    - Update tests
 
 2. **Documentation Updates**

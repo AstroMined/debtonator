@@ -26,7 +26,13 @@
      * Added amount precision validation
      * Added auto-pay settings validation
      * Added complete test coverage with all tests passing
-   - [ ] Income Schemas
+   - [x] Income Schemas ✓
+     * Added comprehensive field validation with proper constraints
+     * Implemented V2-style validators for all income schemas
+     * Added proper UTC datetime handling
+     * Added amount precision validation
+     * Added deposit status validation
+     * Added complete test coverage with all tests passing
    - [ ] Analysis/Forecast Schemas
 
 ### Previous Work (Completed) ✓
