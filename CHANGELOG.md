@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.84] - 2025-02-18
+
+### Changed
+- Enhanced Income model and service layer separation:
+  * Removed calculate_undeposited method from Income model
+  * Added _calculate_undeposited_amount to IncomeService
+  * Added _update_undeposited_amount to IncomeService
+  * Enhanced model documentation with clear responsibility boundaries
+  * Improved relationship documentation
+  * Organized fields into logical groups
+  * Added explicit schema vs service layer responsibilities
+  * Maintained proper UTC datetime handling
+  * Verified ADR-012 compliance
+
 ## [0.3.83] - 2025-02-18
 
 ### Changed

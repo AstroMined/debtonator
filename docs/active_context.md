@@ -77,11 +77,15 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - [x] Update tests (Already focused on data structure)
    - [x] Document changes (Added comprehensive documentation)
 
-4. **Income Model**
-   - [ ] Remove validation logic
-   - [ ] Update relationships
-   - [ ] Update tests
-   - [ ] Document changes
+4. **Income Model (Completed)** ✓
+   - [x] Removed validation logic (calculate_undeposited method)
+   - [x] Enhanced relationship documentation
+   - [x] Moved business logic to service layer
+   - [x] Added comprehensive model documentation
+   - [x] Improved separation of concerns
+   - [x] Added service layer calculation methods
+   - [x] Maintained proper UTC datetime handling
+   - [x] Verified ADR-012 compliance
 
 #### Phase 3: Service Enhancement
 1. **Account Service**

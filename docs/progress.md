@@ -32,15 +32,21 @@
    - [x] Verified tests focus on data structure
    - [x] Confirmed proper UTC datetime handling
 
-### Next Phase: Service Layer Updates
-1. **Income Model**
-   - [ ] Review current implementation
-   - [ ] Identify validation logic to remove
-   - [ ] Update relationships if needed
-   - [ ] Update tests to focus on data structure
-   - [ ] Document changes
+### Recent Improvements
+1. **Income Model Enhancement (Completed)** ✓
+   - Removed calculate_undeposited method from model
+   - Added _calculate_undeposited_amount to service
+   - Added _update_undeposited_amount to service
+   - Enhanced model documentation
+   - Improved relationship documentation
+   - Organized fields into logical groups
+   - Added explicit schema vs service layer responsibilities
+   - Maintained proper UTC datetime handling
+   - Verified ADR-012 compliance
 
-2. **Service Layer Enhancement**
+### Next Phase: Service Layer Updates
+
+1. **Service Layer Enhancement**
    - [ ] Account Service
      * Add validation methods
      * Move business logic
