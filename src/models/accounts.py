@@ -129,27 +129,3 @@ class Account(BaseDBModel):
 
     def __repr__(self) -> str:
         return f"<Account {self.name}>"
-
-    def update_available_credit(self) -> None:
-        """Update available credit based on total limit and current balance"""
-        if self.type == "credit" and self.total_limit is not None:
-            self.available_credit = self.total_limit - abs(self.available_balance)
-
-    @validates('available_balance', 'total_limit')
-    def validate_fields(self, key: str, value: Decimal) -> Decimal:
-        """Validate and update available credit when balance or limit changes"""
-        if hasattr(self, 'type') and self.type == "credit":
-            if key == 'total_limit' and value is not None and hasattr(self, 'available_balance'):
-                self.available_credit = value - abs(self.available_balance)
-            elif key == 'available_balance' and hasattr(self, 'total_limit') and self.total_limit is not None:
-                self.available_credit = self.total_limit - abs(value)
-        return value
-
-# Set up event listeners
-@event.listens_for(Account, 'after_insert')
-def receive_after_insert(mapper, connection, target):
-    target.update_available_credit()
-
-@event.listens_for(Account, 'after_update')
-def receive_after_update(mapper, connection, target):
-    target.update_available_credit()

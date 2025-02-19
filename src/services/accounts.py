@@ -25,9 +25,19 @@ class AccountService:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    def _update_available_credit(self, account: AccountModel) -> None:
+        """Update available credit based on total limit and current balance"""
+        if account.type == "credit" and account.total_limit is not None:
+            account.available_credit = account.total_limit - abs(account.available_balance)
+
     async def create_account(self, account_data: AccountCreate) -> AccountInDB:
-        """Create a new account"""
+        """Create a new account and initialize credit-related fields if applicable"""
         db_account = AccountModel(**account_data.model_dump())
+        
+        # Initialize credit-related fields for credit accounts
+        if db_account.type == "credit" and db_account.total_limit is not None:
+            self._update_available_credit(db_account)
+            
         self.session.add(db_account)
         await self.session.commit()
         await self.session.refresh(db_account)
@@ -44,7 +54,7 @@ class AccountService:
     async def update_account(
         self, account_id: int, account_data: AccountUpdate
     ) -> Optional[AccountInDB]:
-        """Update an account"""
+        """Update an account and handle credit-related calculations"""
         result = await self.session.execute(
             select(AccountModel).where(AccountModel.id == account_id)
         )
@@ -53,8 +63,14 @@ class AccountService:
             return None
 
         update_data = account_data.model_dump(exclude_unset=True)
+        
+        # Update fields
         for field, value in update_data.items():
             setattr(db_account, field, value)
+
+        # Update available credit if this is a credit account
+        if db_account.type == "credit":
+            self._update_available_credit(db_account)
 
         await self.session.commit()
         await self.session.refresh(db_account)
@@ -129,9 +145,9 @@ class AccountService:
         if db_account.type != "credit":
             raise ValueError("Credit limit can only be set for credit accounts")
 
-        # Update account's total limit
+        # Update account's total limit and recalculate available credit
         db_account.total_limit = credit_limit_data.credit_limit
-        db_account.update_available_credit()
+        self._update_available_credit(db_account)
 
         # Create credit limit history entry
         history_entry = CreditLimitHistory(

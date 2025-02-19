@@ -71,11 +71,13 @@ Validation Layer Standardization - Phase 2: Model Simplification
 ### Current Implementation Plan
 
 #### Phase 2: Model Simplification
-1. **Account Model**
-   - [ ] Remove @validates decorators
-   - [ ] Move business logic to service
-   - [ ] Update tests
-   - [ ] Document changes
+1. **Account Model** ✓
+   - [x] Remove @validates decorators
+   - [x] Move business logic to service
+   - [x] Remove update_available_credit method
+   - [x] Add _update_available_credit to service
+   - [x] Update tests to focus on data structure
+   - [x] Document changes
 
 2. **Payment Model**
    - [ ] Remove validation logic

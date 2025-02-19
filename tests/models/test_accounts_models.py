@@ -85,17 +85,13 @@ async def test_create_checking_account(db_session: AsyncSession):
 
 async def test_create_credit_account(db_session: AsyncSession):
     """Test creating a credit account with limit"""
-    # Create account first with type and limit
     account = Account(
         name="Basic Credit Card",
         type="credit",
-        total_limit=Decimal("2000.00")
+        total_limit=Decimal("2000.00"),
+        available_balance=Decimal("-500.00"),
+        available_credit=Decimal("1500.00")  # Set directly as this is now managed by service
     )
-    db_session.add(account)
-    await db_session.commit()
-    
-    # Then set the balance which will trigger available_credit calculation
-    account.available_balance = Decimal("-500.00")
     db_session.add(account)
     await db_session.commit()
     await db_session.refresh(account)
@@ -105,7 +101,6 @@ async def test_create_credit_account(db_session: AsyncSession):
     assert account.type == "credit"
     assert account.available_balance == Decimal("-500.00")
     assert account.total_limit == Decimal("2000.00")
-    # Available credit should be total_limit minus the absolute value of the balance
     assert account.available_credit == Decimal("1500.00")
     assert account.created_at.tzinfo is None
     assert account.updated_at.tzinfo is None
@@ -140,78 +135,3 @@ async def test_update_account_balance(db_session: AsyncSession, base_account: Ac
     assert base_account.available_balance == Decimal("1500.00")
     assert base_account.created_at.tzinfo is None
     assert base_account.updated_at.tzinfo is None
-
-async def test_after_update_event_listener(db_session: AsyncSession):
-    """Test that the after_update event listener updates available credit"""
-    # Create a credit account with initial values
-    credit_account = Account(
-        name="Event Listener Test Card",
-        type="credit",
-        total_limit=Decimal("5000.00"),
-        available_balance=Decimal("0.00")  # Set initial balance to trigger available_credit calculation
-    )
-    db_session.add(credit_account)
-    await db_session.commit()
-    await db_session.refresh(credit_account)
-
-    # Initial state - no balance used
-    assert credit_account.available_credit == Decimal("5000.00")
-
-    # Test 1: Update balance which should trigger the event listener
-    credit_account.available_balance = Decimal("-2000.00")
-    await db_session.commit()
-    await db_session.refresh(credit_account)
-
-    # Available credit should be recalculated by the event listener
-    # total_limit (5000) - abs(available_balance) (2000) = 3000
-    assert credit_account.available_credit == Decimal("3000.00")
-
-    # Test 2: Update total limit which should also trigger the event listener
-    credit_account.total_limit = Decimal("6000.00")
-    await db_session.flush()  # Ensure the update is processed
-    await db_session.commit()
-    await db_session.refresh(credit_account)
-
-    # Available credit should be recalculated by the event listener
-    # new total_limit (6000) - abs(available_balance) (2000) = 4000
-    assert credit_account.available_credit == Decimal("4000.00")
-
-async def test_credit_account_available_credit(db_session: AsyncSession):
-    """Test available credit calculation for credit accounts"""
-    credit_account = Account(
-        name="Available Credit Test Card",
-        type="credit",
-        total_limit=Decimal("1000.00")
-    )
-    db_session.add(credit_account)
-    await db_session.commit()
-
-    # Set initial balance
-    credit_account.available_balance = Decimal("0.00")
-    db_session.add(credit_account)
-    await db_session.commit()
-
-    # Initial state - no balance used
-    assert credit_account.available_credit == Decimal("1000.00")
-    assert credit_account.created_at.tzinfo is None
-    assert credit_account.updated_at.tzinfo is None
-
-    # Use some credit
-    credit_account.available_balance = Decimal("-300.00")
-    await db_session.commit()
-    await db_session.refresh(credit_account)
-
-    # Available credit should be reduced
-    assert credit_account.available_credit == Decimal("700.00")
-    assert credit_account.created_at.tzinfo is None
-    assert credit_account.updated_at.tzinfo is None
-
-    # Use all credit
-    credit_account.available_balance = Decimal("-1000.00")
-    await db_session.commit()
-    await db_session.refresh(credit_account)
-
-    # No credit should be available
-    assert credit_account.available_credit == Decimal("0.00")
-    assert credit_account.created_at.tzinfo is None
-    assert credit_account.updated_at.tzinfo is None

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.81] - 2025-02-18
+
+### Changed
+- Improved Account model and service layer separation:
+  * Removed update_available_credit method from Account model
+  * Added _update_available_credit to AccountService
+  * Simplified Account model to pure data structure
+  * Enhanced service layer credit calculations
+  * Updated tests to focus on data integrity
+  * Improved separation of concerns
+  * Maintained full test coverage
+
 ## [0.3.80] - 2025-02-18
 
 ### Changed

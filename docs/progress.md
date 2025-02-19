@@ -128,6 +128,17 @@
    - [x] Key Improvements implemented
    - [x] Test Updates completed
 
+### Model Simplification Progress
+1. **Account Model (Completed)** ✓
+   - [x] Removed @validates decorators
+   - [x] Removed update_available_credit method from model
+   - [x] Added _update_available_credit to service layer
+   - [x] Simplified model to pure data structure
+   - [x] Enhanced service layer with credit calculations
+   - [x] Updated tests to focus on data integrity
+   - [x] Maintained full test coverage
+   - [x] Improved separation of concerns
+
 ### Next Phase: Service Layer Updates
 1. **Cashflow Service**
    - [ ] DateTime Creation
