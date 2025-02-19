@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.80] - 2025-02-18
+
+### Changed
+- Enhanced Analysis/Forecast schema validation:
+  * Updated payment_patterns schema with V2-style validators and comprehensive validation
+  * Enhanced income_trends schema with proper enum types and cross-field validation
+  * Improved realtime_cashflow schema with account type safety and decimal precision
+  * Added proper timezone handling across all analysis schemas
+  * Added comprehensive JSON schema examples
+  * Added validation for business rules and calculations
+
 ## [0.3.79] - 2025-02-17
 
 ### Added

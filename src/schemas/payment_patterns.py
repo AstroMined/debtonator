@@ -1,9 +1,10 @@
-from datetime import datetime, timezone
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from decimal import Decimal
 from enum import Enum
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class PatternType(str, Enum):
@@ -46,17 +47,44 @@ class PaymentPatternAnalysis(BaseModel):
     notes: Optional[List[str]] = None
     seasonal_metrics: Optional[Dict[int, SeasonalMetrics]] = None
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        # Ensure analysis period dates are UTC
-        if self.analysis_period_start and not self.analysis_period_start.tzinfo:
-            self.analysis_period_start = self.analysis_period_start.replace(tzinfo=timezone.utc)
-        if self.analysis_period_end and not self.analysis_period_end.tzinfo:
-            self.analysis_period_end = self.analysis_period_end.replace(tzinfo=timezone.utc)
+    @field_validator("analysis_period_start", "analysis_period_end", mode="before")
+    @classmethod
+    def validate_timezone(cls, value: Optional[datetime]) -> Optional[datetime]:
+        if value is None:
+            return None
+        if not isinstance(value, datetime):
+            raise ValueError("Must be a datetime object")
+        if value.tzinfo is None:
+            raise ValueError("Datetime must be timezone-aware")
+        if value.tzinfo != ZoneInfo("UTC"):
+            raise ValueError("Datetime must be in UTC timezone")
+        return value
 
     class Config:
         json_encoders = {
             Decimal: lambda v: float(v)
+        }
+        json_schema_extra = {
+            "example": {
+                "pattern_type": "REGULAR",
+                "confidence_score": 0.95,
+                "frequency_metrics": {
+                    "average_days_between": 30.5,
+                    "std_dev_days": 1.2,
+                    "min_days": 29,
+                    "max_days": 32
+                },
+                "amount_statistics": {
+                    "average_amount": "150.00",
+                    "std_dev_amount": "10.00",
+                    "min_amount": "140.00",
+                    "max_amount": "160.00",
+                    "total_amount": "1500.00"
+                },
+                "sample_size": 10,
+                "analysis_period_start": "2024-01-01T00:00:00Z",
+                "analysis_period_end": "2024-12-31T23:59:59Z"
+            }
         }
 
 
@@ -68,10 +96,26 @@ class PaymentPatternRequest(BaseModel):
     min_sample_size: int = Field(default=3, ge=2, description="Minimum number of payments required for analysis (2 for bill-specific analysis, 3 for general analysis)")
     liability_id: Optional[int] = None
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        # Ensure any provided dates are UTC
-        if self.start_date and not self.start_date.tzinfo:
-            self.start_date = self.start_date.replace(tzinfo=timezone.utc)
-        if self.end_date and not self.end_date.tzinfo:
-            self.end_date = self.end_date.replace(tzinfo=timezone.utc)
+    @field_validator("start_date", "end_date", mode="before")
+    @classmethod
+    def validate_timezone(cls, value: Optional[datetime]) -> Optional[datetime]:
+        if value is None:
+            return None
+        if not isinstance(value, datetime):
+            raise ValueError("Must be a datetime object")
+        if value.tzinfo is None:
+            raise ValueError("Datetime must be timezone-aware")
+        if value.tzinfo != ZoneInfo("UTC"):
+            raise ValueError("Datetime must be in UTC timezone")
+        return value
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "account_id": 1,
+                "category_id": "utilities",
+                "start_date": "2024-01-01T00:00:00Z",
+                "end_date": "2024-12-31T23:59:59Z",
+                "min_sample_size": 3
+            }
+        }
