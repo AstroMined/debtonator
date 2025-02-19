@@ -263,6 +263,10 @@ def calculate_hourly_rate(required_income: Decimal, hours_per_week: int) -> Deci
 
 ## Development Setup
 1. Python virtual environment with UV
+   - Centralized configuration in pyproject.toml
+   - Dependency management with UV
+   - Project metadata and build settings
+   - Test configuration (pytest)
 2. Node.js for frontend development
 3. Local database instance
 4. Development tools:

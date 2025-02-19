@@ -1,4 +1,4 @@
-# Debtonator v0.3.82
+# Debtonator v0.3.83
 
 A modern bill and cashflow management system that helps track bills, income, and maintain sufficient account balances for timely bill payments.
 
@@ -255,8 +255,11 @@ cd debtonator
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install UV for dependency management
+pip install uv
+
+# Install dependencies using UV
+uv pip install .
 
 # Set up environment variables
 cp .env.example .env
@@ -495,7 +498,7 @@ The project includes a comprehensive test suite focusing on data integrity and m
 
 ### Running Tests
 ```bash
-# Run all tests
+# Run all tests (using configuration from pyproject.toml)
 pytest -q --tb=no --disable-warnings
 
 # Run specific test file
@@ -503,6 +506,8 @@ pytest tests/models/test_accounts.py -v
 
 # Run specific test
 pytest tests/models/test_accounts.py::TestAccount::test_create_checking_account -v
+
+Note: Test configuration is managed in pyproject.toml under [tool.pytest.ini_options]
 ```
 
 ## Contributing
