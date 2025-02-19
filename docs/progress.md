@@ -1,132 +1,6 @@
 # Progress: Debtonator
 
-## Current Priority: Validation Layer Standardization - Phase 1
-
-### Schema Enhancement Progress
-
-1. **Account Schema Updates (Completed)** ✓
-   - [x] Added comprehensive field validation with proper constraints
-   - [x] Implemented credit account specific business rules
-   - [x] Added proper datetime handling with UTC enforcement
-   - [x] Updated to Pydantic V2 compliant validation patterns
-   - [x] Added complete test coverage with all tests passing
-
-2. **Next Schema Updates**
-   - [x] Payment Schemas ✓
-     * Added comprehensive field validation with proper constraints
-     * Implemented V2-style validators for all payment schemas
-     * Added proper UTC datetime handling
-     * Added amount precision validation
-     * Added payment source validation with duplicate checks
-     * Added complete test coverage with all tests passing
-   - [x] Bill/Liability Schemas ✓
-     * Added comprehensive field validation with proper constraints
-     * Implemented V2-style validators for all liability schemas
-     * Added proper UTC datetime handling
-     * Added amount precision validation
-     * Added auto-pay settings validation
-     * Added complete test coverage with all tests passing
-   - [x] Income Schemas ✓
-     * Added comprehensive field validation with proper constraints
-     * Implemented V2-style validators for all income schemas
-     * Added proper UTC datetime handling
-     * Added amount precision validation
-     * Added deposit status validation
-     * Added complete test coverage with all tests passing
-   - [ ] Analysis/Forecast Schemas
-
-### Previous Work (Completed) ✓
-1. **ADR-011 Compliance Review** ✓
-   - [x] Completed comprehensive review of all model files
-   - [x] Created ADR-011 compliance review document
-   - [x] Identified test coverage gaps
-   - [x] Documented required improvements
-   - [x] Implemented all improvements
-
-2. **Missing Test Files (Completed)** ✓
-   - [x] test_balance_history_models.py
-   - [x] test_bill_splits_models.py
-   - [x] test_deposit_schedules_models.py
-   - [x] test_income_categories_models.py
-   - [x] test_payment_schedules_models.py
-
-3. **Tests Requiring Updates (Completed)** ✓
-   - [x] test_accounts_models.py: Updated to use naive_utc_now()
-   - [x] test_categories_models.py: Added test_datetime_handling function
-   - [x] test_transaction_history_models.py: Added datetime component verification
-
-4. **Fully Compliant Test Files** ✓
-   - All model test files now fully compliant with ADR-011
-   - Comprehensive datetime handling tests in place
-   - Proper relationship loading patterns implemented
-   - Standardized test patterns across all files
-
-### SQLite Configuration (Completed) ✓
-- [x] SQLite Timezone Support
-  - [x] Added proper UTC timezone support in SQLite configuration
-  - [x] Fixed timezone-aware datetime handling in database engine
-  - [x] Updated SQLite connection settings for consistent UTC handling
-  - [x] Fixed failing tests in liabilities and recurring bills
-
-### Phase 1: Core Updates (Completed) ✓
-- [x] BaseModel Changes
-  - [x] Created BaseDBModel with UTC timezone-aware created_at/updated_at fields
-  - [x] Removed all date field usage
-  - [x] Added datetime validation to ensure UTC
-  - [x] Updated model relationships to use UTC datetime
-- [x] Model Updates
-  - [x] Payment dates to UTC datetime
-  - [x] Bill due dates to UTC datetime
-  - [x] Income dates to UTC datetime
-  - [x] Transaction dates to UTC datetime
-  - [x] Statement dates to UTC datetime
-  - [x] Schedule dates to UTC datetime
-
-### Phase 2: Service Updates (Completed) ✓
-- [x] Cashflow Service
-  - [x] Update all datetime creation points
-  - [x] Fix date arithmetic to use UTC datetime
-  - [x] Update forecast calculations
-  - [x] Fix historical analysis
-  - [x] Update tests with UTC fixtures
-- [x] Payment Services
-  - [x] Update pattern detection datetime handling
-  - [x] Fix scheduling logic to use UTC
-  - [x] Update recurring payment calculations
-  - [x] Fix test fixtures
-- [x] Analysis Services
-  - [x] Update historical analysis periods
-  - [x] Fix trend calculations
-  - [x] Update seasonal analysis
-  - [x] Fix test data
-
-### Phase 3: Schema-based Validation and Model Cleanup (Completed) ✓
-1. **Base Schema Validator Implementation** ✓
-   - [x] Create BaseSchemaValidator class
-   - [x] Create test suite for base validator
-   - [x] Add validation error messages
-
-2. **Schema Updates** ✓
-   - [x] Payment Schemas
-   - [x] Bill/Liability Schemas
-   - [x] Income Schemas
-   - [x] Account/Transaction Schemas
-   - [x] Analysis/Forecast Schemas
-
-3. **Model Simplification** ✓
-   - [x] Remove timezone=True
-   - [x] Update Default Values
-   - [x] Documentation
-
-4. **Database Reinitialization** ✓
-   - [x] Cleanup
-   - [x] Reinitialization
-   - [x] Validation
-
-5. **Model Timezone Audit** ✓
-   - [x] Standardized datetime handling across all models
-   - [x] Key Improvements implemented
-   - [x] Test Updates completed
+## Current Priority: Validation Layer Standardization - Phase 2
 
 ### Model Simplification Progress
 1. **Account Model (Completed)** ✓
@@ -139,97 +13,95 @@
    - [x] Maintained full test coverage
    - [x] Improved separation of concerns
 
+2. **Payment Model (Completed)** ✓
+   - [x] Reviewed model against ADR-012 standards
+   - [x] Confirmed no @validates decorators present
+   - [x] Verified no business logic in model
+   - [x] Validated proper relationship definitions
+   - [x] Confirmed tests focus on data structure
+   - [x] Verified UTC datetime handling
+   - [x] Documentation already up to date
+
+3. **Bill/Liability Model (Completed)** ✓
+   - [x] Reviewed model against ADR-012 standards
+   - [x] Confirmed no validation logic present
+   - [x] Verified proper relationship definitions
+   - [x] Enhanced documentation with clear responsibility boundaries
+   - [x] Added comprehensive field documentation
+   - [x] Organized fields into logical groups
+   - [x] Verified tests focus on data structure
+   - [x] Confirmed proper UTC datetime handling
+
 ### Next Phase: Service Layer Updates
-1. **Cashflow Service**
-   - [ ] DateTime Creation
-   - [ ] Forecast Calculations
-   - [ ] Historical Analysis
-   - [ ] Test Updates
+1. **Income Model**
+   - [ ] Review current implementation
+   - [ ] Identify validation logic to remove
+   - [ ] Update relationships if needed
+   - [ ] Update tests to focus on data structure
+   - [ ] Document changes
 
-2. **Payment Services**
-   - [ ] Pattern Detection
-   - [ ] Scheduling Logic
-   - [ ] Test Fixtures
-
-3. **Analysis Services**
-   - [ ] Historical Analysis
-   - [ ] Trend Calculations
-   - [ ] Test Data
+2. **Service Layer Enhancement**
+   - [ ] Account Service
+     * Add validation methods
+     * Move business logic
+     * Update tests
+     * Document patterns
+   - [ ] Payment Service
+     * Add validation methods
+     * Move business logic
+     * Update tests
+     * Document patterns
+   - [ ] Bill/Liability Service
+     * Add validation methods
+     * Move business logic
+     * Update tests
+     * Document patterns
+   - [ ] Income Service
+     * Add validation methods
+     * Move business logic
+     * Update tests
+     * Document patterns
 
 ### Documentation Updates
-1. **ADR-011 Updates**
-   - [ ] Document Changes
-   - [ ] Migration Notes
-   - [ ] Validation Examples
+1. **ADR-012 Updates**
+   - [ ] Document model simplification progress
+   - [ ] Add validation examples
+   - [ ] Document service layer patterns
 
 2. **Technical Documentation**
-   - [ ] Schema Documentation
-   - [ ] Testing Guide
-   - [ ] Migration Guide
-
-### Paused Work
-API Enhancement Project - Phase 6 (Paused)
-- Recommendations
-- Trend reporting
-- Frontend development
+   - [ ] Update model documentation
+   - [ ] Add service layer patterns
+   - [ ] Create validation guide
 
 ### Recent Improvements
-1. **Test Coverage Improvements** ✓
-   - Added test for Account after_insert event listener
-   - Added test for Category full_path with no parent
-   - Removed unused imports from models
-   - Improved overall model test coverage to 99%
-   - Fixed statement history due date calculation to use statement_date
-   - Fixed transaction history string representation test
-   - Added comprehensive due date handling test
-   - Updated test assertions to match model implementation
+1. **Bill/Liability Model Enhancement** ✓
+   - Added comprehensive class-level documentation
+   - Improved field documentation
+   - Organized fields into logical groups
+   - Added explicit schema vs service layer responsibilities
+   - Maintained proper UTC datetime handling
+   - Verified ADR-012 compliance
 
-2. **Test Fixture Centralization** ✓
-   - [x] Moved duplicate fixtures to tests/models/conftest.py
-   - [x] Standardized fixture scope and naming
-   - [x] Improved relationship handling in fixtures
-   - [x] Enhanced database state management
-   - [x] Fixed hardcoded ID references
-
-2. **Test Suite Standardization** ✓
-   - [x] Created all missing test files
-   - [x] Updated existing tests for datetime handling
-   - [x] Added comprehensive datetime verification
-   - [x] Standardized test patterns
-   - [x] Improved relationship loading tests
-
-2. **Model Standardization** ✓
-   - [x] Removed all timezone=True parameters
-   - [x] Standardized datetime field definitions
-   - [x] Updated default values to use naive_utc_now
-   - [x] Added clear UTC documentation
-   - [x] Fixed RecurringIncome UTC handling
-
-3. **Documentation** ✓
-   - [x] Updated model documentation
-   - [x] Added UTC requirements to comments
-   - [x] Documented naive datetime usage
-   - [x] Updated .clinerules
+2. **Account Model Enhancement** ✓
+   - Removed update_available_credit method
+   - Added _update_available_credit to service
+   - Simplified model to pure data structure
+   - Enhanced service layer credit calculations
+   - Updated tests to focus on data integrity
+   - Improved separation of concerns
+   - Maintained full test coverage
 
 ## Next Steps
-1. **Service Layer Updates**
-   - [ ] Update Cashflow Service datetime handling
-   - [ ] Fix Payment Services date calculations
-   - [ ] Update Analysis Services period handling
-   - [ ] Update test fixtures and assertions
+1. **Income Model Simplification**
+   - Review current income model implementation
+   - Identify any validation logic to remove
+   - Update relationships if needed
+   - Update tests to focus on data structure
+   - Document changes
 
 2. **Documentation Updates**
-   - [ ] Update ADR-011 with implementation details
-   - [ ] Document schema validation approach
-   - [ ] Create migration guide
-   - [ ] Update technical documentation
-
-## Future Work
-1. Resume API Enhancement Project
-   - Complete recommendation engine
-   - Implement trend reporting
-   - Add remaining analysis features
-2. Begin Frontend Development
-   - Implement datetime handling
-   - Add timezone display
-   - Update validation
+   - Document completed model simplifications
+   - Update technical documentation
+   - Add validation examples
+   - Document patterns
+   - Update ADRs

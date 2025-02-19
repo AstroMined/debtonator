@@ -20,8 +20,13 @@ class Liability(BaseDBModel):
     """
     Liability model representing a bill that needs to be paid.
     
-    All datetime fields are stored in UTC format, with timezone validation enforced
-    through Pydantic schemas.
+    This model focuses purely on data structure, with all validation and business logic
+    handled at the schema and service layers respectively:
+    - Data validation: Enforced through Pydantic schemas
+    - Business logic: Implemented in the liability service
+    - Datetime fields: Stored in UTC format, validated by schemas
+    - Auto-pay logic: Managed by service layer
+    - Status transitions: Controlled by service layer
     """
     __tablename__ = "liabilities"
 
@@ -37,27 +42,55 @@ class Liability(BaseDBModel):
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     recurring: Mapped[bool] = mapped_column(Boolean, default=False)
     recurring_bill_id: Mapped[Optional[int]] = mapped_column(ForeignKey("recurring_bills.id"), nullable=True)
-    recurrence_pattern: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    recurrence_pattern: Mapped[Optional[dict]] = mapped_column(
+        JSON, 
+        nullable=True,
+        doc="JSON structure defining recurrence rules. Validation handled by schema."
+    )
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
     category: Mapped["Category"] = relationship("Category", back_populates="bills")
     primary_account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
+
+    # Auto-pay configuration - all validation and processing handled by service layer
     auto_pay: Mapped[bool] = mapped_column(Boolean, default=False)
-    auto_pay_settings: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)  # For preferred payment date, method, etc.
+    auto_pay_settings: Mapped[Optional[dict]] = mapped_column(
+        JSON, 
+        nullable=True,
+        doc="JSON configuration for auto-pay preferences. Validation in schema layer."
+    )
     last_auto_pay_attempt: Mapped[Optional[datetime]] = mapped_column(
         DateTime(),  # No timezone parameter - enforced by schema
         nullable=True,
         doc="UTC timestamp of the last auto-pay attempt"
     )
-    auto_pay_enabled: Mapped[bool] = mapped_column(Boolean, default=False)  # Separate from auto_pay flag for temporary enable/disable
+    auto_pay_enabled: Mapped[bool] = mapped_column(
+        Boolean, 
+        default=False,
+        doc="Temporary enable/disable flag for auto-pay. State transitions managed by service."
+    )
+
+    # Status fields - all transitions and validation handled by service layer
     status: Mapped[LiabilityStatus] = mapped_column(
         SQLEnum(LiabilityStatus),
-        default=LiabilityStatus.PENDING
+        default=LiabilityStatus.PENDING,
+        doc="Current state of the liability. Transitions managed by service layer."
     )
-    paid: Mapped[bool] = mapped_column(Boolean, default=False)
-    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    paid: Mapped[bool] = mapped_column(
+        Boolean, 
+        default=False,
+        doc="Payment status flag. Updates managed by service layer."
+    )
+    active: Mapped[bool] = mapped_column(
+        Boolean, 
+        default=True,
+        doc="Active status flag. State managed by service layer."
+    )
 
     # Relationships
-    recurring_bill: Mapped[Optional["RecurringBill"]] = relationship("RecurringBill", back_populates="liabilities")
+    recurring_bill: Mapped[Optional["RecurringBill"]] = relationship(
+        "RecurringBill", 
+        back_populates="liabilities"
+    )
     primary_account: Mapped["Account"] = relationship(
         "Account",
         foreign_keys=[primary_account_id],

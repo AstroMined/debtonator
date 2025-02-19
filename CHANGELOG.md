@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.82] - 2025-02-18
+
+### Changed
+- Enhanced Bill/Liability model documentation and organization:
+  * Added comprehensive class-level documentation clarifying responsibility boundaries
+  * Improved field documentation with validation and service layer notes
+  * Organized fields into logical groups with clear comments
+  * Added explicit documentation about schema vs service layer responsibilities
+  * Maintained proper UTC datetime handling
+  * Verified model complies with ADR-012 standards
+
 ## [0.3.81] - 2025-02-18
 
 ### Changed

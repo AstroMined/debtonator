@@ -37,36 +37,22 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Document service patterns
 
 ### Recent Changes
-1. **Analysis/Forecast Schema Enhancement (Completed)** ✓
-   - Updated payment_patterns schema with V2-style validators
-   - Enhanced income_trends schema with proper enum types
-   - Improved realtime_cashflow schema with type safety
-   - Added proper timezone handling across all schemas
-   - Added comprehensive JSON schema examples
-   - Added validation for business rules and calculations
+1. **Bill/Liability Model Enhancement (Completed)** ✓
+   - Added comprehensive class-level documentation clarifying responsibility boundaries
+   - Improved field documentation with validation and service layer notes
+   - Organized fields into logical groups with clear comments
+   - Added explicit documentation about schema vs service layer responsibilities
+   - Maintained proper UTC datetime handling
+   - Verified model complies with ADR-012 standards
 
-2. **Bill/Liability Schema Enhancement (Completed)** ✓
-   - Added comprehensive field validation with proper constraints
-   - Implemented V2-style validators for all liability schemas
-   - Added proper UTC datetime handling
-   - Added amount precision validation
-   - Added auto-pay settings validation
-   - Added complete test coverage with all tests passing
-
-3. **Payment Schema Enhancement (Completed)** ✓
-   - Added comprehensive field validation with proper constraints
-   - Implemented V2-style validators for all payment schemas
-   - Added proper UTC datetime handling
-   - Added amount precision validation
-   - Added payment source validation with duplicate checks
-   - Added complete test coverage with all tests passing
-
-4. **Account Schema Enhancement (Completed)** ✓
-   - Added comprehensive field validation with proper constraints
-   - Implemented credit account specific business rules
-   - Added proper datetime handling with UTC enforcement
-   - Updated to Pydantic V2 compliant validation patterns
-   - Added complete test coverage with all tests passing
+2. **Account Model Enhancement (Completed)** ✓
+   - Removed update_available_credit method from Account model
+   - Added _update_available_credit to AccountService
+   - Simplified Account model to pure data structure
+   - Enhanced service layer credit calculations
+   - Updated tests to focus on data integrity
+   - Improved separation of concerns
+   - Maintained full test coverage
 
 ### Current Implementation Plan
 
@@ -79,17 +65,17 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - [x] Update tests to focus on data structure
    - [x] Document changes
 
-2. **Payment Model**
-   - [ ] Remove validation logic
-   - [ ] Update relationships
-   - [ ] Update tests
-   - [ ] Document changes
+2. **Payment Model** ✓
+   - [x] Remove validation logic (Already compliant)
+   - [x] Update relationships (Already properly defined)
+   - [x] Update tests (Already focused on data structure)
+   - [x] Document changes (Documentation up to date)
 
-3. **Bill/Liability Model**
-   - [ ] Remove validation logic
-   - [ ] Update relationships
-   - [ ] Update tests
-   - [ ] Document changes
+3. **Bill/Liability Model** ✓
+   - [x] Remove validation logic (Already compliant)
+   - [x] Update relationships (Already properly defined)
+   - [x] Update tests (Already focused on data structure)
+   - [x] Document changes (Added comprehensive documentation)
 
 4. **Income Model**
    - [ ] Remove validation logic
@@ -142,14 +128,15 @@ Validation Layer Standardization - Phase 2: Model Simplification
   - Frontend development (paused)
 
 ## Next Steps
-1. **Begin Model Simplification**
-   - Start with Account model cleanup
-   - Remove model-level validation
-   - Move business logic to services
-   - Update tests to reflect changes
+1. **Begin Income Model Simplification**
+   - Review current income model implementation
+   - Identify any validation logic to remove
+   - Update relationships if needed
+   - Update tests to focus on data structure
+   - Document changes
 
 2. **Documentation Updates**
-   - Document completed schema enhancements
+   - Document completed model simplifications
    - Update technical documentation
    - Add validation examples
    - Document patterns
