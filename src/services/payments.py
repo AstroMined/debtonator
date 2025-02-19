@@ -1,5 +1,6 @@
-from datetime import date
-from typing import List, Optional
+from datetime import date, datetime
+from decimal import Decimal
+from typing import List, Optional, Tuple
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -7,10 +8,58 @@ from sqlalchemy.orm import joinedload
 from ..models.payments import Payment, PaymentSource
 from ..models.accounts import Account
 from ..schemas.payments import PaymentCreate, PaymentUpdate
+from ..models.liabilities import Liability
+from ..models.income import Income
 
 class PaymentService:
     def __init__(self, db: AsyncSession):
         self.db = db
+
+    async def validate_account_availability(
+        self,
+        sources: List[dict]
+    ) -> Tuple[bool, Optional[str]]:
+        """Validates accounts exist and have sufficient funds/credit."""
+        for source in sources:
+            account_result = await self.db.execute(
+                select(Account).filter(Account.id == source['account_id'])
+            )
+            account = account_result.scalar_one_or_none()
+            if not account:
+                return False, f"Account {source['account_id']} not found"
+
+            # Validate account has sufficient funds/credit
+            source_amount = Decimal(str(source['amount']))
+            if account.type == 'credit':
+                if account.available_credit < source_amount:
+                    return False, f"Insufficient credit in account {account.name}"
+            else:
+                if account.available_balance < source_amount:
+                    return False, f"Insufficient funds in account {account.name}"
+
+        return True, None
+
+    async def validate_references(
+        self,
+        liability_id: Optional[int],
+        income_id: Optional[int]
+    ) -> Tuple[bool, Optional[str]]:
+        """Validates optional liability and income references exist."""
+        if liability_id:
+            liability_result = await self.db.execute(
+                select(Liability).filter(Liability.id == liability_id)
+            )
+            if not liability_result.scalar_one_or_none():
+                return False, f"Liability {liability_id} not found"
+
+        if income_id:
+            income_result = await self.db.execute(
+                select(Income).filter(Income.id == income_id)
+            )
+            if not income_result.scalar_one_or_none():
+                return False, f"Income {income_id} not found"
+
+        return True, None
 
     async def get_payments(self, skip: int = 0, limit: int = 100) -> List[Payment]:
         stmt = (
@@ -33,16 +82,20 @@ class PaymentService:
         return result.unique().scalar_one_or_none()
 
     async def create_payment(self, payment_create: PaymentCreate) -> Payment:
-        # Validate payment sources
-        payment_create.validate_sources()
-        
-        # Validate accounts exist
-        for source in payment_create.sources:
-            account_result = await self.db.execute(
-                select(Account).filter(Account.id == source.account_id)
-            )
-            if not account_result.scalar_one_or_none():
-                raise ValueError(f"Account {source.account_id} not found")
+        # Validate account availability
+        valid, error = await self.validate_account_availability(
+            [source.model_dump() for source in payment_create.sources]
+        )
+        if not valid:
+            raise ValueError(error)
+
+        # Validate references
+        valid, error = await self.validate_references(
+            payment_create.liability_id,
+            payment_create.income_id
+        )
+        if not valid:
+            raise ValueError(error)
 
         # Create payment
         db_payment = Payment(
@@ -84,17 +137,22 @@ class PaymentService:
         if not db_payment:
             return None
 
-        # Update payment fields first
+        # Prepare update data
         update_data = payment_update.model_dump(exclude_unset=True, exclude={'sources'})
+
+        # Update payment fields
         for key, value in update_data.items():
             setattr(db_payment, key, value)
 
-        # If sources are being updated, validate them with the new payment amount
+        # If sources are being updated, validate account availability
         if payment_update.sources is not None:
-            # Use the new payment amount if it was updated, otherwise use existing amount
-            current_amount = payment_update.amount if payment_update.amount is not None else db_payment.amount
-            payment_update.validate_sources(current_amount)
-            
+            # Validate account availability
+            valid, error = await self.validate_account_availability(
+                [source.model_dump() for source in payment_update.sources]
+            )
+            if not valid:
+                raise ValueError(error)
+
             # Clear existing sources and set new ones
             db_payment.sources = [
                 PaymentSource(

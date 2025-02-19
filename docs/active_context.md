@@ -108,11 +108,25 @@ Validation Layer Standardization - Phase 2: Model Simplification
      * Added validation examples
      * Documented error handling
 
-2. **Payment Service**
-   - [ ] Add validation methods
-   - [ ] Move business logic
-   - [ ] Update tests
-   - [ ] Document patterns
+2. **Payment Service (Completed)** ✓
+   - [x] Moved validation to proper layers:
+     * Basic validation in Pydantic schemas (amount, dates, source totals)
+     * Business logic in service layer (account availability, references)
+     * Proper UTC enforcement via BaseSchemaValidator
+   - [x] Enhanced service layer:
+     * Account availability checks
+     * Reference validation
+     * Transaction management
+     * State updates
+   - [x] Added comprehensive test coverage:
+     * Business logic tests in service layer
+     * Account availability tests
+     * Reference validation tests
+     * Create/Update operation tests
+   - [x] Documented patterns:
+     * Clear separation of validation layers
+     * Proper business logic handling
+     * Alignment with ADR-011 and ADR-012
 
 3. **Bill/Liability Service**
    - [ ] Add validation methods

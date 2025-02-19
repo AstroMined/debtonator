@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.86] - 2025-02-18
+
+### Changed
+- Enhanced Payment Service validation layer:
+  * Moved basic validation to Pydantic schemas (amount, dates, source totals)
+  * Proper UTC enforcement via BaseSchemaValidator
+  * Business logic isolated in service layer (account availability, references)
+  * Improved separation of concerns aligning with ADR-011 and ADR-012
+  * Added comprehensive test coverage for business logic
+
 ## [0.3.85] - 2025-02-18
 
 ### Added

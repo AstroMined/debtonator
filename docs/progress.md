@@ -68,19 +68,50 @@
    - Maintained proper UTC datetime handling
    - Verified ADR-012 compliance
 
-### Next Phase: Service Layer Updates
+### Service Layer Enhancement Progress
 
-1. **Service Layer Enhancement**
-   - [ ] Account Service
-     * Add validation methods
-     * Move business logic
-     * Update tests
-     * Document patterns
-   - [ ] Payment Service
-     * Add validation methods
-     * Move business logic
-     * Update tests
-     * Document patterns
+1. **Account Service (Completed)** ✓
+   - [x] Added validation methods
+     * Added validate_account_balance
+     * Added validate_credit_limit_update
+     * Added validate_transaction
+     * Added validate_statement_update
+     * Added validate_account_deletion
+   - [x] Moved business logic
+     * Moved all validation to service layer
+     * Enhanced error handling
+     * Improved type safety
+   - [x] Added comprehensive test coverage
+     * Account creation validation
+     * Credit limit update validation
+     * Statement balance validation
+     * Account deletion validation
+     * Transaction validation
+     * Edge case handling
+   - [x] Updated documentation
+     * Service layer patterns
+     * Validation examples
+     * Error handling documentation
+
+2. **Payment Service (Completed)** ✓
+   - [x] Aligned with ADR-011 and ADR-012:
+     * Moved basic validation to Pydantic schemas
+     * Proper UTC enforcement via BaseSchemaValidator
+     * Business logic isolated in service layer
+   - [x] Enhanced service layer:
+     * Account availability validation
+     * Reference validation (liability/income)
+     * Transaction management
+     * State updates
+   - [x] Added comprehensive test coverage:
+     * Account availability tests
+     * Reference validation tests
+     * Create/Update operation tests
+     * Business logic tests
+   - [x] Documented patterns:
+     * Clear separation of validation layers
+     * Proper business logic handling
+     * Alignment with architectural decisions
    - [ ] Bill/Liability Service
      * Add validation methods
      * Move business logic
@@ -94,9 +125,10 @@
 
 ### Documentation Updates
 1. **ADR-012 Updates**
-   - [ ] Document model simplification progress
-   - [ ] Add validation examples
-   - [ ] Document service layer patterns
+   - [x] Document model simplification progress
+   - [x] Add validation examples for Account Service
+   - [x] Add validation examples for Payment Service
+   - [ ] Document remaining service layer patterns
 
 2. **Technical Documentation**
    - [ ] Update model documentation

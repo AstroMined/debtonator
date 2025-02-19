@@ -3,7 +3,7 @@
 - **SWITCH TO PLAN MODE IF YOU'RE NOT ALREADY THERE!!!**
 - follow your custom instructions
 - refer to .clinerules
-- Formulate a plan to continue on with the in-progress items, but keep the scope limited to work that can completed in a single session.
+- Formulate a plan to continue on with the in-progress items, but keep the scope limited to work that can be completed in a single session.
 
 # End session
 

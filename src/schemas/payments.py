@@ -54,14 +54,6 @@ class PaymentBase(BaseSchemaValidator):
             raise ValueError("Amount must have at most 2 decimal places")
         return value
 
-    @field_validator("payment_date")
-    @classmethod
-    def validate_payment_date_not_future(cls, value: datetime) -> datetime:
-        """Validates that payment date is not in the future."""
-        if value > datetime.now(value.tzinfo):
-            raise ValueError("Payment date cannot be in the future")
-        return value
-
 class PaymentCreate(PaymentBase):
     """Schema for creating a new payment"""
     liability_id: Optional[int] = Field(None, description="ID of the associated liability")
