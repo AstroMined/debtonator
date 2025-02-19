@@ -350,6 +350,13 @@ The service layer implements consistent patterns for efficient data access and r
 - Consistent error handling
 
 ### Service Components
+- **Account Service**: Manages account operations with comprehensive validation
+  * Balance validation for transactions
+  * Credit limit update validation
+  * Statement balance validation
+  * Account deletion validation
+  * Transaction validation with type safety
+  * Edge case handling and error reporting
 - **Payment Schedules Service**: Manages scheduled payments and processing
 - **Bill Splits Service**: Handles split payment logic and validation
 - **Recurring Bills Service**: Manages recurring bill templates and generation

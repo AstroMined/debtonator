@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.85] - 2025-02-18
+
+### Added
+- Enhanced Account Service with comprehensive validation:
+  * Added validate_account_balance for transaction validation
+  * Added validate_credit_limit_update for limit changes
+  * Added validate_transaction for transaction processing
+  * Added validate_statement_update for statement changes
+  * Added validate_account_deletion for safe deletion
+- Added comprehensive test coverage for Account Service:
+  * Account creation validation
+  * Credit limit update validation
+  * Statement balance validation
+  * Account deletion validation
+  * Transaction validation
+  * Edge case handling
+
 ## [0.3.84] - 2025-02-18
 
 ### Changed
