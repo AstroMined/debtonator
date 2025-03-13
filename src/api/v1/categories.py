@@ -16,7 +16,12 @@ async def create_category(
     """Create a new category"""
     try:
         category_service = CategoryService(db)
-        return await category_service.create_category(category)
+        db_category = await category_service.create_category(category)
+        
+        # Set full_path using service method
+        db_category.full_path = await category_service.get_full_path(db_category)
+        
+        return db_category
     except (ValueError, CategoryError) as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -28,7 +33,13 @@ async def list_categories(
 ) -> List[Category]:
     """List all categories with pagination"""
     category_service = CategoryService(db)
-    return await category_service.get_categories(skip=skip, limit=limit)
+    categories = await category_service.get_categories(skip=skip, limit=limit)
+    
+    # Set full_path for each category
+    for category in categories:
+        category.full_path = await category_service.get_full_path(category)
+    
+    return categories
 
 @router.get("/{category_id}", response_model=Category)
 async def get_category(
@@ -40,6 +51,10 @@ async def get_category(
     category = await category_service.get_category(category_id)
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
+    
+    # Set full_path using service method
+    category.full_path = await category_service.get_full_path(category)
+    
     return category
 
 @router.get("/{category_id}/bills", response_model=CategoryWithBills)
@@ -52,6 +67,14 @@ async def get_category_with_bills(
     category = await category_service.get_category_with_bills(category_id)
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
+    
+    # Set full_path for the category
+    category.full_path = await category_service.get_full_path(category)
+    
+    # Set full_path for any children
+    for child in category.children:
+        child.full_path = await category_service.get_full_path(child)
+    
     return category
 
 @router.put("/{category_id}", response_model=Category)
@@ -66,6 +89,10 @@ async def update_category(
         category = await category_service.update_category(category_id, category_update)
         if not category:
             raise HTTPException(status_code=404, detail="Category not found")
+        
+        # Set full_path using service method
+        category.full_path = await category_service.get_full_path(category)
+        
         return category
     except (ValueError, CategoryError) as e:
         raise HTTPException(status_code=400, detail=str(e))

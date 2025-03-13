@@ -37,7 +37,17 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Document service patterns
 
 ### Recent Changes
-1. **Cashflow Model Enhancement (Completed)** ✓
+1. **Categories Model Enhancement (Completed)** ✓
+   - Removed business logic methods (full_path, is_ancestor_of, _get_parent)
+   - Enhanced CategoryService with corresponding methods (get_full_path, is_ancestor_of)
+   - Added clear documentation to model indicating pure data structure focus
+   - Updated model tests to focus on data structure validation
+   - Added comprehensive service tests for business logic
+   - Updated API layer to use service methods for path generation
+   - Fixed SQLAlchemy query handling with eager-loaded relationships
+   - Ensured full test coverage with 100% passing tests
+
+2. **Cashflow Model Enhancement (Completed)** ✓
    - Removed business logic methods (calculate_deficits, calculate_required_income, calculate_hourly_rates)
    - Removed unused ZoneInfo import
    - Enhanced model documentation clarifying pure data structure focus
@@ -76,7 +86,18 @@ Validation Layer Standardization - Phase 2: Model Simplification
 ### Current Implementation Plan
 
 #### Phase 2: Model Simplification
-1. **Account Model** ✓
+1. **Categories Model** ✓
+   - [x] Remove business logic methods (full_path, is_ancestor_of, _get_parent)
+   - [x] Move business logic to service layer
+   - [x] Update model documentation as pure data structure
+   - [x] Add service methods for path generation and ancestry checking
+   - [x] Update model tests to focus on data structure
+   - [x] Add comprehensive service tests
+   - [x] Update API layer
+   - [x] Fix SQLAlchemy query handling for eager-loaded relationships
+   - [x] Ensure passing tests
+
+2. **Account Model** ✓
    - [x] Remove @validates decorators
    - [x] Move business logic to service
    - [x] Remove update_available_credit method
@@ -208,11 +229,18 @@ Validation Layer Standardization - Phase 2: Model Simplification
   - Frontend development (paused)
 
 ## Next Steps
-1. **Begin Income Model Simplification**
-   - Review current income model implementation
-   - Identify any validation logic to remove
-   - Update relationships if needed
-   - Update tests to focus on data structure
+1. **Begin Credit Limit History Model Simplification**
+   - Remove SQLAlchemy event listeners for validation
+   - Move business logic to CreditLimitService
+   - Update model tests to focus on data structure
+   - Add service tests for validation logic
+   - Document changes
+
+2. **Begin Recurring Bills Model Simplification**
+   - Remove create_liability() business logic method
+   - Move to RecurringBillService
+   - Update model tests 
+   - Add service tests
    - Document changes
 
 2. **Documentation Updates**

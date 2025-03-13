@@ -55,7 +55,10 @@ async def test_create_category_with_parent(category_service: CategoryService, ro
     category = await category_service.create_category(category_data)
     assert category.name == "New Child Category"
     assert category.parent_id == root_category.id
-    assert category.full_path == f"{root_category.name} > {category.name}"
+    
+    # Use service method instead of model property
+    full_path = await category_service.get_full_path(category)
+    assert full_path == f"{root_category.name} > {category.name}"
 
 async def test_create_duplicate_category(category_service: CategoryService, root_category: Category):
     category_data = CategoryCreate(
@@ -138,15 +141,56 @@ async def test_delete_nonexistent_category(category_service: CategoryService):
     success = await category_service.delete_category(999)
     assert success is False
 
-async def test_full_path_property(category_service: CategoryService, root_category: Category, child_category: Category):
+async def test_get_full_path(category_service: CategoryService, root_category: Category, child_category: Category):
     grandchild_data = CategoryCreate(
         name="Grandchild Category",
         description="Grandchild Description",
         parent_id=child_category.id
     )
     grandchild = await category_service.create_category(grandchild_data)
-    assert grandchild.full_path == f"{root_category.name} > {child_category.name} > {grandchild.name}"
+    
+    # Test get_full_path service method
+    full_path = await category_service.get_full_path(grandchild)
+    assert full_path == f"{root_category.name} > {child_category.name} > {grandchild.name}"
+    
+    # Test intermediate paths
+    child_path = await category_service.get_full_path(child_category)
+    assert child_path == f"{root_category.name} > {child_category.name}"
+    
+    root_path = await category_service.get_full_path(root_category)
+    assert root_path == root_category.name
 
 async def test_get_nonexistent_category_by_name(category_service: CategoryService):
     category = await category_service.get_category_by_name("Nonexistent Category")
     assert category is None
+
+async def test_is_ancestor_of(category_service: CategoryService, root_category: Category, child_category: Category):
+    """Test the is_ancestor_of service method"""
+    # Create a grandchild category
+    grandchild_data = CategoryCreate(
+        name="Grandchild Category",
+        description="Grandchild Description",
+        parent_id=child_category.id
+    )
+    grandchild = await category_service.create_category(grandchild_data)
+    
+    # Test ancestor relationships
+    assert await category_service.is_ancestor_of(root_category, child_category)
+    assert await category_service.is_ancestor_of(root_category, grandchild)
+    assert await category_service.is_ancestor_of(child_category, grandchild)
+    
+    # Test non-ancestor relationships
+    assert not await category_service.is_ancestor_of(child_category, root_category)
+    assert not await category_service.is_ancestor_of(grandchild, child_category)
+    assert not await category_service.is_ancestor_of(grandchild, root_category)
+
+async def test_is_ancestor_of_with_none(category_service: CategoryService, root_category: Category):
+    """Test is_ancestor_of with None parameter"""
+    assert not await category_service.is_ancestor_of(root_category, None)
+    assert not await category_service.is_ancestor_of(None, root_category)
+    assert not await category_service.is_ancestor_of(None, None)
+
+async def test_get_full_path_with_none(category_service: CategoryService):
+    """Test get_full_path with None parameter"""
+    full_path = await category_service.get_full_path(None)
+    assert full_path == ""

@@ -62,19 +62,22 @@ class CategoryService:
         """Get a category by ID"""
         query = select(Category).where(Category.id == category_id)
         result = await self.db.execute(query)
-        return result.scalar_one_or_none()
+        # Use unique() to handle eager-loaded relationships
+        return result.unique().scalar_one_or_none()
 
     async def get_category_by_name(self, name: str) -> Optional[Category]:
         """Get a category by name"""
         query = select(Category).where(Category.name == name)
         result = await self.db.execute(query)
-        return result.scalar_one_or_none()
+        # Use unique() to handle eager-loaded relationships
+        return result.unique().scalar_one_or_none()
 
     async def get_categories(self, skip: int = 0, limit: int = 100) -> List[Category]:
         """Get a list of categories with pagination"""
         query = select(Category).offset(skip).limit(limit)
         result = await self.db.execute(query)
-        return list(result.scalars().all())
+        # Use unique() to handle eager-loaded relationships
+        return list(result.unique().scalars().all())
 
     async def update_category(self, category_id: int, category_update: CategoryUpdate) -> Optional[Category]:
         """Update a category"""
@@ -109,7 +112,7 @@ class CategoryService:
             )
         )
         result = await self.db.execute(query)
-        db_category = result.scalar_one_or_none()
+        db_category = result.unique().scalar_one_or_none()
         
         if not db_category:
             return False
@@ -133,7 +136,8 @@ class CategoryService:
             .options(selectinload(Category.children))
         )
         result = await self.db.execute(query)
-        return result.scalar_one_or_none()
+        # Use unique() to handle eager-loaded relationships
+        return result.unique().scalar_one_or_none()
 
     async def get_category_with_parent(self, category_id: int) -> Optional[Category]:
         """Get a category with its parent category"""
@@ -143,7 +147,8 @@ class CategoryService:
             .options(selectinload(Category.parent))
         )
         result = await self.db.execute(query)
-        return result.scalar_one_or_none()
+        # Use unique() to handle eager-loaded relationships
+        return result.unique().scalar_one_or_none()
 
     async def get_root_categories(self) -> List[Category]:
         """Get all top-level categories (categories without parents)"""
@@ -153,7 +158,8 @@ class CategoryService:
             .options(selectinload(Category.children))
         )
         result = await self.db.execute(query)
-        return list(result.scalars().all())
+        # Use unique() to handle eager-loaded relationships
+        return list(result.unique().scalars().all())
 
     async def get_category_with_bills(self, category_id: int) -> Optional[Category]:
         """Get a category with its associated bills"""
@@ -166,4 +172,68 @@ class CategoryService:
             )
         )
         result = await self.db.execute(query)
-        return result.scalar_one_or_none()
+        # Use unique() to handle eager-loaded relationships
+        return result.unique().scalar_one_or_none()
+        
+    async def get_full_path(self, category: Category) -> str:
+        """
+        Returns the full hierarchical path of the category.
+        
+        This method replaces the full_path property in the Category model
+        to maintain separation of business logic and data structure.
+        
+        Args:
+            category: The category to get the full path for
+            
+        Returns:
+            A string representing the full hierarchical path of the category
+        """
+        if not category:
+            return ""
+            
+        if not category.parent_id:
+            return category.name
+            
+        # If parent is already loaded (e.g., via joinedload)
+        if category.parent:
+            parent_path = await self.get_full_path(category.parent)
+            return f"{parent_path} > {category.name}"
+            
+        # If parent needs to be queried
+        parent = await self.get_category(category.parent_id)
+        if not parent:
+            return category.name
+            
+        parent_path = await self.get_full_path(parent)
+        return f"{parent_path} > {category.name}"
+    
+    async def is_ancestor_of(self, ancestor: Category, descendant: Category) -> bool:
+        """
+        Check if one category is an ancestor of another category.
+        
+        This method replaces the is_ancestor_of method in the Category model
+        to maintain separation of business logic and data structure.
+        
+        Args:
+            ancestor: The potential ancestor category
+            descendant: The potential descendant category
+            
+        Returns:
+            True if ancestor is an ancestor of descendant, False otherwise
+        """
+        if not ancestor or not descendant or not descendant.parent_id:
+            return False
+            
+        if descendant.parent_id == ancestor.id:
+            return True
+            
+        # If parent is loaded via relationship
+        if descendant.parent:
+            return await self.is_ancestor_of(ancestor, descendant.parent)
+            
+        # If parent needs to be queried
+        parent = await self.get_category(descendant.parent_id)
+        if not parent:
+            return False
+            
+        return await self.is_ancestor_of(ancestor, parent)

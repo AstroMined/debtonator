@@ -31,7 +31,9 @@ class Category(CategoryBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    full_path: str = Field(description="Full hierarchical path of the category")
+    # Note: full_path is now computed by CategoryService.get_full_path() method
+    # This field will be populated in the API layer before returning to clients
+    full_path: str = Field(default="", description="Full hierarchical path of the category")
 
 class CategoryWithChildren(Category):
     children: List["CategoryWithChildren"] = []

@@ -3,7 +3,33 @@
 ## Current Priority: Validation Layer Standardization - Phase 3
 
 ### Recent Improvements
-1. **Cashflow Model and Service Enhancement (Completed)** ✓
+1. **Categories Model and Service Enhancement (Completed)** ✓
+   - Model Improvements:
+     * Removed business logic methods (full_path, is_ancestor_of, _get_parent)
+     * Simplified Category model to pure data structure
+     * Enhanced model documentation
+     * Updated class docstring to clarify ADR-012 compliance
+     * Maintained proper relationships and cascade rules
+   - Service Enhancements:
+     * Added get_full_path() method to replace model property
+     * Added is_ancestor_of() method to move ancestry checking to service
+     * Updated query methods to handle eager-loaded relationships
+     * Added comprehensive documentation
+   - API Layer Updates:
+     * Updated API endpoints to populate full_path using service method
+     * Ensured proper full_path population for nested categories
+     * Maintained backward compatibility
+   - Testing Improvements:
+     * Updated model tests to focus on data structure
+     * Added comprehensive service tests for business logic
+     * Fixed SQLAlchemy queries to use unique() for eager-loaded relationships
+     * Achieved 100% passing tests
+   - Fixed SQLAlchemy Issues:
+     * Added unique() method to all query results with eager-loading
+     * Ensured proper handling of relationships
+     * Fixed InvalidRequestError with joined eager loads
+
+2. **Cashflow Model and Service Enhancement (Completed)** ✓
    - Model Improvements:
      * Removed business logic methods from CashflowForecast model
      * Removed unused ZoneInfo import
@@ -50,7 +76,18 @@
      * Error handling documentation
 
 ### Model Simplification Progress
-1. **Cashflow Model (Completed)** ✓
+1. **Categories Model (Completed)** ✓
+   - [x] Removed business logic methods:
+     * full_path property
+     * is_ancestor_of() method
+     * _get_parent() helper method
+   - [x] Enhanced model documentation with clear data structure focus
+   - [x] Updated model tests to focus on structure rather than behavior
+   - [x] Added clear comments about moved methods
+   - [x] Fixed SQLAlchemy query handling for eager-loaded relationships
+   - [x] Verified ADR-012 compliance
+
+2. **Cashflow Model (Completed)** ✓
    - [x] Removed business logic methods:
      * calculate_deficits()
      * calculate_required_income()
@@ -105,7 +142,22 @@
 
 ### Service Layer Enhancement Progress
 
-1. **Cashflow Metrics Service (Completed)** ✓
+1. **Category Service (Completed)** ✓
+   - [x] Added business logic methods:
+     * get_full_path() to generate hierarchical paths
+     * is_ancestor_of() to check ancestry relationships
+   - [x] Fixed SQLAlchemy queries:
+     * Added unique() method to all query results
+     * Fixed handling of eager-loaded relationships
+   - [x] Added comprehensive test coverage:
+     * Tests for get_full_path with various scenarios
+     * Tests for is_ancestor_of with different relationship types
+     * Tests for edge cases (null values, circular references)
+   - [x] Enhanced API support:
+     * Ensured service methods support API needs
+     * Maintained backward compatibility
+
+2. **Cashflow Metrics Service (Completed)** ✓
    - [x] Added business logic methods:
      * update_cashflow_deficits to calculate deficits
      * update_cashflow_required_income to calculate income needs
@@ -196,11 +248,17 @@
    - [ ] Create validation guide
 
 ## Next Steps
-1. **Categories Model Simplification**
-   - Review current categories model implementation
-   - Identify business logic to move to service layer
+1. **Credit Limit History Model Simplification**
+   - Remove SQLAlchemy event listeners for validation
+   - Move business logic to CreditLimitService
    - Update model tests to focus on data structure
-   - Create service methods for business logic
+   - Add service tests for validation logic
+   - Document changes
+
+2. **Recurring Bills Model Simplification**
+   - Remove create_liability() business logic method
+   - Move to RecurringBillService
+   - Update model tests 
    - Add service tests
    - Document changes
 

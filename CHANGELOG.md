@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.87] - 2025-03-13
+
+### Changed
+- Enhanced Categories model and service layer separation:
+  * Removed business logic methods (full_path, is_ancestor_of, _get_parent) from Category model
+  * Added corresponding methods to CategoryService (get_full_path, is_ancestor_of)
+  * Updated model documentation to clarify pure data structure focus
+  * Fixed SQLAlchemy query handling for eager-loaded relationships
+  * Updated API endpoints to populate full_path using service methods
+  * Ensured proper full_path population for nested categories
+  * Added comprehensive test coverage for both model and service
+  * Achieved 100% passing tests across all related components
+  * Completed Categories model simplification in alignment with ADR-012
+
 ## [0.3.86] - 2025-02-18
 
 ### Changed

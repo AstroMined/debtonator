@@ -5,7 +5,14 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base_model import BaseDBModel
 
 class Category(BaseDBModel):
-    """Category model for organizing bills and expenses"""
+    """
+    Category model for organizing bills and expenses.
+    
+    This is a pure data structure model with no business logic methods.
+    All business logic related to category hierarchy and path management
+    has been moved to the CategoryService class to comply with ADR-012
+    (Validation Layer Standardization).
+    """
     __tablename__ = "categories"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -33,27 +40,7 @@ class Category(BaseDBModel):
     def __repr__(self) -> str:
         return f"<Category(id={self.id}, name='{self.name}', parent_id={self.parent_id})>"
 
-    @property
-    def full_path(self) -> str:
-        """Returns the full hierarchical path of the category."""
-        if self.parent:
-            return f"{self.parent.full_path} > {self.name}"
-        return self.name
-
-    async def is_ancestor_of(self, category: 'Category') -> bool:
-        """Check if this category is an ancestor of the given category."""
-        if not category or not category.parent_id:
-            return False
-        if category.parent_id == self.id:
-            return True
-        parent = await self._get_parent(category)
-        if not parent:
-            return False
-        return await self.is_ancestor_of(parent)
-
-    @staticmethod
-    async def _get_parent(category: 'Category') -> Optional['Category']:
-        """Helper method to get parent category"""
-        if not category.parent_id:
-            return None
-        return category.parent
+    # The following methods have been removed and moved to CategoryService:
+    # - full_path property: Use CategoryService.get_full_path(category) instead
+    # - is_ancestor_of method: Use CategoryService.is_ancestor_of(ancestor, descendant) instead
+    # - _get_parent helper method: No longer needed as logic is in service layer

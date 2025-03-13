@@ -48,13 +48,7 @@ async def test_unique_name_constraint(db_session: AsyncSession):
         await db_session.commit()
     await db_session.rollback()
 
-async def test_is_ancestor_of_none(
-    db_session: AsyncSession,
-    test_category: Category
-):
-    """Test is_ancestor_of with None parameter"""
-    result = await test_category.is_ancestor_of(None)
-    assert result is False
+# Note: is_ancestor_of_none test has been removed as the method is now in CategoryService
 
 async def test_lazy_loading_config(
     db_session: AsyncSession,
@@ -187,8 +181,9 @@ async def test_create_hierarchical_categories(db_session: AsyncSession):
     assert parent.created_at.tzinfo is None
     assert parent.updated_at.tzinfo is None
 
-async def test_category_full_path_with_parent(db_session: AsyncSession):
-    """Test the full_path property for nested categories"""
+async def test_category_hierarchical_relationships(db_session: AsyncSession):
+    """Test the hierarchical relationships between categories"""
+    # Create the category hierarchy
     grandparent = Category(name="Grandparent")
     db_session.add(grandparent)
     await db_session.commit()
@@ -214,77 +209,27 @@ async def test_category_full_path_with_parent(db_session: AsyncSession):
     result = await db_session.execute(stmt)
     child = result.unique().scalar_one()
 
-    assert child.full_path == "Grandparent > Parent > Child"
-    assert child.parent.full_path == "Grandparent > Parent"
-    assert child.parent.parent.full_path == "Grandparent"
+    # Test relationship navigation
+    assert child.parent_id == parent.id
+    assert child.parent.parent_id == grandparent.id
+    assert child.parent.parent.parent_id is None
+    
+    # Verify datetime fields remain naive
     assert child.created_at.tzinfo is None
     assert child.updated_at.tzinfo is None
+    assert child.parent.created_at.tzinfo is None
+    assert child.parent.updated_at.tzinfo is None
 
-async def test_category_full_path_no_parent(db_session: AsyncSession):
-    """Test the full_path property for category without parent"""
+async def test_category_without_parent(db_session: AsyncSession):
+    """Test a category without a parent"""
     category = Category(name="Solo Category")
     db_session.add(category)
     await db_session.commit()
     
-    assert category.full_path == "Solo Category"
+    assert category.parent_id is None
+    assert category.parent is None
 
-async def test_is_ancestor_of(db_session: AsyncSession):
-    """Test the is_ancestor_of method"""
-    grandparent = Category(name="Grandparent")
-    db_session.add(grandparent)
-    await db_session.commit()
-
-    parent = Category(
-        name="Parent",
-        parent_id=grandparent.id
-    )
-    db_session.add(parent)
-    await db_session.commit()
-
-    child = Category(
-        name="Child",
-        parent_id=parent.id
-    )
-    db_session.add(child)
-    await db_session.commit()
-
-    # Fetch fresh instances
-    stmt = select(Category).where(Category.id == grandparent.id).options(
-        selectinload(Category.children)
-    )
-    result = await db_session.execute(stmt)
-    grandparent = result.unique().scalar_one()
-
-    stmt = select(Category).where(Category.id == parent.id).options(
-        selectinload(Category.parent),
-        selectinload(Category.children)
-    )
-    result = await db_session.execute(stmt)
-    parent = result.unique().scalar_one()
-
-    stmt = select(Category).where(Category.id == child.id).options(
-        selectinload(Category.parent.of_type(Category))
-    )
-    result = await db_session.execute(stmt)
-    child = result.unique().scalar_one()
-
-    # Test ancestor relationships
-    assert await grandparent.is_ancestor_of(parent)
-    assert await grandparent.is_ancestor_of(child)
-    assert await parent.is_ancestor_of(child)
-    
-    # Test non-ancestor relationships
-    assert not await child.is_ancestor_of(parent)
-    assert not await child.is_ancestor_of(grandparent)
-    assert not await parent.is_ancestor_of(grandparent)
-
-    # Verify datetime fields remain naive
-    assert grandparent.created_at.tzinfo is None
-    assert grandparent.updated_at.tzinfo is None
-    assert parent.created_at.tzinfo is None
-    assert parent.updated_at.tzinfo is None
-    assert child.created_at.tzinfo is None
-    assert child.updated_at.tzinfo is None
+# Note: is_ancestor_of test has been removed as the method is now in CategoryService
 
 async def test_category_str_representation(db_session: AsyncSession):
     """Test the string representation of Category"""
@@ -316,60 +261,7 @@ async def test_category_relationships_cascade(db_session: AsyncSession):
     await db_session.commit()
 
     # Verify children no longer exist
-    stmt = select(func.count(Category.id)).select_from(Category).where(Category.parent_id == parent.id)
+    stmt = select(Category).where(Category.parent_id == parent.id)
     result = await db_session.execute(stmt)
-    count = result.scalar()
-    assert count == 0
-
-async def test_get_parent_helper_with_invalid_parent(db_session: AsyncSession):
-    """Test the _get_parent helper method with invalid parent_id"""
-    # Create a category with a non-existent parent_id
-    category = Category(name="Orphan", parent_id=999)  # Non-existent parent_id
-    db_session.add(category)
-    await db_session.commit()
-
-    # Fetch fresh instance with parent relationship loaded
-    stmt = select(Category).where(Category.id == category.id).options(
-        selectinload(Category.parent)
-    )
-    result = await db_session.execute(stmt)
-    category = result.unique().scalar_one()
-
-    # Test getting non-existent parent
-    no_parent = await Category._get_parent(category)
-    assert no_parent is None
-
-async def test_get_parent_helper(db_session: AsyncSession):
-    """Test the _get_parent helper method"""
-    parent = Category(name="Parent")
-    db_session.add(parent)
-    await db_session.commit()
-
-    child = Category(name="Child", parent_id=parent.id)
-    db_session.add(child)
-    await db_session.commit()
-
-    # Fetch fresh instances
-    stmt = select(Category).where(Category.id == child.id).options(
-        selectinload(Category.parent)
-    )
-    result = await db_session.execute(stmt)
-    child = result.unique().scalar_one()
-
-    # Test getting parent
-    retrieved_parent = await Category._get_parent(child)
-    assert retrieved_parent is not None
-    assert retrieved_parent.id == parent.id
-    assert retrieved_parent.name == "Parent"
-    assert retrieved_parent.created_at.tzinfo is None
-    assert retrieved_parent.updated_at.tzinfo is None
-
-    # Test with category having no parent
-    stmt = select(Category).where(Category.id == parent.id).options(
-        selectinload(Category.parent)
-    )
-    result = await db_session.execute(stmt)
-    parent = result.unique().scalar_one()
-    
-    no_parent = await Category._get_parent(parent)
-    assert no_parent is None
+    children = result.scalars().all()
+    assert len(children) == 0
