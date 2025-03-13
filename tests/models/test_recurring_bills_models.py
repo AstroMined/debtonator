@@ -33,18 +33,22 @@ async def test_recurring_bill_account_relationship(
     assert test_recurring_bill.account == test_checking_account
     assert any(bill.id == test_recurring_bill.id for bill in test_checking_account.recurring_bills)
 
-async def test_recurring_bill_create_liability(
+async def test_liability_creation_from_recurring_bill(
     db_session: AsyncSession,
     test_recurring_bill: RecurringBill
 ):
-    """Test creating a new Liability from recurring bill template"""
-    # Create the liability
-    liability = test_recurring_bill.create_liability("03", 2025)
+    """Test proper creation of liability model from recurring bill template"""
+    # Import here to avoid circular imports
+    from src.services.recurring_bills import RecurringBillService
+    
+    # Create service and use service method instead of model method
+    service = RecurringBillService(db_session)
+    liability = service.create_liability_from_recurring(test_recurring_bill, "03", 2025)
     db_session.add(liability)
     await db_session.flush()
     await db_session.refresh(liability)
     
-    # Verify the liability
+    # Verify the liability has all the right properties
     assert liability.name == "Netflix"
     assert liability.amount == Decimal('19.99')
     assert liability.due_date == naive_utc_from_date(2025, 3, 15)
@@ -52,6 +56,9 @@ async def test_recurring_bill_create_liability(
     assert liability.primary_account_id == test_recurring_bill.account_id
     assert liability.category_id == test_recurring_bill.category_id
     assert liability.category.name == "Recurring"
+    
+    # This test confirms that the service method correctly sets all fields
+    # previously set by the model method, in accordance with ADR-012
 
 async def test_recurring_bill_str_representation(test_recurring_bill: RecurringBill):
     """Test string representation of recurring bill"""
@@ -85,7 +92,10 @@ async def test_datetime_handling(
     assert bill.updated_at.tzinfo is None
 
     # Create and verify liability datetime handling
-    liability = bill.create_liability("03", 2025)
+    # Use service method instead of model method
+    from src.services.recurring_bills import RecurringBillService
+    service = RecurringBillService(db_session)
+    liability = service.create_liability_from_recurring(bill, "03", 2025)
     db_session.add(liability)
     await db_session.flush()
     await db_session.refresh(liability)

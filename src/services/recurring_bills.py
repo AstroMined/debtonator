@@ -3,12 +3,14 @@ from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
+from sqlalchemy.sql.expression import func
 from fastapi import HTTPException
 
 from ..models.recurring_bills import RecurringBill
 from ..models.liabilities import Liability
 from ..models.accounts import Account
 from ..schemas.recurring_bills import RecurringBillCreate, RecurringBillUpdate
+from ..models.base_model import naive_utc_from_date
 
 class RecurringBillService:
     def __init__(self, db: AsyncSession):
@@ -101,6 +103,39 @@ class RecurringBillService:
         await self.db.commit()
         return True
 
+    def create_liability_from_recurring(
+        self,
+        recurring_bill: RecurringBill,
+        month: str,
+        year: int
+    ) -> Liability:
+        """
+        Create a new Liability instance from a recurring bill template.
+        
+        This method replaces the RecurringBill.create_liability method that
+        was moved to the service layer as part of ADR-012 implementation.
+        
+        Args:
+            recurring_bill: The recurring bill template
+            month: Month number as string (1-12)
+            year: Full year (e.g., 2025)
+            
+        Returns:
+            Liability: New liability instance with proper UTC due date
+        """
+        liability = Liability(
+            name=recurring_bill.bill_name,
+            amount=recurring_bill.amount,
+            due_date=naive_utc_from_date(year, int(month), recurring_bill.day_of_month),
+            primary_account_id=recurring_bill.account_id,
+            category_id=recurring_bill.category_id,
+            auto_pay=recurring_bill.auto_pay,
+            recurring=True,
+            recurring_bill_id=recurring_bill.id,
+            category=recurring_bill.category  # Set the relationship directly
+        )
+        return liability
+    
     async def generate_bills(
         self, recurring_bill_id: int, month: int, year: int
     ) -> List[Liability]:
@@ -110,19 +145,21 @@ class RecurringBillService:
             return []
 
         # Check if bills already exist for this month/year
+        # Need to compare just the date components since due_date is a datetime in the model
+        # but we're checking with a date object
         stmt = (
             select(Liability)
             .filter(
                 Liability.recurring_bill_id == recurring_bill_id,
-                Liability.due_date == date(year, month, db_recurring_bill.day_of_month)
+                func.date(Liability.due_date) == date(year, month, db_recurring_bill.day_of_month)
             )
         )
         result = await self.db.execute(stmt)
         if result.first():
             return []  # Bills already exist for this period
 
-        # Create new liability
-        liability = db_recurring_bill.create_liability(str(month), year)
+        # Create new liability using service method instead of model method
+        liability = self.create_liability_from_recurring(db_recurring_bill, str(month), year)
         self.db.add(liability)
         await self.db.commit()
         await self.db.refresh(liability)

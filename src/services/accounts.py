@@ -82,6 +82,37 @@ class AccountService:
             return False, f"New credit limit {new_limit} is less than current balance {abs(account.available_balance)}"
             
         return True, None
+        
+    async def validate_credit_limit_history(
+        self, account_id: int
+    ) -> Tuple[bool, Optional[str]]:
+        """
+        Validate that an account can have credit limit history entries
+        
+        This replaces the SQLAlchemy event listener that was on the CreditLimitHistory model.
+        Ensures credit limit history can only be created for credit accounts.
+        
+        Args:
+            account_id: ID of the account to validate
+            
+        Returns:
+            Tuple of (is_valid, error_message)
+        """
+        # Get the account
+        result = await self.session.execute(
+            select(AccountModel).where(AccountModel.id == account_id)
+        )
+        account = result.scalar_one_or_none()
+        
+        # Check if account exists
+        if not account:
+            return False, f"Account with ID {account_id} not found"
+            
+        # Check if account is a credit account
+        if account.type != "credit":
+            return False, "Credit limit history can only be created for credit accounts"
+            
+        return True, None
 
     async def validate_transaction(
         self, account: AccountModel, transaction_data: Dict[str, Any]
@@ -416,6 +447,11 @@ class AccountService:
         is_valid, error_message = await self.validate_credit_limit_update(
             db_account, credit_limit_data.credit_limit
         )
+        if not is_valid:
+            raise ValueError(error_message)
+            
+        # Validate credit limit history creation
+        is_valid, error_message = await self.validate_credit_limit_history(account_id)
         if not is_valid:
             raise ValueError(error_message)
 

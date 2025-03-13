@@ -100,7 +100,7 @@
    - [x] Ensured proper model representation
    - [x] Verified ADR-012 compliance
 
-2. **Account Model (Completed)** ✓
+3. **Account Model (Completed)** ✓
    - [x] Removed @validates decorators
    - [x] Removed update_available_credit method from model
    - [x] Added _update_available_credit to service layer
@@ -110,7 +110,7 @@
    - [x] Maintained full test coverage
    - [x] Improved separation of concerns
 
-3. **Payment Model (Completed)** ✓
+4. **Payment Model (Completed)** ✓
    - [x] Reviewed model against ADR-012 standards
    - [x] Confirmed no @validates decorators present
    - [x] Verified no business logic in model
@@ -119,7 +119,7 @@
    - [x] Verified UTC datetime handling
    - [x] Documentation already up to date
 
-4. **Bill/Liability Model (Completed)** ✓
+5. **Bill/Liability Model (Completed)** ✓
    - [x] Reviewed model against ADR-012 standards
    - [x] Confirmed no validation logic present
    - [x] Verified proper relationship definitions
@@ -129,16 +129,36 @@
    - [x] Verified tests focus on data structure
    - [x] Confirmed proper UTC datetime handling
 
-### Income Model Enhancement (Completed)** ✓
-   - Removed calculate_undeposited method from model
-   - Added _calculate_undeposited_amount to service
-   - Added _update_undeposited_amount to service
-   - Enhanced model documentation
-   - Improved relationship documentation
-   - Organized fields into logical groups
-   - Added explicit schema vs service layer responsibilities
-   - Maintained proper UTC datetime handling
-   - Verified ADR-012 compliance
+6. **Income Model (Completed)** ✓
+   - [x] Removed calculate_undeposited method from model
+   - [x] Added _calculate_undeposited_amount to service
+   - [x] Added _update_undeposited_amount to service
+   - [x] Enhanced model documentation
+   - [x] Improved relationship documentation
+   - [x] Organized fields into logical groups
+   - [x] Added explicit schema vs service layer responsibilities
+   - [x] Maintained proper UTC datetime handling
+   - [x] Verified ADR-012 compliance
+
+7. **CreditLimitHistory Model (Completed)** ✓
+   - [x] Removed SQLAlchemy event listeners for validation
+   - [x] Added validate_credit_limit_history to AccountService
+   - [x] Enhanced model documentation with pure data structure focus
+   - [x] Updated tests to use service validation
+   - [x] Fixed test case to focus on model structure rather than validation
+   - [x] Maintained relationship definitions and cascade behavior
+   - [x] Verified proper datetime handling
+   - [x] Ensured ADR-012 compliance
+
+8. **RecurringBill Model (Completed)** ✓
+   - [x] Removed create_liability() business logic method
+   - [x] Added create_liability_from_recurring() to RecurringBillService
+   - [x] Enhanced model documentation with pure data structure focus
+   - [x] Updated tests to use service method instead of model method
+   - [x] Fixed date/datetime comparison issues in service layer
+   - [x] Improved duplicate bill detection logic
+   - [x] Fixed SQL query to properly compare datetime fields with dates
+   - [x] Verified ADR-012 compliance
 
 ### Service Layer Enhancement Progress
 
@@ -247,18 +267,27 @@
    - [ ] Update remaining model documentation
    - [ ] Create validation guide
 
+### Schema Enhancement
+1. **BaseSchemaValidator Enhancement (Completed)** ✓
+   - [x] Added automatic datetime conversion support
+   - [x] Overrode model_validate method to add timezone info
+   - [x] Maintained validation for explicit user input
+   - [x] Improved error messages
+   - [x] Fixed test inconsistencies between date and datetime objects
+   - [x] Eliminated repetitive timezone conversion code across services
+
 ## Next Steps
-1. **Credit Limit History Model Simplification**
-   - Remove SQLAlchemy event listeners for validation
-   - Move business logic to CreditLimitService
-   - Update model tests to focus on data structure
-   - Add service tests for validation logic
+1. **StatementHistory Model Simplification**
+   - Remove due date calculation from __init__
+   - Move to StatementService
+   - Update model tests
+   - Add service tests
    - Document changes
 
-2. **Recurring Bills Model Simplification**
-   - Remove create_liability() business logic method
-   - Move to RecurringBillService
-   - Update model tests 
+2. **RecurringIncome Model Simplification**
+   - Remove create_income_entry() business logic method
+   - Move to RecurringIncomeService
+   - Update model tests
    - Add service tests
    - Document changes
 

@@ -132,23 +132,30 @@ async def test_multiple_credit_limit_changes(
     assert test_credit_account.credit_limit_history[0].credit_limit == Decimal("2000.00")
     assert test_credit_account.credit_limit_history[1].credit_limit == Decimal("3000.00")
 
-async def test_credit_limit_history_non_credit_account(
+async def test_credit_limit_history_creation(
     db_session: AsyncSession,
     test_checking_account: Account
 ):
-    """Test that credit limit history can't be created for non-credit accounts."""
+    """Test that credit limit history can be created without model-level validation."""
 
+    # Without the SQLAlchemy event listener, we can create a history record
+    # for a non-credit account at the model level (service layer will handle validation)
     history = CreditLimitHistory(
         account_id=test_checking_account.id,
         credit_limit=Decimal("2000.00"),
         effective_date=naive_utc_now(),
-        reason="Invalid credit limit"
+        reason="Test credit limit"
     )
     db_session.add(history)
+    await db_session.commit()
+    await db_session.refresh(history)
     
-    # This should raise an error since checking accounts shouldn't have credit limits
-    with pytest.raises(ValueError, match="Credit limit history can only be created for credit accounts"):
-        await db_session.commit()
+    # Verify the record was created
+    assert history.id is not None
+    assert history.account_id == test_checking_account.id
+    
+    # This confirms that model layer doesn't enforce validation anymore
+    # The validation is now handled by the AccountService.validate_credit_limit_history method
 
 async def test_datetime_handling(
     db_session: AsyncSession,

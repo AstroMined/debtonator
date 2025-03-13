@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.88] - 2025-03-13
+
+### Changed
+- Enhanced validation layer standardization with multiple model improvements:
+  * Removed SQLAlchemy event listeners from CreditLimitHistory model
+  * Added validate_credit_limit_history to AccountService for robust validation
+  * Removed create_liability() business logic from RecurringBill model
+  * Added create_liability_from_recurring() to RecurringBillService
+  * Enhanced model documentation with clear data structure focus
+  * Fixed datetime handling for proper UTC timezone management
+  * Improved test cases to focus on model structure rather than validation
+  * Enhanced date/datetime comparison handling in service queries
+
+### Added
+- Improved BaseSchemaValidator with automatic datetime handling:
+  * Added timezone conversion from naive to UTC-aware datetimes
+  * Overrode model_validate method to handle SQLAlchemy model conversion
+  * Maintained strict validation for explicit user input
+  * Improved error messages for datetime validation failures
+  * Fixed test inconsistencies between date and datetime objects
+  * Eliminated repetitive timezone conversion code across services
+
 ## [0.3.87] - 2025-03-13
 
 ### Changed

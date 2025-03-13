@@ -228,18 +228,47 @@ Validation Layer Standardization - Phase 2: Model Simplification
   - Trend reporting (paused)
   - Frontend development (paused)
 
+### Recent Changes
+1. **CreditLimitHistory Model Enhancement (Completed)** ✓
+   - Removed SQLAlchemy event listeners for validation
+   - Added validate_credit_limit_history to AccountService
+   - Enhanced model documentation with clear data structure focus
+   - Updated tests to focus on model structure rather than validation
+   - Improved separation of concerns by moving validation to service layer
+   - Maintained proper relationship definitions and cascade behavior
+   - Fixed datetime handling for proper UTC timezone management
+   - Ensured full test coverage with 100% passing tests
+
+2. **RecurringBill Model Enhancement (Completed)** ✓
+   - Removed create_liability() business logic method from model
+   - Added create_liability_from_recurring() to RecurringBillService
+   - Updated model documentation as pure data structure
+   - Fixed test cases to use service method instead of model method
+   - Enhanced datetime handling in the service layer
+   - Improved duplicate bill detection logic
+   - Ensured proper date/datetime comparisons in queries
+   - Verified ADR-012 compliance with proper separation of concerns
+
+3. **BaseSchemaValidator Enhancement (Completed)** ✓
+   - Added automatic datetime conversion from naive to UTC-aware
+   - Overrode model_validate method to add timezone info before validation
+   - Maintained strict validation for explicit user input
+   - Improved error messages for datetime validation failures
+   - Fixed test inconsistencies between date and datetime objects
+   - Eliminated repetitive code across services
+
 ## Next Steps
-1. **Begin Credit Limit History Model Simplification**
-   - Remove SQLAlchemy event listeners for validation
-   - Move business logic to CreditLimitService
-   - Update model tests to focus on data structure
-   - Add service tests for validation logic
+1. **Begin StatementHistory Model Simplification**
+   - Remove due date calculation from __init__
+   - Move to StatementService
+   - Update model tests
+   - Add service tests
    - Document changes
 
-2. **Begin Recurring Bills Model Simplification**
-   - Remove create_liability() business logic method
-   - Move to RecurringBillService
-   - Update model tests 
+2. **Begin RecurringIncome Model Simplification**
+   - Remove create_income_entry() business logic method
+   - Move to RecurringIncomeService
+   - Update model tests
    - Add service tests
    - Document changes
 

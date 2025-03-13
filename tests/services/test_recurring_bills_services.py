@@ -194,7 +194,8 @@ async def test_generate_bills(db_session: AsyncSession, recurring_bill: Recurrin
     assert isinstance(liability, Liability)
     assert liability.name == recurring_bill.bill_name
     assert liability.amount == recurring_bill.amount
-    assert liability.due_date == date(next_year, next_month, recurring_bill.day_of_month)
+    # Compare the date part of the datetime to a date object
+    assert liability.due_date.date() == date(next_year, next_month, recurring_bill.day_of_month)
     assert liability.recurring_bill_id == recurring_bill.id
     assert liability.category_id == recurring_bill.category_id
 

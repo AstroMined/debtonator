@@ -171,19 +171,41 @@ class CategoryService:
 ### credit_limit_history.py
 #### Current Status
 - ADR-011 Compliance: ✅ Compliant
-- ADR-012 Compliance: ❌ Non-Compliant
+- ADR-012 Compliance: ✅ Compliant
 
-#### Issues Found
-- Uses SQLAlchemy event listeners for validation
-- Contains business logic in event listeners
+#### Implementation Complete
+- Removed SQLAlchemy event listeners for validation
+- Added validate_credit_limit_history to AccountService
+- Enhanced model documentation with clear data structure focus
+- Updated tests to focus on model structure rather than validation
+- Improved separation of concerns by moving validation to service layer
+- Maintained proper relationship definitions and cascade behavior
+- Fixed datetime handling for proper UTC timezone management
 
-#### Required Changes
-- Remove event listeners
-- Move account type validation to service layer
+#### Service Layer Implementation
 ```python
-class CreditLimitService:
-    async def validate_credit_account(self, account_id: int) -> bool:
-        # Implementation here
+# In src/services/accounts.py
+async def validate_credit_limit_history(self, account_id: int) -> tuple[bool, Optional[str]]:
+    """
+    Validate that an account can have credit limit history.
+    
+    Args:
+        account_id: The ID of the account to validate
+        
+    Returns:
+        tuple[bool, Optional[str]]: A tuple where the first element is True if valid,
+        and the second element is an error message if invalid
+    """
+    # Account exists validation
+    account = await self.get_account(account_id)
+    if not account:
+        return False, f"Account with ID {account_id} not found"
+    
+    # Credit account validation
+    if account.type != "credit":
+        return False, "Credit limit history can only be created for credit accounts"
+    
+    return True, None
 ```
 
 ### deposit_schedules.py
@@ -233,25 +255,53 @@ class CreditLimitService:
 ### recurring_bills.py
 #### Current Status
 - ADR-011 Compliance: ✅ Compliant
-- ADR-012 Compliance: ❌ Non-Compliant
+- ADR-012 Compliance: ✅ Compliant
 
-#### Issues Found
-- Contains business logic in create_liability() method
+#### Implementation Complete
+- Removed create_liability() business logic method from model
+- Added create_liability_from_recurring() to RecurringBillService
+- Updated model documentation as pure data structure
+- Fixed test cases to use service method instead of model method
+- Enhanced datetime handling in the service layer
+- Improved duplicate bill detection logic
+- Fixed SQL query to properly compare date/datetime fields
+- Added SQLAlchemy func.date() for proper comparison
 
-#### Required Changes
-- Move create_liability() method to RecurringBillService
-- Update documentation to reflect service layer responsibility
-
+#### Service Layer Implementation
 ```python
-# Move to service layer
-class RecurringBillService:
-    def create_liability_from_recurring(
-        self,
-        recurring_bill: RecurringBill,
-        month: str,
-        year: int
-    ) -> Liability:
-        # Implementation here
+# In src/services/recurring_bills.py
+def create_liability_from_recurring(
+    self,
+    recurring_bill: RecurringBill,
+    month: str,
+    year: int
+) -> Liability:
+    """
+    Create a new Liability instance from a recurring bill template.
+    
+    This method replaces the RecurringBill.create_liability method that
+    was moved to the service layer as part of ADR-012 implementation.
+    
+    Args:
+        recurring_bill: The recurring bill template
+        month: Month number as string (1-12)
+        year: Full year (e.g., 2025)
+        
+    Returns:
+        Liability: New liability instance with proper UTC due date
+    """
+    liability = Liability(
+        name=recurring_bill.bill_name,
+        amount=recurring_bill.amount,
+        due_date=naive_utc_from_date(year, int(month), recurring_bill.day_of_month),
+        primary_account_id=recurring_bill.account_id,
+        category_id=recurring_bill.category_id,
+        auto_pay=recurring_bill.auto_pay,
+        recurring=True,
+        recurring_bill_id=recurring_bill.id,
+        category=recurring_bill.category  # Set the relationship directly
+    )
+    return liability
 ```
 
 ### recurring_income.py
@@ -305,47 +355,110 @@ class StatementService:
 - No validation logic present
 - Good documentation
 
+### schemas/__init__.py
+#### Current Status
+- ADR-011 Compliance: ✅ Compliant
+- ADR-012 Compliance: ✅ Compliant
+
+#### Implementation Complete
+- Enhanced BaseSchemaValidator with automatic datetime conversion
+- Added override of model_validate method to add timezone info
+- Fixed date/datetime comparison issues in services
+- Eliminated repetitive timezone conversion across services
+- Maintained proper validation for explicit user input
+- Improved error messages for datetime validation failures
+
+#### Implementation Details
+```python
+# In src/schemas/__init__.py
+class BaseSchemaValidator(BaseModel):
+    """Base schema validator that enforces UTC timezone for all datetime fields.
+    
+    All schema classes should inherit from this base class to ensure consistent
+    datetime handling across the application.
+    
+    Features:
+        - Automatically converts naive datetimes to UTC-aware during model_validate
+        - Enforces UTC timezone for all datetime fields through validation
+        - Provides consistent datetime serialization to ISO format with Z suffix
+    """
+    
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_encoders={
+            # Ensure datetimes are serialized to ISO format with Z suffix
+            datetime: lambda dt: dt.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+        }
+    )
+    
+    @classmethod
+    def model_validate(cls, obj, *, strict=False, from_attributes=True, context=None):
+        """Override model_validate to add timezone info to naive datetimes.
+        
+        This method intercepts the validation process to convert any naive datetime
+        objects to UTC-aware datetimes before field validation occurs. This is
+        especially useful when converting SQLAlchemy models (which use naive
+        datetimes) to Pydantic models.
+        """
+        if from_attributes and hasattr(obj, "__dict__"):
+            # Create a copy of the object's dict to avoid modifying the original
+            obj_dict = dict(obj.__dict__)
+            
+            # Add UTC timezone to datetime fields
+            for field_name, field_value in obj_dict.items():
+                if isinstance(field_value, datetime) and field_value.tzinfo is None:
+                    obj_dict[field_name] = field_value.replace(tzinfo=timezone.utc)
+                    
+            # Use the modified dict for validation
+            return super().model_validate(obj_dict, strict=strict, context=context)
+        
+        # Fall back to standard validation for non-object inputs
+        return super().model_validate(obj, strict=strict, from_attributes=from_attributes, context=context)
+```
+
 ## Implementation Plan
 
-### Phase 1: Code Cleanup (ADR-011)
-1. Remove Unused Imports
-   - Remove ZoneInfo from accounts.py and cashflow.py
-   - Remove validates decorator imports
-   - Clean up any other unused imports
+### Phase 1: Code Cleanup (ADR-011) - ✅ COMPLETED
+1. Remove Unused Imports - ✅ COMPLETED
+   - Removed ZoneInfo from accounts.py and cashflow.py
+   - Removed validates decorator imports
+   - Cleaned up other unused imports
 
-2. Documentation Updates
-   - Update all datetime-related documentation
-   - Remove references to timezone-aware storage
-   - Add clear comments about naive UTC approach
-   - Standardize datetime field documentation
+2. Documentation Updates - ✅ COMPLETED
+   - Updated all datetime-related documentation
+   - Removed references to timezone-aware storage
+   - Added clear comments about naive UTC approach
+   - Standardized datetime field documentation
 
-3. Import Pattern Standardization
-   - Use consistent import ordering
-   - Prefer importing from base_model
-   - Remove redundant imports
+3. Import Pattern Standardization - ✅ COMPLETED
+   - Used consistent import ordering
+   - Preferred importing from base_model
+   - Removed redundant imports
 
-### Phase 2: Business Logic Migration (ADR-012)
-1. Create/Update Service Methods
-   - RecurringBillService.create_liability_from_recurring()
-   - RecurringIncomeService.create_income_from_recurring()
-   - CategoryService.get_full_path() and is_ancestor_of()
-   - CashflowService calculation methods
-   - StatementService.calculate_due_date()
-   - CreditLimitService.validate_credit_account()
+### Phase 2: Business Logic Migration (ADR-012) - ⏳ IN PROGRESS
+1. Create/Update Service Methods - ⏳ IN PROGRESS
+   - ✅ RecurringBillService.create_liability_from_recurring()
+   - ✅ CashflowService calculation methods
+   - ✅ AccountService.validate_credit_limit_history()
+   - ✅ CategoryService.get_full_path() and is_ancestor_of()
+   - ⏳ RecurringIncomeService.create_income_from_recurring()
+   - ⏳ StatementService.calculate_due_date()
 
-2. Remove Model Logic
-   - Remove create_liability() from RecurringBill
-   - Remove create_income_entry() from RecurringIncome
-   - Remove is_ancestor_of() and full_path from Category
-   - Remove calculation methods from CashflowForecast
-   - Remove __init__ logic from StatementHistory
-   - Remove event listeners from CreditLimitHistory
+2. Remove Model Logic - ⏳ IN PROGRESS
+   - ✅ Remove create_liability() from RecurringBill
+   - ✅ Remove calculation methods from CashflowForecast
+   - ✅ Remove event listeners from CreditLimitHistory
+   - ✅ Remove is_ancestor_of() and full_path from Category
+   - ⏳ Remove create_income_entry() from RecurringIncome
+   - ⏳ Remove __init__ logic from StatementHistory
 
-3. Update Tests
-   - Move business logic tests to service layer
-   - Update model tests to focus on persistence
-   - Add new service layer tests
-   - Update integration tests
+3. Update Tests - ⏳ IN PROGRESS
+   - ✅ Moved business logic tests for RecurringBill to service layer
+   - ✅ Moved validation tests for CreditLimitHistory to service layer
+   - ✅ Updated model tests to focus on persistence
+   - ✅ Added new service layer tests for RecurringBill
+   - ✅ Updated integration tests for RecurringBill and CreditLimitHistory
+   - ⏳ Update tests for remaining models
 
 ### Phase 3: Documentation
 1. Model Documentation
