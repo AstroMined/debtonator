@@ -8,11 +8,49 @@ from sqlalchemy.orm import joinedload
 from src.models.recurring_income import RecurringIncome
 from src.models.income import Income
 from src.models.accounts import Account
+from src.models.base_model import naive_utc_from_date
 from src.schemas.income import RecurringIncomeCreate, RecurringIncomeUpdate, GenerateIncomeRequest
 
 class RecurringIncomeService:
+    """
+    Service for managing recurring income templates and generating income entries.
+    
+    This service follows ADR-012 by handling all business logic related to
+    recurring income, including creating actual income entries from templates.
+    """
+    
     def __init__(self, db: AsyncSession):
         self.db = db
+    
+    def create_income_from_recurring(
+        self, recurring_income: RecurringIncome, month: int, year: int
+    ) -> Income:
+        """
+        Create a new Income instance from a recurring income template.
+        
+        This method replaces the RecurringIncome.create_income_entry method that
+        was moved to the service layer as part of ADR-012 implementation.
+        
+        Args:
+            recurring_income: The recurring income template
+            month: Month number (1-12)
+            year: Full year (e.g., 2025)
+            
+        Returns:
+            Income: New income entry with proper UTC date
+        """
+        income_entry = Income(
+            source=recurring_income.source,
+            amount=recurring_income.amount,
+            date=naive_utc_from_date(year, month, recurring_income.day_of_month),  # Store as naive UTC
+            account_id=recurring_income.account_id,
+            category_id=recurring_income.category_id,
+            deposited=recurring_income.auto_deposit,
+            recurring=True,
+            recurring_income_id=recurring_income.id,
+            category=recurring_income.category
+        )
+        return income_entry
     
     async def create(self, income_data: RecurringIncomeCreate) -> RecurringIncome:
         """Create a new recurring income template."""
@@ -87,7 +125,7 @@ class RecurringIncomeService:
     ) -> Tuple[List[RecurringIncome], int]:
         """List recurring income templates."""
         # Get total count
-        count_query = select(func.count()).select_from(RecurringIncome)
+        count_query = select(func.count(RecurringIncome.id)).select_from(RecurringIncome)
         count_result = await self.db.execute(count_query)
         total = count_result.scalar_one()
         
@@ -135,8 +173,8 @@ class RecurringIncomeService:
             )
             existing = await self.db.execute(existing_stmt)
             if existing.first() is None:
-                # Create new income entry from template
-                income_entry = template.create_income_entry(request.month, request.year)
+                # Create new income entry from template using service method
+                income_entry = self.create_income_from_recurring(template, request.month, request.year)
                 self.db.add(income_entry)
                 generated_income.append(income_entry)
         

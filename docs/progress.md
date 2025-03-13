@@ -76,7 +76,7 @@
      * Error handling documentation
 
 ### Model Simplification Progress
-1. **Categories Model (Completed)** ✓
+1. **Categories Model** ✓
    - [x] Removed business logic methods:
      * full_path property
      * is_ancestor_of() method
@@ -87,7 +87,7 @@
    - [x] Fixed SQLAlchemy query handling for eager-loaded relationships
    - [x] Verified ADR-012 compliance
 
-2. **Cashflow Model (Completed)** ✓
+2. **Cashflow Model** ✓
    - [x] Removed business logic methods:
      * calculate_deficits()
      * calculate_required_income()
@@ -100,7 +100,7 @@
    - [x] Ensured proper model representation
    - [x] Verified ADR-012 compliance
 
-3. **Account Model (Completed)** ✓
+3. **Account Model** ✓
    - [x] Removed @validates decorators
    - [x] Removed update_available_credit method from model
    - [x] Added _update_available_credit to service layer
@@ -110,7 +110,7 @@
    - [x] Maintained full test coverage
    - [x] Improved separation of concerns
 
-4. **Payment Model (Completed)** ✓
+4. **Payment Model** ✓
    - [x] Reviewed model against ADR-012 standards
    - [x] Confirmed no @validates decorators present
    - [x] Verified no business logic in model
@@ -119,7 +119,7 @@
    - [x] Verified UTC datetime handling
    - [x] Documentation already up to date
 
-5. **Bill/Liability Model (Completed)** ✓
+5. **Bill/Liability Model** ✓
    - [x] Reviewed model against ADR-012 standards
    - [x] Confirmed no validation logic present
    - [x] Verified proper relationship definitions
@@ -129,7 +129,7 @@
    - [x] Verified tests focus on data structure
    - [x] Confirmed proper UTC datetime handling
 
-6. **Income Model (Completed)** ✓
+6. **Income Model** ✓
    - [x] Removed calculate_undeposited method from model
    - [x] Added _calculate_undeposited_amount to service
    - [x] Added _update_undeposited_amount to service
@@ -140,7 +140,7 @@
    - [x] Maintained proper UTC datetime handling
    - [x] Verified ADR-012 compliance
 
-7. **CreditLimitHistory Model (Completed)** ✓
+7. **CreditLimitHistory Model** ✓
    - [x] Removed SQLAlchemy event listeners for validation
    - [x] Added validate_credit_limit_history to AccountService
    - [x] Enhanced model documentation with pure data structure focus
@@ -150,7 +150,7 @@
    - [x] Verified proper datetime handling
    - [x] Ensured ADR-012 compliance
 
-8. **RecurringBill Model (Completed)** ✓
+8. **RecurringBill Model** ✓
    - [x] Removed create_liability() business logic method
    - [x] Added create_liability_from_recurring() to RecurringBillService
    - [x] Enhanced model documentation with pure data structure focus
@@ -160,9 +160,40 @@
    - [x] Fixed SQL query to properly compare datetime fields with dates
    - [x] Verified ADR-012 compliance
 
+9. **StatementHistory Model** ✓
+   - [x] Removed due date calculation from __init__ method
+   - [x] Created new StatementService with calculate_due_date method
+   - [x] Enhanced model documentation with pure data structure focus
+   - [x] Added comprehensive service tests for due date calculation
+   - [x] Added service methods for statement creation and retrieval
+   - [x] Maintained proper UTC datetime handling
+   - [x] Verified ADR-012 compliance
+
+10. **RecurringIncome Model** ✓
+    - [x] Removed create_income_entry() business logic method
+    - [x] Added create_income_from_recurring() to RecurringIncomeService
+    - [x] Updated generate_income method to use new service method
+    - [x] Enhanced model documentation as pure data structure
+    - [x] Added comprehensive service tests for business logic
+    - [x] Maintained proper validation in service layer
+    - [x] Verified proper UTC datetime handling
+    - [x] Verified ADR-012 compliance
+
+### Testing Infrastructure Improvements
+
+1. **Test Fixture Consolidation** ✓
+   - [x] Moved model fixtures to main conftest.py for global availability
+   - [x] Added test_checking_account fixture for service tests
+   - [x] Added test_credit_account fixture for statement history tests
+   - [x] Added test_income_category fixture for recurring income tests
+   - [x] Fixed test dependencies to use shared fixtures
+   - [x] Consolidated recurring income service tests
+   - [x] Improved test organization and maintainability
+   - [x] Ensured all 18 service tests pass across consolidated files
+
 ### Service Layer Enhancement Progress
 
-1. **Category Service (Completed)** ✓
+1. **Category Service** ✓
    - [x] Added business logic methods:
      * get_full_path() to generate hierarchical paths
      * is_ancestor_of() to check ancestry relationships
@@ -177,7 +208,7 @@
      * Ensured service methods support API needs
      * Maintained backward compatibility
 
-2. **Cashflow Metrics Service (Completed)** ✓
+2. **Cashflow Metrics Service** ✓
    - [x] Added business logic methods:
      * update_cashflow_deficits to calculate deficits
      * update_cashflow_required_income to calculate income needs
@@ -197,7 +228,7 @@
      * Clarified business rules and formulas
      * Noted ADR-012 compliance
 
-2. **Account Service (Completed)** ✓
+3. **Account Service** ✓
    - [x] Added validation methods
      * Added validate_account_balance
      * Added validate_credit_limit_update
@@ -220,7 +251,7 @@
      * Validation examples
      * Error handling documentation
 
-3. **Payment Service (Completed)** ✓
+4. **Payment Service** ✓
    - [x] Aligned with ADR-011 and ADR-012:
      * Moved basic validation to Pydantic schemas
      * Proper UTC enforcement via BaseSchemaValidator
@@ -239,6 +270,25 @@
      * Clear separation of validation layers
      * Proper business logic handling
      * Alignment with architectural decisions
+
+5. **StatementService** ✓
+   - [x] Created new service with calculate_due_date method
+   - [x] Added create_statement method
+   - [x] Added get_statement and get_account_statements methods
+   - [x] Added proper account validation
+   - [x] Added comprehensive test coverage
+   - [x] Added tests for datetime handling
+   - [x] Maintained proper UTC naive datetime handling
+   - [x] Verified ADR-012 compliance
+
+6. **RecurringIncomeService** ✓
+   - [x] Added create_income_from_recurring method
+   - [x] Updated generate_income to use new service method
+   - [x] Fixed pylint issues with func.count
+   - [x] Added comprehensive test coverage
+   - [x] Added tests for different scenarios
+   - [x] Maintained proper UTC naive datetime handling
+   - [x] Verified ADR-012 compliance
 
 ### Remaining Service Enhancements
 1. **Bill/Liability Service**
@@ -259,16 +309,20 @@
    - [x] Add validation examples for Account Service
    - [x] Add validation examples for Payment Service
    - [x] Add validation examples for Cashflow Metrics Service
+   - [x] Add validation examples for StatementService
+   - [x] Add validation examples for RecurringIncomeService
    - [ ] Document remaining service layer patterns
 
 2. **Technical Documentation**
    - [x] Update cashflow model documentation
    - [x] Add cashflow service layer patterns
+   - [x] Update statement history documentation
+   - [x] Update recurring income documentation
    - [ ] Update remaining model documentation
    - [ ] Create validation guide
 
 ### Schema Enhancement
-1. **BaseSchemaValidator Enhancement (Completed)** ✓
+1. **BaseSchemaValidator Enhancement** ✓
    - [x] Added automatic datetime conversion support
    - [x] Overrode model_validate method to add timezone info
    - [x] Maintained validation for explicit user input
@@ -277,23 +331,20 @@
    - [x] Eliminated repetitive timezone conversion code across services
 
 ## Next Steps
-1. **StatementHistory Model Simplification**
-   - Remove due date calculation from __init__
-   - Move to StatementService
-   - Update model tests
-   - Add service tests
-   - Document changes
+1. **Documentation Updates**
+   - Document model simplification approach
+   - Update ADR-012 with implementation details
+   - Create validation pattern guide
+   - Update system patterns documentation
 
-2. **RecurringIncome Model Simplification**
-   - Remove create_income_entry() business logic method
-   - Move to RecurringIncomeService
-   - Update model tests
-   - Add service tests
-   - Document changes
+2. **Bill/Liability Service Enhancement**
+   - Add validation methods
+   - Move any remaining business logic
+   - Update tests
+   - Document patterns
 
-2. **Documentation Updates**
-   - Document completed cashflow model simplifications
-   - Update technical documentation with new patterns
-   - Add validation examples for cashflow service
-   - Document calculation patterns
-   - Update ADRs
+3. **Income Service Enhancement**
+   - Add validation methods
+   - Move any remaining business logic
+   - Update tests
+   - Document patterns

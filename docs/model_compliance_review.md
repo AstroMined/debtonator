@@ -435,30 +435,31 @@ class BaseSchemaValidator(BaseModel):
    - Preferred importing from base_model
    - Removed redundant imports
 
-### Phase 2: Business Logic Migration (ADR-012) - ⏳ IN PROGRESS
-1. Create/Update Service Methods - ⏳ IN PROGRESS
+### Phase 2: Business Logic Migration (ADR-012) - ✅ COMPLETED
+1. Create/Update Service Methods - ✅ COMPLETED
    - ✅ RecurringBillService.create_liability_from_recurring()
    - ✅ CashflowService calculation methods
    - ✅ AccountService.validate_credit_limit_history()
    - ✅ CategoryService.get_full_path() and is_ancestor_of()
-   - ⏳ RecurringIncomeService.create_income_from_recurring()
-   - ⏳ StatementService.calculate_due_date()
+   - ✅ RecurringIncomeService.create_income_from_recurring()
+   - ✅ StatementService.calculate_due_date()
 
-2. Remove Model Logic - ⏳ IN PROGRESS
+2. Remove Model Logic - ✅ COMPLETED
    - ✅ Remove create_liability() from RecurringBill
    - ✅ Remove calculation methods from CashflowForecast
    - ✅ Remove event listeners from CreditLimitHistory
    - ✅ Remove is_ancestor_of() and full_path from Category
-   - ⏳ Remove create_income_entry() from RecurringIncome
-   - ⏳ Remove __init__ logic from StatementHistory
+   - ✅ Remove create_income_entry() from RecurringIncome
+   - ✅ Remove __init__ logic from StatementHistory
 
-3. Update Tests - ⏳ IN PROGRESS
+3. Update Tests - ✅ COMPLETED
    - ✅ Moved business logic tests for RecurringBill to service layer
    - ✅ Moved validation tests for CreditLimitHistory to service layer
    - ✅ Updated model tests to focus on persistence
    - ✅ Added new service layer tests for RecurringBill
    - ✅ Updated integration tests for RecurringBill and CreditLimitHistory
-   - ⏳ Update tests for remaining models
+   - ✅ Added new service tests for StatementHistory
+   - ✅ Added new service tests for RecurringIncome
 
 ### Phase 3: Documentation
 1. Model Documentation

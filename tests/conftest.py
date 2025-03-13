@@ -17,6 +17,7 @@ from src.main import app
 from src.models.base_model import naive_utc_now
 from src.models.accounts import Account
 from src.models.income import Income
+from src.models.income_categories import IncomeCategory
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
 from src.models.categories import Category
@@ -208,3 +209,45 @@ async def base_income(db_session: AsyncSession, base_account: Account) -> Income
     await db_session.flush()
     await db_session.refresh(income)  # Ensure we have latest data
     return income
+
+# Fixtures moved from tests/models/conftest.py for wider availability
+
+@pytest.fixture(scope="function")
+async def test_checking_account(db_session: AsyncSession) -> Account:
+    """Test checking account for use in various tests"""
+    checking_account = Account(
+        name="Test Checking Account",
+        type="checking",
+        available_balance=Decimal("1000.00"),
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now()
+    )
+    db_session.add(checking_account)
+    await db_session.commit()
+    await db_session.refresh(checking_account)
+    return checking_account
+
+@pytest.fixture(scope="function")
+async def test_income_category(db_session: AsyncSession) -> IncomeCategory:
+    """Create a test income category"""
+    category = IncomeCategory(name="Test Category")
+    db_session.add(category)
+    await db_session.commit()
+    await db_session.refresh(category)
+    return category
+
+@pytest.fixture(scope="function")
+async def test_credit_account(db_session: AsyncSession) -> Account:
+    """Test credit account for use in various tests"""
+    credit_account = Account(
+        name="Test Credit Card",
+        type="credit",
+        available_balance=Decimal("-500.00"),
+        total_limit=Decimal("2000.00"),
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now()
+    )
+    db_session.add(credit_account)
+    await db_session.commit()
+    await db_session.refresh(credit_account)
+    return credit_account
