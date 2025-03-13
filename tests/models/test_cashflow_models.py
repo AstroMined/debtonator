@@ -51,24 +51,6 @@ async def test_forecast_date_index(db_session: AsyncSession):
     
     assert forecast.forecast_date == date1
 
-async def test_full_calculation_chain(test_cashflow_forecast: CashflowForecast):
-    """Test full chain of calculations from deficits to hourly rates"""
-    # Calculate deficits
-    test_cashflow_forecast.calculate_deficits()
-    assert test_cashflow_forecast.daily_deficit < 0
-    assert test_cashflow_forecast.yearly_deficit < 0
-    
-    # Calculate required income
-    test_cashflow_forecast.calculate_required_income()
-    assert test_cashflow_forecast.required_income > 0
-    assert test_cashflow_forecast.required_income == abs(test_cashflow_forecast.yearly_deficit) / Decimal('0.8')
-    
-    # Calculate hourly rates
-    test_cashflow_forecast.calculate_hourly_rates()
-    weekly_required = test_cashflow_forecast.required_income / 52
-    assert test_cashflow_forecast.hourly_rate_40 == weekly_required / 40
-    assert test_cashflow_forecast.hourly_rate_30 == weekly_required / 30
-    assert test_cashflow_forecast.hourly_rate_20 == weekly_required / 20
 
 
 @pytest.mark.asyncio
@@ -79,52 +61,33 @@ async def test_cashflow_forecast_creation(test_cashflow_forecast: CashflowForeca
     assert test_cashflow_forecast.total_income == Decimal('800.00')
     assert test_cashflow_forecast.balance == Decimal('-200.00')
 
-@pytest.mark.asyncio
-async def test_calculate_deficits_negative(test_cashflow_forecast: CashflowForecast):
-    """Test deficit calculations with negative minimum amount"""
-    test_cashflow_forecast.calculate_deficits()
-    # Takes minimum of all min_X_day values (-600) and divides by 14
-    expected_daily = Decimal('-600.00') / 14
-    assert test_cashflow_forecast.daily_deficit == expected_daily
-    assert test_cashflow_forecast.yearly_deficit == expected_daily * 365
+
+
 
 @pytest.mark.asyncio
-async def test_calculate_deficits_positive(test_cashflow_forecast: CashflowForecast):
-    """Test deficit calculations with positive minimum amount"""
-    # Set all minimum values to positive numbers
-    test_cashflow_forecast.min_14_day = Decimal('300.00')
-    test_cashflow_forecast.min_30_day = Decimal('400.00')
-    test_cashflow_forecast.min_60_day = Decimal('500.00')
-    test_cashflow_forecast.min_90_day = Decimal('600.00')
+async def test_cashflow_forecast_fields(test_cashflow_forecast: CashflowForecast):
+    """Test the model fields for CashflowForecast (data structure only)"""
+    # Verify field data types and values
+    assert isinstance(test_cashflow_forecast.forecast_date, datetime)
+    assert isinstance(test_cashflow_forecast.total_bills, Decimal)
+    assert isinstance(test_cashflow_forecast.total_income, Decimal)
+    assert isinstance(test_cashflow_forecast.balance, Decimal)
+    assert isinstance(test_cashflow_forecast.forecast, Decimal)
+    assert isinstance(test_cashflow_forecast.min_14_day, Decimal)
+    assert isinstance(test_cashflow_forecast.min_30_day, Decimal)
+    assert isinstance(test_cashflow_forecast.min_60_day, Decimal)
+    assert isinstance(test_cashflow_forecast.min_90_day, Decimal)
+    assert isinstance(test_cashflow_forecast.daily_deficit, Decimal)
+    assert isinstance(test_cashflow_forecast.yearly_deficit, Decimal)
+    assert isinstance(test_cashflow_forecast.required_income, Decimal)
+    assert isinstance(test_cashflow_forecast.hourly_rate_40, Decimal)
+    assert isinstance(test_cashflow_forecast.hourly_rate_30, Decimal)
+    assert isinstance(test_cashflow_forecast.hourly_rate_20, Decimal)
     
-    test_cashflow_forecast.calculate_deficits()
-    assert test_cashflow_forecast.daily_deficit == Decimal('0')
-    assert test_cashflow_forecast.yearly_deficit == Decimal('0')
-
-@pytest.mark.asyncio
-async def test_calculate_required_income(test_cashflow_forecast: CashflowForecast):
-    """Test required income calculation"""
-    # Set up yearly deficit
-    test_cashflow_forecast.yearly_deficit = Decimal('-52000.00')  # -$52,000/year
-    test_cashflow_forecast.calculate_required_income()
-    # Required income should be abs(-52000)/0.8 to account for taxes
-    expected = abs(Decimal('-52000.00')) / Decimal('0.8')  # $65,000
-    assert test_cashflow_forecast.required_income == expected
-
-@pytest.mark.asyncio
-async def test_calculate_hourly_rates(test_cashflow_forecast: CashflowForecast):
-    """Test hourly rate calculations for different work hours"""
-    # Set required income to $65,000
-    test_cashflow_forecast.required_income = Decimal('65000.00')
-    test_cashflow_forecast.calculate_hourly_rates()
-    
-    # Weekly required = 65000/52 = 1250
-    weekly = Decimal('65000.00') / 52
-    
-    # Test each hourly rate
-    assert test_cashflow_forecast.hourly_rate_40 == weekly / 40  # ~$31.25/hr
-    assert test_cashflow_forecast.hourly_rate_30 == weekly / 30  # ~$41.67/hr
-    assert test_cashflow_forecast.hourly_rate_20 == weekly / 20  # ~$62.50/hr
+    # Verify initial values
+    assert test_cashflow_forecast.total_bills == Decimal('1000.00')
+    assert test_cashflow_forecast.total_income == Decimal('800.00')
+    assert test_cashflow_forecast.balance == Decimal('-200.00')
 
 @pytest.mark.asyncio
 async def test_datetime_handling(db_session: AsyncSession):

@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, Union
 from sqlalchemy import select
 
 from src.models.accounts import Account
+from src.models.cashflow import CashflowForecast
 from src.models.liabilities import Liability
 from src.models.payments import Payment
 from src.schemas.cashflow import CustomForecastResult
@@ -160,6 +161,63 @@ class MetricsService(BaseService):
             Required gross income
         """
         return yearly_deficit / tax_rate
+
+    def update_cashflow_deficits(self, forecast: CashflowForecast) -> None:
+        """Calculate daily and yearly deficits for a cashflow forecast model.
+        
+        This method replaces the model's calculate_deficits method to move
+        business logic to the service layer in compliance with ADR-012.
+        
+        Args:
+            forecast: The CashflowForecast model to update
+        """
+        min_amount = min(
+            forecast.min_14_day,
+            forecast.min_30_day,
+            forecast.min_60_day,
+            forecast.min_90_day
+        )
+        forecast.daily_deficit = self.calculate_daily_deficit(min_amount, 14)
+        forecast.yearly_deficit = self.calculate_yearly_deficit(forecast.daily_deficit)
+    
+    def update_cashflow_required_income(self, forecast: CashflowForecast, tax_rate: Decimal = Decimal("0.8")) -> None:
+        """Calculate required income for a cashflow forecast model.
+        
+        This method replaces the model's calculate_required_income method to move
+        business logic to the service layer in compliance with ADR-012.
+        
+        Args:
+            forecast: The CashflowForecast model to update
+            tax_rate: Tax rate as decimal (default 0.80 assumes 20% tax rate)
+        """
+        forecast.required_income = self.calculate_required_income(forecast.yearly_deficit, tax_rate)
+    
+    def update_cashflow_hourly_rates(self, forecast: CashflowForecast) -> None:
+        """Calculate hourly rates for a cashflow forecast model.
+        
+        This method replaces the model's calculate_hourly_rates method to move
+        business logic to the service layer in compliance with ADR-012.
+        
+        Args:
+            forecast: The CashflowForecast model to update
+        """
+        weekly_required = forecast.required_income / 52
+        forecast.hourly_rate_40 = weekly_required / 40
+        forecast.hourly_rate_30 = weekly_required / 30
+        forecast.hourly_rate_20 = weekly_required / 20
+    
+    def update_cashflow_all_calculations(self, forecast: CashflowForecast, tax_rate: Decimal = Decimal("0.8")) -> None:
+        """Perform all calculations on a cashflow forecast model.
+        
+        This is a convenience method that performs all calculations in the correct order.
+        
+        Args:
+            forecast: The CashflowForecast model to update
+            tax_rate: Tax rate as decimal (default 0.80 assumes 20% tax rate)
+        """
+        self.update_cashflow_deficits(forecast)
+        self.update_cashflow_required_income(forecast, tax_rate)
+        self.update_cashflow_hourly_rates(forecast)
 
     def _calculate_day_confidence(
         self,

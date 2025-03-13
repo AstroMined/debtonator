@@ -37,7 +37,26 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Document service patterns
 
 ### Recent Changes
-1. **Bill/Liability Model Enhancement (Completed)** ✓
+1. **Cashflow Model Enhancement (Completed)** ✓
+   - Removed business logic methods (calculate_deficits, calculate_required_income, calculate_hourly_rates)
+   - Removed unused ZoneInfo import
+   - Enhanced model documentation clarifying pure data structure focus
+   - Added explicit service layer responsibility notes
+   - Updated model tests to focus on data structure only
+   - Maintained proper UTC datetime handling
+   - Verified model complies with ADR-012 standards
+
+2. **Cashflow Metrics Service Enhancement (Completed)** ✓
+   - Added update_cashflow_deficits method
+   - Added update_cashflow_required_income method
+   - Added update_cashflow_hourly_rates method
+   - Added update_cashflow_all_calculations convenience method
+   - Created comprehensive tests for new service methods
+   - Maintained proper mathematical relationships
+   - Ensured full test coverage of business logic
+   - Verified service complies with ADR-012 standards
+
+3. **Bill/Liability Model Enhancement (Completed)** ✓
    - Added comprehensive class-level documentation clarifying responsibility boundaries
    - Improved field documentation with validation and service layer notes
    - Organized fields into logical groups with clear comments
@@ -45,7 +64,7 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Maintained proper UTC datetime handling
    - Verified model complies with ADR-012 standards
 
-2. **Account Model Enhancement (Completed)** ✓
+4. **Account Model Enhancement (Completed)** ✓
    - Removed update_available_credit method from Account model
    - Added _update_available_credit to AccountService
    - Simplified Account model to pure data structure
@@ -84,6 +103,16 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - [x] Added comprehensive model documentation
    - [x] Improved separation of concerns
    - [x] Added service layer calculation methods
+   - [x] Maintained proper UTC datetime handling
+   - [x] Verified ADR-012 compliance
+
+5. **Cashflow Model (Completed)** ✓
+   - [x] Removed business logic methods
+   - [x] Removed unused imports
+   - [x] Enhanced model documentation
+   - [x] Updated tests to focus on data structure
+   - [x] Added dedicated service tests
+   - [x] Enhanced service layer with new methods
    - [x] Maintained proper UTC datetime handling
    - [x] Verified ADR-012 compliance
 
@@ -128,13 +157,32 @@ Validation Layer Standardization - Phase 2: Model Simplification
      * Proper business logic handling
      * Alignment with ADR-011 and ADR-012
 
-3. **Bill/Liability Service**
+3. **Cashflow Metrics Service (Completed)** ✓
+   - [x] Added new service methods
+     * Added update_cashflow_deficits
+     * Added update_cashflow_required_income
+     * Added update_cashflow_hourly_rates
+     * Added update_cashflow_all_calculations
+   - [x] Moved business logic from model
+     * Moved calculation logic to service layer
+     * Maintained proper mathematical relationships
+     * Ensured correct handling of edge cases
+   - [x] Added comprehensive test coverage
+     * Added tests for individual methods
+     * Added tests for calculation chain
+     * Added tests for edge cases
+   - [x] Documented patterns
+     * Added comprehensive method documentation
+     * Documented service layer responsibilities
+     * Ensured alignment with ADR-011 and ADR-012
+
+4. **Bill/Liability Service**
    - [ ] Add validation methods
    - [ ] Move business logic
    - [ ] Update tests
    - [ ] Document patterns
 
-4. **Income Service**
+5. **Income Service**
    - [ ] Add validation methods
    - [ ] Move business logic
    - [ ] Update tests

@@ -3,7 +3,30 @@
 ## Current Priority: Validation Layer Standardization - Phase 3
 
 ### Recent Improvements
-1. **Account Service Enhancement (Completed)** ✓
+1. **Cashflow Model and Service Enhancement (Completed)** ✓
+   - Model Improvements:
+     * Removed business logic methods from CashflowForecast model
+     * Removed unused ZoneInfo import
+     * Enhanced model documentation
+     * Simplified to pure data structure
+     * Maintained proper UTC datetime handling
+   - Service Enhancements:
+     * Added update_cashflow_deficits method
+     * Added update_cashflow_required_income method 
+     * Added update_cashflow_hourly_rates method
+     * Added update_cashflow_all_calculations convenience method
+   - Testing Strategy:
+     * Simplified model tests to focus on data structure
+     * Created dedicated service tests for business logic
+     * Ensured full test coverage
+     * Added edge case handling
+   - Documentation:
+     * Updated model documentation with service responsibilities
+     * Added comprehensive method documentation
+     * Documented calculation chain
+     * Ensured ADR-011 and ADR-012 compliance
+
+2. **Account Service Enhancement (Completed)** ✓
    - Added comprehensive validation methods:
      * validate_account_balance for transaction validation
      * validate_credit_limit_update for limit changes
@@ -27,7 +50,20 @@
      * Error handling documentation
 
 ### Model Simplification Progress
-1. **Account Model (Completed)** ✓
+1. **Cashflow Model (Completed)** ✓
+   - [x] Removed business logic methods:
+     * calculate_deficits()
+     * calculate_required_income()
+     * calculate_hourly_rates()
+   - [x] Removed unused ZoneInfo import
+   - [x] Enhanced model documentation
+   - [x] Focused tests on data structure validation
+   - [x] Verified proper UTC datetime handling
+   - [x] Maintained field definitions and indexes
+   - [x] Ensured proper model representation
+   - [x] Verified ADR-012 compliance
+
+2. **Account Model (Completed)** ✓
    - [x] Removed @validates decorators
    - [x] Removed update_available_credit method from model
    - [x] Added _update_available_credit to service layer
@@ -37,7 +73,7 @@
    - [x] Maintained full test coverage
    - [x] Improved separation of concerns
 
-2. **Payment Model (Completed)** ✓
+3. **Payment Model (Completed)** ✓
    - [x] Reviewed model against ADR-012 standards
    - [x] Confirmed no @validates decorators present
    - [x] Verified no business logic in model
@@ -46,7 +82,7 @@
    - [x] Verified UTC datetime handling
    - [x] Documentation already up to date
 
-3. **Bill/Liability Model (Completed)** ✓
+4. **Bill/Liability Model (Completed)** ✓
    - [x] Reviewed model against ADR-012 standards
    - [x] Confirmed no validation logic present
    - [x] Verified proper relationship definitions
@@ -56,8 +92,7 @@
    - [x] Verified tests focus on data structure
    - [x] Confirmed proper UTC datetime handling
 
-### Recent Improvements
-1. **Income Model Enhancement (Completed)** ✓
+### Income Model Enhancement (Completed)** ✓
    - Removed calculate_undeposited method from model
    - Added _calculate_undeposited_amount to service
    - Added _update_undeposited_amount to service
@@ -70,7 +105,27 @@
 
 ### Service Layer Enhancement Progress
 
-1. **Account Service (Completed)** ✓
+1. **Cashflow Metrics Service (Completed)** ✓
+   - [x] Added business logic methods:
+     * update_cashflow_deficits to calculate deficits
+     * update_cashflow_required_income to calculate income needs
+     * update_cashflow_hourly_rates to calculate hourly rates
+     * update_cashflow_all_calculations for full chain
+   - [x] Maintained calculation correctness:
+     * Preserved mathematical relationships
+     * Handled edge cases properly
+     * Ensured proper rounding behavior
+   - [x] Added comprehensive test coverage:
+     * Tests for individual calculation methods
+     * Tests for full calculation chain
+     * Negative and positive amount tests
+     * Edge case tests
+   - [x] Documented service layer:
+     * Method documentation with parameters and returns
+     * Clarified business rules and formulas
+     * Noted ADR-012 compliance
+
+2. **Account Service (Completed)** ✓
    - [x] Added validation methods
      * Added validate_account_balance
      * Added validate_credit_limit_update
@@ -93,7 +148,7 @@
      * Validation examples
      * Error handling documentation
 
-2. **Payment Service (Completed)** ✓
+3. **Payment Service (Completed)** ✓
    - [x] Aligned with ADR-011 and ADR-012:
      * Moved basic validation to Pydantic schemas
      * Proper UTC enforcement via BaseSchemaValidator
@@ -112,58 +167,46 @@
      * Clear separation of validation layers
      * Proper business logic handling
      * Alignment with architectural decisions
-   - [ ] Bill/Liability Service
-     * Add validation methods
-     * Move business logic
-     * Update tests
-     * Document patterns
-   - [ ] Income Service
-     * Add validation methods
-     * Move business logic
-     * Update tests
-     * Document patterns
+
+### Remaining Service Enhancements
+1. **Bill/Liability Service**
+   - [ ] Add validation methods
+   - [ ] Move business logic
+   - [ ] Update tests
+   - [ ] Document patterns
+
+2. **Income Service**
+   - [ ] Add validation methods
+   - [ ] Move business logic
+   - [ ] Update tests
+   - [ ] Document patterns
 
 ### Documentation Updates
 1. **ADR-012 Updates**
    - [x] Document model simplification progress
    - [x] Add validation examples for Account Service
    - [x] Add validation examples for Payment Service
+   - [x] Add validation examples for Cashflow Metrics Service
    - [ ] Document remaining service layer patterns
 
 2. **Technical Documentation**
-   - [ ] Update model documentation
-   - [ ] Add service layer patterns
+   - [x] Update cashflow model documentation
+   - [x] Add cashflow service layer patterns
+   - [ ] Update remaining model documentation
    - [ ] Create validation guide
 
-### Recent Improvements
-1. **Bill/Liability Model Enhancement** ✓
-   - Added comprehensive class-level documentation
-   - Improved field documentation
-   - Organized fields into logical groups
-   - Added explicit schema vs service layer responsibilities
-   - Maintained proper UTC datetime handling
-   - Verified ADR-012 compliance
-
-2. **Account Model Enhancement** ✓
-   - Removed update_available_credit method
-   - Added _update_available_credit to service
-   - Simplified model to pure data structure
-   - Enhanced service layer credit calculations
-   - Updated tests to focus on data integrity
-   - Improved separation of concerns
-   - Maintained full test coverage
-
 ## Next Steps
-1. **Income Model Simplification**
-   - Review current income model implementation
-   - Identify any validation logic to remove
-   - Update relationships if needed
-   - Update tests to focus on data structure
+1. **Categories Model Simplification**
+   - Review current categories model implementation
+   - Identify business logic to move to service layer
+   - Update model tests to focus on data structure
+   - Create service methods for business logic
+   - Add service tests
    - Document changes
 
 2. **Documentation Updates**
-   - Document completed model simplifications
-   - Update technical documentation
-   - Add validation examples
-   - Document patterns
+   - Document completed cashflow model simplifications
+   - Update technical documentation with new patterns
+   - Add validation examples for cashflow service
+   - Document calculation patterns
    - Update ADRs
