@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.89] - 2025-03-14
+
+### Fixed
+- Completed model test suite refactoring to align with ADR-012 implementation:
+  * Fixed model tests that were failing due to business logic removal
+  * Removed business logic tests from RecurringIncome, Income, and StatementHistory model tests
+  * Updated test_income_record fixture to set undeposited_amount directly
+  * Refocused model tests purely on data structure and relationships
+  * Modified test_cascade_delete_income_entries to use RecurringIncomeService
+  * Fixed StatementHistory tests to focus on due_date as a regular field
+  * Corrected relationship tests in Deposit Schedules and Income Categories models
+  * Ensured all 106 model tests pass successfully
+
+### Changed
+- Enhanced test organization following ADR-012 principles:
+  * Created clear delineation between model tests and service tests
+  * Improved test fixtures to respect separation of concerns
+  * Corrected remaining Pylint warnings
+  * Maintained proper test coverage while respecting architecture boundaries
+  * Created proper test consistency with UTC datetime handling
+
 ## [0.3.88] - 2025-03-13
 
 ### Changed

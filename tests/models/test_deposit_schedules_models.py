@@ -84,12 +84,12 @@ async def test_default_datetime_handling(
     assert deposit_schedule.created_at.tzinfo is None
     assert deposit_schedule.updated_at.tzinfo is None
 
-async def test_relationship_datetime_handling(
+async def test_model_relationships(
     db_session: AsyncSession,
     test_income_record: Income,
     test_checking_account: Account
 ):
-    """Test datetime handling with relationships"""
+    """Test relationships between models"""
     deposit_schedule = DepositSchedule(
         income_id=test_income_record.id,
         account_id=test_checking_account.id,
@@ -103,6 +103,12 @@ async def test_relationship_datetime_handling(
     # Refresh to load relationships
     await db_session.refresh(deposit_schedule, ['income', 'account'])
 
+    # Verify relationships are properly loaded
+    assert deposit_schedule.income is not None
+    assert deposit_schedule.income.id == test_income_record.id
+    assert deposit_schedule.account is not None
+    assert deposit_schedule.account.id == test_checking_account.id
+    
     # Verify datetime fields remain naive after refresh
     assert deposit_schedule.schedule_date.tzinfo is None
     assert deposit_schedule.created_at.tzinfo is None

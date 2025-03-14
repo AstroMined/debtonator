@@ -1,7 +1,7 @@
 # ADR-012: Validation Layer Standardization
 
 ## Status
-Proposed
+Implemented
 
 ## Context
 Our current validation architecture has logic split across multiple layers:
@@ -140,17 +140,159 @@ class AccountService:
    - Document patterns
    - Update ADRs
 
+## Implementation Progress
+
+### Status and Timeline
+- Phase 1: Completed
+- Phase 2: Completed
+- Phase 3: In Progress (Income and Liability Services completed)
+- Phase 4: In Progress
+
+### Completed Model Simplifications
+1. **Categories Model**
+   - Moved full_path property, is_ancestor_of() method, and _get_parent() to service layer
+   - Enhanced model documentation with clear data structure focus
+   - Fixed SQLAlchemy query handling for eager-loaded relationships
+
+2. **CashflowForecast Model**
+   - Moved calculation methods to service layer:
+     * calculate_deficits()
+     * calculate_required_income()
+     * calculate_hourly_rates()
+   - Removed unused ZoneInfo import
+   - Enhanced model documentation with pure data structure focus
+
+3. **Account Model**
+   - Removed update_available_credit method 
+   - Removed @validates decorators
+   - Added _update_available_credit to service
+   - Simplified model to pure data structure
+
+4. **CreditLimitHistory Model**
+   - Removed SQLAlchemy event listeners for validation
+   - Added validate_credit_limit_history to AccountService
+   - Enhanced model documentation with pure data structure focus
+
+5. **RecurringBill Model**
+   - Moved create_liability() method to service layer
+   - Added create_liability_from_recurring() to RecurringBillService
+   - Enhanced model documentation with pure data structure focus
+
+6. **StatementHistory Model**
+   - Moved due date calculation from __init__ method to service layer
+   - Created new StatementService with calculate_due_date method
+   - Enhanced model documentation with pure data structure focus
+
+7. **RecurringIncome Model**
+   - Moved create_income_entry() method to service layer
+   - Added create_income_from_recurring() to RecurringIncomeService
+   - Enhanced model documentation with pure data structure focus
+
+8. **Income Model**
+   - Moved calculate_undeposited() to service layer
+   - Added _calculate_undeposited_amount and _update_undeposited_amount to service
+   - Enhanced model documentation with pure data structure focus
+
+### Completed Service Enhancements
+
+1. **Income Service**
+   ```python
+   async def validate_income_create(self, income_data: IncomeCreate) -> Tuple[bool, Optional[str]]:
+       """
+       Validate an income creation request.
+       
+       Business rules validated:
+       - Account must exist
+       - Category must exist (if provided)
+       """
+       # Verify account exists
+       account = await self._get_account(income_data.account_id)
+       if not account:
+           return False, f"Account with ID {income_data.account_id} not found"
+       
+       # Verify category exists if provided
+       if income_data.category_id:
+           category = await self._get_category(income_data.category_id)
+           if not category:
+               return False, f"Category with ID {income_data.category_id} not found"
+       
+       return True, None
+   ```
+
+2. **Liability Service**
+   ```python
+   async def validate_liability_create(self, liability_data: LiabilityCreate) -> Tuple[bool, Optional[str]]:
+       """
+       Validate a liability creation request.
+       
+       Business rules validated:
+       - Category must exist
+       - Primary account must exist
+       - Due date must be valid
+       """
+       # Verify category exists
+       category = await self._get_category(liability_data.category_id)
+       if not category:
+           return False, f"Category with ID {liability_data.category_id} not found"
+       
+       # Verify account exists
+       account = await self._get_account(liability_data.primary_account_id)
+       if not account:
+           return False, f"Account with ID {liability_data.primary_account_id} not found"
+       
+       return True, None
+   ```
+
+3. **Category Service**
+   ```python
+   async def get_full_path(self, category: Category) -> str:
+       """
+       Get the full hierarchical path of a category.
+       
+       This method replaces the model property with a service method,
+       moving business logic to the service layer per ADR-012.
+       """
+       if not category.parent_id:
+           return category.name
+           
+       parent = await self.get_category(category.parent_id)
+       if not parent:
+           return category.name
+           
+       parent_path = await self.get_full_path(parent)
+       return f"{parent_path} > {category.name}"
+   ```
+
+4. **Account Service**
+   ```python
+   async def validate_credit_limit_history(self, account_id: int) -> tuple[bool, Optional[str]]:
+       """
+       Validate that an account can have credit limit history.
+       """
+       # Account exists validation
+       account = await self.get_account(account_id)
+       if not account:
+           return False, f"Account with ID {account_id} not found"
+       
+       # Credit account validation
+       if account.type != "credit":
+           return False, "Credit limit history can only be created for credit accounts"
+       
+       return True, None
+   ```
+
+### Remaining Work
+1. **Documentation Updates**
+   - Update technical documentation with model simplification approach
+   - Add validation pattern examples across different services
+   - Document relationships between services and models
+   - Update ADRs with implementation details
+
 ## Performance Impact
 - Improved performance by reducing duplicate validation
 - Better query efficiency with simpler models
 - Reduced memory usage without redundant checks
 - More efficient service layer operations
-
-## Cost Considerations
-- Development effort for refactoring
-- Testing effort for validation coverage
-- Documentation updates
-- Training for new patterns
 
 ## Compliance & Security
 - Improved validation consistency
@@ -162,12 +304,6 @@ class AccountService:
 - Pydantic V2
 - SQLAlchemy 2.0+
 - FastAPI
-
-## Timeline
-- Phase 1: 1 week
-- Phase 2: 1 week
-- Phase 3: 2 weeks
-- Phase 4: 1 week
 
 ## Monitoring & Success Metrics
 - Test coverage metrics
@@ -195,3 +331,4 @@ class AccountService:
 | Date | Revision | Author | Description |
 |------|-----------|---------|-------------|
 | 2025-02-17 | 1.0 | Cline | Initial version |
+| 2025-03-13 | 2.0 | Cline | Updated with implementation progress |

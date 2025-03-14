@@ -54,12 +54,13 @@ async def test_income_record(db_session: AsyncSession, test_checking_account: Ac
         source="Salary",
         amount=Decimal('2000.00'),
         deposited=False,
-        account=test_checking_account
+        account=test_checking_account,
+        # Set undeposited_amount directly since calculate_undeposited() was moved to service
+        undeposited_amount=Decimal('2000.00')  # Same as amount when not deposited
     )
     db_session.add(income)
     await db_session.commit()
     await db_session.refresh(income)
-    income.calculate_undeposited()
     return income
 
 @pytest.fixture(scope="function")

@@ -3,7 +3,24 @@
 ## Current Priority: Validation Layer Standardization - Phase 3
 
 ### Recent Improvements
-1. **Categories Model and Service Enhancement (Completed)** ✓
+1. **Model Test Suite Refactoring (Completed)** ✓
+   - Model Improvements:
+     * Fixed model tests that were failing due to ADR-012 implementation
+     * Removed business logic tests from model tests (RecurringIncome, Income, StatementHistory)
+     * Updated test fixtures to reflect business logic moved to services
+     * Refocused model tests purely on data structure and relationships
+   - Test Enhancements:
+     * Updated test_income_record fixture to set undeposited_amount directly
+     * Fixed RecurringIncome tests to use service methods
+     * Fixed StatementHistory tests to focus on pure data structure
+     * Modified Deposit Schedules tests to test models not business logic
+   - Improvements:
+     * Ensured all model tests (106 tests) pass successfully
+     * Created clear delineation between model tests and service tests
+     * Corrected remaining Pylint warnings
+     * Maintained test coverage while respecting separation of concerns
+
+2. **Categories Model and Service Enhancement (Completed)** ✓
    - Model Improvements:
      * Removed business logic methods (full_path, is_ancestor_of, _get_parent)
      * Simplified Category model to pure data structure

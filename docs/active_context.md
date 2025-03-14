@@ -262,7 +262,16 @@ Validation Layer Standardization - Phase 2: Model Simplification
 
 ### Recent Changes
 
-1. **Test Fixture Consolidation (Completed)** ✓
+1. **Test Suite Refactoring for Model Layer (Completed)** ✓
+   - Fixed model tests that were failing due to ADR-012 implementation
+   - Removed business logic tests from model tests (RecurringIncome, Income, StatementHistory)
+   - Updated test_income_record fixture to set undeposited_amount directly rather than calling removed calculate_undeposited method
+   - Refocused model tests purely on data structure and relationships
+   - Ensured all model tests (106 tests) pass successfully
+   - Created clear delineation between model tests and service tests
+   - Corrected remaining Pylint warnings
+
+2. **Test Fixture Consolidation (Completed)** ✓
    - Moved model fixtures to main conftest.py for global availability
    - Added test_checking_account, test_credit_account, and test_income_category fixtures
    - Fixed test dependencies to use shared fixtures
@@ -271,7 +280,7 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Ensured all service tests can access necessary fixtures
    - Improved test maintainability with centralized fixture definitions
 
-2. **CreditLimitHistory Model Enhancement** ✓
+3. **CreditLimitHistory Model Enhancement** ✓
    - Removed SQLAlchemy event listeners for validation
    - Added validate_credit_limit_history to AccountService
    - Enhanced model documentation with clear data structure focus
@@ -281,7 +290,7 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Fixed datetime handling for proper UTC timezone management
    - Ensured full test coverage with 100% passing tests
 
-2. **RecurringBill Model Enhancement** ✓
+4. **RecurringBill Model Enhancement** ✓
    - Removed create_liability() business logic method from model
    - Added create_liability_from_recurring() to RecurringBillService
    - Updated model documentation as pure data structure
@@ -291,7 +300,7 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Ensured proper date/datetime comparisons in queries
    - Verified ADR-012 compliance with proper separation of concerns
 
-3. **BaseSchemaValidator Enhancement** ✓
+5. **BaseSchemaValidator Enhancement** ✓
    - Added automatic datetime conversion from naive to UTC-aware
    - Overrode model_validate method to add timezone info before validation
    - Maintained strict validation for explicit user input
@@ -299,7 +308,7 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Fixed test inconsistencies between date and datetime objects
    - Eliminated repetitive code across services
 
-4. **StatementHistory Model Enhancement** ✓
+6. **StatementHistory Model Enhancement** ✓
    - Removed due date calculation from __init__ method
    - Created new StatementService with calculate_due_date method
    - Enhanced model documentation to clearly indicate pure data structure
@@ -308,7 +317,7 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Ensured full test coverage with passing tests
    - Verified ADR-012 compliance
 
-5. **RecurringIncome Model Enhancement** ✓
+7. **RecurringIncome Model Enhancement** ✓
    - Removed create_income_entry() business logic method from model
    - Added create_income_from_recurring to RecurringIncomeService
    - Updated generate_income method to use new service method
