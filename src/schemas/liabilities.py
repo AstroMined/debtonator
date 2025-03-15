@@ -1,23 +1,175 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import List, Optional, Dict, Union
-from pydantic import Field, ConfigDict, field_validator
+from typing import Dict, List, Optional, Union, Any
+from pydantic import Field, ConfigDict, field_validator, model_validator
 
 from . import BaseSchemaValidator
 
-# Forward declarations
-class LiabilityBase(BaseSchemaValidator):
-    """Base schema for liability data"""
+class AutoPaySettings(BaseSchemaValidator):
+    """
+    Schema for auto-pay settings.
+    
+    Defines the configuration for automatic payments of liabilities including
+    timing preferences, payment methods, and notification settings.
+    """
     model_config = ConfigDict(from_attributes=True)
     
-    name: str = Field(..., min_length=1, max_length=100, description="Name of the liability")
-    amount: Decimal = Field(..., gt=Decimal('0'), description="Total amount of the liability")
-    due_date: datetime = Field(..., description="Due date of the liability (UTC)")
+    preferred_pay_date: Optional[int] = Field(
+        None, 
+        description="Preferred day of month for payment (1-31)", 
+        ge=1, 
+        le=31
+    )
+    days_before_due: Optional[int] = Field(
+        None, 
+        description="Days before due date to process payment", 
+        ge=0, 
+        le=30
+    )
+    payment_method: str = Field(
+        ..., 
+        min_length=1, 
+        max_length=50, 
+        description="Payment method to use for auto-pay"
+    )
+    minimum_balance_required: Optional[Decimal] = Field(
+        None, 
+        description="Minimum balance required in account before auto-pay is triggered"
+    )
+    retry_on_failure: bool = Field(
+        default=True, 
+        description="Whether to retry failed auto-payments"
+    )
+    notification_email: Optional[str] = Field(
+        None, 
+        max_length=255,
+        description="Email address to send auto-pay notifications to"
+    )
+
+    @model_validator(mode='after')
+    def validate_payment_preferences(self) -> 'AutoPaySettings':
+        """
+        Validates that either preferred_pay_date or days_before_due is set, but not both.
+        
+        Args:
+            None (uses object attributes)
+            
+        Returns:
+            AutoPaySettings: The validated object if validation passes
+            
+        Raises:
+            ValueError: If both preferred_pay_date and days_before_due are set
+        """
+        if self.preferred_pay_date is not None and self.days_before_due is not None:
+            raise ValueError("Cannot set both preferred_pay_date and days_before_due")
+        return self
+
+    @field_validator("minimum_balance_required", mode="before")
+    @classmethod
+    def validate_minimum_balance_precision(cls, value: Optional[Decimal]) -> Optional[Decimal]:
+        """
+        Validates that minimum_balance_required has at most 2 decimal places.
+        
+        Args:
+            value: The Decimal value to validate
+            
+        Returns:
+            Optional[Decimal]: The validated value
+            
+        Raises:
+            ValueError: If value has more than 2 decimal places
+        """
+        if value is not None and isinstance(value, Decimal) and value.as_tuple().exponent < -2:
+            raise ValueError("Minimum balance must have at most 2 decimal places")
+        return value
+
+
+class LiabilityBase(BaseSchemaValidator):
+    """
+    Base schema for liability data.
+    
+    Contains the common attributes and validation logic for liabilities 
+    throughout the application.
+    """
+    model_config = ConfigDict(from_attributes=True)
+    
+    name: str = Field(
+        ..., 
+        min_length=1, 
+        max_length=100, 
+        description="Name of the liability"
+    )
+    amount: Decimal = Field(
+        ..., 
+        gt=Decimal('0'), 
+        description="Total amount of the liability"
+    )
+    due_date: datetime = Field(
+        ..., 
+        description="Due date of the liability (UTC timezone)"
+    )
+    description: Optional[str] = Field(
+        None, 
+        min_length=1, 
+        max_length=500, 
+        description="Optional description of the liability"
+    )
+    category_id: int = Field(
+        ..., 
+        description="ID of the category for this liability"
+    )
+    recurring: bool = Field(
+        default=False, 
+        description="Whether this is a recurring liability"
+    )
+    recurring_bill_id: Optional[int] = Field(
+        None, 
+        description="ID of the associated recurring bill, if this is linked to a recurring bill"
+    )
+    recurrence_pattern: Optional[Dict] = Field(
+        None, 
+        description="Pattern for recurring liabilities (schedule and frequency)"
+    )
+    primary_account_id: int = Field(
+        ..., 
+        description="ID of the primary account for this liability"
+    )
+    auto_pay: bool = Field(
+        default=False, 
+        description="Whether this liability is set for auto-pay"
+    )
+    auto_pay_settings: Optional[AutoPaySettings] = Field(
+        None, 
+        description="Auto-pay configuration settings when auto_pay is true"
+    )
+    last_auto_pay_attempt: Optional[datetime] = Field(
+        None, 
+        description="Timestamp of last auto-pay attempt (UTC timezone)"
+    )
+    auto_pay_enabled: bool = Field(
+        default=False, 
+        description="Whether auto-pay is currently enabled for this liability"
+    )
+    paid: bool = Field(
+        default=False, 
+        description="Whether this liability has been paid"
+    )
 
     @field_validator("amount", mode="before")
     @classmethod
     def validate_amount_precision(cls, value: Decimal) -> Decimal:
-        """Validates that amount has at most 2 decimal places."""
+        """
+        Validates that amount has at most 2 decimal places.
+        
+        Args:
+            value: The Decimal value to validate
+            
+        Returns:
+            Decimal: The validated value
+            
+        Raises:
+            ValueError: If value has more than 2 decimal places
+        """
         if isinstance(value, Decimal) and value.as_tuple().exponent < -2:
             raise ValueError("Amount must have at most 2 decimal places")
         return value
@@ -25,91 +177,209 @@ class LiabilityBase(BaseSchemaValidator):
     @field_validator("due_date")
     @classmethod
     def validate_due_date_not_past(cls, value: datetime) -> datetime:
-        """Validates that due date is not in the past."""
+        """
+        Validates that due date is not in the past.
+        
+        Args:
+            value: The datetime value to validate
+            
+        Returns:
+            datetime: The validated value
+            
+        Raises:
+            ValueError: If due date is in the past
+        """
         if value < datetime.now(value.tzinfo):
             raise ValueError("Due date cannot be in the past")
         return value
 
-    description: Optional[str] = Field(None, min_length=1, max_length=500, description="Optional description")
-    category_id: int = Field(..., description="ID of the category for this liability")
-    recurring: bool = Field(default=False, description="Whether this is a recurring liability")
-    recurring_bill_id: Optional[int] = Field(None, description="ID of the associated recurring bill")
-    recurrence_pattern: Optional[Dict] = Field(None, description="Pattern for recurring liabilities")
-    primary_account_id: int = Field(..., description="ID of the primary account for this liability")
-    auto_pay: bool = Field(default=False, description="Whether this liability is set for auto-pay")
-    auto_pay_settings: Optional["AutoPaySettings"] = Field(None, description="Auto-pay configuration settings")
-    last_auto_pay_attempt: Optional[datetime] = Field(None, description="Timestamp of last auto-pay attempt (UTC)")
-    auto_pay_enabled: bool = Field(default=False, description="Whether auto-pay is currently enabled")
-    paid: bool = Field(default=False, description="Whether this liability has been paid")
-
-class AutoPaySettings(BaseSchemaValidator):
-    """Schema for auto-pay settings"""
-    model_config = ConfigDict(from_attributes=True)
-    
-    preferred_pay_date: Optional[int] = Field(None, description="Preferred day of month for payment (1-31)", ge=1, le=31)
-    days_before_due: Optional[int] = Field(None, description="Days before due date to process payment", ge=0, le=30)
-    payment_method: str = Field(..., min_length=1, max_length=50, description="Payment method to use for auto-pay")
-
-    @field_validator("days_before_due")
-    @classmethod
-    def validate_days_before_due(cls, value: Optional[int]) -> Optional[int]:
-        """Validates that either preferred_pay_date or days_before_due is set, but not both."""
-        if value is not None and 'preferred_pay_date' in cls.__fields__:
-            raise ValueError("Cannot set both preferred_pay_date and days_before_due")
-        return value
-    minimum_balance_required: Optional[Decimal] = Field(None, description="Minimum balance required in account")
-    retry_on_failure: bool = Field(default=True, description="Whether to retry failed auto-payments")
-    notification_email: Optional[str] = Field(None, description="Email for auto-pay notifications")
 
 class LiabilityCreate(LiabilityBase):
-    """Schema for creating a new liability"""
+    """
+    Schema for creating a new liability.
+    
+    Extends the base liability schema without adding additional fields,
+    used specifically for creation operations.
+    """
     pass
 
+
 class LiabilityUpdate(BaseSchemaValidator):
-    """Schema for updating an existing liability"""
+    """
+    Schema for updating an existing liability.
+    
+    Contains all fields from LiabilityBase but makes them optional
+    to allow partial updates.
+    """
     model_config = ConfigDict(from_attributes=True)
     
-    name: Optional[str] = None
-    amount: Optional[Decimal] = None
-    due_date: Optional[datetime] = None
-    description: Optional[str] = None
-    category_id: Optional[int] = None
-    recurring: Optional[bool] = None
-    recurrence_pattern: Optional[Dict] = None
-    auto_pay: Optional[bool] = None
-    auto_pay_settings: Optional[AutoPaySettings] = None
-    auto_pay_enabled: Optional[bool] = None
+    name: Optional[str] = Field(
+        None,
+        min_length=1, 
+        max_length=100, 
+        description="Name of the liability"
+    )
+    amount: Optional[Decimal] = Field(
+        None, 
+        gt=Decimal('0'), 
+        description="Total amount of the liability"
+    )
+    due_date: Optional[datetime] = Field(
+        None, 
+        description="Due date of the liability (UTC timezone)"
+    )
+    description: Optional[str] = Field(
+        None, 
+        min_length=1, 
+        max_length=500, 
+        description="Optional description of the liability"
+    )
+    category_id: Optional[int] = Field(
+        None, 
+        description="ID of the category for this liability"
+    )
+    recurring: Optional[bool] = Field(
+        None, 
+        description="Whether this is a recurring liability"
+    )
+    recurrence_pattern: Optional[Dict] = Field(
+        None, 
+        description="Pattern for recurring liabilities (schedule and frequency)"
+    )
+    auto_pay: Optional[bool] = Field(
+        None, 
+        description="Whether this liability is set for auto-pay"
+    )
+    auto_pay_settings: Optional[AutoPaySettings] = Field(
+        None, 
+        description="Auto-pay configuration settings when auto_pay is true"
+    )
+    auto_pay_enabled: Optional[bool] = Field(
+        None, 
+        description="Whether auto-pay is currently enabled for this liability"
+    )
+
+    @field_validator("amount", mode="before")
+    @classmethod
+    def validate_amount_precision(cls, value: Optional[Decimal]) -> Optional[Decimal]:
+        """
+        Validates that amount has at most 2 decimal places.
+        
+        Args:
+            value: The optional Decimal value to validate
+            
+        Returns:
+            Optional[Decimal]: The validated value
+            
+        Raises:
+            ValueError: If value has more than 2 decimal places
+        """
+        if value is not None and isinstance(value, Decimal) and value.as_tuple().exponent < -2:
+            raise ValueError("Amount must have at most 2 decimal places")
+        return value
+
+    @field_validator("due_date")
+    @classmethod
+    def validate_due_date_not_past(cls, value: Optional[datetime]) -> Optional[datetime]:
+        """
+        Validates that due date is not in the past.
+        
+        Args:
+            value: The optional datetime value to validate
+            
+        Returns:
+            Optional[datetime]: The validated value
+            
+        Raises:
+            ValueError: If due date is in the past
+        """
+        if value is not None and value < datetime.now(value.tzinfo):
+            raise ValueError("Due date cannot be in the past")
+        return value
+
 
 class AutoPayUpdate(BaseSchemaValidator):
-    """Schema for updating auto-pay settings"""
+    """
+    Schema for updating auto-pay settings.
+    
+    Used to enable/disable auto-pay and update its configuration.
+    """
     model_config = ConfigDict(from_attributes=True)
     
-    enabled: bool = Field(..., description="Whether to enable or disable auto-pay")
-    settings: Optional[AutoPaySettings] = Field(None, description="Auto-pay settings to update")
+    enabled: bool = Field(
+        ..., 
+        description="Whether to enable or disable auto-pay"
+    )
+    settings: Optional[AutoPaySettings] = Field(
+        None, 
+        description="Auto-pay settings to update when enabled is true"
+    )
+
 
 class LiabilityInDB(LiabilityBase):
-    """Schema for liability data as stored in the database"""
+    """
+    Schema for liability data as stored in the database.
+    
+    Extends the base liability schema with database-specific fields.
+    """
     model_config = ConfigDict(from_attributes=True)
 
-    id: int
-    created_at: datetime
-    updated_at: datetime
+    id: int = Field(
+        ...,
+        description="Unique identifier for the liability"
+    )
+    created_at: datetime = Field(
+        ...,
+        description="Timestamp when the liability was created (UTC timezone)"
+    )
+    updated_at: datetime = Field(
+        ...,
+        description="Timestamp when the liability was last updated (UTC timezone)"
+    )
+
 
 class LiabilityResponse(LiabilityInDB):
-    """Schema for liability data in API responses"""
+    """
+    Schema for liability data in API responses.
+    
+    Extends the database schema for proper serialization in API responses.
+    """
     model_config = ConfigDict(from_attributes=True)
 
+
 class LiabilityDateRange(BaseSchemaValidator):
-    """Schema for specifying a date range for liability queries"""
+    """
+    Schema for specifying a date range for liability queries.
+    
+    Used for filtering liabilities by date range in API requests.
+    """
     model_config = ConfigDict(from_attributes=True)
     
-    start_date: datetime = Field(..., description="Start date for liability range (UTC)")
-    end_date: datetime = Field(..., description="End date for liability range (UTC)")
+    start_date: datetime = Field(
+        ..., 
+        description="Start date for liability range (UTC timezone)"
+    )
+    end_date: datetime = Field(
+        ..., 
+        description="End date for liability range (UTC timezone)"
+    )
 
     @field_validator("end_date")
     @classmethod
-    def validate_date_range(cls, end_date: datetime, info) -> datetime:
-        """Validates that end_date is after start_date."""
+    def validate_date_range(cls, end_date: datetime, info: Any) -> datetime:
+        """
+        Validates that end_date is after start_date.
+        
+        Args:
+            end_date: The end date to validate
+            info: The validation context containing all data
+            
+        Returns:
+            datetime: The validated end date
+            
+        Raises:
+            ValueError: If end date is not after start date
+        """
         start_date = info.data.get('start_date')
         if start_date is not None and end_date <= start_date:
             raise ValueError("End date must be after start date")
