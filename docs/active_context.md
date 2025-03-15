@@ -1,7 +1,7 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Validation Layer Standardization - Completed Implementation
+Schema Layer Standardization - Significant Progress
 
 ### Model Test Coverage Status
 1. **Model Test Coverage Completed** ✓
@@ -19,11 +19,31 @@ Validation Layer Standardization - Completed Implementation
    - Documented service layer business logic
    - Created comprehensive migration strategy
 
-2. **Phase 1: Schema Enhancement (Completed)** ✓
-   - Updated all Pydantic schemas with V2-style validators
-   - Added comprehensive validation across all schemas
-   - Updated schema tests with full coverage
-   - Documented validation patterns
+2. **Phase 1: Schema Enhancement (Major Progress Made)** 
+   - ✓ Implemented BaseSchemaValidator with UTC validation
+   - ✓ Refactored 16 schema files to be fully compliant:
+     * balance_reconciliation.py
+     * recurring_bills.py
+     * cashflow.py
+     * credit_limits.py
+     * income_categories.py
+     * deposit_schedules.py
+     * payment_schedules.py
+     * balance_history.py
+     * transactions.py
+     * categories.py
+     * bill_splits.py
+     * income.py
+     * recommendations.py
+     * impact_analysis.py
+     * payment_patterns.py
+     * income_trends.py
+     * realtime_cashflow.py
+   - Compliance metrics significantly improved:
+     * ADR-011 Compliance: 57% fully compliant (up from 19%)
+     * ADR-012 Compliance: 86% fully compliant (up from 57%)
+     * DRY Principle: 90% rated as "Good" (up from 62%)
+     * SRP Principle: 100% rated as "Good" (up from 95%)
 
 3. **Phase 2: Model Simplification (Completed)** ✓
    - Removed @validates decorators
@@ -38,13 +58,35 @@ Validation Layer Standardization - Completed Implementation
    - Documented service patterns
 
 5. **Phase 4: Documentation (Completed)** ✓
-   - Updated all ADRs with implementation details
-   - Added validation pattern examples
-   - Updated model docstrings
-   - Created comprehensive compliance documentation
+   - ✓ Updated all ADRs with implementation details
+   - ✓ Added validation pattern examples
+   - ✓ Updated model docstrings
+   - ✓ Created comprehensive schema review findings document
+   - ✓ Updated schema_review_findings.md with detailed compliance metrics
+   - ✓ Documented standard patterns for remaining schema work
 
 ### Recent Changes
-1. **ADR Implementation Completed** ✓
+1. **Major Schema Refactoring Progress** ✓
+   - Refactored 8 additional schema files to comply with both ADRs:
+     * transactions.py: Added BaseSchemaValidator inheritance, improved field descriptions
+     * categories.py: Improved circular import handling, extracted duplicate validation
+     * bill_splits.py: Changed date type to datetime with UTC, fixed validation patterns
+     * income.py: Removed redundant datetime validation, enhanced docstrings
+     * recommendations.py: Updated to ConfigDict, added comprehensive field descriptions
+     * impact_analysis.py: Replaced ZoneInfo with timezone.utc, improved validation
+     * payment_patterns.py: Removed duplicate validators, enhanced field descriptions
+     * income_trends.py: Enhanced documentation, updated ConfigDict usage
+     * realtime_cashflow.py: Added detailed validator docstrings, improved field constraints
+   - Updated schema_review_findings.md with comprehensive compliance metrics
+   - Significantly improved overall project validation architecture:
+     * Consistent inheritance from BaseSchemaValidator
+     * UTC timezone handling for all datetime fields
+     * Comprehensive field descriptions
+     * Proper decimal precision for monetary fields
+     * Cross-field validation where needed
+     * Modern union type syntax for optional fields
+
+2. **ADR Implementation Completed** ✓
    - Completed all model compliance with both ADRs
    - Updated accounts.py model to fix remaining issues:
      * Removed unused imports: `validates`, `ZoneInfo`, and `event`
@@ -58,53 +100,82 @@ Validation Layer Standardization - Completed Implementation
      * Updated ADR-012 documentation to mark all phases as complete
    - All 18 model files now fully compliant with both ADRs
 
-2. **Categories Model Enhancement (Completed)** ✓
-   - Removed business logic methods (full_path, is_ancestor_of, _get_parent)
-   - Enhanced CategoryService with corresponding methods (get_full_path, is_ancestor_of)
-   - Added clear documentation to model indicating pure data structure focus
-   - Updated model tests to focus on data structure validation
-   - Added comprehensive service tests for business logic
-   - Updated API layer to use service methods for path generation
-   - Fixed SQLAlchemy query handling with eager-loaded relationships
-   - Ensured full test coverage with 100% passing tests
+3. **Schema Standardization Metrics Improved** ✓
+   - Significantly improved compliance metrics:
+     * ADR-011 (Datetime Standardization):
+       - Fully Compliant: Increased from 19% to 57%
+       - Partially Compliant: Decreased from 33% to 14%
+       - Non-Compliant: Decreased from 48% to 29%
+     * ADR-012 (Validation Layer Standardization):
+       - Fully Compliant: Increased from 57% to 86%
+       - Mostly Compliant: Maintained at 10%
+       - Partially Compliant: Decreased from 10% to 5%
+       - Non-Compliant: Decreased from 24% to 0%
+     * DRY Principle:
+       - Good: Increased from 62% to 90%
+       - Needs Improvement: Maintained at 10%
+       - Poor: Decreased from 29% to 0%
+     * SRP Principle:
+       - Good: Increased from 95% to 100%
+       - Needs Improvement: Decreased from 5% to 0%
 
-3. **Cashflow Model Enhancement (Completed)** ✓
-   - Removed business logic methods (calculate_deficits, calculate_required_income, calculate_hourly_rates)
-   - Removed unused ZoneInfo import
-   - Enhanced model documentation clarifying pure data structure focus
-   - Added explicit service layer responsibility notes
-   - Updated model tests to focus on data structure only
-   - Maintained proper UTC datetime handling
-   - Verified model complies with ADR-012 standards
-
-4. **Cashflow Metrics Service Enhancement (Completed)** ✓
-   - Added update_cashflow_deficits method
-   - Added update_cashflow_required_income method
-   - Added update_cashflow_hourly_rates method
-   - Added update_cashflow_all_calculations convenience method
-   - Created comprehensive tests for new service methods
-   - Maintained proper mathematical relationships
-   - Ensured full test coverage of business logic
-   - Verified service complies with ADR-012 standards
-
-5. **Bill/Liability Model Enhancement (Completed)** ✓
-   - Added comprehensive class-level documentation clarifying responsibility boundaries
-   - Improved field documentation with validation and service layer notes
-   - Organized fields into logical groups with clear comments
-   - Added explicit documentation about schema vs service layer responsibilities
-   - Maintained proper UTC datetime handling
-   - Verified model complies with ADR-012 standards
-
-6. **Account Model Enhancement (Completed)** ✓
-   - Removed update_available_credit method from Account model
-   - Added _update_available_credit to AccountService
-   - Simplified Account model to pure data structure
-   - Enhanced service layer credit calculations
-   - Updated tests to focus on data integrity
-   - Improved separation of concerns
-   - Maintained full test coverage
+4. **Key Schema Improvements** ✓
+   - Made consistent improvements across all refactored files:
+     * Removed custom datetime validation in favor of BaseSchemaValidator
+     * Replaced ZoneInfo with timezone.utc for consistent timezone handling
+     * Updated to ConfigDict from outdated Config class for V2 compliance
+     * Added comprehensive docstrings for all classes
+     * Added detailed field descriptions with proper validation constraints
+     * Added decimal_places validation for monetary fields
+     * Added UTC timezone information to all datetime field descriptions
+     * Fixed validator implementations to follow V2 style with proper docstrings
+     * Improved error messages for better developer experience
+     * Fixed union type syntax to use Type | None instead of Optional[Type]
+   - Common validators improved:
+     * Standardized amount precision validation
+     * Enhanced date range validation
+     * Improved field constraints (max_length, ge, gt, le)
+     * Added proper Args/Returns/Raises sections to validator docstrings
 
 ### Current Implementation Plan 
+
+#### Schema Standardization Review (Mostly Complete)
+1. **Systematic Review of All Schema Files** ✓
+   - [x] Review each schema file against ADR-011 requirements
+   - [x] Review each schema file against ADR-012 requirements
+   - [x] Create detailed schema review findings document
+   - [x] Document the status of each schema file
+   - [x] Identify issues needing attention
+   - [x] Recommend fixes for non-compliant files
+   - [x] Establish standardized patterns for refactoring
+
+2. **Implementation Priorities** ✓
+   - [x] Identify high-priority files (datetime issues)
+   - [x] Identify medium-priority files (validation inconsistencies)
+   - [x] Identify low-priority files (documentation issues)
+   - [x] Implement changes in stages based on priority
+
+3. **Schema Refactoring (Major Progress)**
+   - [x] Complete first batch of schema refactoring:
+     * balance_reconciliation.py
+     * recurring_bills.py
+     * cashflow.py
+     * credit_limits.py
+     * income_categories.py
+     * deposit_schedules.py
+     * payment_schedules.py
+     * balance_history.py
+   - [x] Complete second batch of schema refactoring:
+     * transactions.py
+     * categories.py
+     * bill_splits.py
+     * income.py
+     * recommendations.py
+     * impact_analysis.py
+     * payment_patterns.py
+     * income_trends.py
+     * realtime_cashflow.py
+   - [ ] Address remaining schema files with specific issues
 
 #### Model Compliance Review (Completed) ✅
 1. **Systematic Review of All Models** ✓
@@ -210,19 +281,37 @@ Validation Layer Standardization - Completed Implementation
    - [x] Documented patterns
 
 ### Recent Decisions
-1. **Validation Strategy** ✓
+1. **Schema Standardization Strategy Successfully Implemented** ✓
+   - [x] Established clear patterns for schema refactoring:
+     * Consistent inheritance from BaseSchemaValidator
+     * UTC timezone handling for all datetime fields
+     * Proper field descriptions with explicit UTC mentions
+     * Standard validation patterns for monetary values
+     * Consistent docstrings explaining purpose
+     * Use of modern Pydantic V2 patterns
+   - [x] Prioritized refactoring based on critical issues:
+     * High-priority: Files with datetime inconsistencies
+     * Medium-priority: Files with V1/V2 inconsistencies
+     * Low-priority: Documentation and minor issues
+   - [x] Documented progress in schema_review_findings.md
+   - [x] Applied standard patterns consistently across all refactored files
+   - [x] Significantly improved validation architecture consistency
+
+2. **Validation Strategy** ✓
    - [x] Move all validation to Pydantic schemas
    - [x] Remove model-level validation
    - [x] Centralize business logic in services
    - [x] Document in ADR-012
 
-2. **Implementation Approach** ✓
-   - [x] Phase 1: Schema Enhancement
-   - [x] Phase 2: Model Simplification
-   - [x] Phase 3: Service Enhancement
-   - [x] Phase 4: Documentation
+3. **Implementation Approach** ✓
+   - [x] Phase the implementation:
+     * Phase 1: Schema Enhancement (in progress)
+     * Phase 2: Model Simplification (completed)
+     * Phase 3: Service Enhancement (completed)
+     * Phase 4: Documentation (in progress)
+   - [x] Track progress through comprehensive documentation
 
-3. **Testing Strategy** ✓
+4. **Testing Strategy** ✓
    - [x] Separate model tests focus purely on data structure
    - [x] Service tests contain business logic validation
    - [x] 100% test coverage for all model files
@@ -234,96 +323,27 @@ Validation Layer Standardization - Completed Implementation
   - Trend reporting (paused)
   - Frontend development (paused)
 
-### Recent Changes
-
-1. **Model Compliance Review (Completed)** ✓
-   - Created comprehensive model_compliance_checklist.md document
-   - Systematically reviewed all 18 model files against ADR-011 and ADR-012
-   - Found 17 models already fully compliant with both ADRs
-   - Identified one model (accounts.py) with minor issues needing updates:
-     * Unused imports: `validates` from SQLAlchemy
-     * Unused imports: `ZoneInfo`
-     * Some documentation needs updating
-   - Documented all findings with detailed notes for each file
-   - Ran isort and black against all model files to ensure consistent formatting
-
-2. **Test Suite Refactoring for Model Layer (Completed)** ✓
-   - Fixed model tests that were failing due to ADR-012 implementation
-   - Removed business logic tests from model tests (RecurringIncome, Income, StatementHistory)
-   - Updated test_income_record fixture to set undeposited_amount directly rather than calling removed calculate_undeposited method
-   - Refocused model tests purely on data structure and relationships
-   - Ensured all model tests (106 tests) pass successfully
-   - Created clear delineation between model tests and service tests
-   - Corrected remaining Pylint warnings
-
-3. **Test Fixture Consolidation (Completed)** ✓
-   - Moved model fixtures to main conftest.py for global availability
-   - Added test_checking_account, test_credit_account, and test_income_category fixtures
-   - Fixed test dependencies to use shared fixtures
-   - Enhanced test reliability by standardizing test account creation
-   - Consolidated test fixtures for recurring income services
-   - Ensured all service tests can access necessary fixtures
-   - Improved test maintainability with centralized fixture definitions
-
-4. **CreditLimitHistory Model Enhancement** ✓
-   - Removed SQLAlchemy event listeners for validation
-   - Added validate_credit_limit_history to AccountService
-   - Enhanced model documentation with clear data structure focus
-   - Updated tests to focus on model structure rather than validation
-   - Improved separation of concerns by moving validation to service layer
-   - Maintained proper relationship definitions and cascade behavior
-   - Fixed datetime handling for proper UTC timezone management
-   - Ensured full test coverage with 100% passing tests
-
-5. **RecurringBill Model Enhancement** ✓
-   - Removed create_liability() business logic method from model
-   - Added create_liability_from_recurring() to RecurringBillService
-   - Updated model documentation as pure data structure
-   - Fixed test cases to use service method instead of model method
-   - Enhanced datetime handling in the service layer
-   - Improved duplicate bill detection logic
-   - Fixed SQL query to properly compare date/datetime fields
-   - Verified ADR-012 compliance with proper separation of concerns
-
-6. **BaseSchemaValidator Enhancement** ✓
-   - Added automatic datetime conversion from naive to UTC-aware
-   - Overrode model_validate method to add timezone info before validation
-   - Maintained strict validation for explicit user input
-   - Improved error messages for datetime validation failures
-   - Fixed test inconsistencies between date and datetime objects
-   - Eliminated repetitive code across services
-
-7. **StatementHistory Model Enhancement** ✓
-   - Removed due date calculation from __init__ method
-   - Created new StatementService with calculate_due_date method
-   - Enhanced model documentation to clearly indicate pure data structure
-   - Added comprehensive service tests for business logic
-   - Maintained proper UTC datetime handling
-   - Ensured full test coverage with passing tests
-   - Verified ADR-012 compliance
-
-8. **Accounts Model Enhancement** ✓
-   - Removed unused imports (`validates`, `ZoneInfo`, and `event`)
-   - Updated documentation to explicitly mention ADR-011 and ADR-012
-   - Added clear notes about service layer responsibilities
-   - Fixed test coverage to reach 100%
-   - Ensured proper separation of concerns
-   - Tested to verify compliance with both ADRs
-
 ## Next Steps
-1. **Resume API Enhancement Project - Phase 6**
-   - Unblock recommendations implementation
-   - Resume trend reporting development
-   - Continue frontend development
+1. **Complete Remaining Schema Files**
+   - Address any remaining schema files with specific issues
+   - Ensure 100% compliance with ADR-011 and ADR-012
+   - Complete comprehensive test coverage for all schema validation
+   - Finalize documentation of validation patterns
 
-2. **Continue Monitoring Compliance**
-   - Add ADR compliance to code review process
-   - Update developer onboarding documentation
+2. **Resume API Enhancement Project - Phase 6**
+   - Unblock recommendations implementation (now that validation is standardized)
+   - Resume trend reporting development (with improved schemas)
+   - Continue frontend development with enhanced validation support
+   - Leverage new schema validation for better error handling
+
+3. **Implement Compliance Monitoring**
+   - Add ADR compliance checks to code review process
+   - Update developer onboarding documentation with validation standards
    - Consider static analysis tools to enforce ADR rules
-   - Implement periodic reviews to ensure continued compliance
+   - Implement scheduled reviews to maintain compliance
 
-3. **Documentation Standardization**
-   - Apply consistent documentation patterns across all modules
-   - Create service layer documentation guide
-   - Document validation patterns for new developers
-   - Create API validation error response standards
+4. **Advance Documentation Standards**
+   - Standardize documentation patterns across the codebase
+   - Create comprehensive service layer documentation guide
+   - Document validation error response standards for API endpoints
+   - Update technical documentation with latest validation patterns

@@ -20,11 +20,12 @@
     - Excellent performance for this use case
 
 - **Data Validation**: Pydantic
-  - Type checking
-  - Data validation
-  - Settings management
-  - Schema definition
-  - Timezone-aware datetime handling
+  - Pydantic V2 style validation throughout
+  - Type checking and automatic validation
+  - Centralized UTC timezone handling via BaseSchemaValidator
+  - Consistent field constraints with descriptive messages
+  - Schema-based validation with proper inheritance
+  - Comprehensive cross-field validation where needed
 
 ### Frontend
 - **Framework**: React with TypeScript
@@ -54,27 +55,60 @@
 - All datetime fields use timezone-aware datetime objects
 - UTC is used as the standard timezone for stored data
 - SQLAlchemy models use `DateTime(timezone=True)`
-- Pydantic schemas use `datetime` with explicit timezone info
+- Pydantic schemas inherit from BaseSchemaValidator which enforces UTC timezone
+- Automatic conversion from naive to UTC-aware datetime in model_validate
+- Validation of timezone correctness with clear error messages
 - Timezone conversion is handled in the UI layer
 - All tests use timezone-aware datetime objects
+- Field descriptions explicitly mention UTC timezone requirement
+
+### Validation Architecture
+- Three-layer validation approach:
+  1. **Schema Layer**: Basic structural validation with Pydantic
+     - Type checking
+     - Field constraints (min/max values, string formats)
+     - Required vs. optional fields
+     - Decimal precision for monetary values
+     - Cross-field validation for related fields
+  2. **Service Layer**: Business logic validation
+     - Complex validation rules
+     - Data integrity checks
+     - State-dependent validation
+     - Data relationship validation
+  3. **Database Layer**: Data integrity constraints
+     - Foreign key constraints
+     - Unique constraints
+     - Check constraints
+     - Default values
+
+### Schema Standards
+- All schema classes inherit from BaseSchemaValidator
+- UTC timezone handling for all datetime fields
+- Proper field descriptions with explicit purposes
+- Decimal precision validation for monetary values (decimal_places=2)
+- Modern union type syntax (Type | None) rather than Optional[Type]
+- Comprehensive docstrings explaining class purpose
+- Cross-field validation where appropriate
+- Strong validation error messages
+- Consistent naming patterns across related schemas
 
 ## Data Models
 
 ### Bulk Import
 ```python
-class BulkImportResponse(BaseModel):
+class BulkImportResponse(BaseSchemaValidator):
     success: bool
     processed: int
     succeeded: int
     failed: int
-    errors: Optional[List[ImportError]]
+    errors: List[ImportError] | None
 
-class ImportError(BaseModel):
+class ImportError(BaseSchemaValidator):
     row: int
     field: str
     message: str
 
-class BulkImportPreview(BaseModel):
+class BulkImportPreview(BaseSchemaValidator):
     records: List[Union[Bill, Income]]
     validation_errors: List[ImportError]
     total_records: int
@@ -82,102 +116,102 @@ class BulkImportPreview(BaseModel):
 
 ### Bills (Liabilities)
 ```python
-class Bill(BaseModel):
+class Bill(BaseSchemaValidator):
     id: int
     name: str
-    amount: Decimal
-    due_date: datetime
-    description: Optional[str]
+    amount: Decimal = Field(..., decimal_places=2)
+    due_date: datetime  # UTC timezone
+    description: str | None
     category: str
     recurring: bool
-    recurrence_pattern: Optional[dict]
-    created_at: datetime
-    updated_at: datetime
+    recurrence_pattern: Dict | None
+    created_at: datetime  # UTC timezone
+    updated_at: datetime  # UTC timezone
 
-class BillCreate(BaseModel):
+class BillCreate(BaseSchemaValidator):
     name: str
-    amount: Decimal
-    due_date: datetime
-    description: Optional[str]
+    amount: Decimal = Field(..., decimal_places=2)
+    due_date: datetime  # UTC timezone
+    description: str | None = None
     category: str
     recurring: bool = False
-    recurrence_pattern: Optional[dict] = None
+    recurrence_pattern: Dict | None = None
 ```
 
 ### Payments (Transactions)
 ```python
-class Payment(BaseModel):
+class Payment(BaseSchemaValidator):
     id: int
-    bill_id: Optional[int]  # Optional for non-bill expenses
-    amount: Decimal
-    payment_date: datetime
-    description: Optional[str]
+    bill_id: int | None  # Optional for non-bill expenses
+    amount: Decimal = Field(..., decimal_places=2)
+    payment_date: datetime  # UTC timezone
+    description: str | None
     category: str
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime  # UTC timezone
+    updated_at: datetime  # UTC timezone
 
-class PaymentCreate(BaseModel):
-    bill_id: Optional[int]
-    amount: Decimal
-    payment_date: datetime
-    description: Optional[str]
+class PaymentCreate(BaseSchemaValidator):
+    bill_id: int | None
+    amount: Decimal = Field(..., decimal_places=2)
+    payment_date: datetime  # UTC timezone
+    description: str | None = None
     category: str
 ```
 
 ### Payment Sources (Entries)
 ```python
-class PaymentSource(BaseModel):
+class PaymentSource(BaseSchemaValidator):
     id: int
     payment_id: int
     account_id: int
-    amount: Decimal
-    created_at: datetime
-    updated_at: datetime
+    amount: Decimal = Field(..., decimal_places=2)
+    created_at: datetime  # UTC timezone
+    updated_at: datetime  # UTC timezone
 
-class PaymentSourceCreate(BaseModel):
+class PaymentSourceCreate(BaseSchemaValidator):
     payment_id: int
     account_id: int
-    amount: Decimal
+    amount: Decimal = Field(..., decimal_places=2)
 ```
 
 ### Accounts
 ```python
-class Account(BaseModel):
+class Account(BaseSchemaValidator):
     id: int
     name: str
     type: str  # credit, checking, savings
-    available_balance: Decimal
-    available_credit: Optional[Decimal]
-    total_limit: Optional[Decimal]
-    last_statement_balance: Optional[Decimal]
-    last_statement_date: Optional[datetime]
-    created_at: datetime
-    updated_at: datetime
+    available_balance: Decimal = Field(..., decimal_places=2)
+    available_credit: Decimal | None = Field(None, decimal_places=2)
+    total_limit: Decimal | None = Field(None, decimal_places=2)
+    last_statement_balance: Decimal | None = Field(None, decimal_places=2)
+    last_statement_date: datetime | None  # UTC timezone
+    created_at: datetime  # UTC timezone
+    updated_at: datetime  # UTC timezone
 ```
 
 ### Income
 ```python
-class Income(BaseModel):
+class Income(BaseSchemaValidator):
     id: int
-    date: datetime
+    date: datetime  # UTC timezone
     source: str
-    amount: Decimal
+    amount: Decimal = Field(..., decimal_places=2)
     deposited: bool
-    undeposited_amount: Decimal
+    undeposited_amount: Decimal = Field(..., decimal_places=2)
 ```
 
 ### Cashflow
 ```python
-class CashflowForecast(BaseModel):
-    date: datetime
-    total_bills: Decimal
-    total_income: Decimal
-    balance: Decimal
-    forecast: Decimal
-    min_14_day: Decimal
-    min_30_day: Decimal
-    min_60_day: Decimal
-    min_90_day: Decimal
+class CashflowForecast(BaseSchemaValidator):
+    date: datetime  # UTC timezone
+    total_bills: Decimal = Field(..., decimal_places=2)
+    total_income: Decimal = Field(..., decimal_places=2)
+    balance: Decimal = Field(..., decimal_places=2)
+    forecast: Decimal = Field(..., decimal_places=2)
+    min_14_day: Decimal = Field(..., decimal_places=2)
+    min_30_day: Decimal = Field(..., decimal_places=2)
+    min_60_day: Decimal = Field(..., decimal_places=2)
+    min_90_day: Decimal = Field(..., decimal_places=2)
 ```
 
 ## Formula Translations

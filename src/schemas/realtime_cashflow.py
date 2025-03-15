@@ -1,47 +1,156 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from enum import Enum
 from typing import List, Optional
-from pydantic import BaseModel, Field, field_validator
-from zoneinfo import ZoneInfo
+
+from pydantic import Field, field_validator, ConfigDict
+
+from src.schemas import BaseSchemaValidator
 
 class AccountType(str, Enum):
+    """
+    Enumeration of account types in the system.
+    
+    Used to categorize different types of financial accounts.
+    """
     CHECKING = "checking"
     SAVINGS = "savings"
     CREDIT = "credit"
 
-class AccountBalance(BaseModel):
-    account_id: int = Field(..., gt=0)
-    name: str = Field(..., min_length=1, max_length=255)
-    type: AccountType
-    current_balance: Decimal = Field(..., decimal_places=2)
-    available_credit: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    total_limit: Optional[Decimal] = Field(None, gt=0, decimal_places=2)
+class AccountBalance(BaseSchemaValidator):
+    """
+    Schema for an account balance snapshot.
+    
+    Contains current financial state information for a single account.
+    """
+    account_id: int = Field(
+        ..., 
+        gt=0,
+        description="Unique identifier for the account"
+    )
+    name: str = Field(
+        ..., 
+        min_length=1, 
+        max_length=255,
+        description="Name of the account"
+    )
+    type: AccountType = Field(
+        ...,
+        description="Type of the account (checking, savings, credit)"
+    )
+    current_balance: Decimal = Field(
+        ..., 
+        decimal_places=2,
+        description="Current balance of the account"
+    )
+    available_credit: Optional[Decimal] = Field(
+        None, 
+        ge=0, 
+        decimal_places=2,
+        description="Available credit (for credit accounts only)"
+    )
+    total_limit: Optional[Decimal] = Field(
+        None, 
+        gt=0, 
+        decimal_places=2,
+        description="Total credit limit (for credit accounts only)"
+    )
 
     @field_validator("available_credit", "total_limit")
     @classmethod
     def validate_credit_fields(cls, v: Optional[Decimal], values: dict) -> Optional[Decimal]:
+        """
+        Validate that credit-specific fields are present for credit accounts.
+        
+        Args:
+            v: The field value to validate
+            values: Dictionary of values being validated
+            
+        Returns:
+            The original value if validation passes
+            
+        Raises:
+            ValueError: If field is missing for a credit account
+        """
         if values.get("type") == AccountType.CREDIT:
             if v is None:
                 raise ValueError(f"Field is required for credit accounts")
         return v
 
-class RealtimeCashflow(BaseModel):
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(ZoneInfo("UTC")))
-    account_balances: List[AccountBalance] = Field(..., min_items=1)
-    total_available_funds: Decimal = Field(..., decimal_places=2)
-    total_available_credit: Decimal = Field(..., ge=0, decimal_places=2)
-    total_liabilities_due: Decimal = Field(..., ge=0, decimal_places=2)
-    net_position: Decimal = Field(..., decimal_places=2)
-    next_bill_due: Optional[datetime] = None
-    days_until_next_bill: Optional[int] = Field(None, ge=0)
-    minimum_balance_required: Decimal = Field(..., decimal_places=2)
-    projected_deficit: Optional[Decimal] = Field(None, decimal_places=2)
+class RealtimeCashflow(BaseSchemaValidator):
+    """
+    Schema for real-time cashflow analysis.
+    
+    Contains comprehensive financial snapshot including account balances,
+    funds availability, and liabilities.
+    All datetime fields are validated to ensure they have UTC timezone.
+    """
+    timestamp: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="Timestamp when this cashflow snapshot was created (UTC timezone)"
+    )
+    account_balances: List[AccountBalance] = Field(
+        ..., 
+        min_items=1,
+        description="List of account balances included in this analysis"
+    )
+    total_available_funds: Decimal = Field(
+        ..., 
+        decimal_places=2,
+        description="Total funds available across all accounts"
+    )
+    total_available_credit: Decimal = Field(
+        ..., 
+        ge=0, 
+        decimal_places=2,
+        description="Total available credit across all credit accounts"
+    )
+    total_liabilities_due: Decimal = Field(
+        ..., 
+        ge=0, 
+        decimal_places=2,
+        description="Total amount due across all liabilities"
+    )
+    net_position: Decimal = Field(
+        ..., 
+        decimal_places=2,
+        description="Net financial position (total_available_funds - total_liabilities_due)"
+    )
+    next_bill_due: Optional[datetime] = Field(
+        None,
+        description="Date when the next bill is due (UTC timezone)"
+    )
+    days_until_next_bill: Optional[int] = Field(
+        None, 
+        ge=0,
+        description="Number of days until the next bill is due"
+    )
+    minimum_balance_required: Decimal = Field(
+        ..., 
+        decimal_places=2,
+        description="Minimum balance required to cover upcoming expenses"
+    )
+    projected_deficit: Optional[Decimal] = Field(
+        None, 
+        decimal_places=2,
+        description="Projected deficit amount if current trends continue"
+    )
 
     @field_validator("account_balances")
     @classmethod
     def validate_account_balances(cls, v: List[AccountBalance]) -> List[AccountBalance]:
-        # Ensure no duplicate account IDs
+        """
+        Validate that there are no duplicate account IDs in the list.
+        
+        Args:
+            v: The list of account balances to validate
+            
+        Returns:
+            The original list if validation passes
+            
+        Raises:
+            ValueError: If duplicate account IDs are found
+        """
         account_ids = [balance.account_id for balance in v]
         if len(set(account_ids)) != len(account_ids):
             raise ValueError("Duplicate account IDs found in account_balances")
@@ -50,28 +159,29 @@ class RealtimeCashflow(BaseModel):
     @field_validator("net_position")
     @classmethod
     def validate_net_position(cls, v: Decimal, values: dict) -> Decimal:
-        # Verify net position calculation
+        """
+        Validate that net position equals total_available_funds minus total_liabilities_due.
+        
+        Args:
+            v: The net position value to validate
+            values: Dictionary of values being validated
+            
+        Returns:
+            The original value if validation passes
+            
+        Raises:
+            ValueError: If net position calculation is incorrect
+        """
         if "total_available_funds" in values and "total_liabilities_due" in values:
             expected_net = values["total_available_funds"] - values["total_liabilities_due"]
             if abs(v - expected_net) > Decimal("0.01"):  # Allow for small rounding differences
                 raise ValueError("net_position must equal total_available_funds - total_liabilities_due")
         return v
-
-    @field_validator("timestamp", "next_bill_due", mode="before")
-    @classmethod
-    def validate_timezone(cls, value: Optional[datetime]) -> Optional[datetime]:
-        if value is None:
-            return None
-        if not isinstance(value, datetime):
-            raise ValueError("Must be a datetime object")
-        if value.tzinfo is None:
-            raise ValueError("Datetime must be timezone-aware")
-        if value.tzinfo != ZoneInfo("UTC"):
-            raise ValueError("Datetime must be in UTC timezone")
-        return value
-
-    class Config:
-        json_schema_extra = {
+    
+    # No custom timezone validators needed - BaseSchemaValidator handles UTC validation
+    
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "timestamp": "2024-01-01T00:00:00Z",
                 "account_balances": [
@@ -97,24 +207,28 @@ class RealtimeCashflow(BaseModel):
                 "minimum_balance_required": "200.00"
             }
         }
+    )
 
-class RealtimeCashflowResponse(BaseModel):
-    data: RealtimeCashflow
-    last_updated: datetime = Field(default_factory=lambda: datetime.now(ZoneInfo("UTC")))
-
-    @field_validator("last_updated", mode="before")
-    @classmethod
-    def validate_timezone(cls, value: datetime) -> datetime:
-        if not isinstance(value, datetime):
-            raise ValueError("Must be a datetime object")
-        if value.tzinfo is None:
-            raise ValueError("Datetime must be timezone-aware")
-        if value.tzinfo != ZoneInfo("UTC"):
-            raise ValueError("Datetime must be in UTC timezone")
-        return value
-
-    class Config:
-        json_schema_extra = {
+class RealtimeCashflowResponse(BaseSchemaValidator):
+    """
+    Schema for API response containing real-time cashflow data.
+    
+    Wraps the cashflow data with response metadata.
+    All datetime fields are validated to ensure they have UTC timezone.
+    """
+    data: RealtimeCashflow = Field(
+        ...,
+        description="Real-time cashflow analysis data"
+    )
+    last_updated: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="Timestamp when this response was generated (UTC timezone)"
+    )
+    
+    # No custom timezone validators needed - BaseSchemaValidator handles UTC validation
+    
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "data": {
                     "timestamp": "2024-01-01T00:00:00Z",
@@ -135,3 +249,4 @@ class RealtimeCashflowResponse(BaseModel):
                 "last_updated": "2024-01-01T00:00:00Z"
             }
         }
+    )

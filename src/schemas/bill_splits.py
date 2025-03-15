@@ -1,18 +1,31 @@
-from datetime import date
+from datetime import datetime
 from decimal import Decimal
 from typing import Dict, List, Optional, Union
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
 
-class BillSplitBase(BaseModel):
-    """Base schema for bill split data"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+from src.schemas import BaseSchemaValidator
+
+class BillSplitBase(BaseSchemaValidator):
+    """
+    Base schema for bill split data.
     
-    amount: Decimal = Field(..., gt=0, description="Split amount must be greater than 0")
+    Contains common fields and validation shared by all bill split schemas.
+    """
+    amount: Decimal = Field(
+        ..., 
+        gt=0, 
+        decimal_places=2,
+        description="Split amount must be greater than 0"
+    )
 
 class BillSplitCreate(BillSplitBase):
-    """Schema for creating a new bill split"""
-    liability_id: int = Field(..., gt=0)
-    account_id: int = Field(..., gt=0)
+    """
+    Schema for creating a new bill split.
+    
+    Contains validation to ensure the split amount is greater than zero.
+    """
+    liability_id: int = Field(..., gt=0, description="ID of the liability being split")
+    account_id: int = Field(..., gt=0, description="ID of the account receiving this portion of the bill")
 
     @model_validator(mode='after')
     def validate_amount(self) -> 'BillSplitCreate':
@@ -21,32 +34,47 @@ class BillSplitCreate(BillSplitBase):
         return self
 
 class BillSplitUpdate(BillSplitBase):
-    """Schema for updating an existing bill split"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    """
+    Schema for updating an existing bill split.
     
+    Requires the ID of the split to be updated.
+    """
     id: int = Field(..., gt=0, description="ID of the split to update")
 
 class BillSplitInDB(BillSplitBase):
-    """Schema for bill split data as stored in the database"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
-
-    id: int
-    liability_id: int
-    account_id: int
-    created_at: date
-    updated_at: date
+    """
+    Schema for bill split data as stored in the database.
+    
+    Extends the base schema with database-specific fields.
+    All datetime fields are validated to ensure they have UTC timezone.
+    """
+    id: int = Field(..., description="Unique bill split identifier")
+    liability_id: int = Field(..., description="ID of the liability being split")
+    account_id: int = Field(..., description="ID of the account receiving this portion of the bill")
+    created_at: datetime = Field(..., description="Timestamp when the record was created (UTC timezone)")
+    updated_at: datetime = Field(..., description="Timestamp when the record was last updated (UTC timezone)")
 
 class BillSplitResponse(BillSplitInDB):
-    """Schema for bill split data in API responses"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    """
+    Schema for bill split data in API responses.
+    
+    Inherits all fields and validation from BillSplitInDB.
+    """
 
-class BillSplitValidation(BaseModel):
-    """Schema for validating bill splits"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
-
-    liability_id: int = Field(..., gt=0)
-    total_amount: Decimal = Field(..., gt=0)
-    splits: List[BillSplitCreate]
+class BillSplitValidation(BaseSchemaValidator):
+    """
+    Schema for validating bill splits.
+    
+    Ensures the sum of all splits equals the total amount of the liability.
+    """
+    liability_id: int = Field(..., gt=0, description="ID of the liability being split")
+    total_amount: Decimal = Field(
+        ..., 
+        gt=0, 
+        decimal_places=2,
+        description="Total amount of the liability"
+    )
+    splits: List[BillSplitCreate] = Field(..., description="List of bill splits to validate")
 
     @model_validator(mode='after')
     def validate_splits(self) -> 'BillSplitValidation':
@@ -61,22 +89,45 @@ class BillSplitValidation(BaseModel):
         
         return self
 
-class SplitSuggestion(BaseModel):
-    """Schema for individual split suggestion"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+class SplitSuggestion(BaseSchemaValidator):
+    """
+    Schema for individual split suggestion.
+    
+    Contains details about a suggested split including confidence score and reasoning.
+    """
+    account_id: int = Field(..., gt=0, description="ID of the suggested account")
+    amount: Decimal = Field(
+        ..., 
+        gt=0, 
+        decimal_places=2,
+        description="Suggested split amount"
+    )
+    confidence_score: float = Field(
+        ..., 
+        ge=0, 
+        le=1, 
+        description="Confidence score between 0 and 1"
+    )
+    reason: str = Field(
+        ..., 
+        max_length=500,
+        description="Explanation for the suggested split"
+    )
 
-    account_id: int = Field(..., gt=0)
-    amount: Decimal = Field(..., gt=0)
-    confidence_score: float = Field(..., ge=0, le=1, description="Confidence score between 0 and 1")
-    reason: str = Field(..., description="Explanation for the suggested split")
-
-class BillSplitSuggestionResponse(BaseModel):
-    """Schema for bill split suggestions response"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
-
-    liability_id: int = Field(..., gt=0)
-    total_amount: Decimal = Field(..., gt=0)
-    suggestions: List[SplitSuggestion]
+class BillSplitSuggestionResponse(BaseSchemaValidator):
+    """
+    Schema for bill split suggestions response.
+    
+    Contains a list of suggested splits and metadata about the suggestion.
+    """
+    liability_id: int = Field(..., gt=0, description="ID of the liability")
+    total_amount: Decimal = Field(
+        ..., 
+        gt=0, 
+        decimal_places=2,
+        description="Total amount of the liability"
+    )
+    suggestions: List[SplitSuggestion] = Field(..., description="List of suggested splits")
     historical_pattern: Optional[bool] = Field(
         default=False, 
         description="Whether this suggestion is based on historical patterns"
@@ -86,19 +137,30 @@ class BillSplitSuggestionResponse(BaseModel):
         description="Number of times this pattern was found in history"
     )
 
-class SplitPattern(BaseModel):
-    """Schema for a bill split pattern"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
-
-    pattern_id: str = Field(..., description="Unique identifier for the pattern")
+class SplitPattern(BaseSchemaValidator):
+    """
+    Schema for a bill split pattern.
+    
+    Represents a detected pattern in bill splitting behavior.
+    """
+    pattern_id: str = Field(
+        ..., 
+        max_length=50,
+        description="Unique identifier for the pattern"
+    )
     account_splits: Dict[int, Decimal] = Field(
         ..., 
         description="Mapping of account IDs to their split percentages"
     )
     total_occurrences: int = Field(..., gt=0, description="Number of times this pattern appears")
-    first_seen: date = Field(..., description="Date pattern was first observed")
-    last_seen: date = Field(..., description="Date pattern was last observed")
-    average_total: Decimal = Field(..., gt=0, description="Average total amount for this pattern")
+    first_seen: datetime = Field(..., description="Date pattern was first observed (UTC timezone)")
+    last_seen: datetime = Field(..., description="Date pattern was last observed (UTC timezone)")
+    average_total: Decimal = Field(
+        ..., 
+        gt=0, 
+        decimal_places=2,
+        description="Average total amount for this pattern"
+    )
     confidence_score: float = Field(
         ..., 
         ge=0, 
@@ -106,10 +168,12 @@ class SplitPattern(BaseModel):
         description="Confidence score based on frequency and recency"
     )
 
-class PatternMetrics(BaseModel):
-    """Schema for pattern analysis metrics"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
-
+class PatternMetrics(BaseSchemaValidator):
+    """
+    Schema for pattern analysis metrics.
+    
+    Contains aggregated metrics about bill splitting patterns.
+    """
     total_splits: int = Field(..., description="Total number of bill splits analyzed")
     unique_patterns: int = Field(..., description="Number of unique split patterns found")
     most_common_pattern: Optional[SplitPattern] = Field(
@@ -125,16 +189,19 @@ class PatternMetrics(BaseModel):
         description="Frequency of each account's appearance in splits"
     )
 
-class OptimizationMetrics(BaseModel):
-    """Schema for split optimization metrics"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
-
+class OptimizationMetrics(BaseSchemaValidator):
+    """
+    Schema for split optimization metrics.
+    
+    Contains metrics about the effectiveness of bill split configurations.
+    """
     credit_utilization: Dict[int, float] = Field(
         ...,
         description="Credit utilization percentage per credit account"
     )
     balance_impact: Dict[int, Decimal] = Field(
         ...,
+        decimal_places=2,
         description="Impact on available balance per account"
     )
     risk_score: float = Field(
@@ -150,10 +217,12 @@ class OptimizationMetrics(BaseModel):
         description="Overall optimization score"
     )
 
-class OptimizationSuggestion(BaseModel):
-    """Schema for split optimization suggestions"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
-
+class OptimizationSuggestion(BaseSchemaValidator):
+    """
+    Schema for split optimization suggestions.
+    
+    Contains suggestions for improving bill split configurations.
+    """
     original_splits: List[BillSplitCreate] = Field(
         ...,
         description="Original split configuration"
@@ -177,10 +246,12 @@ class OptimizationSuggestion(BaseModel):
         description="Priority level of the suggestion (1-5)"
     )
 
-class ImpactAnalysis(BaseModel):
-    """Schema for split impact analysis"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
-
+class ImpactAnalysis(BaseSchemaValidator):
+    """
+    Schema for split impact analysis.
+    
+    Contains analysis of how bill splits impact accounts over time.
+    """
     split_configuration: List[BillSplitCreate] = Field(
         ...,
         description="Split configuration being analyzed"
@@ -191,10 +262,12 @@ class ImpactAnalysis(BaseModel):
     )
     short_term_impact: Dict[int, Decimal] = Field(
         ...,
+        decimal_places=2,
         description="30-day impact per account"
     )
     long_term_impact: Dict[int, Decimal] = Field(
         ...,
+        decimal_places=2,
         description="90-day impact per account"
     )
     risk_factors: List[str] = Field(
@@ -206,12 +279,14 @@ class ImpactAnalysis(BaseModel):
         description="Recommendations for improvement"
     )
 
-class HistoricalAnalysis(BaseModel):
-    """Schema for comprehensive historical analysis results"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
-
-    liability_id: int = Field(..., gt=0)
-    analysis_date: date = Field(..., description="Date analysis was performed")
+class HistoricalAnalysis(BaseSchemaValidator):
+    """
+    Schema for comprehensive historical analysis results.
+    
+    Contains detailed analysis of bill splitting history and patterns.
+    """
+    liability_id: int = Field(..., gt=0, description="ID of the liability analyzed")
+    analysis_date: datetime = Field(..., description="Date analysis was performed (UTC timezone)")
     patterns: List[SplitPattern] = Field(..., description="Identified split patterns")
     metrics: PatternMetrics = Field(..., description="Analysis metrics")
     category_patterns: Optional[Dict[int, List[SplitPattern]]] = Field(
@@ -231,10 +306,12 @@ class HistoricalAnalysis(BaseModel):
         description="Impact analysis of current splits"
     )
 
-class BulkSplitOperation(BaseModel):
-    """Schema for bulk bill split operations"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
-
+class BulkSplitOperation(BaseSchemaValidator):
+    """
+    Schema for bulk bill split operations.
+    
+    Used for creating or updating multiple bill splits in a single operation.
+    """
     operation_type: str = Field(
         ..., 
         description="Type of operation (create/update)",
@@ -264,22 +341,30 @@ class BulkSplitOperation(BaseModel):
         
         return self
 
-class BulkOperationError(BaseModel):
-    """Schema for bulk operation errors"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
-
+class BulkOperationError(BaseSchemaValidator):
+    """
+    Schema for bulk operation errors.
+    
+    Contains details about errors encountered during bulk operations.
+    """
     index: int = Field(..., description="Index of the failed split in the input list")
     split_data: Union[BillSplitCreate, BillSplitUpdate] = Field(
         ..., 
         description="Original split data that caused the error"
     )
     error_message: str = Field(..., description="Detailed error message")
-    error_type: str = Field(..., description="Type of error (validation/processing)")
+    error_type: str = Field(
+        ..., 
+        description="Type of error (validation/processing)",
+        pattern="^(validation|processing)$"
+    )
 
-class BulkOperationResult(BaseModel):
-    """Schema for bulk operation results"""
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
-
+class BulkOperationResult(BaseSchemaValidator):
+    """
+    Schema for bulk operation results.
+    
+    Contains summary and detailed results of a bulk bill split operation.
+    """
     success: bool = Field(..., description="Overall operation success status")
     processed_count: int = Field(..., ge=0, description="Number of splits processed")
     success_count: int = Field(..., ge=0, description="Number of successful operations")
