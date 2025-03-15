@@ -32,7 +32,7 @@ We found and fixed an issue with non-UTC timezone creation in the test files. Th
    - [x] tests/schemas/test_credit_limits_schemas.py (FIXED)
 
 2. **Existing Test Files (Need Review & Timezone Updates):**
-   - [ ] tests/schemas/test_accounts_schemas.py (UPDATE + TIMEZONE FIX)
+   - [x] tests/schemas/test_accounts_schemas.py (FIXED)
    - [ ] tests/schemas/test_income_schemas.py (UPDATE + TIMEZONE FIX)
    - [ ] tests/schemas/test_liabilities_schemas.py (UPDATE + TIMEZONE FIX)
    - [ ] tests/schemas/test_payments_schemas.py (UPDATE + TIMEZONE FIX)
@@ -128,48 +128,48 @@ We found and fixed an issue with non-UTC timezone creation in the test files. Th
 ### Phase 3: Analysis Schema Tests
 
 #### 9. tests/schemas/test_cashflow_base_schemas.py
-- [ ] Import and validate core cashflow schema classes (CashflowBase, CashflowCreate, etc.)
-- [ ] Test valid object creation
-- [ ] Test field validations (required fields, constraints)
-- [ ] Test decimal precision for monetary fields
-- [ ] Test UTC datetime validation
-- [ ] Test calculation validations
-- [ ] Test BaseSchemaValidator inheritance
+- [x] Import and validate core cashflow schema classes (CashflowBase, CashflowCreate, etc.)
+- [x] Test valid object creation
+- [x] Test field validations (required fields, constraints)
+- [x] Test decimal precision for monetary fields
+- [x] Test UTC datetime validation
+- [x] Test calculation validations
+- [x] Test BaseSchemaValidator inheritance
 
 #### 10. tests/schemas/test_cashflow_metrics_schemas.py
-- [ ] Import and validate metrics schema classes (MinimumRequired, DeficitCalculation, HourlyRates)
-- [ ] Test valid object creation
-- [ ] Test field validations (required fields, constraints)
-- [ ] Test decimal precision for monetary fields
-- [ ] Test calculation validations
-- [ ] Test BaseSchemaValidator inheritance
+- [x] Import and validate metrics schema classes (MinimumRequired, DeficitCalculation, HourlyRates)
+- [x] Test valid object creation
+- [x] Test field validations (required fields, constraints)
+- [x] Test decimal precision for monetary fields
+- [x] Test calculation validations
+- [x] Test BaseSchemaValidator inheritance
 
 #### 11. tests/schemas/test_cashflow_account_analysis_schemas.py
-- [ ] Import and validate account analysis schema classes (AccountCorrelation, TransferPattern, etc.)
-- [ ] Test valid object creation
-- [ ] Test field validations (required fields, constraints)
-- [ ] Test decimal precision for monetary fields
-- [ ] Test UTC datetime validation
-- [ ] Test relationship validations
-- [ ] Test BaseSchemaValidator inheritance
+- [x] Import and validate account analysis schema classes (AccountCorrelation, TransferPattern, etc.)
+- [x] Test valid object creation
+- [x] Test field validations (required fields, constraints)
+- [x] Test decimal precision for monetary fields
+- [x] Test UTC datetime validation
+- [x] Test relationship validations
+- [x] Test BaseSchemaValidator inheritance
 
 #### 12. tests/schemas/test_cashflow_forecasting_schemas.py
-- [ ] Import and validate forecasting schema classes (CustomForecastParameters, AccountForecastRequest, etc.)
-- [ ] Test valid object creation
-- [ ] Test field validations (required fields, constraints)
-- [ ] Test decimal precision for monetary fields
-- [ ] Test UTC datetime validation
-- [ ] Test forecast parameter validations
-- [ ] Test BaseSchemaValidator inheritance
+- [x] Import and validate forecasting schema classes (CustomForecastParameters, AccountForecastRequest, etc.)
+- [x] Test valid object creation
+- [x] Test field validations (required fields, constraints)
+- [x] Test decimal precision for monetary fields
+- [x] Test UTC datetime validation
+- [x] Test forecast parameter validations
+- [x] Test BaseSchemaValidator inheritance
 
 #### 13. tests/schemas/test_cashflow_historical_schemas.py
-- [ ] Import and validate historical analysis schema classes (HistoricalTrendMetrics, SeasonalityAnalysis, etc.)
-- [ ] Test valid object creation
-- [ ] Test field validations (required fields, constraints)
-- [ ] Test decimal precision for monetary fields
-- [ ] Test UTC datetime validation
-- [ ] Test historical analysis validations
-- [ ] Test BaseSchemaValidator inheritance
+- [x] Import and validate historical analysis schema classes (HistoricalTrendMetrics, SeasonalityAnalysis, etc.)
+- [x] Test valid object creation
+- [x] Test field validations (required fields, constraints)
+- [x] Test decimal precision for monetary fields
+- [x] Test UTC datetime validation
+- [x] Test historical analysis validations
+- [x] Test BaseSchemaValidator inheritance
 
 #### 14. tests/schemas/test_impact_analysis_schemas.py
 - [x] Import and validate all schema classes
@@ -228,11 +228,11 @@ We found and fixed an issue with non-UTC timezone creation in the test files. Th
 ### Phase 4: Review and Update Existing Test Files
 
 #### 20. tests/schemas/test_accounts_schemas.py (UPDATE)
-- [ ] Review for completeness against current schema
-- [ ] Add tests for any missing validation rules
-- [ ] Ensure proper testing of BaseSchemaValidator functionality
-- [ ] Verify ADR-011 and ADR-012 compliance tests
-- [ ] Add tests for recent schema enhancements
+- [x] Review for completeness against current schema
+- [x] Add tests for any missing validation rules
+- [x] Ensure proper testing of BaseSchemaValidator functionality
+- [x] Verify ADR-011 and ADR-012 compliance tests
+- [x] Add tests for recent schema enhancements
 
 #### 21. tests/schemas/test_income_schemas.py (UPDATE)
 - [ ] Review for completeness against current schema

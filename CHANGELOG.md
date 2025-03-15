@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2025-03-15
+
+### Added
+- Complete test coverage for cashflow module schemas following ADR-011 and ADR-012 standards:
+  * Implemented test_cashflow_base_schemas.py for core cashflow schemas
+  * Implemented test_cashflow_metrics_schemas.py for financial metrics schemas
+  * Implemented test_cashflow_account_analysis_schemas.py for account analysis schemas
+  * Implemented test_cashflow_forecasting_schemas.py for forecasting schemas
+  * Implemented test_cashflow_historical_schemas.py for historical analysis schemas
+- Each test file includes complete validation coverage:
+  * Tests for valid object creation with required and optional fields
+  * Tests for field validations and constraints
+  * Tests for decimal precision validation for monetary fields
+  * Tests for UTC datetime validation per ADR-011
+  * Tests for business rules and cross-field validations
+
+### Fixed
+- Timezone compliance issues in existing test files:
+  * Updated test_accounts_schemas.py to use timezone.utc instead of ZoneInfo("UTC")
+  * Fixed import statements to include datetime.timezone
+  * Ensured consistent timezone handling across tests
+
 ## [0.4.0] - 2025-03-15
 
 ### Changed

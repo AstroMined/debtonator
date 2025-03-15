@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from decimal import Decimal
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
 from pydantic import ValidationError
@@ -17,7 +17,7 @@ from src.schemas.accounts import (
 
 def test_account_base_valid():
     """Test valid account base schema"""
-    statement_date = datetime.now(ZoneInfo("UTC"))
+    statement_date = datetime.now(timezone.utc)
     account = AccountBase(
         name="Test Account",
         type=AccountType.CHECKING,
@@ -123,7 +123,7 @@ def test_account_base_invalid_statement_date():
 
 def test_account_update_valid():
     """Test valid account update schema"""
-    statement_date = datetime.now(ZoneInfo("UTC"))
+    statement_date = datetime.now(timezone.utc)
     update = AccountUpdate(
         name="Updated Account",
         type=AccountType.SAVINGS,
@@ -178,7 +178,7 @@ def test_account_update_invalid_statement_date():
 
 def test_account_in_db_valid():
     """Test valid account in DB schema"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
     account = AccountInDB(
         id=1,
         name="Test Account",
@@ -196,7 +196,7 @@ def test_account_in_db_valid():
 
 def test_account_in_db_validation():
     """Test account in DB validation"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     # Test invalid ID
     with pytest.raises(ValidationError, match="Input should be greater than 0"):
@@ -219,7 +219,7 @@ def test_account_in_db_validation():
 
 def test_account_in_db_invalid_timestamps():
     """Test invalid timestamps in DB schema"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
     naive_now = datetime.now()
 
     # Test naive created_at
@@ -256,7 +256,7 @@ def test_account_in_db_invalid_timestamps():
 
 def test_statement_balance_history_valid():
     """Test valid statement balance history schema"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
     history = StatementBalanceHistory(
         statement_date=now,
         statement_balance=Decimal("1000.00"),
@@ -271,7 +271,7 @@ def test_statement_balance_history_valid():
 
 def test_statement_balance_history_validation():
     """Test statement balance history validation"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     # Test decimal places
     with pytest.raises(
@@ -294,7 +294,7 @@ def test_statement_balance_history_validation():
 
 def test_statement_balance_history_invalid_dates():
     """Test invalid dates in statement balance history"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
     naive_now = datetime.now()
 
     # Test naive statement date
