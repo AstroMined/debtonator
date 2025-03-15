@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.90] - 2025-03-14
+
+### Added
+- Comprehensive model compliance checklist:
+  * Created detailed model_compliance_checklist.md document
+  * Systematically reviewed all 18 model files against ADR-011 and ADR-012
+  * Added file-specific compliance notes with detailed implementation status
+  * Documented required changes for non-compliant models
+
+### Changed
+- Completed validation layer standardization model review:
+  * Confirmed 17 of 18 models are fully compliant with ADR-011 and ADR-012
+  * Identified accounts.py as needing minor updates
+  * Ran isort and black against all model files for consistent formatting
+  * Enhanced documentation about service layer responsibility
+
+### Fixed
+- Identified issues in accounts.py model:
+  * Unused imports: `validates` from SQLAlchemy
+  * Unused imports: `ZoneInfo`
+  * Documentation needs minor updates to align with ADR-011
+
 ## [0.3.89] - 2025-03-14
 
 ### Fixed

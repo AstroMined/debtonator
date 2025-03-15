@@ -1,19 +1,23 @@
 from decimal import Decimal
-from sqlalchemy import ForeignKey, Numeric, Index
+
+from sqlalchemy import ForeignKey, Index, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base_model import BaseDBModel
 
+
 class BillSplit(BaseDBModel):
     """Model representing a bill payment split across multiple accounts"""
+
     __tablename__ = "bill_splits"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    liability_id: Mapped[int] = mapped_column(ForeignKey("liabilities.id", ondelete="CASCADE"))
+    liability_id: Mapped[int] = mapped_column(
+        ForeignKey("liabilities.id", ondelete="CASCADE")
+    )
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
     amount: Mapped[Decimal] = mapped_column(
-        Numeric(10, 2),
-        comment="Amount of the bill allocated to this account"
+        Numeric(10, 2), comment="Amount of the bill allocated to this account"
     )
     # Relationships
     liability = relationship("Liability", back_populates="splits")
@@ -21,8 +25,8 @@ class BillSplit(BaseDBModel):
 
     # Create indexes for efficient lookups
     __table_args__ = (
-        Index('idx_bill_splits_liability_id', 'liability_id'),
-        Index('idx_bill_splits_account_id', 'account_id'),
+        Index("idx_bill_splits_liability_id", "liability_id"),
+        Index("idx_bill_splits_account_id", "account_id"),
     )
 
     def __repr__(self) -> str:

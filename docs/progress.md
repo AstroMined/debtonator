@@ -3,24 +3,41 @@
 ## Current Priority: Validation Layer Standardization - Phase 3
 
 ### Recent Improvements
-1. **Model Test Suite Refactoring (Completed)** ✓
+1. **Model Compliance Review (Completed)** ✓
+   - Comprehensive Model Layer Review:
+     * Created detailed model_compliance_checklist.md document
+     * Systematically reviewed all 18 model files against ADR-011 and ADR-012
+     * Found 17 models already fully compliant with both ADRs
+     * Identified one model (accounts.py) with minor issues needing updates
+     * Documented all findings with detailed notes for each file
+   - Code Quality Enhancements:
+     * Ran isort for consistent import ordering
+     * Ran black for consistent code formatting
+     * Ensured all model files follow project style guidelines
+   - Documentation Improvements:
+     * Added file-specific compliance notes
+     * Created clear implementation status tracking
+     * Documented required changes for accounts.py
+     * Prepared follow-up action items
+
+2. **Model Test Suite Refactoring (Completed)** ✓
    - Model Improvements:
      * Fixed model tests that were failing due to ADR-012 implementation
      * Removed business logic tests from model tests (RecurringIncome, Income, StatementHistory)
-     * Updated test fixtures to reflect business logic moved to services
+     * Updated test_income_record fixture to set undeposited_amount directly
      * Refocused model tests purely on data structure and relationships
    - Test Enhancements:
      * Updated test_income_record fixture to set undeposited_amount directly
      * Fixed RecurringIncome tests to use service methods
-     * Fixed StatementHistory tests to focus on pure data structure
-     * Modified Deposit Schedules tests to test models not business logic
+     * Fixed StatementHistory tests to focus on due_date as a regular field
+     * Modified test_cascade_delete_income_entries to use RecurringIncomeService
    - Improvements:
      * Ensured all model tests (106 tests) pass successfully
      * Created clear delineation between model tests and service tests
      * Corrected remaining Pylint warnings
      * Maintained test coverage while respecting separation of concerns
 
-2. **Categories Model and Service Enhancement (Completed)** ✓
+3. **Categories Model and Service Enhancement (Completed)** ✓
    - Model Improvements:
      * Removed business logic methods (full_path, is_ancestor_of, _get_parent)
      * Simplified Category model to pure data structure
@@ -46,7 +63,7 @@
      * Ensured proper handling of relationships
      * Fixed InvalidRequestError with joined eager loads
 
-2. **Cashflow Model and Service Enhancement (Completed)** ✓
+4. **Cashflow Model and Service Enhancement (Completed)** ✓
    - Model Improvements:
      * Removed business logic methods from CashflowForecast model
      * Removed unused ZoneInfo import
@@ -69,7 +86,7 @@
      * Documented calculation chain
      * Ensured ADR-011 and ADR-012 compliance
 
-2. **Account Service Enhancement (Completed)** ✓
+5. **Account Service Enhancement (Completed)** ✓
    - Added comprehensive validation methods:
      * validate_account_balance for transaction validation
      * validate_credit_limit_update for limit changes
@@ -93,7 +110,27 @@
      * Error handling documentation
 
 ### Model Simplification Progress
-1. **Categories Model** ✓
+1. **Model Compliance Review** ✓
+   - [x] Systematically reviewed all model files:
+     * Verified all 18 model files against ADR-011 and ADR-012 requirements
+     * Created comprehensive model_compliance_checklist.md
+     * Documented detailed notes for each file
+     * Identified one file needing minor updates
+     * Confirmed 17 files already fully compliant
+   - [x] Code quality improvements:
+     * Ran isort for standardized import order
+     * Ran black for consistent code formatting
+     * Fixed code style inconsistencies
+   - [x] Documentation enhancements:
+     * Added file-by-file compliance status
+     * Created clear implementation status tracking
+     * Documented required changes for accounts.py
+   - [x] Preparation for follow-up work:
+     * Identified required changes for accounts.py
+     * Prepared action items for future updates
+     * Added clear next steps for documentation updates
+
+2. **Categories Model** ✓
    - [x] Removed business logic methods:
      * full_path property
      * is_ancestor_of() method
@@ -104,7 +141,7 @@
    - [x] Fixed SQLAlchemy query handling for eager-loaded relationships
    - [x] Verified ADR-012 compliance
 
-2. **Cashflow Model** ✓
+3. **Cashflow Model** ✓
    - [x] Removed business logic methods:
      * calculate_deficits()
      * calculate_required_income()
@@ -117,7 +154,7 @@
    - [x] Ensured proper model representation
    - [x] Verified ADR-012 compliance
 
-3. **Account Model** ✓
+4. **Account Model** ✓
    - [x] Removed @validates decorators
    - [x] Removed update_available_credit method from model
    - [x] Added _update_available_credit to service layer
@@ -127,7 +164,7 @@
    - [x] Maintained full test coverage
    - [x] Improved separation of concerns
 
-4. **Payment Model** ✓
+5. **Payment Model** ✓
    - [x] Reviewed model against ADR-012 standards
    - [x] Confirmed no @validates decorators present
    - [x] Verified no business logic in model
@@ -136,7 +173,7 @@
    - [x] Verified UTC datetime handling
    - [x] Documentation already up to date
 
-5. **Bill/Liability Model** ✓
+6. **Bill/Liability Model** ✓
    - [x] Reviewed model against ADR-012 standards
    - [x] Confirmed no validation logic present
    - [x] Verified proper relationship definitions
@@ -146,7 +183,7 @@
    - [x] Verified tests focus on data structure
    - [x] Confirmed proper UTC datetime handling
 
-6. **Income Model** ✓
+7. **Income Model** ✓
    - [x] Removed calculate_undeposited method from model
    - [x] Added _calculate_undeposited_amount to service
    - [x] Added _update_undeposited_amount to service
@@ -157,7 +194,7 @@
    - [x] Maintained proper UTC datetime handling
    - [x] Verified ADR-012 compliance
 
-7. **CreditLimitHistory Model** ✓
+8. **CreditLimitHistory Model** ✓
    - [x] Removed SQLAlchemy event listeners for validation
    - [x] Added validate_credit_limit_history to AccountService
    - [x] Enhanced model documentation with pure data structure focus
@@ -167,7 +204,7 @@
    - [x] Verified proper datetime handling
    - [x] Ensured ADR-012 compliance
 
-8. **RecurringBill Model** ✓
+9. **RecurringBill Model** ✓
    - [x] Removed create_liability() business logic method
    - [x] Added create_liability_from_recurring() to RecurringBillService
    - [x] Enhanced model documentation with pure data structure focus
@@ -177,16 +214,16 @@
    - [x] Fixed SQL query to properly compare datetime fields with dates
    - [x] Verified ADR-012 compliance
 
-9. **StatementHistory Model** ✓
-   - [x] Removed due date calculation from __init__ method
-   - [x] Created new StatementService with calculate_due_date method
-   - [x] Enhanced model documentation with pure data structure focus
-   - [x] Added comprehensive service tests for due date calculation
-   - [x] Added service methods for statement creation and retrieval
-   - [x] Maintained proper UTC datetime handling
-   - [x] Verified ADR-012 compliance
+10. **StatementHistory Model** ✓
+    - [x] Removed due date calculation from __init__ method
+    - [x] Created new StatementService with calculate_due_date method
+    - [x] Enhanced model documentation with pure data structure focus
+    - [x] Added comprehensive service tests for due date calculation
+    - [x] Added service methods for statement creation and retrieval
+    - [x] Maintained proper UTC datetime handling
+    - [x] Verified ADR-012 compliance
 
-10. **RecurringIncome Model** ✓
+11. **RecurringIncome Model** ✓
     - [x] Removed create_income_entry() business logic method
     - [x] Added create_income_from_recurring() to RecurringIncomeService
     - [x] Updated generate_income method to use new service method
@@ -195,6 +232,13 @@
     - [x] Maintained proper validation in service layer
     - [x] Verified proper UTC datetime handling
     - [x] Verified ADR-012 compliance
+    
+12. **Remaining Models (11)** ✓
+    - [x] Verified all remaining models against ADR-011 and ADR-012
+    - [x] Documented their compliance status in model_compliance_checklist.md
+    - [x] Ensured proper DateTime column configurations across all models
+    - [x] Verified no business logic present in any model
+    - [x] Confirmed no validation decorators exist in any model
 
 ### Testing Infrastructure Improvements
 
@@ -335,6 +379,7 @@
    - [x] Add cashflow service layer patterns
    - [x] Update statement history documentation
    - [x] Update recurring income documentation
+   - [x] Create comprehensive model compliance checklist
    - [ ] Update remaining model documentation
    - [ ] Create validation guide
 
@@ -348,19 +393,24 @@
    - [x] Eliminated repetitive timezone conversion code across services
 
 ## Next Steps
-1. **Documentation Updates**
-   - Document model simplification approach
+1. **Fix Accounts Model**
+   - Remove unused imports (`validates` and `ZoneInfo`)
+   - Update documentation to better align with ADR-011
+   - Verify no business logic remains
+
+2. **Documentation Updates**
+   - Update technical documentation with model simplification approach
    - Update ADR-012 with implementation details
    - Create validation pattern guide
    - Update system patterns documentation
 
-2. **Bill/Liability Service Enhancement**
+3. **Bill/Liability Service Enhancement**
    - Add validation methods
    - Move any remaining business logic
    - Update tests
    - Document patterns
 
-3. **Income Service Enhancement**
+4. **Income Service Enhancement**
    - Add validation methods
    - Move any remaining business logic
    - Update tests

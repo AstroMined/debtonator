@@ -1,24 +1,29 @@
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from sqlalchemy import String, DateTime, ForeignKey, Numeric, Enum as SQLEnum
+
+from sqlalchemy import DateTime
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base_model import BaseDBModel
+
 
 class TransactionType(str, Enum):
     CREDIT = "credit"
     DEBIT = "debit"
 
+
 class TransactionHistory(BaseDBModel):
     """
     Model for tracking account transactions.
-    
-    - Inherits `created_at` and `updated_at` from BaseDBModel, which are naive columns 
+
+    - Inherits `created_at` and `updated_at` from BaseDBModel, which are naive columns
       stored as UTC.
     - The `transaction_date` here is the actual time of the transaction, possibly coming
       from an external data source, so it may differ from the `created_at` or `updated_at`.
-    - All datetime columns are stored as naive UTC; Pydantic schemas enforce 
+    - All datetime columns are stored as naive UTC; Pydantic schemas enforce
       the UTC requirement.
     """
 
@@ -26,13 +31,11 @@ class TransactionHistory(BaseDBModel):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     account_id: Mapped[int] = mapped_column(
-        ForeignKey("accounts.id", ondelete="CASCADE"),
-        nullable=False
+        ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False
     )
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     transaction_type: Mapped[TransactionType] = mapped_column(
-        SQLEnum(TransactionType),
-        nullable=False
+        SQLEnum(TransactionType), nullable=False
     )
     description: Mapped[str] = mapped_column(String, nullable=True)
 
@@ -40,7 +43,7 @@ class TransactionHistory(BaseDBModel):
     transaction_date: Mapped[datetime] = mapped_column(
         DateTime(),
         nullable=False,
-        doc="Time of the actual transaction (naive, but enforced as UTC by Pydantic)."
+        doc="Time of the actual transaction (naive, but enforced as UTC by Pydantic).",
     )
 
     # Relationship

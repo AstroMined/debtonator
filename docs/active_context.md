@@ -1,7 +1,7 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Validation Layer Standardization - Phase 2: Model Simplification
+Validation Layer Standardization - Completed Model Compliance Review
 
 ### Model Test Coverage Status
 1. **Model Test Coverage Completed** ✓
@@ -24,20 +24,32 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Updated schema tests with full coverage
    - Documented validation patterns
 
-3. **Current Phase: Model Simplification**
+3. **Phase 2: Model Simplification (Completed)** ✓
    - Remove @validates decorators
    - Remove business logic
    - Update model tests
    - Document model changes
 
-4. **Future: Service Enhancement**
+4. **Phase 3: Service Enhancement**
    - Move business logic to services
    - Add service methods
    - Update service tests
    - Document service patterns
 
 ### Recent Changes
-1. **Categories Model Enhancement (Completed)** ✓
+1. **Model Compliance Review (Completed)** ✓
+   - Created comprehensive model_compliance_checklist.md document
+   - Systematically reviewed all 18 model files against ADR-011 and ADR-012
+   - Found 17 models already fully compliant with both ADRs
+   - Identified one model (accounts.py) with minor issues needing updates:
+     * Unused imports: `validates` from SQLAlchemy
+     * Unused imports: `ZoneInfo`
+     * Some documentation needs updating
+   - Documented all findings with detailed notes for each file
+   - Ran isort and black against all model files to ensure consistent formatting
+   - All models now either compliant or with clear documentation of needed fixes
+
+2. **Categories Model Enhancement (Completed)** ✓
    - Removed business logic methods (full_path, is_ancestor_of, _get_parent)
    - Enhanced CategoryService with corresponding methods (get_full_path, is_ancestor_of)
    - Added clear documentation to model indicating pure data structure focus
@@ -47,7 +59,7 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Fixed SQLAlchemy query handling with eager-loaded relationships
    - Ensured full test coverage with 100% passing tests
 
-2. **Cashflow Model Enhancement (Completed)** ✓
+3. **Cashflow Model Enhancement (Completed)** ✓
    - Removed business logic methods (calculate_deficits, calculate_required_income, calculate_hourly_rates)
    - Removed unused ZoneInfo import
    - Enhanced model documentation clarifying pure data structure focus
@@ -56,7 +68,7 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Maintained proper UTC datetime handling
    - Verified model complies with ADR-012 standards
 
-2. **Cashflow Metrics Service Enhancement (Completed)** ✓
+4. **Cashflow Metrics Service Enhancement (Completed)** ✓
    - Added update_cashflow_deficits method
    - Added update_cashflow_required_income method
    - Added update_cashflow_hourly_rates method
@@ -66,7 +78,7 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Ensured full test coverage of business logic
    - Verified service complies with ADR-012 standards
 
-3. **Bill/Liability Model Enhancement (Completed)** ✓
+5. **Bill/Liability Model Enhancement (Completed)** ✓
    - Added comprehensive class-level documentation clarifying responsibility boundaries
    - Improved field documentation with validation and service layer notes
    - Organized fields into logical groups with clear comments
@@ -74,7 +86,7 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Maintained proper UTC datetime handling
    - Verified model complies with ADR-012 standards
 
-4. **Account Model Enhancement (Completed)** ✓
+6. **Account Model Enhancement (Completed)** ✓
    - Removed update_available_credit method from Account model
    - Added _update_available_credit to AccountService
    - Simplified Account model to pure data structure
@@ -85,74 +97,21 @@ Validation Layer Standardization - Phase 2: Model Simplification
 
 ### Current Implementation Plan 
 
-#### Phase 2: Model Simplification - ✅ COMPLETED
-1. **Categories Model** ✓
-   - [x] Remove business logic methods (full_path, is_ancestor_of, _get_parent)
-   - [x] Move business logic to service layer
-   - [x] Update model documentation as pure data structure
-   - [x] Add service methods for path generation and ancestry checking
-   - [x] Update model tests to focus on data structure
-   - [x] Add comprehensive service tests
-   - [x] Update API layer
-   - [x] Fix SQLAlchemy query handling for eager-loaded relationships
-   - [x] Ensure passing tests
+#### Model Compliance Review (Completed) ✅
+1. **Systematic Review of All Models** ✓
+   - [x] Review each model file against ADR-011 requirements
+   - [x] Review each model file against ADR-012 requirements
+   - [x] Create detailed compliance checklist document
+   - [x] Document the status of each model file
+   - [x] Identify any issues needing attention
+   - [x] Recommend fixes for non-compliant files
+   - [x] Run isort and black for consistent formatting
 
-2. **Account Model** ✓
-   - [x] Remove @validates decorators
-   - [x] Move business logic to service
-   - [x] Remove update_available_credit method
-   - [x] Add _update_available_credit to service
-   - [x] Update tests to focus on data structure
-   - [x] Document changes
-
-3. **Payment Model** ✓
-   - [x] Remove validation logic (Already compliant)
-   - [x] Update relationships (Already properly defined)
-   - [x] Update tests (Already focused on data structure)
-   - [x] Document changes (Documentation up to date)
-
-4. **Bill/Liability Model** ✓
-   - [x] Remove validation logic (Already compliant)
-   - [x] Update relationships (Already properly defined)
-   - [x] Update tests (Already focused on data structure)
-   - [x] Document changes (Added comprehensive documentation)
-
-5. **Income Model** ✓
-   - [x] Removed validation logic (calculate_undeposited method)
-   - [x] Enhanced relationship documentation
-   - [x] Moved business logic to service layer
-   - [x] Added comprehensive model documentation
-   - [x] Improved separation of concerns
-   - [x] Added service layer calculation methods
-   - [x] Maintained proper UTC datetime handling
-   - [x] Verified ADR-012 compliance
-
-6. **Cashflow Model** ✓
-   - [x] Removed business logic methods
-   - [x] Removed unused imports
-   - [x] Enhanced model documentation
-   - [x] Updated tests to focus on data structure
-   - [x] Added dedicated service tests
-   - [x] Enhanced service layer with new methods
-   - [x] Maintained proper UTC datetime handling
-   - [x] Verified ADR-012 compliance
-
-7. **StatementHistory Model** ✓
-   - [x] Removed due date calculation from __init__
-   - [x] Created new StatementService 
-   - [x] Added calculate_due_date method to service
-   - [x] Updated model documentation as pure data structure
-   - [x] Added comprehensive service tests
-   - [x] Maintained proper UTC datetime handling
-   - [x] Verified ADR-012 compliance
-
-8. **RecurringIncome Model** ✓
-   - [x] Removed create_income_entry() business logic method
-   - [x] Added create_income_from_recurring() to RecurringIncomeService
-   - [x] Updated model documentation as pure data structure
-   - [x] Added comprehensive service tests
-   - [x] Maintained proper datetime handling in service layer
-   - [x] Verified ADR-012 compliance
+2. **Accounts Model** ✓
+   - [x] Identify unused imports: `validates` and `ZoneInfo`
+   - [x] Document needed documentation updates
+   - [x] Verify all DateTime fields are properly configured
+   - [x] Document in compliance checklist 
 
 #### Phase 3: Service Enhancement
 1. **Account Service** ✓
@@ -262,7 +221,18 @@ Validation Layer Standardization - Phase 2: Model Simplification
 
 ### Recent Changes
 
-1. **Test Suite Refactoring for Model Layer (Completed)** ✓
+1. **Model Compliance Review (Completed)** ✓
+   - Created comprehensive model_compliance_checklist.md document
+   - Systematically reviewed all 18 model files against ADR-011 and ADR-012
+   - Found 17 models already fully compliant with both ADRs
+   - Identified one model (accounts.py) with minor issues needing updates:
+     * Unused imports: `validates` from SQLAlchemy
+     * Unused imports: `ZoneInfo`
+     * Some documentation needs updating
+   - Documented all findings with detailed notes for each file
+   - Ran isort and black against all model files to ensure consistent formatting
+
+2. **Test Suite Refactoring for Model Layer (Completed)** ✓
    - Fixed model tests that were failing due to ADR-012 implementation
    - Removed business logic tests from model tests (RecurringIncome, Income, StatementHistory)
    - Updated test_income_record fixture to set undeposited_amount directly rather than calling removed calculate_undeposited method
@@ -271,7 +241,7 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Created clear delineation between model tests and service tests
    - Corrected remaining Pylint warnings
 
-2. **Test Fixture Consolidation (Completed)** ✓
+3. **Test Fixture Consolidation (Completed)** ✓
    - Moved model fixtures to main conftest.py for global availability
    - Added test_checking_account, test_credit_account, and test_income_category fixtures
    - Fixed test dependencies to use shared fixtures
@@ -280,7 +250,7 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Ensured all service tests can access necessary fixtures
    - Improved test maintainability with centralized fixture definitions
 
-3. **CreditLimitHistory Model Enhancement** ✓
+4. **CreditLimitHistory Model Enhancement** ✓
    - Removed SQLAlchemy event listeners for validation
    - Added validate_credit_limit_history to AccountService
    - Enhanced model documentation with clear data structure focus
@@ -290,17 +260,17 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Fixed datetime handling for proper UTC timezone management
    - Ensured full test coverage with 100% passing tests
 
-4. **RecurringBill Model Enhancement** ✓
+5. **RecurringBill Model Enhancement** ✓
    - Removed create_liability() business logic method from model
    - Added create_liability_from_recurring() to RecurringBillService
    - Updated model documentation as pure data structure
    - Fixed test cases to use service method instead of model method
    - Enhanced datetime handling in the service layer
    - Improved duplicate bill detection logic
-   - Ensured proper date/datetime comparisons in queries
+   - Fixed SQL query to properly compare date/datetime fields
    - Verified ADR-012 compliance with proper separation of concerns
 
-5. **BaseSchemaValidator Enhancement** ✓
+6. **BaseSchemaValidator Enhancement** ✓
    - Added automatic datetime conversion from naive to UTC-aware
    - Overrode model_validate method to add timezone info before validation
    - Maintained strict validation for explicit user input
@@ -308,7 +278,7 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Fixed test inconsistencies between date and datetime objects
    - Eliminated repetitive code across services
 
-6. **StatementHistory Model Enhancement** ✓
+7. **StatementHistory Model Enhancement** ✓
    - Removed due date calculation from __init__ method
    - Created new StatementService with calculate_due_date method
    - Enhanced model documentation to clearly indicate pure data structure
@@ -317,7 +287,7 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Ensured full test coverage with passing tests
    - Verified ADR-012 compliance
 
-7. **RecurringIncome Model Enhancement** ✓
+8. **RecurringIncome Model Enhancement** ✓
    - Removed create_income_entry() business logic method from model
    - Added create_income_from_recurring to RecurringIncomeService
    - Updated generate_income method to use new service method
@@ -328,19 +298,24 @@ Validation Layer Standardization - Phase 2: Model Simplification
    - Verified ADR-012 compliance
 
 ## Next Steps
-1. **Documentation Updates**
+1. **Fix Accounts Model**
+   - Remove unused imports (`validates` and `ZoneInfo`)
+   - Update documentation to better align with ADR-011
+   - Verify no business logic remains
+
+2. **Documentation Updates**
    - Update technical documentation with model simplification approach
    - Add validation pattern examples across different services
    - Document relationships between services and models
    - Update ADRs with implementation details
 
-2. **Bill/Liability Service Enhancement**
+3. **Bill/Liability Service Enhancement**
    - Add validation methods
    - Move any remaining business logic
    - Update tests
    - Document patterns
 
-3. **Income Service Enhancement**
+4. **Income Service Enhancement**
    - Add validation methods
    - Move any remaining business logic
    - Update tests
