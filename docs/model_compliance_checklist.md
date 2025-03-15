@@ -38,24 +38,19 @@ This document tracks our progress in ensuring all model files comply with:
 - No validation logic present
 
 ### 2. accounts.py
-- [ ] Remove unused imports: `validates` and `ZoneInfo`
-- [ ] Update documentation to align with ADR-011
-- [ ] Verify no business logic present
-- [ ] Check that all DateTime fields are properly configured
+- [x] Remove unused imports: `validates`, `ZoneInfo`, and `event`
+- [x] Update documentation to align with ADR-011 and ADR-012
+- [x] Verify no business logic present
+- [x] Check that all DateTime fields are properly configured
 
-**Status**: ⚠️ Needs Updates
+**Status**: ✅ Fully Compliant
 
-**Issues Found**:
-- Unused imports: `validates` from SQLAlchemy
-- Unused imports: `ZoneInfo`
-- Some documentation needs updating
-
-**Required Changes**:
-```python
-# Remove unused imports
-from sqlalchemy.orm import validates  # Remove
-from zoneinfo import ZoneInfo  # Remove
-```
+**Notes**:
+- Removed unused imports: `validates`, `ZoneInfo`, and `event`
+- Updated documentation to explicitly mention ADR-011 and ADR-012 compliance
+- Verified all DateTime fields are properly configured without timezone parameters
+- Confirmed docstrings explicitly mention the service layer handling business logic
+- Relationship definitions are well-structured
 
 ### 3. balance_history.py
 - [x] Check DateTime column configurations ✅
@@ -286,13 +281,15 @@ from zoneinfo import ZoneInfo  # Remove
 
 ## Implementation Status
 
-- ✅ **Fully Compliant**: 17 files
-- ⚠️ **Needs Updates**: 1 file
+- ✅ **Fully Compliant**: 18 files
+- ⚠️ **Needs Updates**: 0 files
 - 🔍 **To Be Reviewed**: 0 files
 
 ## Next Steps
 
-1. Continue reviewing remaining model files
-2. Document compliance status for each file
-3. Identify and fix any remaining issues
-4. Update documentation where necessary
+1. ✅ Review all model files - Complete
+2. ✅ Document compliance status for each file - Complete
+3. ✅ Identify and fix all issues - Complete
+4. ✅ Update documentation - Complete
+
+The compliance review and remediation work is now complete. All model files have been reviewed and updated to comply with ADR-011 (Datetime Standardization) and ADR-012 (Validation Layer Standardization).

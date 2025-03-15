@@ -135,3 +135,13 @@ async def test_update_account_balance(db_session: AsyncSession, base_account: Ac
     assert base_account.available_balance == Decimal("1500.00")
     assert base_account.created_at.tzinfo is None
     assert base_account.updated_at.tzinfo is None
+
+async def test_account_repr(db_session: AsyncSession):
+    """Test the __repr__ method of Account model"""
+    account = Account(name="Test Repr Account", type="checking")
+    db_session.add(account)
+    await db_session.commit()
+    
+    # Test the __repr__ method
+    assert repr(account) == f"<Account {account.name}>"
+    assert str(account) == f"<Account {account.name}>"

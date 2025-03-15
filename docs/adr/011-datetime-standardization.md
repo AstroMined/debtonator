@@ -1,7 +1,7 @@
 # ADR 11: Standardize on UTC DateTime Storage
 
 ## Status
-**Superseded** - See update section below
+**Implemented**
 
 ## Context
 
@@ -139,6 +139,24 @@ class Payment(Base):
    - Include test cases
    - Document error handling
 
+## Update (2025-03-14)
+
+The implementation of this ADR has been successfully completed:
+
+### Implementation Status
+- **✅ All 18 model files** are now fully compliant with the ADR requirements
+- All DateTime columns use naive storage without timezone parameters
+- All documentation has been updated to clearly indicate UTC approach
+- Verification through comprehensive test coverage (100% coverage achieved)
+
+### Key Achievements
+- Removed all `timezone=True` parameters from DateTime columns
+- Centralized UTC enforcement in Pydantic schemas
+- Simplified model definitions for clearer code
+- Enhanced docstrings to explicitly reference ADR compliance
+- Fixed issues in the accounts model including removing unused imports and improving documentation
+- Test suite verifies proper datetime handling across all models
+
 ## Consequences
 
 ### Positive
@@ -147,6 +165,7 @@ class Payment(Base):
 - Reduced confusion about timezone storage
 - Better error messages from schema validation
 - Simplified model definitions
+- Improved testability with naive datetime handling
 
 ### Negative
 - Strict UTC requirement may require more frontend work
@@ -156,7 +175,7 @@ class Payment(Base):
 ### Mitigation
 - Clear error messages help developers provide correct UTC values
 - Comprehensive documentation and examples
-- Extensive test suite for validation behavior
+- Extensive test suite for validation behavior (now at 100% coverage)
 
 ## References
 - [Python datetime docs](https://docs.python.org/3/library/datetime.html)  

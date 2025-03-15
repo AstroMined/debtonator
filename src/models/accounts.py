@@ -1,10 +1,9 @@
 from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
-from zoneinfo import ZoneInfo
 
-from sqlalchemy import DateTime, Index, Numeric, String, event
-from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
+from sqlalchemy import DateTime, Index, Numeric, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .balance_history import BalanceHistory
 from .balance_reconciliation import BalanceReconciliation
@@ -18,8 +17,12 @@ class Account(BaseDBModel):
     """
     Account model representing a financial account.
 
-    All datetime fields are stored in UTC format, with timezone validation enforced
-    through Pydantic schemas.
+    This is a pure data structure model with no business logic (ADR-012 compliant).
+    All business logic, such as available_credit calculations and validation,
+    is handled by the AccountService.
+
+    All datetime fields are stored as naive datetimes in UTC (ADR-011 compliant).
+    Timezone validation is enforced through Pydantic schemas.
     """
 
     __tablename__ = "accounts"
