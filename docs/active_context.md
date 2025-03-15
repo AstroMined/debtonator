@@ -93,6 +93,15 @@ Schema Layer Standardization - COMPLETED
    - Fixed test_category_with_bills_valid test to include all required fields
    - Fixed test_bulk_operation_validation test to match new error format
    - Made tests more robust against future Pydantic version changes
+   - Completed all test files for Phase 2: Financial Operation Schema Tests
+     * Implemented tests/schemas/test_balance_history_schemas.py
+     * Implemented tests/schemas/test_payment_schedules_schemas.py
+     * Implemented tests/schemas/test_deposit_schedules_schemas.py
+     * Implemented tests/schemas/test_recurring_bills_schemas.py
+   - Discovered and fixed non-UTC timezone creation issue:
+     * Properly using `timezone(timedelta(hours=X))` instead of incorrect `timezone(hours=X)`
+     * Updated all test files to use consistent pattern for timezone creation
+     * Improved timezone assertion patterns to avoid Pylint errors
 
 ### Current Implementation Plan 
 

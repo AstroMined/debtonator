@@ -12,6 +12,11 @@ To ensure all test files properly align with ADR-011 and use the exact same time
 - Replace all instances of `datetime.now(ZoneInfo("UTC"))` with `datetime.now(timezone.utc)`
 - Replace all instances of other UTC datetime creations to use `timezone.utc` instead of `ZoneInfo("UTC")`
 - Keep `ZoneInfo` usage only for creating non-UTC timezones in negative test cases
+- When creating non-UTC timezones, use `timezone(timedelta(hours=X))` pattern, not `timezone(hours=X)`
+- Important: Remember to import timedelta: `from datetime import datetime, timezone, timedelta`
+
+### Issue Discovered and Fixed:
+We found and fixed an issue with non-UTC timezone creation in the test files. The correct pattern is to use `timezone(timedelta(hours=X))` and not `timezone(hours=X)`, as the `timezone` constructor requires a `timedelta` object for its offset parameter.
 
 ### Rationale:
 - ADR-011 explicitly states "All new Python datetimes are created with UTC explicitly set, such as `datetime.now(timezone.utc)`"
@@ -85,40 +90,40 @@ To ensure all test files properly align with ADR-011 and use the exact same time
 ### Phase 2: Financial Operation Schema Tests
 
 #### 5. tests/schemas/test_balance_history_schemas.py
-- [ ] Import and validate all schema classes
-- [ ] Test valid object creation
-- [ ] Test field validations (required fields, constraints)
-- [ ] Test decimal precision for monetary fields
-- [ ] Test UTC datetime validation
-- [ ] Test business rule validations
-- [ ] Test BaseSchemaValidator inheritance
+- [x] Import and validate all schema classes
+- [x] Test valid object creation
+- [x] Test field validations (required fields, constraints)
+- [x] Test decimal precision for monetary fields
+- [x] Test UTC datetime validation
+- [x] Test business rule validations
+- [x] Test BaseSchemaValidator inheritance
 
 #### 6. tests/schemas/test_payment_schedules_schemas.py
-- [ ] Import and validate all schema classes
-- [ ] Test valid object creation
-- [ ] Test field validations (required fields, constraints)
-- [ ] Test decimal precision for monetary fields
-- [ ] Test UTC datetime validation
-- [ ] Test recurring pattern validations
-- [ ] Test BaseSchemaValidator inheritance
+- [x] Import and validate all schema classes
+- [x] Test valid object creation
+- [x] Test field validations (required fields, constraints)
+- [x] Test decimal precision for monetary fields
+- [x] Test UTC datetime validation
+- [x] Test recurring pattern validations
+- [x] Test BaseSchemaValidator inheritance
 
 #### 7. tests/schemas/test_deposit_schedules_schemas.py
-- [ ] Import and validate all schema classes
-- [ ] Test valid object creation
-- [ ] Test field validations (required fields, constraints)
-- [ ] Test decimal precision for monetary fields
-- [ ] Test UTC datetime validation
-- [ ] Test recurring pattern validations
-- [ ] Test BaseSchemaValidator inheritance
+- [x] Import and validate all schema classes
+- [x] Test valid object creation
+- [x] Test field validations (required fields, constraints)
+- [x] Test decimal precision for monetary fields
+- [x] Test UTC datetime validation
+- [x] Test recurring pattern validations
+- [x] Test BaseSchemaValidator inheritance
 
 #### 8. tests/schemas/test_recurring_bills_schemas.py
-- [ ] Import and validate all schema classes
-- [ ] Test valid object creation
-- [ ] Test field validations (required fields, constraints)
-- [ ] Test decimal precision for monetary fields
-- [ ] Test UTC datetime validation
-- [ ] Test recurring pattern validations
-- [ ] Test BaseSchemaValidator inheritance
+- [x] Import and validate all schema classes
+- [x] Test valid object creation
+- [x] Test field validations (required fields, constraints)
+- [x] Test decimal precision for monetary fields
+- [x] Test UTC datetime validation
+- [x] Test recurring pattern validations
+- [x] Test BaseSchemaValidator inheritance
 
 ### Phase 3: Analysis Schema Tests
 

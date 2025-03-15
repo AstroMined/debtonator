@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.95] - 2025-03-15
+
+### Added
+- Completed implementation of Phase 2 schema test files:
+  * test_balance_history_schemas.py with full validation coverage
+  * test_payment_schedules_schemas.py with comprehensive test cases
+  * test_deposit_schedules_schemas.py with detailed field validation
+  * test_recurring_bills_schemas.py with proper recurrence pattern testing 
+  * All Phase 2 test files passing with 42 successful test cases
+
+### Fixed
+- Discovered and fixed non-UTC timezone creation issue:
+  * Identified incorrect pattern: `timezone(hours=5)` causing TypeError
+  * Implemented correct pattern: `timezone(timedelta(hours=5))`
+  * Added timedelta import to affected files
+  * Updated timezone validation assertion pattern to avoid Pylint errors
+  * Documented the correct pattern in schema_test_implementation_checklist.md
+
 ## [0.3.94] - 2025-03-15
 
 ### Added

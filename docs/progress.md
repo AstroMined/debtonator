@@ -17,7 +17,7 @@
      * Made tests more resilient to minor error message changes
 
 2. **Schema Test Implementation Progress** ✓
-   - Fixed Critical Timezone Compliance Issue:
+   - Fixed Critical Timezone Compliance Issues:
      * Replaced all instances of `ZoneInfo("UTC")` with `timezone.utc` in 4 schema test files:
        - test_categories_schemas.py
        - test_credit_limits_schemas.py
@@ -31,6 +31,18 @@
      * Updated test_category_with_bills_valid to include all required fields for LiabilityBase
      * Added due_date, category_id, and primary_account_id fields to test objects
      * Ensured tests properly validate the complete schema
+   - Completed Phase 2: Financial Operation Schema Tests:
+     * Implemented test_balance_history_schemas.py with full validation coverage
+     * Implemented test_payment_schedules_schemas.py with comprehensive test cases
+     * Implemented test_deposit_schedules_schemas.py with detailed field validation
+     * Implemented test_recurring_bills_schemas.py with proper recurrence pattern testing
+     * All implemented test files passing with 42 successful test cases
+   - Discovered and Fixed Non-UTC Timezone Creation Issue:
+     * Identified incorrect pattern: `timezone(hours=5)` causing TypeError
+     * Implemented correct pattern: `timezone(timedelta(hours=5))`
+     * Added timedelta import to affected files
+     * Updated timezone validation assertion pattern to avoid Pylint errors
+     * Documented the correct pattern in schema_test_implementation_checklist.md
 
 2. **Schema Refactoring Completed** ✓
    - Final Schema Refactoring:
