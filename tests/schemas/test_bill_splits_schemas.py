@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
 from pydantic import ValidationError
@@ -52,7 +52,7 @@ def test_bill_split_update_valid():
 
 def test_bill_split_in_db_valid():
     """Test valid bill split in DB schema"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     data = BillSplitInDB(
         id=1,
@@ -73,7 +73,7 @@ def test_bill_split_in_db_valid():
 
 def test_bill_split_response_valid():
     """Test valid bill split response schema"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     data = BillSplitResponse(
         id=1,
@@ -232,7 +232,7 @@ def test_datetime_utc_validation():
             account_id=3,
             amount=Decimal("100.00"),
             created_at=datetime.now(),  # Naive datetime
-            updated_at=datetime.now(ZoneInfo("UTC")),
+            updated_at=datetime.now(timezone.utc),
         )
 
     # Test non-UTC timezone
@@ -242,7 +242,7 @@ def test_datetime_utc_validation():
             liability_id=2,
             account_id=3,
             amount=Decimal("100.00"),
-            created_at=datetime.now(ZoneInfo("UTC")),
+            created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(ZoneInfo("America/New_York")),  # Non-UTC timezone
         )
 
@@ -307,7 +307,7 @@ def test_bulk_operation_validation():
         BulkSplitOperation(operation_type="invalid", splits=create_splits)
 
     # Test empty splits
-    with pytest.raises(ValidationError, match="Input should have at least 1 item"):
+    with pytest.raises(ValidationError, match="List should have at least 1 item"):
         BulkSplitOperation(operation_type="create", splits=[])
 
 

@@ -1,5 +1,5 @@
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
 from pydantic import ValidationError
@@ -79,7 +79,7 @@ def test_category_update_valid():
 
 def test_category_valid():
     """Test valid category schema"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     data = Category(
         id=1,
@@ -101,7 +101,7 @@ def test_category_valid():
 
 def test_category_with_children_valid():
     """Test valid category with children schema"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     # Create parent category
     parent = CategoryWithChildren(
@@ -146,7 +146,7 @@ def test_category_with_children_valid():
 
 def test_category_with_parent_valid():
     """Test valid category with parent schema"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     # Create parent category
     parent = CategoryWithChildren(
@@ -179,11 +179,16 @@ def test_category_with_parent_valid():
 
 def test_category_with_bills_valid():
     """Test valid category with bills schema"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     # Create liability
     liability = LiabilityBase(
-        name="Test Liability", amount=100.00, description="Test liability description"
+        name="Test Liability", 
+        amount=100.00, 
+        description="Test liability description",
+        due_date=now.replace(day=now.day + 1),  # Due date in the future
+        category_id=1,
+        primary_account_id=1
     )
 
     # Create category with bills
@@ -280,7 +285,7 @@ def test_datetime_utc_validation():
             id=1,
             name="Test Category",
             created_at=datetime.now(),  # Naive datetime
-            updated_at=datetime.now(ZoneInfo("UTC")),
+            updated_at=datetime.now(timezone.utc),
         )
 
     # Test non-UTC timezone
@@ -288,12 +293,12 @@ def test_datetime_utc_validation():
         Category(
             id=1,
             name="Test Category",
-            created_at=datetime.now(ZoneInfo("UTC")),
+            created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(ZoneInfo("America/New_York")),  # Non-UTC timezone
         )
 
     # Test valid UTC datetime
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
     data = Category(id=1, name="Test Category", created_at=now, updated_at=now)
     assert data.created_at == now
     assert data.updated_at == now
@@ -302,7 +307,7 @@ def test_datetime_utc_validation():
 # Test hierarchical structure
 def test_nested_category_hierarchy():
     """Test nested category hierarchy"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     # Create a three-level hierarchy
     grandparent = CategoryWithChildren(

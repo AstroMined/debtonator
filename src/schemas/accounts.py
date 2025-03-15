@@ -67,7 +67,7 @@ account_type_field = lambda required: Field(
 )
 
 decimal_field = lambda required, name, **kwargs: Field(
-    ... if required else None,
+    ... if required and 'default' not in kwargs else kwargs.pop('default', None),
     decimal_places=2,
     description=name,
     **kwargs

@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
 from pydantic import ValidationError
@@ -17,7 +17,7 @@ from src.schemas.credit_limits import (
 # Test valid object creation
 def test_credit_limit_history_base_valid():
     """Test valid credit limit history base schema"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     data = CreditLimitHistoryBase(
         credit_limit=Decimal("5000.00"),
@@ -32,7 +32,7 @@ def test_credit_limit_history_base_valid():
 
 def test_credit_limit_history_base_minimal():
     """Test minimal credit limit history base schema"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     data = CreditLimitHistoryBase(credit_limit=Decimal("5000.00"), effective_date=now)
 
@@ -43,7 +43,7 @@ def test_credit_limit_history_base_minimal():
 
 def test_credit_limit_history_create_valid():
     """Test valid credit limit history create schema"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     data = CreditLimitHistoryCreate(
         credit_limit=Decimal("5000.00"),
@@ -58,7 +58,7 @@ def test_credit_limit_history_create_valid():
 
 def test_credit_limit_history_in_db_valid():
     """Test valid credit limit history in DB schema"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     data = CreditLimitHistoryInDB(
         id=1,
@@ -79,7 +79,7 @@ def test_credit_limit_history_in_db_valid():
 
 def test_credit_limit_update_valid():
     """Test valid credit limit update schema"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     data = CreditLimitUpdate(
         credit_limit=Decimal("7500.00"),
@@ -94,7 +94,7 @@ def test_credit_limit_update_valid():
 
 def test_account_credit_limit_history_response_valid():
     """Test valid account credit limit history response schema"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     # Create history entries
     history1 = CreditLimitHistoryInDB(
@@ -134,7 +134,7 @@ def test_account_credit_limit_history_response_valid():
 # Test field validations
 def test_credit_limit_validation():
     """Test credit limit field validation"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     # Test credit limit must be greater than zero
     with pytest.raises(ValidationError, match="Input should be greater than 0"):
@@ -152,7 +152,7 @@ def test_credit_limit_validation():
 
 def test_reason_validation():
     """Test reason field validation"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     # Test reason max length
     with pytest.raises(
@@ -175,7 +175,7 @@ def test_reason_validation():
 
 def test_required_fields():
     """Test required fields validation"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     # Test missing credit_limit
     with pytest.raises(ValidationError, match="Field required"):
@@ -200,7 +200,7 @@ def test_required_fields():
 # Test decimal precision
 def test_decimal_precision():
     """Test decimal precision validation"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     # Test too many decimal places
     with pytest.raises(
@@ -242,11 +242,11 @@ def test_datetime_utc_validation():
             id=1,
             account_id=2,
             credit_limit=Decimal("5000.00"),
-            effective_date=datetime.now(ZoneInfo("UTC")),
+            effective_date=datetime.now(timezone.utc),
             created_at=datetime.now(),  # Naive datetime
         )
 
     # Test valid UTC datetime
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
     data = CreditLimitHistoryBase(credit_limit=Decimal("5000.00"), effective_date=now)
     assert data.effective_date == now

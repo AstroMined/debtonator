@@ -20,11 +20,11 @@ To ensure all test files properly align with ADR-011 and use the exact same time
 - This ensures our tests properly validate the schemas' behavior with the same timezone mechanism
 
 ### Files Requiring Timezone Fixes:
-1. **Completed Files (Need Timezone Updates):**
-   - [x] tests/schemas/test_balance_reconciliation_schemas.py (NEEDS TIMEZONE FIX)
-   - [x] tests/schemas/test_bill_splits_schemas.py (NEEDS TIMEZONE FIX)
-   - [x] tests/schemas/test_categories_schemas.py (NEEDS TIMEZONE FIX)
-   - [x] tests/schemas/test_credit_limits_schemas.py (NEEDS TIMEZONE FIX)
+1. **Completed Files (Timezone Fixes Implemented):**
+   - [x] tests/schemas/test_balance_reconciliation_schemas.py (FIXED)
+   - [x] tests/schemas/test_bill_splits_schemas.py (FIXED)
+   - [x] tests/schemas/test_categories_schemas.py (FIXED)
+   - [x] tests/schemas/test_credit_limits_schemas.py (FIXED)
 
 2. **Existing Test Files (Need Review & Timezone Updates):**
    - [ ] tests/schemas/test_accounts_schemas.py (UPDATE + TIMEZONE FIX)
@@ -74,13 +74,13 @@ To ensure all test files properly align with ADR-011 and use the exact same time
 - [x] Test BaseSchemaValidator inheritance
 
 #### 4. tests/schemas/test_credit_limits_schemas.py
-- [ ] Import and validate all schema classes
-- [ ] Test valid object creation
-- [ ] Test field validations (required fields, constraints)
-- [ ] Test decimal precision for monetary fields
-- [ ] Test UTC datetime validation
-- [ ] Test business rule validations
-- [ ] Test BaseSchemaValidator inheritance
+- [x] Import and validate all schema classes
+- [x] Test valid object creation
+- [x] Test field validations (required fields, constraints)
+- [x] Test decimal precision for monetary fields
+- [x] Test UTC datetime validation
+- [x] Test business rule validations
+- [x] Test BaseSchemaValidator inheritance
 
 ### Phase 2: Financial Operation Schema Tests
 

@@ -30,13 +30,13 @@ class CategoryBase(BaseSchemaValidator):
     )
 
 # Common validator function to avoid duplication
-def validate_parent_id_common(v: Optional[int], values: dict) -> Optional[int]:
+def validate_parent_id_common(v: Optional[int], values) -> Optional[int]:
     """
     Validates that a category cannot be its own parent.
     
     Args:
         v: The parent_id value
-        values: Dictionary of values being validated
+        values: ValidationInfo object or dictionary containing validation data
         
     Returns:
         The original parent_id if validation passes
@@ -44,7 +44,15 @@ def validate_parent_id_common(v: Optional[int], values: dict) -> Optional[int]:
     Raises:
         ValueError: If category would be its own parent
     """
-    if v is not None and v == values.get('id'):
+    # Handle both Pydantic v2 ValidationInfo objects and dictionaries for testing
+    if hasattr(values, 'data'):
+        # Pydantic v2 ValidationInfo object
+        current_id = values.data.get('id')
+    else:
+        # Dictionary for testing compatibility
+        current_id = values.get('id')
+        
+    if v is not None and v == current_id:
         raise ValueError("Category cannot be its own parent")
     return v
 

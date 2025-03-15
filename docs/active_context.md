@@ -69,43 +69,30 @@ Schema Layer Standardization - COMPLETED
    - ✓ Documented standard patterns for schema maintainability
 
 ### Recent Changes
-1. **Schema Refactoring Completed** ✓
-   - Refactored final schema files to comply with both ADRs:
-     * accounts.py: Added common field definition functions, extracted shared validator logic
-     * payments.py: Created reusable validation functions, standardized field constraints
-   - Updated schema_review_findings.md with final 100% compliance metrics
-   - Applied consistent validation improvements across all schema files:
-     * Common field definition functions for reusability
-     * Shared validation logic between base and update schemas
-     * Enhanced docstrings with proper Args/Returns/Raises sections
-     * Improved field descriptions with clear purpose statements
-     * Consistent decimal precision validation for monetary values
-     * Proper UTC timezone handling for all datetime fields
-     * Strong field constraints for better validation
-   
-2. **Comprehensive Standardization Completed** ✓
-   - Achieved 100% compliance with both ADRs across all project files:
-     * ADR-011 (Datetime Standardization): All 21 schema files fully compliant
-     * ADR-012 (Validation Layer Standardization): All 21 schema files fully compliant
-     * DRY Principle: All 21 schema files rated as "Good"
-     * SRP Principle: All 21 schema files rated as "Good"
-   - Applied consistent standards to all schema files:
-     * All schemas inherit from BaseSchemaValidator
-     * All datetime fields include UTC timezone information
-     * All monetary fields have proper decimal precision validation
-     * All field descriptions are comprehensive and clear
-     * All validators follow Pydantic V2 style with proper documentation
-     * All schema classes have proper docstrings with purpose descriptions
-     * All validation error messages are clear and actionable
-     * All field constraints are appropriate and consistent
+1. **Fixed Pydantic v2 Compatibility Issues** ✓
+   - Updated `validate_parent_id_common` function in src/schemas/categories.py to handle ValidationInfo objects in Pydantic v2
+   - Modified function to work with both dictionary and ValidationInfo validation contexts
+   - Fixed test failures related to object attribute access incompatibilities
+   - Made validation code more robust against future Pydantic changes
+   - Added proper error handling for validator context access
 
-3. **Documentation Finalization** ✓
-   - Updated schema_review_findings.md with final compliance metrics
-   - Removed "Remaining Issues to Address" section as all issues are resolved
-   - Updated "Next Steps" to focus on maintaining standards rather than fixing issues
-   - Enhanced "Refactoring Progress Summary" with all 21 refactored files
-   - Added comprehensive patterns for schema standardization
-   - Documented best practices for future schema development
+2. **Standardized Timezone Usage in Tests** ✓
+   - Replaced all instances of `ZoneInfo("UTC")` with `timezone.utc` in schema tests:
+     * test_categories_schemas.py
+     * test_credit_limits_schemas.py
+     * test_bill_splits_schemas.py
+     * test_balance_reconciliation_schemas.py
+   - Updated test error message expectations to match Pydantic v2 format
+   - Fixed validation test failures related to timezone inconsistencies
+   - Ensured all tests consistently follow ADR-011 specifications
+   - Made tests more consistent with implementation code
+
+3. **Schema Test Implementation Progress** ✓
+   - Fixed critical timezone compliance issues in existing test files
+   - Updated schema test error message expectations to match Pydantic v2
+   - Fixed test_category_with_bills_valid test to include all required fields
+   - Fixed test_bulk_operation_validation test to match new error format
+   - Made tests more robust against future Pydantic version changes
 
 ### Current Implementation Plan 
 

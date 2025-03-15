@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from decimal import Decimal
-from zoneinfo import ZoneInfo  # Keep for non-UTC timezone tests
+from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
 from pydantic import ValidationError
@@ -213,8 +213,8 @@ def test_datetime_utc_validation():
             new_balance=Decimal("1200.00"),
             adjustment_amount=Decimal("200.00"),
             reconciliation_date=datetime.now(),  # Naive datetime
-            created_at=datetime.now(ZoneInfo("UTC")),
-            updated_at=datetime.now(ZoneInfo("UTC")),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
         )
 
     # Test non-UTC timezone
@@ -228,8 +228,8 @@ def test_datetime_utc_validation():
             reconciliation_date=datetime.now(
                 ZoneInfo("America/New_York")
             ),  # Non-UTC timezone
-            created_at=datetime.now(ZoneInfo("UTC")),
-            updated_at=datetime.now(ZoneInfo("UTC")),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
         )
 
     # Test multiple fields with different timezone problems
@@ -240,7 +240,7 @@ def test_datetime_utc_validation():
             previous_balance=Decimal("1000.00"),
             new_balance=Decimal("1200.00"),
             adjustment_amount=Decimal("200.00"),
-            reconciliation_date=datetime.now(ZoneInfo("UTC")),
+            reconciliation_date=datetime.now(timezone.utc),
             created_at=datetime.now(),  # Naive datetime
             updated_at=datetime.now(ZoneInfo("Europe/London")),  # Non-UTC timezone
         )
@@ -249,7 +249,7 @@ def test_datetime_utc_validation():
 # Test ID validation
 def test_id_validation():
     """Test ID field validation in complete schema"""
-    now = datetime.now(ZoneInfo("UTC"))
+    now = datetime.now(timezone.utc)
 
     # Test missing ID
     with pytest.raises(ValidationError, match="Field required"):

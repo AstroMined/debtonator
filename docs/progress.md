@@ -3,25 +3,34 @@
 ## Current Priority: Schema Layer Standardization - COMPLETED
 
 ### Recent Improvements
-1. **Schema Test Implementation Started** ✓
-   - Created Schema Test Implementation Plan:
-     * Comprehensive schema_test_implementation_checklist.md document created
-     * Designed standard test file structure and patterns
-     * Defined clear test categories for comprehensive coverage
-     * Organized files into logical implementation phases
-     * Created detailed test template with best practices
-   - Initial Schema Tests Completed:
-     * test_balance_reconciliation_schemas.py
-     * test_bill_splits_schemas.py
-     * test_categories_schemas.py
-     * Implemented comprehensive validation testing
-     * Verified ADR-011 and ADR-012 compliance
-   - Critical Timezone Compliance Issue Discovered:
-     * Identified inconsistency in timezone implementation approach
-     * Tests were using `ZoneInfo("UTC")` instead of `timezone.utc` as mandated by ADR-011
-     * Documented proper approach in schema_test_implementation_checklist.md
-     * Created plan to update all existing and future test files
-     * Added detailed rationale explaining importance of consistency
+1. **Pydantic v2 Compatibility Fix** ✓
+   - Fixed validation context handling to support Pydantic v2:
+     * Updated `validate_parent_id_common` in categories.py to work with ValidationInfo objects
+     * Made the function backward compatible with dictionary-style validation context
+     * Added proper error handling for different validation context types
+     * Fixed related test failures across schema test files
+     * Improved robustness against future Pydantic changes
+   - Fixed schema test error patterns:
+     * Updated test patterns for validation errors to match Pydantic v2 format
+     * Fixed test_bulk_operation_validation in test_bill_splits_schemas.py
+     * Updated assertion patterns to match new error message formats
+     * Made tests more resilient to minor error message changes
+
+2. **Schema Test Implementation Progress** ✓
+   - Fixed Critical Timezone Compliance Issue:
+     * Replaced all instances of `ZoneInfo("UTC")` with `timezone.utc` in 4 schema test files:
+       - test_categories_schemas.py
+       - test_credit_limits_schemas.py
+       - test_bill_splits_schemas.py
+       - test_balance_reconciliation_schemas.py
+     * Ensured all datetime creations follow ADR-011 standards
+     * Made tests consistent with the timezone approach used in the codebase
+     * Removed unnecessary ZoneInfo imports where possible (keeping for non-UTC test cases)
+     * Updated import statements to include timezone from datetime
+   - Fixed LiabilityBase test requirements:
+     * Updated test_category_with_bills_valid to include all required fields for LiabilityBase
+     * Added due_date, category_id, and primary_account_id fields to test objects
+     * Ensured tests properly validate the complete schema
 
 2. **Schema Refactoring Completed** ✓
    - Final Schema Refactoring:
