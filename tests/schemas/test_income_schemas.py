@@ -1,16 +1,18 @@
 from datetime import datetime
 from decimal import Decimal
 from zoneinfo import ZoneInfo
+
 import pytest
 from pydantic import ValidationError
 
 from src.schemas.income import (
     IncomeCreate,
-    IncomeUpdate,
     IncomeFilters,
+    IncomeUpdate,
     RecurringIncomeCreate,
-    RecurringIncomeUpdate
+    RecurringIncomeUpdate,
 )
+
 
 class TestIncomeCreate:
     """Test cases for IncomeCreate schema"""
@@ -21,7 +23,7 @@ class TestIncomeCreate:
             date=datetime(2025, 3, 15, tzinfo=ZoneInfo("UTC")),
             source="Salary",
             amount=Decimal("5000.00"),
-            account_id=1
+            account_id=1,
         )
         assert income.date.tzinfo == ZoneInfo("UTC")
         assert income.amount == Decimal("5000.00")
@@ -36,7 +38,7 @@ class TestIncomeCreate:
                 date=datetime(2025, 3, 15),  # Naive datetime
                 source="Salary",
                 amount=Decimal("5000.00"),
-                account_id=1
+                account_id=1,
             )
         assert "Datetime must be UTC" in str(exc_info.value)
 
@@ -45,10 +47,7 @@ class TestIncomeCreate:
         est_time = datetime(2025, 3, 15, tzinfo=ZoneInfo("America/New_York"))
         with pytest.raises(ValidationError) as exc_info:
             IncomeCreate(
-                date=est_time,
-                source="Salary",
-                amount=Decimal("5000.00"),
-                account_id=1
+                date=est_time, source="Salary", amount=Decimal("5000.00"), account_id=1
             )
         assert "Datetime must be UTC" in str(exc_info.value)
 
@@ -60,7 +59,7 @@ class TestIncomeCreate:
                 date=datetime(2025, 3, 15, tzinfo=ZoneInfo("UTC")),
                 source="Salary",
                 amount=Decimal("5000.0"),  # Only one decimal place
-                account_id=1
+                account_id=1,
             )
         assert "Amount must have exactly 2 decimal places" in str(exc_info.value)
 
@@ -70,7 +69,7 @@ class TestIncomeCreate:
                 date=datetime(2025, 3, 15, tzinfo=ZoneInfo("UTC")),
                 source="Salary",
                 amount=Decimal("0.00"),
-                account_id=1
+                account_id=1,
             )
         assert "Input should be greater than or equal to 0.01" in str(exc_info.value)
 
@@ -82,7 +81,7 @@ class TestIncomeCreate:
                 date=datetime(2025, 3, 15, tzinfo=ZoneInfo("UTC")),
                 source="",  # Empty string
                 amount=Decimal("5000.00"),
-                account_id=1
+                account_id=1,
             )
         assert "String should have at least 1 character" in str(exc_info.value)
 
@@ -92,9 +91,10 @@ class TestIncomeCreate:
                 date=datetime(2025, 3, 15, tzinfo=ZoneInfo("UTC")),
                 source="x" * 256,  # 256 characters
                 amount=Decimal("5000.00"),
-                account_id=1
+                account_id=1,
             )
         assert "String should have at most 255 characters" in str(exc_info.value)
+
 
 class TestRecurringIncome:
     """Test cases for RecurringIncome schemas"""
@@ -105,7 +105,7 @@ class TestRecurringIncome:
             source="Monthly Salary",
             amount=Decimal("5000.00"),
             day_of_month=15,
-            account_id=1
+            account_id=1,
         )
         assert income.day_of_month == 15
         assert income.amount == Decimal("5000.00")
@@ -118,7 +118,7 @@ class TestRecurringIncome:
                 source="Monthly Salary",
                 amount=Decimal("5000.00"),
                 day_of_month=31,
-                account_id=1
+                account_id=1,
             )
         assert "Day 31 is not supported" in str(exc_info.value)
 
@@ -129,9 +129,10 @@ class TestRecurringIncome:
                 source="Monthly Salary",
                 amount=Decimal("5000.0"),  # One decimal place
                 day_of_month=15,
-                account_id=1
+                account_id=1,
             )
         assert "Amount must have exactly 2 decimal places" in str(exc_info.value)
+
 
 class TestIncomeFilters:
     """Test cases for IncomeFilters schema"""
@@ -142,7 +143,7 @@ class TestIncomeFilters:
             start_date=datetime(2025, 1, 1, tzinfo=ZoneInfo("UTC")),
             end_date=datetime(2025, 12, 31, tzinfo=ZoneInfo("UTC")),
             min_amount=Decimal("1000.00"),
-            max_amount=Decimal("10000.00")
+            max_amount=Decimal("10000.00"),
         )
         assert filters.start_date.tzinfo == ZoneInfo("UTC")
         assert filters.end_date.tzinfo == ZoneInfo("UTC")
@@ -154,17 +155,14 @@ class TestIncomeFilters:
         with pytest.raises(ValidationError) as exc_info:
             IncomeFilters(
                 start_date=datetime(2025, 12, 31, tzinfo=ZoneInfo("UTC")),
-                end_date=datetime(2025, 1, 1, tzinfo=ZoneInfo("UTC"))
+                end_date=datetime(2025, 1, 1, tzinfo=ZoneInfo("UTC")),
             )
         assert "end_date must be after start_date" in str(exc_info.value)
 
     def test_invalid_amount_range(self):
         """Test invalid amount range validation"""
         with pytest.raises(ValidationError) as exc_info:
-            IncomeFilters(
-                min_amount=Decimal("5000.00"),
-                max_amount=Decimal("1000.00")
-            )
+            IncomeFilters(min_amount=Decimal("5000.00"), max_amount=Decimal("1000.00"))
         assert "max_amount must be greater than min_amount" in str(exc_info.value)
 
     def test_amount_precision(self):
@@ -172,7 +170,10 @@ class TestIncomeFilters:
         with pytest.raises(ValidationError) as exc_info:
             IncomeFilters(
                 min_amount=Decimal("1000.0"),  # One decimal place
-                max_amount=Decimal("2000.0")  # One decimal place
+                max_amount=Decimal("2000.0"),  # One decimal place
             )
         error_str = str(exc_info.value)
-        assert "Amount must have exactly 2 decimal places" in error_str or "Input should be greater than or equal to 0.01" in error_str
+        assert (
+            "Amount must have exactly 2 decimal places" in error_str
+            or "Input should be greater than or equal to 0.01" in error_str
+        )

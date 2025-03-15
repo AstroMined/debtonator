@@ -1,15 +1,10 @@
-import pytest
 from datetime import datetime
 from decimal import Decimal
 from zoneinfo import ZoneInfo
 
+import pytest
 from pydantic import ValidationError
 
-from src.schemas.realtime_cashflow import (
-    AccountBalance,
-    RealtimeCashflow,
-    RealtimeCashflowResponse,
-)
 from src.schemas.impact_analysis import (
     AccountImpact,
     CashflowImpact,
@@ -17,12 +12,17 @@ from src.schemas.impact_analysis import (
     SplitImpactAnalysis,
     SplitImpactRequest,
 )
+from src.schemas.realtime_cashflow import (
+    AccountBalance,
+    RealtimeCashflow,
+    RealtimeCashflowResponse,
+)
 from src.schemas.recommendations import (
     BillPaymentTimingRecommendation,
     ConfidenceLevel,
     ImpactMetrics,
-    RecommendationType,
     RecommendationResponse,
+    RecommendationType,
 )
 
 

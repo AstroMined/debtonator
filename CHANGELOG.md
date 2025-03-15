@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.94] - 2025-03-15
+
+### Added
+- Created schema test implementation plan with a comprehensive checklist:
+  * Designed standard test file structure and patterns
+  * Defined clear test categories for comprehensive coverage
+  * Organized files into logical implementation phases
+  * Created detailed test template with best practices
+
+### Changed
+- Implemented initial schema test files:
+  * test_balance_reconciliation_schemas.py with comprehensive validation tests
+  * test_bill_splits_schemas.py with field constraint validation
+  * test_categories_schemas.py with hierarchical relationship testing
+
+### Fixed 
+- Identified and documented critical timezone compliance issue:
+  * Tests were using `ZoneInfo("UTC")` instead of `timezone.utc` as mandated by ADR-011
+  * Created detailed plan for proper datetime handling in test files
+  * Added comprehensive documentation in schema_test_implementation_checklist.md
+  * Updated test template with proper timezone.utc usage
+
 ## [0.3.93] - 2025-03-15
 
 ### Changed

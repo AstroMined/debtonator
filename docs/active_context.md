@@ -291,6 +291,28 @@ Schema Layer Standardization - COMPLETED
    - [x] 100% test coverage for all model files
    - [x] Consistent test patterns across codebase
 
+### Schema Test Implementation Status
+1. **Schema Test Implementation Plan Created** ✓
+   - [x] Created comprehensive schema_test_implementation_checklist.md
+   - [x] Designed standard test file structure and patterns
+   - [x] Defined clear test categories for comprehensive coverage
+   - [x] Organized files into logical implementation phases
+   - [x] Created detailed test template with best practices
+
+2. **Initial Schema Test Files Implemented** ✓
+   - [x] Completed test_balance_reconciliation_schemas.py
+   - [x] Completed test_bill_splits_schemas.py
+   - [x] Completed test_categories_schemas.py
+   - [x] Implemented comprehensive validation testing
+   - [x] Tested ADR-011 and ADR-012 compliance
+
+3. **Critical Timezone Compliance Issue Discovered** ⚠️
+   - [x] Identified inconsistency in timezone implementation approach
+   - [x] Tests were using `ZoneInfo("UTC")` instead of `timezone.utc` as mandated by ADR-011
+   - [x] Documented proper approach in schema_test_implementation_checklist.md
+   - [x] Created plan to update all existing and future test files
+   - [x] Added detailed rationale explaining importance of consistency
+
 ### Paused Work
 - API Enhancement Project - Phase 6 (Ready to Resume)
   - Recommendations (ready to proceed)
@@ -298,25 +320,31 @@ Schema Layer Standardization - COMPLETED
   - Frontend development (ready to proceed)
 
 ## Next Steps
-1. **Resume API Enhancement Project - Phase 6**
+1. **Complete Schema Test Implementation**
+   - Fix timezone compliance issues in existing test files
+   - Complete remaining schema test files following implementation checklist
+   - Ensure consistent adherence to ADR-011 timezone conventions
+   - Verify each schema file has corresponding test with 100% coverage
+
+2. **Resume API Enhancement Project - Phase 6**
    - Implement recommendations API using standardized schemas
    - Continue trend reporting development with improved validation
    - Proceed with frontend development leveraging enhanced schema validation
    - Create comprehensive API documentation with validation requirements
 
-2. **Implement Compliance Monitoring**
+3. **Implement Compliance Monitoring**
    - Add ADR compliance checks to code review process
    - Update developer onboarding documentation with validation standards
    - Consider static analysis tools to enforce ADR rules
    - Implement scheduled reviews to maintain compliance
 
-3. **Improve Developer Experience**
+4. **Improve Developer Experience**
    - Create code snippets for common schema validation patterns
    - Enhance IDE integration with schema validation
    - Streamline working with schema inheritance and validation
    - Document common patterns for field definition and validation
 
-4. **Enhance Testing Standards**
+5. **Enhance Testing Standards**
    - Create comprehensive schema testing guide
    - Enhance test coverage for edge cases
    - Document validation testing patterns
