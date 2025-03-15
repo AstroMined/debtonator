@@ -1,7 +1,7 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Schema Layer Standardization - COMPLETED
+Schema Test Implementation
 
 ### Model Test Coverage Status
 1. **Model Test Coverage Completed** ✓
@@ -69,258 +69,68 @@ Schema Layer Standardization - COMPLETED
    - ✓ Documented standard patterns for schema maintainability
 
 ### Recent Changes
-1. **Fixed Pydantic v2 Compatibility Issues** ✓
-   - Updated `validate_parent_id_common` function in src/schemas/categories.py to handle ValidationInfo objects in Pydantic v2
-   - Modified function to work with both dictionary and ValidationInfo validation contexts
-   - Fixed test failures related to object attribute access incompatibilities
-   - Made validation code more robust against future Pydantic changes
-   - Added proper error handling for validator context access
+1. **Schema Test Implementation Progress** ✓
+   - Implemented three key schema test files:
+     * test_realtime_cashflow_schemas.py - Complete test coverage for AccountType, AccountBalance, RealtimeCashflow, and RealtimeCashflowResponse schemas
+     * test_recommendations_schemas.py - Comprehensive validation for RecommendationType, ConfidenceLevel, ImpactMetrics, RecommendationBase, BillPaymentTimingRecommendation, and RecommendationResponse
+     * test_income_categories_schemas.py - Full test coverage for IncomeCategoryBase, IncomeCategoryCreate, IncomeCategoryUpdate, and IncomeCategory
+   - For each test file implemented:
+     * Tests for valid object creation with required and optional fields
+     * Tests for field validations including required fields and constraints
+     * Tests for decimal precision validation where applicable
+     * Tests for UTC datetime validation where applicable (per ADR-011)
+     * Tests for business rule validations and cross-field validation
+     * Proper verification of BaseSchemaValidator inheritance
+   - Updated schema_test_implementation_checklist.md to reflect current progress
+     * Marked completed test files as done
+     * Added notes for N/A test categories where appropriate
 
-2. **Standardized Timezone Usage in Tests** ✓
-   - Replaced all instances of `ZoneInfo("UTC")` with `timezone.utc` in schema tests:
-     * test_categories_schemas.py
-     * test_credit_limits_schemas.py
-     * test_bill_splits_schemas.py
-     * test_balance_reconciliation_schemas.py
-   - Updated test error message expectations to match Pydantic v2 format
-   - Fixed validation test failures related to timezone inconsistencies
-   - Ensured all tests consistently follow ADR-011 specifications
-   - Made tests more consistent with implementation code
-
-3. **Schema Test Implementation Progress** ✓
-   - Fixed critical timezone compliance issues in existing test files
-   - Updated schema test error message expectations to match Pydantic v2
-   - Fixed test_category_with_bills_valid test to include all required fields
-   - Fixed test_bulk_operation_validation test to match new error format
-   - Made tests more robust against future Pydantic version changes
-   - Completed all test files for Phase 2: Financial Operation Schema Tests
-     * Implemented tests/schemas/test_balance_history_schemas.py
-     * Implemented tests/schemas/test_payment_schedules_schemas.py
-     * Implemented tests/schemas/test_deposit_schedules_schemas.py
-     * Implemented tests/schemas/test_recurring_bills_schemas.py
-   - Discovered and fixed non-UTC timezone creation issue:
-     * Properly using `timezone(timedelta(hours=X))` instead of incorrect `timezone(hours=X)`
-     * Updated all test files to use consistent pattern for timezone creation
-     * Improved timezone assertion patterns to avoid Pylint errors
+2. **Version Information Management** ✓
+   - Created src/version.py to provide consistent access to version information:
+     * Implemented VERSION_MAJOR, VERSION_MINOR, and VERSION_PATCH constants (0.3.95)
+     * Added VERSION string formatted as "MAJOR.MINOR.PATCH" 
+     * Added VERSION_TUPLE for structured access to version components
+     * Added comprehensive docstrings explaining purpose
+   - This allows:
+     * Programmatic access to the version information from code
+     * Display of version in the UI and API responses
+     * Version checks in future CI/CD pipelines
+     * Single source of truth for version information
+   - Synchronized with existing version in pyproject.toml
 
 ### Current Implementation Plan 
 
-#### Schema Standardization Review (COMPLETED) ✓
-1. **Systematic Review of All Schema Files** ✓
-   - [x] Review each schema file against ADR-011 requirements
-   - [x] Review each schema file against ADR-012 requirements
-   - [x] Create detailed schema review findings document
-   - [x] Document the status of each schema file
-   - [x] Identify issues needing attention
-   - [x] Recommend fixes for non-compliant files
-   - [x] Establish standardized patterns for refactoring
+#### Schema Test Implementation in Progress
+1. **Implemented Test Files (Completed)** ✓
+   - [x] tests/schemas/test_realtime_cashflow_schemas.py
+     * Comprehensive testing of AccountType enum validation
+     * Tests for credit-specific field validation in AccountBalance
+     * Tests for account balances uniqueness validation
+     * Tests for net position calculation validation
+     * Complete UTC datetime validation per ADR-011
+   - [x] tests/schemas/test_recommendations_schemas.py
+     * Complete tests for impact metrics validation
+     * Tests for confidence level and recommendation type enum validation
+     * Tests for decimal precision on all monetary fields
+     * Tests for datetime UTC validation per ADR-011
+     * Tests for value range validation on percentage fields
+   - [x] tests/schemas/test_income_categories_schemas.py
+     * Tests for all CRUD schema variations (Base, Create, Update, Full)
+     * Tests for string length validation on name and description
+     * Tests for required fields validation
+     * Tests for optional fields handling
 
-2. **Implementation Priorities** ✓
-   - [x] Identify high-priority files (datetime issues)
-   - [x] Identify medium-priority files (validation inconsistencies)
-   - [x] Identify low-priority files (documentation issues)
-   - [x] Implement changes in stages based on priority
-
-3. **Schema Refactoring (COMPLETED)** ✓
-   - [x] Complete first batch of schema refactoring:
-     * balance_reconciliation.py
-     * recurring_bills.py
-     * cashflow.py
-     * credit_limits.py
-     * income_categories.py
-     * deposit_schedules.py
-     * payment_schedules.py
-     * balance_history.py
-   - [x] Complete second batch of schema refactoring:
-     * transactions.py
-     * categories.py
-     * bill_splits.py
-     * income.py
-     * recommendations.py
-     * impact_analysis.py
-     * payment_patterns.py
-     * income_trends.py
-     * realtime_cashflow.py
-   - [x] Complete final schema refactoring:
-     * liabilities.py
-     * accounts.py
-     * payments.py
-   - [x] Achieve 100% compliance across all schema files
-
-#### Model Compliance Review (Completed) ✅
-1. **Systematic Review of All Models** ✓
-   - [x] Review each model file against ADR-011 requirements
-   - [x] Review each model file against ADR-012 requirements
-   - [x] Create detailed compliance checklist document
-   - [x] Document the status of each model file
-   - [x] Identify any issues needing attention
-   - [x] Recommend fixes for non-compliant files
-   - [x] Run isort and black for consistent formatting
-
-2. **Accounts Model** ✓
-   - [x] Identify unused imports: `validates` and `ZoneInfo`
-   - [x] Document needed documentation updates
-   - [x] Verify all DateTime fields are properly configured
-   - [x] Document in compliance checklist 
-
-#### Phase 3: Service Enhancement (Completed) ✓
-1. **Account Service** ✓
-   - [x] Add validation methods
-     * Added validate_account_balance
-     * Added validate_credit_limit_update
-     * Added validate_transaction
-     * Added validate_statement_update
-     * Added validate_account_deletion
-   - [x] Move business logic
-     * Moved all validation to service layer
-     * Enhanced error handling
-     * Improved type safety
-   - [x] Update tests
-     * Added comprehensive test coverage
-     * Added edge case handling
-     * Added validation testing
-   - [x] Document patterns
-     * Updated service documentation
-     * Added validation examples
-     * Documented error handling
-
-2. **Payment Service** ✓
-   - [x] Moved validation to proper layers:
-     * Basic validation in Pydantic schemas (amount, dates, source totals)
-     * Business logic in service layer (account availability, references)
-     * Proper UTC enforcement via BaseSchemaValidator
-   - [x] Enhanced service layer:
-     * Account availability checks
-     * Reference validation
-     * Transaction management
-     * State updates
-   - [x] Added comprehensive test coverage:
-     * Business logic tests in service layer
-     * Account availability tests
-     * Reference validation tests
-     * Create/Update operation tests
-   - [x] Documented patterns:
-     * Clear separation of validation layers
-     * Proper business logic handling
-     * Alignment with ADR-011 and ADR-012
-
-3. **Cashflow Metrics Service** ✓
-   - [x] Added new service methods
-     * Added update_cashflow_deficits
-     * Added update_cashflow_required_income
-     * Added update_cashflow_hourly_rates
-     * Added update_cashflow_all_calculations
-   - [x] Moved business logic from model
-     * Moved calculation logic to service layer
-     * Maintained proper mathematical relationships
-     * Ensured correct handling of edge cases
-   - [x] Added comprehensive test coverage
-     * Added tests for individual methods
-     * Added tests for calculation chain
-     * Added tests for edge cases
-   - [x] Documented patterns
-     * Added comprehensive method documentation
-     * Documented service layer responsibilities
-     * Ensured alignment with ADR-011 and ADR-012
-
-4. **StatementService** ✓
-   - [x] Created new service with calculate_due_date method
-   - [x] Added create_statement convenience method
-   - [x] Added account statement history retrieval methods
-   - [x] Added comprehensive test coverage
-   - [x] Maintained proper datetime handling
-   - [x] Verified ADR-012 compliance
-
-5. **RecurringIncomeService** ✓
-   - [x] Added create_income_from_recurring method
-   - [x] Updated generate_income to use new service method
-   - [x] Added comprehensive test coverage
-   - [x] Maintained proper datetime handling
-   - [x] Verified ADR-012 compliance
-
-6. **Bill/Liability Service** ✓
-   - [x] Added validation methods
-   - [x] Moved business logic
-   - [x] Updated tests
-   - [x] Documented patterns
-
-7. **Income Service** ✓
-   - [x] Added validation methods
-   - [x] Moved business logic
-   - [x] Updated tests
-   - [x] Documented patterns
-
-### Recent Decisions
-1. **Schema Standardization Strategy Successfully Implemented** ✓
-   - [x] Established clear patterns for schema refactoring:
-     * Consistent inheritance from BaseSchemaValidator
-     * UTC timezone handling for all datetime fields
-     * Proper field descriptions with explicit UTC mentions
-     * Standard validation patterns for monetary values
-     * Consistent docstrings explaining purpose
-     * Use of modern Pydantic V2 patterns
-   - [x] Prioritized refactoring based on critical issues:
-     * High-priority: Files with datetime inconsistencies
-     * Medium-priority: Files with V1/V2 inconsistencies
-     * Low-priority: Documentation and minor issues
-   - [x] Documented progress in schema_review_findings.md
-   - [x] Applied standard patterns consistently across all refactored files
-   - [x] Achieved 100% compliance with validation architecture consistency
-
-2. **Validation Strategy** ✓
-   - [x] Move all validation to Pydantic schemas
-   - [x] Remove model-level validation
-   - [x] Centralize business logic in services
-   - [x] Document in ADR-012
-
-3. **Implementation Approach** ✓
-   - [x] Phase the implementation:
-     * Phase 1: Schema Enhancement (completed)
-     * Phase 2: Model Simplification (completed)
-     * Phase 3: Service Enhancement (completed)
-     * Phase 4: Documentation (completed)
-   - [x] Track progress through comprehensive documentation
-
-4. **Testing Strategy** ✓
-   - [x] Separate model tests focus purely on data structure
-   - [x] Service tests contain business logic validation
-   - [x] 100% test coverage for all model files
-   - [x] Consistent test patterns across codebase
-
-### Schema Test Implementation Status
-1. **Schema Test Implementation Plan Created** ✓
-   - [x] Created comprehensive schema_test_implementation_checklist.md
-   - [x] Designed standard test file structure and patterns
-   - [x] Defined clear test categories for comprehensive coverage
-   - [x] Organized files into logical implementation phases
-   - [x] Created detailed test template with best practices
-
-2. **Initial Schema Test Files Implemented** ✓
-   - [x] Completed test_balance_reconciliation_schemas.py
-   - [x] Completed test_bill_splits_schemas.py
-   - [x] Completed test_categories_schemas.py
-   - [x] Implemented comprehensive validation testing
-   - [x] Tested ADR-011 and ADR-012 compliance
-
-3. **Critical Timezone Compliance Issue Discovered** ⚠️
-   - [x] Identified inconsistency in timezone implementation approach
-   - [x] Tests were using `ZoneInfo("UTC")` instead of `timezone.utc` as mandated by ADR-011
-   - [x] Documented proper approach in schema_test_implementation_checklist.md
-   - [x] Created plan to update all existing and future test files
-   - [x] Added detailed rationale explaining importance of consistency
-
-### Paused Work
-- API Enhancement Project - Phase 6 (Ready to Resume)
-  - Recommendations (ready to proceed)
-  - Trend reporting (ready to proceed)
-  - Frontend development (ready to proceed)
+2. **Updated schema_test_implementation_checklist.md** ✓
+   - [x] Marked 15 of 21 total schema test files as completed
+   - [x] Added detailed notes on timezone validation requirements
+   - [x] Documented consistent test pattern to follow for remaining files
 
 ## Next Steps
 1. **Complete Schema Test Implementation**
-   - Fix timezone compliance issues in existing test files
-   - Complete remaining schema test files following implementation checklist
-   - Ensure consistent adherence to ADR-011 timezone conventions
-   - Verify each schema file has corresponding test with 100% coverage
+   - Implement test_cashflow_schemas.py (highest priority due to complexity)
+   - Update existing test files with timezone fixes as needed
+   - Ensure all remaining schema files have corresponding tests
+   - Verify each test file fully validates all schemas and constraints
 
 2. **Resume API Enhancement Project - Phase 6**
    - Implement recommendations API using standardized schemas
@@ -328,20 +138,14 @@ Schema Layer Standardization - COMPLETED
    - Proceed with frontend development leveraging enhanced schema validation
    - Create comprehensive API documentation with validation requirements
 
-3. **Implement Compliance Monitoring**
+3. **Improve Developer Experience**
+   - Add IDE snippets for common schema validation patterns
+   - Document version.py usage patterns
+   - Enhance API documentation with schema validation requirements
+   - Create tutorials for working with the validation system
+
+4. **Implement Compliance Monitoring**
    - Add ADR compliance checks to code review process
    - Update developer onboarding documentation with validation standards
    - Consider static analysis tools to enforce ADR rules
    - Implement scheduled reviews to maintain compliance
-
-4. **Improve Developer Experience**
-   - Create code snippets for common schema validation patterns
-   - Enhance IDE integration with schema validation
-   - Streamline working with schema inheritance and validation
-   - Document common patterns for field definition and validation
-
-5. **Enhance Testing Standards**
-   - Create comprehensive schema testing guide
-   - Enhance test coverage for edge cases
-   - Document validation testing patterns
-   - Standardize test fixtures for schema validation

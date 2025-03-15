@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.96] - 2025-03-15
+
+### Added
+- Created src/version.py for programmatic version information access:
+  * Defined VERSION_MAJOR, VERSION_MINOR, and VERSION_PATCH constants
+  * Added VERSION formatted string and VERSION_TUPLE for structured access
+  * Added comprehensive docstrings and proper module exports
+  * Synchronized with existing version in pyproject.toml
+- Implemented three key schema test files:
+  * test_realtime_cashflow_schemas.py with comprehensive test coverage for AccountType, AccountBalance, RealtimeCashflow, and RealtimeCashflowResponse
+  * test_recommendations_schemas.py with thorough validation for RecommendationType, ConfidenceLevel, ImpactMetrics, RecommendationBase, BillPaymentTimingRecommendation, and RecommendationResponse
+  * test_income_categories_schemas.py with complete CRUD schema tests for IncomeCategoryBase, IncomeCategoryCreate, IncomeCategoryUpdate, and IncomeCategory
+- Updated schema_test_implementation_checklist.md to track progress:
+  * Marked 15 of 21 schema test files as completed (71% complete)
+  * Added notes for N/A test categories where appropriate
+
+### Changed
+- Improved schema test infrastructure and documentation:
+  * Enhanced UTC datetime validation test patterns
+  * Improved test documentation for validation requirements
+  * Standardized test patterns across new test files
+  * Applied consistent testing approaches for schema validation
+
 ## [0.3.95] - 2025-03-15
 
 ### Added
