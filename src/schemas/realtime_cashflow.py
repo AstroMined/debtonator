@@ -3,7 +3,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import Field, field_validator, ConfigDict
+from pydantic import Field, field_validator, ConfigDict, model_validator
 
 from src.schemas import BaseSchemaValidator
 
@@ -55,27 +55,27 @@ class AccountBalance(BaseSchemaValidator):
         decimal_places=2,
         description="Total credit limit (for credit accounts only)"
     )
-
-    @field_validator("available_credit", "total_limit")
-    @classmethod
-    def validate_credit_fields(cls, v: Optional[Decimal], values: dict) -> Optional[Decimal]:
+    
+    @model_validator(mode='after')
+    def validate_credit_account_fields(self) -> 'AccountBalance':
         """
         Validate that credit-specific fields are present for credit accounts.
         
-        Args:
-            v: The field value to validate
-            values: Dictionary of values being validated
-            
+        This validator runs after all fields have been populated and checks
+        that credit accounts have both available_credit and total_limit set.
+        
         Returns:
-            The original value if validation passes
+            The validated model instance
             
         Raises:
-            ValueError: If field is missing for a credit account
+            ValueError: If required credit fields are missing
         """
-        if values.get("type") == AccountType.CREDIT:
-            if v is None:
-                raise ValueError(f"Field is required for credit accounts")
-        return v
+        if self.type == AccountType.CREDIT:
+            if self.available_credit is None:
+                raise ValueError("Field is required for credit accounts")
+            if self.total_limit is None:
+                raise ValueError("Field is required for credit accounts")
+        return self
 
 class RealtimeCashflow(BaseSchemaValidator):
     """
@@ -156,27 +156,24 @@ class RealtimeCashflow(BaseSchemaValidator):
             raise ValueError("Duplicate account IDs found in account_balances")
         return v
 
-    @field_validator("net_position")
-    @classmethod
-    def validate_net_position(cls, v: Decimal, values: dict) -> Decimal:
+    @model_validator(mode='after')
+    def validate_net_position_calculation(self) -> 'RealtimeCashflow':
         """
         Validate that net position equals total_available_funds minus total_liabilities_due.
         
-        Args:
-            v: The net position value to validate
-            values: Dictionary of values being validated
-            
+        This validator runs after all fields have been populated and checks
+        that the net_position calculation is correct.
+        
         Returns:
-            The original value if validation passes
+            The validated model instance
             
         Raises:
             ValueError: If net position calculation is incorrect
         """
-        if "total_available_funds" in values and "total_liabilities_due" in values:
-            expected_net = values["total_available_funds"] - values["total_liabilities_due"]
-            if abs(v - expected_net) > Decimal("0.01"):  # Allow for small rounding differences
-                raise ValueError("net_position must equal total_available_funds - total_liabilities_due")
-        return v
+        expected_net = self.total_available_funds - self.total_liabilities_due
+        if abs(self.net_position - expected_net) > Decimal("0.01"):  # Allow for small rounding differences
+            raise ValueError("net_position must equal total_available_funds - total_liabilities_due")
+        return self
     
     # No custom timezone validators needed - BaseSchemaValidator handles UTC validation
     

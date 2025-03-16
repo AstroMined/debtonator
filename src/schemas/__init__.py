@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from decimal import Decimal
 from pydantic import BaseModel, field_validator, ConfigDict
 from typing import Any
 
@@ -87,6 +88,38 @@ class BaseSchemaValidator(BaseModel):
                     f"Got datetime with non-UTC offset: {value} (offset: {value.utcoffset()}). "
                     "Please provide datetime with UTC timezone (offset zero)."
                 )
+        return value
+    
+    @field_validator("*", mode="before")
+    @classmethod
+    def validate_decimal_precision(cls, value: Any) -> Any:
+        """Validates that decimal values don't exceed 2 decimal places.
+        
+        TODO: This is a temporary solution that strictly validates decimal
+        precision to 2 decimal places. A proper architectural decision is
+        needed for how to handle decimal precision in financial calculations.
+        
+        Future considerations:
+        - Allow more precision (4-6 decimal places) for internal calculations
+        - Enforce 2 decimal places for external inputs/outputs
+        - Implement proper rounding strategies for boundary operations
+        - Document precision handling policies
+        
+        See upcoming ADR for "Decimal Precision Handling".
+        
+        Args:
+            value: The field value to validate
+            
+        Returns:
+            The original value if validation passes
+            
+        Raises:
+            ValueError: If a Decimal field has more than 2 decimal places
+        """
+        if isinstance(value, Decimal):
+            # Check if it has more than 2 decimal places
+            if value.as_tuple().exponent < -2:  # exponent is negative, so < -2 means more decimal places
+                raise ValueError("Decimal input should have no more than 2 decimal places")
         return value
 
     # model_config defined once at the top of the class

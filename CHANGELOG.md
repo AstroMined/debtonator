@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2025-03-15
+
+### Added
+- Created ADR-013 for decimal precision handling in financial calculations:
+  * Defined multi-tier precision model with 2 decimals for I/O and 4 for calculations
+  * Outlined implementation components and migration strategy
+  * Detailed rounding strategies for bill splits and financial allocations
+  * Documented compliance with financial industry standards
+
+### Fixed
+- Updated Pydantic V2 validators across schema files:
+  * Fixed `income_trends.py` validators to properly use ValidationInfo object
+  * Fixed `realtime_cashflow.py` validators to use ValidationInfo object
+  * Corrected dictionary-style access to use ValidationInfo.data
+- Enhanced BaseSchemaValidator with proper decimal validation:
+  * Updated validate_decimal_precision method to enforce 2-decimal constraint
+  * Added clear error messages for precision validation failures
+  * Added detailed documentation and TODO comments for future improvements
+- Fixed test case in test_realtime_cashflow_schemas.py:
+  * Updated test_net_position_validation to use 2-decimal precision
+  * Aligned test expectations with validation behavior
+
 ## [0.4.1] - 2025-03-15
 
 ### Added

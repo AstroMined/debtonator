@@ -178,13 +178,13 @@ class SourceStatistics(BaseSchemaValidator):
 
     @field_validator("max_amount")
     @classmethod
-    def validate_max_amount(cls, v: Decimal, values: dict) -> Decimal:
+    def validate_max_amount(cls, v: Decimal, info) -> Decimal:
         """
         Validate that max_amount is greater than or equal to min_amount.
         
         Args:
             v: The max_amount value to validate
-            values: Dictionary of values being validated
+            info: ValidationInfo object containing values being validated
             
         Returns:
             The original value if validation passes
@@ -192,7 +192,7 @@ class SourceStatistics(BaseSchemaValidator):
         Raises:
             ValueError: If max_amount is less than min_amount
         """
-        if "min_amount" in values and v < values["min_amount"]:
+        if "min_amount" in info.data and v < info.data["min_amount"]:
             raise ValueError("max_amount must be greater than or equal to min_amount")
         return v
 
@@ -239,13 +239,13 @@ class IncomeTrendsAnalysis(BaseSchemaValidator):
 
     @field_validator("data_end_date")
     @classmethod
-    def validate_date_range(cls, v: datetime, values: dict) -> datetime:
+    def validate_date_range(cls, v: datetime, info) -> datetime:
         """
         Validate that end date is after start date.
         
         Args:
             v: The end date value to validate
-            values: Dictionary of values being validated
+            info: ValidationInfo object containing values being validated
             
         Returns:
             The original value if validation passes
@@ -253,7 +253,7 @@ class IncomeTrendsAnalysis(BaseSchemaValidator):
         Raises:
             ValueError: If end date is before start date
         """
-        if "data_start_date" in values and v < values["data_start_date"]:
+        if "data_start_date" in info.data and v < info.data["data_start_date"]:
             raise ValueError("data_end_date must be after data_start_date")
         return v
     
@@ -289,13 +289,13 @@ class IncomeTrendsRequest(BaseSchemaValidator):
 
     @field_validator("end_date")
     @classmethod
-    def validate_date_range(cls, v: Optional[datetime], values: dict) -> Optional[datetime]:
+    def validate_date_range(cls, v: Optional[datetime], info) -> Optional[datetime]:
         """
         Validate that end date is after start date if both are provided.
         
         Args:
             v: The end date value to validate
-            values: Dictionary of values being validated
+            info: ValidationInfo object containing values being validated
             
         Returns:
             The original value if validation passes
@@ -303,7 +303,7 @@ class IncomeTrendsRequest(BaseSchemaValidator):
         Raises:
             ValueError: If end date is before start date
         """
-        if v and "start_date" in values and values["start_date"] and v < values["start_date"]:
+        if v and "start_date" in info.data and info.data["start_date"] and v < info.data["start_date"]:
             raise ValueError("end_date must be after start_date")
         return v
     

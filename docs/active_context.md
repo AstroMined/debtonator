@@ -1,11 +1,47 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Schema Modularization and Test Implementation
-
+Schema Validation Improvements and Decimal Precision Handling
 
 ### Recent Changes
-1. **Cashflow Schema Tests Completed** ✓
+1. **Fixed Pydantic V2 Validation Issues** ✓
+   - Updated validators in schema files to properly use Pydantic V2 patterns:
+     * Fixed `income_trends.py` validators to use ValidationInfo object
+     * Fixed `realtime_cashflow.py` validators to use ValidationInfo object
+     * Added proper parameter typing and documentation
+   - Addressed validation issues in the following classes:
+     * `SourceStatistics.validate_max_amount()`
+     * `IncomeTrendsAnalysis.validate_date_range()`
+     * `IncomeTrendsRequest.validate_date_range()`
+     * `AccountBalance.validate_credit_fields()`
+     * `RealtimeCashflow.validate_net_position()`
+   - Fixed test failures by properly using ValidationInfo instead of direct dictionary access
+   - Improved test stability by updating test expectations for validation behavior
+
+2. **Created Decimal Precision Handling ADR** ✓
+   - Created comprehensive ADR-013 for decimal precision handling:
+     * Defined multi-tier precision model with 2 decimals for I/O and 4 decimals for calculations
+     * Outlined implementation components including utility classes and rounding functions
+     * Detailed migration strategy across database, schema, and service layers
+     * Documented consequences, performance considerations, and technical details
+     * Added code examples for BaseDecimalField, rounding utilities, and bill split implementation
+   - ADR addresses critical financial calculation needs:
+     * Proper rounding strategies for financial values
+     * Consistent precision handling across the application
+     * Accurate bill splits and allocations without rounding errors
+     * Compliance with financial industry standards
+
+3. **Implemented Global Decimal Precision Validation** ✓
+   - Updated `BaseSchemaValidator` to include decimal precision validation:
+     * Added `validate_decimal_precision` method to enforce 2 decimal places for input values
+     * Provided comprehensive documentation on validation purpose and approach
+     * Added TODO comments about future architectural improvement needs
+   - This enhancement provides:
+     * Consistent validation for all decimal fields across the application
+     * Clear error messages for precision validation failures
+     * Preparation for future implementation of ADR-013 concepts
+
+4. **Cashflow Schema Tests Completed** ✓
    - Implemented all five test files for modularized cashflow schemas:
      * `tests/schemas/test_cashflow_base_schemas.py` - Core cashflow schemas tests
      * `tests/schemas/test_cashflow_metrics_schemas.py` - Financial metrics schemas tests

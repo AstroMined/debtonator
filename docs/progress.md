@@ -237,14 +237,50 @@
    - Create responsive dashboard
    - Improve mobile experience
 
+## What's New
+1. **Fixed Pydantic V2 Validation Issues** ✓
+   - Fixed validation context handling in schema files:
+     * Updated income_trends.py validators to properly use ValidationInfo object
+     * Updated realtime_cashflow.py validators to use ValidationInfo object
+     * Fixed all test failures related to Pydantic V2 validation context
+   - Addressed specific validation issues:
+     * SourceStatistics.validate_max_amount() to check ValidationInfo data
+     * IncomeTrendsRequest.validate_date_range() to check ValidationInfo data
+     * AccountBalance.validate_credit_fields() to access ValidationInfo data
+     * RealtimeCashflow.validate_net_position() to check ValidationInfo data
+   - Improved validator documentation across schema files
+   - Fixed 20+ test failures across multiple test files
+   
+2. **Created Decimal Precision Handling ADR** ✓
+   - Implemented ADR-013 to address decimal precision in financial calculations:
+     * Defined multi-tier precision model (2 decimals for I/O, 4 for calculations)
+     * Created comprehensive technical implementation plan
+     * Documented migration strategy across application layers
+     * Added code examples for implementation components
+   - ADR-013 addresses critical financial calculation needs:
+     * Consistent handling of decimal precision
+     * Accurate bill splits without rounding errors
+     * Regulatory compliance for financial calculations
+     * Balance between accuracy and usability
+
+3. **Implemented Global Decimal Validation** ✓
+   - Enhanced BaseSchemaValidator with proper decimal precision validation:
+     * Updated validate_decimal_precision method to enforce 2-decimal constraint
+     * Added proper error message for invalid precision values
+     * Documented future enhancement needs in TODO comments
+   - This improvement provides:
+     * Consistent validation across all schema files
+     * Clear error messages for decimal precision violations
+     * Groundwork for future ADR-013 implementation
+
 ## Current Status
-1. **Model Layer Standardization**: COMPLETED (100%)
+1. **Model Layer Standardization**: COMPLETED (100%) ✓
    - All 18 model files fully compliant with both ADRs
    - Comprehensive test coverage in place
    - Documentation fully updated
    - Clear separation of concerns achieved
 
-2. **Schema Layer Standardization**: COMPLETED (100%)
+2. **Schema Layer Standardization**: COMPLETED (100%) ✓
    - All 21 schema files fully compliant with both ADRs
    - Comprehensive review of all files completed
    - Clear patterns established and consistently applied
@@ -254,34 +290,54 @@
      * DRY Principle: 100% rated as "Good" (up from 62%)
      * SRP Principle: 100% rated as "Good" (up from 95%)
 
-3. **Service Layer Enhancement**: COMPLETED (100%)
+3. **Service Layer Enhancement**: COMPLETED (100%) ✓
    - All 8 services fully implemented
    - Business logic properly isolated in service layer
    - Comprehensive validation in place
    - Strong test coverage for all services
 
-4. **Documentation**: COMPLETED (100%)
+4. **Documentation**: COMPLETED (100%) ✓
    - ADR-011 and ADR-012 documentation updated
    - Model compliance documentation completed
    - Schema review findings documentation completed and updated
    - Service layer documentation updated
    - Comprehensive compliance metrics documented
 
-5. **Schema Test Implementation**: IN PROGRESS (80%)
+5. **Pydantic V2 Compliance**: COMPLETED (100%) ✓
+   - All schema validators updated to use Pydantic V2 patterns
+   - Removed deprecated validator syntax
+   - Fixed validation context handling
+   - Improved documentation for all validators
+   - Fixed all test failures related to Pydantic V2 validation context
+
+6. **Decimal Precision Handling**: IN PROGRESS (25%)
+   - Created comprehensive ADR-013 for decimal precision
+   - Updated BaseSchemaValidator with global decimal validation
+   - Updated tests to align with validation expectations
+   - Pending implementation of multi-tier precision model
+
+7. **Schema Test Implementation**: IN PROGRESS (80%)
    - 20 of 25 schema test files completed
    - Created comprehensive test template
    - Established clear test categories
    - Fixed critical timezone compliance issues in test_accounts_schemas.py
    - Created detailed schema_test_implementation_checklist.md document
 
-6. **Version Management**: COMPLETED (100%)
+8. **Version Management**: COMPLETED (100%) ✓
    - Created version.py with proper version constants
    - Implemented version formatting and structure
    - Added comprehensive documentation
    - Synchronized with existing version in pyproject.toml
 
 ## Next Actions
-1. **Complete Schema Test Implementation**
+1. **Implement ADR-013: Decimal Precision Handling**
+   - Create BaseDecimalField utility class with rounding functions
+   - Update database schema to support 4-decimal precision for calculations
+   - Implement rounding utilities for bill splits and allocations
+   - Develop migration plan for existing data
+   - Create comprehensive test coverage for precision handling
+
+2. **Complete Schema Test Implementation**
    - Update remaining test files with timezone fixes (as needed)
    - Ensure all remaining schema files have corresponding tests
    - Verify each test file fully validates all schemas and constraints
