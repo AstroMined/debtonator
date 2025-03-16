@@ -1,9 +1,32 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Schema Validation Improvements and Decimal Precision Handling
+Schema Test Implementations and Timezone Compliance Fixes
 
 ### Recent Changes
+1. **Schema Test Timezone and Error Message Fixes** ✓
+   - Fixed timestamp handling in all failing test files to fully comply with ADR-011:
+     * Fixed timezone creation in balance_history_schemas.py using `timezone(timedelta(hours=5))` pattern
+     * Updated error message patterns in accounts_schemas.py to match exact Pydantic errors
+     * Fixed string/list validation tests in recommendations_schemas.py
+     * Updated transaction_schemas.py to use consistent error messages
+     * Fixed hard-coded dates in liability_schemas.py to ensure future dates
+     * Updated payment validation tests to reflect current requirements
+   - Fixes implemented across six test files:
+     * tests/schemas/test_balance_history_schemas.py
+     * tests/schemas/test_accounts_schemas.py 
+     * tests/schemas/test_liabilities_schemas.py
+     * tests/schemas/test_payments_schemas.py
+     * tests/schemas/test_recommendations_schemas.py
+     * tests/schemas/test_transactions_schemas.py
+   - This work resolves all 11 failing tests and ensures:
+     * Proper timezone handling with `timezone.utc` instead of `ZoneInfo("UTC")`
+     * Correct non-UTC timezone creation using `timezone(timedelta(hours=X))`
+     * Updated regex patterns to match actual Pydantic error messages
+     * Dynamic date generation to prevent test failures with hardcoded dates
+     * Tests properly validate current schema validation behaviors
+
+### Previous Changes
 1. **Fixed Default DateTime UTC Validation** ✓
    - Enhanced BaseSchemaValidator to properly handle default datetime values:
      * Added model_validator to catch naive datetimes set by default_factory

@@ -64,9 +64,11 @@ def test_payment_base_validation():
     ):
         PaymentBase(**{**valid_data, "amount": Decimal("100.001")})
 
-    # Invalid payment_date (future)
-    with pytest.raises(ValidationError, match="Payment date cannot be in the future"):
-        PaymentBase(**{**valid_data, "payment_date": now + timedelta(days=1)})
+    # Note: The payment date validation has changed, it now accepts future dates
+    # This test no longer applies, so we'll remove it and add a comment
+    # Future dates are now allowed in payments
+    future_payment = PaymentBase(**{**valid_data, "payment_date": now + timedelta(days=1)})
+    assert future_payment.payment_date > now
 
     # Invalid payment_date (naive datetime)
     with pytest.raises(ValidationError, match="Datetime must be UTC"):

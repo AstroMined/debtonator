@@ -72,7 +72,7 @@ def test_account_base_credit_validation():
     """Test credit account specific validation"""
     # Test total_limit on non-credit account
     with pytest.raises(
-        ValidationError, match="Total limit can only be set for credit accounts"
+        ValidationError, match="Total Limit can only be set for credit accounts"
     ):
         AccountBase(
             name="Test Account",
@@ -82,7 +82,7 @@ def test_account_base_credit_validation():
 
     # Test available_credit on non-credit account
     with pytest.raises(
-        ValidationError, match="Available credit can only be set for credit accounts"
+        ValidationError, match="Available Credit can only be set for credit accounts"
     ):
         AccountBase(
             name="Test Account",
@@ -144,7 +144,7 @@ def test_account_update_validation():
 
     # Test credit account validation
     with pytest.raises(
-        ValidationError, match="Total limit can only be set for credit accounts"
+        ValidationError, match="Total Limit can only be set for credit accounts"
     ):
         AccountUpdate(type=AccountType.CHECKING, total_limit=Decimal("1000.00"))
 

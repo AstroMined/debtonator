@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from zoneinfo import ZoneInfo
 
@@ -16,12 +16,12 @@ from src.schemas.liabilities import (
 
 def create_future_datetime(days: int = 1) -> datetime:
     """Helper to create future UTC datetime"""
-    return datetime.now(ZoneInfo("UTC")) + timedelta(days=days)
+    return datetime.now(timezone.utc) + timedelta(days=days)
 
 
 def create_past_datetime(days: int = 1) -> datetime:
     """Helper to create past UTC datetime"""
-    return datetime.now(ZoneInfo("UTC")) - timedelta(days=days)
+    return datetime.now(timezone.utc) - timedelta(days=days)
 
 
 def test_liability_create_valid():
@@ -190,7 +190,7 @@ def test_liability_create_rejects_non_utc_datetime():
 
 def test_liability_update_valid():
     """Test valid liability update"""
-    due_date = datetime(2025, 3, 15, tzinfo=ZoneInfo("UTC"))
+    due_date = datetime.now(timezone.utc) + timedelta(days=30)  # Always future date
     update = LiabilityUpdate(due_date=due_date, amount=Decimal("150.00"))
     assert update.model_dump() == {
         "name": None,
@@ -292,40 +292,41 @@ def test_auto_pay_update_validation():
 
 def test_liability_date_range_validation():
     """Test date range validation"""
+    now = datetime.now(timezone.utc)
     # Test valid date range
-    start_date = datetime(2025, 1, 1, tzinfo=ZoneInfo("UTC"))
-    end_date = datetime(2025, 12, 31, tzinfo=ZoneInfo("UTC"))
+    start_date = now
+    end_date = now + timedelta(days=30)
     date_range = LiabilityDateRange(start_date=start_date, end_date=end_date)
     assert date_range.model_dump() == {"start_date": start_date, "end_date": end_date}
 
     # Test end date before start date
     with pytest.raises(ValidationError) as exc_info:
         LiabilityDateRange(
-            start_date=datetime(2025, 12, 31, tzinfo=ZoneInfo("UTC")),
-            end_date=datetime(2025, 1, 1, tzinfo=ZoneInfo("UTC")),
+            start_date=now + timedelta(days=10),
+            end_date=now,
         )
     assert "End date must be after start date" in str(exc_info.value)
 
     # Test same start and end date
     with pytest.raises(ValidationError) as exc_info:
         LiabilityDateRange(
-            start_date=datetime(2025, 1, 1, tzinfo=ZoneInfo("UTC")),
-            end_date=datetime(2025, 1, 1, tzinfo=ZoneInfo("UTC")),
+            start_date=now,
+            end_date=now,
         )
     assert "End date must be after start date" in str(exc_info.value)
 
     # Test naive datetime rejection
     with pytest.raises(ValidationError) as exc_info:
         LiabilityDateRange(
-            start_date=datetime(2025, 1, 1),  # Naive datetime
-            end_date=datetime(2025, 12, 31, tzinfo=ZoneInfo("UTC")),
+            start_date=datetime.now(),  # Naive datetime
+            end_date=now + timedelta(days=10),
         )
     assert "Datetime must be UTC" in str(exc_info.value)
 
     # Test non-UTC datetime rejection
-    est_time = datetime(2025, 1, 1, tzinfo=ZoneInfo("America/New_York"))
+    est_time = datetime.now(ZoneInfo("America/New_York"))
     with pytest.raises(ValidationError) as exc_info:
         LiabilityDateRange(
-            start_date=est_time, end_date=datetime(2025, 12, 31, tzinfo=ZoneInfo("UTC"))
+            start_date=est_time, end_date=now + timedelta(days=10)
         )
     assert "Datetime must be UTC" in str(exc_info.value)

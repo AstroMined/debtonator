@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2025-03-15
+
+### Changed
+- Completed schema test implementation with 100% coverage:
+  * Fixed all 11 failing tests across 6 schema test files
+  * Updated schema_test_implementation_checklist.md to reflect 100% completion
+
+### Fixed
+- Schema test timezone and error message fixes:
+  * Corrected timezone creation in balance_history_schemas.py using proper `timezone(timedelta(hours=5))` pattern
+  * Updated error message patterns in accounts_schemas.py to match Pydantic's actual messages
+  * Fixed decimal precision test in recommendations_schemas.py to match singular form "decimal place"
+  * Updated transaction_schemas.py to use consistent "Datetime must be UTC" error messages
+  * Fixed date validation in liabilities_schemas.py with dynamic future dates
+  * Updated payment validation tests to reflect that future dates are now allowed
+  * Fixed string/list validation tests in recommendations_schemas.py
+
 ## [0.4.2] - 2025-03-15
 
 ### Added

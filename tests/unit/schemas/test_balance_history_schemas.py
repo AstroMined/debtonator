@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 import pytest
 from pydantic import ValidationError
@@ -202,7 +202,7 @@ def test_datetime_utc_validation():
             balance=Decimal("100.00"),
             timestamp=now_utc,
             created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now().replace(tzinfo=timezone(offset=timezone(hours=5)))  # Non-UTC timezone
+            updated_at=datetime.now().replace(tzinfo=timezone(timedelta(hours=5)))  # Non-UTC timezone
         )
 
 

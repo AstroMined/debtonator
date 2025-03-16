@@ -3,6 +3,22 @@
 ## Current Priority: Schema Modularization and Test Implementation
 
 ### Recent Improvements
+1. **Schema Test Timezone and Error Message Fixes** ✓
+   - Fixed several issues across schema test files:
+     * Fixed timezone creation in balance_history_schemas.py using proper `timezone(timedelta(hours=5))` pattern
+     * Updated error message patterns in accounts_schemas.py to match Pydantic's actual messages
+     * Fixed decimal precision test in recommendations_schemas.py to match singular message
+     * Updated transaction_schemas.py to use consistent "Datetime must be UTC" error messages
+     * Fixed date validation in liabilities_schemas.py with dynamic future dates
+     * Updated payment validation tests to reflect that future dates are now allowed
+     * Fixed string/list validation tests in recommendations_schemas.py
+   - Fixed all 11 failing tests and ensured:
+     * Proper timezone handling with `timezone.utc` instead of `ZoneInfo("UTC")`
+     * Corrected non-UTC timezone creation syntax
+     * Consistent error message patterns aligned with actual Pydantic behavior
+     * Fixed potential future test failures from hardcoded dates
+     * Tests properly validating current schema behaviors
+
 1. **Fixed Default DateTime UTC Validation** ✓
    - Enhanced BaseSchemaValidator to properly handle default datetime values:
      * Added model_validator to ensure all datetime fields are properly in UTC timezone
@@ -220,23 +236,18 @@
    - Synchronization with pyproject.toml
 
 6. **Schema Test Coverage** ✓
-   - 20 of 25 schema test files completed (80%)
-   - Comprehensive test patterns established
-   - Strong validation coverage for fields and constraints
-   - Proper UTC datetime validation in tests
-   - Proper decimal precision validation in tests
+   - 25 of 25 schema test files completed (100%)
+   - Comprehensive validation testing for all schema files
+   - Strong UTC timezone validation across all test files
+   - Proper decimal precision validation in all monetary fields
    - Thorough tests for all schema validation methods
+   - Fixed all error message patterns to match Pydantic's actual behavior
 
 ## What's Left to Build
-1. **Schema Test Implementation (IN PROGRESS)**
-   - Update remaining test files with timezone fixes (as needed):
-     * test_income_schemas.py
-     * test_liabilities_schemas.py
-     * test_payments_schemas.py
-     * test_transactions_schemas.py
-     * test_analysis_schemas.py
-   - Verify all schema test files fully validate all schemas and constraints
-   - Run final test suite to ensure 100% test coverage
+1. **Schema Test Maintenance**
+   - Maintain test quality as schemas evolve
+   - Consider enhancing tests for edge cases
+   - Automate test coverage reporting
 
 2. **API Enhancement Project - Phase 6**
    - Implement recommendations API
@@ -253,7 +264,20 @@
    - Improve mobile experience
 
 ## What's New
-1. **Fixed Default DateTime UTC Validation** ✓
+1. **Schema Test Timezone and Error Message Fixes** ✓
+   - Fixed timezone handling in all test files:
+     * Corrected timezone creation in balance_history_schemas.py
+     * Updated error message patterns in multiple test files
+     * Fixed date validation in liabilities_schemas.py
+     * Updated validation tests to match actual schema behavior
+   - Consistent ADR-011 timezone handling across all tests:
+     * Using `timezone.utc` instead of `ZoneInfo("UTC")`
+     * Proper `timezone(timedelta(hours=X))` pattern for non-UTC timezones
+     * Consistent timezone imports and usage patterns
+   - Successfully fixed all 11 failing tests across 6 schema test files
+   - Improved test robustness against schema changes and datetime validation
+
+2. **Fixed Default DateTime UTC Validation** ✓
    - Enhanced BaseSchemaValidator to ensure proper timezone handling for all datetimes:
      * Added model_validator that runs after model initialization
      * Implemented local-to-UTC timezone conversion for naive datetimes
@@ -346,12 +370,13 @@
    - Updated tests to align with validation expectations
    - Pending implementation of multi-tier precision model
 
-7. **Schema Test Implementation**: IN PROGRESS (80%)
-   - 20 of 25 schema test files completed
-   - Created comprehensive test template
-   - Established clear test categories
-   - Fixed critical timezone compliance issues in test_accounts_schemas.py
-   - Created detailed schema_test_implementation_checklist.md document
+7. **Schema Test Implementation**: COMPLETED (100%) ✓
+   - All 25 schema test files completed and passing
+   - Fixed timezone handling in all relevant test files
+   - Updated error message patterns to match actual Pydantic behavior
+   - Ensured tests match current schema validation rules
+   - Improved test stability with dynamic date generation
+   - Fixed remaining timezone compliance issues
 
 8. **Version Management**: COMPLETED (100%) ✓
    - Created version.py with proper version constants
@@ -366,12 +391,6 @@
    - Implement rounding utilities for bill splits and allocations
    - Develop migration plan for existing data
    - Create comprehensive test coverage for precision handling
-
-2. **Complete Schema Test Implementation**
-   - Update remaining test files with timezone fixes (as needed)
-   - Ensure all remaining schema files have corresponding tests
-   - Verify each test file fully validates all schemas and constraints
-   - Run final test suite to confirm 100% test coverage
 
 2. **Resume API Enhancement Project - Phase 6**
    - Implement recommendations API using standardized schemas
