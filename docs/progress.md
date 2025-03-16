@@ -264,7 +264,28 @@
    - Improve mobile experience
 
 ## What's New
-1. **Schema Test Timezone and Error Message Fixes** ✓
+1. **Created ADR-013 Implementation Checklist** ✓
+   - Created comprehensive implementation checklist for decimal precision handling:
+     * Organized by implementation area with clear tasks and dependencies
+     * Detailed all 37 database fields that need precision updates
+     * Listed all service layer updates required across critical services
+     * Specified test updates needed for proper validation
+     * Structured as a markdown file in docs/adr/compliance/
+   - Covers all aspects of ADR-013 implementation:
+     * Core module implementation with precision utilities
+     * Database schema migration to Numeric(12, 4)
+     * Model and schema updates for consistent validation
+     * Service layer improvements for calculation accuracy
+     * API response standardization
+     * Comprehensive test coverage requirements
+     * Documentation and developer guidelines
+   - Placed in new core module architecture:
+     * Selected `src/core` approach over utils/ placement
+     * Elevates decimal precision as core business domain concern
+     * Provides clear architectural separation from utilities
+     * Creates foundation for other core business modules
+
+2. **Schema Test Timezone and Error Message Fixes** ✓
    - Fixed timezone handling in all test files:
      * Corrected timezone creation in balance_history_schemas.py
      * Updated error message patterns in multiple test files
@@ -277,7 +298,7 @@
    - Successfully fixed all 11 failing tests across 6 schema test files
    - Improved test robustness against schema changes and datetime validation
 
-2. **Fixed Default DateTime UTC Validation** ✓
+3. **Fixed Default DateTime UTC Validation** ✓
    - Enhanced BaseSchemaValidator to ensure proper timezone handling for all datetimes:
      * Added model_validator that runs after model initialization
      * Implemented local-to-UTC timezone conversion for naive datetimes
@@ -364,11 +385,13 @@
    - Improved documentation for all validators
    - Fixed all test failures related to Pydantic V2 validation context
 
-6. **Decimal Precision Handling**: IN PROGRESS (25%)
+6. **Decimal Precision Handling**: IN PROGRESS (35%)
    - Created comprehensive ADR-013 for decimal precision
    - Updated BaseSchemaValidator with global decimal validation
+   - Created detailed implementation checklist in docs/adr/compliance/
+   - Established core module approach for implementation
    - Updated tests to align with validation expectations
-   - Pending implementation of multi-tier precision model
+   - Pending implementation of multi-tier precision model based on checklist
 
 7. **Schema Test Implementation**: COMPLETED (100%) ✓
    - All 25 schema test files completed and passing
@@ -386,11 +409,18 @@
 
 ## Next Actions
 1. **Implement ADR-013: Decimal Precision Handling**
-   - Create BaseDecimalField utility class with rounding functions
-   - Update database schema to support 4-decimal precision for calculations
-   - Implement rounding utilities for bill splits and allocations
-   - Develop migration plan for existing data
-   - Create comprehensive test coverage for precision handling
+   - Follow implementation checklist in docs/adr/compliance/adr013_implementation_checklist.md:
+     * Create core decimal precision module with utility functions
+     * Generate Alembic migration to update all 37 database fields
+     * Update schema validation to use the new core module
+     * Enhance service layer for proper precision handling
+     * Update test suite for proper validation
+   - Focus first on the critical components:
+     * Bill splits service for accurate distribution
+     * Payment service for proper amount handling
+     * Balance calculations for running totals
+   - Create comprehensive tests for all precision requirements
+   - Update documentation with developer guidelines
 
 2. **Resume API Enhancement Project - Phase 6**
    - Implement recommendations API using standardized schemas

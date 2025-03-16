@@ -1,10 +1,31 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Schema Test Implementations and Timezone Compliance Fixes
+Decimal Precision Handling Implementation Planning
 
 ### Recent Changes
-1. **Schema Test Timezone and Error Message Fixes** ✓
+1. **Created ADR-013 Implementation Checklist** ✓
+   - Created comprehensive implementation checklist for decimal precision handling:
+     * Organized by implementation area with clear tasks
+     * Detailed all 37 database fields that need precision updates
+     * Listed all service layer updates required across critical services
+     * Specified test updates needed for proper validation
+     * Structured as a markdown file in docs/adr/compliance/
+   - Covers all aspects of ADR-013 implementation:
+     * Core module implementation with precision utilities
+     * Database schema migration to Numeric(12, 4)
+     * Model and schema updates for consistent validation
+     * Service layer improvements for calculation accuracy
+     * API response standardization
+     * Comprehensive test coverage requirements
+     * Documentation and developer guidelines
+   - Placed in new core module architecture:
+     * Selected `src/core` approach over utils/ placement
+     * Elevates decimal precision as core business domain concern
+     * Provides clear architectural separation from utilities
+     * Creates foundation for other core business modules
+
+2. **Schema Test Timezone and Error Message Fixes** ✓
    - Fixed timestamp handling in all failing test files to fully comply with ADR-011:
      * Fixed timezone creation in balance_history_schemas.py using `timezone(timedelta(hours=5))` pattern
      * Updated error message patterns in accounts_schemas.py to match exact Pydantic errors
@@ -179,7 +200,21 @@ Schema Test Implementations and Timezone Compliance Fixes
    - [x] Added detailed notes on all completed cashflow schema tests
 
 ## Next Steps
-1. **Complete Schema Test Implementation**
+1. **Implement ADR-013: Decimal Precision Handling**
+   - Follow implementation checklist in docs/adr/compliance/adr013_implementation_checklist.md:
+     * Create core decimal precision module with utility functions
+     * Generate Alembic migration to update all 37 database fields
+     * Update schema validation to use the new core module
+     * Enhance service layer for proper precision handling
+     * Update test suite for proper validation
+   - Focus first on the critical components:
+     * Bill splits service for accurate distribution
+     * Payment service for proper amount handling
+     * Balance calculations for running totals
+   - Create comprehensive tests for all precision requirements
+   - Update documentation with developer guidelines
+
+2. **Complete Schema Test Implementation**
    - Update remaining test files with timezone fixes (as needed):
      * test_income_schemas.py
      * test_liabilities_schemas.py
@@ -189,7 +224,7 @@ Schema Test Implementations and Timezone Compliance Fixes
    - Verify all schema test files fully validate all schemas and constraints
    - Run final test suite to confirm 100% test coverage
 
-2. **Resume API Enhancement Project - Phase 6**
+3. **Resume API Enhancement Project - Phase 6**
    - Implement recommendations API using standardized schemas
    - Continue trend reporting development with improved validation
    - Proceed with frontend development leveraging enhanced schema validation

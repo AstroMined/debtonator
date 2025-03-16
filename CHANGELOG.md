@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.4] - 2025-03-16
+
+### Added
+- Created ADR-013 implementation checklist:
+  * Comprehensive documentation of all required changes for decimal precision handling
+  * Detailed list of 37 database fields that need precision updates
+  * Service layer enhancement requirements for calculation accuracy
+  * Test updates required for validation and verification
+  * Placed in new `docs/adr/compliance/` directory for visibility
+
+### Changed
+- Selected `src/core` module approach for decimal precision implementation:
+  * Elevates decimal precision as core business domain concern
+  * Provides clear architectural separation from utilities
+  * Creates foundation for other core business modules
+
 ## [0.4.3] - 2025-03-15
 
 ### Changed
