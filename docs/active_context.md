@@ -4,7 +4,34 @@
 Decimal Precision Handling Implementation
 
 ### Recent Changes
-1. **Implemented Decimal Precision Handling in Critical Services** ✓
+1. **Implemented Centralized Decimal Precision Approach** ✓
+   - Enhanced `DecimalPrecision` core module with utility functions:
+     * Added `EPSILON` constant for decimal equality comparisons
+     * Implemented `validate_sum_equals_total()` for validating sums 
+     * Maintained existing distribution and rounding utilities
+     * Added proper typing and documentation for all functions
+   - Enhanced `BaseSchemaValidator` with standardized field utilities:
+     * Added `money_field()` method for creating 2-decimal monetary fields
+     * Added `percentage_field()` method for creating 4-decimal percentage fields
+     * Enhanced validator to detect and respect field-specific precision
+     * Implemented special case handling through field metadata
+   - Updated key schema files with standardized approach:
+     * Refactored `src/schemas/accounts.py` to use `money_field()` utility
+     * Updated `src/schemas/cashflow/account_analysis.py` with both:
+       * Standard money fields (2 decimal places) for monetary values
+       * Percentage fields (4 decimal places) for specialized fields
+     * Fixed all decimal field implementations to use consistent patterns
+   - Improved documentation to reflect the centralized approach:
+     * Updated ADR-013 with implementation details
+     * Enhanced implementation checklist with progress tracking
+     * Added quality assurance verification steps for field types
+   - This centralized approach provides significant benefits:
+     * Minimized code duplication and fragmentation
+     * Consistent precision handling across schema files
+     * Proper handling of special cases without custom validators
+     * Clear separation between core precision utilities and schema validation
+
+2. **Implemented Decimal Precision Handling in Critical Services** ✓
    - Updated five critical services with decimal precision enhancements:
      * `src/services/bill_splits.py` - Implemented for accurate distribution calculations
      * `src/services/payments.py` - Updated payment distribution precision handling
@@ -27,7 +54,7 @@ Decimal Precision Handling Implementation
      * Groundwork laid for remaining implementation tasks
      * Progress tracked in docs/adr/compliance/adr013_implementation_checklist.md
 
-2. **Created ADR-013 Implementation Checklist** ✓
+3. **Created ADR-013 Implementation Checklist** ✓
    - Created comprehensive implementation checklist for decimal precision handling:
      * Organized by implementation area with clear tasks
      * Detailed all 37 database fields that need precision updates
@@ -182,7 +209,24 @@ Decimal Precision Handling Implementation
    - Synchronized with existing version in pyproject.toml
 
 ### Implementation Lessons
-1. **Financial Calculation Handling**
+1. **Centralized Schema Validation Architecture**
+   - The centralized approach with enhanced `BaseSchemaValidator` provides many benefits:
+     * Reduced code duplication across schema files
+     * Consistent field definitions and validation behavior
+     * Simpler schema file maintenance and updates
+     * Clear separation of concerns between precision handling and schemas
+   - Field creation utility methods provide key advantages:
+     * Standardized field definitions enforce consistent validation
+     * Self-documenting code with clear precision intent
+     * Easier to maintain and update validation rules
+     * Special cases handled through metadata rather than custom validators
+   - Keeping precision validation in two locations maintains clarity:
+     * Core module for calculation and distribution utilities
+     * Base validator for API boundary validation
+     * Prevents fragmentation across multiple utility files
+     * Clear responsibilities with minimal overlap
+
+2. **Financial Calculation Handling**
    - Using 4 decimal places for internal calculations provides sufficient precision
    - The Decimal class properly handles precision-critical operations
    - Explicitly converting to Decimal early in calculation chains prevents precision loss
@@ -240,19 +284,25 @@ Decimal Precision Handling Implementation
    - [x] Added detailed notes on all completed cashflow schema tests
 
 ## Next Steps
-1. **Implement ADR-013: Decimal Precision Handling**
-   - Follow implementation checklist in docs/adr/compliance/adr013_implementation_checklist.md:
-     * Create core decimal precision module with utility functions
-     * Generate Alembic migration to update all 37 database fields
-     * Update schema validation to use the new core module
-     * Enhance service layer for proper precision handling
-     * Update test suite for proper validation
-   - Focus first on the critical components:
-     * Bill splits service for accurate distribution
-     * Payment service for proper amount handling
-     * Balance calculations for running totals
-   - Create comprehensive tests for all precision requirements
-   - Update documentation with developer guidelines
+1. **Continue ADR-013 Implementation**
+   - Continue following implementation checklist:
+     * Update the remaining schema files with standardized field methods
+     * Update API response handling for consistent precision
+     * Enhance test suite to verify validation behavior
+     * Complete developer guidelines documentation
+   - Focus on next priority schema files:
+     * Update `src/schemas/bill_splits.py` (critical for splitting calculations)
+     * Update `src/schemas/liabilities.py` (important for financial calculations)
+     * Update `src/schemas/income.py` (important for financial calculations)
+     * Update rest of cashflow schemas for consistent approach
+   - Implement API response formatting:
+     * Update `src/api/base.py` to ensure consistent rounding
+     * Add special case handling for percentage fields
+     * Implement response formatter using DecimalPrecision
+   - Complete test suite updates:
+     * Add tests for money vs. percentage field validation
+     * Verify proper validation behavior at boundaries
+     * Test complex distribution scenarios
 
 2. **Complete Schema Test Implementation**
    - Update remaining test files with timezone fixes (as needed):

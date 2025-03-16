@@ -66,10 +66,11 @@ account_type_field = lambda required: Field(
     description="Type of account (credit, checking, savings)"
 )
 
-decimal_field = lambda required, name, **kwargs: Field(
-    ... if required and 'default' not in kwargs else kwargs.pop('default', None),
-    decimal_places=2,
+# Use the standardized BaseSchemaValidator utility method for money fields
+# This implements the ADR-013 standard for decimal precision
+decimal_field = lambda required, name, **kwargs: BaseSchemaValidator.money_field(
     description=name,
+    default=kwargs.pop('default', None) if not required or 'default' in kwargs else ...,
     **kwargs
 )
 
@@ -253,16 +254,13 @@ class StatementBalanceHistory(BaseSchemaValidator):
         ...,
         description="Date of the statement (UTC timezone)"
     )
-    statement_balance: Decimal = Field(
-        ...,
-        decimal_places=2,
+    statement_balance: Decimal = BaseSchemaValidator.money_field(
         description="Balance on statement date"
     )
-    minimum_payment: Optional[Decimal] = Field(
-        None,
-        ge=0,
-        decimal_places=2,
-        description="Minimum payment due"
+    minimum_payment: Optional[Decimal] = BaseSchemaValidator.money_field(
+        description="Minimum payment due",
+        default=None,
+        ge=0
     )
     due_date: Optional[datetime] = Field(
         None,
@@ -301,6 +299,7 @@ class AvailableCreditResponse(BaseSchemaValidator):
     Schema for available credit calculation response.
     
     Used for providing detailed credit information for credit accounts.
+    Implements ADR-013 using standardized money fields with 2 decimal places.
     """
     account_id: int = Field(
         ...,
@@ -313,32 +312,22 @@ class AvailableCreditResponse(BaseSchemaValidator):
         max_length=50,
         description="Account name"
     )
-    total_limit: Decimal = Field(
-        ...,
-        gt=0,
-        decimal_places=2,
-        description="Total credit limit"
+    total_limit: Decimal = BaseSchemaValidator.money_field(
+        description="Total credit limit",
+        gt=0
     )
-    current_balance: Decimal = Field(
-        ...,
-        decimal_places=2,
+    current_balance: Decimal = BaseSchemaValidator.money_field(
         description="Current account balance"
     )
-    pending_transactions: Decimal = Field(
-        ...,
-        decimal_places=2,
+    pending_transactions: Decimal = BaseSchemaValidator.money_field(
         description="Sum of pending transactions"
     )
-    adjusted_balance: Decimal = Field(
-        ...,
-        decimal_places=2,
+    adjusted_balance: Decimal = BaseSchemaValidator.money_field(
         description="Balance adjusted for pending transactions"
     )
-    available_credit: Decimal = Field(
-        ...,
-        ge=0,
-        decimal_places=2,
-        description="Available credit after all adjustments"
+    available_credit: Decimal = BaseSchemaValidator.money_field(
+        description="Available credit after all adjustments",
+        ge=0
     )
 
     model_config = ConfigDict(from_attributes=True)

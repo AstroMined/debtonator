@@ -3,7 +3,29 @@
 ## Current Priority: Schema Modularization and Test Implementation
 
 ### Recent Improvements
-1. **Schema Test Timezone and Error Message Fixes** ✓
+1. **Implemented Centralized Decimal Precision Approach** ✓
+   - Enhanced core components with standardized approach:
+     * Updated `DecimalPrecision` core module with additional utilities like `validate_sum_equals_total()`
+     * Enhanced `BaseSchemaValidator` with field creation methods (`money_field()` and `percentage_field()`)
+     * Improved validation to properly handle both standard and special case precision requirements
+   - Implemented in key schema files:
+     * Updated `src/schemas/accounts.py` with standardized money fields
+     * Updated `src/schemas/cashflow/account_analysis.py` with proper handling of:
+       * Standard monetary fields (2 decimal places)
+       * Special case percentage fields (4 decimal places)
+     * Successfully implemented the special case handling for percentage fields
+   - Updated documentation:
+     * Enhanced ADR-013 with implementation details of centralized approach
+     * Updated implementation checklist with completed items and next steps
+     * Added quality assurance steps for different field types
+   - This centralized approach provides significant benefits:
+     * Reduced code duplication across schema files
+     * Consistent field definitions and validation behavior
+     * Proper handling of special cases without custom validators
+     * Clear separation between precision utilities and schema validation
+     * Minimized code fragmentation with two well-defined locations
+
+2. **Schema Test Timezone and Error Message Fixes** ✓
    - Fixed several issues across schema test files:
      * Fixed timezone creation in balance_history_schemas.py using proper `timezone(timedelta(hours=5))` pattern
      * Updated error message patterns in accounts_schemas.py to match Pydantic's actual messages
@@ -19,7 +41,7 @@
      * Fixed potential future test failures from hardcoded dates
      * Tests properly validating current schema behaviors
 
-1. **Fixed Default DateTime UTC Validation** ✓
+3. **Fixed Default DateTime UTC Validation** ✓
    - Enhanced BaseSchemaValidator to properly handle default datetime values:
      * Added model_validator to ensure all datetime fields are properly in UTC timezone
      * Implemented proper local-to-UTC timezone conversion for naive datetimes
@@ -34,7 +56,7 @@
      * Naive datetimes were bypassing regular field validation
      * Local timestamps were incorrectly labeled as UTC without conversion
 
-1. **Cashflow Schema Tests Completed** ✓
+4. **Cashflow Schema Tests Completed** ✓
    - Implemented all five test files for modularized cashflow schemas:
      * `tests/schemas/test_cashflow_base_schemas.py` - Core cashflow schemas tests
      * `tests/schemas/test_cashflow_metrics_schemas.py` - Financial metrics schemas tests
@@ -51,7 +73,7 @@
    - Updated schema_test_implementation_checklist.md to reflect completed work
    - All tests passing with comprehensive validation coverage
 
-2. **Timezone Compliance Fixes** ✓
+5. **Timezone Compliance Fixes** ✓
    - Fixed timezone handling in test files to comply with ADR-011:
      * Updated `tests/schemas/test_accounts_schemas.py` to use `timezone.utc` instead of `ZoneInfo("UTC")`
      * Ensured proper UTC datetime handling across all tests
@@ -60,7 +82,7 @@
    - Updated schema test implementation checklist to track timezone compliance
    - Ensured consistent timezone approach aligned with ADR-011 requirements
 
-3. **Schema Modularization Completed** ✓
+6. **Schema Modularization Completed** ✓
    - Decomposed large cashflow.py file (974 lines) into five focused modules:
      * `src/schemas/cashflow/base.py` - Core cashflow schemas
      * `src/schemas/cashflow/metrics.py` - Financial metrics schemas
@@ -74,49 +96,6 @@
    - Updated schema_test_implementation_checklist.md to reflect new structure
    - Updated test implementation plan to target the modular structure
    - Preserved backward compatibility to avoid breaking changes
-
-4. **Previous Schema Test Implementation** ✓
-   - Implemented initial schema test files:
-     * test_realtime_cashflow_schemas.py with comprehensive test coverage
-     * test_recommendations_schemas.py with thorough validation tests
-     * test_income_categories_schemas.py with complete CRUD schema tests
-   - Each test file includes consistent test patterns:
-     * Tests for valid object creation with required and optional fields
-     * Tests for field validations (required fields, constraints)
-     * Tests for decimal precision on monetary fields
-     * Tests for UTC datetime validation per ADR-011
-     * Tests for business logic validations and cross-field validation
-     * Verification of BaseSchemaValidator inheritance
-
-5. **Version Update** ✓
-   - Bumped version from 0.3.95 to 0.4.0 to reflect schema reorganization
-   - Updated both version.py and pyproject.toml for consistency
-   - Version increment reflects the significant architectural improvement
-   - Created src/version.py to provide consistent version access:
-     * Defined VERSION_MAJOR, VERSION_MINOR, and VERSION_PATCH constants
-     * Implemented VERSION formatted string
-     * Added VERSION_TUPLE for structured access
-     * Added comprehensive docstrings explaining purpose
-     * Created proper module exports
-   - Benefits of this approach:
-     * Allows programmatic access to version information from code
-     * Enables version display in UI and API responses
-     * Facilitates version checks in future CI/CD pipelines
-     * Provides single source of truth for version information
-     * Maintains synchronization with pyproject.toml version
-
-6. **Pydantic v2 Compatibility Fix** ✓
-   - Fixed validation context handling to support Pydantic v2:
-     * Updated `validate_parent_id_common` in categories.py to work with ValidationInfo objects
-     * Made the function backward compatible with dictionary-style validation context
-     * Added proper error handling for different validation context types
-     * Fixed related test failures across schema test files
-     * Improved robustness against future Pydantic changes
-   - Fixed schema test error patterns:
-     * Updated test patterns for validation errors to match Pydantic v2 format
-     * Fixed test_bulk_operation_validation in test_bill_splits_schemas.py
-     * Updated assertion patterns to match new error message formats
-     * Made tests more resilient to minor error message changes
 
 ### Schema Standardization Progress
 1. **Schema Implementation (COMPLETED)** ✓
@@ -264,7 +243,28 @@
    - Improve mobile experience
 
 ## What's New
-1. **Implemented Decimal Precision Handling in Critical Services** ✓
+1. **Implemented Centralized Decimal Precision Approach** ✓
+   - Enhanced core components with standardized approach:
+     * Updated `DecimalPrecision` core module with additional utilities like `validate_sum_equals_total()`
+     * Enhanced `BaseSchemaValidator` with field creation methods (`money_field()` and `percentage_field()`)
+     * Improved validation to properly handle both standard and special case precision requirements
+   - Updated key schema files with standardized approach:
+     * Refactored `src/schemas/accounts.py` to use standardized money fields
+     * Updated `src/schemas/cashflow/account_analysis.py` with both:
+       * Standard money fields (2 decimal places) for monetary values
+       * Percentage fields (4 decimal places) for specialized fields
+     * Fixed all decimal field implementations to use consistent patterns
+   - Improved documentation to reflect the centralized approach:
+     * Updated ADR-013 with implementation details
+     * Enhanced implementation checklist with progress tracking
+     * Added quality assurance verification steps for field types
+   - This centralized approach provides significant benefits:
+     * Minimized code duplication and fragmentation
+     * Consistent precision handling across schema files
+     * Proper handling of special cases without custom validators
+     * Clear separation between core precision utilities and schema validation
+
+2. **Implemented Decimal Precision Handling in Critical Services** ✓
    - Updated five critical services to use the new `DecimalPrecision` core module:
      * `src/services/bill_splits.py` - Implemented for accurate distribution calculations
      * `src/services/payments.py` - Enhanced with proper decimal precision handling
@@ -282,7 +282,7 @@
      * Consistent approach to decimal handling across services
      * Support for precision-critical operations like bill splitting
 
-2. **Created ADR-013 Implementation Checklist** ✓
+3. **Created ADR-013 Implementation Checklist** ✓
    - Created comprehensive implementation checklist for decimal precision handling:
      * Organized by implementation area with clear tasks and dependencies
      * Detailed all 37 database fields that need precision updates
@@ -302,69 +302,6 @@
      * Elevates decimal precision as core business domain concern
      * Provides clear architectural separation from utilities
      * Creates foundation for other core business modules
-
-2. **Schema Test Timezone and Error Message Fixes** ✓
-   - Fixed timezone handling in all test files:
-     * Corrected timezone creation in balance_history_schemas.py
-     * Updated error message patterns in multiple test files
-     * Fixed date validation in liabilities_schemas.py
-     * Updated validation tests to match actual schema behavior
-   - Consistent ADR-011 timezone handling across all tests:
-     * Using `timezone.utc` instead of `ZoneInfo("UTC")`
-     * Proper `timezone(timedelta(hours=X))` pattern for non-UTC timezones
-     * Consistent timezone imports and usage patterns
-   - Successfully fixed all 11 failing tests across 6 schema test files
-   - Improved test robustness against schema changes and datetime validation
-
-3. **Fixed Default DateTime UTC Validation** ✓
-   - Enhanced BaseSchemaValidator to ensure proper timezone handling for all datetimes:
-     * Added model_validator that runs after model initialization
-     * Implemented local-to-UTC timezone conversion for naive datetimes
-     * Fixed subtle timezone inconsistency in default values
-   - This fix ensures ADR-011 compliance even for auto-generated default values:
-     * Values from default_factory=datetime.now now correctly converted to UTC
-     * Proper timezone conversion ensures datetimes represent the same moment in time
-     * Correct timestamp comparisons across timezone boundaries in tests
-   - Improved test stability and reliability:
-     * Fixed several tests that were failing due to timezone inconsistencies
-     * Ensured robust timestamp comparisons in tests
-     * Added specific test for default timestamp validation
-     * Properly documented timezone validation behavior
-
-1. **Fixed Pydantic V2 Validation Issues** ✓
-   - Fixed validation context handling in schema files:
-     * Updated income_trends.py validators to properly use ValidationInfo object
-     * Updated realtime_cashflow.py validators to use ValidationInfo object
-     * Fixed all test failures related to Pydantic V2 validation context
-   - Addressed specific validation issues:
-     * SourceStatistics.validate_max_amount() to check ValidationInfo data
-     * IncomeTrendsRequest.validate_date_range() to check ValidationInfo data
-     * AccountBalance.validate_credit_fields() to access ValidationInfo data
-     * RealtimeCashflow.validate_net_position() to check ValidationInfo data
-   - Improved validator documentation across schema files
-   - Fixed 20+ test failures across multiple test files
-   
-2. **Created Decimal Precision Handling ADR** ✓
-   - Implemented ADR-013 to address decimal precision in financial calculations:
-     * Defined multi-tier precision model (2 decimals for I/O, 4 for calculations)
-     * Created comprehensive technical implementation plan
-     * Documented migration strategy across application layers
-     * Added code examples for implementation components
-   - ADR-013 addresses critical financial calculation needs:
-     * Consistent handling of decimal precision
-     * Accurate bill splits without rounding errors
-     * Regulatory compliance for financial calculations
-     * Balance between accuracy and usability
-
-3. **Implemented Global Decimal Validation** ✓
-   - Enhanced BaseSchemaValidator with proper decimal precision validation:
-     * Updated validate_decimal_precision method to enforce 2-decimal constraint
-     * Added proper error message for invalid precision values
-     * Documented future enhancement needs in TODO comments
-   - This improvement provides:
-     * Consistent validation across all schema files
-     * Clear error messages for decimal precision violations
-     * Groundwork for future ADR-013 implementation
 
 ## Current Status
 1. **Model Layer Standardization**: COMPLETED (100%) ✓
@@ -403,17 +340,23 @@
    - Improved documentation for all validators
    - Fixed all test failures related to Pydantic V2 validation context
 
-6. **Decimal Precision Handling**: IN PROGRESS (50%)
+6. **Decimal Precision Handling**: IN PROGRESS (60%)
    - Created comprehensive ADR-013 for decimal precision
    - Updated BaseSchemaValidator with global decimal validation
    - Created detailed implementation checklist in docs/adr/compliance/
    - Established core module approach for implementation
+   - Enhanced BaseSchemaValidator with field utilities:
+     * Added money_field() and percentage_field() methods
+     * Updated validator to handle field-specific precision
+     * Successfully implemented special case handling for percentage fields
    - Updated tests to align with validation expectations
+   - ✓ Implemented in key schema files:
+     * Accounts.py and cashflow/account_analysis.py
    - ✓ Implemented decimal precision handling in critical service files:
      * bill_splits.py, payments.py, balance_history.py, cashflow.py, impact_analysis.py
    - ✓ Used consistent 4-decimal internal calculations with 2-decimal boundary rounding
    - Remaining implementation tasks include:
-     * Update schema validation to use the new core module
+     * Update remaining schema files with standardized field methods
      * Update API response handling
      * Complete test suite updates
      * Finalize documentation
@@ -433,19 +376,25 @@
    - Synchronized with existing version in pyproject.toml
 
 ## Next Actions
-1. **Implement ADR-013: Decimal Precision Handling**
-   - Follow implementation checklist in docs/adr/compliance/adr013_implementation_checklist.md:
-     * Create core decimal precision module with utility functions
-     * Generate Alembic migration to update all 37 database fields
-     * Update schema validation to use the new core module
-     * Enhance service layer for proper precision handling
-     * Update test suite for proper validation
-   - Focus first on the critical components:
-     * Bill splits service for accurate distribution
-     * Payment service for proper amount handling
-     * Balance calculations for running totals
-   - Create comprehensive tests for all precision requirements
-   - Update documentation with developer guidelines
+1. **Continue ADR-013 Implementation**
+   - Continue following implementation checklist:
+     * Update the remaining schema files with standardized field methods
+     * Update API response handling for consistent precision
+     * Enhance test suite to verify validation behavior
+     * Complete developer guidelines documentation
+   - Focus on next priority schema files:
+     * Update `src/schemas/bill_splits.py` (critical for splitting calculations)
+     * Update `src/schemas/liabilities.py` (important for financial calculations)
+     * Update `src/schemas/income.py` (important for financial calculations)
+     * Update rest of cashflow schemas for consistent approach
+   - Implement API response formatting:
+     * Update `src/api/base.py` to ensure consistent rounding
+     * Add special case handling for percentage fields
+     * Implement response formatter using DecimalPrecision
+   - Complete test suite updates:
+     * Add tests for money vs. percentage field validation
+     * Verify proper validation behavior at boundaries
+     * Test complex distribution scenarios
 
 2. **Resume API Enhancement Project - Phase 6**
    - Implement recommendations API using standardized schemas

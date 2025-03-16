@@ -2,6 +2,10 @@
 
 This checklist details all tasks required to fully implement ADR-013 (Decimal Precision Handling) across the Debtonator application. The checklist is organized by implementation area and includes specific files and changes needed.
 
+**Implementation Strategy Update (3/16/2025)**: We're following a centralized approach by enhancing the `BaseSchemaValidator` with standardized field methods and utility functions. This maintains consistency across all schema files while reducing duplication and potential fragmentation. All decimal validation now happens in two centralized locations:
+1. The `DecimalPrecision` core module (for calculation utilities)
+2. The `BaseSchemaValidator` class (for API boundary validation)
+
 ## 1. Core Module Implementation
 
 - [x] Create `src/core` directory if it doesn't exist
@@ -116,7 +120,7 @@ src/models/cashflow.py:
 ## 4. Pydantic Schema Updates
 
 - [ ] Ensure all Pydantic schema files (150 fields across 21 schema files) maintain 2 decimal place validation at API boundaries:
-  - [ ] Verify validation in `src/schemas/accounts.py`
+  - [x] Verify validation in `src/schemas/accounts.py` - Updated to use new BaseSchemaValidator.money_field()
   - [ ] Verify validation in `src/schemas/bill_splits.py`
   - [ ] Verify validation in `src/schemas/liabilities.py`
   - [x] Verify validation in `src/schemas/payments.py`
@@ -133,20 +137,24 @@ src/models/cashflow.py:
   - [ ] Verify validation in `src/schemas/recommendations.py`
   - [ ] Verify validation in `src/schemas/recurring_bills.py`
   - [ ] Verify validation in `src/schemas/transactions.py`
-  - [ ] Verify validation in `src/schemas/cashflow/account_analysis.py`
+  - [x] Verify validation in `src/schemas/cashflow/account_analysis.py` - Updated with StandardizedBaseValidator money/percentage fields
   - [ ] Verify validation in `src/schemas/cashflow/base.py`
   - [ ] Verify validation in `src/schemas/cashflow/forecasting.py`
   - [ ] Verify validation in `src/schemas/cashflow/historical.py`
   - [ ] Verify validation in `src/schemas/cashflow/metrics.py`
 
-- [ ] Update the one special case:
-  - [ ] Ensure `BalanceDistribution.percentage_of_total` maintains 4 decimal places (in `src/schemas/cashflow/account_analysis.py`)
+- [x] Update the one special case:
+  - [x] Ensure `BalanceDistribution.percentage_of_total` maintains 4 decimal places (in `src/schemas/cashflow/account_analysis.py`) - Updated to use BaseSchemaValidator.percentage_field()
 
 ## 5. Update `BaseSchemaValidator` Class
 
 - [x] Update base schema validator to reference the new DecimalPrecision core module:
   - [x] Modify the `validate_decimal_precision` method in appropriate base schema file
   - [x] Use the `DecimalPrecision.validate_input_precision` method
+  - [x] Add standardized field creation methods:
+    - [x] Add `money_field()` for 2 decimal place monetary fields
+    - [x] Add `percentage_field()` for 4 decimal place percentage fields
+  - [x] Enhance the validator to handle special cases like percentage fields
   - [ ] Ensure this validation is consistently applied across all schema files
 
 ## 6. Service Layer Updates
@@ -284,3 +292,8 @@ Update test cases to account for new precision rules:
 - [ ] Verify rounding behavior in edge cases
 - [ ] Check database migration works correctly
 - [ ] Verify API responses maintain correct precision
+- [ ] Verify validation for:
+  - [ ] Money fields with 2 decimal places pass validation
+  - [ ] Money fields with >2 decimal places fail validation
+  - [ ] Percentage fields with 4 decimal places pass validation
+  - [ ] Percentage fields with >4 decimal places fail validation

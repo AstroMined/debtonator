@@ -1,25 +1,29 @@
 from datetime import datetime, timezone
 from decimal import Decimal
-from pydantic import BaseModel, field_validator, model_validator, ConfigDict
+from pydantic import BaseModel, field_validator, model_validator, ConfigDict, Field
 from typing import Any
 
 from src.core.decimal_precision import DecimalPrecision
 
 class BaseSchemaValidator(BaseModel):
-    """Base schema validator that enforces UTC timezone for all datetime fields.
+    """Base schema validator that enforces UTC timezone for all datetime fields
+    and decimal precision for monetary values.
     
     All schema classes should inherit from this base class to ensure consistent
-    datetime handling across the application.
+    datetime and decimal handling across the application.
     
     Features:
         - Automatically converts naive datetimes to UTC-aware during model_validate
         - Enforces UTC timezone for all datetime fields through validation
         - Provides consistent datetime serialization to ISO format with Z suffix
+        - Enforces 2 decimal places for monetary values at API boundaries
+        - Supports special case handling for percentage fields (4 decimal places)
+        - Provides utility methods for creating standardized field definitions
     
     Example:
         class PaymentCreate(BaseSchemaValidator):
             payment_date: datetime
-            # The base validator will automatically enforce UTC timezone
+            amount: Decimal = BaseSchemaValidator.money_field("Payment amount")
     """
     
     model_config = ConfigDict(
@@ -92,17 +96,66 @@ class BaseSchemaValidator(BaseModel):
                 )
         return value
     
+    @classmethod
+    def money_field(cls, description: str, **kwargs) -> Field:
+        """
+        Creates a standard monetary field with 2 decimal places.
+        
+        Implementing ADR-013, this method standardizes the creation of monetary
+        fields with proper decimal precision validation.
+        
+        Args:
+            description: Field description
+            **kwargs: Additional Field parameters
+            
+        Returns:
+            Field: Configured Field instance with decimal_places=2
+        """
+        return Field(
+            decimal_places=2,
+            description=description,
+            **kwargs
+        )
+    
+    @classmethod
+    def percentage_field(cls, description: str, **kwargs) -> Field:
+        """
+        Creates a percentage field with 4 decimal places.
+        
+        This special case is for percentage fields that require higher precision,
+        as specified in ADR-013.
+        
+        Args:
+            description: Field description
+            **kwargs: Additional Field parameters
+            
+        Returns:
+            Field: Configured Field instance with decimal_places=4
+        """
+        return Field(
+            decimal_places=4,
+            ge=0,
+            le=1,
+            description=description,
+            **kwargs
+        )
+    
     @field_validator("*", mode="before")
     @classmethod
     def validate_decimal_precision(cls, value: Any) -> Any:
-        """Validates that decimal values don't exceed 2 decimal places at API boundaries.
+        """Validates that decimal values don't exceed the specified decimal places at API boundaries.
         
         Implements ADR-013 "Decimal Precision Handling" which establishes:
         - 2 decimal places (0.01) for user inputs and outputs at API boundaries
         - 4 decimal places (0.0001) for internal calculations to maintain precision
+        - Special case for percentage fields with 4 decimal places
         
         This validator enforces the API boundary rule to ensure all incoming decimal
-        values have at most 2 decimal places for consistency and to meet user expectations.
+        values have appropriate decimal places for consistency and to meet user expectations.
+        
+        Field-specific precision is determined by checking the decimal_places parameter
+        in the Field definition. Fields using BaseSchemaValidator.percentage_field()
+        will have 4 decimal places, while all other monetary fields default to 2.
         
         Internal calculations are allowed to use higher precision (4 decimal places),
         but must be rounded appropriately when returned to the user.
@@ -114,12 +167,27 @@ class BaseSchemaValidator(BaseModel):
             The original value if validation passes
             
         Raises:
-            ValueError: If a Decimal field has more than 2 decimal places
+            ValueError: If a Decimal field has more than the allowed decimal places
         """
         if isinstance(value, Decimal):
-            # Use the DecimalPrecision utility to validate input precision
+            # Check if we're in a field validation (field name is available)
+            field_name = getattr(cls.validate_decimal_precision, 'field_name', None)
+            
+            if field_name and field_name in cls.model_fields:
+                field_info = cls.model_fields[field_name]
+                # Check if this field has a custom decimal_places setting
+                if hasattr(field_info, 'json_schema_extra') and field_info.json_schema_extra and 'decimal_places' in field_info.json_schema_extra:
+                    decimal_places = field_info.json_schema_extra['decimal_places']
+                    if decimal_places != 2:
+                        # Special handling for non-standard precision (e.g., 4 decimal places for percentages)
+                        if value.as_tuple().exponent < -decimal_places:
+                            raise ValueError(f"Value must have at most {decimal_places} decimal places")
+                        return value
+            
+            # Standard case: Use the DecimalPrecision utility to validate input precision (2 decimal places)
             if not DecimalPrecision.validate_input_precision(value):
                 raise ValueError("Decimal input should have no more than 2 decimal places")
+        
         return value
 
     @model_validator(mode="after")

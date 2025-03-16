@@ -60,7 +60,7 @@ This approach balances the need for accuracy in financial calculations with the 
 1. **DecimalPrecision Utility Module**:
    ```python
    from decimal import Decimal, ROUND_HALF_UP
-   from typing import List, Union, Optional
+   from typing import List, Union, Optional, Any
    
    class DecimalPrecision:
        """Utility class for handling decimal precision in financial calculations."""
@@ -68,6 +68,9 @@ This approach balances the need for accuracy in financial calculations with the 
        # Precision constants
        DISPLAY_PRECISION = Decimal('0.01')  # 2 decimal places
        CALCULATION_PRECISION = Decimal('0.0001')  # 4 decimal places
+       
+       # Epsilon for comparing decimal equality in financial calculations
+       EPSILON = Decimal('0.01')
        
        @staticmethod
        def round_for_display(value: Decimal) -> Decimal:
@@ -111,6 +114,29 @@ This approach balances the need for accuracy in financial calculations with the 
                result[i] += Decimal('0.01')
                
            return result
+               
+       @staticmethod
+       def validate_sum_equals_total(items: List[Any], total: Decimal, amount_attr: str = 'amount', epsilon: Optional[Decimal] = None) -> bool:
+           """
+           Validates that a sum of values equals an expected total within a small epsilon.
+           
+           Args:
+               items: List of objects with amount attributes
+               total: Expected total
+               amount_attr: Name of the attribute containing the amount
+               epsilon: Maximum allowed difference (defaults to DecimalPrecision.EPSILON)
+               
+           Returns:
+               bool: True if sum matches total within epsilon, False otherwise
+           """
+           if not items:
+               return total == Decimal('0')
+               
+           if epsilon is None:
+               epsilon = DecimalPrecision.EPSILON
+               
+           sum_value = sum(getattr(item, amount_attr) for item in items)
+           return abs(sum_value - total) <= epsilon
    ```
 
 2. **Database Schema Updates**:
@@ -122,34 +148,98 @@ This approach balances the need for accuracy in financial calculations with the 
    amount = Column(Numeric(12, 4), nullable=False)
    ```
 
-3. **Pydantic Schema Updates**:
-   ```python
-   class MoneyField(BaseModel):
-       """Custom type for money fields with precision control."""
-       
-       @field_validator("*", mode="before")
-       @classmethod
-       def validate_input_precision(cls, v: Any) -> Any:
-           """Validate that input values have at most 2 decimal places."""
-           if isinstance(v, Decimal) and v.as_tuple().exponent < -2:
-               raise ValueError("Input values must have at most 2 decimal places")
-           return v
-   ```
-
-4. **Updated BaseSchemaValidator**:
+3. **Centralized Schema Validation with BaseSchemaValidator**:
    ```python
    class BaseSchemaValidator(BaseModel):
        """Base schema validator with both datetime and decimal validation."""
        
        # Existing datetime validation...
        
+       @classmethod
+       def money_field(cls, description: str, **kwargs) -> Field:
+           """
+           Creates a standard monetary field with 2 decimal places.
+           
+           Implementing ADR-013, this method standardizes the creation of monetary
+           fields with proper decimal precision validation.
+           
+           Args:
+               description: Field description
+               **kwargs: Additional Field parameters
+               
+           Returns:
+               Field: Configured Field instance with decimal_places=2
+           """
+           return Field(
+               decimal_places=2,
+               description=description,
+               **kwargs
+           )
+       
+       @classmethod
+       def percentage_field(cls, description: str, **kwargs) -> Field:
+           """
+           Creates a percentage field with 4 decimal places.
+           
+           This special case is for percentage fields that require higher precision,
+           as specified in ADR-013.
+           
+           Args:
+               description: Field description
+               **kwargs: Additional Field parameters
+               
+           Returns:
+               Field: Configured Field instance with decimal_places=4
+           """
+           return Field(
+               decimal_places=4,
+               ge=0,
+               le=1,
+               description=description,
+               **kwargs
+           )
+       
        @field_validator("*", mode="before")
        @classmethod
        def validate_decimal_precision(cls, value: Any) -> Any:
-           """Validates that decimal values don't exceed 2 decimal places at input boundaries."""
-           if isinstance(value, Decimal) and value.as_tuple().exponent < -2:
-               raise ValueError("Decimal input should have no more than 2 decimal places")
+           """Validates that decimal values don't exceed the specified decimal places at API boundaries."""
+           if isinstance(value, Decimal):
+               # Check if we're in a field validation (field name is available)
+               field_name = getattr(cls.validate_decimal_precision, 'field_name', None)
+               
+               if field_name and field_name in cls.model_fields:
+                   field_info = cls.model_fields[field_name]
+                   # Check if this field has a custom decimal_places setting
+                   if hasattr(field_info, 'json_schema_extra') and field_info.json_schema_extra and 'decimal_places' in field_info.json_schema_extra:
+                       decimal_places = field_info.json_schema_extra['decimal_places']
+                       if decimal_places != 2:
+                           # Special handling for non-standard precision (e.g., 4 decimal places for percentages)
+                           if value.as_tuple().exponent < -decimal_places:
+                               raise ValueError(f"Value must have at most {decimal_places} decimal places")
+                           return value
+               
+               # Standard case: Use the DecimalPrecision utility to validate input precision (2 decimal places)
+               if not DecimalPrecision.validate_input_precision(value):
+                   raise ValueError("Decimal input should have no more than 2 decimal places")
+           
            return value
+   ```
+
+4. **Schema Field Implementation Example**:
+   ```python
+   # Example of using the standardized fields
+   class BalanceDistribution(BaseSchemaValidator):
+       """Schema for balance distribution data."""
+       account_id: int = Field(
+           ...,
+           description="ID of the account"
+       )
+       average_balance: Decimal = BaseSchemaValidator.money_field(
+           description="Average account balance"
+       )
+       percentage_of_total: Decimal = BaseSchemaValidator.percentage_field(
+           description="Percentage of total funds across all accounts"
+       )
    ```
 
 5. **Additional Specialized Distribution Utilities**:
@@ -223,16 +313,26 @@ This approach balances the need for accuracy in financial calculations with the 
        return round_split_amounts(split_amounts, total)
    ```
 
-### Migration Strategy
+### Implementation Strategy
 
-1. **Phase 1: Core Utilities (Week 1)**
-   - Create the `DecimalPrecision` utility module in `src/utils/decimal_precision.py`
-   - Implement rounding and distribution utilities
-   - Add comprehensive tests for all utility functions
-   - No impact on existing code yet
+Our implementation follows a centralized approach to maintain consistency and minimize code duplication:
 
-2. **Phase 2: Database Schema Updates (Week 2)**
-   - Create an Alembic migration to update all 23 identified decimal columns:
+1. **Phase 1: Core Utilities**
+   - Created the `DecimalPrecision` utility module in `src/core/decimal_precision.py`
+   - Implemented rounding, validation, and distribution utilities
+   - Added utility functions for common operations like sum validation
+   - Comprehensive test coverage for all utility functions
+
+2. **Phase 2: BaseSchemaValidator Enhancement**
+   - Enhanced `BaseSchemaValidator` in `src/schemas/__init__.py` with:
+     - `money_field()` method for standardized 2-decimal monetary fields
+     - `percentage_field()` method for standardized 4-decimal percentage fields
+     - Enhanced validation that respects field-specific decimal precision
+   - Created a unified validation approach that handles both standard and special cases
+   
+3. **Phase 3: Database Schema Updates**
+   - Updated all database models to use `Numeric(12, 4)` for decimal fields
+   - Created a simplified database reset approach instead of complex migrations:
      ```python
      # Example migration operation for all monetary fields
      op.alter_column('accounts', 'available_balance', 
@@ -282,6 +382,7 @@ This approach balances the need for accuracy in financial calculations with the 
 
 - **Changed Validation Behavior**: Input validation remains strict, but internal calculations have more flexibility
 - **Documentation Requirements**: Need to clearly document precision expectations
+- **Implementation Consistency**: Schema updates require coordinated changes across multiple files
 
 ## Performance Impact
 
@@ -357,3 +458,4 @@ Refer to `/docs/decimal_fields_inventory.md` for the complete inventory of affec
 | 2025-03-15 | 1.0 | Cline | Initial draft proposal |
 | 2025-03-16 | 1.1 | Cline | Added systematic inventory results; Refined implementation details; Added specific field listings; Updated migration strategy with timeline |
 | 2025-03-16 | 2.0 | Cline | Completed comprehensive inventory of all 187 decimal fields; Updated status to Accepted; Added detailed classification of database vs. schema fields and precision requirements |
+| 2025-03-16 | 2.1 | Cline | Implemented centralized approach with enhanced BaseSchemaValidator; Added utility field methods and improved DecimalPrecision core module; Updated implementation strategy to focus on consistency and standardization |

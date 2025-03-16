@@ -7,7 +7,7 @@ throughout the application.
 """
 
 from decimal import Decimal, ROUND_HALF_UP
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Any
 
 
 class DecimalPrecision:
@@ -16,6 +16,9 @@ class DecimalPrecision:
     # Precision constants
     DISPLAY_PRECISION = Decimal('0.01')  # 2 decimal places
     CALCULATION_PRECISION = Decimal('0.0001')  # 4 decimal places
+    
+    # Epsilon for comparing decimal equality in financial calculations
+    EPSILON = Decimal('0.01')
     
     @staticmethod
     def round_for_display(value: Decimal) -> Decimal:
@@ -148,3 +151,26 @@ class DecimalPrecision:
             List of equal split amounts that sum exactly to the original total
         """
         return DecimalPrecision.distribute_with_largest_remainder(total, splits)
+        
+    @staticmethod
+    def validate_sum_equals_total(items: List[Any], total: Decimal, amount_attr: str = 'amount', epsilon: Optional[Decimal] = None) -> bool:
+        """
+        Validates that a sum of values equals an expected total within a small epsilon.
+        
+        Args:
+            items: List of objects with amount attributes
+            total: Expected total
+            amount_attr: Name of the attribute containing the amount
+            epsilon: Maximum allowed difference (defaults to DecimalPrecision.EPSILON)
+            
+        Returns:
+            bool: True if sum matches total within epsilon, False otherwise
+        """
+        if not items:
+            return total == Decimal('0')
+            
+        if epsilon is None:
+            epsilon = DecimalPrecision.EPSILON
+            
+        sum_value = sum(getattr(item, amount_attr) for item in items)
+        return abs(sum_value - total) <= epsilon

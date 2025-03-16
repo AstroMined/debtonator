@@ -11,13 +11,11 @@ class AccountCorrelation(BaseSchemaValidator):
     Schema for account correlation data.
     
     Describes the relationship between two accounts based on transaction patterns.
+    Implements ADR-013 with standardized precision validation.
     """
-    correlation_score: Decimal = Field(
-        ..., 
-        ge=-1, 
-        le=1,
-        decimal_places=2,
-        description="Correlation coefficient between accounts (-1 to 1)"
+    correlation_score: Decimal = BaseSchemaValidator.percentage_field(
+        description="Correlation coefficient between accounts (-1 to 1)",
+        ge=-1
     )
     transfer_frequency: int = Field(
         ..., 
@@ -40,6 +38,7 @@ class TransferPattern(BaseSchemaValidator):
     Schema for transfer pattern data.
     
     Describes patterns of fund transfers between accounts.
+    Implements ADR-013 with standardized money field validation.
     """
     source_account_id: int = Field(
         ...,
@@ -49,9 +48,7 @@ class TransferPattern(BaseSchemaValidator):
         ...,
         description="ID of the target account for transfers"
     )
-    average_amount: Decimal = Field(
-        ...,
-        decimal_places=2,
+    average_amount: Decimal = BaseSchemaValidator.money_field(
         description="Average amount transferred"
     )
     frequency: int = Field(
@@ -75,6 +72,7 @@ class AccountUsagePattern(BaseSchemaValidator):
     Schema for account usage pattern data.
     
     Describes how an account is typically used based on transaction history.
+    Implements ADR-013 with standardized money and percentage field validation.
     """
     account_id: int = Field(
         ...,
@@ -84,9 +82,7 @@ class AccountUsagePattern(BaseSchemaValidator):
         ...,
         description="Primary purpose of the account"
     )
-    average_transaction_size: Decimal = Field(
-        ...,
-        decimal_places=2,
+    average_transaction_size: Decimal = BaseSchemaValidator.money_field(
         description="Average size of transactions in this account"
     )
     common_merchants: List[str] = Field(
@@ -103,12 +99,9 @@ class AccountUsagePattern(BaseSchemaValidator):
         ...,
         description="Categories and their usage proportions"
     )
-    utilization_rate: Optional[Decimal] = Field(
-        None, 
-        ge=0, 
-        le=1,
-        decimal_places=2,
-        description="Credit utilization rate (for credit accounts)"
+    utilization_rate: Optional[Decimal] = BaseSchemaValidator.percentage_field(
+        description="Credit utilization rate (for credit accounts)",
+        default=None
     )
 
 class BalanceDistribution(BaseSchemaValidator):
@@ -116,40 +109,30 @@ class BalanceDistribution(BaseSchemaValidator):
     Schema for balance distribution data.
     
     Describes the distribution of funds across accounts.
+    Implements ADR-013 with 2 decimal precision for monetary values 
+    and 4 decimal precision for percentage values.
     """
     account_id: int = Field(
         ...,
         description="ID of the account"
     )
-    average_balance: Decimal = Field(
-        ...,
-        decimal_places=2,
+    average_balance: Decimal = BaseSchemaValidator.money_field(
         description="Average account balance"
     )
-    balance_volatility: Decimal = Field(
-        ...,
-        decimal_places=2,
+    balance_volatility: Decimal = BaseSchemaValidator.money_field(
         description="Standard deviation of balance over time"
     )
-    min_balance_30d: Decimal = Field(
-        ...,
-        decimal_places=2,
+    min_balance_30d: Decimal = BaseSchemaValidator.money_field(
         description="Minimum balance in last 30 days"
     )
-    max_balance_30d: Decimal = Field(
-        ...,
-        decimal_places=2,
+    max_balance_30d: Decimal = BaseSchemaValidator.money_field(
         description="Maximum balance in last 30 days"
     )
     typical_balance_range: Tuple[Decimal, Decimal] = Field(
         ...,
         description="Typical range of account balance (min, max)"
     )
-    percentage_of_total: Decimal = Field(
-        ..., 
-        ge=0, 
-        le=1,
-        decimal_places=4,
+    percentage_of_total: Decimal = BaseSchemaValidator.percentage_field(
         description="Percentage of total funds across all accounts"
     )
 
@@ -158,44 +141,26 @@ class AccountRiskAssessment(BaseSchemaValidator):
     Schema for account risk assessment data.
     
     Provides risk metrics for an account based on transaction history.
+    Implements ADR-013 with standardized validation for percentage fields.
     """
     account_id: int = Field(
         ...,
         description="ID of the account"
     )
-    overdraft_risk: Decimal = Field(
-        ..., 
-        ge=0, 
-        le=1,
-        decimal_places=2,
+    overdraft_risk: Decimal = BaseSchemaValidator.percentage_field(
         description="Risk of overdraft (0-1 scale)"
     )
-    credit_utilization_risk: Optional[Decimal] = Field(
-        None, 
-        ge=0, 
-        le=1,
-        decimal_places=2,
-        description="Risk from high credit utilization (0-1 scale)"
+    credit_utilization_risk: Optional[Decimal] = BaseSchemaValidator.percentage_field(
+        description="Risk from high credit utilization (0-1 scale)",
+        default=None
     )
-    payment_failure_risk: Decimal = Field(
-        ..., 
-        ge=0, 
-        le=1,
-        decimal_places=2,
+    payment_failure_risk: Decimal = BaseSchemaValidator.percentage_field(
         description="Risk of payment failure (0-1 scale)"
     )
-    volatility_score: Decimal = Field(
-        ..., 
-        ge=0, 
-        le=1,
-        decimal_places=2,
+    volatility_score: Decimal = BaseSchemaValidator.percentage_field(
         description="Score representing balance volatility (0-1 scale)"
     )
-    overall_risk_score: Decimal = Field(
-        ..., 
-        ge=0, 
-        le=1,
-        decimal_places=2,
+    overall_risk_score: Decimal = BaseSchemaValidator.percentage_field(
         description="Overall risk score (0-1 scale)"
     )
 
