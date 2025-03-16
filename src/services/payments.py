@@ -5,6 +5,8 @@ from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
+from src.core.decimal_precision import DecimalPrecision
+
 from ..models.payments import Payment, PaymentSource
 from ..models.accounts import Account
 from ..schemas.payments import PaymentCreate, PaymentUpdate
@@ -30,11 +32,16 @@ class PaymentService:
 
             # Validate account has sufficient funds/credit
             source_amount = Decimal(str(source['amount']))
+            # Round for internal calculation to ensure consistency
+            source_amount = DecimalPrecision.round_for_calculation(source_amount)
+            
             if account.type == 'credit':
-                if account.available_credit < source_amount:
+                available_credit = DecimalPrecision.round_for_calculation(account.available_credit)
+                if available_credit < source_amount:
                     return False, f"Insufficient credit in account {account.name}"
             else:
-                if account.available_balance < source_amount:
+                available_balance = DecimalPrecision.round_for_calculation(account.available_balance)
+                if available_balance < source_amount:
                     return False, f"Insufficient funds in account {account.name}"
 
         return True, None
@@ -98,10 +105,12 @@ class PaymentService:
             raise ValueError(error)
 
         # Create payment
+        # Use calculation precision for internal storage, but this will display as 2 decimal places in API responses
+        amount = DecimalPrecision.round_for_calculation(payment_create.amount)
         db_payment = Payment(
             liability_id=payment_create.liability_id,
             income_id=payment_create.income_id,
-            amount=payment_create.amount,
+            amount=amount,
             payment_date=payment_create.payment_date,
             description=payment_create.description,
             category=payment_create.category
@@ -111,10 +120,11 @@ class PaymentService:
 
         # Create payment sources
         for source in payment_create.sources:
+            source_amount = DecimalPrecision.round_for_calculation(source.amount)
             db_source = PaymentSource(
                 payment_id=db_payment.id,
                 account_id=source.account_id,
-                amount=source.amount
+                amount=source_amount
             )
             self.db.add(db_source)
 

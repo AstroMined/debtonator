@@ -32,10 +32,10 @@ class StatementHistory(BaseDBModel):
         comment="Date of the statement (naive UTC)",
     )
     statement_balance: Mapped[Decimal] = mapped_column(
-        Numeric(10, 2), nullable=False, comment="Balance on statement date"
+        Numeric(12, 4), nullable=False, comment="Balance on statement date"
     )
     minimum_payment: Mapped[Decimal] = mapped_column(
-        Numeric(10, 2), nullable=True, comment="Minimum payment due"
+        Numeric(12, 4), nullable=True, comment="Minimum payment due"
     )
     due_date: Mapped[datetime] = mapped_column(
         DateTime(), nullable=True, comment="Payment due date (naive UTC)"

@@ -4,11 +4,15 @@ from typing import List, Optional, Any
 from pydantic import Field, ConfigDict, field_validator, model_validator
 
 from . import BaseSchemaValidator
+from src.core.decimal_precision import DecimalPrecision
 
 # Common validation function for decimal precision
 def validate_decimal_precision(value: Decimal, decimal_places: int = 2) -> Decimal:
     """
     Validates that a Decimal value has at most the specified number of decimal places.
+    
+    Implements the API boundary rule from ADR-013 by ensuring inputs have at most
+    2 decimal places for consistency with user expectations.
     
     Args:
         value: The Decimal value to validate
@@ -20,8 +24,14 @@ def validate_decimal_precision(value: Decimal, decimal_places: int = 2) -> Decim
     Raises:
         ValueError: If value has more than the allowed decimal places
     """
-    if isinstance(value, Decimal) and value.as_tuple().exponent < -decimal_places:
-        raise ValueError(f"Amount must have at most {decimal_places} decimal places")
+    if decimal_places == 2:
+        # Use the DecimalPrecision utility for standard API boundary validation
+        if not DecimalPrecision.validate_input_precision(value):
+            raise ValueError("Amount must have at most 2 decimal places")
+    else:
+        # For non-standard precision requirements, fall back to manual check
+        if isinstance(value, Decimal) and value.as_tuple().exponent < -decimal_places:
+            raise ValueError(f"Amount must have at most {decimal_places} decimal places")
     return value
 
 class PaymentSourceBase(BaseSchemaValidator):

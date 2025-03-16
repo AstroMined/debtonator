@@ -5,6 +5,7 @@ from sqlalchemy import select, delete, and_, func, or_, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
+from src.core.decimal_precision import DecimalPrecision
 from src.models.liabilities import Liability
 from src.models.bill_splits import BillSplit
 from src.models.accounts import Account
@@ -511,7 +512,10 @@ class BillSplitService:
                 for acc_split in pattern_str.split("|"):
                     acc_id, amount, total = acc_split.split(":")
                     # Calculate new amount while preserving original proportions
-                    pattern[int(acc_id)] = (Decimal(amount) / Decimal(total) * liability.amount).quantize(Decimal('0.01'))
+                    # Use DecimalPrecision for rounding to ensure proper handling
+                    proportion = Decimal(amount) / Decimal(total)
+                    new_amount = proportion * liability.amount
+                    pattern[int(acc_id)] = DecimalPrecision.round_for_display(new_amount)
                 frequent_patterns.append(pattern)
 
         return frequent_patterns
@@ -660,7 +664,10 @@ class BillSplitService:
         )
         result = await self.db.execute(stmt)
         splits = result.unique().scalars().all()
-        return sum(split.amount for split in splits)
+        
+        # Use DecimalPrecision to handle the sum with proper precision
+        total = sum(split.amount for split in splits)
+        return DecimalPrecision.round_for_calculation(total)
 
     async def process_bulk_operation(
         self,

@@ -5,6 +5,7 @@ from typing import List, Optional, Tuple
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.decimal_precision import DecimalPrecision
 from src.models.accounts import Account
 from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability
@@ -59,8 +60,14 @@ class ImpactAnalysisService:
             risk_factors
         )
         
+        # Calculate total amount with proper precision
+        total_amount = DecimalPrecision.round_for_calculation(
+            sum(DecimalPrecision.round_for_calculation(Decimal(str(split["amount"]))) 
+                for split in request.splits)
+        )
+        
         return SplitImpactAnalysis(
-            total_amount=sum(Decimal(str(split["amount"])) for split in request.splits),
+            total_amount=total_amount,
             account_impacts=account_impacts,
             cashflow_impacts=cashflow_impacts,
             risk_factors=risk_factors,
@@ -95,21 +102,26 @@ class ImpactAnalysisService:
             split_amount = Decimal('0')
             for split in splits:
                 if split["account_id"] == account.id:
-                    split_amount = Decimal(str(split["amount"]))
+                    split_amount = DecimalPrecision.round_for_calculation(Decimal(str(split["amount"])))
                     break
             
-            # Calculate projected balance
-            projected_balance = account.available_balance - split_amount
+            # Calculate projected balance with 4 decimal precision
+            available_balance = DecimalPrecision.round_for_calculation(account.available_balance)
+            projected_balance = DecimalPrecision.round_for_calculation(available_balance - split_amount)
             
             # Calculate credit utilization for credit accounts
             current_utilization = None
             projected_utilization = None
             if account.type == "credit" and account.total_limit:
-                current_utilization = (
-                    abs(account.available_balance) / account.total_limit * 100
+                total_limit = DecimalPrecision.round_for_calculation(account.total_limit)
+                
+                # Calculate with 4 decimal places for internal precision
+                current_utilization = DecimalPrecision.round_for_calculation(
+                    (abs(available_balance) / total_limit) * Decimal('100')
                 )
-                projected_utilization = (
-                    abs(projected_balance) / account.total_limit * 100
+                
+                projected_utilization = DecimalPrecision.round_for_calculation(
+                    (abs(projected_balance) / total_limit) * Decimal('100')
                 )
             
             # Calculate risk score for this account
@@ -148,18 +160,27 @@ class ImpactAnalysisService:
         # Calculate impacts for each month in the period
         current_date = today
         while current_date <= end_date:
-            month_bills = sum(
-                bill.amount for bill in upcoming_bills
-                if bill.due_date.month == current_date.month
+            # Sum bill amounts with proper precision
+            month_bills = DecimalPrecision.round_for_calculation(
+                sum(
+                    DecimalPrecision.round_for_calculation(bill.amount) 
+                    for bill in upcoming_bills
+                    if bill.due_date.month == current_date.month
+                )
             )
             
-            # Calculate available funds across all accounts
-            available_funds = sum(account.available_balance for account in accounts)
+            # Calculate available funds across all accounts with proper precision
+            available_funds = DecimalPrecision.round_for_calculation(
+                sum(
+                    DecimalPrecision.round_for_calculation(account.available_balance) 
+                    for account in accounts
+                )
+            )
             
             # Calculate projected deficit
             projected_deficit = None
             if available_funds < month_bills:
-                projected_deficit = month_bills - available_funds
+                projected_deficit = DecimalPrecision.round_for_calculation(month_bills - available_funds)
             
             impacts.append(CashflowImpact(
                 date=current_date,
@@ -201,22 +222,32 @@ class ImpactAnalysisService:
         # Check for high credit utilization
         for account in accounts:
             if account.type == "credit" and account.total_limit:
-                split_amount = sum(
-                    Decimal(str(split["amount"]))
-                    for split in splits
-                    if split["account_id"] == account.id
-                )
-                projected_balance = account.available_balance - split_amount
-                utilization = (
-                    abs(projected_balance) / account.total_limit * 100
+                # Calculate split amount with 4 decimal precision
+                split_amount = DecimalPrecision.round_for_calculation(
+                    sum(
+                        DecimalPrecision.round_for_calculation(Decimal(str(split["amount"])))
+                        for split in splits
+                        if split["account_id"] == account.id
+                    )
                 )
                 
-                if utilization > 80:
+                # Use 4 decimal precision for all calculations
+                available_balance = DecimalPrecision.round_for_calculation(account.available_balance)
+                total_limit = DecimalPrecision.round_for_calculation(account.total_limit)
+                
+                projected_balance = DecimalPrecision.round_for_calculation(available_balance - split_amount)
+                utilization = DecimalPrecision.round_for_calculation(
+                    (abs(projected_balance) / total_limit) * Decimal('100')
+                )
+                
+                if utilization > Decimal('80'):
                     # Calculate severity based on how much it exceeds 80%
                     # and weight it more heavily for higher utilization
-                    excess = utilization - Decimal('80')
-                    severity = min(int(excess * Decimal('7.5')), 100)  # 7.5 means 90% utilization = 75 severity
-                    if utilization > 90:
+                    excess = DecimalPrecision.round_for_calculation(utilization - Decimal('80'))
+                    severity_decimal = DecimalPrecision.round_for_calculation(excess * Decimal('7.5'))
+                    severity = min(int(severity_decimal), 100)  # 7.5 means 90% utilization = 75 severity
+                    
+                    if utilization > Decimal('90'):
                         severity = min(severity + 30, 100)  # Extra penalty for >90% utilization
                     
                     risk_factors.append(RiskFactor(
@@ -228,27 +259,43 @@ class ImpactAnalysisService:
         # Check for low account balances
         for account in accounts:
             if account.type == "checking":
-                split_amount = sum(
-                    Decimal(str(split["amount"]))
-                    for split in splits
-                    if split["account_id"] == account.id
+                # Calculate split amount and projected balance with 4 decimal precision
+                split_amount = DecimalPrecision.round_for_calculation(
+                    sum(
+                        DecimalPrecision.round_for_calculation(Decimal(str(split["amount"])))
+                        for split in splits
+                        if split["account_id"] == account.id
+                    )
                 )
-                projected_balance = account.available_balance - split_amount
                 
-                if projected_balance < 1000:
+                available_balance = DecimalPrecision.round_for_calculation(account.available_balance)
+                projected_balance = DecimalPrecision.round_for_calculation(available_balance - split_amount)
+                
+                if projected_balance < Decimal('1000'):
+                    # Calculate severity with 4 decimal precision
+                    severity_calc = DecimalPrecision.round_for_calculation(
+                        (Decimal('1000') - projected_balance) / Decimal('10')
+                    )
+                    severity = min(int(severity_calc), 100)
+                    
                     risk_factors.append(RiskFactor(
                         name="Low Account Balance",
-                        severity=min(int((1000 - projected_balance) / 10), 100),
+                        severity=severity,
                         description=f"Account {account.id} balance will fall below $1,000"
                     ))
         
         # Check for cashflow deficits
         for impact in cashflow_impacts:
             if impact.projected_deficit:
+                # Calculate severity with 4 decimal precision
+                deficit = DecimalPrecision.round_for_calculation(impact.projected_deficit)
+                severity_calc = DecimalPrecision.round_for_calculation(deficit / Decimal('100'))
+                severity = min(int(severity_calc), 100)
+                
                 risk_factors.append(RiskFactor(
                     name="Cashflow Deficit",
-                    severity=min(int(impact.projected_deficit / 100), 100),
-                    description=f"Projected deficit of ${impact.projected_deficit} on {impact.date}"
+                    severity=severity,
+                    description=f"Projected deficit of ${deficit} on {impact.date}"
                 ))
         
         return risk_factors
@@ -266,29 +313,37 @@ class ImpactAnalysisService:
         if account.type == "credit":
             # Higher risk for high credit utilization
             if projected_utilization:
-                if projected_utilization > 90:
+                util = DecimalPrecision.round_for_calculation(projected_utilization)
+                if util > Decimal('90'):
                     risk_score += 50
-                elif projected_utilization > 80:
+                elif util > Decimal('80'):
                     risk_score += 40
-                elif projected_utilization > 70:
+                elif util > Decimal('70'):
                     risk_score += 30
         else:
             # Higher risk for low checking balances
-            if projected_balance < 500:
+            bal = DecimalPrecision.round_for_calculation(projected_balance)
+            if bal < Decimal('500'):
                 risk_score += 50
-            elif projected_balance < 1000:
+            elif bal < Decimal('1000'):
                 risk_score += 40
-            elif projected_balance < 2000:
+            elif bal < Decimal('2000'):
                 risk_score += 30
         
         # Risk based on split amount relative to current balance
-        balance_ratio = split_amount / abs(account.available_balance)
-        if balance_ratio > 0.5:
-            risk_score += 40
-        elif balance_ratio > 0.3:
-            risk_score += 30
-        elif balance_ratio > 0.1:
-            risk_score += 20
+        available_balance = DecimalPrecision.round_for_calculation(abs(account.available_balance))
+        split = DecimalPrecision.round_for_calculation(split_amount)
+        
+        # Avoid division by zero
+        if available_balance > Decimal('0'):
+            balance_ratio = DecimalPrecision.round_for_calculation(split / available_balance)
+            
+            if balance_ratio > Decimal('0.5'):
+                risk_score += 40
+            elif balance_ratio > Decimal('0.3'):
+                risk_score += 30
+            elif balance_ratio > Decimal('0.1'):
+                risk_score += 20
         
         return min(risk_score, 100)
 
@@ -298,9 +353,20 @@ class ImpactAnalysisService:
             return 0
             
         # Weight higher severity risks more heavily
-        weighted_sum = sum(factor.severity * 1.5 if factor.severity > 70 else factor.severity
-                         for factor in risk_factors)
-        return min(int(weighted_sum / len(risk_factors)), 100)
+        weighted_sum = DecimalPrecision.round_for_calculation(
+            sum(
+                DecimalPrecision.round_for_calculation(
+                    Decimal(str(factor.severity)) * Decimal('1.5') 
+                    if factor.severity > 70 else Decimal(str(factor.severity))
+                )
+                for factor in risk_factors
+            )
+        )
+        
+        risk_count = Decimal(str(len(risk_factors)))
+        avg_risk = DecimalPrecision.round_for_calculation(weighted_sum / risk_count)
+        
+        return min(int(avg_risk), 100)
 
     def _generate_recommendations(
         self,
@@ -319,7 +385,7 @@ class ImpactAnalysisService:
                     f"to lower the risk score"
                 )
             
-            if impact.projected_credit_utilization and impact.projected_credit_utilization > 80:
+            if impact.projected_credit_utilization and impact.projected_credit_utilization > Decimal('80'):
                 recommendations.append(
                     f"Credit utilization for account {impact.account_id} will be high. "
                     f"Consider using a different account if possible."

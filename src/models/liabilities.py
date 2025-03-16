@@ -40,7 +40,7 @@ class Liability(BaseDBModel):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(255))
-    amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
+    amount: Mapped[Decimal] = mapped_column(Numeric(12, 4))
     due_date: Mapped[datetime] = mapped_column(
         DateTime(),  # No timezone parameter - enforced by schema
         nullable=False,

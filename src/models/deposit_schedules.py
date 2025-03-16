@@ -25,7 +25,7 @@ class DepositSchedule(BaseDBModel):
         nullable=False,
         doc="Scheduled deposit date (naive UTC). Use naive_utc_from_date to create.",
     )
-    amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    amount: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
     recurring: Mapped[bool] = mapped_column(Boolean, default=False)
     recurrence_pattern: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     status: Mapped[str] = mapped_column(String(50), default="pending")

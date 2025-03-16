@@ -17,7 +17,7 @@ class BillSplit(BaseDBModel):
     )
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
     amount: Mapped[Decimal] = mapped_column(
-        Numeric(10, 2), comment="Amount of the bill allocated to this account"
+        Numeric(12, 4), comment="Amount of the bill allocated to this account"
     )
     # Relationships
     liability = relationship("Liability", back_populates="splits")

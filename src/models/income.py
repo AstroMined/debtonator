@@ -51,8 +51,8 @@ class Income(BaseDBModel):
         String(255), doc="Name or description of the income source"
     )
     amount: Mapped[Decimal] = mapped_column(
-        Numeric(10, 2),
-        doc="Income amount with 2 decimal places. Validation handled by schema.",
+        Numeric(12, 4),
+        doc="Income amount with 4 decimal precision for calculations. Display validation handled by schema.",
     )
 
     # Status fields
@@ -62,7 +62,7 @@ class Income(BaseDBModel):
         doc="Indicates whether the income has been deposited into an account",
     )
     undeposited_amount: Mapped[Decimal] = mapped_column(
-        Numeric(10, 2),
+        Numeric(12, 4),
         default=0,
         doc="Calculated field maintained by service layer based on deposit status",
     )

@@ -29,7 +29,7 @@ class CreditLimitHistory(BaseDBModel):
 
     # Credit limit fields
     credit_limit: Mapped[Decimal] = mapped_column(
-        Numeric(10, 2), nullable=False, comment="Credit limit at this point in time"
+        Numeric(12, 4), nullable=False, comment="Credit limit at this point in time"
     )
     effective_date: Mapped[datetime] = mapped_column(
         DateTime(),

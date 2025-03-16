@@ -3,6 +3,8 @@ from decimal import Decimal
 from pydantic import BaseModel, field_validator, model_validator, ConfigDict
 from typing import Any
 
+from src.core.decimal_precision import DecimalPrecision
+
 class BaseSchemaValidator(BaseModel):
     """Base schema validator that enforces UTC timezone for all datetime fields.
     
@@ -93,19 +95,17 @@ class BaseSchemaValidator(BaseModel):
     @field_validator("*", mode="before")
     @classmethod
     def validate_decimal_precision(cls, value: Any) -> Any:
-        """Validates that decimal values don't exceed 2 decimal places.
+        """Validates that decimal values don't exceed 2 decimal places at API boundaries.
         
-        TODO: This is a temporary solution that strictly validates decimal
-        precision to 2 decimal places. A proper architectural decision is
-        needed for how to handle decimal precision in financial calculations.
+        Implements ADR-013 "Decimal Precision Handling" which establishes:
+        - 2 decimal places (0.01) for user inputs and outputs at API boundaries
+        - 4 decimal places (0.0001) for internal calculations to maintain precision
         
-        Future considerations:
-        - Allow more precision (4-6 decimal places) for internal calculations
-        - Enforce 2 decimal places for external inputs/outputs
-        - Implement proper rounding strategies for boundary operations
-        - Document precision handling policies
+        This validator enforces the API boundary rule to ensure all incoming decimal
+        values have at most 2 decimal places for consistency and to meet user expectations.
         
-        See upcoming ADR for "Decimal Precision Handling".
+        Internal calculations are allowed to use higher precision (4 decimal places),
+        but must be rounded appropriately when returned to the user.
         
         Args:
             value: The field value to validate
@@ -117,8 +117,8 @@ class BaseSchemaValidator(BaseModel):
             ValueError: If a Decimal field has more than 2 decimal places
         """
         if isinstance(value, Decimal):
-            # Check if it has more than 2 decimal places
-            if value.as_tuple().exponent < -2:  # exponent is negative, so < -2 means more decimal places
+            # Use the DecimalPrecision utility to validate input precision
+            if not DecimalPrecision.validate_input_precision(value):
                 raise ValueError("Decimal input should have no more than 2 decimal places")
         return value
 

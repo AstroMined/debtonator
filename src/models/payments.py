@@ -25,7 +25,7 @@ class Payment(BaseDBModel):
     income_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("income.id"), nullable=True
     )
-    amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
+    amount: Mapped[Decimal] = mapped_column(Numeric(12, 4))
     payment_date: Mapped[datetime] = mapped_column(
         DateTime(),  # No timezone parameter - enforced by schema
         default=naive_utc_now,
@@ -54,7 +54,7 @@ class PaymentSource(BaseDBModel):
         ForeignKey("payments.id", ondelete="CASCADE")
     )
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
-    amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
+    amount: Mapped[Decimal] = mapped_column(Numeric(12, 4))
     # Relationships
     payment = relationship("Payment", back_populates="sources")
     account = relationship("Account", back_populates="payment_sources")

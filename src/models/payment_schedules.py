@@ -21,7 +21,7 @@ class PaymentSchedule(BaseDBModel):
         nullable=False,
         doc="Scheduled payment date (naive UTC). Use naive_utc_from_date to create.",
     )
-    amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    amount: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String)
     auto_process: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     processed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

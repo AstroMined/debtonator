@@ -8,7 +8,7 @@ access to version components and a formatted string version for display.
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 4
-VERSION_PATCH = 4
+VERSION_PATCH = 5
 
 VERSION = f"{VERSION_MAJOR}.{VERSION_MINOR}.{VERSION_PATCH}"
 VERSION_TUPLE = (VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)

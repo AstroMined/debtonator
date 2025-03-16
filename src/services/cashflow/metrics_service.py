@@ -3,6 +3,8 @@ from decimal import Decimal
 from typing import Dict, List, Optional, Union
 from sqlalchemy import select
 
+from src.core.decimal_precision import DecimalPrecision
+
 from src.models.accounts import Account
 from src.models.cashflow import CashflowForecast
 from src.models.liabilities import Liability
@@ -111,7 +113,9 @@ class MetricsService(BaseService):
             )
         )
         liabilities = result.scalars().all()
-        return sum(liability.amount for liability in liabilities)
+        # Use 4 decimal precision for internal calculations
+        total = sum(liability.amount for liability in liabilities)
+        return DecimalPrecision.round_for_calculation(total)
 
     def calculate_daily_deficit(
         self,
@@ -125,12 +129,15 @@ class MetricsService(BaseService):
             days: Number of days to spread deficit over
             
         Returns:
-            Daily deficit amount
+            Daily deficit amount (stored with 4 decimal places internally)
         """
         if min_amount >= 0:
-            return Decimal("0.00")
-        # Round to 2 decimal places with ROUND_HALF_UP
-        return Decimal(str(round(float(abs(min_amount)) / days, 2)))
+            return Decimal("0.0000")
+            
+        # Use 4 decimal precision for internal calculations, will be rounded to 2 at API boundaries
+        min_amount = DecimalPrecision.round_for_calculation(min_amount)
+        result = abs(min_amount) / Decimal(days)
+        return DecimalPrecision.round_for_calculation(result)
 
     def calculate_yearly_deficit(
         self,
@@ -142,9 +149,11 @@ class MetricsService(BaseService):
             daily_deficit: Daily deficit amount
             
         Returns:
-            Yearly deficit amount
+            Yearly deficit amount (stored with 4 decimal places internally)
         """
-        return daily_deficit * 365
+        daily_deficit = DecimalPrecision.round_for_calculation(daily_deficit)
+        result = daily_deficit * Decimal(365)
+        return DecimalPrecision.round_for_calculation(result)
 
     def calculate_required_income(
         self,
@@ -158,9 +167,12 @@ class MetricsService(BaseService):
             tax_rate: Tax rate as decimal (default 0.80 assumes 20% tax rate)
             
         Returns:
-            Required gross income
+            Required gross income (stored with 4 decimal places internally)
         """
-        return yearly_deficit / tax_rate
+        yearly_deficit = DecimalPrecision.round_for_calculation(yearly_deficit)
+        tax_rate = DecimalPrecision.round_for_calculation(tax_rate)
+        result = yearly_deficit / tax_rate
+        return DecimalPrecision.round_for_calculation(result)
 
     def update_cashflow_deficits(self, forecast: CashflowForecast) -> None:
         """Calculate daily and yearly deficits for a cashflow forecast model.
@@ -201,10 +213,13 @@ class MetricsService(BaseService):
         Args:
             forecast: The CashflowForecast model to update
         """
-        weekly_required = forecast.required_income / 52
-        forecast.hourly_rate_40 = weekly_required / 40
-        forecast.hourly_rate_30 = weekly_required / 30
-        forecast.hourly_rate_20 = weekly_required / 20
+        # Use 4 decimal precision for all internal calculations
+        required_income = DecimalPrecision.round_for_calculation(forecast.required_income)
+        weekly_required = DecimalPrecision.round_for_calculation(required_income / Decimal(52))
+        
+        forecast.hourly_rate_40 = DecimalPrecision.round_for_calculation(weekly_required / Decimal(40))
+        forecast.hourly_rate_30 = DecimalPrecision.round_for_calculation(weekly_required / Decimal(30))
+        forecast.hourly_rate_20 = DecimalPrecision.round_for_calculation(weekly_required / Decimal(20))
     
     def update_cashflow_all_calculations(self, forecast: CashflowForecast, tax_rate: Decimal = Decimal("0.8")) -> None:
         """Perform all calculations on a cashflow forecast model.
@@ -235,24 +250,37 @@ class MetricsService(BaseService):
             warning_flags: List of warning flags
             
         Returns:
-            Confidence score as Decimal
+            Confidence score as Decimal (stored with 4 decimal places internally)
         """
-        base_confidence = Decimal("0.9")  # Start with 90% confidence
+        # Use 4 decimal precision for internal calculations
+        base_confidence = DecimalPrecision.round_for_calculation(Decimal("0.9"))  # Start with 90% confidence
 
-        # Reduce confidence based on warning flags
+        # Reduce confidence based on warning flags with proper precision
         confidence_deductions = {
-            "low_balance": Decimal("0.2"),
-            "high_credit_utilization": Decimal("0.15"),
-            "large_outflow": Decimal("0.1")
+            "low_balance": DecimalPrecision.round_for_calculation(Decimal("0.2")),
+            "high_credit_utilization": DecimalPrecision.round_for_calculation(Decimal("0.15")),
+            "large_outflow": DecimalPrecision.round_for_calculation(Decimal("0.1"))
         }
         
         for flag in warning_flags:
             if flag in confidence_deductions:
-                base_confidence -= confidence_deductions[flag]
+                base_confidence = DecimalPrecision.round_for_calculation(
+                    base_confidence - confidence_deductions[flag]
+                )
 
         # Adjust for transaction volume
         if len(transactions) > 5:  # High transaction volume increases uncertainty
-            base_confidence -= Decimal("0.1")
+            base_confidence = DecimalPrecision.round_for_calculation(
+                base_confidence - DecimalPrecision.round_for_calculation(Decimal("0.1"))
+            )
 
-        # Ensure confidence stays within valid range
-        return max(min(base_confidence, Decimal("1.0")), Decimal("0.1"))
+        # Ensure confidence stays within valid range with proper precision
+        max_confidence = DecimalPrecision.round_for_calculation(Decimal("1.0"))
+        min_confidence = DecimalPrecision.round_for_calculation(Decimal("0.1"))
+        
+        if base_confidence > max_confidence:
+            return max_confidence
+        elif base_confidence < min_confidence:
+            return min_confidence
+        else:
+            return base_confidence

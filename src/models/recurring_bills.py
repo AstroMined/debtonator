@@ -20,7 +20,7 @@ class RecurringBill(BaseDBModel):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     bill_name: Mapped[str] = mapped_column(String(255))
-    amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
+    amount: Mapped[Decimal] = mapped_column(Numeric(12, 4))
     day_of_month: Mapped[int]
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))

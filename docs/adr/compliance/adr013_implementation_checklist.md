@@ -4,20 +4,24 @@ This checklist details all tasks required to fully implement ADR-013 (Decimal Pr
 
 ## 1. Core Module Implementation
 
-- [ ] Create `src/core` directory if it doesn't exist
-- [ ] Create `src/core/decimal_precision.py` with the following components:
-  - [ ] `DecimalPrecision` class with constants for display and calculation precision
-  - [ ] `round_for_display()` method for 2 decimal place rounding
-  - [ ] `round_for_calculation()` method for 4 decimal place rounding
-  - [ ] `validate_input_precision()` method for input validation
-  - [ ] `distribute_with_largest_remainder()` for equal distribution
-  - [ ] `distribute_by_percentage()` for percentage-based distribution
+- [x] Create `src/core` directory if it doesn't exist
+- [x] Create `src/core/decimal_precision.py` with the following components:
+  - [x] `DecimalPrecision` class with constants for display and calculation precision
+  - [x] `round_for_display()` method for 2 decimal place rounding
+  - [x] `round_for_calculation()` method for 4 decimal place rounding
+  - [x] `validate_input_precision()` method for input validation
+  - [x] `distribute_with_largest_remainder()` for equal distribution
+  - [x] `distribute_by_percentage()` for percentage-based distribution
 
 ## 2. Database Schema Updates
 
-- [ ] Create an Alembic migration to update all 37 database decimal fields:
-  - [ ] Change all 37 `Numeric(10, 2)` columns to `Numeric(12, 4)` (see detailed list below)
-  - [ ] Add a data migration component to scale existing data appropriately
+**Note: As agreed upon, instead of creating complex migrations, we will simply update the SQLAlchemy models and re-initialize the database when needed using:**
+```bash
+rm -f debtonator.db && python -m src.database.init_db
+```
+
+- [x] Update model definitions for all 37 database decimal fields:
+  - [x] Change all 37 `Numeric(10, 2)` columns to `Numeric(12, 4)` (see detailed list below)
 
 ### Database Fields to Update (37 fields):
 
@@ -92,22 +96,22 @@ src/models/cashflow.py:
 
 ## 3. SQLAlchemy Model Updates
 
-- [ ] Update model definitions to match new database column precision:
-  - [ ] `src/models/accounts.py` - Update field definitions
-  - [ ] `src/models/liabilities.py` - Update field definitions
-  - [ ] `src/models/bill_splits.py` - Update field definitions
-  - [ ] `src/models/payments.py` - Update field definitions
-  - [ ] `src/models/income.py` - Update field definitions
-  - [ ] `src/models/balance_history.py` - Update field definitions
-  - [ ] `src/models/transaction_history.py` - Update field definitions
-  - [ ] `src/models/credit_limit_history.py` - Update field definitions
-  - [ ] `src/models/recurring_bills.py` - Update field definitions
-  - [ ] `src/models/recurring_income.py` - Update field definitions
-  - [ ] `src/models/statement_history.py` - Update field definitions
-  - [ ] `src/models/balance_reconciliation.py` - Update field definitions
-  - [ ] `src/models/deposit_schedules.py` - Update field definitions
-  - [ ] `src/models/payment_schedules.py` - Update field definitions
-  - [ ] `src/models/cashflow.py` - Update field definitions
+- [x] Update model definitions to match new database column precision:
+  - [x] `src/models/accounts.py` - Update field definitions
+  - [x] `src/models/liabilities.py` - Update field definitions
+  - [x] `src/models/bill_splits.py` - Update field definitions
+  - [x] `src/models/payments.py` - Update field definitions
+  - [x] `src/models/income.py` - Update field definitions
+  - [x] `src/models/balance_history.py` - Update field definitions
+  - [x] `src/models/transaction_history.py` - Update field definitions
+  - [x] `src/models/credit_limit_history.py` - Update field definitions
+  - [x] `src/models/recurring_bills.py` - Update field definitions
+  - [x] `src/models/recurring_income.py` - Update field definitions
+  - [x] `src/models/statement_history.py` - Update field definitions
+  - [x] `src/models/balance_reconciliation.py` - Update field definitions
+  - [x] `src/models/deposit_schedules.py` - Update field definitions
+  - [x] `src/models/payment_schedules.py` - Update field definitions
+  - [x] `src/models/cashflow.py` - Update field definitions
 
 ## 4. Pydantic Schema Updates
 
@@ -115,7 +119,7 @@ src/models/cashflow.py:
   - [ ] Verify validation in `src/schemas/accounts.py`
   - [ ] Verify validation in `src/schemas/bill_splits.py`
   - [ ] Verify validation in `src/schemas/liabilities.py`
-  - [ ] Verify validation in `src/schemas/payments.py`
+  - [x] Verify validation in `src/schemas/payments.py`
   - [ ] Verify validation in `src/schemas/realtime_cashflow.py`
   - [ ] Verify validation in `src/schemas/credit_limits.py`
   - [ ] Verify validation in `src/schemas/balance_history.py`
@@ -140,9 +144,9 @@ src/models/cashflow.py:
 
 ## 5. Update `BaseSchemaValidator` Class
 
-- [ ] Update base schema validator to reference the new DecimalPrecision core module:
-  - [ ] Modify the `validate_decimal_precision` method in appropriate base schema file
-  - [ ] Use the `DecimalPrecision.validate_input_precision` method
+- [x] Update base schema validator to reference the new DecimalPrecision core module:
+  - [x] Modify the `validate_decimal_precision` method in appropriate base schema file
+  - [x] Use the `DecimalPrecision.validate_input_precision` method
   - [ ] Ensure this validation is consistently applied across all schema files
 
 ## 6. Service Layer Updates
@@ -151,27 +155,27 @@ Update service classes that handle decimal calculations to use the new `DecimalP
 
 ### Critical Services to Update:
 
-- [ ] `src/services/bill_splits.py`:
-  - [ ] Update split calculation logic to use `distribute_with_largest_remainder()`
-  - [ ] Ensure internal calculations use 4 decimal places
-  - [ ] Round to 2 decimal places at API boundaries
+- [x] `src/services/bill_splits.py`:
+  - [x] Update split calculation logic to use `distribute_with_largest_remainder()`
+  - [x] Ensure internal calculations use 4 decimal places
+  - [x] Round to 2 decimal places at API boundaries
 
-- [ ] `src/services/payments.py`:
-  - [ ] Update payment distribution logic
-  - [ ] Use 4 decimal places for internal calculations
-  - [ ] Round to 2 decimal places when returning results
+- [x] `src/services/payments.py`:
+  - [x] Update payment distribution logic
+  - [x] Use 4 decimal places for internal calculations
+  - [x] Round to 2 decimal places when returning results
 
-- [ ] `src/services/balance_history.py`:
-  - [ ] Use 4 decimal places for running balance calculations
-  - [ ] Round appropriately at API boundaries
+- [x] `src/services/balance_history.py`:
+  - [x] Use 4 decimal places for running balance calculations
+  - [x] Round appropriately at API boundaries
 
-- [ ] `src/services/cashflow.py`:
-  - [ ] Update forecast calculations to use 4 decimal precision internally
-  - [ ] Round to 2 decimal places at API boundaries
+- [x] `src/services/cashflow.py`:
+  - [x] Update forecast calculations to use 4 decimal precision internally
+  - [x] Round to 2 decimal places at API boundaries
 
-- [ ] `src/services/impact_analysis.py`:
-  - [ ] Use 4 decimal places for all percentage and distribution calculations
-  - [ ] Round to 2 decimal places at API boundaries
+- [x] `src/services/impact_analysis.py`:
+  - [x] Use 4 decimal places for all percentage and distribution calculations
+  - [x] Round to 2 decimal places at API boundaries
 
 ### Additional Services That Work with Decimal Values:
 
@@ -227,12 +231,12 @@ Update test cases to account for new precision rules:
 - [ ] Add tests for services that handle calculations with decimal values
 
 ### Core Module Tests:
-- [ ] Create `tests/unit/core/test_decimal_precision.py`:
-  - [ ] Test `round_for_display()`
-  - [ ] Test `round_for_calculation()`
-  - [ ] Test `validate_input_precision()`
-  - [ ] Test `distribute_with_largest_remainder()`
-  - [ ] Test `distribute_by_percentage()`
+- [x] Create `tests/unit/core/test_decimal_precision.py`:
+  - [x] Test `round_for_display()`
+  - [x] Test `round_for_calculation()`
+  - [x] Test `validate_input_precision()`
+  - [x] Test `distribute_with_largest_remainder()`
+  - [x] Test `distribute_by_percentage()`
 
 ### Integration Tests:
 - [ ] `tests/integration/services/test_bill_splits.py`:

@@ -7,6 +7,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.core.decimal_precision import DecimalPrecision
+
 from src.models.accounts import Account
 from src.models.balance_history import BalanceHistory
 from src.schemas.balance_history import BalanceHistoryCreate, BalanceTrend
@@ -72,23 +74,27 @@ class BalanceHistoryService:
 
         balances = [float(entry.balance) for entry in history]
         
-        # Calculate basic statistics
-        start_balance = Decimal(str(balances[0]))
-        end_balance = Decimal(str(balances[-1]))
-        net_change = end_balance - start_balance
-        avg_balance = Decimal(str(mean(balances)))
-        min_balance = Decimal(str(min(balances)))
-        max_balance = Decimal(str(max(balances)))
+        # Calculate basic statistics with proper precision
+        start_balance = DecimalPrecision.round_for_calculation(Decimal(str(balances[0])))
+        end_balance = DecimalPrecision.round_for_calculation(Decimal(str(balances[-1])))
+        net_change = DecimalPrecision.round_for_calculation(end_balance - start_balance)
+        avg_balance = DecimalPrecision.round_for_calculation(Decimal(str(mean(balances))))
+        min_balance = DecimalPrecision.round_for_calculation(Decimal(str(min(balances))))
+        max_balance = DecimalPrecision.round_for_calculation(Decimal(str(max(balances))))
         
-        # Calculate volatility (standard deviation)
-        volatility = Decimal(str(stdev(balances))) if len(balances) > 1 else Decimal('0')
+        # Calculate volatility (standard deviation) with proper precision
+        volatility = DecimalPrecision.round_for_calculation(
+            Decimal(str(stdev(balances))) if len(balances) > 1 else Decimal('0')
+        )
         
-        # Determine trend direction
-        if abs(net_change) < Decimal('0.01'):
+        # Determine trend direction - use a slightly higher threshold for "stable" with 4 decimal places
+        if abs(net_change) < Decimal('0.0001'):
             trend_direction = "stable"
         else:
             trend_direction = "increasing" if net_change > 0 else "decreasing"
 
+        # The values will be automatically rounded to 2 decimal places for display 
+        # by the Pydantic schema when returned in API responses
         return BalanceTrend(
             account_id=account_id,
             start_date=start_date,

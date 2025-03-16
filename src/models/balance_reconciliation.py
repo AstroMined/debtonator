@@ -16,9 +16,9 @@ class BalanceReconciliation(BaseDBModel):
     account_id: Mapped[int] = mapped_column(
         ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False
     )
-    previous_balance: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
-    new_balance: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
-    adjustment_amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    previous_balance: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
+    new_balance: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
+    adjustment_amount: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
     reason: Mapped[str] = mapped_column(String(255))
     reconciliation_date: Mapped[datetime] = mapped_column(
         DateTime(),

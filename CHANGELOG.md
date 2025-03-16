@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.5] - 2025-03-16
+
+### Added
+- Implemented decimal precision handling in critical services:
+  * Updated `src/services/bill_splits.py` with proper decimal precision for bill splits
+  * Enhanced `src/services/payments.py` with 4-decimal precision for payment calculations
+  * Improved `src/services/balance_history.py` for accurate running balances
+  * Updated `src/services/cashflow.py` metrics_service with proper precision handling
+  * Enhanced `src/services/impact_analysis.py` for percentage and risk calculations
+
+### Changed
+- Implemented multi-tier precision model following ADR-013:
+  * Using 4 decimal places for all internal calculations
+  * Rounding to 2 decimal places at API boundaries
+  * Proper decimal handling for financial calculations
+  * Improved accuracy in percentage and distribution calculations
+
 ## [0.4.4] - 2025-03-16
 
 ### Added

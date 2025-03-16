@@ -33,7 +33,7 @@ class TransactionHistory(BaseDBModel):
     account_id: Mapped[int] = mapped_column(
         ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False
     )
-    amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    amount: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
     transaction_type: Mapped[TransactionType] = mapped_column(
         SQLEnum(TransactionType), nullable=False
     )

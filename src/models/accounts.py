@@ -38,18 +38,18 @@ class Account(BaseDBModel):
 
     # Balance and credit fields
     available_balance: Mapped[Decimal] = mapped_column(
-        Numeric(10, 2), nullable=False, default=0, comment="Current available balance"
+        Numeric(12, 4), nullable=False, default=0, comment="Current available balance"
     )
     available_credit: Mapped[Optional[Decimal]] = mapped_column(
-        Numeric(10, 2), nullable=True, comment="Available credit for credit accounts"
+        Numeric(12, 4), nullable=True, comment="Available credit for credit accounts"
     )
     total_limit: Mapped[Optional[Decimal]] = mapped_column(
-        Numeric(10, 2), nullable=True, comment="Total credit limit for credit accounts"
+        Numeric(12, 4), nullable=True, comment="Total credit limit for credit accounts"
     )
 
     # Statement fields
     last_statement_balance: Mapped[Optional[Decimal]] = mapped_column(
-        Numeric(10, 2), nullable=True, comment="Balance from last statement"
+        Numeric(12, 4), nullable=True, comment="Balance from last statement"
     )
     last_statement_date: Mapped[Optional[datetime]] = mapped_column(
         DateTime(),  # No timezone parameter - enforced by schema
