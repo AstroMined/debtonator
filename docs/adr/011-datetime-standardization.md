@@ -157,6 +157,47 @@ The implementation of this ADR has been successfully completed:
 - Fixed issues in the accounts model including removing unused imports and improving documentation
 - Test suite verifies proper datetime handling across all models
 
+## Update (2025-03-15): Default Factory Datetime Handling
+
+During test implementation, we identified and fixed an important issue with default datetime values:
+
+### Issue Discovered
+We found that datetime fields with `default_factory=datetime.now` were creating naive datetimes that bypassed our validation system:
+- `default_factory` values are applied after individual field validation
+- These naive datetimes weren't being properly converted to UTC
+- This created inconsistent timezone behavior for default values vs. explicitly provided values
+- Tests could fail with timezone comparison issues across local vs. UTC timezones
+
+### Solution Implemented
+We enhanced the `BaseSchemaValidator` with a post-initialization validator:
+```python
+@model_validator(mode="after")
+def ensure_datetime_fields_are_utc(self) -> 'BaseSchemaValidator':
+    """Ensures all datetime fields have UTC timezone after model initialization."""
+    for field_name, field_value in self.__dict__.items():
+        if isinstance(field_value, datetime) and field_value.tzinfo is None:
+            # Get the local timezone
+            local_tz = datetime.now().astimezone().tzinfo
+            
+            # First make it timezone-aware as local time
+            aware_local_dt = field_value.replace(tzinfo=local_tz)
+            
+            # Then convert to UTC - this adjusts the actual time value
+            utc_dt = aware_local_dt.astimezone(timezone.utc)
+            
+            # Update the field
+            setattr(self, field_name, utc_dt)
+    return self
+```
+
+### Key Insight
+Local timestamps should be *converted* to UTC, not just labeled as UTC:
+- Simply adding UTC timezone to naive datetimes (`replace(tzinfo=timezone.utc)`) creates semantically incorrect datetimes
+- Proper conversion requires first interpreting the naive datetime in its local context, then converting to UTC
+- This ensures the datetime represents the same moment in time, just in different timezone representations
+
+This enhancement ensures full ADR-011 compliance for all datetime fields, including those set by default factories, and fixes a subtle but important timezone handling bug in schema validation.
+
 ## Consequences
 
 ### Positive

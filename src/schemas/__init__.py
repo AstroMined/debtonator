@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from decimal import Decimal
-from pydantic import BaseModel, field_validator, ConfigDict
+from pydantic import BaseModel, field_validator, model_validator, ConfigDict
 from typing import Any
 
 class BaseSchemaValidator(BaseModel):
@@ -122,4 +122,38 @@ class BaseSchemaValidator(BaseModel):
                 raise ValueError("Decimal input should have no more than 2 decimal places")
         return value
 
-    # model_config defined once at the top of the class
+    @model_validator(mode="after")
+    def ensure_datetime_fields_are_utc(self) -> 'BaseSchemaValidator':
+        """Ensures all datetime fields have UTC timezone after model initialization.
+        
+        This validator runs after the model is created and ensures that
+        any datetime fields (including those set by default_factory)
+        are properly timezone-aware with UTC timezone.
+        
+        This addresses a gap where values created by default_factory
+        could bypass the regular field validation and remain naive.
+        
+        Important: Naive datetimes are assumed to be in the local timezone
+        and are converted to their UTC equivalent, not just labeled with UTC.
+        
+        Args:
+            self: The model instance
+            
+        Returns:
+            The model instance with timezone-aware datetime fields
+        """
+        for field_name, field_value in self.__dict__.items():
+            if isinstance(field_value, datetime) and field_value.tzinfo is None:
+                # Get the local timezone
+                local_tz = datetime.now().astimezone().tzinfo
+                
+                # For naive datetimes (e.g., from default_factory=datetime.now),
+                # first make it timezone-aware as local time
+                aware_local_dt = field_value.replace(tzinfo=local_tz)
+                
+                # Then convert to UTC - this adjusts the actual time value
+                utc_dt = aware_local_dt.astimezone(timezone.utc)
+                
+                # Update the field with the properly converted UTC datetime
+                setattr(self, field_name, utc_dt)
+        return self

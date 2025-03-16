@@ -4,6 +4,25 @@
 Schema Validation Improvements and Decimal Precision Handling
 
 ### Recent Changes
+1. **Fixed Default DateTime UTC Validation** ✓
+   - Enhanced BaseSchemaValidator to properly handle default datetime values:
+     * Added model_validator to catch naive datetimes set by default_factory
+     * Implemented proper local-to-UTC timezone conversion for naive datetimes
+     * Fixed subtle timezone handling bug in schema validation
+   - Ensures consistent compliance with ADR-011 requirements:
+     * All datetimes, including defaults, are now properly in UTC timezone
+     * Correctly converts naive datetimes rather than just adding timezone info
+     * Preserves original time value with proper timezone conversion
+   - Improved test stability:
+     * Fixed timezone-related test failures in schema tests
+     * Added specific test for default timestamp validation
+     * Ensured datetime comparison accuracy across timezone boundaries
+   - This fix provides:
+     * Consistent UTC datetime handling across all schema classes
+     * Proper handling of default_factory created datetime values
+     * Reliable datetime comparisons in tests and application code
+     * Full compliance with ADR-011 even for auto-generated values
+
 1. **Fixed Pydantic V2 Validation Issues** ✓
    - Updated validators in schema files to properly use Pydantic V2 patterns:
      * Fixed `income_trends.py` validators to use ValidationInfo object

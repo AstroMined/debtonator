@@ -58,6 +58,7 @@ def test_cashflow_base_default_timestamp():
     """Test default forecast_date in UTC timezone"""
     before = datetime.now(timezone.utc)
     
+    # Create instance with default forecast_date
     cashflow = CashflowBase(
         total_bills=Decimal("1500.00"),
         total_income=Decimal("2500.00"),
@@ -77,8 +78,15 @@ def test_cashflow_base_default_timestamp():
     
     after = datetime.now(timezone.utc)
     
-    assert before <= cashflow.forecast_date <= after
-    assert cashflow.forecast_date.tzinfo == timezone.utc
+    # After our fix, default datetime values should be properly timezone aware
+    # The model_validator we added ensures this behavior
+    
+    # Verify the default timestamp has a UTC timezone
+    assert cashflow.forecast_date.tzinfo is not None, "Default timestamp should have timezone info"
+    assert cashflow.forecast_date.utcoffset().total_seconds() == 0, "Default timestamp should be in UTC timezone"
+    
+    # Verify the timestamp is within the expected range
+    assert before <= cashflow.forecast_date <= after, "Default timestamp should be between before and after"
 
 
 def test_cashflow_create_valid():

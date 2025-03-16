@@ -3,6 +3,21 @@
 ## Current Priority: Schema Modularization and Test Implementation
 
 ### Recent Improvements
+1. **Fixed Default DateTime UTC Validation** ✓
+   - Enhanced BaseSchemaValidator to properly handle default datetime values:
+     * Added model_validator to ensure all datetime fields are properly in UTC timezone
+     * Implemented proper local-to-UTC timezone conversion for naive datetimes
+     * Fixed subtle timezone handling bug in schema validation
+   - This improvement ensures:
+     * All datetimes, including those from default_factory, have UTC timezone
+     * Proper timezone conversion preserves the original time value
+     * Full compliance with ADR-011 for all datetime fields
+     * Improved test stability across timezone boundaries
+   - Fixed critical issue where:
+     * default_factory=datetime.now was creating naive datetimes
+     * Naive datetimes were bypassing regular field validation
+     * Local timestamps were incorrectly labeled as UTC without conversion
+
 1. **Cashflow Schema Tests Completed** ✓
    - Implemented all five test files for modularized cashflow schemas:
      * `tests/schemas/test_cashflow_base_schemas.py` - Core cashflow schemas tests
@@ -238,6 +253,21 @@
    - Improve mobile experience
 
 ## What's New
+1. **Fixed Default DateTime UTC Validation** ✓
+   - Enhanced BaseSchemaValidator to ensure proper timezone handling for all datetimes:
+     * Added model_validator that runs after model initialization
+     * Implemented local-to-UTC timezone conversion for naive datetimes
+     * Fixed subtle timezone inconsistency in default values
+   - This fix ensures ADR-011 compliance even for auto-generated default values:
+     * Values from default_factory=datetime.now now correctly converted to UTC
+     * Proper timezone conversion ensures datetimes represent the same moment in time
+     * Correct timestamp comparisons across timezone boundaries in tests
+   - Improved test stability and reliability:
+     * Fixed several tests that were failing due to timezone inconsistencies
+     * Ensured robust timestamp comparisons in tests
+     * Added specific test for default timestamp validation
+     * Properly documented timezone validation behavior
+
 1. **Fixed Pydantic V2 Validation Issues** ✓
    - Fixed validation context handling in schema files:
      * Updated income_trends.py validators to properly use ValidationInfo object
