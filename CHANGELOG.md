@@ -5,17 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.9] - 2025-03-16
+## [0.4.10] - 2025-03-16
 
 ### Added
-- Comprehensive integration tests for API response formatter
-- Decimal precision handling in core services (accounts, liabilities, recurring_bills, income)
+- Enhanced test coverage for ADR-013 decimal precision implementation:
+  * Added comprehensive tests for the core decimal precision module
+  * Added model tests for 4 decimal place storage verification
+  * Added specific test for the "$100 split three ways" case
+  * Added tests for common bill amount distributions
+  * Added tests for edge cases and large monetary values
 
 ### Changed
-- Enhanced account balance calculations with proper decimal precision
-- Improved income deposit calculations with 4-decimal internal precision
-- Updated recurring bills service to apply proper rounding for monetary values
-- Enhanced liabilities service with consistent decimal handling
+- Updated ADR-013 implementation checklist to reflect current progress (86% complete)
+- Reorganized remaining implementation tasks for clarity
+
+### Fixed
+- Fixed several gaps in the decimal precision test coverage
+- Added missing test cases for the "$100 split three ways" scenario
 
 ## [0.4.8] - 2025-03-16
 

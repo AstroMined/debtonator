@@ -82,8 +82,8 @@ class TestPayment:
                 payment_id=payment.id,
                 account_id=test_checking_account.id,
                 amount=Decimal("60.00"),
-            created_at=naive_utc_now(),
-            updated_at=naive_utc_now()
+                created_at=naive_utc_now(),
+                updated_at=naive_utc_now()
             ),
             PaymentSource(
                 payment_id=payment.id,
@@ -299,3 +299,63 @@ class TestPayment:
         # Verify source datetime fields are naive
         assert source.created_at.tzinfo is None
         assert source.updated_at.tzinfo is None
+        
+    async def test_decimal_precision_storage(
+        self,
+        db_session: AsyncSession,
+        base_bill: Liability,
+        test_checking_account: Account
+    ):
+        """Test four decimal place precision storage for payments and payment sources."""
+        # Test payment with 4 decimal precision
+        amount_4_decimals = Decimal('123.4567')
+        payment = Payment(
+            liability_id=base_bill.id,
+            amount=amount_4_decimals,
+            payment_date=naive_utc_from_date(2025, 2, 15),
+            category="Utilities"
+        )
+        db_session.add(payment)
+        await db_session.commit()
+        
+        # Verify storage with 4 decimal places in payment
+        await db_session.refresh(payment)
+        assert payment.amount == amount_4_decimals
+        assert payment.amount.as_tuple().exponent == -4, "Payment amount should store 4 decimal places"
+        
+        # Test payment source with 4 decimal precision
+        source_amount = Decimal('45.6789')
+        source = PaymentSource(
+            payment_id=payment.id,
+            account_id=test_checking_account.id,
+            amount=source_amount
+        )
+        db_session.add(source)
+        await db_session.commit()
+        
+        # Verify storage with 4 decimal places in payment source
+        await db_session.refresh(source)
+        assert source.amount == source_amount
+        assert source.amount.as_tuple().exponent == -4, "Payment source amount should store 4 decimal places"
+        
+        # Update payment with different precision
+        # Test with 1 decimal precision
+        amount_1_decimal = Decimal('500.5')
+        payment.amount = amount_1_decimal
+        await db_session.commit()
+        await db_session.refresh(payment)
+        assert payment.amount == amount_1_decimal
+        
+        # Test with integer
+        amount_integer = Decimal('600')
+        payment.amount = amount_integer
+        await db_session.commit()
+        await db_session.refresh(payment)
+        assert payment.amount == amount_integer
+        
+        # Test with 3 decimal precision
+        amount_3_decimals = Decimal('700.123')
+        payment.amount = amount_3_decimals
+        await db_session.commit()
+        await db_session.refresh(payment)
+        assert payment.amount == amount_3_decimals

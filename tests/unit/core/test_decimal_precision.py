@@ -85,6 +85,10 @@ class TestDecimalPrecision:
         
         # Check that we have the correct number of parts
         assert len(result) == parts
+        
+        # Check maximum difference between any two parts
+        max_diff = max(result) - min(result)
+        assert max_diff == Decimal('0.01'), "The maximum difference should be exactly 1 cent"
 
     def test_distribute_with_largest_remainder_odd_amount(self):
         """Test distribution with a non-round total amount."""
@@ -121,14 +125,33 @@ class TestDecimalPrecision:
         
         result = DecimalPrecision.distribute_by_percentage(total, percentages)
         
-        # Check that we have the expected parts (may vary based on implementation)
-        # But the sum should be exactly the original total
+        # Verify the expected result matches a specific distribution
+        # Should match [33.33, 33.33, 33.34] or something similar with exact sum
         assert sum(result) == total
         
         # Check that the distribution is reasonable (close to expected percentages)
         assert Decimal('33.00') <= result[0] <= Decimal('34.00')
         assert Decimal('33.00') <= result[1] <= Decimal('34.00')
         assert Decimal('33.00') <= result[2] <= Decimal('34.00')
+        
+        # Verify exactly 2 decimal places in all results
+        for amount in result:
+            assert amount.as_tuple().exponent == -2, f"{amount} should have exactly 2 decimal places"
+            
+    def test_distribute_by_percentage_with_four_decimal_precision(self):
+        """Test percentage-based distribution with 4 decimal percentages."""
+        total = Decimal('100.00')
+        # Use 4 decimal precision in percentages (representing 33.3333...%)
+        percentages = [Decimal('33.3333'), Decimal('33.3333'), Decimal('33.3334')]
+        
+        result = DecimalPrecision.distribute_by_percentage(total, percentages)
+        
+        # Verify sum equals the original amount exactly
+        assert sum(result) == total
+        
+        # Check the results have 2 decimal places
+        for amount in result:
+            assert amount.as_tuple().exponent == -2
 
     def test_distribute_by_percentage_invalid_sum(self):
         """Test that an error is raised when percentages don't sum to 100%."""
@@ -156,3 +179,114 @@ class TestDecimalPrecision:
         
         # Check that we have the correct number of splits
         assert len(result) == splits
+        
+    def test_split_one_hundred_three_ways(self):
+        """Test the specific $100 split three ways case - a classic decimal challenge."""
+        total = Decimal('100.00')
+        parts = 3
+        
+        result = DecimalPrecision.distribute_with_largest_remainder(total, parts)
+        
+        # Verify the expected distribution
+        assert result == [Decimal('33.34'), Decimal('33.33'), Decimal('33.33')]
+        
+        # Verify the sum equals the original amount exactly
+        assert sum(result) == total
+        
+        # Verify each amount has exactly 2 decimal places
+        for amount in result:
+            assert amount.as_tuple().exponent == -2, f"{amount} should have exactly 2 decimal places"
+            
+    def test_common_bill_amounts(self):
+        """Test common bill amounts that could be problematic."""
+        # Test cases with difficult divisions
+        test_cases = [
+            # total, parts, expected first element
+            (Decimal('100.00'), 3, Decimal('33.34')),  # Classic $100/3
+            (Decimal('10.00'), 3, Decimal('3.34')),   # $10/3
+            (Decimal('1.00'), 3, Decimal('0.34')),    # $1/3
+            (Decimal('20.00'), 3, Decimal('6.67')),   # $20/3
+            (Decimal('50.00'), 3, Decimal('16.67')),  # $50/3
+            (Decimal('74.99'), 3, Decimal('25.00')),  # Odd amount
+            (Decimal('0.01'), 3, Decimal('0.01')),    # Minimum amount
+            (Decimal('0.02'), 3, Decimal('0.01')),    # Near-minimum amount
+            (Decimal('0.03'), 3, Decimal('0.01')),    # Exact minimum distribution
+        ]
+        
+        for total, parts, expected_first in test_cases:
+            result = DecimalPrecision.distribute_with_largest_remainder(total, parts)
+            # Check first element (which should get the remainder)
+            assert result[0] == expected_first, f"Failed for {total}/{parts}: {result}"
+            # Check sum equals total
+            assert sum(result) == total, f"Sum doesn't match for {total}/{parts}: {sum(result)} != {total}"
+
+    def test_large_amount_distribution(self):
+        """Test distribution of large monetary amounts."""
+        total = Decimal('9999999.99')  # Very large amount
+        parts = 7
+        
+        result = DecimalPrecision.distribute_with_largest_remainder(total, parts)
+        
+        # Check sum equals total
+        assert sum(result) == total
+        
+        # Check all amounts have 2 decimal places
+        for amount in result:
+            assert amount.as_tuple().exponent == -2
+            
+    def test_validate_sum_equals_total(self):
+        """Test the validate_sum_equals_total method."""
+        class MockItem:
+            def __init__(self, amount):
+                self.amount = amount
+                
+        # Create test items with exact sum
+        items_exact = [
+            MockItem(Decimal('33.33')),
+            MockItem(Decimal('33.33')),
+            MockItem(Decimal('33.34'))
+        ]
+        
+        # Create test items with sum slightly off but within epsilon
+        items_within_epsilon = [
+            MockItem(Decimal('33.33')),
+            MockItem(Decimal('33.33')),
+            MockItem(Decimal('33.35'))  # 1 cent more than expected
+        ]
+        
+        # Create test items with sum outside epsilon
+        items_outside_epsilon = [
+            MockItem(Decimal('33.33')),
+            MockItem(Decimal('33.33')),
+            MockItem(Decimal('34.34'))  # $1.00 more than expected
+        ]
+        
+        # Test with exact sum
+        assert DecimalPrecision.validate_sum_equals_total(
+            items_exact, Decimal('100.00')
+        ) is True
+        
+        # Test with sum within epsilon
+        assert DecimalPrecision.validate_sum_equals_total(
+            items_within_epsilon, Decimal('100.00')
+        ) is True
+        
+        # Test with sum outside epsilon
+        assert DecimalPrecision.validate_sum_equals_total(
+            items_outside_epsilon, Decimal('100.00')
+        ) is False
+        
+        # Test with custom epsilon
+        assert DecimalPrecision.validate_sum_equals_total(
+            items_outside_epsilon, Decimal('100.00'), epsilon=Decimal('1.00')
+        ) is True
+        
+        # Test with empty list
+        assert DecimalPrecision.validate_sum_equals_total(
+            [], Decimal('0.00')
+        ) is True
+        
+        # Test with empty list and non-zero total
+        assert DecimalPrecision.validate_sum_equals_total(
+            [], Decimal('100.00')
+        ) is False

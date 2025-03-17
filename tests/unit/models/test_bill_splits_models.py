@@ -138,3 +138,38 @@ async def test_relationship_datetime_handling(db_session):
     # Verify datetime fields remain naive after refresh
     assert bill_split.created_at.tzinfo is None
     assert bill_split.updated_at.tzinfo is None
+    
+async def test_decimal_precision_storage(
+    db_session: AsyncSession,
+    test_checking_account: Account,
+    test_liability: Liability
+):
+    """Test four decimal place precision storage for bill splits."""
+    # Test with 4 decimal precision
+    amount_4_decimals = Decimal('500.1234')
+    bill_split = BillSplit(
+        liability_id=test_liability.id,
+        account_id=test_checking_account.id,
+        amount=amount_4_decimals
+    )
+    db_session.add(bill_split)
+    await db_session.commit()
+    
+    # Verify storage with 4 decimal places
+    await db_session.refresh(bill_split)
+    assert bill_split.amount == amount_4_decimals
+    assert bill_split.amount.as_tuple().exponent == -4, "Should store 4 decimal places"
+    
+    # Test with 2 decimal precision
+    amount_2_decimals = Decimal('600.12')
+    bill_split.amount = amount_2_decimals
+    await db_session.commit()
+    await db_session.refresh(bill_split)
+    assert bill_split.amount == amount_2_decimals
+    
+    # Test with integer
+    amount_integer = Decimal('700')
+    bill_split.amount = amount_integer
+    await db_session.commit()
+    await db_session.refresh(bill_split)
+    assert bill_split.amount == amount_integer

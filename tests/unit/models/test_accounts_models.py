@@ -145,3 +145,50 @@ async def test_account_repr(db_session: AsyncSession):
     # Test the __repr__ method
     assert repr(account) == f"<Account {account.name}>"
     assert str(account) == f"<Account {account.name}>"
+    
+async def test_decimal_precision_storage(db_session: AsyncSession):
+    """Test four decimal place precision storage for account balances and limits."""
+    # Test available balance with 4 decimal places
+    balance_4_decimals = Decimal('1000.1234')
+    account = Account(
+        name="Four Decimal Account",
+        type="checking",
+        available_balance=balance_4_decimals
+    )
+    db_session.add(account)
+    await db_session.commit()
+    
+    # Verify storage with 4 decimal places
+    await db_session.refresh(account)
+    assert account.available_balance == balance_4_decimals
+    assert account.available_balance.as_tuple().exponent == -4, "Should store 4 decimal places"
+    
+    # Test with credit account and 4 decimal places in multiple fields
+    available_balance = Decimal('-500.1234')
+    total_limit = Decimal('2000.5678')
+    available_credit = Decimal('1500.4444')
+    last_statement_balance = Decimal('600.9876')
+    
+    credit_account = Account(
+        name="Four Decimal Credit",
+        type="credit",
+        available_balance=available_balance,
+        total_limit=total_limit,
+        available_credit=available_credit,
+        last_statement_balance=last_statement_balance
+    )
+    db_session.add(credit_account)
+    await db_session.commit()
+    
+    # Verify all decimal fields store 4 decimal places
+    await db_session.refresh(credit_account)
+    assert credit_account.available_balance == available_balance
+    assert credit_account.total_limit == total_limit
+    assert credit_account.available_credit == available_credit
+    assert credit_account.last_statement_balance == last_statement_balance
+    
+    # Verify decimal precision for each field
+    assert credit_account.available_balance.as_tuple().exponent == -4
+    assert credit_account.total_limit.as_tuple().exponent == -4
+    assert credit_account.available_credit.as_tuple().exponent == -4
+    assert credit_account.last_statement_balance.as_tuple().exponent == -4

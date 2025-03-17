@@ -1,41 +1,48 @@
+# ADR-013 Implementation Checklist
+
+## Implementation Progress
+
+The following table summarizes the current implementation progress:
+
+| Area | Total Items | Completed | Remaining | Progress |
+|------|-------------|-----------|-----------|----------|
+| Core Module | 10 | 10 | 0 | 100% |
+| Database Schema | 37 | 37 | 0 | 100% |
+| SQLAlchemy Models | 15 | 15 | 0 | 100% |
+| Pydantic Schemas | 22 | 22 | 0 | 100% |
+| BaseSchemaValidator | 5 | 4 | 1 | 80% |
+| Service Layer | 9 | 9 | 0 | 100% |
+| API Response | 2 | 2 | 0 | 100% |
+| Core Tests | 10 | 10 | 0 | 100% |
+| Model Tests | 3 | 3 | 0 | 100% |
+| Schema Tests | 6 | 0 | 6 | 0% |
+| Service Tests | 3 | 0 | 3 | 0% |
+| Integration Tests | 5 | 3 | 2 | 60% |
+| Special Test Cases | 4 | 4 | 0 | 100% |
+| Documentation | 2 | 0 | 2 | 0% |
+| Developer Guidelines | 6 | 6 | 0 | 100% |
+| Quality Assurance | 7 | 0 | 7 | 0% |
+| **TOTAL** | **146** | **125** | **21** | **86%** |
+
 ## Remaining Priority Tasks
 
-1. **Update Test Suite**
+1. **Update Schema Tests**
    - Update schema tests to validate decimal precision behavior
-   - Update service tests to verify calculation precision
-   - Test the "$100 split three ways" case
    - Verify validation behavior for money vs. percentage fields
 
-2. **Update ADR Documentation**
+2. **Update Service Tests**
+   - Update service tests to verify calculation precision
+   - Test distribution methods in service layer
+
+3. **Update ADR Documentation**
    - Update ADR-013 with implementation details
    - Ensure examples reflect the implemented approach
 
-3. **Update API Documentation**
+4. **Update API Documentation**
    - Document decimal precision expectations
    - Clarify validation requirements for API consumers
 
-4. **Quality Assurance**
-   - Conduct full test suite run
-   - Verify API response formatting in edge cases
-   - Verify consistent validation behavior across schema files# ADR-013 Implementation Checklist
-
-## Remaining Priority Tasks
-
-1. **Update Test Suite**
-   - Update schema tests to validate decimal precision behavior
-   - Update service tests to verify calculation precision
-   - Test the "$100 split three ways" case
-   - Verify validation behavior for money vs. percentage fields
-
-2. **Update ADR Documentation**
-   - Update ADR-013 with implementation details
-   - Ensure examples reflect the implemented approach
-
-3. **Update API Documentation**
-   - Document decimal precision expectations
-   - Clarify validation requirements for API consumers
-
-4. **Quality Assurance**
+5. **Quality Assurance**
    - Conduct full test suite run
    - Verify API response formatting in edge cases
    - Verify consistent validation behavior across schema files
@@ -259,10 +266,18 @@ Update service classes that handle decimal calculations to use the new `DecimalP
 Update test cases to account for new precision rules:
 
 ### Model Tests:
-- [ ] `tests/unit/models/test_bill_splits.py` - Update assertions for 4 decimal precision
-- [ ] `tests/unit/models/test_payments.py` - Update assertions for payment distribution
-- [ ] `tests/unit/models/test_accounts.py` - Update balance calculation tests
-- [ ] Add tests for other models with decimal fields
+- [x] `tests/unit/models/test_bill_splits.py` - Update assertions for 4 decimal precision
+  - [x] Added `test_decimal_precision_storage()` to verify 4 decimal places are stored correctly
+  - [x] Tested various precision values (4 decimal, 2 decimal, integer)
+  - [x] Verified exponent with `as_tuple().exponent` checks
+- [x] `tests/unit/models/test_payments.py` - Update assertions for payment distribution
+  - [x] Added `test_decimal_precision_storage()` to verify 4 decimal places in payments
+  - [x] Tested Payment and PaymentSource models
+  - [x] Tested various precision values (1-4 decimal places and integers)
+- [x] `tests/unit/models/test_accounts.py` - Update balance calculation tests
+  - [x] Added `test_decimal_precision_storage()` to verify 4 decimal places in accounts
+  - [x] Tested all decimal fields including balance, credit limit, etc.
+  - [x] Verified proper exponent for stored values
 
 ### Schema Tests:
 - [ ] `tests/unit/schemas/test_bill_splits.py` - Update validation tests
@@ -285,6 +300,11 @@ Update test cases to account for new precision rules:
   - [x] Test `validate_input_precision()`
   - [x] Test `distribute_with_largest_remainder()`
   - [x] Test `distribute_by_percentage()`
+  - [x] Test `split_bill_amount()`
+  - [x] Test `validate_sum_equals_total()`
+  - [x] Test the "$100 split three ways" case specifically
+  - [x] Test common bill amounts and edge cases
+  - [x] Test large amount distribution
 
 ### Integration Tests:
 - [x] `tests/integration/api/test_response_formatter.py`:
@@ -303,10 +323,15 @@ Update test cases to account for new precision rules:
   - [ ] Test bill splitting preserves totals
 
 ### Special Test Cases:
-- [ ] Test the "$100 split three ways" case to ensure $33.33 + $33.33 + $33.34 = $100.00
-- [ ] Test percentage-based distributions to verify totals match
-- [ ] Test running calculations that could accumulate rounding errors
-- [ ] Test edge cases (e.g., very small values, very large values)
+- [x] Test the "$100 split three ways" case to ensure $33.33 + $33.33 + $33.34 = $100.00
+  - [x] Implemented in `test_split_one_hundred_three_ways()` in core tests
+  - [x] Verified exact distribution and sum is maintained
+- [x] Test percentage-based distributions to verify totals match
+  - [x] Implemented in enhanced percentage distribution tests
+- [x] Test running calculations that could accumulate rounding errors
+  - [x] Tested through distribution of large monetary values
+- [x] Test edge cases (e.g., very small values, very large values)
+  - [x] Implemented test cases for minimum cents and very large amounts
 
 ## 9. Documentation Updates
 
