@@ -114,7 +114,7 @@ def test_liability_create_validates_amount():
             category_id=1,
             primary_account_id=1,
         )
-    assert "Amount must have at most 2 decimal places" in str(exc_info.value)
+    assert "Decimal input should have no more than 2 decimal places" in str(exc_info.value)
 
 
 def test_liability_create_validates_due_date():

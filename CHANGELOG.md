@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.12] - 2025-03-17
+
+### Fixed
+- Fixed parameter passing in cashflow schema files:
+  * Repaired corrupted `src/schemas/cashflow/base.py` file with proper indentation and structure
+  * Fixed money_field() and percentage_field() calls to use proper keyword arguments (default=...)
+  * Updated `src/schemas/cashflow/metrics.py` with keyword parameter format
+  * Fixed `src/schemas/cashflow/forecasting.py` to use correct parameter passing
+  * Updated `src/schemas/cashflow/historical.py` to use keyword parameters
+  * Fixed "takes 2 positional arguments but 3 were given" errors in BaseSchemaValidator calls
+- Fixed test file corruption:
+  * Repaired `tests/unit/schemas/test_accounts_schemas.py` with duplicated content
+  * Fixed syntax error with imports appearing after function definition
+  * Restored proper structure with imports at the beginning of file
+
 ## [0.4.11] - 2025-03-17
 
 ### Added

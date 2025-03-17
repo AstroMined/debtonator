@@ -58,10 +58,10 @@ class TestIncomeCreate:
             IncomeCreate(
                 date=datetime(2025, 3, 15, tzinfo=ZoneInfo("UTC")),
                 source="Salary",
-                amount=Decimal("5000.0"),  # Only one decimal place
+                amount=Decimal("5000.001"),  # Three decimal places
                 account_id=1,
             )
-        assert "Amount must have exactly 2 decimal places" in str(exc_info.value)
+        assert "Decimal input should have no more than 2 decimal places" in str(exc_info.value)
 
         # Test zero amount
         with pytest.raises(ValidationError) as exc_info:
@@ -127,11 +127,11 @@ class TestRecurringIncome:
         with pytest.raises(ValidationError) as exc_info:
             RecurringIncomeCreate(
                 source="Monthly Salary",
-                amount=Decimal("5000.0"),  # One decimal place
+                amount=Decimal("5000.001"),  # Three decimal places
                 day_of_month=15,
                 account_id=1,
             )
-        assert "Amount must have exactly 2 decimal places" in str(exc_info.value)
+        assert "Decimal input should have no more than 2 decimal places" in str(exc_info.value)
 
 
 class TestIncomeFilters:
@@ -169,11 +169,7 @@ class TestIncomeFilters:
         """Test amount precision validation in filters"""
         with pytest.raises(ValidationError) as exc_info:
             IncomeFilters(
-                min_amount=Decimal("1000.0"),  # One decimal place
-                max_amount=Decimal("2000.0"),  # One decimal place
+                min_amount=Decimal("1000.001"),  # Three decimal places
+                max_amount=Decimal("2000.001"),  # Three decimal places
             )
-        error_str = str(exc_info.value)
-        assert (
-            "Amount must have exactly 2 decimal places" in error_str
-            or "Input should be greater than or equal to 0.01" in error_str
-        )
+        assert "Decimal input should have no more than 2 decimal places" in str(exc_info.value)

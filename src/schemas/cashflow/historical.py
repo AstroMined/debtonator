@@ -14,11 +14,11 @@ class HistoricalTrendMetrics(BaseSchemaValidator):
     """
     average_daily_change: Decimal = BaseSchemaValidator.money_field(
         "Average daily change in balance",
-        ...
+        default=...
     )
     volatility: Decimal = BaseSchemaValidator.money_field(
         "Standard deviation of daily changes",
-        ...
+        default=...
     )
     trend_direction: str = Field(
         ..., 
@@ -27,7 +27,7 @@ class HistoricalTrendMetrics(BaseSchemaValidator):
     )
     trend_strength: Decimal = BaseSchemaValidator.percentage_field(
         "Strength of the trend (0-1 scale)",
-        ...
+        default=...
     )
     seasonal_factors: Dict[str, Decimal] = Field(
         ...,
@@ -35,7 +35,7 @@ class HistoricalTrendMetrics(BaseSchemaValidator):
     )
     confidence_score: Decimal = BaseSchemaValidator.percentage_field(
         "Confidence in the trend analysis (0-1 scale)",
-        ...
+        default=...
     )
 
 class HistoricalPeriodAnalysis(BaseSchemaValidator):
@@ -55,27 +55,27 @@ class HistoricalPeriodAnalysis(BaseSchemaValidator):
     )
     average_balance: Decimal = BaseSchemaValidator.money_field(
         "Average balance during this period",
-        ...
+        default=...
     )
     peak_balance: Decimal = BaseSchemaValidator.money_field(
         "Highest balance during this period",
-        ...
+        default=...
     )
     lowest_balance: Decimal = BaseSchemaValidator.money_field(
         "Lowest balance during this period",
-        ...
+        default=...
     )
     total_inflow: Decimal = BaseSchemaValidator.money_field(
         "Total money coming in during this period",
-        ...
+        default=...
     )
     total_outflow: Decimal = BaseSchemaValidator.money_field(
         "Total money going out during this period",
-        ...
+        default=...
     )
     net_change: Decimal = BaseSchemaValidator.money_field(
         "Net change in balance during this period",
-        ...
+        default=...
     )
     significant_events: List[Dict[str, str]] = Field(
         ...,
@@ -106,7 +106,7 @@ class SeasonalityAnalysis(BaseSchemaValidator):
     )
     seasonal_strength: Decimal = BaseSchemaValidator.percentage_field(
         "Overall strength of seasonality (0-1 scale)",
-        ...
+        default=...
     )
 
 class HistoricalTrendsResponse(BaseSchemaValidator):

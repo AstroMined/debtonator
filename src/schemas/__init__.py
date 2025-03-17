@@ -127,18 +127,31 @@ class BaseSchemaValidator(BaseModel):
         
         Args:
             description: Field description
-            **kwargs: Additional Field parameters
+            **kwargs: Additional Field parameters including:
+                ge: Minimum value (defaults to 0 if not provided)
+                le: Maximum value (defaults to 1 if not provided)
             
         Returns:
             Field: Configured Field instance with decimal_places=4
         """
-        return Field(
-            decimal_places=4,
-            ge=0,
-            le=1,
-            description=description,
-            **kwargs
-        )
+        # Set default constraints for percentages if not overridden
+        field_args = {
+            'decimal_places': 4,
+            'description': description
+        }
+        
+        # Only set default ge=0 if not provided in kwargs
+        if 'ge' not in kwargs:
+            field_args['ge'] = 0
+            
+        # Only set default le=1 if not provided in kwargs
+        if 'le' not in kwargs:
+            field_args['le'] = 1
+            
+        # Add any other custom arguments
+        field_args.update(kwargs)
+        
+        return Field(**field_args)
     
     @field_validator("*", mode="before")
     @classmethod
@@ -178,13 +191,17 @@ class BaseSchemaValidator(BaseModel):
                 # Check if this field has a custom decimal_places setting
                 if hasattr(field_info, 'json_schema_extra') and field_info.json_schema_extra and 'decimal_places' in field_info.json_schema_extra:
                     decimal_places = field_info.json_schema_extra['decimal_places']
-                    if decimal_places != 2:
-                        # Special handling for non-standard precision (e.g., 4 decimal places for percentages)
-                        if value.as_tuple().exponent < -decimal_places:
+                    
+                    # Validate based on the specified decimal places
+                    if value.as_tuple().exponent < -decimal_places:
+                        if decimal_places == 2:
+                            raise ValueError("Decimal input should have no more than 2 decimal places")
+                        else:
                             raise ValueError(f"Value must have at most {decimal_places} decimal places")
-                        return value
+                        
+                    return value
             
-            # Standard case: Use the DecimalPrecision utility to validate input precision (2 decimal places)
+            # Standard case: Default to 2 decimal places for all other Decimal fields
             if not DecimalPrecision.validate_input_precision(value):
                 raise ValueError("Decimal input should have no more than 2 decimal places")
         

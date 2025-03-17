@@ -391,8 +391,8 @@ class LiabilityService:
             settings_dict = auto_pay_update.settings.model_dump(exclude_none=True)
             if 'minimum_balance_required' in settings_dict:
                 # Format the minimum balance with 2 decimal places
-            min_balance = settings_dict['minimum_balance_required']
-            settings_dict['minimum_balance_required'] = str(DecimalPrecision.round_for_display(min_balance))
+                min_balance = settings_dict['minimum_balance_required']
+                settings_dict['minimum_balance_required'] = str(DecimalPrecision.round_for_display(min_balance))
             db_liability.auto_pay_settings = settings_dict
         elif not auto_pay_update.enabled:
             # Clear settings when disabling auto-pay

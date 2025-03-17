@@ -3,58 +3,29 @@
 ## Current Priority: ADR-013 Implementation
 
 ### Recent Improvements
-1. **Updated Unit Tests for ADR-013 Decimal Precision** ✓
-   - Enhanced schema validation tests to verify decimal precision behavior:
-     * Updated `test_bill_splits_schemas.py` with comprehensive tests for all precision formats
-     * Enhanced `test_payments_schemas.py` with tests for different precision levels
-     * Updated `test_accounts_schemas.py` with tests for money_field() utility
-     * Added tests for percentage fields with 4 decimal places validation
-     * Implemented tests for the "$100 split three ways" case across schemas
-     * Added epsilon tolerance tests for sum validation
-     * Added tests for money_field() vs percentage_field() validation
-   - Enhanced error message assertions to align with actual implementation:
-     * Updated all ValidationError assertions to use correct error messages
-     * Verified proper validation behavior across all schema files
-     * Added separate test for percentage fields in cashflow schemas
-   - Added tests for the BaseSchemaValidator functionality:
-     * Added tests for money_field() utility in accounts tests
-     * Verified consistent behavior across schema test files
-     * Ensured 2 decimal place validation at API boundaries
-     * Verified 4 decimal place validation for percentage fields
-   - Updated ADR-013 implementation checklist to reflect progress:
-     * Updated implementation progress tracking (90% complete, up from 86%)
-     * Marked Schema Tests as completed
-     * Updated BaseSchemaValidator implementation as completed
-     * Reorganized remaining priority tasks
-1. **Enhanced Test Coverage for ADR-013 Decimal Precision** ✓
-   - Added comprehensive tests for the core decimal precision module:
-     * Enhanced existing tests with more rigorous assertions
-     * Added specific test for the "$100 split three ways" case
-     * Added tests for common bill amount distributions
-     * Added tests for large monetary values
-     * Added tests for edge cases like minimum cents
-     * Enhanced percentage distribution tests with precision checks
-     * Added tests for `validate_sum_equals_total()` utility method
-   - Added model tests for 4 decimal place storage verification:
-     * Enhanced `tests/unit/models/test_bill_splits_models.py` with storage tests
-     * Enhanced `tests/unit/models/test_accounts_models.py` with storage tests
-     * Enhanced `tests/unit/models/test_payments_models.py` with storage tests
-     * Verified proper storage of 4 decimal places in database
-     * Tested various precision values (1-4 decimal places and integers)
-     * Used `.as_tuple().exponent` to verify exact precision
-   - Updated ADR-013 implementation checklist to reflect progress:
-     * Added implementation progress tracking (86% complete, up from 74%)
-     * Added detailed status for each section of the implementation
-     * Reorganized remaining tasks for clarity
-     * Updated Remaining Priority Tasks section
-   - These test enhancements ensure compliance with ADR-013 requirements:
-     * Core module properly handles decimal distribution
-     * Models correctly store values with 4 decimal precision
-     * Special cases like "$100 split three ways" are handled correctly
-     * Edge cases and large values maintain proper precision
+1. **Fixed Parameter Passing in Cashflow Schema Files** ✓
+   - Fixed corrupted `src/schemas/cashflow/base.py` and other files:
+     * Restored proper indentation and structure in corrupted files
+     * Fixed all money_field() and percentage_field() calls to use proper keyword arguments
+     * Changed positional arguments (`...`) to keyword-based arguments (`default=...`)
+     * Fixed indentation errors and removed corrupt content
+     * Updated all cashflow schema files with consistent parameter passing
+   - Fixed parameter mismatch in BaseSchemaValidator utility methods:
+     * Ensured all calls follow the pattern of one positional parameter for description
+     * Made all other parameters use keyword argument format
+     * Fixed "takes 2 positional arguments but 3 were given" errors
+   - Fixed test file corruption:
+     * Repaired `tests/unit/schemas/test_accounts_schemas.py` with duplicated content
+     * Fixed syntax errors with imports appearing after function definition
+     * Restored proper test file structure with imports at the beginning
+   - These fixes ensure consistent parameter passing across schema files:
+     * All money_field() calls use proper keyword arguments
+     * All percentage_field() calls use the same parameter pattern
+     * Test files correctly validate the behavior of these fields
+     * Eliminated TypeError messages about positional arguments
 
-2. **Expanded Decimal Precision Implementation Across Schema Files** ✓
-   - Updated 10 additional schema files with standardized decimal field methods:
+1. **Expanded Decimal Precision Implementation Across Schema Files** ✓
+   - Updated 10 additional schema files with standardized field methods:
      * Updated `src/schemas/balance_history.py` with money_field() for balance fields
      * Updated `src/schemas/balance_reconciliation.py` with money_field() for reconciliation amounts
      * Updated `src/schemas/deposit_schedules.py` with money_field() for deposit amounts
@@ -82,7 +53,7 @@
      * Reduced code duplication
      * Eliminated inconsistencies in validation behavior
 
-3. **Implemented Centralized Decimal Precision Approach** ✓
+2. **Implemented Centralized Decimal Precision Approach** ✓
    - Enhanced `DecimalPrecision` core module with utility functions:
      * Added `EPSILON` constant for decimal equality comparisons
      * Implemented `validate_sum_equals_total()` for validating sums 
@@ -109,26 +80,49 @@
      * Proper handling of special cases without custom validators
      * Clear separation between core precision utilities and schema validation
 
-4. **Implemented API Response Formatting for Decimal Precision** ✓
-   - Created comprehensive API response formatting system:
-     * Implemented `src/api/response_formatter.py` with utilities for decimal formatting
-     * Added global middleware to handle all JSON response formatting
-     * Created `with_formatted_response` decorator for individual endpoints
-     * Added `get_decimal_formatter()` dependency for manual formatting options
-   - Provided multiple approaches for decimal formatting:
-     * Global middleware approach for automatic handling of all responses
-     * Decorator approach for individual endpoint control
-     * Dependency approach for explicit manual formatting
-   - Enhanced precision handling at API boundaries:
-     * Ensured monetary values return with 2 decimal places
-     * Preserved 4 decimal places for percentage fields like confidence scores
-     * Added special case handling for known percentage field names
-     * Implemented robust recursive formatting for nested data structures
-   - Created comprehensive developer guidelines in `docs/guides/working_with_money.md`:
-     * Documented when to use different precision levels
-     * Provided examples of common financial calculation patterns
-     * Added testing best practices for decimal precision
-     * Documented special cases and proper distribution handling
+3. **Implemented Decimal Precision Handling in Critical Services** ✓
+   - Updated five critical services with decimal precision enhancements:
+     * `src/services/bill_splits.py` - Implemented for accurate distribution calculations
+     * `src/services/payments.py` - Updated payment distribution logic
+     * `src/services/balance_history.py` - Enhanced running balance calculations
+     * `src/services/cashflow.py` (metrics_service.py) - Improved forecast calculations
+     * `src/services/impact_analysis.py` - Updated percentage and risk calculations
+   - Each implementation follows consistent patterns from ADR-013:
+     * Using 4 decimal places for all internal calculations
+     * Rounding to 2 decimal places at API boundaries
+     * Leveraging DecimalPrecision core module for consistency
+     * Ensuring calculation accuracy for financial data
+   - Added well-documented code with clear reasoning:
+     * Explicit documentation of precision requirements
+     * Clear explanations for calculation approaches
+     * Proper handling of edge cases (zero values, division operations)
+     * Prevention of accumulated rounding errors
+   - These changes represent the first major implementation phase of ADR-013:
+     * Critical services responsible for financial calculations now use proper precision
+     * Decimal handling standardized across financial calculation workflows
+     * Groundwork laid for remaining implementation tasks
+     * Progress tracked in docs/adr/compliance/adr013_implementation_checklist.md
+
+4. **Created ADR-013 Implementation Checklist** ✓
+   - Created comprehensive implementation checklist for decimal precision handling:
+     * Organized by implementation area with clear tasks
+     * Detailed all 37 database fields that need precision updates
+     * Listed all service layer updates required across critical services
+     * Specified test updates needed for proper validation
+     * Structured as a markdown file in docs/adr/compliance/
+   - Covers all aspects of ADR-013 implementation:
+     * Core module implementation with precision utilities
+     * Database schema migration to Numeric(12, 4)
+     * Model and schema updates for consistent validation
+     * Service layer improvements for calculation accuracy
+     * API response standardization
+     * Comprehensive test coverage requirements
+     * Documentation and developer guidelines
+   - Placed in new core module architecture:
+     * Selected `src/core` approach over utils/ placement
+     * Elevates decimal precision as core business domain concern
+     * Provides clear architectural separation from utilities
+     * Creates foundation for other core business modules
 
 ### Schema Standardization Progress
 1. **Schema Implementation (COMPLETED)** ✓
@@ -255,33 +249,22 @@
    - Thorough tests for all schema validation methods
    - Fixed all error message patterns to match Pydantic's actual behavior
 
-7. **Decimal Precision Handling** ✓
+7. **Decimal Precision Handling (IN PROGRESS)** 
    - Core module implementation complete
    - BaseSchemaValidator enhancements with specialized field methods
    - Implementation across all schema files completed
-   - All service components updated with proper precision handling
-   - API response formatting system implemented
-   - Integration tests for API response formatting
-   - Developer guidelines created and comprehensive
-   - Implementation is now complete with ~98% coverage
-   - Nine service files now fully using DecimalPrecision utilities:
-     * accounts.py - For balance calculations and credit limits
-     * liabilities.py - For amount handling and validation
-     * bill_splits.py - For split distribution and validation
-     * payments.py - For payment distribution and validation
-     * balance_history.py - For running balances and reconciliation
-     * cashflow.py - For forecasting and metrics calculations
-     * income.py - For deposit handling and validation
-     * recurring_bills.py - For bill creation and validation
-     * impact_analysis.py - For risk calculations and scoring
+   - Critical services updated with proper calculation precision
+   - Parameter passing fixed in all cashflow schema files
+   - Clear documentation and implementation checklist
+   - Fixed bug with positional vs. keyword arguments in BaseSchemaValidator
 
 ## What's Left to Build
-1. **Complete ADR-013 Implementation Test Coverage**
-   - Add comprehensive test coverage for decimal precision:
-     * Add schema validation tests for money vs. percentage fields
-     * Add service tests for calculation precision
-     * Add special case tests like the "$100 split three ways" case
-   - Update API documentation with precision requirements
+1. **Complete ADR-013 Implementation**
+   - Fix remaining parameter passing bugs in schema field calls
+   - Implement API response formatting with proper precision
+   - Add comprehensive test coverage for decimal precision
+   - Create developer guidelines for working with money
+   - Update database schema with 4 decimal precision
 
 2. **API Enhancement Project - Phase 6**
    - Implement recommendations API
@@ -298,64 +281,56 @@
    - Improve mobile experience
 
 ## What's New
-1. **Enhanced Test Coverage for ADR-013 Decimal Precision** ✓
-   - Added comprehensive tests for the core decimal precision module:
-     * Enhanced existing tests with more rigorous assertions
-     * Added specific test for the "$100 split three ways" case
-     * Added tests for common bill amount distributions
-     * Added tests for large monetary values
-     * Added tests for edge cases like minimum cents
-     * Enhanced percentage distribution tests with precision checks
-     * Added tests for `validate_sum_equals_total()` utility method
-   - Added model tests for 4 decimal place storage verification:
-     * Enhanced `tests/unit/models/test_bill_splits_models.py` with storage tests
-     * Enhanced `tests/unit/models/test_accounts_models.py` with storage tests
-     * Enhanced `tests/unit/models/test_payments_models.py` with storage tests
-     * Verified proper storage of 4 decimal places in database
-     * Tested various precision values (1-4 decimal places and integers)
-     * Used `.as_tuple().exponent` to verify exact precision
-   - Updated ADR-013 implementation checklist to reflect progress:
-     * Added implementation progress tracking (86% complete, up from 74%)
-     * Added detailed status for each section of the implementation
-     * Reorganized remaining tasks for clarity
-     * Updated Remaining Priority Tasks section
+1. **Fixed Parameter Passing in Cashflow Schema Files** ✓
+   - Fixed corrupted `src/schemas/cashflow/base.py` file:
+     * Restored proper indentation and structure
+     * Fixed field definitions using proper keyword arguments for BaseSchemaValidator.money_field()
+     * Changed positional argument patterns `...` to keyword-based `default=...`
+     * Ensured consistent spacing and formatting
+   - Updated all cashflow schema files to use consistent parameter passing:
+     * Fixed `src/schemas/cashflow/metrics.py` with keyword parameter format
+     * Updated `src/schemas/cashflow/forecasting.py` for proper argument passing
+     * Fixed `src/schemas/cashflow/historical.py` to use keyword parameters
+     * Changed all instances of positional arguments to named keyword arguments
+   - Fixed parameter mismatch in BaseSchemaValidator calls for proper API usage:
+     * Followed pattern of one positional parameter for field description
+     * Made all other parameters use keyword argument format (default=..., ge=0, etc.)
+     * Eliminated TypeError messages about positional arguments
+     * Fixed corrupted test file with duplicated and misplaced content
 
-2. **Implemented API Response Formatting for Decimal Precision** ✓
-   - Created comprehensive API response formatting system:
-     * Implemented `src/api/response_formatter.py` with utilities for decimal formatting
-     * Added global middleware to handle all JSON response formatting
-     * Created `with_formatted_response` decorator for individual endpoints
-     * Added `get_decimal_formatter()` dependency for manual formatting options
-   - Provided multiple approaches for decimal formatting:
-     * Global middleware approach for automatic handling of all responses
-     * Decorator approach for individual endpoint control
-     * Dependency approach for explicit manual formatting
-   - Enhanced precision handling at API boundaries:
-     * Ensured monetary values return with 2 decimal places
-     * Preserved 4 decimal places for percentage fields like confidence scores
-     * Added special case handling for known percentage field names
-     * Implemented robust recursive formatting for nested data structures
-   - Created comprehensive developer guidelines in `docs/guides/working_with_money.md`:
-     * Documented when to use different precision levels
-     * Provided examples of common financial calculation patterns
-     * Added testing best practices for decimal precision
-     * Documented special cases and proper distribution handling
+2. **Expanded Decimal Precision Implementation Across Schema Files** ✓
+   - Updated 10 additional schema files with standardized field methods:
+     * Applied to balance_history.py, balance_reconciliation.py, deposit_schedules.py, etc.
+     * Replaced custom validation with centralized validation methods
+     * Standardized both money and percentage field validation
+     * Improved code consistency and maintainability
+   - This expansion ensures consistent decimal precision handling:
+     * All monetary fields now use money_field() with 2 decimal precision
+     * All percentage fields use percentage_field() with 4 decimal precision
+     * Custom validators properly replaced with standardized methods
+     * Field constraints and documentation preserved
+     * Improved code readability and reduced duplication
 
-3. **Completed Decimal Precision Implementation for All Schema Files** ✓
-   - Standardized all remaining cashflow schema files with proper decimal handling:
-     * Updated `src/schemas/cashflow/base.py` with money_field() for all monetary values
-     * Updated `src/schemas/cashflow/forecasting.py` with both money_field() and percentage_field()
-     * Updated `src/schemas/cashflow/historical.py` with both money_field() and percentage_field()
-     * Updated `src/schemas/cashflow/metrics.py` with money_field() for all monetary values
-   - Properly identified and standardized percentage fields with 4-decimal precision:
-     * Applied percentage_field() to all percentage-based values like confidence scores
-     * Maintained consistency across all schema validation patterns
-     * Preserved existing field constraints and documentation
-   - These updates complete the schema standardization portion of ADR-013:
-     * All schema files now use standardized field methods
-     * Clear distinction between monetary and percentage fields
-     * Consistent validation patterns throughout the application
-     * Reduced code duplication and improved maintainability
+3. **Implemented Centralized Decimal Precision Approach** ✓
+   - Enhanced core components with standardized approach:
+     * Updated `DecimalPrecision` core module with additional utilities like `validate_sum_equals_total()`
+     * Enhanced `BaseSchemaValidator` with field creation methods (`money_field()` and `percentage_field()`)
+     * Improved validation to properly handle both standard and special case precision requirements
+   - Updated key schema files with standardized approach:
+     * Refactored `src/schemas/accounts.py` to use standardized money fields
+     * Updated `src/schemas/cashflow/account_analysis.py` with both:
+       * Standard money fields (2 decimal places) for monetary values
+       * Percentage fields (4 decimal places) for specialized fields
+     * Fixed all decimal field implementations to use consistent patterns
+   - Improved documentation to reflect the centralized approach:
+     * Updated ADR-013 with implementation details
+     * Enhanced implementation checklist with progress tracking
+     * Added quality assurance verification steps for field types
+   - This centralized approach provides significant benefits:
+     * Minimized code duplication and fragmentation
+     * Consistent precision handling across schema files
+     * Proper handling of special cases without custom validators
+     * Clear separation between core precision utilities and schema validation
 
 ## Current Status
 1. **Model Layer Standardization**: COMPLETED (100%) ✓
@@ -394,7 +369,7 @@
    - Improved documentation for all validators
    - Fixed all test failures related to Pydantic V2 validation context
 
-6. **Decimal Precision Handling**: COMPLETED (90%)
+6. **Decimal Precision Handling**: IN PROGRESS (90%)
    - Created comprehensive ADR-013 for decimal precision
    - Updated BaseSchemaValidator with global decimal validation
    - Created detailed implementation checklist in docs/adr/compliance/
@@ -403,38 +378,22 @@
      * Added money_field() and percentage_field() methods
      * Updated validator to handle field-specific precision
      * Successfully implemented special case handling for percentage fields
-   - Enhanced validation tests to align with expectations
-   - ✓ Implemented across all schema files:
-     * Updated all 21 schema files with standardized field methods
+   - Updated all cashflow schema files with fixed parameters:
+     * base.py, metrics.py, forecasting.py, historical.py
+     * Fixed positional vs. keyword argument bugs
+   - Updated tests to align with validation expectations
+   - ✓ Implemented across most schema files:
+     * Updated 16+ schema files with standardized field methods
      * Properly handled monetary and percentage fields
      * Removed redundant custom validators
      * Maintained field constraints and documentation
-   - ✓ Implemented decimal precision handling in service files:
-     * Used 4-decimal internal calculations with 2-decimal boundary rounding
-     * Applied to nine critical service files with financial calculations
-     * Implemented proper balance calculations with high precision
-     * Enhanced bill splits with accurate distribution utilities
-   - ✓ Implemented API response formatting with multiple approaches:
-     * Created response_formatter.py for consistent decimal handling
-     * Added global middleware for automatic formatting
-     * Created decorator for individual endpoint control
-     * Added dependency approach for manual formatting
-     * Properly handled percentage fields with 4-decimal places
-   - ✓ Created comprehensive developer guidelines for working with money
-   - ✓ Created integration tests for API response formatting
-   - ✓ Implemented core module tests:
-     * Added enhanced tests for distribution utilities
-     * Added specific test for "$100 split three ways" case
-     * Added tests for edge cases and large values
-   - ✓ Implemented model tests for 4 decimal place storage
-   - ✓ Implemented schema validation tests:
-     * Updated tests for money vs. percentage field validation
-     * Added tests for epsilon tolerance
-     * Added tests for special cases like "$100 split three ways"
-     * Verified consistent validation behavior
+   - ✓ Implemented decimal precision handling in critical service files:
+     * bill_splits.py, payments.py, balance_history.py, cashflow.py, impact_analysis.py
+     * Used consistent 4-decimal internal calculations with 2-decimal boundary rounding
    - Remaining implementation tasks include:
-     * Complete service tests for calculation precision
-     * Update API documentation with precision requirements
+     * Update API response handling
+     * Complete test suite updates
+     * Finalize documentation
 
 7. **Schema Test Implementation**: COMPLETED (100%) ✓
    - All 25 schema test files completed and passing
@@ -451,17 +410,20 @@
    - Synchronized with existing version in pyproject.toml
 
 ## Next Actions
-1. **Complete Remaining ADR-013 Implementation Tasks**
-   - Focus on service test updates:
-     * Update service tests to verify decimal precision in calculations
-     * Add tests for distribution methods in service layer
-     * Test complex distribution scenarios and edge cases
-   - Update documentation:
-     * Update ADR-013 with implementation details
-     * Update API documentation with precision requirements
-   - Conduct quality assurance:
-     * Perform full test suite run
-     * Verify consistent behavior across all components
+1. **Complete ADR-013 Implementation**
+   - Continue following implementation checklist:
+     * Update API response handling for consistent precision
+     * Enhance test suite to verify validation behavior
+     * Complete developer guidelines documentation
+   - Implement API response formatting:
+     * Update `src/api/base.py` to ensure consistent rounding
+     * Add special case handling for percentage fields
+     * Implement response formatter using DecimalPrecision
+   - Complete test suite updates:
+     * Add tests for money vs. percentage field validation
+     * Verify proper validation behavior at boundaries
+     * Test complex distribution scenarios
+     * Verify special case handling in services
 
 2. **Resume API Enhancement Project - Phase 6**
    - Implement recommendations API using standardized schemas

@@ -59,19 +59,19 @@ class CustomForecastResult(BaseSchemaValidator):
     )
     projected_balance: Decimal = BaseSchemaValidator.money_field(
         "Projected balance on this date",
-        ...
+        default=...
     )
     projected_income: Decimal = BaseSchemaValidator.money_field(
         "Projected income for this date",
-        ...
+        default=...
     )
     projected_expenses: Decimal = BaseSchemaValidator.money_field(
         "Projected expenses for this date",
-        ...
+        default=...
     )
     confidence_score: Decimal = BaseSchemaValidator.percentage_field(
         "Confidence score for this forecast point (0-1 scale)",
-        ...
+        default=...
     )
     contributing_factors: Dict[str, Decimal] = Field(
         ...,
@@ -99,7 +99,7 @@ class CustomForecastResponse(BaseSchemaValidator):
     )
     overall_confidence: Decimal = BaseSchemaValidator.percentage_field(
         "Overall confidence score for the forecast",
-        ...
+        default=...
     )
     summary_statistics: Dict[str, Decimal] = Field(
         ...,
@@ -155,23 +155,23 @@ class AccountForecastMetrics(BaseSchemaValidator):
     """
     average_daily_balance: Decimal = BaseSchemaValidator.money_field(
         "Average daily balance during forecast period",
-        ...
+        default=...
     )
     minimum_projected_balance: Decimal = BaseSchemaValidator.money_field(
         "Minimum projected balance during forecast period",
-        ...
+        default=...
     )
     maximum_projected_balance: Decimal = BaseSchemaValidator.money_field(
         "Maximum projected balance during forecast period",
-        ...
+        default=...
     )
     average_inflow: Decimal = BaseSchemaValidator.money_field(
         "Average daily money coming in",
-        ...
+        default=...
     )
     average_outflow: Decimal = BaseSchemaValidator.money_field(
         "Average daily money going out",
-        ...
+        default=...
     )
     projected_low_balance_dates: List[datetime] = Field(
         ...,
@@ -179,15 +179,15 @@ class AccountForecastMetrics(BaseSchemaValidator):
     )
     credit_utilization: Optional[Decimal] = BaseSchemaValidator.percentage_field(
         "Projected credit utilization (for credit accounts)",
-        None
+        default=None
     )
     balance_volatility: Decimal = BaseSchemaValidator.money_field(
         "Projected volatility in account balance",
-        ...
+        default=...
     )
     forecast_confidence: Decimal = BaseSchemaValidator.percentage_field(
         "Overall confidence in the forecast (0-1 scale)",
-        ...
+        default=...
     )
 
 class AccountForecastResult(BaseSchemaValidator):
@@ -203,19 +203,19 @@ class AccountForecastResult(BaseSchemaValidator):
     )
     projected_balance: Decimal = BaseSchemaValidator.money_field(
         "Projected balance on this date",
-        ...
+        default=...
     )
     projected_inflow: Decimal = BaseSchemaValidator.money_field(
         "Projected money coming in on this date",
-        ...
+        default=...
     )
     projected_outflow: Decimal = BaseSchemaValidator.money_field(
         "Projected money going out on this date",
-        ...
+        default=...
     )
     confidence_score: Decimal = BaseSchemaValidator.percentage_field(
         "Confidence score for this forecast point (0-1 scale)",
-        ...
+        default=...
     )
     contributing_transactions: List[Dict[str, Union[Decimal, str]]] = Field(
         ...,
@@ -251,7 +251,7 @@ class AccountForecastResponse(BaseSchemaValidator):
     )
     overall_confidence: Decimal = BaseSchemaValidator.percentage_field(
         "Overall confidence score for the forecast",
-        ...
+        default=...
     )
     timestamp: datetime = Field(
         ...,
