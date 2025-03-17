@@ -10,39 +10,35 @@ The following table summarizes the current implementation progress:
 | Database Schema | 37 | 37 | 0 | 100% |
 | SQLAlchemy Models | 15 | 15 | 0 | 100% |
 | Pydantic Schemas | 22 | 22 | 0 | 100% |
-| BaseSchemaValidator | 5 | 4 | 1 | 80% |
+| BaseSchemaValidator | 5 | 5 | 0 | 100% |
 | Service Layer | 9 | 9 | 0 | 100% |
 | API Response | 2 | 2 | 0 | 100% |
 | Core Tests | 10 | 10 | 0 | 100% |
 | Model Tests | 3 | 3 | 0 | 100% |
-| Schema Tests | 6 | 0 | 6 | 0% |
+| Schema Tests | 6 | 6 | 0 | 100% |
 | Service Tests | 3 | 0 | 3 | 0% |
 | Integration Tests | 5 | 3 | 2 | 60% |
 | Special Test Cases | 4 | 4 | 0 | 100% |
 | Documentation | 2 | 0 | 2 | 0% |
 | Developer Guidelines | 6 | 6 | 0 | 100% |
 | Quality Assurance | 7 | 0 | 7 | 0% |
-| **TOTAL** | **146** | **125** | **21** | **86%** |
+| **TOTAL** | **146** | **132** | **14** | **90%** |
 
 ## Remaining Priority Tasks
 
-1. **Update Schema Tests**
-   - Update schema tests to validate decimal precision behavior
-   - Verify validation behavior for money vs. percentage fields
-
-2. **Update Service Tests**
+1. **Update Service Tests**
    - Update service tests to verify calculation precision
    - Test distribution methods in service layer
 
-3. **Update ADR Documentation**
+2. **Update ADR Documentation**
    - Update ADR-013 with implementation details
    - Ensure examples reflect the implemented approach
 
-4. **Update API Documentation**
+3. **Update API Documentation**
    - Document decimal precision expectations
    - Clarify validation requirements for API consumers
 
-5. **Quality Assurance**
+4. **Quality Assurance**
    - Conduct full test suite run
    - Verify API response formatting in edge cases
    - Verify consistent validation behavior across schema files
@@ -202,7 +198,7 @@ src/models/cashflow.py:
     - [x] Add `money_field()` for 2 decimal place monetary fields
     - [x] Add `percentage_field()` for 4 decimal place percentage fields
   - [x] Enhance the validator to handle special cases like percentage fields
-  - [ ] Ensure this validation is consistently applied across all schema files
+  - [x] Ensure this validation is consistently applied across all schema files
 
 ## 6. Service Layer Updates
 
@@ -280,12 +276,26 @@ Update test cases to account for new precision rules:
   - [x] Verified proper exponent for stored values
 
 ### Schema Tests:
-- [ ] `tests/unit/schemas/test_bill_splits.py` - Update validation tests
-- [ ] `tests/unit/schemas/test_payments.py` - Update validation tests
-- [ ] `tests/unit/schemas/test_accounts.py` - Update validation tests
-- [ ] Add tests for decimal precision validation across all schema files
-- [ ] Ensure input validation still enforces 2 decimal places at boundaries
-- [ ] Update tests to verify 4 decimal places are allowed in internal calculations
+- [x] `tests/unit/schemas/test_bill_splits.py` - Update validation tests
+  - [x] Added tests for 0, 1, and 2 decimal places
+  - [x] Added tests for decimal precision validation errors
+  - [x] Added tests for epsilon tolerance in sum validation
+  - [x] Added test for '$100 split three ways' case
+- [x] `tests/unit/schemas/test_payments.py` - Update validation tests
+  - [x] Fixed error message assertion
+  - [x] Added tests for different precision formats
+  - [x] Added epsilon tolerance tests
+  - [x] Added test for '$100 split three ways' case
+- [x] `tests/unit/schemas/test_accounts.py` - Update validation tests
+  - [x] Added tests for different precision formats
+  - [x] Added test for money_field() utility
+  - [x] Verified proper validation behavior
+- [x] Added tests for decimal precision validation across all schema files
+  - [x] Enhanced cashflow schema tests for percentage fields
+  - [x] Added tests for 4 decimal places in percentage fields
+  - [x] Added tests for money field vs percentage field validation
+- [x] Ensured input validation still enforces 2 decimal places at boundaries
+- [x] Updated tests to verify 4 decimal places are allowed in percentage fields
 
 ### Service Tests:
 - [ ] `tests/unit/services/test_bill_splits.py` - Update service-level tests

@@ -209,16 +209,28 @@ def test_required_fields():
 
 # Test decimal precision
 def test_decimal_precision():
-    """Test decimal precision validation"""
+    """Test decimal precision validation for monetary fields"""
     # Test too many decimal places
     with pytest.raises(
         ValidationError, match="Decimal input should have no more than 2 decimal places"
     ):
         BillSplitBase(amount=Decimal("100.123"))
 
-    # Test valid decimal places
+    # Test valid decimal places (2 decimals)
     data = BillSplitBase(amount=Decimal("100.12"))
     assert data.amount == Decimal("100.12")
+    
+    # Test valid decimal places (1 decimal)
+    data = BillSplitBase(amount=Decimal("100.1"))
+    assert data.amount == Decimal("100.1")
+    
+    # Test valid decimal places (0 decimals)
+    data = BillSplitBase(amount=Decimal("100"))
+    assert data.amount == Decimal("100")
+    
+    # Test valid decimal places with trailing zeros
+    data = BillSplitBase(amount=Decimal("100.10"))
+    assert data.amount == Decimal("100.10")
 
 
 # Test datetime UTC validation
@@ -276,6 +288,32 @@ def test_bill_split_validation():
     # Test empty splits
     with pytest.raises(ValidationError, match="At least one split is required"):
         BillSplitValidation(liability_id=1, total_amount=Decimal("100.00"), splits=[])
+        
+    # Test split validation with epsilon tolerance
+    # Sum within 0.01 of total should be acceptable
+    splits = [
+        BillSplitCreate(amount=Decimal("33.33"), liability_id=1, account_id=2),
+        BillSplitCreate(amount=Decimal("33.33"), liability_id=1, account_id=3),
+        BillSplitCreate(amount=Decimal("33.33"), liability_id=1, account_id=4),
+    ]
+    # Total is 99.99, which is within epsilon (0.01) of 100.00
+    data = BillSplitValidation(
+        liability_id=1, total_amount=Decimal("100.00"), splits=splits
+    )
+    assert data.liability_id == 1
+    assert sum(split.amount for split in data.splits) == Decimal("99.99")
+    
+    # Test the "$100 split three ways" case specifically
+    splits = [
+        BillSplitCreate(amount=Decimal("33.34"), liability_id=1, account_id=2),
+        BillSplitCreate(amount=Decimal("33.33"), liability_id=1, account_id=3),
+        BillSplitCreate(amount=Decimal("33.33"), liability_id=1, account_id=4),
+    ]
+    data = BillSplitValidation(
+        liability_id=1, total_amount=Decimal("100.00"), splits=splits
+    )
+    assert data.liability_id == 1
+    assert sum(split.amount for split in data.splits) == Decimal("100.00")
 
 
 def test_bulk_operation_validation():
@@ -351,6 +389,15 @@ def test_confidence_score_validation():
         reason="Based on historical patterns",
     )
     assert data2.confidence_score == 1
+    
+    # Test with 4 decimal places (should pass for percentage field)
+    data3 = SplitSuggestion(
+        account_id=1,
+        amount=Decimal("75.50"),
+        confidence_score=0.1234,
+        reason="Based on historical patterns",
+    )
+    assert data3.confidence_score == 0.1234
 
 
 def test_bulk_operation_result_validation():
@@ -402,3 +449,51 @@ def test_reason_length_validation():
         account_id=1, amount=Decimal("75.50"), confidence_score=0.85, reason="X" * 500
     )
     assert len(data.reason) == 500
+
+
+def test_percentage_field_precision():
+    """Test precision validation for percentage fields"""
+    # Test valid precision for percentage fields (4 decimal places)
+    pattern = SplitPattern(
+        pattern_id="test",
+        account_splits={1: Decimal("0.3333"), 2: Decimal("0.6667")},
+        total_occurrences=10,
+        first_seen=datetime.now(timezone.utc),
+        last_seen=datetime.now(timezone.utc),
+        average_total=Decimal("100.00"),
+        confidence_score=0.8765
+    )
+    assert pattern.account_splits[1] == Decimal("0.3333")
+    assert pattern.account_splits[2] == Decimal("0.6667")
+    
+    # Test with different precision formats for percentage fields
+    pattern = SplitPattern(
+        pattern_id="test",
+        account_splits={
+            1: Decimal("0.5"),        # 1 decimal place
+            2: Decimal("0.25"),       # 2 decimal places
+            3: Decimal("0.125"),      # 3 decimal places
+            4: Decimal("0.0625")      # 4 decimal places
+        },
+        total_occurrences=10,
+        first_seen=datetime.now(timezone.utc),
+        last_seen=datetime.now(timezone.utc),
+        average_total=Decimal("100.00"),
+        confidence_score=0.8765
+    )
+    assert pattern.account_splits[1] == Decimal("0.5")
+    assert pattern.account_splits[2] == Decimal("0.25")
+    assert pattern.account_splits[3] == Decimal("0.125")
+    assert pattern.account_splits[4] == Decimal("0.0625")
+    
+    # Test with too many decimal places for percentage fields (5 decimal places)
+    with pytest.raises(ValidationError, match="Input should have at most 4 decimal places"):
+        SplitPattern(
+            pattern_id="test",
+            account_splits={1: Decimal("0.33333")},  # 5 decimal places
+            total_occurrences=10,
+            first_seen=datetime.now(timezone.utc),
+            last_seen=datetime.now(timezone.utc),
+            average_total=Decimal("100.00"),
+            confidence_score=0.8765
+        )

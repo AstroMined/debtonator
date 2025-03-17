@@ -4,6 +4,30 @@
 Decimal Precision Handling Implementation
 
 ### Recent Changes
+1. **Updated Unit Tests for ADR-013 Decimal Precision** ✓
+   - Enhanced schema validation tests to verify decimal precision behavior:
+     * Updated `test_bill_splits_schemas.py` with comprehensive tests for all precision formats
+     * Enhanced `test_payments_schemas.py` with tests for different precision levels
+     * Updated `test_accounts_schemas.py` with tests for money_field() utility
+     * Added tests for percentage fields with 4 decimal places validation
+     * Implemented tests for the "$100 split three ways" case across schemas
+     * Added epsilon tolerance tests for sum validation
+     * Added tests for money_field() vs percentage_field() validation
+   - Enhanced error message assertions to align with actual implementation:
+     * Updated all ValidationError assertions to use correct error messages
+     * Verified proper validation behavior across all schema files
+     * Added separate test for percentage fields in cashflow schemas
+   - Added tests for the BaseSchemaValidator functionality:
+     * Added tests for money_field() utility in accounts tests
+     * Verified consistent behavior across schema test files
+     * Ensured 2 decimal place validation at API boundaries
+     * Verified 4 decimal place validation for percentage fields
+   - Updated ADR-013 implementation checklist to reflect progress:
+     * Updated implementation progress tracking (90% complete, up from 86%)
+     * Marked Schema Tests as completed
+     * Updated BaseSchemaValidator implementation as completed
+     * Reorganized remaining priority tasks
+
 1. **Enhanced Test Coverage for ADR-013 Decimal Precision** ✓
    - Added comprehensive tests for the core decimal precision module:
      * Enhanced existing tests with more rigorous assertions

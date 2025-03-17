@@ -3,6 +3,29 @@
 ## Current Priority: ADR-013 Implementation
 
 ### Recent Improvements
+1. **Updated Unit Tests for ADR-013 Decimal Precision** ✓
+   - Enhanced schema validation tests to verify decimal precision behavior:
+     * Updated `test_bill_splits_schemas.py` with comprehensive tests for all precision formats
+     * Enhanced `test_payments_schemas.py` with tests for different precision levels
+     * Updated `test_accounts_schemas.py` with tests for money_field() utility
+     * Added tests for percentage fields with 4 decimal places validation
+     * Implemented tests for the "$100 split three ways" case across schemas
+     * Added epsilon tolerance tests for sum validation
+     * Added tests for money_field() vs percentage_field() validation
+   - Enhanced error message assertions to align with actual implementation:
+     * Updated all ValidationError assertions to use correct error messages
+     * Verified proper validation behavior across all schema files
+     * Added separate test for percentage fields in cashflow schemas
+   - Added tests for the BaseSchemaValidator functionality:
+     * Added tests for money_field() utility in accounts tests
+     * Verified consistent behavior across schema test files
+     * Ensured 2 decimal place validation at API boundaries
+     * Verified 4 decimal place validation for percentage fields
+   - Updated ADR-013 implementation checklist to reflect progress:
+     * Updated implementation progress tracking (90% complete, up from 86%)
+     * Marked Schema Tests as completed
+     * Updated BaseSchemaValidator implementation as completed
+     * Reorganized remaining priority tasks
 1. **Enhanced Test Coverage for ADR-013 Decimal Precision** ✓
    - Added comprehensive tests for the core decimal precision module:
      * Enhanced existing tests with more rigorous assertions
@@ -371,7 +394,7 @@
    - Improved documentation for all validators
    - Fixed all test failures related to Pydantic V2 validation context
 
-6. **Decimal Precision Handling**: COMPLETED (86%)
+6. **Decimal Precision Handling**: COMPLETED (90%)
    - Created comprehensive ADR-013 for decimal precision
    - Updated BaseSchemaValidator with global decimal validation
    - Created detailed implementation checklist in docs/adr/compliance/
@@ -380,7 +403,7 @@
      * Added money_field() and percentage_field() methods
      * Updated validator to handle field-specific precision
      * Successfully implemented special case handling for percentage fields
-   - Updated tests to align with validation expectations
+   - Enhanced validation tests to align with expectations
    - ✓ Implemented across all schema files:
      * Updated all 21 schema files with standardized field methods
      * Properly handled monetary and percentage fields
@@ -404,9 +427,13 @@
      * Added specific test for "$100 split three ways" case
      * Added tests for edge cases and large values
    - ✓ Implemented model tests for 4 decimal place storage
+   - ✓ Implemented schema validation tests:
+     * Updated tests for money vs. percentage field validation
+     * Added tests for epsilon tolerance
+     * Added tests for special cases like "$100 split three ways"
+     * Verified consistent validation behavior
    - Remaining implementation tasks include:
-     * Complete schema tests for validation behavior
-     * Add service tests for calculation precision
+     * Complete service tests for calculation precision
      * Update API documentation with precision requirements
 
 7. **Schema Test Implementation**: COMPLETED (100%) ✓
@@ -425,15 +452,16 @@
 
 ## Next Actions
 1. **Complete Remaining ADR-013 Implementation Tasks**
-   - Continue following implementation checklist:
-     * Enhance test suite to verify decimal validation behavior
-     * Update API documentation with validation requirements
-   - Complete test suite updates:
-     * Add tests for money vs. percentage field validation
-     * Verify proper validation behavior at boundaries
-     * Test complex distribution scenarios
-     * Test the "$100 split three ways" case
-     * Verify special case handling in services
+   - Focus on service test updates:
+     * Update service tests to verify decimal precision in calculations
+     * Add tests for distribution methods in service layer
+     * Test complex distribution scenarios and edge cases
+   - Update documentation:
+     * Update ADR-013 with implementation details
+     * Update API documentation with precision requirements
+   - Conduct quality assurance:
+     * Perform full test suite run
+     * Verify consistent behavior across all components
 
 2. **Resume API Enhancement Project - Phase 6**
    - Implement recommendations API using standardized schemas

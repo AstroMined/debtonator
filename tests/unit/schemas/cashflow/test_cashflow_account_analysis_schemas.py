@@ -284,6 +284,30 @@ def test_balance_distribution_range_validation():
             typical_balance_range=(Decimal("2000.00"), Decimal("3000.00")),
             percentage_of_total=Decimal("1.1")  # Above maximum
         )
+        
+    # Test percentage_of_total with valid 4 decimal places (special case field)
+    distribution = BalanceDistribution(
+        account_id=1,
+        average_balance=Decimal("2500.00"),
+        balance_volatility=Decimal("350.75"),
+        min_balance_30d=Decimal("1800.00"),
+        max_balance_30d=Decimal("3200.00"),
+        typical_balance_range=(Decimal("2000.00"), Decimal("3000.00")),
+        percentage_of_total=Decimal("0.3333")
+    )
+    assert distribution.percentage_of_total == Decimal("0.3333")
+    
+    # Test percentage_of_total with too many decimal places (5 decimal places)
+    with pytest.raises(ValidationError, match="Input should have at most 4 decimal places"):
+        BalanceDistribution(
+            account_id=1,
+            average_balance=Decimal("2500.00"),
+            balance_volatility=Decimal("350.75"),
+            min_balance_30d=Decimal("1800.00"),
+            max_balance_30d=Decimal("3200.00"),
+            typical_balance_range=(Decimal("2000.00"), Decimal("3000.00")),
+            percentage_of_total=Decimal("0.33333")  # 5 decimal places
+        )
 
 
 def test_account_risk_assessment_range_validation():
@@ -414,6 +438,69 @@ def test_decimal_precision():
             max_balance_30d=Decimal("3200.00"),
             typical_balance_range=(Decimal("2000.00"), Decimal("3000.00")),
             percentage_of_total=Decimal("0.35")
+        )
+        
+    # Test different decimal precision for money vs percentage fields
+    # Money fields should have at most 2 decimal places
+    balance_dist = BalanceDistribution(
+        account_id=1,
+        average_balance=Decimal("2500.00"),
+        balance_volatility=Decimal("350.75"),
+        min_balance_30d=Decimal("1800.00"),
+        max_balance_30d=Decimal("3200.00"),
+        typical_balance_range=(Decimal("2000.00"), Decimal("3000.00")),
+        percentage_of_total=Decimal("0.3333")  # Percentage field (4 decimal places)
+    )
+    
+    assert balance_dist.average_balance == Decimal("2500.00")
+    assert balance_dist.percentage_of_total == Decimal("0.3333")  # 4 decimal places
+    
+    # Test all risk assessment fields with 4 decimal places (percentage fields)
+    risk = AccountRiskAssessment(
+        account_id=1,
+        overdraft_risk=Decimal("0.1234"),
+        credit_utilization_risk=Decimal("0.2345"),
+        payment_failure_risk=Decimal("0.3456"),
+        volatility_score=Decimal("0.4567"),
+        overall_risk_score=Decimal("0.5678")
+    )
+    
+    # Verify all risk fields accept 4 decimal places (percentage fields)
+    assert risk.overdraft_risk == Decimal("0.1234")
+    assert risk.credit_utilization_risk == Decimal("0.2345")
+    assert risk.payment_failure_risk == Decimal("0.3456")
+    assert risk.volatility_score == Decimal("0.4567")
+    assert risk.overall_risk_score == Decimal("0.5678")
+    
+    # Test AccountUsagePattern percentage fields with 4 decimal places
+    usage = AccountUsagePattern(
+        account_id=1,
+        primary_use="Daily Expenses",
+        average_transaction_size=Decimal("75.50"),
+        common_merchants=["Walmart", "Amazon"],
+        peak_usage_days=[1, 15],
+        category_preferences={
+            "Groceries": Decimal("0.1234"),
+            "Shopping": Decimal("0.2345"),
+            "Bills": Decimal("0.6421")
+        },
+        utilization_rate=Decimal("0.7654")
+    )
+    
+    # Verify percentage fields accept 4 decimal places
+    assert usage.category_preferences["Groceries"] == Decimal("0.1234")
+    assert usage.category_preferences["Shopping"] == Decimal("0.2345")
+    assert usage.category_preferences["Bills"] == Decimal("0.6421")
+    assert usage.utilization_rate == Decimal("0.7654")
+    
+    # Test validation error with too many decimal places in percentage field
+    with pytest.raises(ValidationError, match="Input should have at most 4 decimal places"):
+        AccountRiskAssessment(
+            account_id=1,
+            overdraft_risk=Decimal("0.12345"),  # 5 decimal places
+            payment_failure_risk=Decimal("0.3456"),
+            volatility_score=Decimal("0.4567"),
+            overall_risk_score=Decimal("0.5678")
         )
 
 

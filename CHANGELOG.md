@@ -5,23 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.10] - 2025-03-16
+## [0.4.11] - 2025-03-17
 
 ### Added
-- Enhanced test coverage for ADR-013 decimal precision implementation:
-  * Added comprehensive tests for the core decimal precision module
-  * Added model tests for 4 decimal place storage verification
-  * Added specific test for the "$100 split three ways" case
-  * Added tests for common bill amount distributions
-  * Added tests for edge cases and large monetary values
+- Enhanced schema validation tests for decimal precision handling:
+  * Added comprehensive tests for monetary field validation with 2 decimal places
+  * Added tests for percentage field validation with 4 decimal places
+  * Added tests for "$100 split three ways" case across schema test files
+  * Added epsilon tolerance tests for sum validation
+  * Added tests for money_field() vs percentage_field() validation
 
 ### Changed
-- Updated ADR-013 implementation checklist to reflect current progress (86% complete)
-- Reorganized remaining implementation tasks for clarity
+- Updated bill_splits, payments, and accounts schema tests:
+  * Enhanced test_bill_splits_schemas.py with all decimal precision formats
+  * Updated test_payments_schemas.py with epsilon tolerance tests
+  * Enhanced test_accounts_schemas.py for money_field() utility
+  * Added test for BaseSchemaValidator field methods
+- Updated cashflow schema tests for percentage validation:
+  * Enhanced tests for percentage fields with 4 decimal places
+  * Added validation tests for risk assessment percentage fields
+  * Verified appropriate validation for different precision needs
+- Updated ADR-013 implementation checklist to 90% complete (up from 86%)
+  * Marked Schema Tests as completed (6/6)
+  * Updated BaseSchemaValidator implementation as completed
+  * Reorganized remaining priority tasks
 
 ### Fixed
-- Fixed several gaps in the decimal precision test coverage
-- Added missing test cases for the "$100 split three ways" scenario
+- Fixed error message assertions across all schema test files
+- Standardized validation test patterns for decimal precision
+- Enhanced test coverage to verify decimal validation consistency
 
 ## [0.4.8] - 2025-03-16
 
