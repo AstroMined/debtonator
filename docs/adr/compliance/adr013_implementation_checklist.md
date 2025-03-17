@@ -138,10 +138,10 @@ src/models/cashflow.py:
   - [x] Verify validation in `src/schemas/income_trends.py` - Updated to use new BaseSchemaValidator.money_field()
   - [x] Verify validation in `src/schemas/recommendations.py` - Updated to use new BaseSchemaValidator.money_field() and percentage_field()
   - [x] Verify validation in `src/schemas/cashflow/account_analysis.py` - Updated with StandardizedBaseValidator money/percentage fields
-  - [ ] Verify validation in `src/schemas/cashflow/base.py`
-  - [ ] Verify validation in `src/schemas/cashflow/forecasting.py`
-  - [ ] Verify validation in `src/schemas/cashflow/historical.py`
-  - [ ] Verify validation in `src/schemas/cashflow/metrics.py`
+  - [x] Verify validation in `src/schemas/cashflow/base.py` - Updated to use BaseSchemaValidator.money_field()
+  - [x] Verify validation in `src/schemas/cashflow/forecasting.py` - Updated to use money_field() and percentage_field()
+  - [x] Verify validation in `src/schemas/cashflow/historical.py` - Updated to use money_field() and percentage_field()
+  - [x] Verify validation in `src/schemas/cashflow/metrics.py` - Updated to use BaseSchemaValidator.money_field()
 
 - [x] Update the one special case:
   - [x] Ensure `BalanceDistribution.percentage_of_total` maintains 4 decimal places (in `src/schemas/cashflow/account_analysis.py`) - Updated to use BaseSchemaValidator.percentage_field()

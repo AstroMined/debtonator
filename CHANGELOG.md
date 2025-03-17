@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.7] - 2025-03-16
+
+### Changed
+- Completed cashflow schema files decimal precision standardization:
+  * Updated all remaining cashflow schema files with standardized field methods
+  * Applied BaseSchemaValidator.money_field() to all monetary values
+  * Applied BaseSchemaValidator.percentage_field() to all percentage values
+  * Enhanced separation between monetary and percentage fields
+  * Standardized schema validation across all files
+  * Maintained existing field constraints and documentation
+  * Improved code readability and maintainability
+
+### Fixed
+- Improved percentage field validation in cashflow schemas:
+  * Standardized confidence scores with proper validation
+  * Updated trend strength fields with percentage_field()
+  * Fixed decimal precision validation consistency
+  * Used appropriate field methods for different validation needs
+
 ## [0.4.6] - 2025-03-16
 
 ### Changed

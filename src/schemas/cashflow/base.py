@@ -17,77 +17,74 @@ class CashflowBase(BaseSchemaValidator):
         default_factory=datetime.now,  # BaseSchemaValidator handles UTC validation
         description="Date and time of forecast in UTC timezone"
     )
-    total_bills: Decimal = F
-        ..., 
-        ..., 
-        gecimal_place==2,
-        des0,
-        decimal_places=2,
-        description="Total aFsariod"
-    )..., 
-        
-    total_cimal_placei=2, 
-        desncome: Decimal = Field(
-        ..., 
-        ge=0,Fi(
-        ..,
-        dcma_places=2,
-        decimal_places=2, 
-        description="Total amount of income in forecast period"
-    )Fi(
-        ..,
-        dcma_places=2,
-    balance: Decimal = Field(
+    total_bills: Decimal = BaseSchemaValidator.money_field(
+        "Total amount of bills in forecast period",
         ...,
-        decimal_places=2,Fi(
-        ..,
-        dcma_places=2,
-        description="Current balance across all accounts"
+        ge=0
     )
-    forecast: Decimal = FiFi((
-        ..,
-        dcma_places=2,
+    
+    total_income: Decimal = BaseSchemaValidator.money_field(
+        "Total amount of income in forecast period",
         ...,
-        decimal_places=2,
-        description="ProjeFafst period"
-    )...,
-        ,_pls=2,
-        decimal_places=2,6
-        description="Minimum funds required for next 14 days"
-    mn90_ayF
-    min_...,
-        is=2,l_ps=2,
-        description=oMy:ieu dfu..fnex90ys
-        decimal_places=2,
-    daidesdeficiin="Minimum fFays"
-...,
-       dl_ps=2,
-        decimal_placeAvegyetimnt
-    y
-    yearly_deficit: Decimal = Field(
-        ...,
-        decimal_places=2,
-        description="Projected yearly deficit"
+        ge=0
     )
-    required_income: Decimal = Field(
-        ...,
-        decimal_places=2,
-        description="Income required to cover bills with tax consideration"
+    balance: Decimal = BaseSchemaValidator.money_field(
+        "Current balance across all accounts",
+        ...
     )
-    hourly_rate_40: Decimal = Field(
-        ...,
-        decimal_places=2,
-        description="Hourly rate needed at 40 hours per week"
+    
+    forecast: Decimal = BaseSchemaValidator.money_field(
+        "Projected balance at end of forecast period",
+        ...
     )
-    hourly_rate_30: Decimal = Field(
-        ...,
-        decimal_places=2,
-        description="Hourly rate needed at 30 hours per week"
+    
+    min_14_day: Decimal = BaseSchemaValidator.money_field(
+        "Minimum funds required for next 14 days",
+        ...
     )
-    hourly_rate_20: Decimal = Field(
-        ...,
-        decimal_places=2,
-        description="Hourly rate needed at 20 hours per week"
+    
+    min_30_day: Decimal = BaseSchemaValidator.money_field(
+        "Minimum funds required for next 30 days",
+        ...
+    )
+    
+    min_60_day: Decimal = BaseSchemaValidator.money_field(
+        "Minimum funds required for next 60 days",
+        ...
+    )
+    
+    min_90_day: Decimal = BaseSchemaValidator.money_field(
+        "Minimum funds required for next 90 days",
+        ...
+    )
+    
+    daily_deficit: Decimal = BaseSchemaValidator.money_field(
+        "Average daily deficit amount",
+        ...
+    )
+    yearly_deficit: Decimal = BaseSchemaValidator.money_field(
+        "Projected yearly deficit", 
+        ...
+    )
+    
+    required_income: Decimal = BaseSchemaValidator.money_field(
+        "Income required to cover bills with tax consideration",
+        ...
+    )
+    
+    hourly_rate_40: Decimal = BaseSchemaValidator.money_field(
+        "Hourly rate needed at 40 hours per week",
+        ...
+    )
+    
+    hourly_rate_30: Decimal = BaseSchemaValidator.money_field(
+        "Hourly rate needed at 30 hours per week",
+        ...
+    )
+    
+    hourly_rate_20: Decimal = BaseSchemaValidator.money_field(
+        "Hourly rate needed at 20 hours per week",
+        ...
     )
 
 class CashflowCreate(CashflowBase):
@@ -108,77 +105,76 @@ class CashflowUpdate(BaseSchemaValidator):
         None,
         description="Date and time of forecast in UTC timezone"
     )
-    total_bills: Optional[Decimal] = Field(
+    total_bills: Optional[Decimal] = BaseSchemaValidator.money_field(
+        "Total amount of bills in forecast period",
         None, 
-        ge=0,
-        decimal_places=2,
-        description="Total amount of bills in forecast period"
+        ge=0
     )
-    total_income: Optional[Decimal] = Field(
+    
+    total_income: Optional[Decimal] = BaseSchemaValidator.money_field(
+        "Total amount of income in forecast period",
         None, 
-        ge=0,
-        decimal_places=2,
-        description="Total amount of income in forecast period"
+        ge=0
     )
-    balance: Optional[Decimal] = Field(
-        None,
-        decimal_places=2,
-        description="Current balance across all accounts"
+    
+    balance: Optional[Decimal] = BaseSchemaValidator.money_field(
+        "Current balance across all accounts",
+        None
     )
-    forecast: Optional[Decimal] = Field(
-        None,
-        decimal_places=2,
-        description="Projected balance at end of forecast period"
+    
+    forecast: Optional[Decimal] = BaseSchemaValidator.money_field(
+        "Projected balance at end of forecast period",
+        None
     )
-    min_14_day: Optional[Decimal] = Field(
-        None,
-        decimal_places=2,
-        description="Minimum funds required for next 14 days"
+    
+    min_14_day: Optional[Decimal] = BaseSchemaValidator.money_field(
+        "Minimum funds required for next 14 days",
+        None
     )
-    min_30_day: Optional[Decimal] = Field(
-        None,
-        decimal_places=2,
-        description="Minimum funds required for next 30 days"
+    
+    min_30_day: Optional[Decimal] = BaseSchemaValidator.money_field(
+        "Minimum funds required for next 30 days",
+        None
     )
-    min_60_day: Optional[Decimal] = Field(
-        None,
-        decimal_places=2,
-        description="Minimum funds required for next 60 days"
+    
+    min_60_day: Optional[Decimal] = BaseSchemaValidator.money_field(
+        "Minimum funds required for next 60 days",
+        None
     )
-    min_90_day: Optional[Decimal] = Field(
-        None,
-        decimal_places=2,
-        description="Minimum funds required for next 90 days"
+    
+    min_90_day: Optional[Decimal] = BaseSchemaValidator.money_field(
+        "Minimum funds required for next 90 days",
+        None
     )
-    daily_deficit: Optional[Decimal] = Field(
-        None,
-        decimal_places=2,
-        description="Average daily deficit amount"
+    
+    daily_deficit: Optional[Decimal] = BaseSchemaValidator.money_field(
+        "Average daily deficit amount",
+        None
     )
-    yearly_deficit: Optional[Decimal] = Field(
-        None,
-        decimal_places=2,
-        description="Projected yearly deficit"
+    
+    yearly_deficit: Optional[Decimal] = BaseSchemaValidator.money_field(
+        "Projected yearly deficit",
+        None
     )
-    required_income: Optional[Decimal] = Field(
-        None,
-        decimal_places=2,
-        description="Income required to cover bills with tax consideration"
+    
+    required_income: Optional[Decimal] = BaseSchemaValidator.money_field(
+        "Income required to cover bills with tax consideration",
+        None
     )
-    hourly_rate_40: Optional[Decimal] = Field(
-        None,
-        decimal_places=2,
-        description="Hourly rate needed at 40 hours per week"
+    
+    hourly_rate_40: Optional[Decimal] = BaseSchemaValidator.money_field(
+        "Hourly rate needed at 40 hours per week",
+        None
     )
-    hourly_rate_30: Optional[Decimal] = Field(
-        None,
-        decimal_places=2,
-        description="Hourly rate needed at 30 hours per week"
+    
+    hourly_rate_30: Optional[Decimal] = BaseSchemaValidator.money_field(
+        "Hourly rate needed at 30 hours per week",
+        None
     )
-    hourly_rate_20: Optional[Decimal] = Field(
-        None,
-        decimal_places=2,
-        description="Hourly rate needed at 20 hours per week"
+    
+    hourly_rate_20: Optional[Decimal] = BaseSchemaValidator.money_field(
+        "Hourly rate needed at 20 hours per week",
+        None
     )
 
 class CashflowInDB(CashflowBase):
@@ -236,11 +232,12 @@ class CashflowFilters(BaseSchemaValidator):
         None,
         description="Filter cashflows until this date in UTC timezone"
     )
-    min_balance: Optional[Decimal] = Field(
-        None,
-        description="Minimum balance threshold for filtering"
+    min_balance: Optional[Decimal] = BaseSchemaValidator.money_field(
+        "Minimum balance threshold for filtering",
+        None
     )
-    max_balance: Optional[Decimal] = Field(
-        None,
-        description="Maximum balance threshold for filtering"
+    
+    max_balance: Optional[Decimal] = BaseSchemaValidator.money_field(
+        "Maximum balance threshold for filtering",
+        None
     )

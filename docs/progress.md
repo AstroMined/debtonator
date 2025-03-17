@@ -262,6 +262,21 @@
    - Improve mobile experience
 
 ## What's New
+1. **Completed Decimal Precision Implementation for All Schema Files** ✓
+   - Standardized all remaining cashflow schema files with proper decimal handling:
+     * Updated `src/schemas/cashflow/base.py` with money_field() for all monetary values
+     * Updated `src/schemas/cashflow/forecasting.py` with both money_field() and percentage_field()
+     * Updated `src/schemas/cashflow/historical.py` with both money_field() and percentage_field()
+     * Updated `src/schemas/cashflow/metrics.py` with money_field() for all monetary values
+   - Properly identified and standardized percentage fields with 4-decimal precision:
+     * Applied percentage_field() to all percentage-based values like confidence scores
+     * Maintained consistency across all schema validation patterns
+     * Preserved existing field constraints and documentation
+   - These updates complete the schema standardization portion of ADR-013:
+     * All schema files now use standardized field methods
+     * Clear distinction between monetary and percentage fields
+     * Consistent validation patterns throughout the application
+     * Reduced code duplication and improved maintainability
 1. **Expanded Decimal Precision Implementation Across Schema Files** ✓
    - Updated 10 additional schema files with standardized field methods:
      * Applied to balance_history.py, balance_reconciliation.py, deposit_schedules.py, etc.
@@ -351,7 +366,7 @@
    - Improved documentation for all validators
    - Fixed all test failures related to Pydantic V2 validation context
 
-6. **Decimal Precision Handling**: IN PROGRESS (80%)
+6. **Decimal Precision Handling**: IN PROGRESS (90%)
    - Created comprehensive ADR-013 for decimal precision
    - Updated BaseSchemaValidator with global decimal validation
    - Created detailed implementation checklist in docs/adr/compliance/
@@ -370,7 +385,6 @@
      * bill_splits.py, payments.py, balance_history.py, cashflow.py, impact_analysis.py
      * Used consistent 4-decimal internal calculations with 2-decimal boundary rounding
    - Remaining implementation tasks include:
-     * Update remaining cashflow schema files
      * Update API response handling
      * Complete test suite updates
      * Finalize documentation
@@ -390,17 +404,11 @@
    - Synchronized with existing version in pyproject.toml
 
 ## Next Actions
-1. **Complete ADR-013 Implementation**
+1. **Complete Remaining ADR-013 Implementation Tasks**
    - Continue following implementation checklist:
-     * Update the remaining cashflow schema files 
      * Update API response handling for consistent precision
      * Enhance test suite to verify validation behavior
      * Complete developer guidelines documentation
-   - Prioritize completing the cashflow schema files:
-     * Update `src/schemas/cashflow/base.py`
-     * Update `src/schemas/cashflow/forecasting.py`
-     * Update `src/schemas/cashflow/historical.py`
-     * Update `src/schemas/cashflow/metrics.py`
    - Implement API response formatting:
      * Update `src/api/base.py` to ensure consistent rounding
      * Add special case handling for percentage fields

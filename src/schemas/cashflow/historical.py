@@ -12,38 +12,30 @@ class HistoricalTrendMetrics(BaseSchemaValidator):
     
     Contains metrics describing historical trends in account balances.
     """
-    average_daily_change: Decimal = Field(
-        ...,
-        decimal_places=2,
-        description="Average daily change in balance"
+    average_daily_change: Decimal = BaseSchemaValidator.money_field(
+        "Average daily change in balance",
+        ...
     )
-    volatility: Decimal = Field(
-        ...,
-        decimal_places=2,
-        description="Standard deviation of daily changes"
+    volatility: Decimal = BaseSchemaValidator.money_field(
+        "Standard deviation of daily changes",
+        ...
     )
     trend_direction: str = Field(
         ..., 
         pattern="^(increasing|decreasing|stable)$",
         description="Overall direction of the trend"
     )
-    trend_strength: Decimal = Field(
-        ..., 
-        ge=0, 
-        le=1,
-        decimal_places=2,
-        description="Strength of the trend (0-1 scale)"
+    trend_strength: Decimal = BaseSchemaValidator.percentage_field(
+        "Strength of the trend (0-1 scale)",
+        ...
     )
     seasonal_factors: Dict[str, Decimal] = Field(
         ...,
         description="Seasonal factors affecting the trend"
     )
-    confidence_score: Decimal = Field(
-        ..., 
-        ge=0, 
-        le=1,
-        decimal_places=2,
-        description="Confidence in the trend analysis (0-1 scale)"
+    confidence_score: Decimal = BaseSchemaValidator.percentage_field(
+        "Confidence in the trend analysis (0-1 scale)",
+        ...
     )
 
 class HistoricalPeriodAnalysis(BaseSchemaValidator):
@@ -61,35 +53,29 @@ class HistoricalPeriodAnalysis(BaseSchemaValidator):
         ...,
         description="End date of this analysis period in UTC timezone"
     )
-    average_balance: Decimal = Field(
-        ...,
-        decimal_places=2,
-        description="Average balance during this period"
+    average_balance: Decimal = BaseSchemaValidator.money_field(
+        "Average balance during this period",
+        ...
     )
-    peak_balance: Decimal = Field(
-        ...,
-        decimal_places=2,
-        description="Highest balance during this period"
+    peak_balance: Decimal = BaseSchemaValidator.money_field(
+        "Highest balance during this period",
+        ...
     )
-    lowest_balance: Decimal = Field(
-        ...,
-        decimal_places=2,
-        description="Lowest balance during this period"
+    lowest_balance: Decimal = BaseSchemaValidator.money_field(
+        "Lowest balance during this period",
+        ...
     )
-    total_inflow: Decimal = Field(
-        ...,
-        decimal_places=2,
-        description="Total money coming in during this period"
+    total_inflow: Decimal = BaseSchemaValidator.money_field(
+        "Total money coming in during this period",
+        ...
     )
-    total_outflow: Decimal = Field(
-        ...,
-        decimal_places=2,
-        description="Total money going out during this period"
+    total_outflow: Decimal = BaseSchemaValidator.money_field(
+        "Total money going out during this period",
+        ...
     )
-    net_change: Decimal = Field(
-        ...,
-        decimal_places=2,
-        description="Net change in balance during this period"
+    net_change: Decimal = BaseSchemaValidator.money_field(
+        "Net change in balance during this period",
+        ...
     )
     significant_events: List[Dict[str, str]] = Field(
         ...,
@@ -118,12 +104,9 @@ class SeasonalityAnalysis(BaseSchemaValidator):
         ...,
         description="Impact of holidays on financial patterns"
     )
-    seasonal_strength: Decimal = Field(
-        ..., 
-        ge=0, 
-        le=1,
-        decimal_places=2,
-        description="Overall strength of seasonality (0-1 scale)"
+    seasonal_strength: Decimal = BaseSchemaValidator.percentage_field(
+        "Overall strength of seasonality (0-1 scale)",
+        ...
     )
 
 class HistoricalTrendsResponse(BaseSchemaValidator):
