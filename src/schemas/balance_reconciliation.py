@@ -11,15 +11,11 @@ class BalanceReconciliationBase(BaseSchemaValidator):
     Contains the core fields required for all balance reconciliation operations.
     """
     account_id: int = Field(..., description="ID of the account being reconciled")
-    previous_balance: Decimal = Field(
-        ..., 
-        description="Balance before reconciliation",
-        decimal_places=2
+    previous_balance: Decimal = BaseSchemaValidator.money_field(
+        description="Balance before reconciliation"
     )
-    new_balance: Decimal = Field(
-        ..., 
-        description="Balance after reconciliation",
-        decimal_places=2
+    new_balance: Decimal = BaseSchemaValidator.money_field(
+        description="Balance after reconciliation"
     )
     reason: str | None = Field(
         None, 
@@ -54,10 +50,8 @@ class BalanceReconciliation(BalanceReconciliationBase):
     Includes all fields from the base schema plus system-generated fields.
     """
     id: int = Field(..., description="Unique identifier for the reconciliation record")
-    adjustment_amount: Decimal = Field(
-        ..., 
-        description="Amount of adjustment (new_balance - previous_balance)",
-        decimal_places=2
+    adjustment_amount: Decimal = BaseSchemaValidator.money_field(
+        description="Amount of adjustment (new_balance - previous_balance)"
     )
     reconciliation_date: datetime = Field(
         ..., 

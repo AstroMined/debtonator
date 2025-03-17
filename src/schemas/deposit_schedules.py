@@ -27,10 +27,8 @@ class DepositScheduleBase(BaseSchemaValidator):
         ...,
         description="Scheduled date for the deposit in UTC timezone"
     )
-    amount: Decimal = Field(
-        ..., 
+    amount: Decimal = BaseSchemaValidator.money_field(
         gt=0,
-        decimal_places=2,
         description="Amount to be deposited"
     )
     recurring: bool = Field(
@@ -46,14 +44,6 @@ class DepositScheduleBase(BaseSchemaValidator):
         pattern="^(pending|completed)$",
         description="Current status of the deposit (pending or completed)"
     )
-    
-    @field_validator("amount")
-    @classmethod
-    def validate_amount_precision(cls, value: Decimal) -> Decimal:
-        """Validate that the amount has at most 2 decimal places."""
-        if value.quantize(Decimal("0.01")) != value:
-            raise ValueError("Amount must have at most 2 decimal places")
-        return value
 
 class DepositScheduleCreate(DepositScheduleBase):
     """
@@ -74,10 +64,9 @@ class DepositScheduleUpdate(BaseSchemaValidator):
         None,
         description="Updated scheduled date for the deposit in UTC timezone"
     )
-    amount: Decimal | None = Field(
-        None, 
+    amount: Decimal | None = BaseSchemaValidator.money_field(
+        default=None,
         gt=0,
-        decimal_places=2,
         description="Updated deposit amount"
     )
     recurring: bool | None = Field(
@@ -93,14 +82,6 @@ class DepositScheduleUpdate(BaseSchemaValidator):
         pattern="^(pending|completed)$",
         description="Updated deposit status (pending or completed)"
     )
-    
-    @field_validator("amount")
-    @classmethod
-    def validate_amount_precision(cls, value: Optional[Decimal]) -> Optional[Decimal]:
-        """Validate that the amount has at most 2 decimal places."""
-        if value is not None and value.quantize(Decimal("0.01")) != value:
-            raise ValueError("Amount must have at most 2 decimal places")
-        return value
 
 class DepositSchedule(DepositScheduleBase):
     """

@@ -13,10 +13,8 @@ class CreditLimitHistoryBase(BaseSchemaValidator):
     Contains the core fields for credit limit history entries.
     All datetime fields are stored in UTC timezone.
     """
-    credit_limit: Decimal = Field(
-        ..., 
+    credit_limit: Decimal = BaseSchemaValidator.money_field(
         gt=0,
-        decimal_places=2,
         description="Credit limit amount in dollars"
     )
     effective_date: datetime = Field(
@@ -64,10 +62,8 @@ class CreditLimitUpdate(BaseSchemaValidator):
     Contains all fields needed to create a new credit limit history entry.
     All datetime fields are stored in UTC timezone.
     """
-    credit_limit: Decimal = Field(
-        ..., 
+    credit_limit: Decimal = BaseSchemaValidator.money_field(
         gt=0,
-        decimal_places=2,
         description="New credit limit amount in dollars"
     )
     effective_date: datetime = Field(
@@ -95,9 +91,7 @@ class AccountCreditLimitHistoryResponse(BaseSchemaValidator):
         ..., 
         description="Account name"
     )
-    current_credit_limit: Decimal = Field(
-        ..., 
-        decimal_places=2,
+    current_credit_limit: Decimal = BaseSchemaValidator.money_field(
         description="Current credit limit in dollars"
     )
     credit_limit_history: List[CreditLimitHistoryInDB] = Field(

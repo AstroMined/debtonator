@@ -20,12 +20,9 @@ class RecurringIncomeBase(BaseSchemaValidator):
         description="Source of the recurring income",
         examples=["Monthly Salary", "Rental Income"]
     )
-    amount: Decimal = Field(
-        ...,
+    amount: Decimal = BaseSchemaValidator.money_field(
         ge=Decimal('0.01'),
-        max_digits=10,
-        decimal_places=2,
-        description="Income amount (must be positive and have 2 decimal places)",
+        description="Income amount (must be positive)",
         examples=["5000.00", "1200.50"]
     )
     day_of_month: int = Field(
@@ -49,27 +46,6 @@ class RecurringIncomeBase(BaseSchemaValidator):
         default=False,
         description="Whether to automatically mark as deposited"
     )
-
-    @field_validator("amount", mode="before")
-    @classmethod
-    def validate_amount_precision(cls, v: Decimal) -> Decimal:
-        """
-        Ensure amount has exactly 2 decimal places.
-        
-        Args:
-            v: The decimal value to validate
-            
-        Returns:
-            The validated decimal value
-            
-        Raises:
-            ValueError: If the value doesn't have exactly 2 decimal places
-        """
-        if not isinstance(v, Decimal):
-            v = Decimal(str(v))
-        if v.as_tuple().exponent != -2:
-            raise ValueError("Amount must have exactly 2 decimal places")
-        return v
 
     @field_validator("day_of_month", mode="before")
     @classmethod
@@ -114,10 +90,9 @@ class RecurringIncomeUpdate(BaseSchemaValidator):
         max_length=255,
         description="Updated source of the recurring income"
     )
-    amount: Optional[Decimal] = Field(
-        None, 
+    amount: Optional[Decimal] = BaseSchemaValidator.money_field(
+        default=None,
         gt=0,
-        decimal_places=2,
         description="Updated income amount"
     )
     day_of_month: Optional[int] = Field(
@@ -195,12 +170,9 @@ class IncomeBase(BaseSchemaValidator):
         description="Source of the income",
         examples=["Salary", "Freelance Work", "Investment"]
     )
-    amount: Decimal = Field(
-        ...,
+    amount: Decimal = BaseSchemaValidator.money_field(
         ge=Decimal('0.01'),
-        max_digits=10,
-        decimal_places=2,
-        description="Income amount (must be positive and have 2 decimal places)",
+        description="Income amount (must be positive)",
         examples=["1000.00", "5250.50"]
     )
     deposited: bool = Field(
@@ -217,29 +189,6 @@ class IncomeBase(BaseSchemaValidator):
         gt=0,
         description="ID of the income category (optional)"
     )
-
-    # Removed custom datetime validation - BaseSchemaValidator handles UTC validation
-
-    @field_validator("amount", mode="before")
-    @classmethod
-    def validate_amount_precision(cls, v: Decimal) -> Decimal:
-        """
-        Ensure amount has exactly 2 decimal places.
-        
-        Args:
-            v: The decimal value to validate
-            
-        Returns:
-            The validated decimal value
-            
-        Raises:
-            ValueError: If the value doesn't have exactly 2 decimal places
-        """
-        if not isinstance(v, Decimal):
-            v = Decimal(str(v))
-        if v.as_tuple().exponent != -2:
-            raise ValueError("Amount must have exactly 2 decimal places")
-        return v
 
 class IncomeCreate(IncomeBase):
     """
@@ -266,10 +215,9 @@ class IncomeUpdate(BaseSchemaValidator):
         max_length=255,
         description="Updated source of the income"
     )
-    amount: Optional[Decimal] = Field(
-        None, 
+    amount: Optional[Decimal] = BaseSchemaValidator.money_field(
+        default=None,
         ge=0,
-        decimal_places=2,
         description="Updated income amount"
     )
     deposited: Optional[bool] = Field(
@@ -346,18 +294,14 @@ class IncomeFilters(BaseSchemaValidator):
         None,
         description="Filter by deposit status"
     )
-    min_amount: Optional[Decimal] = Field(
-        None,
+    min_amount: Optional[Decimal] = BaseSchemaValidator.money_field(
+        default=None,
         ge=Decimal('0.01'),
-        max_digits=10,
-        decimal_places=2,
         description="Minimum amount filter"
     )
-    max_amount: Optional[Decimal] = Field(
-        None,
+    max_amount: Optional[Decimal] = BaseSchemaValidator.money_field(
+        default=None,
         ge=Decimal('0.01'),
-        max_digits=10,
-        decimal_places=2,
         description="Maximum amount filter"
     )
     account_id: Optional[int] = Field(
@@ -370,31 +314,6 @@ class IncomeFilters(BaseSchemaValidator):
         gt=0,
         description="Filter by category ID"
     )
-
-    @field_validator("min_amount", "max_amount", mode="before")
-    @classmethod
-    def validate_amount_precision(cls, v: Optional[Decimal]) -> Optional[Decimal]:
-        """
-        Ensure amount has exactly 2 decimal places when provided.
-        
-        Args:
-            v: The decimal value to validate
-            
-        Returns:
-            The validated decimal value or None
-            
-        Raises:
-            ValueError: If the value doesn't have exactly 2 decimal places
-        """
-        if v is None:
-            return v
-        if not isinstance(v, Decimal):
-            v = Decimal(str(v))
-        if v.as_tuple().exponent != -2:
-            raise ValueError("Amount must have exactly 2 decimal places")
-        return v
-
-    # Removed custom datetime validation - BaseSchemaValidator handles UTC validation
 
     @model_validator(mode="after")
     def validate_date_range(self) -> "IncomeFilters":

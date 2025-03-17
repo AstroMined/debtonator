@@ -18,14 +18,11 @@ class BalanceHistoryBase(BaseSchemaValidator):
         gt=0,
         description="ID of the account this balance history is for"
     )
-    balance: Decimal = Field(
-        ..., 
-        decimal_places=2,
+    balance: Decimal = BaseSchemaValidator.money_field(
         description="Current balance of the account"
     )
-    available_credit: Decimal | None = Field(
-        None, 
-        decimal_places=2,
+    available_credit: Decimal | None = BaseSchemaValidator.money_field(
+        default=None,
         description="Available credit for credit accounts (null for non-credit accounts)"
     )
     is_reconciled: bool = Field(
@@ -92,43 +89,29 @@ class BalanceTrend(BaseSchemaValidator):
         ...,
         description="End date of the analysis period in UTC timezone"
     )
-    start_balance: Decimal = Field(
-        ...,
-        decimal_places=2,
+    start_balance: Decimal = BaseSchemaValidator.money_field(
         description="Balance at the start of the period"
     )
-    end_balance: Decimal = Field(
-        ...,
-        decimal_places=2,
+    end_balance: Decimal = BaseSchemaValidator.money_field(
         description="Balance at the end of the period"
     )
-    net_change: Decimal = Field(
-        ...,
-        decimal_places=2,
+    net_change: Decimal = BaseSchemaValidator.money_field(
         description="Change in balance over the period (end_balance - start_balance)"
     )
-    average_balance: Decimal = Field(
-        ...,
-        decimal_places=2,
+    average_balance: Decimal = BaseSchemaValidator.money_field(
         description="Average balance during the period"
     )
-    min_balance: Decimal = Field(
-        ...,
-        decimal_places=2,
+    min_balance: Decimal = BaseSchemaValidator.money_field(
         description="Minimum balance during the period"
     )
-    max_balance: Decimal = Field(
-        ...,
-        decimal_places=2,
+    max_balance: Decimal = BaseSchemaValidator.money_field(
         description="Maximum balance during the period"
     )
     trend_direction: str = Field(
         ...,
         description="Direction of the trend (increasing, decreasing, or stable)"
     )
-    volatility: Decimal = Field(
-        ...,
-        decimal_places=2,
+    volatility: Decimal = BaseSchemaValidator.money_field(
         description="Standard deviation of balance changes during the period"
     )
     

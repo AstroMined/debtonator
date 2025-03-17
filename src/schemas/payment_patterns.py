@@ -54,31 +54,21 @@ class AmountStatistics(BaseSchemaValidator):
     
     Contains various statistical measures of payment amounts over time.
     """
-    average_amount: Decimal = Field(
-        ..., 
-        description="Average payment amount",
-        decimal_places=2
+    average_amount: Decimal = BaseSchemaValidator.money_field(
+        description="Average payment amount"
     )
-    std_dev_amount: Decimal = Field(
-        ..., 
-        description="Standard deviation of payment amounts",
-        decimal_places=2,
-        ge=0
+    std_dev_amount: Decimal = BaseSchemaValidator.money_field(
+        ge=0,
+        description="Standard deviation of payment amounts"
     )
-    min_amount: Decimal = Field(
-        ..., 
-        description="Minimum payment amount",
-        decimal_places=2
+    min_amount: Decimal = BaseSchemaValidator.money_field(
+        description="Minimum payment amount"
     )
-    max_amount: Decimal = Field(
-        ..., 
-        description="Maximum payment amount",
-        decimal_places=2
+    max_amount: Decimal = BaseSchemaValidator.money_field(
+        description="Maximum payment amount"
     )
-    total_amount: Decimal = Field(
-        ..., 
-        description="Total amount of all payments",
-        decimal_places=2
+    total_amount: Decimal = BaseSchemaValidator.money_field(
+        description="Total amount of all payments"
     )
 
 

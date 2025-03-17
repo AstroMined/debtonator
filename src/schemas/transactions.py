@@ -20,11 +20,9 @@ class TransactionBase(BaseSchemaValidator):
     Contains common fields and validation shared by all transaction schemas.
     All datetime fields are validated to ensure they have UTC timezone.
     """
-    amount: Decimal = Field(
-        ..., 
-        description="Transaction amount (in decimal format)",
+    amount: Decimal = BaseSchemaValidator.money_field(
         ge=0,
-        decimal_places=2
+        description="Transaction amount (in decimal format)"
     )
     transaction_type: TransactionType = Field(
         ..., 
@@ -56,11 +54,10 @@ class TransactionUpdate(BaseSchemaValidator):
     All fields are optional to allow partial updates.
     All datetime fields are validated to ensure they have UTC timezone.
     """
-    amount: Optional[Decimal] = Field(
-        None, 
-        description="Transaction amount (in decimal format)",
+    amount: Optional[Decimal] = BaseSchemaValidator.money_field(
+        default=None,
         ge=0,
-        decimal_places=2
+        description="Transaction amount (in decimal format)"
     )
     transaction_type: Optional[TransactionType] = Field(
         None, 

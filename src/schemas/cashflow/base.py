@@ -17,53 +17,53 @@ class CashflowBase(BaseSchemaValidator):
         default_factory=datetime.now,  # BaseSchemaValidator handles UTC validation
         description="Date and time of forecast in UTC timezone"
     )
-    total_bills: Decimal = Field(
+    total_bills: Decimal = F
         ..., 
-        ge=0,
+        ..., 
+        gecimal_place==2,
+        des0,
         decimal_places=2,
-        description="Total amount of bills in forecast period"
-    )
-    total_income: Decimal = Field(
+        description="Total aFsariod"
+    )..., 
+        
+    total_cimal_placei=2, 
+        desncome: Decimal = Field(
         ..., 
-        ge=0,
+        ge=0,Fi(
+        ..,
+        dcma_places=2,
         decimal_places=2, 
         description="Total amount of income in forecast period"
-    )
+    )Fi(
+        ..,
+        dcma_places=2,
     balance: Decimal = Field(
         ...,
-        decimal_places=2,
+        decimal_places=2,Fi(
+        ..,
+        dcma_places=2,
         description="Current balance across all accounts"
     )
-    forecast: Decimal = Field(
+    forecast: Decimal = FiFi((
+        ..,
+        dcma_places=2,
         ...,
         decimal_places=2,
-        description="Projected balance at end of forecast period"
-    )
-    min_14_day: Decimal = Field(
-        ...,
-        decimal_places=2,
+        description="ProjeFafst period"
+    )...,
+        ,_pls=2,
+        decimal_places=2,6
         description="Minimum funds required for next 14 days"
-    )
-    min_30_day: Decimal = Field(
-        ...,
+    mn90_ayF
+    min_...,
+        is=2,l_ps=2,
+        description=oMy:ieu dfu..fnex90ys
         decimal_places=2,
-        description="Minimum funds required for next 30 days"
-    )
-    min_60_day: Decimal = Field(
-        ...,
-        decimal_places=2,
-        description="Minimum funds required for next 60 days"
-    )
-    min_90_day: Decimal = Field(
-        ...,
-        decimal_places=2,
-        description="Minimum funds required for next 90 days"
-    )
-    daily_deficit: Decimal = Field(
-        ...,
-        decimal_places=2,
-        description="Average daily deficit amount"
-    )
+    daidesdeficiin="Minimum fFays"
+...,
+       dl_ps=2,
+        decimal_placeAvegyetimnt
+    y
     yearly_deficit: Decimal = Field(
         ...,
         decimal_places=2,

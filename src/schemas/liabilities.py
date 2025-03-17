@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, Union, Any
 from pydantic import Field, ConfigDict, field_validator, model_validator
 
 from . import BaseSchemaValidator
+from src.core.decimal_precision import DecimalPrecision
 
 class AutoPaySettings(BaseSchemaValidator):
     """
@@ -32,8 +33,8 @@ class AutoPaySettings(BaseSchemaValidator):
         max_length=50, 
         description="Payment method to use for auto-pay"
     )
-    minimum_balance_required: Optional[Decimal] = Field(
-        None, 
+    minimum_balance_required: Optional[Decimal] = BaseSchemaValidator.money_field(
+        default=None,
         description="Minimum balance required in account before auto-pay is triggered"
     )
     retry_on_failure: bool = Field(
@@ -64,25 +65,6 @@ class AutoPaySettings(BaseSchemaValidator):
             raise ValueError("Cannot set both preferred_pay_date and days_before_due")
         return self
 
-    @field_validator("minimum_balance_required", mode="before")
-    @classmethod
-    def validate_minimum_balance_precision(cls, value: Optional[Decimal]) -> Optional[Decimal]:
-        """
-        Validates that minimum_balance_required has at most 2 decimal places.
-        
-        Args:
-            value: The Decimal value to validate
-            
-        Returns:
-            Optional[Decimal]: The validated value
-            
-        Raises:
-            ValueError: If value has more than 2 decimal places
-        """
-        if value is not None and isinstance(value, Decimal) and value.as_tuple().exponent < -2:
-            raise ValueError("Minimum balance must have at most 2 decimal places")
-        return value
-
 
 class LiabilityBase(BaseSchemaValidator):
     """
@@ -99,9 +81,8 @@ class LiabilityBase(BaseSchemaValidator):
         max_length=100, 
         description="Name of the liability"
     )
-    amount: Decimal = Field(
-        ..., 
-        gt=Decimal('0'), 
+    amount: Decimal = BaseSchemaValidator.money_field(
+        gt=Decimal('0'),
         description="Total amount of the liability"
     )
     due_date: datetime = Field(
@@ -155,25 +136,6 @@ class LiabilityBase(BaseSchemaValidator):
         description="Whether this liability has been paid"
     )
 
-    @field_validator("amount", mode="before")
-    @classmethod
-    def validate_amount_precision(cls, value: Decimal) -> Decimal:
-        """
-        Validates that amount has at most 2 decimal places.
-        
-        Args:
-            value: The Decimal value to validate
-            
-        Returns:
-            Decimal: The validated value
-            
-        Raises:
-            ValueError: If value has more than 2 decimal places
-        """
-        if isinstance(value, Decimal) and value.as_tuple().exponent < -2:
-            raise ValueError("Amount must have at most 2 decimal places")
-        return value
-
     @field_validator("due_date")
     @classmethod
     def validate_due_date_not_past(cls, value: datetime) -> datetime:
@@ -219,8 +181,8 @@ class LiabilityUpdate(BaseSchemaValidator):
         max_length=100, 
         description="Name of the liability"
     )
-    amount: Optional[Decimal] = Field(
-        None, 
+    amount: Optional[Decimal] = BaseSchemaValidator.money_field(
+        default=None,
         gt=Decimal('0'), 
         description="Total amount of the liability"
     )
@@ -258,25 +220,6 @@ class LiabilityUpdate(BaseSchemaValidator):
         None, 
         description="Whether auto-pay is currently enabled for this liability"
     )
-
-    @field_validator("amount", mode="before")
-    @classmethod
-    def validate_amount_precision(cls, value: Optional[Decimal]) -> Optional[Decimal]:
-        """
-        Validates that amount has at most 2 decimal places.
-        
-        Args:
-            value: The optional Decimal value to validate
-            
-        Returns:
-            Optional[Decimal]: The validated value
-            
-        Raises:
-            ValueError: If value has more than 2 decimal places
-        """
-        if value is not None and isinstance(value, Decimal) and value.as_tuple().exponent < -2:
-            raise ValueError("Amount must have at most 2 decimal places")
-        return value
 
     @field_validator("due_date")
     @classmethod

@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.6] - 2025-03-16
+
+### Changed
+- Expanded standardized decimal precision across schema files:
+  * Updated 10 additional schema files with standardized field methods
+  * Replaced custom decimal validation with BaseSchemaValidator methods
+  * Used money_field() for monetary values (2 decimal places)
+  * Used percentage_field() for percentage values (4 decimal places)
+  * Maintained all field constraints (gt, ge, etc.) and documentation
+  * Implemented in balance_history.py, balance_reconciliation.py, deposit_schedules.py, impact_analysis.py, income_trends.py, payment_patterns.py, payment_schedules.py, recurring_bills.py, recommendations.py, and transactions.py
+
+### Fixed
+- Improved handling of percentage fields across schemas:
+  * Properly used percentage_field() with 4 decimal places for:
+    - Credit utilization fields
+    - Historical pattern strength metrics
+    - Confidence scores
+    - Risk assessment fields
+  * Maintained appropriate range constraints (0-1 or 0-100)
+  * Preserved backward compatibility with existing validation
+
 ## [0.4.5] - 2025-03-16
 
 ### Added

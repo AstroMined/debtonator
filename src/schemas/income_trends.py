@@ -36,10 +36,8 @@ class IncomePattern(BaseSchemaValidator):
         ...,
         description="Frequency pattern of the income"
     )
-    average_amount: Decimal = Field(
-        ..., 
+    average_amount: Decimal = BaseSchemaValidator.money_field(
         gt=0,
-        decimal_places=2,
         description="Average amount of income from this source"
     )
     confidence_score: float = Field(
@@ -140,28 +138,20 @@ class SourceStatistics(BaseSchemaValidator):
         gt=0,
         description="Total number of times this income source has occurred"
     )
-    total_amount: Decimal = Field(
-        ..., 
+    total_amount: Decimal = BaseSchemaValidator.money_field(
         ge=0,
-        decimal_places=2,
         description="Total amount received from this source"
     )
-    average_amount: Decimal = Field(
-        ..., 
+    average_amount: Decimal = BaseSchemaValidator.money_field(
         gt=0,
-        decimal_places=2,
         description="Average amount per occurrence"
     )
-    min_amount: Decimal = Field(
-        ..., 
+    min_amount: Decimal = BaseSchemaValidator.money_field(
         ge=0,
-        decimal_places=2,
         description="Minimum amount received from this source"
     )
-    max_amount: Decimal = Field(
-        ..., 
+    max_amount: Decimal = BaseSchemaValidator.money_field(
         gt=0,
-        decimal_places=2,
         description="Maximum amount received from this source"
     )
     standard_deviation: float = Field(

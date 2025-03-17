@@ -17,27 +17,21 @@ class AccountImpact(BaseSchemaValidator):
         description="ID of the account being analyzed",
         gt=0
     )
-    current_balance: Decimal = Field(
-        ..., 
-        description="Current balance in the account",
-        decimal_places=2
+    current_balance: Decimal = BaseSchemaValidator.money_field(
+        description="Current balance in the account"
     )
-    projected_balance: Decimal = Field(
-        ..., 
-        description="Projected balance after the analyzed action",
-        decimal_places=2
+    projected_balance: Decimal = BaseSchemaValidator.money_field(
+        description="Projected balance after the analyzed action"
     )
-    current_credit_utilization: Optional[Decimal] = Field(
-        None, 
+    current_credit_utilization: Optional[Decimal] = BaseSchemaValidator.percentage_field(
+        default=None, 
         description="Current credit utilization percentage (if applicable)",
-        decimal_places=2,
         ge=0, 
         le=100
     )
-    projected_credit_utilization: Optional[Decimal] = Field(
-        None, 
+    projected_credit_utilization: Optional[Decimal] = BaseSchemaValidator.percentage_field(
+        default=None, 
         description="Projected credit utilization percentage after the analyzed action",
-        decimal_places=2,
         ge=0, 
         le=100
     )
@@ -59,21 +53,16 @@ class CashflowImpact(BaseSchemaValidator):
         default_factory=lambda: datetime.now(timezone.utc),
         description="Date for this cashflow snapshot (UTC timezone)"
     )
-    total_bills: Decimal = Field(
-        ..., 
-        description="Total bills due on this date",
-        decimal_places=2,
-        ge=0
+    total_bills: Decimal = BaseSchemaValidator.money_field(
+        ge=0,
+        description="Total bills due on this date"
     )
-    available_funds: Decimal = Field(
-        ..., 
-        description="Available funds on this date",
-        decimal_places=2
+    available_funds: Decimal = BaseSchemaValidator.money_field(
+        description="Available funds on this date"
     )
-    projected_deficit: Optional[Decimal] = Field(
-        None, 
-        description="Projected deficit amount if available funds are insufficient",
-        decimal_places=2
+    projected_deficit: Optional[Decimal] = BaseSchemaValidator.money_field(
+        default=None, 
+        description="Projected deficit amount if available funds are insufficient"
     )
     # No custom validators needed - BaseSchemaValidator handles UTC validation
 
@@ -107,11 +96,9 @@ class SplitImpactAnalysis(BaseSchemaValidator):
     Contains detailed analysis of how a bill split configuration affects accounts,
     cashflow, and overall financial risk.
     """
-    total_amount: Decimal = Field(
-        ..., 
-        description="Total amount of the liability being analyzed",
-        decimal_places=2,
-        gt=0
+    total_amount: Decimal = BaseSchemaValidator.money_field(
+        gt=0,
+        description="Total amount of the liability being analyzed"
     )
     account_impacts: List[AccountImpact] = Field(
         ..., 

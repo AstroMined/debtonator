@@ -38,21 +38,17 @@ class AccountBalance(BaseSchemaValidator):
         ...,
         description="Type of the account (checking, savings, credit)"
     )
-    current_balance: Decimal = Field(
-        ..., 
-        decimal_places=2,
+    current_balance: Decimal = BaseSchemaValidator.money_field(
         description="Current balance of the account"
     )
-    available_credit: Optional[Decimal] = Field(
-        None, 
-        ge=0, 
-        decimal_places=2,
+    available_credit: Optional[Decimal] = BaseSchemaValidator.money_field(
+        default=None,
+        ge=0,
         description="Available credit (for credit accounts only)"
     )
-    total_limit: Optional[Decimal] = Field(
-        None, 
-        gt=0, 
-        decimal_places=2,
+    total_limit: Optional[Decimal] = BaseSchemaValidator.money_field(
+        default=None,
+        gt=0,
         description="Total credit limit (for credit accounts only)"
     )
     
@@ -94,26 +90,18 @@ class RealtimeCashflow(BaseSchemaValidator):
         min_items=1,
         description="List of account balances included in this analysis"
     )
-    total_available_funds: Decimal = Field(
-        ..., 
-        decimal_places=2,
+    total_available_funds: Decimal = BaseSchemaValidator.money_field(
         description="Total funds available across all accounts"
     )
-    total_available_credit: Decimal = Field(
-        ..., 
-        ge=0, 
-        decimal_places=2,
+    total_available_credit: Decimal = BaseSchemaValidator.money_field(
+        ge=0,
         description="Total available credit across all credit accounts"
     )
-    total_liabilities_due: Decimal = Field(
-        ..., 
-        ge=0, 
-        decimal_places=2,
+    total_liabilities_due: Decimal = BaseSchemaValidator.money_field(
+        ge=0,
         description="Total amount due across all liabilities"
     )
-    net_position: Decimal = Field(
-        ..., 
-        decimal_places=2,
+    net_position: Decimal = BaseSchemaValidator.money_field(
         description="Net financial position (total_available_funds - total_liabilities_due)"
     )
     next_bill_due: Optional[datetime] = Field(
@@ -125,14 +113,11 @@ class RealtimeCashflow(BaseSchemaValidator):
         ge=0,
         description="Number of days until the next bill is due"
     )
-    minimum_balance_required: Decimal = Field(
-        ..., 
-        decimal_places=2,
+    minimum_balance_required: Decimal = BaseSchemaValidator.money_field(
         description="Minimum balance required to cover upcoming expenses"
     )
-    projected_deficit: Optional[Decimal] = Field(
-        None, 
-        decimal_places=2,
+    projected_deficit: Optional[Decimal] = BaseSchemaValidator.money_field(
+        default=None,
         description="Projected deficit amount if current trends continue"
     )
 

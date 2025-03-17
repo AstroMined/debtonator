@@ -11,10 +11,8 @@ class BillSplitBase(BaseSchemaValidator):
     
     Contains common fields and validation shared by all bill split schemas.
     """
-    amount: Decimal = Field(
-        ..., 
-        gt=0, 
-        decimal_places=2,
+    amount: Decimal = BaseSchemaValidator.money_field(
+        gt=0,
         description="Split amount must be greater than 0"
     )
 
@@ -68,10 +66,8 @@ class BillSplitValidation(BaseSchemaValidator):
     Ensures the sum of all splits equals the total amount of the liability.
     """
     liability_id: int = Field(..., gt=0, description="ID of the liability being split")
-    total_amount: Decimal = Field(
-        ..., 
-        gt=0, 
-        decimal_places=2,
+    total_amount: Decimal = BaseSchemaValidator.money_field(
+        gt=0,
         description="Total amount of the liability"
     )
     splits: List[BillSplitCreate] = Field(..., description="List of bill splits to validate")
@@ -96,10 +92,8 @@ class SplitSuggestion(BaseSchemaValidator):
     Contains details about a suggested split including confidence score and reasoning.
     """
     account_id: int = Field(..., gt=0, description="ID of the suggested account")
-    amount: Decimal = Field(
-        ..., 
-        gt=0, 
-        decimal_places=2,
+    amount: Decimal = BaseSchemaValidator.money_field(
+        gt=0,
         description="Suggested split amount"
     )
     confidence_score: float = Field(
@@ -121,10 +115,8 @@ class BillSplitSuggestionResponse(BaseSchemaValidator):
     Contains a list of suggested splits and metadata about the suggestion.
     """
     liability_id: int = Field(..., gt=0, description="ID of the liability")
-    total_amount: Decimal = Field(
-        ..., 
-        gt=0, 
-        decimal_places=2,
+    total_amount: Decimal = BaseSchemaValidator.money_field(
+        gt=0,
         description="Total amount of the liability"
     )
     suggestions: List[SplitSuggestion] = Field(..., description="List of suggested splits")
@@ -148,17 +140,14 @@ class SplitPattern(BaseSchemaValidator):
         max_length=50,
         description="Unique identifier for the pattern"
     )
-    account_splits: Dict[int, Decimal] = Field(
-        ..., 
+    account_splits: Dict[int, Decimal] = BaseSchemaValidator.percentage_field(
         description="Mapping of account IDs to their split percentages"
     )
     total_occurrences: int = Field(..., gt=0, description="Number of times this pattern appears")
     first_seen: datetime = Field(..., description="Date pattern was first observed (UTC timezone)")
     last_seen: datetime = Field(..., description="Date pattern was last observed (UTC timezone)")
-    average_total: Decimal = Field(
-        ..., 
-        gt=0, 
-        decimal_places=2,
+    average_total: Decimal = BaseSchemaValidator.money_field(
+        gt=0,
         description="Average total amount for this pattern"
     )
     confidence_score: float = Field(
@@ -199,9 +188,7 @@ class OptimizationMetrics(BaseSchemaValidator):
         ...,
         description="Credit utilization percentage per credit account"
     )
-    balance_impact: Dict[int, Decimal] = Field(
-        ...,
-        decimal_places=2,
+    balance_impact: Dict[int, Decimal] = BaseSchemaValidator.money_field(
         description="Impact on available balance per account"
     )
     risk_score: float = Field(
@@ -260,14 +247,10 @@ class ImpactAnalysis(BaseSchemaValidator):
         ...,
         description="Current configuration metrics"
     )
-    short_term_impact: Dict[int, Decimal] = Field(
-        ...,
-        decimal_places=2,
+    short_term_impact: Dict[int, Decimal] = BaseSchemaValidator.money_field(
         description="30-day impact per account"
     )
-    long_term_impact: Dict[int, Decimal] = Field(
-        ...,
-        decimal_places=2,
+    long_term_impact: Dict[int, Decimal] = BaseSchemaValidator.money_field(
         description="90-day impact per account"
     )
     risk_factors: List[str] = Field(

@@ -121,22 +121,22 @@ src/models/cashflow.py:
 
 - [ ] Ensure all Pydantic schema files (150 fields across 21 schema files) maintain 2 decimal place validation at API boundaries:
   - [x] Verify validation in `src/schemas/accounts.py` - Updated to use new BaseSchemaValidator.money_field()
-  - [ ] Verify validation in `src/schemas/bill_splits.py`
-  - [ ] Verify validation in `src/schemas/liabilities.py`
-  - [x] Verify validation in `src/schemas/payments.py`
-  - [ ] Verify validation in `src/schemas/realtime_cashflow.py`
-  - [ ] Verify validation in `src/schemas/credit_limits.py`
-  - [ ] Verify validation in `src/schemas/balance_history.py`
-  - [ ] Verify validation in `src/schemas/balance_reconciliation.py`
-  - [ ] Verify validation in `src/schemas/deposit_schedules.py`
-  - [ ] Verify validation in `src/schemas/impact_analysis.py`
-  - [ ] Verify validation in `src/schemas/income_trends.py`
-  - [ ] Verify validation in `src/schemas/income.py`
-  - [ ] Verify validation in `src/schemas/payment_patterns.py`
-  - [ ] Verify validation in `src/schemas/payment_schedules.py`
-  - [ ] Verify validation in `src/schemas/recommendations.py`
-  - [ ] Verify validation in `src/schemas/recurring_bills.py`
-  - [ ] Verify validation in `src/schemas/transactions.py`
+  - [x] Verify validation in `src/schemas/bill_splits.py` - Updated to use new BaseSchemaValidator.money_field()
+  - [x] Verify validation in `src/schemas/liabilities.py` - Updated to use new BaseSchemaValidator.money_field()
+  - [x] Verify validation in `src/schemas/payments.py` - Updated to use new BaseSchemaValidator.money_field()
+  - [x] Verify validation in `src/schemas/realtime_cashflow.py` - Updated to use new BaseSchemaValidator.money_field()
+  - [x] Verify validation in `src/schemas/credit_limits.py` - Updated to use new BaseSchemaValidator.money_field()
+  - [x] Verify validation in `src/schemas/income.py` - Updated to use new BaseSchemaValidator.money_field()
+  - [x] Verify validation in `src/schemas/balance_history.py` - Updated to use new BaseSchemaValidator.money_field()
+  - [x] Verify validation in `src/schemas/balance_reconciliation.py` - Updated to use new BaseSchemaValidator.money_field()
+  - [x] Verify validation in `src/schemas/deposit_schedules.py` - Updated to use new BaseSchemaValidator.money_field()
+  - [x] Verify validation in `src/schemas/payment_patterns.py` - Updated to use new BaseSchemaValidator.money_field()
+  - [x] Verify validation in `src/schemas/payment_schedules.py` - Updated to use new BaseSchemaValidator.money_field()
+  - [x] Verify validation in `src/schemas/recurring_bills.py` - Updated to use new BaseSchemaValidator.money_field()
+  - [x] Verify validation in `src/schemas/transactions.py` - Updated to use new BaseSchemaValidator.money_field()
+  - [x] Verify validation in `src/schemas/impact_analysis.py` - Updated to use new BaseSchemaValidator.money_field() and percentage_field()
+  - [x] Verify validation in `src/schemas/income_trends.py` - Updated to use new BaseSchemaValidator.money_field()
+  - [x] Verify validation in `src/schemas/recommendations.py` - Updated to use new BaseSchemaValidator.money_field() and percentage_field()
   - [x] Verify validation in `src/schemas/cashflow/account_analysis.py` - Updated with StandardizedBaseValidator money/percentage fields
   - [ ] Verify validation in `src/schemas/cashflow/base.py`
   - [ ] Verify validation in `src/schemas/cashflow/forecasting.py`

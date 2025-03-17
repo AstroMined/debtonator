@@ -4,7 +4,40 @@
 Decimal Precision Handling Implementation
 
 ### Recent Changes
-1. **Implemented Centralized Decimal Precision Approach** ✓
+1. **Implemented Standard Decimal Precision in Schema Files** ✓
+   - Enhanced more schema files with standardized decimal field methods:
+     * Replaced custom decimal validation with BaseSchemaValidator methods
+     * Updated monetary fields to use `money_field()` with 2 decimal places
+     * Updated percentage fields to use `percentage_field()` with 4 decimal places
+     * Removed redundant custom validators that were checking the same constraints
+   - Updated 16 schema files with standardized approach:
+     * `src/schemas/balance_history.py`: Money fields for balances 
+     * `src/schemas/balance_reconciliation.py`: Money fields for balance reconciliation
+     * `src/schemas/deposit_schedules.py`: Money fields for deposit amounts
+     * `src/schemas/impact_analysis.py`: Mixed money and percentage fields
+     * `src/schemas/income_trends.py`: Money fields for income trends
+     * `src/schemas/payment_patterns.py`: Money fields for payment patterns
+     * `src/schemas/payment_schedules.py`: Money fields for payment schedules
+     * `src/schemas/recurring_bills.py`: Money fields for recurring bills
+     * `src/schemas/recommendations.py`: Money and percentage fields
+     * `src/schemas/transactions.py`: Money fields for transaction amounts
+     * Plus additional similar schema files
+   - Updated several key percentage fields to use correct 4 decimal precision:
+     * `credit_utilization` fields now use percentage_field()
+     * `historical_pattern_strength` now uses percentage_field()
+     * `confidence_score` fields use percentage_field()
+   - Maintained validation consistency by:
+     * Preserving field constraints (gt, ge, etc.)
+     * Maintaining descriptions and documentation
+     * Ensuring consistent handling of nullable fields
+     * Preserving backward compatibility
+   - These changes ensure consistent validation behavior:
+     * Monetary fields validate to 2 decimal places
+     * Percentage fields validate to 4 decimal places
+     * Field constraints remain consistent
+     * Improved code clarity and reduced duplication
+
+2. **Implemented Centralized Decimal Precision Approach** ✓
    - Enhanced `DecimalPrecision` core module with utility functions:
      * Added `EPSILON` constant for decimal equality comparisons
      * Implemented `validate_sum_equals_total()` for validating sums 
@@ -31,10 +64,10 @@ Decimal Precision Handling Implementation
      * Proper handling of special cases without custom validators
      * Clear separation between core precision utilities and schema validation
 
-2. **Implemented Decimal Precision Handling in Critical Services** ✓
+3. **Implemented Decimal Precision Handling in Critical Services** ✓
    - Updated five critical services with decimal precision enhancements:
      * `src/services/bill_splits.py` - Implemented for accurate distribution calculations
-     * `src/services/payments.py` - Updated payment distribution precision handling
+     * `src/services/payments.py` - Updated payment distribution logic
      * `src/services/balance_history.py` - Enhanced running balance calculations
      * `src/services/cashflow.py` (metrics_service.py) - Improved forecast calculations
      * `src/services/impact_analysis.py` - Updated percentage and risk calculations
@@ -54,7 +87,8 @@ Decimal Precision Handling Implementation
      * Groundwork laid for remaining implementation tasks
      * Progress tracked in docs/adr/compliance/adr013_implementation_checklist.md
 
-3. **Created ADR-013 Implementation Checklist** ✓
+### Previous Changes
+1. **Created ADR-013 Implementation Checklist** ✓
    - Created comprehensive implementation checklist for decimal precision handling:
      * Organized by implementation area with clear tasks
      * Detailed all 37 database fields that need precision updates
@@ -97,119 +131,25 @@ Decimal Precision Handling Implementation
      * Dynamic date generation to prevent test failures with hardcoded dates
      * Tests properly validate current schema validation behaviors
 
-### Previous Changes
-1. **Fixed Default DateTime UTC Validation** ✓
-   - Enhanced BaseSchemaValidator to properly handle default datetime values:
-     * Added model_validator to catch naive datetimes set by default_factory
-     * Implemented proper local-to-UTC timezone conversion for naive datetimes
-     * Fixed subtle timezone handling bug in schema validation
-   - Ensures consistent compliance with ADR-011 requirements:
-     * All datetimes, including defaults, are now properly in UTC timezone
-     * Correctly converts naive datetimes rather than just adding timezone info
-     * Preserves original time value with proper timezone conversion
-   - Improved test stability:
-     * Fixed timezone-related test failures in schema tests
-     * Added specific test for default timestamp validation
-     * Ensured datetime comparison accuracy across timezone boundaries
-   - This fix provides:
-     * Consistent UTC datetime handling across all schema classes
-     * Proper handling of default_factory created datetime values
-     * Reliable datetime comparisons in tests and application code
-     * Full compliance with ADR-011 even for auto-generated values
-
-1. **Fixed Pydantic V2 Validation Issues** ✓
-   - Updated validators in schema files to properly use Pydantic V2 patterns:
-     * Fixed `income_trends.py` validators to use ValidationInfo object
-     * Fixed `realtime_cashflow.py` validators to use ValidationInfo object
-     * Added proper parameter typing and documentation
-   - Addressed validation issues in the following classes:
-     * `SourceStatistics.validate_max_amount()`
-     * `IncomeTrendsAnalysis.validate_date_range()`
-     * `IncomeTrendsRequest.validate_date_range()`
-     * `AccountBalance.validate_credit_fields()`
-     * `RealtimeCashflow.validate_net_position()`
-   - Fixed test failures by properly using ValidationInfo instead of direct dictionary access
-   - Improved test stability by updating test expectations for validation behavior
-
-2. **Created Decimal Precision Handling ADR** ✓
-   - Created comprehensive ADR-013 for decimal precision handling:
-     * Defined multi-tier precision model with 2 decimals for I/O and 4 decimals for calculations
-     * Outlined implementation components including utility classes and rounding functions
-     * Detailed migration strategy across database, schema, and service layers
-     * Documented consequences, performance considerations, and technical details
-     * Added code examples for BaseDecimalField, rounding utilities, and bill split implementation
-   - ADR addresses critical financial calculation needs:
-     * Proper rounding strategies for financial values
-     * Consistent precision handling across the application
-     * Accurate bill splits and allocations without rounding errors
-     * Compliance with financial industry standards
-
-3. **Implemented Global Decimal Precision Validation** ✓
-   - Updated `BaseSchemaValidator` to include decimal precision validation:
-     * Added `validate_decimal_precision` method to enforce 2 decimal places for input values
-     * Provided comprehensive documentation on validation purpose and approach
-     * Added TODO comments about future architectural improvement needs
-   - This enhancement provides:
-     * Consistent validation for all decimal fields across the application
-     * Clear error messages for precision validation failures
-     * Preparation for future implementation of ADR-013 concepts
-
-4. **Cashflow Schema Tests Completed** ✓
-   - Implemented all five test files for modularized cashflow schemas:
-     * `tests/schemas/test_cashflow_base_schemas.py` - Core cashflow schemas tests
-     * `tests/schemas/test_cashflow_metrics_schemas.py` - Financial metrics schemas tests
-     * `tests/schemas/test_cashflow_account_analysis_schemas.py` - Account analysis schemas tests
-     * `tests/schemas/test_cashflow_forecasting_schemas.py` - Forecasting schemas tests
-     * `tests/schemas/test_cashflow_historical_schemas.py` - Historical analysis schemas tests
-   - Each test file includes:
-     * Tests for valid object creation with required and optional fields
-     * Tests for field validations (required fields, constraints)
-     * Tests for decimal precision validation for monetary fields
-     * Tests for UTC datetime validation per ADR-011
-     * Tests for business rules and cross-field validations
-     * Tests for BaseSchemaValidator inheritance
-   - Updated schema_test_implementation_checklist.md to reflect completed work
-   - All tests passing with comprehensive validation coverage
-
-2. **Timezone Compliance Fixes** ✓
-   - Fixed timezone handling in test files to comply with ADR-011:
-     * Updated `tests/schemas/test_accounts_schemas.py` to use `timezone.utc` instead of `ZoneInfo("UTC")`
-     * Ensured proper UTC datetime handling across all tests
-     * Added proper import statements (`from datetime import timezone`)
-     * Maintained `ZoneInfo` import for non-UTC timezone tests
-   - Updated schema test implementation checklist to track timezone compliance
-   - Ensured consistent timezone approach aligned with ADR-011 requirements
-
-3. **Schema Modularization Completed** ✓
-   - Decomposed large cashflow.py file (974 lines) into five focused modules:
-     * `src/schemas/cashflow/base.py` - Core cashflow schemas
-     * `src/schemas/cashflow/metrics.py` - Financial metrics schemas
-     * `src/schemas/cashflow/account_analysis.py` - Account analysis schemas
-     * `src/schemas/cashflow/forecasting.py` - Forecasting schemas
-     * `src/schemas/cashflow/historical.py` - Historical analysis schemas
-   - Created proper backward-compatible re-export mechanism via `__init__.py`
-   - Maintained all ADR-011 and ADR-012 compliance in new module structure
-   - Improved code organization for better maintainability
-   - Enhanced adherence to Single Responsibility Principle (SRP)
-   - Simplified future testing by having smaller, focused modules
-   - Updated schema_test_implementation_checklist.md to reflect new structure
-   - Incurred no breaking changes due to backward compatibility layer
-
-3. **Version Information Management** ✓
-   - Created src/version.py to provide consistent access to version information:
-     * Implemented VERSION_MAJOR, VERSION_MINOR, and VERSION_PATCH constants (0.3.95)
-     * Added VERSION string formatted as "MAJOR.MINOR.PATCH" 
-     * Added VERSION_TUPLE for structured access to version components
-     * Added comprehensive docstrings explaining purpose
-   - This allows:
-     * Programmatic access to the version information from code
-     * Display of version in the UI and API responses
-     * Version checks in future CI/CD pipelines
-     * Single source of truth for version information
-   - Synchronized with existing version in pyproject.toml
-
 ### Implementation Lessons
-1. **Centralized Schema Validation Architecture**
+1. **Standardized Field Methods Improve Consistency**
+   - The use of standardized field creation methods provides key benefits:
+     * Makes decimal precision requirements explicit in code
+     * Reduces duplication of validation logic
+     * Creates a single source of truth for validation rules
+     * Enables easy updates to validation behavior
+   - Field methods are more maintainable than custom validators:
+     * Self-documenting with clear intention 
+     * Reduces chance of inconsistent validation
+     * Easier to scan and understand code
+     * Allows proper handling of special cases
+   - This approach bridges schema and domain models elegantly:
+     * Schemas remain focused on validation
+     * Core module contains business logic
+     * Base validator bridges the two concerns
+     * Clear separation of responsibilities
+
+2. **Centralized Schema Validation Architecture**
    - The centralized approach with enhanced `BaseSchemaValidator` provides many benefits:
      * Reduced code duplication across schema files
      * Consistent field definitions and validation behavior
@@ -226,7 +166,7 @@ Decimal Precision Handling Implementation
      * Prevents fragmentation across multiple utility files
      * Clear responsibilities with minimal overlap
 
-2. **Financial Calculation Handling**
+3. **Financial Calculation Handling**
    - Using 4 decimal places for internal calculations provides sufficient precision
    - The Decimal class properly handles precision-critical operations
    - Explicitly converting to Decimal early in calculation chains prevents precision loss
@@ -234,67 +174,44 @@ Decimal Precision Handling Implementation
    - Percentage calculations particularly benefit from higher precision
    - Risk scoring calculations need careful handling for decimal-to-integer conversions
 
-2. **Core Module Structure**
-   - The src/core directory approach works well for cross-cutting business concerns
-   - Static methods on utility classes provide a clean interface for common operations
-   - Explicit function naming improves clarity of precision intent
-   - Core modules should be focused on single responsibility
-   - Documentation within core modules should explain when and how to use functions
-   - Better to provide targeted utility functions than comprehensive classes
-
 ### Current Implementation Plan 
 
-#### Schema Test Implementation Progress
-1. **Recently Implemented Test Files** ✓
-   - [x] tests/schemas/test_cashflow_base_schemas.py
-     * Complete tests for CashflowBase, CashflowCreate, CashflowUpdate, CashflowInDB, CashflowResponse, CashflowList, and CashflowFilters
-     * Comprehensive tests for decimal precision on all monetary fields
-     * Tests for required field validation and field constraints
-     * Tests for UTC datetime validation per ADR-011
-     * Tests for proper object creation and default values
-   - [x] tests/schemas/test_cashflow_metrics_schemas.py
-     * Complete tests for MinimumRequired, DeficitCalculation, and HourlyRates schemas
-     * Extensive validation of required fields and decimal precision
-     * Tests for BaseSchemaValidator inheritance
-   - [x] tests/schemas/test_cashflow_account_analysis_schemas.py
-     * Complete tests for AccountCorrelation, TransferPattern, AccountUsagePattern, BalanceDistribution, AccountRiskAssessment, and CrossAccountAnalysis
-     * Tests for range validations (0-1 scores, percentage fields)
-     * Tests for pattern matching ("complementary", "supplementary", "independent")
-     * Tests for UTC datetime validation and required fields
-   - [x] tests/schemas/test_cashflow_forecasting_schemas.py
-     * Complete tests for CustomForecastParameters, CustomForecastResult, CustomForecastResponse, AccountForecastRequest, AccountForecastMetrics, AccountForecastResult, and AccountForecastResponse
-     * Tests for default values and optional fields
-     * Tests for range validations (confidence scores, utilization rates)
-     * Tests for UTC datetime validation in all timestamp fields
-   - [x] tests/schemas/test_cashflow_historical_schemas.py
-     * Complete tests for HistoricalTrendMetrics, HistoricalPeriodAnalysis, SeasonalityAnalysis, and HistoricalTrendsResponse
-     * Tests for pattern validation ("increasing", "decreasing", "stable")
-     * Tests for range validations (confidence scores, trend strength)
-     * Tests for decimal precision and UTC datetime validation
+#### ADR-013 Implementation Progress
+1. **Completed Components** ✓
+   - [x] Core module implementation with DecimalPrecision utilities
+   - [x] BaseSchemaValidator enhancements with standardized field methods
+   - [x] Critical schema file updates with standardized field methods
+   - [x] Critical service updates with proper precision handling
+   - [x] Implementation checklist creation and maintenance
+   - [x] Documentation updates in ADR-013
 
-2. **Previously Implemented Test Files** ✓
-   - [x] tests/schemas/test_realtime_cashflow_schemas.py
-   - [x] tests/schemas/test_recommendations_schemas.py
-   - [x] tests/schemas/test_income_categories_schemas.py
-   - [x] And 12 other completed schema test files
-
-3. **Updated schema_test_implementation_checklist.md** ✓
-   - [x] Marked 20 of 25 total schema test files as completed
-   - [x] Updated timezone compliance status for test_accounts_schemas.py
-   - [x] Added detailed notes on all completed cashflow schema tests
+2. **Current Action Items**
+   - Continue implementation of standardized field methods:
+     * [ ] Cashflow schema files in src/schemas/cashflow/
+     * [ ] API response handling with proper rounding
+     * [ ] Additional service layer updates
+   - Add comprehensive test coverage:
+     * [ ] Decimal precision tests for distribution utilities
+     * [ ] Schema validation tests for money and percentage fields
+     * [ ] Service layer precision tests
+   - Complete documentation:
+     * [ ] Developer guidelines for working with money
+     * [ ] API documentation with validation requirements
+     * [ ] Update ADR-013 with implementation details
 
 ## Next Steps
-1. **Continue ADR-013 Implementation**
+1. **Complete ADR-013 Implementation**
    - Continue following implementation checklist:
      * Update the remaining schema files with standardized field methods
+     * Focus on cashflow schema directory which has several remaining files
      * Update API response handling for consistent precision
      * Enhance test suite to verify validation behavior
      * Complete developer guidelines documentation
-   - Focus on next priority schema files:
-     * Update `src/schemas/bill_splits.py` (critical for splitting calculations)
-     * Update `src/schemas/liabilities.py` (important for financial calculations)
-     * Update `src/schemas/income.py` (important for financial calculations)
-     * Update rest of cashflow schemas for consistent approach
+   - Prioritize completing the cashflow schema files:
+     * Update `src/schemas/cashflow/base.py`
+     * Update `src/schemas/cashflow/forecasting.py`
+     * Update `src/schemas/cashflow/historical.py`
+     * Update `src/schemas/cashflow/metrics.py`
    - Implement API response formatting:
      * Update `src/api/base.py` to ensure consistent rounding
      * Add special case handling for percentage fields
@@ -304,17 +221,7 @@ Decimal Precision Handling Implementation
      * Verify proper validation behavior at boundaries
      * Test complex distribution scenarios
 
-2. **Complete Schema Test Implementation**
-   - Update remaining test files with timezone fixes (as needed):
-     * test_income_schemas.py
-     * test_liabilities_schemas.py
-     * test_payments_schemas.py
-     * test_transactions_schemas.py
-     * test_analysis_schemas.py
-   - Verify all schema test files fully validate all schemas and constraints
-   - Run final test suite to confirm 100% test coverage
-
-3. **Resume API Enhancement Project - Phase 6**
+2. **Resume API Enhancement Project - Phase 6**
    - Implement recommendations API using standardized schemas
    - Continue trend reporting development with improved validation
    - Proceed with frontend development leveraging enhanced schema validation

@@ -19,10 +19,8 @@ class RecurringBillBase(BaseSchemaValidator):
         max_length=255, 
         description="Name of the recurring bill"
     )
-    amount: Decimal = Field(
-        ..., 
-        gt=0, 
-        decimal_places=2,
+    amount: Decimal = BaseSchemaValidator.money_field(
+        gt=0,
         description="Amount of the recurring bill in dollars"
     )
     day_of_month: int = Field(
@@ -43,14 +41,6 @@ class RecurringBillBase(BaseSchemaValidator):
         False,
         description="Whether the bill is set up for automatic payment"
     )
-    
-    @field_validator("amount")
-    @classmethod
-    def validate_amount_precision(cls, value: Decimal) -> Decimal:
-        """Validate that the amount has at most 2 decimal places."""
-        if value.quantize(Decimal("0.01")) != value:
-            raise ValueError("Amount must have at most 2 decimal places")
-        return value
 
 class RecurringBillCreate(RecurringBillBase):
     """
@@ -72,10 +62,9 @@ class RecurringBillUpdate(BaseSchemaValidator):
         max_length=255, 
         description="Updated name of the recurring bill"
     )
-    amount: Optional[Decimal] = Field(
-        None, 
-        gt=0, 
-        decimal_places=2,
+    amount: Optional[Decimal] = BaseSchemaValidator.money_field(
+        default=None,
+        gt=0,
         description="Updated amount of the recurring bill in dollars"
     )
     day_of_month: Optional[int] = Field(
@@ -100,14 +89,6 @@ class RecurringBillUpdate(BaseSchemaValidator):
         None,
         description="Whether the recurring bill is active"
     )
-    
-    @field_validator("amount")
-    @classmethod
-    def validate_amount_precision(cls, value: Optional[Decimal]) -> Optional[Decimal]:
-        """Validate that the amount has at most 2 decimal places."""
-        if value is not None and value.quantize(Decimal("0.01")) != value:
-            raise ValueError("Amount must have at most 2 decimal places")
-        return value
 
 class RecurringBillResponse(RecurringBillBase):
     """

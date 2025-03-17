@@ -22,10 +22,8 @@ class PaymentScheduleBase(BaseSchemaValidator):
         ...,
         description="Scheduled date for the payment in UTC timezone"
     )
-    amount: Decimal = Field(
-        ...,
+    amount: Decimal = BaseSchemaValidator.money_field(
         gt=0,
-        decimal_places=2,
         description="Amount to be paid"
     )
     account_id: int = Field(
@@ -42,14 +40,6 @@ class PaymentScheduleBase(BaseSchemaValidator):
         False,
         description="Whether this payment should be automatically processed"
     )
-    
-    @field_validator("amount")
-    @classmethod
-    def validate_amount_precision(cls, value: Decimal) -> Decimal:
-        """Validate that the amount has at most 2 decimal places."""
-        if value.quantize(Decimal("0.01")) != value:
-            raise ValueError("Amount must have at most 2 decimal places")
-        return value
 
 class PaymentScheduleCreate(PaymentScheduleBase):
     """
@@ -70,10 +60,9 @@ class PaymentScheduleUpdate(BaseSchemaValidator):
         None,
         description="Updated scheduled date for the payment in UTC timezone"
     )
-    amount: Decimal | None = Field(
-        None,
+    amount: Decimal | None = BaseSchemaValidator.money_field(
+        default=None,
         gt=0,
-        decimal_places=2,
         description="Updated payment amount"
     )
     account_id: int | None = Field(
@@ -94,14 +83,6 @@ class PaymentScheduleUpdate(BaseSchemaValidator):
         None,
         description="Updated processed status"
     )
-    
-    @field_validator("amount")
-    @classmethod
-    def validate_amount_precision(cls, value: Optional[Decimal]) -> Optional[Decimal]:
-        """Validate that the amount has at most 2 decimal places."""
-        if value is not None and value.quantize(Decimal("0.01")) != value:
-            raise ValueError("Amount must have at most 2 decimal places")
-        return value
 
 class PaymentSchedule(PaymentScheduleBase):
     """
