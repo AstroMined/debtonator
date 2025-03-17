@@ -1,4 +1,44 @@
-# ADR-013 Implementation Checklist
+## Remaining Priority Tasks
+
+1. **Update Test Suite**
+   - Update schema tests to validate decimal precision behavior
+   - Update service tests to verify calculation precision
+   - Test the "$100 split three ways" case
+   - Verify validation behavior for money vs. percentage fields
+
+2. **Update ADR Documentation**
+   - Update ADR-013 with implementation details
+   - Ensure examples reflect the implemented approach
+
+3. **Update API Documentation**
+   - Document decimal precision expectations
+   - Clarify validation requirements for API consumers
+
+4. **Quality Assurance**
+   - Conduct full test suite run
+   - Verify API response formatting in edge cases
+   - Verify consistent validation behavior across schema files# ADR-013 Implementation Checklist
+
+## Remaining Priority Tasks
+
+1. **Update Test Suite**
+   - Update schema tests to validate decimal precision behavior
+   - Update service tests to verify calculation precision
+   - Test the "$100 split three ways" case
+   - Verify validation behavior for money vs. percentage fields
+
+2. **Update ADR Documentation**
+   - Update ADR-013 with implementation details
+   - Ensure examples reflect the implemented approach
+
+3. **Update API Documentation**
+   - Document decimal precision expectations
+   - Clarify validation requirements for API consumers
+
+4. **Quality Assurance**
+   - Conduct full test suite run
+   - Verify API response formatting in edge cases
+   - Verify consistent validation behavior across schema files
 
 This checklist details all tasks required to fully implement ADR-013 (Decimal Precision Handling) across the Debtonator application. The checklist is organized by implementation area and includes specific files and changes needed.
 
@@ -187,21 +227,21 @@ Update service classes that handle decimal calculations to use the new `DecimalP
 
 ### Additional Services That Work with Decimal Values:
 
-- [ ] `src/services/accounts.py`:
-  - [ ] Update balance calculation methods
-  - [ ] Ensure proper rounding when returning values
+- [x] `src/services/accounts.py`:
+  - [x] Update balance calculation methods
+  - [x] Ensure proper rounding when returning values
 
-- [ ] `src/services/liabilities.py`:
-  - [ ] Update amount handling
-  - [ ] Ensure proper precision in calculations
+- [x] `src/services/liabilities.py`:
+  - [x] Update amount handling
+  - [x] Ensure proper precision in calculations
 
-- [ ] `src/services/recurring_bills.py`:
-  - [ ] Update amount calculations
-  - [ ] Apply proper rounding
+- [x] `src/services/recurring_bills.py`:
+  - [x] Update amount calculations
+  - [x] Apply proper rounding
 
-- [ ] `src/services/income.py`:
-  - [ ] Update amount calculations
-  - [ ] Apply proper rounding
+- [x] `src/services/income.py`:
+  - [x] Update amount calculations
+  - [x] Apply proper rounding
 
 ## 7. API Response Update
 
@@ -247,6 +287,10 @@ Update test cases to account for new precision rules:
   - [x] Test `distribute_by_percentage()`
 
 ### Integration Tests:
+- [x] `tests/integration/api/test_response_formatter.py`:
+  - [x] Test decimal formatting in API responses
+  - [x] Test nested decimal formatting
+  - [x] Test percentage field formatting with 4 decimal places
 - [ ] `tests/integration/services/test_bill_splits.py`:
   - [ ] Test equal distribution with largest remainder method
   - [ ] Verify exact total is preserved after splitting

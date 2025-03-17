@@ -1,5 +1,7 @@
 from datetime import date
 from typing import List, Optional
+from decimal import Decimal
+from src.core.decimal_precision import DecimalPrecision
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -63,7 +65,8 @@ class RecurringBillService:
 
         db_recurring_bill = RecurringBill(
             bill_name=recurring_bill_create.bill_name,
-            amount=recurring_bill_create.amount,
+            # Use DecimalPrecision to ensure proper rounding for storage
+            amount=DecimalPrecision.round_for_display(recurring_bill_create.amount),
             day_of_month=recurring_bill_create.day_of_month,
             account_id=recurring_bill_create.account_id,
             category_id=recurring_bill_create.category_id,
@@ -85,6 +88,11 @@ class RecurringBillService:
             return None
 
         update_data = recurring_bill_update.model_dump(exclude_unset=True)
+        
+        # Apply proper decimal precision for amount if present
+        if 'amount' in update_data:
+            update_data['amount'] = DecimalPrecision.round_for_display(update_data['amount'])
+            
         for key, value in update_data.items():
             setattr(db_recurring_bill, key, value)
 
@@ -125,7 +133,8 @@ class RecurringBillService:
         """
         liability = Liability(
             name=recurring_bill.bill_name,
-            amount=recurring_bill.amount,
+            # Ensure proper decimal precision for monetary values
+            amount=DecimalPrecision.round_for_display(recurring_bill.amount),
             due_date=naive_utc_from_date(year, int(month), recurring_bill.day_of_month),
             primary_account_id=recurring_bill.account_id,
             category_id=recurring_bill.category_id,

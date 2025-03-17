@@ -1,4 +1,5 @@
 from decimal import Decimal
+from src.core.decimal_precision import DecimalPrecision
 from datetime import date, datetime
 from typing import List, Optional, Tuple
 from fastapi import HTTPException
@@ -43,7 +44,13 @@ class IncomeService:
         Returns:
             Decimal: The undeposited amount (full amount if not deposited, 0 if deposited)
         """
-        return income.amount if not income.deposited else Decimal("0.00")
+        amount = Decimal("0.00")
+        if not income.deposited:
+            # Use round_for_calculation for internal computation
+            amount = DecimalPrecision.round_for_calculation(income.amount)
+        
+        # Return display-ready amount
+        return DecimalPrecision.round_for_display(amount)
 
     async def _update_undeposited_amount(self, income: Income) -> None:
         """
@@ -152,7 +159,8 @@ class IncomeService:
         income = Income(
             date=income_data.date,
             source=income_data.source,
-            amount=income_data.amount,
+            # Use DecimalPrecision to ensure proper rounding for monetary values
+            amount=DecimalPrecision.round_for_display(income_data.amount),
             deposited=income_data.deposited,
             account_id=income_data.account_id,
             category_id=income_data.category_id
@@ -235,12 +243,25 @@ class IncomeService:
 
             # If this is a new deposit
             if not original_deposited:
-                account.available_balance += income.amount
+                # Use 4 decimal places for internal calculation
+                amount = DecimalPrecision.round_for_calculation(income.amount)
+                current_balance = DecimalPrecision.round_for_calculation(account.available_balance)
+                new_balance = DecimalPrecision.round_for_calculation(current_balance + amount)
+                
+                # Round to 2 decimal places for storage
+                account.available_balance = DecimalPrecision.round_for_display(new_balance)
             # If this is an amount update on an existing deposit
             elif 'amount' in update_data:
-                # Remove old amount and add new amount
-                account.available_balance -= original_amount
-                account.available_balance += income.amount
+                # Remove old amount and add new amount with proper precision
+                old_amount = DecimalPrecision.round_for_calculation(original_amount)
+                new_amount = DecimalPrecision.round_for_calculation(income.amount)
+                current_balance = DecimalPrecision.round_for_calculation(account.available_balance)
+                
+                # Calculate new balance with 4 decimal precision
+                new_balance = DecimalPrecision.round_for_calculation(current_balance - old_amount + new_amount)
+                
+                # Round to 2 decimal places for storage
+                account.available_balance = DecimalPrecision.round_for_display(new_balance)
 
         await self.db.commit()
 
@@ -379,12 +400,18 @@ class IncomeService:
         result = await self.db.execute(stmt)
         account = result.unique().scalar_one()
         
-        # Update account balance
-        account.available_balance += income.amount
+        # Update account balance with proper decimal precision
+        income_amount = DecimalPrecision.round_for_calculation(income.amount)
+        account_balance = DecimalPrecision.round_for_calculation(account.available_balance)
+        new_balance = DecimalPrecision.round_for_calculation(account_balance + income_amount)
+        
+        # Round to 2 decimal places for storage
+        account.available_balance = DecimalPrecision.round_for_display(new_balance)
         
         # Mark income as deposited
         income.deposited = True
-        income.undeposited_amount = Decimal("0.00")
+        # Use DecimalPrecision for monetary values
+        income.undeposited_amount = DecimalPrecision.round_for_display(Decimal("0.00"))
         
         await self.db.commit()
         
@@ -408,7 +435,8 @@ class IncomeService:
             select(func.sum(Income.amount)).where(Income.deposited == False)
         )
         total = result.scalar_one() or Decimal("0.00")
-        return total
+        # Ensure proper decimal precision for the total
+        return DecimalPrecision.round_for_display(total)
     
     async def get_total_undeposited_by_account(self, account_id: int) -> Decimal:
         """
@@ -430,7 +458,8 @@ class IncomeService:
             ))
         )
         total = result.scalar_one() or Decimal("0.00")
-        return total
+        # Ensure proper decimal precision for the total
+        return DecimalPrecision.round_for_display(total)
     
     async def get_income_by_account(self, account_id: int) -> List[Income]:
         """

@@ -1,5 +1,6 @@
 from datetime import date
 from decimal import Decimal
+from src.core.decimal_precision import DecimalPrecision
 from typing import List, Optional, Tuple, Dict, Any
 from sqlalchemy import select, desc, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -47,15 +48,29 @@ class AccountService:
             if not available_credit:
                 return False, "Failed to calculate available credit"
                 
-            if amount > available_credit.available_credit:
-                return False, f"Transaction amount {amount} exceeds available credit {available_credit.available_credit}"
+            # Compare with proper precision
+            amount_calc = DecimalPrecision.round_for_calculation(amount)
+            credit_calc = DecimalPrecision.round_for_calculation(available_credit.available_credit)
+            
+            if amount_calc > credit_calc:
+                # Format for display in error message
+                amount_display = DecimalPrecision.round_for_display(amount)
+                credit_display = DecimalPrecision.round_for_display(available_credit.available_credit)
+                return False, f"Transaction amount {amount_display} exceeds available credit {credit_display}"
                 
             return True, None
             
         else:
             # For checking/savings accounts, check against available balance
-            if amount > account.available_balance:
-                return False, f"Transaction amount {amount} exceeds available balance {account.available_balance}"
+            # Compare with proper precision
+            amount_calc = DecimalPrecision.round_for_calculation(amount)
+            balance_calc = DecimalPrecision.round_for_calculation(account.available_balance)
+            
+            if amount_calc > balance_calc:
+                # Format for display in error message
+                amount_display = DecimalPrecision.round_for_display(amount)
+                balance_display = DecimalPrecision.round_for_display(account.available_balance)
+                return False, f"Transaction amount {amount_display} exceeds available balance {balance_display}"
                 
             return True, None
 
@@ -153,7 +168,12 @@ class AccountService:
     def _update_available_credit(self, account: AccountModel) -> None:
         """Update available credit based on total limit and current balance"""
         if account.type == "credit" and account.total_limit is not None:
-            account.available_credit = account.total_limit - abs(account.available_balance)
+            # Use 4 decimal places for internal calculation
+            balance_abs = DecimalPrecision.round_for_calculation(abs(account.available_balance))
+            available = DecimalPrecision.round_for_calculation(account.total_limit - balance_abs)
+            
+            # Round to 2 decimal places for storage
+            account.available_credit = DecimalPrecision.round_for_display(available)
 
     async def create_account(self, account_data: AccountCreate) -> AccountInDB:
         """
@@ -185,6 +205,7 @@ class AccountService:
         
         # Initialize credit-related fields for credit accounts
         if db_account.type == "credit" and db_account.total_limit is not None:
+            # Use DecimalPrecision for accurate calculations
             self._update_available_credit(db_account)
             
         self.session.add(db_account)
@@ -265,8 +286,11 @@ class AccountService:
             Tuple of (is_valid, error_message)
         """
         # Check for non-zero balance
-        if account.available_balance != Decimal(0):
-            return False, f"Cannot delete account with non-zero balance: {account.available_balance}"
+        # Use EPSILON for comparing decimal equality
+        balance = DecimalPrecision.round_for_calculation(account.available_balance)
+        if abs(balance) > DecimalPrecision.EPSILON:
+            balance_display = DecimalPrecision.round_for_display(account.available_balance)
+            return False, f"Cannot delete account with non-zero balance: {balance_display}"
             
         # Check for pending transactions
         pending_debits = await self._get_pending_transactions(account.id)
@@ -520,13 +544,29 @@ class AccountService:
         pending_debits = await self._get_pending_transactions(account_id)
         pending_credits = await self._get_pending_payments(account_id)
 
-        # Calculate real-time available credit
+        # Calculate real-time available credit with proper precision
         current_balance = db_account.available_balance
-        total_pending = pending_debits - pending_credits
-        adjusted_balance = current_balance + total_pending
-
-        # Calculate available credit
-        available_credit = db_account.total_limit - abs(adjusted_balance) if db_account.total_limit else Decimal(0)
+        
+        # Use 4 decimal places for internal calculations
+        pending_debits_calc = DecimalPrecision.round_for_calculation(pending_debits)
+        pending_credits_calc = DecimalPrecision.round_for_calculation(pending_credits)
+        current_balance_calc = DecimalPrecision.round_for_calculation(current_balance)
+        
+        # Calculate with 4 decimal precision
+        total_pending = DecimalPrecision.round_for_calculation(pending_debits_calc - pending_credits_calc)
+        adjusted_balance = DecimalPrecision.round_for_calculation(current_balance_calc + total_pending)
+        
+        # Round the result to 2 decimal places for API boundary
+        total_pending = DecimalPrecision.round_for_display(total_pending)
+        adjusted_balance = DecimalPrecision.round_for_display(adjusted_balance)
+        
+        # Calculate available credit with proper precision
+        if db_account.total_limit:
+            abs_adjusted = DecimalPrecision.round_for_calculation(abs(adjusted_balance))
+            limit_calc = DecimalPrecision.round_for_calculation(db_account.total_limit)
+            available_credit = DecimalPrecision.round_for_display(limit_calc - abs_adjusted)
+        else:
+            available_credit = Decimal(0)
 
         return AvailableCreditResponse(
             account_id=db_account.id,

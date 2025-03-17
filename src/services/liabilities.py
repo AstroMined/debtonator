@@ -1,6 +1,7 @@
 from datetime import date, datetime, timedelta
 from typing import List, Optional, Dict, Tuple
 from decimal import Decimal
+from src.core.decimal_precision import DecimalPrecision
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -245,7 +246,8 @@ class LiabilityService:
         # Create liability
         db_liability = Liability(
             name=liability_create.name,
-            amount=liability_create.amount,
+            # Ensure proper decimal precision for the amount
+            amount=DecimalPrecision.round_for_display(liability_create.amount),
             due_date=liability_create.due_date,
             description=liability_create.description,
             category_id=liability_create.category_id,
@@ -295,6 +297,11 @@ class LiabilityService:
 
         # Update fields
         update_data = liability_update.model_dump(exclude_unset=True)
+        
+        # Special handling for decimal values
+        if 'amount' in update_data:
+            update_data['amount'] = DecimalPrecision.round_for_display(update_data['amount'])
+            
         for key, value in update_data.items():
             setattr(db_liability, key, value)
 
@@ -383,7 +390,9 @@ class LiabilityService:
             # Convert settings to dict and handle Decimal serialization
             settings_dict = auto_pay_update.settings.model_dump(exclude_none=True)
             if 'minimum_balance_required' in settings_dict:
-                settings_dict['minimum_balance_required'] = str(settings_dict['minimum_balance_required'])
+                # Format the minimum balance with 2 decimal places
+            min_balance = settings_dict['minimum_balance_required']
+            settings_dict['minimum_balance_required'] = str(DecimalPrecision.round_for_display(min_balance))
             db_liability.auto_pay_settings = settings_dict
         elif not auto_pay_update.enabled:
             # Clear settings when disabling auto-pay
