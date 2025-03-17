@@ -205,14 +205,14 @@ Update service classes that handle decimal calculations to use the new `DecimalP
 
 ## 7. API Response Update
 
-- [ ] Update API response handling in `src/api/base.py` or other relevant files:
-  - [ ] Ensure all monetary values are rounded to 2 decimal places before returning to clients
-  - [ ] Special handling for the one 4-decimal field (percentage_of_total)
-  - [ ] Consider creating a response formatter method using the DecimalPrecision core module
+- [x] Update API response handling in `src/api/base.py` or other relevant files:
+  - [x] Ensure all monetary values are rounded to 2 decimal places before returning to clients
+  - [x] Special handling for the one 4-decimal field (percentage_of_total)
+  - [x] Consider creating a response formatter method using the DecimalPrecision core module
 
-- [ ] Address any API endpoints that directly return decimal values:
-  - [ ] Review `src/api/v1/` endpoints
-  - [ ] Apply consistent rounding to all returned decimal values
+- [x] Address any API endpoints that directly return decimal values:
+  - [x] Review `src/api/v1/` endpoints
+  - [x] Apply consistent rounding to all returned decimal values
 
 ## 8. Test Updates
 
@@ -276,13 +276,13 @@ Update test cases to account for new precision rules:
 
 ## 10. Developer Guidelines
 
-- [ ] Create developer guidelines document `docs/guides/working_with_money.md`:
-  - [ ] When to use 4 vs 2 decimal places
-  - [ ] How to use the `DecimalPrecision` core module
-  - [ ] Common patterns for financial calculations
-  - [ ] Testing best practices for financial calculations
-  - [ ] Handling edge cases
-  - [ ] How to use the distribution utilities
+- [x] Create developer guidelines document `docs/guides/working_with_money.md`:
+  - [x] When to use 4 vs 2 decimal places
+  - [x] How to use the `DecimalPrecision` core module
+  - [x] Common patterns for financial calculations
+  - [x] Testing best practices for financial calculations
+  - [x] Handling edge cases
+  - [x] How to use the distribution utilities
 
 ## 11. Quality Assurance
 

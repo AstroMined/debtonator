@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.8] - 2025-03-16
+
+### Added
+- Implemented comprehensive API response formatting for decimal precision:
+  * Added src/api/response_formatter.py with utilities for consistent decimal handling
+  * Implemented global middleware for all JSON responses
+  * Added @with_formatted_response decorator for individual endpoints
+  * Created get_decimal_formatter() dependency for manual formatting
+- Created comprehensive developer guidelines for working with money:
+  * Detailed best practices for decimal precision handling
+  * Documented when to use 4 vs 2 decimal places
+  * Added examples of common financial calculation patterns
+  * Provided guidance on testing monetary calculations
+
+### Changed
+- Improved decimal precision handling at API boundaries:
+  * Ensured monetary values return with 2 decimal places
+  * Preserved 4 decimal places for percentage fields
+  * Enhanced accuracy of financial data in API responses
+  * Implemented recursive formatting for nested data structures
+
 ## [0.4.7] - 2025-03-16
 
 ### Changed

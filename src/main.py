@@ -1,5 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import json
+from decimal import Decimal
+
+from .api.response_formatter import format_response
 
 # Import all models to ensure they are registered
 from . import models
@@ -31,6 +36,42 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Custom decimal encoder for JSON serialization
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, Decimal):
+            return float(o)
+        return super().default(o)
+
+# Middleware for formatting decimal values in responses
+@app.middleware("http")
+async def decimal_precision_middleware(request: Request, call_next):
+    # Process the request and get the response
+    response = await call_next(request)
+    
+    # Only process JSON responses
+    if response.headers.get("content-type") == "application/json":
+        # Get the response body
+        body = b""
+        async for chunk in response.body_iterator:
+            body += chunk
+        
+        # Parse the response body
+        data = json.loads(body.decode())
+        
+        # Format decimal values
+        formatted_data = format_response(data)
+        
+        # Create a new response with formatted data
+        return JSONResponse(
+            content=formatted_data,
+            status_code=response.status_code,
+            headers=dict(response.headers)
+        )
+    
+    # Return the original response for non-JSON responses
+    return response
 
 # Debug: Print all registered routes with methods
 print("\nAPI Router Routes:")

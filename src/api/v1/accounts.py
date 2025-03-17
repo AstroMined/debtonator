@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
+from ...api.response_formatter import with_formatted_response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -256,6 +257,7 @@ async def delete_reconciliation(
     raise HTTPException(status_code=400, detail="Failed to delete reconciliation record")
 
 @router.get("/{account_id}/available-credit", response_model=AvailableCreditResponse)
+@with_formatted_response  # Example of using decorator for decimal precision handling
 async def get_available_credit(
     account_id: int,
     account_service: AccountService = Depends(get_account_service)
