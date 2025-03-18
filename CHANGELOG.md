@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.13] - 2025-03-18
+
+### Changed
+- Reverted ConstrainedDecimal implementation due to Pydantic V2 incompatibility:
+  * Identified that `ConstrainedDecimal` class has been removed in Pydantic V2
+  * Performed git reset to previous working commit (f31eb74)
+  * Created comprehensive implementation plan compatible with Pydantic V2
+  * Documented new approach in `docs/adr/013-decimal-precision-handling-update.md`
+
+### Added
+- Created new implementation plan for decimal precision handling with Pydantic V2:
+  * Added `docs/adr/compliance/adr013_implementation_checklist_v2.md` with phased approach
+  * Created `docs/adr/compliance/annotated_types_reference.py` with examples
+  * Designed robust dictionary validation strategy for decimal values
+  * Developed detailed examples using Annotated types with Field constraints
+  * Reset progress tracking for components requiring revision
+
 ## [0.4.12] - 2025-03-17
 
 ### Fixed

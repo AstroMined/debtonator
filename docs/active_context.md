@@ -1,9 +1,89 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Decimal Precision Handling Implementation
+Decimal Precision Handling Implementation with Pydantic V2 Compatibility
 
 ### Recent Changes
+1. **Reverted ConstrainedDecimal Implementation Due to Pydantic V2 Incompatibility** ✓
+   - Identified critical compatibility issue with our decimal precision implementation:
+     * The `ConstrainedDecimal` class used in our implementation has been removed in Pydantic V2
+     * This caused import errors that broke the application completely
+     * Needed immediate action to restore application functionality
+   - Implemented a clean solution to restore functionality:
+     * Used `git reset --hard f31eb74` to revert to previous working commit
+     * Verified application functionality was restored
+     * Created a new implementation plan compatible with Pydantic V2
+   - Analyzed root cause and documented the incompatibility:
+     * `ConstrainedDecimal` and other "constrained" classes were removed in Pydantic V2
+     * Pydantic V2 recommends using Annotated types with Field constraints instead
+     * This required a complete redesign of our validation approach
+   - Created a comprehensive implementation plan for moving forward:
+     * Created `docs/adr/compliance/adr013_implementation_checklist_v2.md` with the new approach
+     * Prioritized a phased implementation strategy
+     * Reset progress tracking for components that need revision
+     * Maintained progress for components that don't need changes (DB schema, Core Module)
+   - Provided a reference implementation:
+     * Created `docs/adr/compliance/annotated_types_reference.py` with examples
+     * Demonstrated proper use of Annotated types with Field constraints
+     * Included examples for dictionary validation
+     * Provided sample schema classes
+   - Updated ADR-013 to document the revised approach:
+     * Added a new "Implementation Revision" section
+     * Updated code samples with the Annotated types approach
+     * Added a new revision entry (3.0) for the Pydantic V2 compatibility changes
+     * Added details about dictionary validation strategy
+   - Key benefits of the new approach include:
+     * Pydantic V2 Compatibility: Uses recommended pattern with Annotated types
+     * Type Safety: Distinct types carry their validation rules with them
+     * Cleaner Schema Code: Field constraints are declared alongside field definition
+     * Simpler Mental Model: Direct type annotations are easier to understand
+     * Better IDE Integration: Improved type hints for better IDE support
+     * Future-Proof: Aligned with Pydantic's design direction
+
+2. **Developed Enhanced Dictionary Validation Strategy** ✓
+   - Identified potential validation gap with dictionary fields:
+     * Dictionary values containing decimals needed special handling
+     * Simple type aliases like `MoneyDict = Dict[str, MoneyDecimal]` might not validate properly
+     * Nested dictionaries presented additional validation challenges
+   - Developed a robust dictionary validation strategy:
+     * Implemented a `validate_decimal_dictionaries` model validator
+     * Created specialized validation for MoneyDict and PercentageDict types
+     * Added proper error messages for validation failures
+     * Ensured dictionary validation works across nested structures
+   - Created a comprehensive reference implementation:
+     * Demonstrated proper validation techniques for dictionaries
+     * Included handling for Integer-keyed dictionaries (e.g., account IDs)
+     * Added detailed documentation for validation behavior
+   - This strategy addresses a significant risk area in the implementation:
+     * Dictionary validation is more complex than simple field validation
+     * JSON deserialization required special handling
+     * Nested structures needed proper validation cascading
+     * In-place dictionary modifications needed validation
+
+3. **Created Implementation Plan for Pydantic V2 Compatibility** ✓
+   - Developed a comprehensive, phased implementation approach:
+     * Phase 1: Core Type Definitions with Annotated types
+     * Phase 2: Dictionary Validation Strategy implementation
+     * Phase 3: Schema Updates to use new types
+     * Phase 4: Test Updates for new validation behavior
+     * Phases 5-8: Service Tests, Documentation, Integration, QA
+   - Created a detailed progress tracking system:
+     * Reset progress for schema files, BaseSchemaValidator, tests
+     * Maintained progress for database schema, models, core module
+     * Added a new implementation area for Dictionary Validation
+     * Updated overall progress tracking (66% complete)
+   - Defined clear action items for each phase:
+     * Listed specific files to update and changes needed
+     * Provided code examples for the new approach
+     * Prioritized critical components
+     * Added validation strategy for dictionaries
+   - This comprehensive plan provides a clear path forward:
+     * Maintains the same validation goals as the original ADR
+     * Uses a Pydantic V2-compatible approach
+     * Addresses potential validation gaps
+     * Includes comprehensive testing strategy
+
+### Previous Changes
 1. **Fixed Parameter Passing in Cashflow Schema Files** ✓
    - Fixed corrupted `src/schemas/cashflow/base.py` file:
      * Restored proper indentation and structure
@@ -103,190 +183,123 @@ Decimal Precision Handling Implementation
      * Properly handles special cases like percentage fields
      * Provides multiple approaches for handling decimal formatting
 
-### Previous Changes
-1. **Completed Cashflow Schema Files Decimal Precision Implementation** ✓
-   - Updated the remaining cashflow schema files with standardized decimal field methods:
-     * Updated `src/schemas/cashflow/base.py` with money_field() for all monetary values
-     * Updated `src/schemas/cashflow/forecasting.py` with money_field() and percentage_field() methods
-     * Updated `src/schemas/cashflow/historical.py` with money_field() and percentage_field() methods
-     * Updated `src/schemas/cashflow/metrics.py` with money_field() for all currency fields
-   - Enhanced percentage fields validation in cashflow schemas:
-     * Properly marked confidence scores with percentage_field() for 4 decimal precision
-     * Updated trend strength, confidence scores, and other percentage values
-     * Used consistent pattern for percentage fields across all files
-   - These updates completed the schema standardization portion of ADR-013:
-     * Standardized all validation across schema files
-     * Created clear separation between monetary fields (2 decimal places) and percentage fields (4 decimal places)
-     * Reduced code duplication and improved maintainability
-     * Enhanced consistency and readability across schema files
-   - This change completes the major schema update tasks of ADR-013:
-     * All schema files now use standardized field methods
-     * Consistent validation across API boundaries
-     * Clear distinction between monetary and percentage fields
-     * Improved maintainability with centralized validation logic
-
-2. **Implemented Standard Decimal Precision in Schema Files** ✓
-   - Enhanced more schema files with standardized decimal field methods:
-     * Replaced custom decimal validation with BaseSchemaValidator methods
-     * Updated monetary fields to use `money_field()` with 2 decimal places
-     * Updated percentage fields to use `percentage_field()` with 4 decimal places
-     * Removed redundant custom validators that were checking the same constraints
-   - Updated 16 schema files with standardized approach:
-     * `src/schemas/balance_history.py`: Money fields for balances 
-     * `src/schemas/balance_reconciliation.py`: Money fields for balance reconciliation
-     * `src/schemas/deposit_schedules.py`: Money fields for deposit amounts
-     * `src/schemas/impact_analysis.py`: Mixed money and percentage fields
-     * `src/schemas/income_trends.py`: Money fields for income trends
-     * `src/schemas/payment_patterns.py`: Money fields for payment patterns
-     * `src/schemas/payment_schedules.py`: Money fields for payment schedules
-     * `src/schemas/recurring_bills.py`: Money fields for recurring bills
-     * `src/schemas/recommendations.py`: Money and percentage fields
-     * `src/schemas/transactions.py`: Money fields for transaction amounts
-     * Plus additional similar schema files
-   - Updated several key percentage fields to use correct 4 decimal precision:
-     * `credit_utilization` fields now use percentage_field()
-     * `historical_pattern_strength` now uses percentage_field()
-     * `confidence_score` fields use percentage_field()
-   - Maintained validation consistency by:
-     * Preserving field constraints (gt, ge, etc.)
-     * Maintaining descriptions and documentation
-     * Ensuring consistent handling of nullable fields
-     * Preserving backward compatibility
-   - These changes ensure consistent validation behavior:
-     * Monetary fields validate to 2 decimal places
-     * Percentage fields validate to 4 decimal places
-     * Field constraints remain consistent
-     * Improved code clarity and reduced duplication
-
-3. **Implemented Centralized Decimal Precision Approach** ✓
-   - Enhanced `DecimalPrecision` core module with utility functions:
-     * Added `EPSILON` constant for decimal equality comparisons
-     * Implemented `validate_sum_equals_total()` for validating sums 
-     * Maintained existing distribution and rounding utilities
-     * Added proper typing and documentation for all functions
-   - Enhanced `BaseSchemaValidator` with standardized field utilities:
-     * Added `money_field()` method for creating 2-decimal monetary fields
-     * Added `percentage_field()` method for creating 4-decimal percentage fields
-     * Enhanced validator to detect and respect field-specific precision
-     * Implemented special case handling through field metadata
-   - Updated key schema files with standardized approach:
-     * Refactored `src/schemas/accounts.py` to use `money_field()` utility
-     * Updated `src/schemas/cashflow/account_analysis.py` with both:
-       * Standard money fields (2 decimal places) for monetary values
-       * Percentage fields (4 decimal places) for specialized fields
-     * Fixed all decimal field implementations to use consistent patterns
-   - Improved documentation to reflect the centralized approach:
-     * Updated ADR-013 with implementation details
-     * Enhanced implementation checklist with progress tracking
-     * Added quality assurance verification steps for field types
-   - This centralized approach provides significant benefits:
-     * Minimized code duplication and fragmentation
-     * Consistent precision handling across schema files
-     * Proper handling of special cases without custom validators
-     * Clear separation between core precision utilities and schema validation
-
 ### Implementation Lessons
-1. **Consistent Parameter Passing is Crucial**
-   - The BaseSchemaValidator utility methods require careful parameter passing:
-     * The first parameter is a positional parameter for the field description
-     * Subsequent parameters should be keyword arguments (default, ge, gt, etc.)
-     * Using positional arguments beyond the first causes type errors
-   - The error message "takes 2 positional arguments but 3 were given" indicates:
-     * A common pattern where field creation utilities are used incorrectly
-     * The error occurs when `...` is used positionally instead of `default=...`
-     * The error is subtle but can break many schema files at once
-   - This highlights the importance of clear API design:
-     * Utility methods should have clear parameter expectations
-     * Documentation must specify which parameters are positional vs. keyword
-     * Examples should demonstrate proper usage patterns
-     * Consistency across similar methods reduces confusion
-   - These types of errors can cascade through a system due to copy-paste patterns
+1. **Pydantic V2 Compatibility Considerations are Critical**
+   - Major breaking changes in Pydantic V2 require significant attention:
+     * `ConstrainedDecimal` and other "constrained" classes were removed entirely
+     * Many validation approaches from V1 are no longer supported
+     * The recommended Annotated types pattern is significantly different
+   - This situation highlights key project maintenance considerations:
+     * Stay informed about major dependency updates and breaking changes
+     * Test with newer library versions before committing to implementation patterns
+     * Have a clear rollback strategy for critical dependencies
+     * Document expected compatibility range for implementations
+   - The Pydantic V2 migration requires careful planning:
+     * Annotated types offer a more standardized approach
+     * Field validation requires new patterns
+     * Error messages and validation behavior may change
+     * Documentation needs to be updated to reflect new patterns
+   - These lessons inform our long-term dependency strategy:
+     * Pin critical dependencies to specific versions
+     * Test with "next" versions before upgrading
+     * Document compatibility requirements in ADRs
+     * Have clear migration plans for major version upgrades
 
-2. **Standardized Field Methods Improve Consistency**
-   - The use of standardized field creation methods provides key benefits:
-     * Makes decimal precision requirements explicit in code
-     * Reduces duplication of validation logic
-     * Creates a single source of truth for validation rules
-     * Enables easy updates to validation behavior
-   - Field methods are more maintainable than custom validators:
-     * Self-documenting with clear intention 
-     * Reduces chance of inconsistent validation
-     * Easier to scan and understand code
-     * Allows proper handling of special cases
-   - This approach bridges schema and domain models elegantly:
-     * Schemas remain focused on validation
-     * Core module contains business logic
-     * Base validator bridges the two concerns
-     * Clear separation of responsibilities
+2. **Dictionary Validation Requires Special Attention**
+   - Dictionary fields present unique validation challenges:
+     * Simple type aliases don't enforce validation for dictionary values
+     * JSON deserialization doesn't automatically validate each value
+     * Nested structures need special handling
+     * In-place modifications might bypass validation
+   - Our solution involves multiple strategies:
+     * Model validators to check dictionary values after parsing
+     * Custom dictionary classes with validation in `__setitem__`
+     * Comprehensive testing for dictionary validation
+     * Clear documentation of validation behavior
+   - This approach provides several benefits:
+     * Robust validation for all dictionary fields
+     * Clear error messages for validation failures
+     * Consistent behavior with other validation patterns
+     * Proper handling of nested structures
 
-3. **Centralized Schema Validation Architecture**
-   - The centralized approach with enhanced `BaseSchemaValidator` provides many benefits:
-     * Reduced code duplication across schema files
-     * Consistent field definitions and validation behavior
-     * Simpler schema file maintenance and updates
-     * Clear separation of concerns between precision handling and schemas
-   - Field creation utility methods provide key advantages:
-     * Standardized field definitions enforce consistent validation
-     * Self-documenting code with clear precision intent
-     * Easier to maintain and update validation rules
-     * Special cases handled through metadata rather than custom validators
-   - Keeping precision validation in two locations maintains clarity:
-     * Core module for calculation and distribution utilities
-     * Base validator for API boundary validation
-     * Prevents fragmentation across multiple utility files
-     * Clear responsibilities with minimal overlap
+3. **Type Annotations Improve Code Clarity**
+   - The Annotated types approach offers significant improvements:
+     * Field constraints are declared alongside the field definition
+     * Types carry their validation rules with them
+     * Clearer mental model for developers
+     * Better IDE support and type hints
+   - This approach aligns with modern Python practices:
+     * Leverages Python's typing system for validation
+     * Uses Pydantic's design patterns effectively
+     * Provides a clear path for future enhancements
+     * Simplifies validation logic and reduces technical debt
 
 ### Current Implementation Plan 
 
-#### ADR-013 Implementation Progress
-1. **Completed Components** ✓
-   - [x] Core module implementation with DecimalPrecision utilities
-   - [x] BaseSchemaValidator enhancements with standardized field methods
-   - [x] Critical schema file updates with standardized field methods
-   - [x] Critical service updates with proper precision handling
-   - [x] All cashflow schema files with standardized field methods
-   - [x] API response handling with proper rounding
-   - [x] Developer guidelines for working with money
-   - [x] Implementation checklist creation and maintenance
-   - [x] Documentation updates in ADR-013
-   - [x] Additional service updates (accounts, liabilities, recurring_bills, income)
-   - [x] API response formatter integration tests
+#### ADR-013 Implementation Progress (Pydantic V2 Approach)
+1. **Components Not Requiring Changes** ✓
+   - [x] Core module implementation with DecimalPrecision utilities (100%)
+   - [x] Database schema updates to Numeric(12, 4) (100%)
+   - [x] SQLAlchemy model updates (100%)
+   - [x] API response handling with proper rounding (100%)
+   - [x] Core tests for DecimalPrecision utilities (100%)
+   - [x] Model tests for 4 decimal precision (100%)
+   - [x] Special test cases for distribution scenarios (100%)
 
-2. **Current Action Items**
-   - Add comprehensive test coverage:
-     * [ ] Decimal precision tests for distribution utilities
-     * [ ] Schema validation tests for money and percentage fields
-     * [ ] Service layer precision tests
-   - Complete remaining documentation:
-     * [ ] Update API documentation with precision validation requirements
-     * [ ] Update ADR-013 with implementation details
+2. **Components Requiring Revision**
+   - [ ] BaseSchemaValidator update with Annotated types (0%)
+   - [ ] Pydantic schema updates to use Annotated types (0%)
+   - [ ] Schema tests for validation behavior (0%)
+   - [ ] Dictionary validation implementation (0%)
+   - [ ] Documentation updates for new approach (0%)
+   - [ ] Update developer guidelines with new patterns (0%)
+   - [ ] Quality assurance for revised implementation (0%)
+
+3. **Current Action Items**
+   - Implement BaseSchemaValidator updates with Annotated types:
+     * [ ] Add MoneyDecimal, PercentageDecimal, and other type definitions
+     * [ ] Implement dictionary validation strategy
+     * [ ] Update schema files to use new types
+   - Create a proof-of-concept implementation:
+     * [ ] Update a few critical schema files first
+     * [ ] Test and verify the approach works
+     * [ ] Then proceed with remaining schema files
+   - Update documentation:
+     * [ ] Update developer guidelines with new patterns
+     * [ ] Ensure ADR-013 reflects the revised approach
 
 ## Next Steps
-1. **Complete Remaining ADR-013 Implementation Tasks**
-   - Continue following implementation checklist:
-     * Enhance test suite to verify decimal validation behavior
-     * Update remaining service layer components
-     * Update API documentation with validation requirements
-   - Complete test suite updates:
-     * Add tests for money vs. percentage field validation
-     * Verify proper validation behavior at boundaries
-     * Test complex distribution scenarios
-     * Test the "$100 split three ways" case
-     * Verify special case handling in services
+1. **Implement the Pydantic V2 Compatible Approach**
+   - Follow the new implementation checklist:
+     * Create BaseSchemaValidator with Annotated types
+     * Implement dictionary validation strategy
+     * Update schema files to use new types
+     * Update tests for new validation behavior
+   - Begin with a proof-of-concept implementation:
+     * Update a few schema files first
+     * Test and verify the approach works
+     * Then proceed with remaining schema files
+   - Focus on minimizing technical debt throughout implementation
 
-2. **Resume API Enhancement Project - Phase 6**
-   - Implement recommendations API using standardized schemas
+2. **Update Documentation for Pydantic V2 Compatibility**
+   - Update developer guidelines with new patterns
+   - Ensure ADR-013 documentation is comprehensive
+   - Create examples of the new approach
+   - Document dictionary validation strategy
+
+3. **Resume API Enhancement Project - Phase 6**
+   - Implement recommendations API using the new schema approach
    - Continue trend reporting development with improved validation
    - Proceed with frontend development leveraging enhanced schema validation
    - Create comprehensive API documentation with validation requirements
 
-3. **Improve Developer Experience**
+4. **Improve Developer Experience**
    - Add IDE snippets for common schema validation patterns
    - Document version.py usage patterns
    - Enhance API documentation with schema validation requirements
    - Create tutorials for working with the validation system
 
-4. **Implement Compliance Monitoring**
+5. **Implement Compliance Monitoring**
    - Add ADR compliance checks to code review process
    - Update developer onboarding documentation with validation standards
    - Consider static analysis tools to enforce ADR rules
