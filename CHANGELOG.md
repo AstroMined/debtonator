@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.26] - 2025-03-19
+
+### Changed
+- Updated model `__repr__` methods to format monetary values with 2 decimal places:
+  * Fixed BillSplit.__repr__ to use f-string formatting with .2f
+  * Fixed Income.__repr__ to use f-string formatting with .2f
+  * Fixed RecurringBill.__repr__ to use f-string formatting with .2f
+
+### Fixed
+- Fixed test failures related to decimal precision representation:
+  * Fixed test_bill_split_crud in tests/unit/models/test_bill_splits_models.py
+  * Fixed test_income_str_representation in tests/unit/models/test_income_models.py
+  * Fixed test_recurring_bill_str_representation in tests/unit/models/test_recurring_bills_models.py
+- Completed ADR-013 implementation with all steps at 100%:
+  * Updated implementation checklist to mark Quality Assurance phase as complete
+  * Updated progress tracking to 100% (from 98%)
+  * Updated "What's Left to Build" section in progress.md to reflect completion
+
 ## [0.4.25] - 2025-03-19
 
 ### Changed

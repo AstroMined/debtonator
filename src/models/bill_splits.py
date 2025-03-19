@@ -30,4 +30,4 @@ class BillSplit(BaseDBModel):
     )
 
     def __repr__(self) -> str:
-        return f"<BillSplit liability_id={self.liability_id} account_id={self.account_id} amount={self.amount}>"
+        return f"<BillSplit liability_id={self.liability_id} account_id={self.account_id} amount={self.amount:.2f}>"

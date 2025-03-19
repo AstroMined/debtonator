@@ -120,4 +120,4 @@ class Income(BaseDBModel):
     )
 
     def __repr__(self) -> str:
-        return f"<Income {self.source} {self.amount}>"
+        return f"<Income {self.source} {self.amount:.2f}>"

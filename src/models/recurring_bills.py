@@ -35,7 +35,7 @@ class RecurringBill(BaseDBModel):
     )
 
     def __repr__(self) -> str:
-        return f"<RecurringBill {self.bill_name} ${self.amount}>"
+        return f"<RecurringBill {self.bill_name} ${self.amount:.2f}>"
 
     # Business logic for creating liabilities from recurring bills has been moved
     # to RecurringBillService.create_liability_from_recurring method according to ADR-012
