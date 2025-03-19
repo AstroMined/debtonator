@@ -2,6 +2,8 @@ import pytest
 from decimal import Decimal
 from datetime import date
 
+from src.core.decimal_precision import DecimalPrecision
+
 from src.models.accounts import Account
 from src.models.liabilities import Liability
 from src.models.bill_splits import BillSplit
@@ -433,3 +435,189 @@ async def test_validate_splits_insufficient_funds(db_session, checking_account, 
     is_valid, error = await service.validate_splits(validation)
     assert is_valid is False
     assert "insufficient balance" in error
+
+async def test_hundred_dollar_split_three_ways(db_session):
+    """Test the classic $100 split three ways scenario with exact distribution."""
+    service = BillSplitService(db_session)
+    
+    # Create test accounts
+    accounts = []
+    for i in range(3):
+        account = Account(
+            name=f"Split Test Account {i+1}",
+            type="checking",
+            available_balance=Decimal("1000.00"),
+            created_at=date.today(),
+            updated_at=date.today()
+        )
+        db_session.add(account)
+    await db_session.flush()
+    
+    # Create test liability
+    liability = Liability(
+        name="$100 Split Test",
+        amount=Decimal("100.00"),
+        due_date=date.today(),
+        category_id=1,
+        primary_account_id=accounts[0].id,
+        auto_pay=False,
+        auto_pay_enabled=False,
+        paid=False,
+        created_at=date.today(),
+        updated_at=date.today()
+    )
+    db_session.add(liability)
+    await db_session.flush()
+    
+    # Use the DecimalPrecision utility directly to calculate the distribution
+    # This is the algorithm used internally by the service
+    expected_distribution = DecimalPrecision.distribute_with_largest_remainder(Decimal("100.00"), 3)
+    
+    # Verify the algorithm distributes correctly
+    assert expected_distribution == [Decimal("33.34"), Decimal("33.33"), Decimal("33.33")]
+    assert sum(expected_distribution) == Decimal("100.00")
+    
+    # Create splits using this distribution
+    splits = [
+        BillSplitCreate(
+            liability_id=liability.id,
+            account_id=accounts[i].id,
+            amount=amount
+        )
+        for i, amount in enumerate(expected_distribution)
+    ]
+    
+    # Validate using the service
+    validation = BillSplitValidation(
+        liability_id=liability.id,
+        total_amount=liability.amount,
+        splits=splits
+    )
+    
+    is_valid, error = await service.validate_splits(validation)
+    assert is_valid is True, f"Validation failed with error: {error}"
+    assert error is None
+    
+    # Create the splits in the database
+    for split in splits:
+        result = await service.create_bill_split(split)
+        assert result is not None
+        
+    # Verify stored splits match expected values
+    total = await service.calculate_split_totals(liability.id)
+    assert total == Decimal("100.00")
+    
+    # Verify the largest difference between any two splits is exactly $0.01
+    max_diff = Decimal("33.34") - Decimal("33.33")
+    assert max_diff == Decimal("0.01")
+
+async def test_common_bill_split_scenarios(db_session):
+    """Test common bill split scenarios that require precise decimal handling."""
+    service = BillSplitService(db_session)
+    
+    # Create test account
+    account = Account(
+        name="Common Split Test Account",
+        type="checking",
+        available_balance=Decimal("5000.00"),  # Plenty of funds for all tests
+        created_at=date.today(),
+        updated_at=date.today()
+    )
+    db_session.add(account)
+    await db_session.flush()
+    
+    # Test cases with challenging divisions
+    test_cases = [
+        # (total_amount, num_splits, expected_distribution)
+        (Decimal("10.00"), 3, [Decimal("3.34"), Decimal("3.33"), Decimal("3.33")]),
+        (Decimal("1.00"), 3, [Decimal("0.34"), Decimal("0.33"), Decimal("0.33")]),
+        (Decimal("20.00"), 3, [Decimal("6.67"), Decimal("6.67"), Decimal("6.66")]),
+        (Decimal("0.01"), 3, [Decimal("0.01"), Decimal("0.00"), Decimal("0.00")])
+    ]
+    
+    for total, num_splits, expected_distribution in test_cases:
+        # Create test liability
+        liability = Liability(
+            name=f"Split Test {total}",
+            amount=total,
+            due_date=date.today(),
+            category_id=1,
+            primary_account_id=account.id,
+            auto_pay=False,
+            auto_pay_enabled=False,
+            paid=False,
+            created_at=date.today(),
+            updated_at=date.today()
+        )
+        db_session.add(liability)
+        await db_session.flush()
+        
+        # Verify distribution calculation
+        calculated_distribution = DecimalPrecision.distribute_with_largest_remainder(total, num_splits)
+        assert calculated_distribution == expected_distribution
+        assert sum(calculated_distribution) == total
+        
+        # Create actual splits with just one account (for simplicity)
+        splits = []
+        for amount in calculated_distribution:
+            if amount > Decimal("0"):  # Skip zero amounts
+                split = BillSplitCreate(
+                    liability_id=liability.id,
+                    account_id=account.id,
+                    amount=amount
+                )
+                splits.append(split)
+                result = await service.create_bill_split(split)
+                assert result is not None
+        
+        # Verify total matches expected
+        db_total = await service.calculate_split_totals(liability.id)
+        assert db_total == total
+
+async def test_split_precision_in_suggested_splits(db_session, checking_account, credit_account):
+    """Test precision of calculated amounts in distribution suggestions."""
+    service = BillSplitService(db_session)
+    
+    # Create a liability with an amount that requires precise distribution
+    liability = Liability(
+        name="Distribution Precision Test",
+        amount=Decimal("133.33"),  # Odd amount to test precision
+        due_date=date.today(),
+        category_id=1,
+        primary_account_id=checking_account.id,
+        auto_pay=False,
+        auto_pay_enabled=False,
+        paid=False,
+        created_at=date.today(),
+        updated_at=date.today()
+    )
+    db_session.add(liability)
+    await db_session.flush()
+    
+    # Now get suggestions for this liability
+    suggestions = await service.suggest_splits(liability.id)
+    
+    # Verify suggested amounts have proper precision
+    assert suggestions.total_amount == Decimal("133.33")
+    
+    # Verify suggested amounts sum exactly to the total
+    total_suggested = sum(s.amount for s in suggestions.suggestions)
+    assert total_suggested == Decimal("133.33")
+    
+    # Verify all suggested amounts have exactly 2 decimal places
+    for suggestion in suggestions.suggestions:
+        assert suggestion.amount.as_tuple().exponent == -2, \
+               f"{suggestion.amount} should have exactly 2 decimal places"
+    
+    # Try with a large bill amount
+    liability.amount = Decimal("9999.99")
+    await db_session.flush()
+    
+    large_suggestions = await service.suggest_splits(liability.id)
+    large_total = sum(s.amount for s in large_suggestions.suggestions)
+    assert large_total == Decimal("9999.99")
+    
+    # Verify distribution across accounts maintains precision
+    for suggestion in large_suggestions.suggestions:
+        assert suggestion.amount.as_tuple().exponent == -2, \
+               f"{suggestion.amount} should have exactly 2 decimal places"

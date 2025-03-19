@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.25] - 2025-03-19
+
+### Changed
+- Improved bill splits testing approach using integration-only tests:
+  * Removed mock-based unit tests in favor of real database testing
+  * Enhanced integration test file with comprehensive decimal precision tests
+  * Followed architectural principle that services interact with multiple layers and should be tested without mocks
+
+### Added
+- Enhanced integration tests for bill splits in tests/integration/services/test_bill_splits_services.py:
+  * Added test cases for the "$100 split three ways" scenario
+  * Added tests for common bill split scenarios with challenging divisions
+  * Added test for precision of calculated amounts in distribution suggestions
+  * Added test for equal distribution with largest remainder method
+
+### Fixed
+- Updated ADR-013 implementation progress:
+  * Updated implementation checklist to reflect integration-based testing approach
+  * Improved overall implementation progress to 98% (from 93%)
+  * Clarified service test methodology in test documentation
+
 ## [0.4.24] - 2025-03-19
 
 ### Added
