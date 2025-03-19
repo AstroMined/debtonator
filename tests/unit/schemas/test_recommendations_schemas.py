@@ -98,7 +98,7 @@ def test_bill_payment_timing_recommendation_valid():
     
     impact = ImpactMetrics(
         balance_impact=Decimal("-50.00"),
-        credit_utilization_impact=Decimal("5.00"),
+        credit_utilization_impact=Decimal("0.05"),
         risk_score=Decimal("25.5"),
         savings_potential=Decimal("75.50")
     )

@@ -1,4 +1,19 @@
-1. **Fixed Schema Test Failures for Pydantic V2 Decimal Validation** ✓
+1. **Fixed Credit Utilization Impact Value in Recommendations Schema Test** ✓
+   - Fixed failing schema test for BillPaymentTimingRecommendation:
+     * In `test_bill_payment_timing_recommendation_valid` test, updated credit_utilization_impact from Decimal("5.00") to Decimal("0.05")
+     * The test was failing because PercentageDecimal type in ImpactMetrics uses a 0-1 range (5% = 0.05) rather than the 0-100 range
+     * Test error was: "Input should be less than or equal to 1 [type=less_than_equal, input_value=Decimal('5.00'), input_type=Decimal]"
+   - This completes the schema test fixes for Pydantic V2 decimal validation:
+     * All 316 tests now passing successfully
+     * Schema tests properly using 0-1 range for percentage values
+     * All schema tests consistent with the PercentageDecimal type definition and validation rules
+     * Validation properly enforcing Field(ge=0, le=1, multiple_of=Decimal("0.0001"))
+   - This further validates our ADR-013 implementation approach:
+     * Pydantic V2 Annotated types working correctly for validation
+     * Proper constraints being enforced on percentage values
+     * Test values properly matching the expected percentage scale (0-1 range)
+
+2. **Fixed Schema Test Failures for Pydantic V2 Decimal Validation** ✓
    - Fixed validation issues in schema test files related to percentage range handling:
      * Fixed `test_impact_analysis_schemas.py` to use 0-1 range for credit utilization (changed from 0-100)
      * Updated `test_recommendations_schemas.py` to use 0-1 range for credit utilization impact

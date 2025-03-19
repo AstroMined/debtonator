@@ -1,3 +1,20 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.4.23] - 2025-03-19
+
+### Fixed
+- Fixed credit utilization impact value in recommendations schema test:
+  * Fixed `test_bill_payment_timing_recommendation_valid` to use Decimal("0.05") instead of Decimal("5.00") for credit_utilization_impact
+  * Resolved validation error: "Input should be less than or equal to 1"
+  * All schema tests now using correct 0-1 range for percentage values
+  * All 316 tests now passing successfully
+  * Confirmed proper validation for PercentageDecimal type with Field(ge=0, le=1, multiple_of=Decimal("0.0001"))
+
 ## [0.4.22] - 2025-03-19
 
 ### Fixed
@@ -10,13 +27,6 @@
   * Fixed test case values to match the 0-1 percentage scale
   * Replaced `decimal_places=1` with `multiple_of=Decimal("0.1")` in recommendations.py
 - Updated ADR-013 implementation checklist to reflect progress (91% complete, back to previous level)
-
-# Changelog
-
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.4.21] - 2025-03-19
 
