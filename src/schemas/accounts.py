@@ -1,9 +1,17 @@
+"""
+Account schema definitions for the API.
+
+This module defines the schema classes for account data validation and serialization.
+Includes schemas for creating, updating, and retrieving accounts, as well as specialized
+response formats for different account-related operations.
+"""
+
 from datetime import datetime
 from decimal import Decimal
 from typing import Optional, List, Any, Dict, Callable
 from enum import Enum
 from pydantic import ConfigDict, Field, field_validator
-from . import BaseSchemaValidator
+from . import BaseSchemaValidator, MoneyDecimal, PercentageDecimal, IntMoneyDict
 
 class AccountType(str, Enum):
     """
@@ -66,14 +74,6 @@ account_type_field = lambda required: Field(
     description="Type of account (credit, checking, savings)"
 )
 
-# Use the standardized BaseSchemaValidator utility method for money fields
-# This implements the ADR-013 standard for decimal precision
-decimal_field = lambda required, name, **kwargs: BaseSchemaValidator.money_field(
-    description=name,
-    default=kwargs.pop('default', None) if not required or 'default' in kwargs else ...,
-    **kwargs
-)
-
 datetime_field = lambda required, name: Field(
     ... if required else None,
     description=f"{name} (UTC timezone)"
@@ -87,24 +87,23 @@ class AccountBase(BaseSchemaValidator):
     """
     name: str = account_name_field(required=True)
     type: AccountType = account_type_field(required=True)
-    available_balance: Decimal = decimal_field(
-        required=False, 
-        name="Current available balance",
-        default=0
+    available_balance: MoneyDecimal = Field(
+        default=Decimal('0'),
+        description="Current available balance"
     )
-    available_credit: Optional[Decimal] = decimal_field(
-        required=False,
-        name="Available credit for credit accounts",
+    available_credit: Optional[MoneyDecimal] = Field(
+        default=None,
+        description="Available credit for credit accounts",
         ge=0
     )
-    total_limit: Optional[Decimal] = decimal_field(
-        required=False,
-        name="Total credit limit for credit accounts",
+    total_limit: Optional[MoneyDecimal] = Field(
+        default=None,
+        description="Total credit limit for credit accounts",
         ge=0
     )
-    last_statement_balance: Optional[Decimal] = decimal_field(
-        required=False,
-        name="Balance from last statement"
+    last_statement_balance: Optional[MoneyDecimal] = Field(
+        default=None,
+        description="Balance from last statement"
     )
     last_statement_date: Optional[datetime] = datetime_field(
         required=False,
@@ -163,23 +162,23 @@ class AccountUpdate(BaseSchemaValidator):
     """
     name: Optional[str] = account_name_field(required=False)
     type: Optional[AccountType] = account_type_field(required=False)
-    available_balance: Optional[Decimal] = decimal_field(
-        required=False,
-        name="Current available balance"
+    available_balance: Optional[MoneyDecimal] = Field(
+        default=None,
+        description="Current available balance"
     )
-    available_credit: Optional[Decimal] = decimal_field(
-        required=False,
-        name="Available credit for credit accounts",
+    available_credit: Optional[MoneyDecimal] = Field(
+        default=None,
+        description="Available credit for credit accounts",
         ge=0
     )
-    total_limit: Optional[Decimal] = decimal_field(
-        required=False,
-        name="Total credit limit for credit accounts",
+    total_limit: Optional[MoneyDecimal] = Field(
+        default=None,
+        description="Total credit limit for credit accounts",
         ge=0
     )
-    last_statement_balance: Optional[Decimal] = decimal_field(
-        required=False,
-        name="Balance from last statement"
+    last_statement_balance: Optional[MoneyDecimal] = Field(
+        default=None,
+        description="Balance from last statement"
     )
     last_statement_date: Optional[datetime] = datetime_field(
         required=False,
@@ -254,12 +253,13 @@ class StatementBalanceHistory(BaseSchemaValidator):
         ...,
         description="Date of the statement (UTC timezone)"
     )
-    statement_balance: Decimal = BaseSchemaValidator.money_field(
+    statement_balance: MoneyDecimal = Field(
+        ...,
         description="Balance on statement date"
     )
-    minimum_payment: Optional[Decimal] = BaseSchemaValidator.money_field(
-        description="Minimum payment due",
+    minimum_payment: Optional[MoneyDecimal] = Field(
         default=None,
+        description="Minimum payment due",
         ge=0
     )
     due_date: Optional[datetime] = Field(
@@ -299,7 +299,7 @@ class AvailableCreditResponse(BaseSchemaValidator):
     Schema for available credit calculation response.
     
     Used for providing detailed credit information for credit accounts.
-    Implements ADR-013 using standardized money fields with 2 decimal places.
+    Implements ADR-013 using MoneyDecimal type with 2 decimal places.
     """
     account_id: int = Field(
         ...,
@@ -312,20 +312,25 @@ class AvailableCreditResponse(BaseSchemaValidator):
         max_length=50,
         description="Account name"
     )
-    total_limit: Decimal = BaseSchemaValidator.money_field(
+    total_limit: MoneyDecimal = Field(
+        ...,
         description="Total credit limit",
         gt=0
     )
-    current_balance: Decimal = BaseSchemaValidator.money_field(
+    current_balance: MoneyDecimal = Field(
+        ...,
         description="Current account balance"
     )
-    pending_transactions: Decimal = BaseSchemaValidator.money_field(
+    pending_transactions: MoneyDecimal = Field(
+        ...,
         description="Sum of pending transactions"
     )
-    adjusted_balance: Decimal = BaseSchemaValidator.money_field(
+    adjusted_balance: MoneyDecimal = Field(
+        ...,
         description="Balance adjusted for pending transactions"
     )
-    available_credit: Decimal = BaseSchemaValidator.money_field(
+    available_credit: MoneyDecimal = Field(
+        ...,
         description="Available credit after all adjustments",
         ge=0
     )

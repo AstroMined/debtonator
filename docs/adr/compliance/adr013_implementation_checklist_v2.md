@@ -11,17 +11,17 @@ The new approach maintains the same goals as the original ADR-013:
 
 However, instead of using custom field methods and validation logic, we'll now use Python's Annotated types combined with Pydantic's Field constraints, which is the recommended approach in Pydantic V2.
 
-## Implementation Progress Reset
+## Implementation Progress (Updated 3/18/2025)
 
-Due to the need to pivot to a Pydantic V2-compatible approach, we are resetting progress on several components while maintaining progress on others:
+We have started implementing the Pydantic V2 compatible approach, with progress shown below:
 
 | Area | Total Items | Completed | Remaining | Progress | Notes |
 |------|-------------|-----------|-----------|----------|-------|
 | Core Module | 10 | 10 | 0 | 100% | No changes needed |
 | Database Schema | 37 | 37 | 0 | 100% | No changes needed |
 | SQLAlchemy Models | 15 | 15 | 0 | 100% | No changes needed |
-| Pydantic Schemas | 22 | 0 | 22 | 0% | Need complete revision |
-| BaseSchemaValidator | 5 | 0 | 5 | 0% | Need complete revision |
+| Pydantic Schemas | 22 | 2 | 20 | 9% | Accounts and BillSplits schemas updated |
+| BaseSchemaValidator | 5 | 5 | 0 | 100% | Implemented with Annotated types |
 | Service Layer | 9 | 9 | 0 | 100% | May need minor updates |
 | API Response | 2 | 2 | 0 | 100% | No changes needed |
 | Core Tests | 10 | 10 | 0 | 100% | No changes needed |
@@ -32,9 +32,9 @@ Due to the need to pivot to a Pydantic V2-compatible approach, we are resetting 
 | Special Test Cases | 4 | 4 | 0 | 100% | No changes needed |
 | Documentation | 2 | 0 | 2 | 0% | Need complete revision |
 | Developer Guidelines | 6 | 6 | 0 | 100% | Need minor updates |
-| Dictionary Validation | 5 | 0 | 5 | 0% | New implementation area |
+| Dictionary Validation | 5 | 5 | 0 | 100% | Implemented in BaseSchemaValidator |
 | Quality Assurance | 7 | 0 | 7 | 0% | Need implementation |
-| **TOTAL** | **151** | **99** | **52** | **66%** | |
+| **TOTAL** | **151** | **111** | **40** | **74%** | Progress improved from 66% to 74% |
 
 ## Remaining Priority Tasks
 
@@ -64,7 +64,7 @@ Due to the need to pivot to a Pydantic V2-compatible approach, we are resetting 
 
 ### Update `src/schemas/__init__.py` with Annotated Types
 
-- [ ] Replace utility methods with Annotated type definitions:
+- [x] Replace utility methods with Annotated type definitions:
   ```python
   from typing import Annotated, Dict
   from decimal import Decimal
@@ -95,7 +95,7 @@ Due to the need to pivot to a Pydantic V2-compatible approach, we are resetting 
   ]
   ```
 
-- [ ] Add dictionary type definitions:
+- [x] Add dictionary type definitions:
   ```python
   # Dictionary type aliases
   MoneyDict = Dict[str, MoneyDecimal]
@@ -104,30 +104,30 @@ Due to the need to pivot to a Pydantic V2-compatible approach, we are resetting 
   IntPercentageDict = Dict[int, PercentageDecimal]
   ```
 
-- [ ] Remove the now-obsolete utility methods from BaseSchemaValidator:
-  - [ ] Remove `money_field()` method
-  - [ ] Remove `percentage_field()` method
-  - [ ] Update `validate_decimal_precision()` validator or replace with appropriate validator for dictionary fields
+- [x] Remove the now-obsolete utility methods from BaseSchemaValidator:
+  - [x] Remove `money_field()` method
+  - [x] Remove `percentage_field()` method
+  - [x] Update `validate_decimal_precision()` validator or replace with appropriate validator for dictionary fields
 
-- [ ] Add comprehensive documentation for the types:
-  - [ ] Add docstrings for each type
-  - [ ] Include usage examples
-  - [ ] Explain validation behavior
+- [x] Add comprehensive documentation for the types:
+  - [x] Add docstrings for each type
+  - [x] Include usage examples
+  - [x] Explain validation behavior
 
 ## Phase 2: Dictionary Validation Strategy
 
-- [ ] Implement dictionary validation strategy:
-  - [ ] Create custom dictionary classes with validation:
+- [x] Implement dictionary validation strategy:
+  - [x] Create custom dictionary classes with validation:
     ```python
     class ValidatedMoneyDict(Dict[str, Decimal]):
         """Dictionary for monetary values that enforces 2 decimal places."""
         # Implementation details
     ```
-  - [ ] Add validator for dictionaries to BaseSchemaValidator:
+  - [x] Add validator for dictionaries to BaseSchemaValidator:
     ```python
     @model_validator(mode='after')
-    def validate_money_dictionaries(self) -> 'BaseSchemaValidator':
-        """Validate that all monetary dictionaries have proper precision."""
+    def validate_decimal_dictionaries(self) -> 'BaseSchemaValidator':
+        """Validate that all dictionary fields with decimal values for proper precision."""
         # Implementation details
     ```
 
@@ -136,8 +136,8 @@ Due to the need to pivot to a Pydantic V2-compatible approach, we are resetting 
 Update all Pydantic schema files to use the new Annotated types:
 
 - [ ] Update critical schema files first:
-  - [ ] Update `src/schemas/accounts.py` - Replace utility methods with direct type annotations
-  - [ ] Update `src/schemas/bill_splits.py` - Replace utility methods with direct type annotations
+  - [x] Update `src/schemas/accounts.py` - Replace utility methods with direct type annotations
+  - [x] Update `src/schemas/bill_splits.py` - Replace utility methods with direct type annotations
   - [ ] Update `src/schemas/liabilities.py` - Replace utility methods with direct type annotations
   - [ ] Update `src/schemas/payments.py` - Replace utility methods with direct type annotations
 

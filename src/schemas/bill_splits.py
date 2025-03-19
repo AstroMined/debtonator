@@ -1,9 +1,23 @@
+"""
+Bill split schema definitions for the API.
+
+This module defines the schema classes for bill split data validation and serialization.
+Includes schemas for creating, updating, and validating bill splits, as well as specialized
+schemas for pattern analysis and optimization suggestions.
+"""
+
 from datetime import datetime
 from decimal import Decimal
 from typing import Dict, List, Optional, Union
 from pydantic import Field, model_validator
 
-from src.schemas import BaseSchemaValidator
+from src.schemas import (
+    BaseSchemaValidator, 
+    MoneyDecimal, 
+    PercentageDecimal, 
+    IntMoneyDict, 
+    IntPercentageDict
+)
 
 class BillSplitBase(BaseSchemaValidator):
     """
@@ -11,7 +25,8 @@ class BillSplitBase(BaseSchemaValidator):
     
     Contains common fields and validation shared by all bill split schemas.
     """
-    amount: Decimal = BaseSchemaValidator.money_field(
+    amount: MoneyDecimal = Field(
+        ...,
         gt=0,
         description="Split amount must be greater than 0"
     )
@@ -66,7 +81,8 @@ class BillSplitValidation(BaseSchemaValidator):
     Ensures the sum of all splits equals the total amount of the liability.
     """
     liability_id: int = Field(..., gt=0, description="ID of the liability being split")
-    total_amount: Decimal = BaseSchemaValidator.money_field(
+    total_amount: MoneyDecimal = Field(
+        ...,
         gt=0,
         description="Total amount of the liability"
     )
@@ -92,14 +108,13 @@ class SplitSuggestion(BaseSchemaValidator):
     Contains details about a suggested split including confidence score and reasoning.
     """
     account_id: int = Field(..., gt=0, description="ID of the suggested account")
-    amount: Decimal = BaseSchemaValidator.money_field(
+    amount: MoneyDecimal = Field(
+        ...,
         gt=0,
         description="Suggested split amount"
     )
-    confidence_score: float = Field(
+    confidence_score: PercentageDecimal = Field(
         ..., 
-        ge=0, 
-        le=1, 
         description="Confidence score between 0 and 1"
     )
     reason: str = Field(
@@ -115,7 +130,8 @@ class BillSplitSuggestionResponse(BaseSchemaValidator):
     Contains a list of suggested splits and metadata about the suggestion.
     """
     liability_id: int = Field(..., gt=0, description="ID of the liability")
-    total_amount: Decimal = BaseSchemaValidator.money_field(
+    total_amount: MoneyDecimal = Field(
+        ...,
         gt=0,
         description="Total amount of the liability"
     )
@@ -140,20 +156,20 @@ class SplitPattern(BaseSchemaValidator):
         max_length=50,
         description="Unique identifier for the pattern"
     )
-    account_splits: Dict[int, Decimal] = BaseSchemaValidator.percentage_field(
+    account_splits: IntPercentageDict = Field(
+        ...,
         description="Mapping of account IDs to their split percentages"
     )
     total_occurrences: int = Field(..., gt=0, description="Number of times this pattern appears")
     first_seen: datetime = Field(..., description="Date pattern was first observed (UTC timezone)")
     last_seen: datetime = Field(..., description="Date pattern was last observed (UTC timezone)")
-    average_total: Decimal = BaseSchemaValidator.money_field(
+    average_total: MoneyDecimal = Field(
+        ...,
         gt=0,
         description="Average total amount for this pattern"
     )
-    confidence_score: float = Field(
+    confidence_score: PercentageDecimal = Field(
         ..., 
-        ge=0, 
-        le=1, 
         description="Confidence score based on frequency and recency"
     )
 
@@ -184,23 +200,20 @@ class OptimizationMetrics(BaseSchemaValidator):
     
     Contains metrics about the effectiveness of bill split configurations.
     """
-    credit_utilization: Dict[int, float] = Field(
+    credit_utilization: Dict[int, PercentageDecimal] = Field(
         ...,
         description="Credit utilization percentage per credit account"
     )
-    balance_impact: Dict[int, Decimal] = BaseSchemaValidator.money_field(
+    balance_impact: IntMoneyDict = Field(
+        ...,
         description="Impact on available balance per account"
     )
-    risk_score: float = Field(
+    risk_score: PercentageDecimal = Field(
         ...,
-        ge=0,
-        le=1,
         description="Risk score for the split configuration"
     )
-    optimization_score: float = Field(
+    optimization_score: PercentageDecimal = Field(
         ...,
-        ge=0,
-        le=1,
         description="Overall optimization score"
     )
 
@@ -247,10 +260,12 @@ class ImpactAnalysis(BaseSchemaValidator):
         ...,
         description="Current configuration metrics"
     )
-    short_term_impact: Dict[int, Decimal] = BaseSchemaValidator.money_field(
+    short_term_impact: IntMoneyDict = Field(
+        ...,
         description="30-day impact per account"
     )
-    long_term_impact: Dict[int, Decimal] = BaseSchemaValidator.money_field(
+    long_term_impact: IntMoneyDict = Field(
+        ...,
         description="90-day impact per account"
     )
     risk_factors: List[str] = Field(

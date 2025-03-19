@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.14] - 2025-03-18
+
+### Added
+- Implemented Pydantic V2 compatible approach for decimal precision handling:
+  * Created Annotated type definitions in schemas/__init__.py (MoneyDecimal, PercentageDecimal, etc.)
+  * Implemented dictionary validation strategy for decimal fields
+  * Updated BaseSchemaValidator with model_validator for dictionaries
+  * Updated accounts.py schema with new Annotated types as proof of concept
+  * Updated bill_splits.py schema with dictionary validation for IntPercentageDict
+
+### Changed
+- Replaced utility methods with direct type annotations:
+  * Replaced money_field() calls with MoneyDecimal type annotations
+  * Replaced percentage_field() calls with PercentageDecimal type annotations
+  * Implemented typed dictionary support with IntMoneyDict and IntPercentageDict
+  * Enhanced schema field documentation with migration to Annotated types
+  * Maintained all field constraints and validation behavior
+
 ## [0.4.13] - 2025-03-18
 
 ### Changed
