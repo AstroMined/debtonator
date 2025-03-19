@@ -4,7 +4,30 @@
 Decimal Precision Handling Implementation with Pydantic V2 Compatibility
 
 ### Recent Changes
-1. **Updated Cashflow Schema Files for Pydantic V2 Compatibility** ✓
+1. **Updated Additional Cashflow Schema Files for Pydantic V2 Compatibility** ✓
+   - Updated three more cashflow schema files with Annotated types:
+     * Modified `src/schemas/cashflow/forecasting.py` to use the new MoneyDecimal and PercentageDecimal types
+     * Updated `src/schemas/cashflow/historical.py` to use the new MoneyDecimal and PercentageDecimal types
+     * Updated `src/schemas/cashflow/account_analysis.py` to use MoneyDecimal, PercentageDecimal, and CorrelationDecimal types 
+     * Replaced all utility method calls (money_field, percentage_field) with direct type annotations
+     * Added proper Field constraints with descriptions
+   - Updated test files to match the new validation approach:
+     * Updated `test_cashflow_forecasting_schemas.py` with new validation message expectations
+     * Updated `test_cashflow_historical_schemas.py` with new validation message expectations
+     * Updated `test_cashflow_account_analysis_schemas.py` with new validation message expectations
+   - Made substantial progress on ADR-013 implementation checklist:
+     * Increased Pydantic Schemas implementation from 27% to 41%
+     * Increased Schema Tests implementation from 33% to 83%
+     * Improved overall implementation progress from 77% to 82%
+     * Updated implementation checklist to reflect progress
+   - These updates improve code clarity and maintainability:
+     * Field constraints now appear alongside field definitions
+     * Dictionary fields use appropriate type aliases (MoneyDict, PercentageDict, etc.)
+     * Validation rules are directly visible in the type annotations
+     * Better type hinting for IDE support
+     * More consistent field definitions across the codebase
+
+2. **Updated Cashflow Schema Files for Pydantic V2 Compatibility** ✓
    - Updated two critical cashflow schema files with Annotated types:
      * Modified `src/schemas/cashflow/base.py` to use the new MoneyDecimal type
      * Updated `src/schemas/cashflow/metrics.py` to use the MoneyDecimal type

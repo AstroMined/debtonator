@@ -250,7 +250,7 @@ def test_seasonal_strength_range():
 def test_decimal_precision():
     """Test decimal precision validation"""
     # Test too many decimal places in average_daily_change
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         HistoricalTrendMetrics(
             average_daily_change=Decimal("25.501"),  # Too many decimal places
             volatility=Decimal("75.25"),
@@ -264,7 +264,7 @@ def test_decimal_precision():
     now = datetime.now(timezone.utc)
     past = now - timedelta(days=30)
     
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         HistoricalPeriodAnalysis(
             period_start=past,
             period_end=now,
@@ -275,6 +275,17 @@ def test_decimal_precision():
             total_outflow=Decimal("4200.00"),
             net_change=Decimal("800.00"),
             significant_events=[]
+        )
+        
+    # Test too many decimal places in trend_strength
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.0001"):
+        HistoricalTrendMetrics(
+            average_daily_change=Decimal("25.50"),
+            volatility=Decimal("75.25"),
+            trend_direction="increasing",
+            trend_strength=Decimal("0.75001"),  # Too many decimal places
+            seasonal_factors={"monthly": Decimal("0.5")},
+            confidence_score=Decimal("0.85")
         )
 
 

@@ -462,15 +462,15 @@ def test_decimal_precision():
     future = now + timedelta(days=30)
     
     # Test too many decimal places in confidence_threshold
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.0001"):
         CustomForecastParameters(
             start_date=now,
             end_date=future,
-            confidence_threshold=Decimal("0.801")  # Too many decimal places
+            confidence_threshold=Decimal("0.80001")  # Too many decimal places
         )
     
     # Test too many decimal places in projected_balance
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         CustomForecastResult(
             date=now,
             projected_balance=Decimal("2500.123"),  # Too many decimal places
@@ -482,7 +482,7 @@ def test_decimal_precision():
         )
     
     # Test too many decimal places in projected_income
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         CustomForecastResult(
             date=now,
             projected_balance=Decimal("2500.00"),

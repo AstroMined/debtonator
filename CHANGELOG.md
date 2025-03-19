@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.16] - 2025-03-18
+
+### Changed
+- Continued implementation of Pydantic V2 compatible decimal precision handling:
+  * Updated `src/schemas/cashflow/forecasting.py` with MoneyDecimal and PercentageDecimal types
+  * Updated `src/schemas/cashflow/historical.py` with MoneyDecimal and PercentageDecimal types
+  * Updated `src/schemas/cashflow/account_analysis.py` with MoneyDecimal, PercentageDecimal, and CorrelationDecimal types
+  * Replaced all utility method calls with direct type annotations
+  * Updated test files to match the new validation approach
+  * Added proper dictionary type aliases for collections of decimal values
+
+### Fixed
+- Updated schema tests with correct Pydantic V2 validation error message patterns
+- Updated implementation checklist to accurately reflect progress (82% complete, up from 77%)
+
 ## [0.4.15] - 2025-03-18
 
 ### Changed

@@ -409,16 +409,16 @@ def test_account_usage_pattern_validation():
 def test_decimal_precision():
     """Test decimal precision validation"""
     # Test too many decimal places in correlation_score
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.0001"):
         AccountCorrelation(
-            correlation_score=Decimal("0.753"),  # Too many decimal places
+            correlation_score=Decimal("0.75321"),  # Too many decimal places
             transfer_frequency=5,
             common_categories=["Groceries", "Utilities"],
             relationship_type="complementary"
         )
     
     # Test too many decimal places in average_amount
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         TransferPattern(
             source_account_id=1,
             target_account_id=2,
@@ -429,7 +429,7 @@ def test_decimal_precision():
         )
     
     # Test too many decimal places in average_balance
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         BalanceDistribution(
             account_id=1,
             average_balance=Decimal("2500.123"),  # Too many decimal places

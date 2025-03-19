@@ -4,7 +4,7 @@ from typing import List, Dict, Tuple, Optional
 
 from pydantic import Field
 
-from src.schemas import BaseSchemaValidator
+from src.schemas import BaseSchemaValidator, MoneyDecimal, PercentageDecimal, CorrelationDecimal, MoneyDict, PercentageDict, IntMoneyDict, IntPercentageDict
 
 class AccountCorrelation(BaseSchemaValidator):
     """
@@ -13,9 +13,9 @@ class AccountCorrelation(BaseSchemaValidator):
     Describes the relationship between two accounts based on transaction patterns.
     Implements ADR-013 with standardized precision validation.
     """
-    correlation_score: Decimal = BaseSchemaValidator.percentage_field(
-        description="Correlation coefficient between accounts (-1 to 1)",
-        ge=-1
+    correlation_score: CorrelationDecimal = Field(
+        ...,
+        description="Correlation coefficient between accounts (-1 to 1)"
     )
     transfer_frequency: int = Field(
         ..., 
@@ -48,7 +48,8 @@ class TransferPattern(BaseSchemaValidator):
         ...,
         description="ID of the target account for transfers"
     )
-    average_amount: Decimal = BaseSchemaValidator.money_field(
+    average_amount: MoneyDecimal = Field(
+        ...,
         description="Average amount transferred"
     )
     frequency: int = Field(
@@ -62,7 +63,7 @@ class TransferPattern(BaseSchemaValidator):
         le=31,
         description="Day of month when transfers typically occur"
     )
-    category_distribution: Dict[str, Decimal] = Field(
+    category_distribution: PercentageDict = Field(
         ...,
         description="Distribution of transfer categories and their proportions"
     )
@@ -82,7 +83,8 @@ class AccountUsagePattern(BaseSchemaValidator):
         ...,
         description="Primary purpose of the account"
     )
-    average_transaction_size: Decimal = BaseSchemaValidator.money_field(
+    average_transaction_size: MoneyDecimal = Field(
+        ...,
         description="Average size of transactions in this account"
     )
     common_merchants: List[str] = Field(
@@ -95,13 +97,13 @@ class AccountUsagePattern(BaseSchemaValidator):
         max_length=31,
         description="Days of the month with highest transaction volume (1-31)"
     )
-    category_preferences: Dict[str, Decimal] = Field(
+    category_preferences: PercentageDict = Field(
         ...,
         description="Categories and their usage proportions"
     )
-    utilization_rate: Optional[Decimal] = BaseSchemaValidator.percentage_field(
-        description="Credit utilization rate (for credit accounts)",
-        default=None
+    utilization_rate: Optional[PercentageDecimal] = Field(
+        default=None,
+        description="Credit utilization rate (for credit accounts)"
     )
 
 class BalanceDistribution(BaseSchemaValidator):
@@ -116,23 +118,28 @@ class BalanceDistribution(BaseSchemaValidator):
         ...,
         description="ID of the account"
     )
-    average_balance: Decimal = BaseSchemaValidator.money_field(
+    average_balance: MoneyDecimal = Field(
+        ...,
         description="Average account balance"
     )
-    balance_volatility: Decimal = BaseSchemaValidator.money_field(
+    balance_volatility: MoneyDecimal = Field(
+        ...,
         description="Standard deviation of balance over time"
     )
-    min_balance_30d: Decimal = BaseSchemaValidator.money_field(
+    min_balance_30d: MoneyDecimal = Field(
+        ...,
         description="Minimum balance in last 30 days"
     )
-    max_balance_30d: Decimal = BaseSchemaValidator.money_field(
+    max_balance_30d: MoneyDecimal = Field(
+        ...,
         description="Maximum balance in last 30 days"
     )
-    typical_balance_range: Tuple[Decimal, Decimal] = Field(
+    typical_balance_range: Tuple[MoneyDecimal, MoneyDecimal] = Field(
         ...,
         description="Typical range of account balance (min, max)"
     )
-    percentage_of_total: Decimal = BaseSchemaValidator.percentage_field(
+    percentage_of_total: PercentageDecimal = Field(
+        ...,
         description="Percentage of total funds across all accounts"
     )
 
@@ -147,20 +154,24 @@ class AccountRiskAssessment(BaseSchemaValidator):
         ...,
         description="ID of the account"
     )
-    overdraft_risk: Decimal = BaseSchemaValidator.percentage_field(
+    overdraft_risk: PercentageDecimal = Field(
+        ...,
         description="Risk of overdraft (0-1 scale)"
     )
-    credit_utilization_risk: Optional[Decimal] = BaseSchemaValidator.percentage_field(
-        description="Risk from high credit utilization (0-1 scale)",
-        default=None
+    credit_utilization_risk: Optional[PercentageDecimal] = Field(
+        default=None,
+        description="Risk from high credit utilization (0-1 scale)"
     )
-    payment_failure_risk: Decimal = BaseSchemaValidator.percentage_field(
+    payment_failure_risk: PercentageDecimal = Field(
+        ...,
         description="Risk of payment failure (0-1 scale)"
     )
-    volatility_score: Decimal = BaseSchemaValidator.percentage_field(
+    volatility_score: PercentageDecimal = Field(
+        ...,
         description="Score representing balance volatility (0-1 scale)"
     )
-    overall_risk_score: Decimal = BaseSchemaValidator.percentage_field(
+    overall_risk_score: PercentageDecimal = Field(
+        ...,
         description="Overall risk score (0-1 scale)"
     )
 

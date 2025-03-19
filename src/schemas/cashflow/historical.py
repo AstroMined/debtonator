@@ -4,7 +4,7 @@ from typing import Dict, List, Tuple
 
 from pydantic import Field
 
-from src.schemas import BaseSchemaValidator
+from src.schemas import BaseSchemaValidator, MoneyDecimal, PercentageDecimal, MoneyDict, PercentageDict, IntPercentageDict, IntMoneyDict
 
 class HistoricalTrendMetrics(BaseSchemaValidator):
     """
@@ -12,30 +12,30 @@ class HistoricalTrendMetrics(BaseSchemaValidator):
     
     Contains metrics describing historical trends in account balances.
     """
-    average_daily_change: Decimal = BaseSchemaValidator.money_field(
-        "Average daily change in balance",
-        default=...
+    average_daily_change: MoneyDecimal = Field(
+        ...,
+        description="Average daily change in balance"
     )
-    volatility: Decimal = BaseSchemaValidator.money_field(
-        "Standard deviation of daily changes",
-        default=...
+    volatility: MoneyDecimal = Field(
+        ...,
+        description="Standard deviation of daily changes"
     )
     trend_direction: str = Field(
         ..., 
         pattern="^(increasing|decreasing|stable)$",
         description="Overall direction of the trend"
     )
-    trend_strength: Decimal = BaseSchemaValidator.percentage_field(
-        "Strength of the trend (0-1 scale)",
-        default=...
+    trend_strength: PercentageDecimal = Field(
+        ...,
+        description="Strength of the trend (0-1 scale)"
     )
-    seasonal_factors: Dict[str, Decimal] = Field(
+    seasonal_factors: PercentageDict = Field(
         ...,
         description="Seasonal factors affecting the trend"
     )
-    confidence_score: Decimal = BaseSchemaValidator.percentage_field(
-        "Confidence in the trend analysis (0-1 scale)",
-        default=...
+    confidence_score: PercentageDecimal = Field(
+        ...,
+        description="Confidence in the trend analysis (0-1 scale)"
     )
 
 class HistoricalPeriodAnalysis(BaseSchemaValidator):
@@ -53,29 +53,29 @@ class HistoricalPeriodAnalysis(BaseSchemaValidator):
         ...,
         description="End date of this analysis period in UTC timezone"
     )
-    average_balance: Decimal = BaseSchemaValidator.money_field(
-        "Average balance during this period",
-        default=...
+    average_balance: MoneyDecimal = Field(
+        ...,
+        description="Average balance during this period"
     )
-    peak_balance: Decimal = BaseSchemaValidator.money_field(
-        "Highest balance during this period",
-        default=...
+    peak_balance: MoneyDecimal = Field(
+        ...,
+        description="Highest balance during this period"
     )
-    lowest_balance: Decimal = BaseSchemaValidator.money_field(
-        "Lowest balance during this period",
-        default=...
+    lowest_balance: MoneyDecimal = Field(
+        ...,
+        description="Lowest balance during this period"
     )
-    total_inflow: Decimal = BaseSchemaValidator.money_field(
-        "Total money coming in during this period",
-        default=...
+    total_inflow: MoneyDecimal = Field(
+        ...,
+        description="Total money coming in during this period"
     )
-    total_outflow: Decimal = BaseSchemaValidator.money_field(
-        "Total money going out during this period",
-        default=...
+    total_outflow: MoneyDecimal = Field(
+        ...,
+        description="Total money going out during this period"
     )
-    net_change: Decimal = BaseSchemaValidator.money_field(
-        "Net change in balance during this period",
-        default=...
+    net_change: MoneyDecimal = Field(
+        ...,
+        description="Net change in balance during this period"
     )
     significant_events: List[Dict[str, str]] = Field(
         ...,
@@ -88,25 +88,25 @@ class SeasonalityAnalysis(BaseSchemaValidator):
     
     Describes seasonal patterns in financial activity.
     """
-    monthly_patterns: Dict[int, Decimal] = Field(
+    monthly_patterns: IntPercentageDict = Field(
         ...,
         description="Patterns by month (1-12 for Jan-Dec)"
     )
-    day_of_week_patterns: Dict[int, Decimal] = Field(
+    day_of_week_patterns: IntPercentageDict = Field(
         ...,
         description="Patterns by day of week (0-6 for Sun-Sat)"
     )
-    day_of_month_patterns: Dict[int, Decimal] = Field(
+    day_of_month_patterns: IntPercentageDict = Field(
         ...,
         description="Patterns by day of month (1-31)"
     )
-    holiday_impacts: Dict[str, Decimal] = Field(
+    holiday_impacts: PercentageDict = Field(
         ...,
         description="Impact of holidays on financial patterns"
     )
-    seasonal_strength: Decimal = BaseSchemaValidator.percentage_field(
-        "Overall strength of seasonality (0-1 scale)",
-        default=...
+    seasonal_strength: PercentageDecimal = Field(
+        ...,
+        description="Overall strength of seasonality (0-1 scale)"
     )
 
 class HistoricalTrendsResponse(BaseSchemaValidator):

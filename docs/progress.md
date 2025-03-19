@@ -3,7 +3,29 @@
 ## Current Priority: Decimal Precision Handling with Pydantic V2 Compatibility
 
 ### Recent Improvements
-1. **Updated Cashflow Schema Files for Pydantic V2 Compatibility** ✓
+1. **Updated Additional Cashflow Schema Files for Pydantic V2 Compatibility** ✓
+   - Updated three more cashflow schema files with Annotated types:
+     * Modified `src/schemas/cashflow/forecasting.py` to use the new MoneyDecimal and PercentageDecimal types
+     * Updated `src/schemas/cashflow/historical.py` to use the new MoneyDecimal and PercentageDecimal types
+     * Updated `src/schemas/cashflow/account_analysis.py` to use MoneyDecimal, PercentageDecimal, and CorrelationDecimal types 
+     * Replaced all utility method calls with direct type annotations
+     * Added proper Field constraints with descriptions
+   - Updated test files to match the new validation approach:
+     * Updated test files for forecasting, historical, and account analysis schemas
+     * Modified error message expectations to match Pydantic V2 patterns
+     * Added tests for the new dictionary validation behavior
+   - Made substantial progress on ADR-013 implementation checklist:
+     * Increased Pydantic Schemas implementation from 27% to 41%
+     * Increased Schema Tests implementation from 33% to 83%
+     * Improved overall implementation progress from 77% to 82%
+     * Updated implementation checklist to reflect progress
+   - These updates preserve the same validation behavior while:
+     * Maintaining the two-tier precision model (2 decimals for UI, 4 for calculations)
+     * Following Pydantic V2's recommended approach with Annotated types
+     * Properly validating dictionary fields with the appropriate types
+     * Providing clear and self-documenting type information
+
+2. **Updated Cashflow Schema Files for Pydantic V2 Compatibility** ✓
    - Updated two critical cashflow schema files with Annotated types:
      * Modified `src/schemas/cashflow/base.py` to use the new MoneyDecimal type
      * Updated `src/schemas/cashflow/metrics.py` to use the MoneyDecimal type
@@ -269,14 +291,13 @@
 
 ## What's Left to Build
 1. **Implement Pydantic V2 Compatible Decimal Precision Handling**
-   - Update BaseSchemaValidator with Annotated types:
-     * Add MoneyDecimal, PercentageDecimal, and other type definitions
-     * Implement dictionary validation strategy
-     * Update schema files to use new types
-   - Create a proof-of-concept implementation:
-     * Update a few critical schema files first
-     * Test and verify the approach works
-     * Then proceed with remaining schema files
+   - Update remaining 13 schema files to use the new Annotated types:
+     * Replace all utility method calls with direct type annotations
+     * Update dictionary field validation
+     * Add proper Field constraints with descriptions
+   - Update any remaining schema test files:
+     * Update error message expectations to match Pydantic V2 patterns
+     * Add tests for dictionary validation
    - Update documentation:
      * Update developer guidelines with new patterns
      * Ensure ADR-013 reflects the revised approach
@@ -373,7 +394,7 @@
    - Need to implement Annotated types for decimal fields
    - Need to update tests for new validation patterns
 
-6. **Decimal Precision Handling**: RESET (66%)
+6. **Decimal Precision Handling**: IN PROGRESS (82%)
    - ✓ Core module implementation with DecimalPrecision utilities (100%)
    - ✓ Database schema updates to Numeric(12, 4) (100%)
    - ✓ SQLAlchemy model updates (100%)
@@ -381,20 +402,21 @@
    - ✓ Core tests for decimal precision utilities (100%)
    - ✓ Model tests for 4 decimal precision (100%)
    - ✓ Special test cases for distribution scenarios (100%)
-   - ⚠️ BaseSchemaValidator update with Annotated types (0%)
-   - ⚠️ Pydantic schema updates to use Annotated types (0%)
-   - ⚠️ Schema tests for new validation behavior (0%)
-   - ⚠️ Dictionary validation implementation (0%)
-   - ⚠️ Developer guidelines with Annotated types examples (0%)
-   - ⚠️ Quality assurance for revised implementation (0%)
+   - ✓ BaseSchemaValidator update with Annotated types (100%)
+   - ✓ Dictionary validation implementation (100%)
+   - ✓ Schema tests for cashflow modules (83%)
+   - ◼ Pydantic schema updates to use Annotated types (41%)
+   - ◼ Developer guidelines with Annotated types examples (50%)
+   - ◼ Quality assurance for revised implementation (0%)
 
-7. **Schema Test Implementation**: RESET (70%) 
+7. **Schema Test Implementation**: IN PROGRESS (83%) 
    - ✓ Core test files for decimal precision utilities complete
    - ✓ Model tests for 4 decimal precision complete
    - ✓ Special test cases for distribution scenarios complete
-   - ⚠️ Need to update schema test files for Annotated types validation
-   - ⚠️ Need to update error message assertions
-   - ⚠️ Need to add dictionary validation tests
+   - ✓ Updated tests for cashflow schema files with Annotated types validation
+   - ✓ Updated error message assertions for new validation patterns
+   - ◼ Need to complete tests for remaining schema files
+   - ◼ Need to add more dictionary validation tests
 
 8. **Version Management**: COMPLETED (100%) ✓
    - Created version.py with proper version constants
@@ -405,14 +427,13 @@
 ## Next Actions
 1. **Implement Pydantic V2 Compatible Decimal Precision Handling**
    - Follow the new implementation checklist:
-     * Update BaseSchemaValidator with Annotated types
-     * Implement dictionary validation strategy
-     * Update schema files to use new types
-     * Update tests for new validation behavior
-   - Begin with a proof-of-concept implementation:
-     * Update a few schema files first
-     * Test and verify the approach works
-     * Then proceed with remaining schema files
+     * Update remaining schema files to use the new Annotated types
+     * Update any remaining schema test files
+     * Complete documentation updates
+   - Continue with a systematic approach:
+     * Group related schema files for consistent updates
+     * Test each group after updates
+     * Then proceed with the next group
    - Focus on minimizing technical debt throughout implementation
    - Update documentation for the new approach
 
