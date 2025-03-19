@@ -1,9 +1,10 @@
 from datetime import datetime
 from decimal import Decimal
 from typing import Dict, List, Optional, Union, Any
+from typing import Annotated
 from pydantic import Field, ConfigDict, field_validator, model_validator
 
-from . import BaseSchemaValidator
+from . import BaseSchemaValidator, MoneyDecimal
 from src.core.decimal_precision import DecimalPrecision
 
 class AutoPaySettings(BaseSchemaValidator):
@@ -33,7 +34,7 @@ class AutoPaySettings(BaseSchemaValidator):
         max_length=50, 
         description="Payment method to use for auto-pay"
     )
-    minimum_balance_required: Optional[Decimal] = BaseSchemaValidator.money_field(
+    minimum_balance_required: Optional[MoneyDecimal] = Field(
         default=None,
         description="Minimum balance required in account before auto-pay is triggered"
     )
@@ -81,7 +82,8 @@ class LiabilityBase(BaseSchemaValidator):
         max_length=100, 
         description="Name of the liability"
     )
-    amount: Decimal = BaseSchemaValidator.money_field(
+    amount: MoneyDecimal = Field(
+        ...,
         gt=Decimal('0'),
         description="Total amount of the liability"
     )
@@ -181,7 +183,7 @@ class LiabilityUpdate(BaseSchemaValidator):
         max_length=100, 
         description="Name of the liability"
     )
-    amount: Optional[Decimal] = BaseSchemaValidator.money_field(
+    amount: Optional[MoneyDecimal] = Field(
         default=None,
         gt=Decimal('0'), 
         description="Total amount of the liability"

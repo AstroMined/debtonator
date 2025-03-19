@@ -15,8 +15,9 @@ This guide outlines how to properly handle monetary values and decimal precision
    - Use `ROUND_HALF_UP` for consistent rounding behavior
 
 3. **Field Definitions**:
-   - Use `BaseSchemaValidator.money_field()` for monetary values
-   - Use `BaseSchemaValidator.percentage_field()` for percentage values
+   - Use `MoneyDecimal` type for monetary values
+   - Use `PercentageDecimal` type for percentage values
+   - Use direct type annotations with `Field` constraints
 
 ## Using the DecimalPrecision Core Module
 
@@ -66,25 +67,32 @@ is_valid = DecimalPrecision.validate_sum_equals_total(
 
 ## Schema Field Definitions
 
-Always use the standardized field methods when defining monetary or percentage fields:
+Always use the standardized type annotations when defining monetary or percentage fields:
 
 ```python
 from decimal import Decimal
+from typing import Annotated
 from pydantic import Field
-from src.schemas import BaseSchemaValidator
+from src.schemas import BaseSchemaValidator, MoneyDecimal, PercentageDecimal
 
 class PaymentSchema(BaseSchemaValidator):
     # Monetary field (2 decimal places)
-    amount: Decimal = BaseSchemaValidator.money_field(
-        "Payment amount in dollars",
-        ...,  # Required field (can also be None, etc.)
-        ge=Decimal('0')  # Must be greater than or equal to 0
+    amount: MoneyDecimal = Field(
+        ...,  # Required field
+        ge=Decimal('0'),  # Must be greater than or equal to 0
+        description="Payment amount in dollars"
     )
     
     # Percentage field (4 decimal places)
-    confidence_score: Decimal = BaseSchemaValidator.percentage_field(
-        "Confidence score (0-1 scale)",
-        default=Decimal('1')  # Default value
+    confidence_score: PercentageDecimal = Field(
+        default=Decimal('1'),  # Default value
+        description="Confidence score (0-1 scale)"
+    )
+    
+    # Dictionary of account distributions
+    account_distributions: IntMoneyDict = Field(
+        default_factory=dict,
+        description="Distribution of payment across accounts"
     )
 ```
 
@@ -264,14 +272,14 @@ display = DecimalPrecision.round_for_display(result)  # 33.33
 
 ## When to Use 4 vs. 2 Decimal Places
 
-- **Use 2 Decimal Places (money_field) for**:
+- **Use 2 Decimal Places (MoneyDecimal) for**:
   - Currency amounts (prices, balances, payments)
   - Fee calculations
   - Transaction amounts
   - Bill totals and splits
   - Account balances
   
-- **Use 4 Decimal Places (percentage_field) for**:
+- **Use 4 Decimal Places (PercentageDecimal, CorrelationDecimal, RatioDecimal) for**:
   - Percentage values (0.0-1.0 scale)
   - Interest rates
   - Confidence scores
@@ -281,3 +289,40 @@ display = DecimalPrecision.round_for_display(result)  # 33.33
   - Credit utilization rates
 
 Remember, always use 4 decimal places for internal calculations, even for monetary fields, but round to 2 decimal places when displaying or returning monetary values through the API.
+
+## Working with Dictionary Fields
+
+When working with dictionaries that contain decimal values, use the predefined dictionary types:
+
+```python
+from src.schemas import MoneyDict, PercentageDict, IntMoneyDict, RatioDict
+
+class AnalysisSchema(BaseSchemaValidator):
+    # Dictionary with string keys and monetary values
+    category_amounts: MoneyDict = Field(
+        default_factory=dict,
+        description="Total amount by category"
+    )
+    
+    # Dictionary with integer keys (account IDs) and monetary values
+    account_balances: IntMoneyDict = Field(
+        default_factory=dict,
+        description="Balance by account ID"
+    )
+    
+    # Dictionary with string keys and percentage values
+    category_percentages: PercentageDict = Field(
+        default_factory=dict,
+        description="Percentage distribution by category (0-1 scale)"
+    )
+```
+
+These dictionary types ensure that all decimal values within the dictionary are properly validated:
+
+- `MoneyDict`: All values must have at most 2 decimal places
+- `PercentageDict`: All values must have at most 4 decimal places and be between 0 and 1
+- `IntMoneyDict`: Same as MoneyDict but with integer keys (useful for account IDs)
+- `CorrelationDict`: Values must have at most 4 decimal places and be between -1 and 1
+- `RatioDict`: Values must have at most 4 decimal places with no range constraints
+
+The `BaseSchemaValidator` automatically validates all dictionary fields to ensure decimal values have the appropriate precision.

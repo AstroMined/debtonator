@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.15] - 2025-03-18
+
+### Changed
+- Continued implementation of Pydantic V2 compatible decimal precision handling:
+  * Updated `src/schemas/cashflow/base.py` with new MoneyDecimal type annotations
+  * Updated `src/schemas/cashflow/metrics.py` with new MoneyDecimal type annotations
+  * Replaced all utility method calls (money_field) with direct type annotations
+  * Added proper Field constraints with descriptions to maintain validation
+  * Maintained consistent Field naming and documentation conventions
+
+### Fixed
+- Fixed implementation checklist to accurately reflect progress (77% complete, up from 76%)
+
 ## [0.4.14] - 2025-03-18
 
 ### Added

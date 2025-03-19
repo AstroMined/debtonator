@@ -32,7 +32,7 @@ def test_payment_source_base_validation():
 
     # Invalid amount (too many decimal places)
     with pytest.raises(
-        ValidationError, match="Decimal input should have no more than 2 decimal places"
+        ValidationError, match="Input should be a multiple of 0.01"
     ):
         PaymentSourceBase(account_id=1, amount=Decimal("100.001"))
         
@@ -73,7 +73,7 @@ def test_payment_base_validation():
 
     # Invalid amount (too many decimal places)
     with pytest.raises(
-        ValidationError, match="Decimal input should have no more than 2 decimal places"
+        ValidationError, match="Input should be a multiple of 0.01"
     ):
         PaymentBase(**{**valid_data, "amount": Decimal("100.001")})
         

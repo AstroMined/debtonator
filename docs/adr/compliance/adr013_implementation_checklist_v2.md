@@ -20,21 +20,21 @@ We have started implementing the Pydantic V2 compatible approach, with progress 
 | Core Module | 10 | 10 | 0 | 100% | No changes needed |
 | Database Schema | 37 | 37 | 0 | 100% | No changes needed |
 | SQLAlchemy Models | 15 | 15 | 0 | 100% | No changes needed |
-| Pydantic Schemas | 22 | 2 | 20 | 9% | Accounts and BillSplits schemas updated |
+| Pydantic Schemas | 22 | 6 | 16 | 27% | Accounts, BillSplits, Liabilities, Payments, and 2 Cashflow schemas updated |
 | BaseSchemaValidator | 5 | 5 | 0 | 100% | Implemented with Annotated types |
 | Service Layer | 9 | 9 | 0 | 100% | May need minor updates |
 | API Response | 2 | 2 | 0 | 100% | No changes needed |
 | Core Tests | 10 | 10 | 0 | 100% | No changes needed |
 | Model Tests | 3 | 3 | 0 | 100% | No changes needed |
-| Schema Tests | 6 | 0 | 6 | 0% | Need complete revision |
+| Schema Tests | 6 | 2 | 4 | 33% | Need to update remaining tests |
 | Service Tests | 3 | 0 | 3 | 0% | Need implementation |
 | Integration Tests | 5 | 3 | 2 | 60% | Minor updates needed |
 | Special Test Cases | 4 | 4 | 0 | 100% | No changes needed |
-| Documentation | 2 | 0 | 2 | 0% | Need complete revision |
+| Documentation | 2 | 1 | 1 | 50% | Need to update ADR-013 documentation |
 | Developer Guidelines | 6 | 6 | 0 | 100% | Need minor updates |
 | Dictionary Validation | 5 | 5 | 0 | 100% | Implemented in BaseSchemaValidator |
 | Quality Assurance | 7 | 0 | 7 | 0% | Need implementation |
-| **TOTAL** | **151** | **111** | **40** | **74%** | Progress improved from 66% to 74% |
+| **TOTAL** | **151** | **117** | **34** | **77%** | Progress improved from 76% to 77% |
 
 ## Remaining Priority Tasks
 
@@ -138,15 +138,15 @@ Update all Pydantic schema files to use the new Annotated types:
 - [ ] Update critical schema files first:
   - [x] Update `src/schemas/accounts.py` - Replace utility methods with direct type annotations
   - [x] Update `src/schemas/bill_splits.py` - Replace utility methods with direct type annotations
-  - [ ] Update `src/schemas/liabilities.py` - Replace utility methods with direct type annotations
-  - [ ] Update `src/schemas/payments.py` - Replace utility methods with direct type annotations
+  - [x] Update `src/schemas/liabilities.py` - Replace utility methods with direct type annotations
+  - [x] Update `src/schemas/payments.py` - Replace utility methods with direct type annotations
 
 - [ ] Update cashflow schema files:
   - [ ] Update `src/schemas/cashflow/account_analysis.py` - Replace utility methods with direct type annotations
-  - [ ] Update `src/schemas/cashflow/base.py` - Replace utility methods with direct type annotations
+  - [x] Update `src/schemas/cashflow/base.py` - Replace utility methods with direct type annotations
   - [ ] Update `src/schemas/cashflow/forecasting.py` - Replace utility methods with direct type annotations
   - [ ] Update `src/schemas/cashflow/historical.py` - Replace utility methods with direct type annotations
-  - [ ] Update `src/schemas/cashflow/metrics.py` - Replace utility methods with direct type annotations
+  - [x] Update `src/schemas/cashflow/metrics.py` - Replace utility methods with direct type annotations
 
 - [ ] Update remaining schema files:
   - [ ] Update `src/schemas/balance_history.py` - Replace utility methods with direct type annotations
@@ -209,10 +209,10 @@ Update all schema tests to account for the new validation behavior:
   - [ ] Update examples to use Annotated types
   - [ ] Explain why this approach was chosen
 
-- [ ] Update `docs/guides/working_with_money.md`:
-  - [ ] Update examples to use the new types
-  - [ ] Add section on dictionary validation
-  - [ ] Provide examples of common patterns with the new approach
+- [x] Update `docs/guides/working_with_money.md`:
+  - [x] Update examples to use the new types
+  - [x] Add section on dictionary validation
+  - [x] Provide examples of common patterns with the new approach
 
 ## Phase 7: Integration Tests
 

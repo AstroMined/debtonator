@@ -4,6 +4,28 @@
 Decimal Precision Handling Implementation with Pydantic V2 Compatibility
 
 ### Recent Changes
+1. **Updated Cashflow Schema Files for Pydantic V2 Compatibility** ✓
+   - Updated two critical cashflow schema files with Annotated types:
+     * Modified `src/schemas/cashflow/base.py` to use the new MoneyDecimal type
+     * Updated `src/schemas/cashflow/metrics.py` to use the MoneyDecimal type
+     * Replaced all utility method calls (money_field) with direct type annotations
+     * Added proper Field constraints with descriptions
+   - Improved code clarity and maintainability:
+     * Field constraints now appear alongside field definitions
+     * Validation rules are directly visible in the type annotations
+     * Better type hinting for IDE support
+     * More consistent field definitions across the codebase
+   - Made progress on ADR-013 implementation:
+     * Increased Pydantic Schemas implementation from 18% to 27%
+     * Improved overall implementation progress from 76% to 77%
+     * Updated implementation checklist to reflect progress
+   - These updates preserve the same validation behavior while:
+     * Maintaining the two-tier precision model (2 decimals for UI, 4 for calculations)
+     * Ensuring proper validation at API boundaries
+     * Providing clear and self-documenting type information
+     * Following Pydantic V2's recommended approach with Annotated types
+
+### Previous Changes
 1. **Reverted ConstrainedDecimal Implementation Due to Pydantic V2 Incompatibility** ✓
    - Identified critical compatibility issue with our decimal precision implementation:
      * The `ConstrainedDecimal` class used in our implementation has been removed in Pydantic V2

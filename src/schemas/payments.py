@@ -1,9 +1,9 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Annotated
 from pydantic import Field, ConfigDict, field_validator, model_validator
 
-from . import BaseSchemaValidator
+from . import BaseSchemaValidator, MoneyDecimal
 from src.core.decimal_precision import DecimalPrecision
 
 # Common validation function for decimal precision
@@ -47,7 +47,7 @@ class PaymentSourceBase(BaseSchemaValidator):
         gt=0, 
         description="ID of the account used for payment"
     )
-    amount: Decimal = Field(
+    amount: MoneyDecimal = Field(
         ..., 
         gt=Decimal('0'), 
         description="Amount paid from this account"
@@ -119,7 +119,7 @@ class PaymentBase(BaseSchemaValidator):
     """
     model_config = ConfigDict(from_attributes=True)
     
-    amount: Decimal = Field(
+    amount: MoneyDecimal = Field(
         ..., 
         gt=Decimal('0'), 
         description="Total payment amount"
@@ -235,7 +235,7 @@ class PaymentUpdate(BaseSchemaValidator):
     """
     model_config = ConfigDict(from_attributes=True)
     
-    amount: Optional[Decimal] = Field(
+    amount: Optional[MoneyDecimal] = Field(
         None,
         gt=Decimal('0'),
         description="Total payment amount"
