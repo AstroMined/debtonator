@@ -1,34 +1,43 @@
-1. **Fixed Credit Utilization Impact Value in Recommendations Schema Test** ✓
-   - Fixed failing schema test for BillPaymentTimingRecommendation:
-     * In `test_bill_payment_timing_recommendation_valid` test, updated credit_utilization_impact from Decimal("5.00") to Decimal("0.05")
-     * The test was failing because PercentageDecimal type in ImpactMetrics uses a 0-1 range (5% = 0.05) rather than the 0-100 range
-     * Test error was: "Input should be less than or equal to 1 [type=less_than_equal, input_value=Decimal('5.00'), input_type=Decimal]"
-   - This completes the schema test fixes for Pydantic V2 decimal validation:
-     * All 316 tests now passing successfully
-     * Schema tests properly using 0-1 range for percentage values
-     * All schema tests consistent with the PercentageDecimal type definition and validation rules
-     * Validation properly enforcing Field(ge=0, le=1, multiple_of=Decimal("0.0001"))
-   - This further validates our ADR-013 implementation approach:
-     * Pydantic V2 Annotated types working correctly for validation
-     * Proper constraints being enforced on percentage values
-     * Test values properly matching the expected percentage scale (0-1 range)
+1. **Enhanced ADR-013 Documentation with Pydantic V2 Compatibility** ✓
+   - Updated ADR-013 documentation with comprehensive details:
+     * Added a detailed section on Pydantic V2 compatibility and breaking changes
+     * Created a comprehensive section on dictionary validation strategy
+     * Included usage examples for all Annotated types
+     * Expanded the benefits section with 10 clear advantages of the new approach
+   - Enhanced documentation includes:
+     * Code samples for basic schema definitions using the new types
+     * Dictionary field validation examples and strategies
+     * Complex schema examples with mixed precision types
+     * Self-documenting type definitions that clearly express validation intent
+   - Documentation now covers important Pydantic V2 changes:
+     * Removal of ConstrainedDecimal and other constrained types
+     * New Annotated types pattern with Field constraints
+     * Validator decorator changes and behavior differences
+     * Error message pattern changes
+   - This update completes the documentation phase of ADR-013 implementation:
+     * Documentation progress updated to 100% (from 50%)
+     * Overall implementation progress improved to 93% (from 91%)
 
-2. **Fixed Schema Test Failures for Pydantic V2 Decimal Validation** ✓
-   - Fixed validation issues in schema test files related to percentage range handling:
-     * Fixed `test_impact_analysis_schemas.py` to use 0-1 range for credit utilization (changed from 0-100)
-     * Updated `test_recommendations_schemas.py` to use 0-1 range for credit utilization impact
-     * Updated validation error message patterns in both test files to match Pydantic V2 format
-   - Updated schema implementations to ensure consistent validation:
-     * Fixed `src/schemas/impact_analysis.py` to properly use PercentageDecimal type without redundant constraints
-     * Updated `src/schemas/recommendations.py` to use PercentageDecimal instead of custom validation
-     * Replaced `decimal_places=1` with `multiple_of=Decimal("0.1")` in recommendations.py
-   - Fixed test case values to match the 0-1 percentage scale:
-     * Updated credit utilization values from 30.00 to 0.30 (representing 30%)
-     * Updated credit utilization impact values from 5.00 to 0.05 (representing 5%)
-   - Updated ADR-013 implementation checklist to reflect progress:
-     * Updated Schema Tests progress to 100% (from 33%)
-     * Returned overall implementation progress to 91% (from 89%)
-     * Updated "Fix Schema Tests" task to completed status
+2. **Implemented Service Tests for Bill Splits Decimal Precision** ✓
+   - Created new unit tests for BillSplitService focusing on decimal precision:
+     * Implemented tests for equal distribution with largest remainder method
+     * Added special test cases for the "$100 split three ways" scenario
+     * Added tests for common bill amount distributions
+     * Tested precision handling in various distribution scenarios
+   - Key test scenarios include:
+     * Classic $100 split three ways = $33.34 + $33.33 + $33.33
+     * Verification that splits always sum exactly to the original total
+     * Validation that all monetary values maintain 2 decimal precision
+     * Testing of large bill amount distributions
+     * Common bill split scenarios with challenging divisions
+   - Created unit test directory structure and service test file:
+     * Created `tests/unit/services` directory
+     * Implemented `test_bill_splits.py` with comprehensive test cases
+     * Added mock-based tests to isolate decimal precision testing
+   - This begins the service test phase of ADR-013 implementation:
+     * Service test progress updated to 33% (from 0%)
+     * Added `TestBillSplitDecimalPrecision` class with 7 detailed test cases
+
 # Active Context: Debtonator
 
 ## Current Focus

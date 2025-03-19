@@ -54,6 +54,75 @@ This approach balances the need for accuracy in financial calculations with the 
 
 **Critical Update (3/18/2025)**: Our initial implementation approach used Pydantic's `ConstrainedDecimal` class, which has been completely removed in Pydantic V2. We have revised our implementation to use Pydantic V2's recommended pattern with Annotated types, which maintains the same validation goals while being compatible with Pydantic V2.
 
+### Pydantic V2 Compatibility
+
+Pydantic V2 represents a significant evolution from V1, introducing breaking changes that affect our decimal validation strategy. Key changes affecting our implementation:
+
+1. **Removal of Constrained Types**: Pydantic V2 removed the entire `ConstrainedX` class family, including `ConstrainedDecimal` that our original implementation relied on.
+
+2. **New Annotated Types Pattern**: Pydantic V2 recommends using Python's `typing.Annotated` with `Field` constraints for validation, offering a more integrated approach with Python's type system.
+
+3. **Validator Changes**: The validator decorators changed from `@validator` to `@field_validator` and `@model_validator` with different behavior and syntax.
+
+4. **Error Message Changes**: Validation error messages follow a new pattern, using "Input should be a multiple of X" instead of "Decimal input should have no more than X decimal places".
+
+### Revised Validation Strategy
+
+Our revised implementation centers on clearly defined Annotated types that encapsulate their validation rules:
+
+```python
+# 2 decimal places for monetary values (e.g., $100.00)
+MoneyDecimal = Annotated[
+    Decimal,
+    Field(multiple_of=Decimal("0.01"), description="Monetary value with 2 decimal places")
+]
+
+# 4 decimal places for percentage values (0-1 range, e.g., 0.1234 = 12.34%)
+PercentageDecimal = Annotated[
+    Decimal,
+    Field(ge=0, le=1, multiple_of=Decimal("0.0001"), 
+          description="Percentage value with 4 decimal places (0-1 range)")
+]
+
+# 4 decimal places for correlation values (-1 to 1 range)
+CorrelationDecimal = Annotated[
+    Decimal,
+    Field(ge=-1, le=1, multiple_of=Decimal("0.0001"), 
+          description="Correlation value with 4 decimal places (-1 to 1 range)")
+]
+```
+
+This approach creates specialized decimal types that:
+- Carry their validation rules with them
+- Provide clear documentation through type hints
+- Enforce consistent validation across the codebase
+- Can be imported and used directly in schema definitions
+
+### Dictionary Validation Strategy
+
+Our implementation includes specialized handling for dictionaries containing decimal values, a common pattern in financial data structures. Dictionaries present unique validation challenges because:
+
+1. Simple type aliases like `MoneyDict = Dict[str, MoneyDecimal]` don't automatically validate each value in the dictionary.
+
+2. Nested dictionaries may contain decimal values at different levels.
+
+3. In-place modifications to dictionaries could bypass validation.
+
+Our solution implements a thorough validation strategy:
+
+1. **Dictionary Type Aliases**: Clear type aliases for common dictionary patterns.
+```python
+MoneyDict = Dict[str, MoneyDecimal]
+PercentageDict = Dict[str, PercentageDecimal]
+IntMoneyDict = Dict[int, MoneyDecimal]
+```
+
+2. **Model-level Validation**: A `validate_decimal_dictionaries` validator that checks all dictionary fields after model construction, enforcing proper precision for each value based on the field's annotation.
+
+3. **Custom Dictionary Classes**: For advanced use cases, validated dictionary classes that enforce precision constraints when values are set or modified.
+
+This comprehensive approach ensures consistent decimal validation throughout our codebase, including within complex nested data structures.
+
 The revised implementation is documented in detail in:
 - `docs/adr/compliance/adr013_implementation_checklist_v2.md` (revised implementation plan)
 - `docs/adr/compliance/annotated_types_reference.py` (reference implementation)
@@ -281,6 +350,70 @@ Our implementation follows a phased approach detailed in `docs/adr/compliance/ad
 4. **Simpler Mental Model**: Direct type annotations are easier to understand than utility methods
 5. **Better IDE Integration**: Improved type hints for better IDE support
 6. **Future-Proof**: Aligned with Pydantic's design direction
+7. **Self-Documenting**: Type definitions clearly express validation intent and constraints
+8. **Consistent Validation**: Enforces the same validation behavior across all schema files
+9. **Reduced Boilerplate**: Eliminates repeated validation code across schema definitions
+10. **Explicit Precision Rules**: Makes the two-tier precision model (2 vs 4 decimal places) explicit in the type system
+
+### Usage Examples
+
+#### Basic Schema Definition
+
+```python
+class PaymentCreate(BaseSchemaValidator):
+    """Schema for creating a new payment."""
+    
+    payment_date: datetime
+    amount: MoneyDecimal = Field(description="Payment amount in dollars") 
+    description: str | None = None
+    
+    # Percentage field with 4 decimal places (0-1 range)
+    confidence_score: PercentageDecimal = Field(default=0.95)
+```
+
+#### Dictionary Fields
+
+```python
+class AccountAnalysis(BaseSchemaValidator):
+    """Schema for account analysis results."""
+    
+    account_id: int
+    
+    # Dictionary of category distributions (percentage per category)
+    category_distribution: PercentageDict = Field(
+        description="Distribution of spending across categories"
+    )
+    
+    # Dictionary of daily balances (date string -> balance)
+    daily_balances: MoneyDict = Field(
+        description="Account balance on each day"
+    )
+```
+
+#### Complex Schema with Mixed Precision
+
+```python
+class FinancialAnalysisResult(BaseSchemaValidator):
+    """Schema for financial analysis results."""
+    
+    # 2 decimal places for monetary values
+    total_assets: MoneyDecimal
+    total_liabilities: MoneyDecimal
+    net_worth: MoneyDecimal
+    
+    # 4 decimal places for percentages (0-1 range)
+    debt_to_income_ratio: PercentageDecimal
+    savings_rate: PercentageDecimal
+    
+    # 4 decimal places for correlations (-1 to 1 range)
+    income_spending_correlation: CorrelationDecimal
+    
+    # Dictionary of monetary values by account
+    account_balances: IntMoneyDict
+    
+    # Dictionary of percentage values by category
+    category_allocations: PercentageDict
+```
 
 ## Affected Fields
 
@@ -295,3 +428,4 @@ The affected fields remain the same as in the original ADR. All monetary fields 
 | 2025-03-16 | 2.0 | Cline | Completed comprehensive inventory of all 187 decimal fields; Updated status to Accepted; Added detailed classification of database vs. schema fields and precision requirements |
 | 2025-03-16 | 2.1 | Cline | Implemented centralized approach with enhanced BaseSchemaValidator; Added utility field methods and improved DecimalPrecision core module; Updated implementation strategy to focus on consistency and standardization |
 | 2025-03-18 | 3.0 | Cline | Completely revised implementation approach to use Pydantic V2's Annotated types instead of ConstrainedDecimal which was removed in Pydantic V2; Added dictionary validation strategy; Updated sample code and implementation plan |
+| 2025-03-19 | 3.1 | Cline | Enhanced documentation with comprehensive Pydantic V2 compatibility section; Expanded dictionary validation strategy details; Added usage examples for Annotated types; Updated benefits section |

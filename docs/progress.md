@@ -1,34 +1,42 @@
-1. **Fixed Credit Utilization Impact Value in Recommendations Schema Test** ✓
-   - Fixed failing schema test for BillPaymentTimingRecommendation:
-     * In `test_bill_payment_timing_recommendation_valid` test, updated credit_utilization_impact from Decimal("5.00") to Decimal("0.05")
-     * The test was failing because PercentageDecimal type in ImpactMetrics uses a 0-1 range (5% = 0.05) rather than the 0-100 range
-     * Test error was: "Input should be less than or equal to 1 [type=less_than_equal, input_value=Decimal('5.00'), input_type=Decimal]"
-   - This completes the schema test fixes for Pydantic V2 decimal validation:
-     * All 316 tests now passing successfully
-     * Schema tests properly using 0-1 range for percentage values
-     * All schema tests consistent with the PercentageDecimal type definition and validation rules
-     * Validation properly enforcing Field(ge=0, le=1, multiple_of=Decimal("0.0001"))
-   - This further validates our ADR-013 implementation approach:
-     * Pydantic V2 Annotated types working correctly for validation
-     * Proper constraints being enforced on percentage values
-     * Test values properly matching the expected percentage scale (0-1 range)
-
-2. **Fixed Schema Test Failures for Pydantic V2 Decimal Validation** ✓
-   - Fixed validation issues in schema test files related to percentage range handling:
-     * Fixed `test_impact_analysis_schemas.py` to use 0-1 range for credit utilization (changed from 0-100)
-     * Updated `test_recommendations_schemas.py` to use 0-1 range for credit utilization impact
-     * Updated validation error message patterns in both test files to match Pydantic V2 format
-   - Updated schema implementations to ensure consistent validation:
-     * Fixed `src/schemas/impact_analysis.py` to properly use PercentageDecimal type without redundant constraints
-     * Updated `src/schemas/recommendations.py` to use PercentageDecimal instead of custom validation
-     * Replaced `decimal_places=1` with `multiple_of=Decimal("0.1")` in recommendations.py
-   - Fixed test case values to match the 0-1 percentage scale:
-     * Updated credit utilization values from 30.00 to 0.30 (representing 30%)
-     * Updated credit utilization impact values from 5.00 to 0.05 (representing 5%)
+1. **Enhanced ADR-013 Documentation with Pydantic V2 Compatibility** ✓
+   - Updated ADR-013 documentation with comprehensive details:
+     * Added a detailed section on Pydantic V2 compatibility and breaking changes
+     * Created a comprehensive section on dictionary validation strategy
+     * Included usage examples for all Annotated types
+     * Expanded the benefits section with 10 clear advantages of the new approach
+   - Enhanced documentation includes:
+     * Code samples for basic schema definitions using the new types
+     * Dictionary field validation examples and strategies
+     * Complex schema examples with mixed precision types
+     * Self-documenting type definitions that clearly express validation intent
+   - Documentation now covers important Pydantic V2 changes:
+     * Removal of ConstrainedDecimal and other constrained types
+     * New Annotated types pattern with Field constraints
+     * Validator decorator changes and behavior differences
+     * Error message pattern changes
    - Updated ADR-013 implementation checklist to reflect progress:
-     * Updated Schema Tests progress to 100% (from 33%)
-     * Returned overall implementation progress to 91% (from 89%)
-     * Updated "Fix Schema Tests" task to completed status
+     * Documentation progress updated to 100% (from 50%)
+     * Overall implementation progress improved to 93% (from 91%)
+
+2. **Implemented Service Tests for Bill Splits Decimal Precision** ✓
+   - Created new unit tests for BillSplitService focusing on decimal precision:
+     * Implemented tests for equal distribution with largest remainder method
+     * Added special test cases for the "$100 split three ways" scenario
+     * Added tests for common bill amount distributions
+     * Tested precision handling in various distribution scenarios
+   - Key test scenarios include:
+     * Classic $100 split three ways = $33.34 + $33.33 + $33.33
+     * Verification that splits always sum exactly to the original total
+     * Validation that all monetary values maintain 2 decimal precision
+     * Testing of large bill amount distributions
+     * Common bill split scenarios with challenging divisions
+   - Created unit test directory structure and service test file:
+     * Created `tests/unit/services` directory
+     * Implemented `test_bill_splits.py` with comprehensive test cases
+     * Added mock-based tests to isolate decimal precision testing
+   - Updated ADR-013 implementation checklist to reflect progress:
+     * Service test progress updated to 33% (from 0%)
+     * Overall implementation progress improved to 93% (from 91%)
 # Progress: Debtonator
 
 ## Current Priority: Completing Decimal Precision Handling with Pydantic V2 Compatibility
@@ -437,38 +445,44 @@
    - Check for any potential regressions
 
 ## What's New
-1. **Completed Schema File Updates for Pydantic V2 Compatibility** ✓
-   - Updated all remaining schema files to use the new Annotated types approach:
-     * Updated `balance_history.py`, `balance_reconciliation.py`, and other schema files
-     * Replaced all utility method calls with direct type annotations
-     * Added proper Field constraints with descriptions throughout
-   - Marked Phase 3 (Schema Updates) as complete in the implementation checklist
-   - Improved overall implementation progress to 91% (up from 89%)
-   - All schema files now use the Pydantic V2-compatible approach with Annotated types
+1. **Enhanced ADR-013 Documentation with Pydantic V2 Compatibility** ✓
+   - Updated ADR-013 documentation with comprehensive details:
+     * Added a detailed section on Pydantic V2 compatibility and breaking changes
+     * Created a comprehensive section on dictionary validation strategy
+     * Included usage examples for all Annotated types
+     * Expanded the benefits section with 10 clear advantages of the approach
+   - Added example code for different schema scenarios:
+     * Basic schema definitions with monetary and percentage fields
+     * Dictionary field validation examples with different value types
+     * Complex schemas with mixed precision requirements
+   - Completed documentation phase of ADR-013 implementation:
+     * Documentation progress updated to 100% (from 50%)
+     * Added new revision entry (3.1) to track documentation enhancements
 
-2. **Developed Enhanced Dictionary Validation Strategy** ✓
-   - Created a robust dictionary validation strategy:
-     * Implemented a `validate_decimal_dictionaries` model validator
-     * Created specialized validation for MoneyDict and PercentageDict types
-     * Added proper error messages for validation failures
-     * Ensured dictionary validation works across nested structures
-   - Provided a comprehensive reference implementation:
-     * Demonstrated proper validation techniques for dictionaries
-     * Included handling for Integer-keyed dictionaries
-     * Added detailed documentation for validation behavior
+2. **Implemented Service Tests for Bill Splits Decimal Precision** ✓
+   - Created new unit tests for BillSplitService focusing on decimal precision:
+     * Added tests for equal distribution with largest remainder method
+     * Implemented tests for the "$100 split three ways" case
+     * Tested precision handling in various distribution scenarios
+     * Created comprehensive tests for common bill amount divisions
+   - Established unit test infrastructure:
+     * Created `tests/unit/services` directory
+     * Implemented `test_bill_splits.py` with 7 detailed test cases
+     * Added mock-based testing for isolated decimal precision validation
+   - Started the service test phase of ADR-013 implementation:
+     * Service test progress updated to 33% (from 0%)
+     * Overall implementation progress improved to 93% (from 91%)
 
-3. **Created Implementation Plan for Pydantic V2 Compatibility** ✓
-   - Developed a comprehensive, phased implementation approach:
-     * Phase 1: Core Type Definitions with Annotated types
-     * Phase 2: Dictionary Validation Strategy implementation
-     * Phase 3: Schema Updates to use new types
-     * Phase 4: Test Updates for new validation behavior
-     * Phases 5-8: Service Tests, Documentation, Integration, QA
-   - Created a detailed progress tracking system in checklist format:
-     * Reset progress for schema files, BaseSchemaValidator, tests
-     * Maintained progress for database schema, models, core module
-     * Added a new implementation area for Dictionary Validation
-     * Updated overall progress tracking (66% complete)
+3. **Updated ADR-013 Implementation Checklist** ✓
+   - Revised overall progress tracking with detailed status for each component:
+     * Marked documentation phase as completed (100%)
+     * Updated service tests implementation progress (33%) 
+     * Recalculated overall implementation progress to 93%
+     * Updated remaining priority tasks to reflect current status
+   - Added more detailed tracking for decimal precision components:
+     * Updated service testing strategy with clear test plans
+     * Refined quality assurance approach with specific validation targets
+     * Added clear completion status for all implementation phases
 
 ## Current Status
 1. **Model Layer Standardization**: COMPLETED (100%) ✓
@@ -507,7 +521,7 @@
    - Dictionary validation strategy implemented
    - Need to update tests for new validation patterns
 
-6. **Decimal Precision Handling**: IN PROGRESS (94%)
+6. **Decimal Precision Handling**: IN PROGRESS (96%)
    - ✓ Core module implementation with DecimalPrecision utilities (100%)
    - ✓ Database schema updates to Numeric(12, 4) (100%)
    - ✓ SQLAlchemy model updates (100%)
@@ -519,7 +533,9 @@
    - ✓ Dictionary validation implementation (100%)
    - ✓ Pydantic schema updates to use Annotated types (100%)
    - ✓ Schema tests for new validation patterns (100%)
-   - ◼ Developer guidelines with Annotated types examples (50%)
+   - ✓ Documentation with Annotated types examples (100%)
+   - ✓ Service tests for bill splits decimal precision (33%)
+   - ◼ Service tests for payments and accounts (0%)
    - ◼ Quality assurance for revised implementation (0%)
 
 7. **Schema Test Implementation**: COMPLETED (100%) ✓
@@ -538,30 +554,39 @@
    - Synchronized with existing version in pyproject.toml
 
 ## Next Actions
-1. **Update Documentation for Pydantic V2 Compatibility**
-   - Update ADR-013 with details of the new implementation approach
-   - Update developer guidelines with examples of Annotated types
-   - Document dictionary validation strategy
-   - Create examples of common patterns with the new approach
+1. **Complete Remaining Service Tests for Decimal Precision**
+   - Implement tests for payments with distribution scenarios:
+     * Test payment distribution across multiple sources
+     * Test validation of payment source totals
+     * Test precision handling in payment calculations
+   - Implement tests for accounts with balance calculations:
+     * Test balance calculation with 4 decimal precision
+     * Test rounding behavior at API boundaries
+     * Test credit utilization calculations
 
-2. **Complete Service Tests for Decimal Precision**
-   - Implement tests for bill splits with 4 decimal place precision
-   - Implement tests for payments with distribution scenarios
-   - Implement tests for accounts with balance calculations
-   - Verify rounding behavior at API boundaries
+2. **Complete Integration Tests for Revised Implementation**
+   - Update remaining integration tests:
+     * Test bill splits service with database integration
+     * Test payment services with database integration
+     * Verify API endpoints maintain correct precision
 
-3. **Resume API Enhancement Project - Phase 6**
+3. **Conduct Quality Assurance Testing**
+   - Perform full test suite run with the complete implementation
+   - Verify all tests pass with the updated validation approach
+   - Manually test critical financial operations:
+     * Bill splits across multiple accounts
+     * Payment processing with decimal precision
+     * Balance calculations across accounts
+   - Verify rounding behavior in edge cases:
+     * The "$100 split three ways" scenario in a full end-to-end test
+     * Percentage-based distributions
+     * Running balance calculations
+
+4. **Resume API Enhancement Project - Phase 6**
    - Implement recommendations API using the new schema approach
    - Continue trend reporting development with improved validation
    - Proceed with frontend development leveraging enhanced schema validation
    - Create comprehensive API documentation with validation requirements
-
-4. **Conduct Quality Assurance**
-   - Perform full test suite run with new implementation
-   - Verify all tests pass with the updated validation approach
-   - Manually test critical financial operations
-   - Verify rounding behavior in edge cases
-   - Check for any potential regressions
 
 ## Known Issues
 1. **ConstrainedDecimal Incompatibility with Pydantic V2**

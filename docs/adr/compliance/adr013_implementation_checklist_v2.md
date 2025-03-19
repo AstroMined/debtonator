@@ -29,14 +29,14 @@ We have started implementing the Pydantic V2 compatible approach, with progress 
 | Core Tests | 10 | 10 | 0 | 100% | No changes needed |
 | Model Tests | 3 | 3 | 0 | 100% | No changes needed |
 | Schema Tests | 6 | 6 | 0 | 100% | Fixed validation error messages and percentage range handling issues |
-| Service Tests | 3 | 0 | 3 | 0% | Need implementation |
+| Service Tests | 3 | 1 | 2 | 33% | Started implementation |
 | Integration Tests | 5 | 3 | 2 | 60% | Minor updates needed |
 | Special Test Cases | 4 | 4 | 0 | 100% | No changes needed |
-| Documentation | 2 | 1 | 1 | 50% | Need to update ADR-013 documentation |
+| Documentation | 2 | 2 | 0 | 100% | Completed ADR-013 documentation updates |
 | Developer Guidelines | 6 | 6 | 0 | 100% | Need minor updates |
 | Dictionary Validation | 5 | 5 | 0 | 100% | Implemented in BaseSchemaValidator |
 | Quality Assurance | 7 | 0 | 7 | 0% | Need implementation |
-| **TOTAL** | **151** | **138** | **13** | **91%** | Progress back to previous level (91%) |
+| **TOTAL** | **151** | **140** | **11** | **93%** | Progress improved to 93% |
 
 ## Remaining Priority Tasks
 
@@ -53,12 +53,16 @@ We have started implementing the Pydantic V2 compatible approach, with progress 
    - Addressed percentage field validation ranges (updated tests to use 0-1 range instead of 0-100)
    - Updated expected error messages to match Pydantic V2's 'multiple_of' validation formats
 
-3. **Update Documentation**
-   - Update ADR-013 with the new implementation approach
-   - Update developer guidelines with new patterns
+3. **Update Documentation** ✓
+   - ✓ Updated ADR-013 with the new Pydantic V2 implementation approach
+   - ✓ Added comprehensive dictionary validation strategy documentation
+   - ✓ Added usage examples for Annotated types
+   - ✓ Updated benefits section with clear advantages of the new approach
 
-4. **Update Service Tests**
-   - Complete remaining service tests
+4. **Update Service Tests** (In Progress - 33%)
+   - ✓ Implemented bill_splits service tests for decimal precision
+   - Complete remaining service tests for payments
+   - Complete remaining service tests for accounts
 
 ## Phase 1: Core Type Definitions
 
@@ -213,12 +217,17 @@ Fixed schema tests to account for the new validation behavior:
   - [ ] Test balance calculation with 4 decimal precision
   - [ ] Test rounding behavior at API boundaries
 
-## Phase 6: Documentation Updates
+**Progress**: 1/3 service test files completed (33%)
 
-- [ ] Update ADR-013 with the new implementation approach:
-  - [ ] Add section on Pydantic V2 compatibility
-  - [ ] Update examples to use Annotated types
-  - [ ] Explain why this approach was chosen
+## Phase 6: Documentation Updates ✓
+
+- [x] Update ADR-013 with the new implementation approach:
+  - [x] Added comprehensive section on Pydantic V2 compatibility
+  - [x] Updated examples to use Annotated types
+  - [x] Explained why this approach was chosen
+  - [x] Added dictionary validation strategy details
+  - [x] Added usage examples for all types
+  - [x] Expanded benefits section
 
 - [x] Update `docs/guides/working_with_money.md`:
   - [x] Update examples to use the new types

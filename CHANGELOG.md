@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.24] - 2025-03-19
+
+### Added
+- Enhanced ADR-013 documentation with comprehensive Pydantic V2 compatibility section:
+  * Added detailed section on Pydantic V2 compatibility and breaking changes
+  * Created comprehensive documentation on dictionary validation strategy
+  * Included usage examples for all Annotated types with code samples
+  * Expanded benefits section with 10 clear advantages of the new approach
+  * Updated Examples section with three schema usage scenarios
+  * Added new revision entry (3.1) to track documentation enhancements
+
+- Implemented service tests for bill splits decimal precision handling:
+  * Created `tests/unit/services/test_bill_splits.py` with 7 detailed test cases
+  * Added tests for equal distribution with largest remainder method
+  * Implemented special test cases for the "$100 split three ways" scenario
+  * Added tests for common bill amount distributions
+  * Created mock-based tests to isolate decimal precision validation
+  * Added tests for precise split amount validation
+
+### Changed
+- Updated ADR-013 implementation checklist to reflect progress:
+  * Documentation phase completed (100%)
+  * Service tests implementation progress updated (33%)
+  * Overall implementation progress improved to 93%
+  * Updated remaining priority tasks to reflect current status
+
 ## [0.4.23] - 2025-03-19
 
 ### Fixed
