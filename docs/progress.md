@@ -4,6 +4,21 @@
 
 ### Recent Improvements
 
+1. **Fixed impact_analysis Schema for Pydantic V2 Compatibility** ✓
+   - Fixed `src/schemas/impact_analysis.py` to use the new Annotated types approach:
+     * Replaced `BaseSchemaValidator.money_field()` calls with `MoneyDecimal` type
+     * Replaced `BaseSchemaValidator.percentage_field()` calls with `PercentageDecimal` type
+     * Updated percentage ranges from 0-100 to 0-1 to match PercentageDecimal expectations
+     * Added proper Field constraints with descriptions throughout
+   - Fixed the AttributeError that was occurring when running schema tests:
+     * Error message: `AttributeError: money_field. Did you mean: 'model_fields'?`
+     * This error appeared despite the implementation checklist showing all schemas as updated
+     * Revealed a gap in the migration process that wasn't caught earlier
+   - Tests can now compile without the AttributeError, though they need further updates:
+     * Additional test updates will be needed to account for percentage range changes (0-1 instead of 0-100)
+     * Error messages in tests may need to be updated to match Pydantic V2 patterns
+
+
 1. **Updated CHANGELOG.md with Schema Test Files Updates** ✓
    - Added version 0.4.19 entry to CHANGELOG.md with today's date (March 19, 2025)
    - Documented all schema test file updates for Pydantic V2 compatibility:

@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.20] - 2025-03-19
+
+### Fixed
+- Fixed `impact_analysis.py` schema to use Pydantic V2 Annotated types:
+  * Replaced `BaseSchemaValidator.money_field()` calls with `MoneyDecimal` type
+  * Replaced `BaseSchemaValidator.percentage_field()` calls with `PercentageDecimal` type
+  * Updated percentage ranges from 0-100 to 0-1 to match PercentageDecimal expectations
+  * Fixed AttributeError that occurred when running schema tests
+- Updated implementation checklist to accurately reflect completed schema files
+
 ## [0.4.19] - 2025-03-19
 
 ### Changed
