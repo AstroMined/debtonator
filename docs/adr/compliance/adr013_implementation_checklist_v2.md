@@ -20,7 +20,7 @@ We have started implementing the Pydantic V2 compatible approach, with progress 
 | Core Module | 10 | 10 | 0 | 100% | No changes needed |
 | Database Schema | 37 | 37 | 0 | 100% | No changes needed |
 | SQLAlchemy Models | 15 | 15 | 0 | 100% | No changes needed |
-| Pydantic Schemas | 22 | 9 | 13 | 41% | Accounts, BillSplits, Liabilities, Payments, and 5 Cashflow schemas updated |
+| Pydantic Schemas | 22 | 13 | 9 | 59% | Accounts, BillSplits, Liabilities, Payments, 5 Cashflow schemas, income.py, income_trends.py, transactions.py updated |
 | BaseSchemaValidator | 5 | 5 | 0 | 100% | Implemented with Annotated types |
 | Service Layer | 9 | 9 | 0 | 100% | May need minor updates |
 | API Response | 2 | 2 | 0 | 100% | No changes needed |
@@ -34,12 +34,12 @@ We have started implementing the Pydantic V2 compatible approach, with progress 
 | Developer Guidelines | 6 | 6 | 0 | 100% | Need minor updates |
 | Dictionary Validation | 5 | 5 | 0 | 100% | Implemented in BaseSchemaValidator |
 | Quality Assurance | 7 | 0 | 7 | 0% | Need implementation |
-| **TOTAL** | **151** | **124** | **27** | **82%** | Progress improved from 77% to 82% |
+| **TOTAL** | **151** | **128** | **23** | **85%** | Progress improved from 82% to 85% |
 
 ## Remaining Priority Tasks
 
 1. **Update All Schema Files**
-   - Update remaining 13 schema files to use the new Annotated types
+   - Update remaining 9 schema files to use the new Annotated types
    - Replace all utility method calls with direct type annotations
    - Update dictionary field validation
 
@@ -149,15 +149,15 @@ Update all Pydantic schema files to use the new Annotated types:
   - [ ] Update `src/schemas/credit_limits.py` - Replace utility methods with direct type annotations
   - [ ] Update `src/schemas/deposit_schedules.py` - Replace utility methods with direct type annotations
   - [ ] Update `src/schemas/impact_analysis.py` - Replace utility methods with direct type annotations
-  - [ ] Update `src/schemas/income_categories.py` - Replace utility methods with direct type annotations
-  - [ ] Update `src/schemas/income_trends.py` - Replace utility methods with direct type annotations
-  - [ ] Update `src/schemas/income.py` - Replace utility methods with direct type annotations
+  - [x] Update `src/schemas/income_categories.py` - No decimal fields to update
+  - [x] Update `src/schemas/income_trends.py` - Replace utility methods with direct type annotations
+  - [x] Update `src/schemas/income.py` - Replace utility methods with direct type annotations
   - [ ] Update `src/schemas/payment_patterns.py` - Replace utility methods with direct type annotations
   - [ ] Update `src/schemas/payment_schedules.py` - Replace utility methods with direct type annotations
   - [ ] Update `src/schemas/realtime_cashflow.py` - Replace utility methods with direct type annotations
   - [ ] Update `src/schemas/recommendations.py` - Replace utility methods with direct type annotations
   - [ ] Update `src/schemas/recurring_bills.py` - Replace utility methods with direct type annotations
-  - [ ] Update `src/schemas/transactions.py` - Replace utility methods with direct type annotations
+  - [x] Update `src/schemas/transactions.py` - Replace utility methods with direct type annotations
 
 - [ ] Update special case for percentage fields:
   - [ ] Ensure `BalanceDistribution.percentage_of_total` uses `PercentageDecimal` type

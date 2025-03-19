@@ -4,6 +4,24 @@
 Decimal Precision Handling Implementation with Pydantic V2 Compatibility
 
 ### Recent Changes
+1. **Updated Income-related and Transaction Schema Files for Pydantic V2 Compatibility** ✓
+   - Updated four schema files with Annotated types:
+     * Modified `src/schemas/income.py` to use the new MoneyDecimal type
+     * Modified `src/schemas/income_trends.py` to use MoneyDecimal and PercentageDecimal types
+     * Noted that `src/schemas/income_categories.py` didn't need updates (no decimal fields)
+     * Updated `src/schemas/transactions.py` to use the new MoneyDecimal type
+     * Replaced all utility method calls with direct type annotations
+     * Added proper Field constraints with descriptions
+   - Made substantial progress on ADR-013 implementation checklist:
+     * Increased Pydantic Schemas implementation from 41% to 59%
+     * Improved overall implementation progress from 82% to 85%
+     * Updated implementation checklist to reflect progress
+   - These updates improve code clarity and maintainability:
+     * Field constraints now appear alongside field definitions
+     * Percentage fields now use PercentageDecimal for proper validation
+     * Validation rules are directly visible in the type annotations
+     * Better type hinting for IDE support
+     * More consistent field definitions across the codebase
 1. **Updated Additional Cashflow Schema Files for Pydantic V2 Compatibility** ✓
    - Updated three more cashflow schema files with Annotated types:
      * Modified `src/schemas/cashflow/forecasting.py` to use the new MoneyDecimal and PercentageDecimal types

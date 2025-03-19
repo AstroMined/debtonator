@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from pydantic import Field, field_validator, ConfigDict
 
-from src.schemas import BaseSchemaValidator
+from src.schemas import BaseSchemaValidator, MoneyDecimal, PercentageDecimal
 
 class FrequencyType(str, Enum):
     """
@@ -36,14 +36,13 @@ class IncomePattern(BaseSchemaValidator):
         ...,
         description="Frequency pattern of the income"
     )
-    average_amount: Decimal = BaseSchemaValidator.money_field(
+    average_amount: MoneyDecimal = Field(
+        ...,
         gt=0,
         description="Average amount of income from this source"
     )
-    confidence_score: float = Field(
+    confidence_score: PercentageDecimal = Field(
         ...,
-        ge=0.0, 
-        le=1.0,
         description="Confidence score for this pattern (0-1)"
     )
     last_occurrence: datetime = Field(
@@ -93,10 +92,8 @@ class SeasonalityMetrics(BaseSchemaValidator):
         ge=0.0,
         description="Coefficient of variance in seasonal income"
     )
-    confidence_score: float = Field(
+    confidence_score: PercentageDecimal = Field(
         ...,
-        ge=0.0, 
-        le=1.0,
         description="Confidence score for seasonality detection (0-1)"
     )
 
@@ -138,19 +135,23 @@ class SourceStatistics(BaseSchemaValidator):
         gt=0,
         description="Total number of times this income source has occurred"
     )
-    total_amount: Decimal = BaseSchemaValidator.money_field(
+    total_amount: MoneyDecimal = Field(
+        ...,
         ge=0,
         description="Total amount received from this source"
     )
-    average_amount: Decimal = BaseSchemaValidator.money_field(
+    average_amount: MoneyDecimal = Field(
+        ...,
         gt=0,
         description="Average amount per occurrence"
     )
-    min_amount: Decimal = BaseSchemaValidator.money_field(
+    min_amount: MoneyDecimal = Field(
+        ...,
         ge=0,
         description="Minimum amount received from this source"
     )
-    max_amount: Decimal = BaseSchemaValidator.money_field(
+    max_amount: MoneyDecimal = Field(
+        ...,
         gt=0,
         description="Maximum amount received from this source"
     )
@@ -159,10 +160,8 @@ class SourceStatistics(BaseSchemaValidator):
         ge=0.0,
         description="Standard deviation of amounts"
     )
-    reliability_score: float = Field(
+    reliability_score: PercentageDecimal = Field(
         ...,
-        ge=0.0, 
-        le=1.0,
         description="Reliability score for this source (0-1)"
     )
 
@@ -220,10 +219,8 @@ class IncomeTrendsAnalysis(BaseSchemaValidator):
         ...,
         description="End date of the analyzed data period (UTC timezone)"
     )
-    overall_predictability_score: float = Field(
+    overall_predictability_score: PercentageDecimal = Field(
         ...,
-        ge=0.0, 
-        le=1.0,
         description="Overall predictability score for future income (0-1)"
     )
 
@@ -270,10 +267,8 @@ class IncomeTrendsRequest(BaseSchemaValidator):
         max_length=255,
         description="Optional specific income source to analyze"
     )
-    min_confidence: float = Field(
-        default=0.5, 
-        ge=0.0, 
-        le=1.0,
+    min_confidence: PercentageDecimal = Field(
+        default=Decimal('0.5'),
         description="Minimum confidence score for included patterns (0-1)"
     )
 

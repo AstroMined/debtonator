@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import Optional, List, Dict
 from pydantic import Field, ConfigDict, field_validator, model_validator
 
-from . import BaseSchemaValidator
+from . import BaseSchemaValidator, MoneyDecimal
 from .income_categories import IncomeCategory
 
 class RecurringIncomeBase(BaseSchemaValidator):
@@ -20,7 +20,8 @@ class RecurringIncomeBase(BaseSchemaValidator):
         description="Source of the recurring income",
         examples=["Monthly Salary", "Rental Income"]
     )
-    amount: Decimal = BaseSchemaValidator.money_field(
+    amount: MoneyDecimal = Field(
+        ...,
         ge=Decimal('0.01'),
         description="Income amount (must be positive)",
         examples=["5000.00", "1200.50"]
@@ -90,7 +91,7 @@ class RecurringIncomeUpdate(BaseSchemaValidator):
         max_length=255,
         description="Updated source of the recurring income"
     )
-    amount: Optional[Decimal] = BaseSchemaValidator.money_field(
+    amount: Optional[MoneyDecimal] = Field(
         default=None,
         gt=0,
         description="Updated income amount"
@@ -170,7 +171,8 @@ class IncomeBase(BaseSchemaValidator):
         description="Source of the income",
         examples=["Salary", "Freelance Work", "Investment"]
     )
-    amount: Decimal = BaseSchemaValidator.money_field(
+    amount: MoneyDecimal = Field(
+        ...,
         ge=Decimal('0.01'),
         description="Income amount (must be positive)",
         examples=["1000.00", "5250.50"]
@@ -215,7 +217,7 @@ class IncomeUpdate(BaseSchemaValidator):
         max_length=255,
         description="Updated source of the income"
     )
-    amount: Optional[Decimal] = BaseSchemaValidator.money_field(
+    amount: Optional[MoneyDecimal] = Field(
         default=None,
         ge=0,
         description="Updated income amount"
@@ -294,12 +296,12 @@ class IncomeFilters(BaseSchemaValidator):
         None,
         description="Filter by deposit status"
     )
-    min_amount: Optional[Decimal] = BaseSchemaValidator.money_field(
+    min_amount: Optional[MoneyDecimal] = Field(
         default=None,
         ge=Decimal('0.01'),
         description="Minimum amount filter"
     )
-    max_amount: Optional[Decimal] = BaseSchemaValidator.money_field(
+    max_amount: Optional[MoneyDecimal] = Field(
         default=None,
         ge=Decimal('0.01'),
         description="Maximum amount filter"

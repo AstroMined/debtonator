@@ -5,7 +5,7 @@ from typing import Optional, List
 
 from pydantic import Field
 
-from src.schemas import BaseSchemaValidator
+from src.schemas import BaseSchemaValidator, MoneyDecimal
 
 # Local enum instead of importing from models
 class TransactionType(str, Enum):
@@ -20,7 +20,8 @@ class TransactionBase(BaseSchemaValidator):
     Contains common fields and validation shared by all transaction schemas.
     All datetime fields are validated to ensure they have UTC timezone.
     """
-    amount: Decimal = BaseSchemaValidator.money_field(
+    amount: MoneyDecimal = Field(
+        ...,
         ge=0,
         description="Transaction amount (in decimal format)"
     )
@@ -54,7 +55,7 @@ class TransactionUpdate(BaseSchemaValidator):
     All fields are optional to allow partial updates.
     All datetime fields are validated to ensure they have UTC timezone.
     """
-    amount: Optional[Decimal] = BaseSchemaValidator.money_field(
+    amount: Optional[MoneyDecimal] = Field(
         default=None,
         ge=0,
         description="Transaction amount (in decimal format)"

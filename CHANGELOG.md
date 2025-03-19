@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.17] - 2025-03-19
+
+### Changed
+- Continued implementation of Pydantic V2 compatible decimal precision handling:
+  * Updated `src/schemas/income.py` with MoneyDecimal type annotations
+  * Updated `src/schemas/income_trends.py` with MoneyDecimal and PercentageDecimal types
+  * Updated `src/schemas/transactions.py` with MoneyDecimal type annotations
+  * Replaced all utility method calls with direct type annotations
+  * Converted percentage fields to PercentageDecimal for proper validation
+  * Added proper Field constraints with descriptions
+
+### Fixed
+- Updated ADR-013 implementation checklist to accurately reflect progress (85% complete, up from 82%)
+- Added comprehensive field descriptions to all updated schema files
+
 ## [0.4.16] - 2025-03-18
 
 ### Changed

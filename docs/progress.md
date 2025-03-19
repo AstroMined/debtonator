@@ -3,6 +3,23 @@
 ## Current Priority: Decimal Precision Handling with Pydantic V2 Compatibility
 
 ### Recent Improvements
+1. **Updated Income-related and Transaction Schema Files for Pydantic V2 Compatibility** ✓
+   - Updated four schema files with Annotated types:
+     * Modified `src/schemas/income.py` to use the new MoneyDecimal type
+     * Modified `src/schemas/income_trends.py` to use MoneyDecimal and PercentageDecimal types
+     * Noted that `src/schemas/income_categories.py` didn't need updates (no decimal fields)
+     * Updated `src/schemas/transactions.py` to use the new MoneyDecimal type
+     * Replaced all utility method calls with direct type annotations
+     * Added proper Field constraints with descriptions
+   - Made substantial progress on ADR-013 implementation checklist:
+     * Increased Pydantic Schemas implementation from 41% to 59%
+     * Improved overall implementation progress from 82% to 85%
+     * Updated implementation checklist to reflect progress
+   - These updates preserve the same validation behavior while:
+     * Maintaining the two-tier precision model (2 decimals for UI, 4 for calculations)
+     * Following Pydantic V2's recommended approach with Annotated types
+     * Properly validating percentage fields with the appropriate decimal precision
+     * Providing clear and self-documenting type information
 1. **Updated Additional Cashflow Schema Files for Pydantic V2 Compatibility** ✓
    - Updated three more cashflow schema files with Annotated types:
      * Modified `src/schemas/cashflow/forecasting.py` to use the new MoneyDecimal and PercentageDecimal types
@@ -291,7 +308,7 @@
 
 ## What's Left to Build
 1. **Implement Pydantic V2 Compatible Decimal Precision Handling**
-   - Update remaining 13 schema files to use the new Annotated types:
+   - Update remaining 9 schema files to use the new Annotated types:
      * Replace all utility method calls with direct type annotations
      * Update dictionary field validation
      * Add proper Field constraints with descriptions
@@ -387,14 +404,14 @@
    - ADR-013 updated with Pydantic V2 compatibility revision
    - Need to update the working_with_money.md guide with new patterns
 
-5. **Pydantic V2 Compliance**: IN PROGRESS (70%)
+5. **Pydantic V2 Compliance**: IN PROGRESS (75%)
    - All schema validators updated to use Pydantic V2 validator syntax
    - Created compatibility plan for decimal precision handling
    - Identified and resolved ConstrainedDecimal incompatibility
-   - Need to implement Annotated types for decimal fields
+   - Implemented Annotated types for many decimal fields
    - Need to update tests for new validation patterns
 
-6. **Decimal Precision Handling**: IN PROGRESS (82%)
+6. **Decimal Precision Handling**: IN PROGRESS (85%)
    - ✓ Core module implementation with DecimalPrecision utilities (100%)
    - ✓ Database schema updates to Numeric(12, 4) (100%)
    - ✓ SQLAlchemy model updates (100%)
@@ -405,7 +422,7 @@
    - ✓ BaseSchemaValidator update with Annotated types (100%)
    - ✓ Dictionary validation implementation (100%)
    - ✓ Schema tests for cashflow modules (83%)
-   - ◼ Pydantic schema updates to use Annotated types (41%)
+   - ◼ Pydantic schema updates to use Annotated types (59%)
    - ◼ Developer guidelines with Annotated types examples (50%)
    - ◼ Quality assurance for revised implementation (0%)
 
