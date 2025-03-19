@@ -4,7 +4,41 @@
 Completing Decimal Precision Handling Implementation with Pydantic V2 Compatibility
 
 ### Recent Changes
-1. **Completed Schema File Updates for Pydantic V2 Compatibility** ✓
+
+1. **Updated CHANGELOG.md with Schema Test Files Updates** ✓
+   - Added version 0.4.19 entry to CHANGELOG.md with today's date (March 19, 2025)
+   - Documented all schema test file updates for Pydantic V2 compatibility:
+     * Added details about test_accounts_schemas.py, test_bill_splits_schemas.py, and other test files
+     * Documented fixes to percentage field validation messages in cashflow test files
+     * Added information about ADR-013 implementation checklist updates
+     * Included progress tracking updates in active_context.md and progress.md
+   - Organized changes into appropriate categories:
+     * "Changed" section for test file updates
+     * "Fixed" section for percentage field validation message fixes
+   - This update ensures the project's changelog properly reflects all the work completed
+     during the previous coding session, maintaining accurate project history
+
+2. **Updated Schema Test Files for Pydantic V2 Compatibility** ✓
+   - Updated all schema test files to use the new validation error messages:
+     * Updated `test_accounts_schemas.py` with new validation message expectations
+     * Updated `test_bill_splits_schemas.py` with new validation message expectations
+     * Updated `test_payments_schemas.py` with new validation message expectations
+     * Updated `test_deposit_schedules_schemas.py` with new validation message expectations
+     * Updated `test_credit_limits_schemas.py` with new validation message expectations
+     * Updated `test_balance_history_schemas.py` with new validation message expectations
+     * Added typing imports to all test files for better type safety
+   - Updated implementation checklist to reflect progress:
+     * Completed Schema Tests implementation (100%, up from 83%)
+     * Maintained overall implementation progress at 91%
+     * Updated phase 4 (Test Updates) as complete
+     * Marked Schema Tests as completed in Remaining Priority Tasks
+   - These updates complete the test standardization portion of ADR-013:
+     * All schema test files now use Pydantic V2-compatible validation messages
+     * All test files consistently check for proper validation behavior
+     * Error messages updated to match the new "Input should be a multiple of" pattern
+     * Type imports added for better type safety throughout test files
+
+2. **Completed Schema File Updates for Pydantic V2 Compatibility** ✓
    - Updated all remaining schema files to use the new Annotated types approach:
      * Updated `src/schemas/balance_history.py` with MoneyDecimal type annotations
      * Updated `src/schemas/balance_reconciliation.py` with MoneyDecimal type annotations
@@ -310,7 +344,7 @@ Completing Decimal Precision Handling Implementation with Pydantic V2 Compatibil
 ### Current Implementation Plan 
 
 #### ADR-013 Implementation Progress (Pydantic V2 Approach)
-1. **Components Not Requiring Changes** ✓
+1. **Components Completed** ✓
    - [x] Core module implementation with DecimalPrecision utilities (100%)
    - [x] Database schema updates to Numeric(12, 4) (100%)
    - [x] SQLAlchemy model updates (100%)
@@ -318,28 +352,29 @@ Completing Decimal Precision Handling Implementation with Pydantic V2 Compatibil
    - [x] Core tests for DecimalPrecision utilities (100%)
    - [x] Model tests for 4 decimal precision (100%)
    - [x] Special test cases for distribution scenarios (100%)
+   - [x] BaseSchemaValidator update with Annotated types (100%)
+   - [x] Pydantic schema updates to use Annotated types (100%)
+   - [x] Schema tests for validation behavior (100%)
+   - [x] Dictionary validation implementation (100%)
+   - [x] Developer guidelines with new patterns (100%)
 
-2. **Components Requiring Revision**
-   - [ ] BaseSchemaValidator update with Annotated types (0%)
-   - [ ] Pydantic schema updates to use Annotated types (0%)
-   - [ ] Schema tests for validation behavior (0%)
-   - [ ] Dictionary validation implementation (0%)
-   - [ ] Documentation updates for new approach (0%)
-   - [ ] Update developer guidelines with new patterns (0%)
+2. **Components Requiring Completion**
+   - [ ] Documentation updates for new approach (50%)
+   - [ ] Service Tests implementation (0%)
    - [ ] Quality assurance for revised implementation (0%)
 
 3. **Current Action Items**
-   - Implement BaseSchemaValidator updates with Annotated types:
-     * [ ] Add MoneyDecimal, PercentageDecimal, and other type definitions
-     * [ ] Implement dictionary validation strategy
-     * [ ] Update schema files to use new types
-   - Create a proof-of-concept implementation:
-     * [ ] Update a few critical schema files first
-     * [ ] Test and verify the approach works
-     * [ ] Then proceed with remaining schema files
-   - Update documentation:
-     * [ ] Update developer guidelines with new patterns
-     * [ ] Ensure ADR-013 reflects the revised approach
+   - Complete Documentation Updates:
+     * [ ] Update ADR-013 with details of the new implementation approach
+     * [ ] Update any remaining developer guidelines with examples
+   - Implement Service Tests:
+     * [ ] Implement tests for bill splits with 4 decimal place precision
+     * [ ] Implement tests for payments with distribution scenarios
+     * [ ] Implement tests for accounts with balance calculations
+   - Quality Assurance:
+     * [ ] Conduct full test suite run
+     * [ ] Manually test critical financial operations
+     * [ ] Verify rounding behavior in edge cases
 
 ## Next Steps
 1. **Implement the Pydantic V2 Compatible Approach**

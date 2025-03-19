@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
+from typing import Dict, List, Optional
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
@@ -323,7 +324,7 @@ def test_required_fields():
 def test_decimal_precision():
     """Test decimal precision validation"""
     # Test too many decimal places in various fields
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         CashflowBase(
             total_bills=Decimal("1500.123"),  # Too many decimal places
             total_income=Decimal("2500.00"),
@@ -341,7 +342,7 @@ def test_decimal_precision():
             hourly_rate_20=Decimal("25.00")
         )
 
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         CashflowBase(
             total_bills=Decimal("1500.00"),
             total_income=Decimal("2500.00"),

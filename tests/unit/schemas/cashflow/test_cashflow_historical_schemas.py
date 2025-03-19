@@ -277,7 +277,7 @@ def test_decimal_precision():
             significant_events=[]
         )
         
-    # Test too many decimal places in trend_strength
+    # Test too many decimal places in percentage fields
     with pytest.raises(ValidationError, match="Input should be a multiple of 0.0001"):
         HistoricalTrendMetrics(
             average_daily_change=Decimal("25.50"),

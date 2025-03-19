@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from decimal import Decimal
+from typing import Dict, List
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
@@ -204,7 +205,7 @@ def test_decimal_precision():
 
     # Test too many decimal places
     with pytest.raises(
-        ValidationError, match="Decimal input should have no more than 2 decimal places"
+        ValidationError, match="Input should be a multiple of 0.01"
     ):
         CreditLimitHistoryBase(
             credit_limit=Decimal("5000.123"), effective_date=now  # 3 decimal places

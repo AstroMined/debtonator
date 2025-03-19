@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+from typing import Dict, List
 
 import pytest
 from pydantic import ValidationError

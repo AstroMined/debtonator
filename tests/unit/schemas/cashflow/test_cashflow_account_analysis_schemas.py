@@ -298,7 +298,7 @@ def test_balance_distribution_range_validation():
     assert distribution.percentage_of_total == Decimal("0.3333")
     
     # Test percentage_of_total with too many decimal places (5 decimal places)
-    with pytest.raises(ValidationError, match="Input should have at most 4 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.0001"):
         BalanceDistribution(
             account_id=1,
             average_balance=Decimal("2500.00"),
@@ -494,7 +494,7 @@ def test_decimal_precision():
     assert usage.utilization_rate == Decimal("0.7654")
     
     # Test validation error with too many decimal places in percentage field
-    with pytest.raises(ValidationError, match="Input should have at most 4 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.0001"):
         AccountRiskAssessment(
             account_id=1,
             overdraft_risk=Decimal("0.12345"),  # 5 decimal places

@@ -4,6 +4,7 @@ from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
 from pydantic import ValidationError
+from typing import Dict
 
 from src.schemas.accounts import (
     AccountBase,
@@ -50,7 +51,7 @@ def test_account_base_decimal_validation():
     """Test decimal field validation"""
     # Test decimal places (too many decimal places)
     with pytest.raises(
-        ValidationError, match="Decimal input should have no more than 2 decimal places"
+        ValidationError, match="Input should be a multiple of 0.01"
     ):
         AccountBase(
             name="Test Account",
@@ -175,7 +176,7 @@ def test_account_update_validation():
 
     # Test too many decimal places
     with pytest.raises(
-        ValidationError, match="Decimal input should have no more than 2 decimal places"
+        ValidationError, match="Input should be a multiple of 0.01"
     ):
         AccountUpdate(available_balance=Decimal("100.123"))
         
@@ -368,9 +369,9 @@ def test_statement_balance_history_invalid_dates():
         )
 
 
-def test_money_field_utility():
-    """Test the money_field utility method from BaseSchemaValidator"""
-    # Create an account with money fields to test the utility
+def test_money_field_type():
+    """Test the MoneyDecimal type with annotated validation"""
+    # Create an account with money fields to test the type validation
     account = AvailableCreditResponse(
         account_id=1,
         account_name="Test Credit Card",
@@ -390,7 +391,7 @@ def test_money_field_utility():
     
     # Test validation error with too many decimal places
     with pytest.raises(
-        ValidationError, match="Decimal input should have no more than 2 decimal places"
+        ValidationError, match="Input should be a multiple of 0.01"
     ):
         AvailableCreditResponse(
             account_id=1,

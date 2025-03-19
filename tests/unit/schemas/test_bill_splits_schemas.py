@@ -4,6 +4,7 @@ from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
 from pydantic import ValidationError
+from typing import Dict
 
 from src.schemas.bill_splits import (
     BillSplitBase,
@@ -212,7 +213,7 @@ def test_decimal_precision():
     """Test decimal precision validation for monetary fields"""
     # Test too many decimal places
     with pytest.raises(
-        ValidationError, match="Decimal input should have no more than 2 decimal places"
+        ValidationError, match="Input should be a multiple of 0.01"
     ):
         BillSplitBase(amount=Decimal("100.123"))
 
@@ -487,7 +488,7 @@ def test_percentage_field_precision():
     assert pattern.account_splits[4] == Decimal("0.0625")
     
     # Test with too many decimal places for percentage fields (5 decimal places)
-    with pytest.raises(ValidationError, match="Input should have at most 4 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.0001"):
         SplitPattern(
             pattern_id="test",
             account_splits={1: Decimal("0.33333")},  # 5 decimal places

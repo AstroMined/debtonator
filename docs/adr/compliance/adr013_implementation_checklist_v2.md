@@ -28,7 +28,7 @@ We have started implementing the Pydantic V2 compatible approach, with progress 
 | API Response | 2 | 2 | 0 | 100% | No changes needed |
 | Core Tests | 10 | 10 | 0 | 100% | No changes needed |
 | Model Tests | 3 | 3 | 0 | 100% | No changes needed |
-| Schema Tests | 6 | 5 | 1 | 83% | Updated tests for cashflow schemas |
+| Schema Tests | 6 | 6 | 0 | 100% | Updated all test files to match new validation patterns |
 | Service Tests | 3 | 0 | 3 | 0% | Need implementation |
 | Integration Tests | 5 | 3 | 2 | 60% | Minor updates needed |
 | Special Test Cases | 4 | 4 | 0 | 100% | No changes needed |
@@ -36,7 +36,7 @@ We have started implementing the Pydantic V2 compatible approach, with progress 
 | Developer Guidelines | 6 | 6 | 0 | 100% | Need minor updates |
 | Dictionary Validation | 5 | 5 | 0 | 100% | Implemented in BaseSchemaValidator |
 | Quality Assurance | 7 | 0 | 7 | 0% | Need implementation |
-| **TOTAL** | **151** | **137** | **14** | **91%** | Progress improved from 89% to 91% |
+| **TOTAL** | **151** | **138** | **13** | **91%** | Progress improved from 91% |
 
 ## Remaining Priority Tasks
 
@@ -46,10 +46,10 @@ We have started implementing the Pydantic V2 compatible approach, with progress 
    - Dictionary field validation implemented
    - All files now using Pydantic V2-compatible Annotated types approach
 
-2. **Update Schema Tests**
-   - Update any remaining schema test files to reflect new validation behavior
-   - Add tests for dictionary validation
-   - Update error message expectations
+2. **Update Schema Tests** ✓
+   - Updated all schema test files to reflect new validation behavior
+   - Added tests for dictionary validation
+   - Updated error message expectations to match Pydantic V2 patterns
 
 3. **Update Documentation**
    - Update ADR-013 with the new implementation approach
@@ -168,25 +168,28 @@ All Pydantic schema files have been updated to use the new Annotated types:
 - [x] Update special case for percentage fields:
   - [x] Ensure `BalanceDistribution.percentage_of_total` uses `PercentageDecimal` type
 
-## Phase 4: Test Updates
+## Phase 4: Test Updates ✓
 
-Update all schema tests to account for the new validation behavior:
+Updated all schema tests to account for the new validation behavior:
 
-- [ ] Update schema test files:
-  - [ ] Update `tests/unit/schemas/test_accounts.py` - Update validation tests for new error messages
-  - [ ] Update `tests/unit/schemas/test_bill_splits.py` - Update validation tests for new error messages
-  - [ ] Update `tests/unit/schemas/test_payments.py` - Update validation tests for new error messages
-  - [ ] Update tests for all other schema files
+- [x] Updated schema test files:
+  - [x] Updated `tests/unit/schemas/test_accounts_schemas.py` - Update validation tests for new error messages
+  - [x] Updated `tests/unit/schemas/test_bill_splits_schemas.py` - Update validation tests for new error messages
+  - [x] Updated `tests/unit/schemas/test_payments_schemas.py` - Update validation tests for new error messages
+  - [x] Updated `tests/unit/schemas/test_deposit_schedules_schemas.py` - Update validation tests for new error messages
+  - [x] Updated `tests/unit/schemas/test_credit_limits_schemas.py` - Update validation tests for new error messages
+  - [x] Updated `tests/unit/schemas/test_balance_history_schemas.py` - Update validation tests for new error messages
+  - [x] Updated cashflow schema test files (previously completed)
 
-- [ ] Add dictionary validation tests:
-  - [ ] Test `MoneyDict` validation behavior
-  - [ ] Test `PercentageDict` validation behavior
-  - [ ] Test validation of nested dictionaries
-  - [ ] Test validation of dictionaries with invalid values
+- [x] Added dictionary validation tests:
+  - [x] Tested `MoneyDict` validation behavior
+  - [x] Tested `PercentageDict` validation behavior
+  - [x] Tested validation of nested dictionaries
+  - [x] Tested validation of dictionaries with invalid values
 
-- [ ] Update error message expectations:
-  - [ ] Update expected error messages to match Pydantic V2's format
-  - [ ] Update assertions in all tests
+- [x] Updated error message expectations:
+  - [x] Updated expected error messages to match Pydantic V2's format
+  - [x] Updated assertions in all tests
 
 ## Phase 5: Service Tests
 

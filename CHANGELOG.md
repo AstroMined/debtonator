@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.19] - 2025-03-19
+
+### Changed
+- Updated schema test files for Pydantic V2 compatibility:
+  * Updated test_accounts_schemas.py to reflect Pydantic V2 error messages
+  * Updated test_bill_splits_schemas.py with new validation pattern expectations
+  * Updated test_payments_schemas.py with correct error message expectations
+  * Updated test_deposit_schedules_schemas.py for Pydantic V2 compatibility
+  * Updated test_credit_limits_schemas.py with new validation message expectations
+  * Updated test_balance_history_schemas.py with proper error message patterns
+  * Updated test_cashflow_base_schemas.py with correct decimal validation patterns
+  * Updated test_cashflow_metrics_schemas.py with Pydantic V2 validation messages
+  * Added appropriate type imports to all updated test files
+
+### Fixed
+- Fixed percentage field validation messages in test_cashflow_account_analysis_schemas.py
+- Fixed percentage field validation messages in test_cashflow_historical_schemas.py
+- Updated ADR-013 implementation checklist to reflect 100% test completion
+- Updated progress tracking in active_context.md and progress.md
+
 ## [0.4.18] - 2025-03-19
 
 ### Added

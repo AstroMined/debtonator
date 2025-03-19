@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
+from typing import Dict, Optional
 import pytest
 from pydantic import ValidationError
 
@@ -157,11 +158,11 @@ def test_notes_length_validation():
 def test_decimal_precision():
     """Test decimal precision validation for monetary fields"""
     # Test too many decimal places on balance
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         BalanceHistoryBase(account_id=1, balance=Decimal("100.123"))
     
     # Test too many decimal places on available_credit
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         BalanceHistoryBase(
             account_id=1, 
             balance=Decimal("100.00"), 

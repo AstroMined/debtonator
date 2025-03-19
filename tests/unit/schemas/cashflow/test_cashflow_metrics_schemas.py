@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Dict, List, Optional
 import pytest
 from pydantic import ValidationError
 
@@ -138,7 +139,7 @@ def test_hourly_rates_field_required():
 def test_minimum_required_decimal_precision():
     """Test decimal precision validation in minimum required schema"""
     # Test too many decimal places in min_14_day
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         MinimumRequired(
             min_14_day=Decimal("500.123"),  # Too many decimal places
             min_30_day=Decimal("1000.00"),
@@ -147,7 +148,7 @@ def test_minimum_required_decimal_precision():
         )
 
     # Test too many decimal places in min_30_day
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         MinimumRequired(
             min_14_day=Decimal("500.00"),
             min_30_day=Decimal("1000.123"),  # Too many decimal places
@@ -156,7 +157,7 @@ def test_minimum_required_decimal_precision():
         )
 
     # Test too many decimal places in min_60_day
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         MinimumRequired(
             min_14_day=Decimal("500.00"),
             min_30_day=Decimal("1000.00"),
@@ -165,7 +166,7 @@ def test_minimum_required_decimal_precision():
         )
 
     # Test too many decimal places in min_90_day
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         MinimumRequired(
             min_14_day=Decimal("500.00"),
             min_30_day=Decimal("1000.00"),
@@ -177,7 +178,7 @@ def test_minimum_required_decimal_precision():
 def test_deficit_calculation_decimal_precision():
     """Test decimal precision validation in deficit calculation schema"""
     # Test too many decimal places in daily_deficit
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         DeficitCalculation(
             daily_deficit=Decimal("50.123"),  # Too many decimal places
             yearly_deficit=Decimal("18250.00"),
@@ -185,7 +186,7 @@ def test_deficit_calculation_decimal_precision():
         )
 
     # Test too many decimal places in yearly_deficit
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         DeficitCalculation(
             daily_deficit=Decimal("50.00"),
             yearly_deficit=Decimal("18250.123"),  # Too many decimal places
@@ -193,7 +194,7 @@ def test_deficit_calculation_decimal_precision():
         )
 
     # Test too many decimal places in required_income
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         DeficitCalculation(
             daily_deficit=Decimal("50.00"),
             yearly_deficit=Decimal("18250.00"),
@@ -204,7 +205,7 @@ def test_deficit_calculation_decimal_precision():
 def test_hourly_rates_decimal_precision():
     """Test decimal precision validation in hourly rates schema"""
     # Test too many decimal places in hourly_rate_40
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         HourlyRates(
             hourly_rate_40=Decimal("12.501"),  # Too many decimal places
             hourly_rate_30=Decimal("16.67"),
@@ -212,7 +213,7 @@ def test_hourly_rates_decimal_precision():
         )
 
     # Test too many decimal places in hourly_rate_30
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         HourlyRates(
             hourly_rate_40=Decimal("12.50"),
             hourly_rate_30=Decimal("16.671"),  # Too many decimal places
@@ -220,7 +221,7 @@ def test_hourly_rates_decimal_precision():
         )
 
     # Test too many decimal places in hourly_rate_20
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         HourlyRates(
             hourly_rate_40=Decimal("12.50"),
             hourly_rate_30=Decimal("16.67"),

@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
+from typing import Dict, Any
 import pytest
 from pydantic import ValidationError
 
@@ -261,7 +262,7 @@ def test_amount_precision_validation():
     now = datetime.now(timezone.utc)
     
     # Test amount with too many decimal places
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         DepositScheduleBase(
             income_id=1,
             account_id=2,
@@ -271,7 +272,7 @@ def test_amount_precision_validation():
         )
     
     # Test amount with too many decimal places in update
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         DepositScheduleUpdate(amount=Decimal("500.123"))  # Too many decimal places
     
     # Test valid amount precision
