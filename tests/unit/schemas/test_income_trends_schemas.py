@@ -25,7 +25,7 @@ def test_income_pattern_valid():
         source="Primary Employer",
         frequency=FrequencyType.BIWEEKLY,
         average_amount=Decimal("1250.00"),
-        confidence_score=0.95,
+        confidence_score=Decimal("0.95"),
         last_occurrence=now,
         next_predicted=now + timedelta(days=14)
     )
@@ -33,7 +33,7 @@ def test_income_pattern_valid():
     assert data.source == "Primary Employer"
     assert data.frequency == FrequencyType.BIWEEKLY
     assert data.average_amount == Decimal("1250.00")
-    assert data.confidence_score == 0.95
+    assert data.confidence_score == Decimal("0.95")
     assert data.last_occurrence == now
     assert data.next_predicted == now + timedelta(days=14)
 
@@ -46,7 +46,7 @@ def test_income_pattern_default_fields():
         source="Primary Employer",
         frequency=FrequencyType.BIWEEKLY,
         average_amount=Decimal("1250.00"),
-        confidence_score=0.95
+        confidence_score=Decimal("0.95")
     )
     
     after = datetime.now(timezone.utc)
@@ -54,7 +54,7 @@ def test_income_pattern_default_fields():
     assert data.source == "Primary Employer"
     assert data.frequency == FrequencyType.BIWEEKLY
     assert data.average_amount == Decimal("1250.00")
-    assert data.confidence_score == 0.95
+    assert data.confidence_score == Decimal("0.95")
     assert data.last_occurrence is not None
     assert before <= data.last_occurrence <= after
     # Verify the datetime exists (BaseSchemaValidator will enforce UTC timezone)
@@ -69,14 +69,14 @@ def test_seasonality_metrics_valid():
         peak_months=[3, 6, 9, 12],
         trough_months=[1, 4, 7, 10],
         variance_coefficient=0.15,
-        confidence_score=0.8
+        confidence_score=Decimal("0.8")
     )
 
     assert data.period == PeriodType.QUARTERLY
     assert data.peak_months == [3, 6, 9, 12]
     assert data.trough_months == [1, 4, 7, 10]
     assert data.variance_coefficient == 0.15
-    assert data.confidence_score == 0.8
+    assert data.confidence_score == Decimal("0.8")
 
 
 def test_source_statistics_valid():
@@ -89,7 +89,7 @@ def test_source_statistics_valid():
         min_amount=Decimal("1150.00"),
         max_amount=Decimal("1350.00"),
         standard_deviation=50.25,
-        reliability_score=0.95
+        reliability_score=Decimal("0.95")
     )
 
     assert data.source == "Primary Employer"
@@ -99,7 +99,7 @@ def test_source_statistics_valid():
     assert data.min_amount == Decimal("1150.00")
     assert data.max_amount == Decimal("1350.00")
     assert data.standard_deviation == 50.25
-    assert data.reliability_score == 0.95
+    assert data.reliability_score == Decimal("0.95")
 
 
 def test_income_trends_analysis_valid():
@@ -111,7 +111,7 @@ def test_income_trends_analysis_valid():
             source="Primary Employer",
             frequency=FrequencyType.BIWEEKLY,
             average_amount=Decimal("1250.00"),
-            confidence_score=0.95,
+            confidence_score=Decimal("0.95"),
             last_occurrence=now - timedelta(days=7),
             next_predicted=now + timedelta(days=7)
         ),
@@ -119,7 +119,7 @@ def test_income_trends_analysis_valid():
             source="Side Gig",
             frequency=FrequencyType.MONTHLY,
             average_amount=Decimal("500.00"),
-            confidence_score=0.7,
+            confidence_score=Decimal("0.7"),
             last_occurrence=now - timedelta(days=15),
             next_predicted=now + timedelta(days=15)
         )
@@ -130,7 +130,7 @@ def test_income_trends_analysis_valid():
         peak_months=[3, 6, 9, 12],
         trough_months=[1, 4, 7, 10],
         variance_coefficient=0.15,
-        confidence_score=0.8
+        confidence_score=Decimal("0.8")
     )
     
     statistics = [
@@ -142,7 +142,7 @@ def test_income_trends_analysis_valid():
             min_amount=Decimal("1150.00"),
             max_amount=Decimal("1350.00"),
             standard_deviation=50.25,
-            reliability_score=0.95
+            reliability_score=Decimal("0.95")
         ),
         SourceStatistics(
             source="Side Gig",
@@ -152,7 +152,7 @@ def test_income_trends_analysis_valid():
             min_amount=Decimal("400.00"),
             max_amount=Decimal("600.00"),
             standard_deviation=75.50,
-            reliability_score=0.7
+            reliability_score=Decimal("0.7")
         )
     ]
     
@@ -163,7 +163,7 @@ def test_income_trends_analysis_valid():
         analysis_date=now,
         data_start_date=three_months_ago,
         data_end_date=now,
-        overall_predictability_score=0.85
+        overall_predictability_score=Decimal("0.85")
     )
 
     assert len(data.patterns) == 2
@@ -172,7 +172,7 @@ def test_income_trends_analysis_valid():
     assert data.analysis_date == now
     assert data.data_start_date == three_months_ago
     assert data.data_end_date == now
-    assert data.overall_predictability_score == 0.85
+    assert data.overall_predictability_score == Decimal("0.85")
 
 
 def test_income_trends_analysis_no_seasonality():
@@ -184,7 +184,7 @@ def test_income_trends_analysis_no_seasonality():
             source="Primary Employer",
             frequency=FrequencyType.BIWEEKLY,
             average_amount=Decimal("1250.00"),
-            confidence_score=0.95
+            confidence_score=Decimal("0.95")
         )
     ]
     
@@ -197,7 +197,7 @@ def test_income_trends_analysis_no_seasonality():
             min_amount=Decimal("1150.00"),
             max_amount=Decimal("1350.00"),
             standard_deviation=50.25,
-            reliability_score=0.95
+            reliability_score=Decimal("0.95")
         )
     ]
     
@@ -208,7 +208,7 @@ def test_income_trends_analysis_no_seasonality():
         analysis_date=now,
         data_start_date=three_months_ago,
         data_end_date=now,
-        overall_predictability_score=0.85
+        overall_predictability_score=Decimal("0.85")
     )
 
     assert len(data.patterns) == 1
@@ -217,7 +217,7 @@ def test_income_trends_analysis_no_seasonality():
     assert data.analysis_date == now
     assert data.data_start_date == three_months_ago
     assert data.data_end_date == now
-    assert data.overall_predictability_score == 0.85
+    assert data.overall_predictability_score == Decimal("0.85")
 
 
 def test_income_trends_request_valid():
@@ -229,13 +229,13 @@ def test_income_trends_request_valid():
         start_date=start_date,
         end_date=end_date,
         source="Primary Employer",
-        min_confidence=0.7
+        min_confidence=Decimal("0.7")
     )
 
     assert data.start_date == start_date
     assert data.end_date == end_date
     assert data.source == "Primary Employer"
-    assert data.min_confidence == 0.7
+    assert data.min_confidence == Decimal("0.7")
 
 
 def test_income_trends_request_default_fields():
@@ -245,7 +245,7 @@ def test_income_trends_request_default_fields():
     assert data.start_date is None
     assert data.end_date is None
     assert data.source is None
-    assert data.min_confidence == 0.5  # Default value
+    assert data.min_confidence == Decimal("0.5")  # Default value
 
 
 # Test field validations
@@ -279,7 +279,7 @@ def test_confidence_score_range():
             source="Primary Employer",
             frequency=FrequencyType.BIWEEKLY,
             average_amount=Decimal("1250.00"),
-            confidence_score=-0.1  # Invalid value
+            confidence_score=Decimal("-0.1")  # Invalid value
         )
     
     # Test above maximum (1)
@@ -288,7 +288,7 @@ def test_confidence_score_range():
             source="Primary Employer",
             frequency=FrequencyType.BIWEEKLY,
             average_amount=Decimal("1250.00"),
-            confidence_score=1.1  # Invalid value
+            confidence_score=Decimal("1.1")  # Invalid value
         )
     
     # Test valid boundary values
@@ -296,28 +296,28 @@ def test_confidence_score_range():
         source="Primary Employer",
         frequency=FrequencyType.BIWEEKLY,
         average_amount=Decimal("1250.00"),
-        confidence_score=0.0  # Minimum valid value
+        confidence_score=Decimal("0.0")  # Minimum valid value
     )
-    assert data1.confidence_score == 0.0
+    assert data1.confidence_score == Decimal("0.0")
     
     data2 = IncomePattern(
         source="Primary Employer",
         frequency=FrequencyType.BIWEEKLY,
         average_amount=Decimal("1250.00"),
-        confidence_score=1.0  # Maximum valid value
+        confidence_score=Decimal("1.0")  # Maximum valid value
     )
-    assert data2.confidence_score == 1.0
+    assert data2.confidence_score == Decimal("1.0")
 
 
 def test_decimal_precision():
     """Test decimal precision validation"""
     # Test too many decimal places
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         IncomePattern(
             source="Primary Employer",
             frequency=FrequencyType.BIWEEKLY,
             average_amount=Decimal("1250.123"),  # Invalid precision
-            confidence_score=0.95
+            confidence_score=Decimal("0.95")
         )
     
     # Test valid decimal places
@@ -325,7 +325,7 @@ def test_decimal_precision():
         source="Primary Employer",
         frequency=FrequencyType.BIWEEKLY,
         average_amount=Decimal("1250.12"),  # Valid precision
-        confidence_score=0.95
+        confidence_score=Decimal("0.95")
     )
     assert data.average_amount == Decimal("1250.12")
 

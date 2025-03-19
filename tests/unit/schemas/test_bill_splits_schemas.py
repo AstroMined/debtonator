@@ -98,13 +98,13 @@ def test_split_suggestion_valid():
     data = SplitSuggestion(
         account_id=1,
         amount=Decimal("75.50"),
-        confidence_score=0.85,
+        confidence_score=Decimal("0.85"),
         reason="Based on historical patterns",
     )
 
     assert data.account_id == 1
     assert data.amount == Decimal("75.50")
-    assert data.confidence_score == 0.85
+    assert data.confidence_score == Decimal("0.85")
     assert data.reason == "Based on historical patterns"
 
 
@@ -114,13 +114,13 @@ def test_bill_split_suggestion_response_valid():
         SplitSuggestion(
             account_id=1,
             amount=Decimal("75.00"),
-            confidence_score=0.85,
+            confidence_score=Decimal("0.85"),
             reason="Primary account",
         ),
         SplitSuggestion(
             account_id=2,
             amount=Decimal("25.00"),
-            confidence_score=0.75,
+            confidence_score=Decimal("0.75"),
             reason="Secondary account",
         ),
     ]
@@ -359,7 +359,7 @@ def test_confidence_score_validation():
         SplitSuggestion(
             account_id=1,
             amount=Decimal("75.50"),
-            confidence_score=-0.1,
+            confidence_score=Decimal("-0.1"),
             reason="Based on historical patterns",
         )
 
@@ -370,7 +370,7 @@ def test_confidence_score_validation():
         SplitSuggestion(
             account_id=1,
             amount=Decimal("75.50"),
-            confidence_score=1.1,
+            confidence_score=Decimal("1.1"),
             reason="Based on historical patterns",
         )
 
@@ -378,27 +378,27 @@ def test_confidence_score_validation():
     data1 = SplitSuggestion(
         account_id=1,
         amount=Decimal("75.50"),
-        confidence_score=0,
+        confidence_score=Decimal("0"),
         reason="Based on historical patterns",
     )
-    assert data1.confidence_score == 0
+    assert data1.confidence_score == Decimal("0")
 
     data2 = SplitSuggestion(
         account_id=1,
         amount=Decimal("75.50"),
-        confidence_score=1,
+        confidence_score=Decimal("1"),
         reason="Based on historical patterns",
     )
-    assert data2.confidence_score == 1
+    assert data2.confidence_score == Decimal("1")
     
     # Test with 4 decimal places (should pass for percentage field)
     data3 = SplitSuggestion(
         account_id=1,
         amount=Decimal("75.50"),
-        confidence_score=0.1234,
+        confidence_score=Decimal("0.1234"),
         reason="Based on historical patterns",
     )
-    assert data3.confidence_score == 0.1234
+    assert data3.confidence_score == Decimal("0.1234")
 
 
 def test_bulk_operation_result_validation():
@@ -462,7 +462,7 @@ def test_percentage_field_precision():
         first_seen=datetime.now(timezone.utc),
         last_seen=datetime.now(timezone.utc),
         average_total=Decimal("100.00"),
-        confidence_score=0.8765
+        confidence_score=Decimal("0.8765")
     )
     assert pattern.account_splits[1] == Decimal("0.3333")
     assert pattern.account_splits[2] == Decimal("0.6667")
@@ -480,7 +480,7 @@ def test_percentage_field_precision():
         first_seen=datetime.now(timezone.utc),
         last_seen=datetime.now(timezone.utc),
         average_total=Decimal("100.00"),
-        confidence_score=0.8765
+        confidence_score=Decimal("0.8765")
     )
     assert pattern.account_splits[1] == Decimal("0.5")
     assert pattern.account_splits[2] == Decimal("0.25")
@@ -496,5 +496,5 @@ def test_percentage_field_precision():
             first_seen=datetime.now(timezone.utc),
             last_seen=datetime.now(timezone.utc),
             average_total=Decimal("100.00"),
-            confidence_score=0.8765
+            confidence_score=Decimal("0.8765")
         )

@@ -61,7 +61,7 @@ class TestIncomeCreate:
                 amount=Decimal("5000.001"),  # Three decimal places
                 account_id=1,
             )
-        assert "Decimal input should have no more than 2 decimal places" in str(exc_info.value)
+        assert "Input should be a multiple of 0.01" in str(exc_info.value)
 
         # Test zero amount
         with pytest.raises(ValidationError) as exc_info:
@@ -131,7 +131,7 @@ class TestRecurringIncome:
                 day_of_month=15,
                 account_id=1,
             )
-        assert "Decimal input should have no more than 2 decimal places" in str(exc_info.value)
+        assert "Input should be a multiple of 0.01" in str(exc_info.value)
 
 
 class TestIncomeFilters:
@@ -172,4 +172,4 @@ class TestIncomeFilters:
                 min_amount=Decimal("1000.001"),  # Three decimal places
                 max_amount=Decimal("2000.001"),  # Three decimal places
             )
-        assert "Decimal input should have no more than 2 decimal places" in str(exc_info.value)
+        assert "Input should be a multiple of 0.01" in str(exc_info.value)

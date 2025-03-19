@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.21] - 2025-03-19
+
+### Fixed
+- Fixed schema tests for Pydantic V2 decimal validation:
+  * Updated `test_accounts_schemas.py` with correct error message expectations for 'multiple_of' validation
+  * Fixed `test_bill_splits_schemas.py` with Decimal objects in assertions instead of float values
+  * Updated `test_balance_reconciliation_schemas.py` with proper error message patterns
+  * Fixed `test_income_schemas.py` validation error message assertions
+  * Updated `test_income_trends_schemas.py` to use Decimal objects in comparisons
+  * Fixed `test_payment_patterns_schemas.py` to use Decimal instead of float for confidence scores
+  * Updated `test_payment_schedules_schemas.py` with correct decimal validation error messages
+  * Fixed `test_payments_schemas.py` with proper error expectations
+  * Updated `test_realtime_cashflow_schemas.py` decimal precision test expectations
+  * Fixed `test_recommendations_schemas.py` decimal precision error messages
+  * Updated `test_recurring_bills_schemas.py` decimal precision validation messages
+- Updated ADR-013 implementation checklist to reflect fixed schema tests (91% complete, up from 87%)
+
 ## [0.4.20] - 2025-03-19
 
 ### Fixed

@@ -297,7 +297,7 @@ def test_amount_precision_validation():
     now = datetime.now(timezone.utc)
     
     # Test amount with too many decimal places
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         PaymentScheduleBase(
             liability_id=1,
             account_id=2,
@@ -306,7 +306,7 @@ def test_amount_precision_validation():
         )
     
     # Test amount with too many decimal places in update
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         PaymentScheduleUpdate(amount=Decimal("150.756"))  # Too many decimal places
     
     # Test valid amount precision

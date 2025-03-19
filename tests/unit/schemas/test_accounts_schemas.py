@@ -311,7 +311,7 @@ def test_statement_balance_history_validation():
 
     # Test too many decimal places
     with pytest.raises(
-        ValidationError, match="Decimal input should have no more than 2 decimal places"
+        ValidationError, match="Input should be a multiple of 0.01"
     ):
         StatementBalanceHistory(
             statement_date=now, statement_balance=Decimal("1000.123")

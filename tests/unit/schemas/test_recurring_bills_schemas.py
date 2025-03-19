@@ -279,7 +279,7 @@ def test_amount_validation():
 def test_amount_precision_validation():
     """Test amount precision validation"""
     # Test amount with too many decimal places
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         RecurringBillBase(
             bill_name="Internet Service",
             amount=Decimal("89.995"),  # Too many decimal places
@@ -289,7 +289,7 @@ def test_amount_precision_validation():
         )
     
     # Test amount with too many decimal places in update
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         RecurringBillUpdate(amount=Decimal("99.999"))  # Too many decimal places
     
     # Test valid amount precision

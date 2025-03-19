@@ -4,6 +4,23 @@
 
 ### Recent Improvements
 
+1. **Fixed Schema Tests for Pydantic V2 Decimal Validation** ✓
+   - Fixed validation error messages in multiple test files:
+     * Updated `test_accounts_schemas.py` to check for 'multiple_of' validation errors
+     * Fixed `test_bill_splits_schemas.py` Decimal vs float comparison issues
+     * Updated `test_balance_reconciliation_schemas.py` with correct error messages
+     * Fixed `test_income_schemas.py` validation error message patterns
+     * Updated `test_income_trends_schemas.py` to use Decimal objects in comparisons
+     * Fixed all other schema test files with similar validation pattern updates
+   - Resolved 27 failing tests across the schema test suite
+   - Fixed two main categories of issues:
+     * Validation error message patterns: Changed from "Decimal input should have no more than 2 decimal places" to "Input should be a multiple of 0.01"
+     * Decimal vs float comparisons: Updated assertions to compare Decimal with Decimal
+   - Updated ADR-013 implementation checklist to reflect progress:
+     * Updated Schema Tests progress to 100% (from 0%)
+     * Returned overall implementation progress to 91% (from 87%)
+     * Updated Test Updates phase as complete in the checklist
+
 1. **Fixed impact_analysis Schema for Pydantic V2 Compatibility** ✓
    - Fixed `src/schemas/impact_analysis.py` to use the new Annotated types approach:
      * Replaced `BaseSchemaValidator.money_field()` calls with `MoneyDecimal` type

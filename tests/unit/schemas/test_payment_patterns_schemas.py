@@ -96,7 +96,7 @@ def test_payment_pattern_analysis_valid():
     
     data = PaymentPatternAnalysis(
         pattern_type=PatternType.REGULAR,
-        confidence_score=0.95,
+        confidence_score=Decimal("0.95"),
         frequency_metrics=frequency_metrics,
         amount_statistics=amount_statistics,
         sample_size=10,
@@ -108,7 +108,7 @@ def test_payment_pattern_analysis_valid():
     )
 
     assert data.pattern_type == PatternType.REGULAR
-    assert data.confidence_score == 0.95
+    assert data.confidence_score == Decimal("0.95")
     assert data.frequency_metrics == frequency_metrics
     assert data.amount_statistics == amount_statistics
     assert data.sample_size == 10
@@ -143,7 +143,7 @@ def test_payment_pattern_analysis_minimal():
     
     data = PaymentPatternAnalysis(
         pattern_type=PatternType.REGULAR,
-        confidence_score=0.95,
+        confidence_score=Decimal("0.95"),
         frequency_metrics=frequency_metrics,
         amount_statistics=amount_statistics,
         sample_size=10,
@@ -152,7 +152,7 @@ def test_payment_pattern_analysis_minimal():
     )
 
     assert data.pattern_type == PatternType.REGULAR
-    assert data.confidence_score == 0.95
+    assert data.confidence_score == Decimal("0.95")
     assert data.frequency_metrics == frequency_metrics
     assert data.amount_statistics == amount_statistics
     assert data.sample_size == 10
@@ -245,7 +245,7 @@ def test_confidence_score_range():
     with pytest.raises(ValidationError, match="Input should be greater than or equal to 0"):
         PaymentPatternAnalysis(
             pattern_type=PatternType.REGULAR,
-            confidence_score=-0.1,  # Invalid value
+            confidence_score=Decimal("-0.1"),  # Invalid value
             frequency_metrics=frequency_metrics,
             amount_statistics=amount_statistics,
             sample_size=10,
@@ -257,7 +257,7 @@ def test_confidence_score_range():
     with pytest.raises(ValidationError, match="Input should be less than or equal to 1"):
         PaymentPatternAnalysis(
             pattern_type=PatternType.REGULAR,
-            confidence_score=1.1,  # Invalid value
+            confidence_score=Decimal("1.1"),  # Invalid value
             frequency_metrics=frequency_metrics,
             amount_statistics=amount_statistics,
             sample_size=10,
@@ -269,7 +269,7 @@ def test_confidence_score_range():
 def test_decimal_precision():
     """Test decimal precision validation"""
     # Test too many decimal places
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         AmountStatistics(
             average_amount=Decimal("150.123"),  # Invalid precision
             std_dev_amount=Decimal("10.00"),
@@ -278,7 +278,7 @@ def test_decimal_precision():
             total_amount=Decimal("1500.00")
         )
     
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         AmountStatistics(
             average_amount=Decimal("150.00"),
             std_dev_amount=Decimal("10.123"),  # Invalid precision

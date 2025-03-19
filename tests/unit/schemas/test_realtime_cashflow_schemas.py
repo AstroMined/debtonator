@@ -312,7 +312,7 @@ def test_positive_fields_validation():
 def test_decimal_precision():
     """Test decimal precision validation"""
     # Test too many decimal places in current_balance
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         AccountBalance(
             account_id=1,
             name="Main Checking",
@@ -321,7 +321,7 @@ def test_decimal_precision():
         )
 
     # Test too many decimal places in available_credit
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         AccountBalance(
             account_id=1,
             name="Credit Card",
@@ -332,7 +332,7 @@ def test_decimal_precision():
         )
 
     # Test too many decimal places in total_available_funds
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         RealtimeCashflow(
             account_balances=[
                 AccountBalance(

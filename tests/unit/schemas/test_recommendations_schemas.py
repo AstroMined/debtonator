@@ -275,14 +275,14 @@ def test_enum_validation():
 def test_decimal_precision():
     """Test decimal precision validation"""
     # Test too many decimal places in balance_impact
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         ImpactMetrics(
             balance_impact=Decimal("-50.123"),  # Invalid precision
             risk_score=Decimal("25.5")
         )
     
     # Test too many decimal places in credit_utilization_impact
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         ImpactMetrics(
             balance_impact=Decimal("-50.00"),
             credit_utilization_impact=Decimal("5.123"),  # Invalid precision
@@ -290,7 +290,7 @@ def test_decimal_precision():
         )
     
     # Test too many decimal places in savings_potential
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         ImpactMetrics(
             balance_impact=Decimal("-50.00"),
             risk_score=Decimal("25.5"),
@@ -298,7 +298,7 @@ def test_decimal_precision():
         )
     
     # Test too many decimal places in risk_score
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 1 decimal place"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.1"):
         ImpactMetrics(
             balance_impact=Decimal("-50.00"),
             risk_score=Decimal("25.55")  # Invalid precision
@@ -310,7 +310,7 @@ def test_decimal_precision():
         risk_score=Decimal("25.5")
     )
     
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         BillPaymentTimingRecommendation(
             confidence=ConfidenceLevel.HIGH,
             impact=impact,

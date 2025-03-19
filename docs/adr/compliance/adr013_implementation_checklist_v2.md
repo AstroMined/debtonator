@@ -28,7 +28,7 @@ We have started implementing the Pydantic V2 compatible approach, with progress 
 | API Response | 2 | 2 | 0 | 100% | No changes needed |
 | Core Tests | 10 | 10 | 0 | 100% | No changes needed |
 | Model Tests | 3 | 3 | 0 | 100% | No changes needed |
-| Schema Tests | 6 | 6 | 0 | 100% | Updated all test files to match new validation patterns |
+| Schema Tests | 6 | 6 | 0 | 100% | Fixed validation error messages and Decimal/float comparison issues |
 | Service Tests | 3 | 0 | 3 | 0% | Need implementation |
 | Integration Tests | 5 | 3 | 2 | 60% | Minor updates needed |
 | Special Test Cases | 4 | 4 | 0 | 100% | No changes needed |
@@ -36,7 +36,7 @@ We have started implementing the Pydantic V2 compatible approach, with progress 
 | Developer Guidelines | 6 | 6 | 0 | 100% | Need minor updates |
 | Dictionary Validation | 5 | 5 | 0 | 100% | Implemented in BaseSchemaValidator |
 | Quality Assurance | 7 | 0 | 7 | 0% | Need implementation |
-| **TOTAL** | **151** | **138** | **13** | **91%** | Progress improved from 91% |
+| **TOTAL** | **151** | **138** | **13** | **91%** | Progress back to previous level (91%) |
 
 ## Remaining Priority Tasks
 
@@ -46,10 +46,11 @@ We have started implementing the Pydantic V2 compatible approach, with progress 
    - Dictionary field validation implemented
    - All files now using Pydantic V2-compatible Annotated types approach
 
-2. **Update Schema Tests** ✓
-   - Updated all schema test files to reflect new validation behavior
-   - Added tests for dictionary validation
-   - Updated error message expectations to match Pydantic V2 patterns
+2. **Fix Schema Tests** ✓
+   - Fixed tests failing due to validation changes
+   - Updated assertions comparing Decimal to float values
+   - Updated expected error messages to match new Pydantic V2 format
+   - Fixed tests expecting specific error messages that were getting 'multiple_of' errors instead
 
 3. **Update Documentation**
    - Update ADR-013 with the new implementation approach
@@ -170,26 +171,31 @@ All Pydantic schema files have been updated to use the new Annotated types:
 
 ## Phase 4: Test Updates ✓
 
-Updated all schema tests to account for the new validation behavior:
+Fixed schema tests to account for the new validation behavior:
 
-- [x] Updated schema test files:
-  - [x] Updated `tests/unit/schemas/test_accounts_schemas.py` - Update validation tests for new error messages
-  - [x] Updated `tests/unit/schemas/test_bill_splits_schemas.py` - Update validation tests for new error messages
-  - [x] Updated `tests/unit/schemas/test_payments_schemas.py` - Update validation tests for new error messages
-  - [x] Updated `tests/unit/schemas/test_deposit_schedules_schemas.py` - Update validation tests for new error messages
-  - [x] Updated `tests/unit/schemas/test_credit_limits_schemas.py` - Update validation tests for new error messages
-  - [x] Updated `tests/unit/schemas/test_balance_history_schemas.py` - Update validation tests for new error messages
-  - [x] Updated cashflow schema test files (previously completed)
+- [x] Fixed schema test files with errors:
+  - [x] Fixed `tests/unit/schemas/test_accounts_schemas.py` - Updated for 'multiple_of' validation errors
+  - [x] Fixed `tests/unit/schemas/test_bill_splits_schemas.py` - Fixed Decimal/float comparison issues
+  - [x] Fixed `tests/unit/schemas/test_impact_analysis_schemas.py` - Updated validation error expectations
+  - [x] Fixed `tests/unit/schemas/test_income_schemas.py` - Fixed validation error message checks
+  - [x] Fixed `tests/unit/schemas/test_income_trends_schemas.py` - Fixed Decimal/float comparison issues
+  - [x] Fixed `tests/unit/schemas/test_payment_patterns_schemas.py` - Fixed Decimal/float comparisons
+  - [x] Fixed `tests/unit/schemas/test_payment_schedules_schemas.py` - Updated validation error messages
+  - [x] Fixed `tests/unit/schemas/test_payments_schemas.py` - Updated validation error expectations
+  - [x] Fixed `tests/unit/schemas/test_realtime_cashflow_schemas.py` - Updated error message tests
+  - [x] Fixed `tests/unit/schemas/test_recommendations_schemas.py` - Updated decimal validation tests
+  - [x] Fixed `tests/unit/schemas/test_recurring_bills_schemas.py` - Fixed error message expectations
+  - [x] Fixed `tests/unit/schemas/test_balance_reconciliation_schemas.py` - Updated error message tests
 
-- [x] Added dictionary validation tests:
-  - [x] Tested `MoneyDict` validation behavior
-  - [x] Tested `PercentageDict` validation behavior
-  - [x] Tested validation of nested dictionaries
-  - [x] Tested validation of dictionaries with invalid values
+- [x] Fixed common test patterns:
+  - [x] Fixed assertions comparing Decimal to float (converted expected float to Decimal)
+  - [x] Updated regex patterns to check for 'multiple_of' validation errors
+  - [x] Updated error messages to match Pydantic V2's format
 
-- [x] Updated error message expectations:
-  - [x] Updated expected error messages to match Pydantic V2's format
-  - [x] Updated assertions in all tests
+- [x] Verified dictionary validation tests:
+  - [x] Ensured dictionary validation tests work with new implementation
+  - [x] Checked validation of nested dictionaries
+  - [x] Verified validation of dictionaries with invalid values
 
 ## Phase 5: Service Tests
 
