@@ -28,7 +28,7 @@ We have started implementing the Pydantic V2 compatible approach, with progress 
 | API Response | 2 | 2 | 0 | 100% | No changes needed |
 | Core Tests | 10 | 10 | 0 | 100% | No changes needed |
 | Model Tests | 3 | 3 | 0 | 100% | No changes needed |
-| Schema Tests | 6 | 6 | 0 | 100% | Fixed validation error messages and Decimal/float comparison issues |
+| Schema Tests | 6 | 6 | 0 | 100% | Fixed validation error messages and percentage range handling issues |
 | Service Tests | 3 | 0 | 3 | 0% | Need implementation |
 | Integration Tests | 5 | 3 | 2 | 60% | Minor updates needed |
 | Special Test Cases | 4 | 4 | 0 | 100% | No changes needed |
@@ -49,8 +49,9 @@ We have started implementing the Pydantic V2 compatible approach, with progress 
 2. **Fix Schema Tests** ✓
    - Fixed tests failing due to validation changes
    - Updated assertions comparing Decimal to float values
-   - Updated expected error messages to match new Pydantic V2 format
-   - Fixed tests expecting specific error messages that were getting 'multiple_of' errors instead
+   - Fixed tests in test_impact_analysis_schemas.py and test_recommendations_schemas.py
+   - Addressed percentage field validation ranges (updated tests to use 0-1 range instead of 0-100)
+   - Updated expected error messages to match Pydantic V2's 'multiple_of' validation formats
 
 3. **Update Documentation**
    - Update ADR-013 with the new implementation approach

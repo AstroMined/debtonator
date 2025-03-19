@@ -1,3 +1,16 @@
+## [0.4.22] - 2025-03-19
+
+### Fixed
+- Fixed schema tests for Pydantic V2 percentage range validation:
+  * Fixed `test_impact_analysis_schemas.py` to use 0-1 range for credit utilization (changed from 0-100 range)
+  * Updated `test_recommendations_schemas.py` to use 0-1 range for credit utilization impact
+  * Updated `impact_analysis.py` schema to properly use PercentageDecimal without redundant constraints
+  * Updated `recommendations.py` schema to use PercentageDecimal with proper percentage range
+  * Updated validation error message patterns to match Pydantic V2 format
+  * Fixed test case values to match the 0-1 percentage scale
+  * Replaced `decimal_places=1` with `multiple_of=Decimal("0.1")` in recommendations.py
+- Updated ADR-013 implementation checklist to reflect progress (91% complete, back to previous level)
+
 # Changelog
 
 All notable changes to this project will be documented in this file.

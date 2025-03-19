@@ -21,16 +21,16 @@ def test_account_impact_valid():
         account_id=1,
         current_balance=Decimal("500.00"),
         projected_balance=Decimal("400.00"),
-        current_credit_utilization=Decimal("30.00"),
-        projected_credit_utilization=Decimal("40.00"),
+        current_credit_utilization=Decimal("0.30"),
+        projected_credit_utilization=Decimal("0.40"),
         risk_score=25
     )
 
     assert data.account_id == 1
     assert data.current_balance == Decimal("500.00")
     assert data.projected_balance == Decimal("400.00")
-    assert data.current_credit_utilization == Decimal("30.00")
-    assert data.projected_credit_utilization == Decimal("40.00")
+    assert data.current_credit_utilization == Decimal("0.30")
+    assert data.projected_credit_utilization == Decimal("0.40")
     assert data.risk_score == 25
 
 
@@ -231,8 +231,8 @@ def test_account_id_validation():
 
 def test_decimal_precision():
     """Test decimal precision validation"""
-    # Test too many decimal places
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    # Test too many decimal places for money fields
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         AccountImpact(
             account_id=1,
             current_balance=Decimal("500.123"),
@@ -240,7 +240,7 @@ def test_decimal_precision():
             risk_score=25
         )
 
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         AccountImpact(
             account_id=1,
             current_balance=Decimal("500.00"),
@@ -248,12 +248,13 @@ def test_decimal_precision():
             risk_score=25
         )
 
-    with pytest.raises(ValidationError, match="Decimal input should have no more than 2 decimal places"):
+    # Test too many decimal places for percentage fields
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.0001"):
         AccountImpact(
             account_id=1,
             current_balance=Decimal("500.00"),
             projected_balance=Decimal("400.00"),
-            current_credit_utilization=Decimal("30.123"),
+            current_credit_utilization=Decimal("0.30001"),
             risk_score=25
         )
 
@@ -270,13 +271,13 @@ def test_credit_utilization_range():
             risk_score=25
         )
 
-    # Test above maximum (100)
-    with pytest.raises(ValidationError, match="Input should be less than or equal to 100"):
+    # Test above maximum (1)
+    with pytest.raises(ValidationError, match="Input should be less than or equal to 1"):
         AccountImpact(
             account_id=1,
             current_balance=Decimal("500.00"),
             projected_balance=Decimal("400.00"),
-            current_credit_utilization=Decimal("100.01"),
+            current_credit_utilization=Decimal("1.01"),
             risk_score=25
         )
     
@@ -294,10 +295,10 @@ def test_credit_utilization_range():
         account_id=1,
         current_balance=Decimal("500.00"),
         projected_balance=Decimal("400.00"),
-        current_credit_utilization=Decimal("100.00"),
+        current_credit_utilization=Decimal("1.00"),
         risk_score=25
     )
-    assert data2.current_credit_utilization == Decimal("100.00")
+    assert data2.current_credit_utilization == Decimal("1.00")
 
 
 def test_risk_score_range():

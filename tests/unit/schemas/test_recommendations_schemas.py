@@ -20,13 +20,13 @@ def test_impact_metrics_valid():
     """Test valid impact metrics schema creation"""
     data = ImpactMetrics(
         balance_impact=Decimal("-50.00"),
-        credit_utilization_impact=Decimal("5.00"),
+        credit_utilization_impact=Decimal("0.05"),
         risk_score=Decimal("25.5"),
         savings_potential=Decimal("75.50")
     )
 
     assert data.balance_impact == Decimal("-50.00")
-    assert data.credit_utilization_impact == Decimal("5.00")
+    assert data.credit_utilization_impact == Decimal("0.05")
     assert data.risk_score == Decimal("25.5")
     assert data.savings_potential == Decimal("75.50")
 
@@ -50,7 +50,7 @@ def test_recommendation_base_valid():
     
     impact = ImpactMetrics(
         balance_impact=Decimal("-50.00"),
-        credit_utilization_impact=Decimal("5.00"),
+        credit_utilization_impact=Decimal("0.05"),
         risk_score=Decimal("25.5"),
         savings_potential=Decimal("75.50")
     )
@@ -282,10 +282,10 @@ def test_decimal_precision():
         )
     
     # Test too many decimal places in credit_utilization_impact
-    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.0001"):
         ImpactMetrics(
             balance_impact=Decimal("-50.00"),
-            credit_utilization_impact=Decimal("5.123"),  # Invalid precision
+            credit_utilization_impact=Decimal("0.05001"),  # Invalid precision
             risk_score=Decimal("25.5")
         )
     
@@ -310,7 +310,7 @@ def test_decimal_precision():
         risk_score=Decimal("25.5")
     )
     
-    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.0001"):
         BillPaymentTimingRecommendation(
             confidence=ConfidenceLevel.HIGH,
             impact=impact,
@@ -318,7 +318,7 @@ def test_decimal_precision():
             current_due_date=datetime.now(timezone.utc) + timedelta(days=1),
             recommended_date=datetime.now(timezone.utc),
             reason="Paying earlier will avoid potential late fees",
-            historical_pattern_strength=Decimal("0.855"),  # Invalid precision
+            historical_pattern_strength=Decimal("0.85501"),  # Invalid precision
             affected_accounts=[1, 2]
         )
 
@@ -329,15 +329,15 @@ def test_value_range_validation():
     with pytest.raises(ValidationError, match="Input should be greater than or equal to 0"):
         ImpactMetrics(
             balance_impact=Decimal("-50.00"),
-            credit_utilization_impact=Decimal("-1.00"),  # Invalid value
+            credit_utilization_impact=Decimal("-0.01"),  # Invalid value
             risk_score=Decimal("25.5")
         )
     
-    # Test credit_utilization_impact greater than 100
-    with pytest.raises(ValidationError, match="Input should be less than or equal to 100"):
+    # Test credit_utilization_impact greater than 1
+    with pytest.raises(ValidationError, match="Input should be less than or equal to 1"):
         ImpactMetrics(
             balance_impact=Decimal("-50.00"),
-            credit_utilization_impact=Decimal("101.00"),  # Invalid value
+            credit_utilization_impact=Decimal("1.01"),  # Invalid value
             risk_score=Decimal("25.5")
         )
     

@@ -27,15 +27,11 @@ class AccountImpact(BaseSchemaValidator):
     )
     current_credit_utilization: Optional[PercentageDecimal] = Field(
         default=None, 
-        description="Current credit utilization percentage (if applicable)",
-        ge=0, 
-        le=1
+        description="Current credit utilization percentage (0-1 range, where 0.5 = 50%)"
     )
     projected_credit_utilization: Optional[PercentageDecimal] = Field(
         default=None, 
-        description="Projected credit utilization percentage after the analyzed action",
-        ge=0, 
-        le=1
+        description="Projected credit utilization percentage after the analyzed action (0-1 range, where 0.5 = 50%)"
     )
     risk_score: int = Field(
         ...,

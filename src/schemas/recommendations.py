@@ -41,19 +41,16 @@ class ImpactMetrics(BaseSchemaValidator):
         ...,
         description="Impact on account balance in currency units"
     )
-    credit_utilization_impact: Optional[Decimal] = Field(
+    credit_utilization_impact: Optional[PercentageDecimal] = Field(
         default=None, 
-        description="Impact on credit utilization percentage (if applicable)",
-        ge=0, 
-        le=100, 
-        multiple_of=Decimal("0.1")
+        description="Impact on credit utilization (0-1 range, where 0.05 = 5%)"
     )
     risk_score: Decimal = Field(
         ..., 
         description="Risk score from 0-100, with lower being less risky",
         ge=0, 
         le=100, 
-        decimal_places=1
+        multiple_of=Decimal("0.1")
     )
     savings_potential: Optional[MoneyDecimal] = Field(
         default=None,
