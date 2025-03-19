@@ -4,7 +4,7 @@ from typing import Optional
 
 from pydantic import Field, field_validator
 
-from src.schemas import BaseSchemaValidator
+from src.schemas import BaseSchemaValidator, MoneyDecimal
 
 class PaymentScheduleBase(BaseSchemaValidator):
     """
@@ -22,7 +22,8 @@ class PaymentScheduleBase(BaseSchemaValidator):
         ...,
         description="Scheduled date for the payment in UTC timezone"
     )
-    amount: Decimal = BaseSchemaValidator.money_field(
+    amount: MoneyDecimal = Field(
+        ...,
         gt=0,
         description="Amount to be paid"
     )
@@ -60,7 +61,7 @@ class PaymentScheduleUpdate(BaseSchemaValidator):
         None,
         description="Updated scheduled date for the payment in UTC timezone"
     )
-    amount: Decimal | None = BaseSchemaValidator.money_field(
+    amount: MoneyDecimal | None = Field(
         default=None,
         gt=0,
         description="Updated payment amount"

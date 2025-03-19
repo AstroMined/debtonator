@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.18] - 2025-03-19
+
+### Added
+- Completed schema file updates for Pydantic V2 compatibility:
+  * Updated all remaining schema files with Annotated types approach
+  * Implemented MoneyDecimal type for 2 decimal place monetary fields
+  * Implemented PercentageDecimal type for 4 decimal place percentage fields
+  * Implemented dictionary validation for collections of decimal values
+  * All schema files now use the Pydantic V2-compatible approach
+
+### Changed
+- Enhanced ADR-013 Implementation Checklist:
+  * Improved progress tracking (91% complete, up from 89%)
+  * Completed Phase 3 (Schema Updates) of the implementation
+  * Updated task priorities to focus on schema tests and documentation
+  * Enhanced overall documentation with new approach details
+
+### Fixed
+- Updated validation patterns for consistency across all schema files
+- Replaced all BaseSchemaValidator utility methods with direct type annotations
+- Improved field constraints documentation across all schema files
+- Added proper field descriptions for better API documentation
+
 ## [0.4.17] - 2025-03-19
 
 ### Changed

@@ -1,20 +1,18 @@
 # Progress: Debtonator
 
-## Current Priority: Decimal Precision Handling with Pydantic V2 Compatibility
+## Current Priority: Completing Decimal Precision Handling with Pydantic V2 Compatibility
 
 ### Recent Improvements
-1. **Updated Income-related and Transaction Schema Files for Pydantic V2 Compatibility** ✓
-   - Updated four schema files with Annotated types:
-     * Modified `src/schemas/income.py` to use the new MoneyDecimal type
-     * Modified `src/schemas/income_trends.py` to use MoneyDecimal and PercentageDecimal types
-     * Noted that `src/schemas/income_categories.py` didn't need updates (no decimal fields)
-     * Updated `src/schemas/transactions.py` to use the new MoneyDecimal type
+1. **Completed Schema File Updates for Pydantic V2 Compatibility** ✓
+   - Updated all remaining schema files to use the new Annotated types approach:
+     * Updated 9 additional schema files with Pydantic V2-compatible type annotations
      * Replaced all utility method calls with direct type annotations
-     * Added proper Field constraints with descriptions
+     * Added proper Field constraints with descriptions throughout
    - Made substantial progress on ADR-013 implementation checklist:
-     * Increased Pydantic Schemas implementation from 41% to 59%
-     * Improved overall implementation progress from 82% to 85%
+     * Completed Pydantic Schemas implementation (100%, up from 86%)
+     * Improved overall implementation progress from 89% to 91%
      * Updated implementation checklist to reflect progress
+     * Marked Phase 3 (Schema Updates) as complete
    - These updates preserve the same validation behavior while:
      * Maintaining the two-tier precision model (2 decimals for UI, 4 for calculations)
      * Following Pydantic V2's recommended approach with Annotated types
@@ -265,7 +263,7 @@
    - Strong test coverage for all services
    - Clear documentation of service responsibilities
 
-3. **Schema Layer Standardization (COMPLETED)** ✓
+3. **Schema Layer Standardization** ✓
    - BaseSchemaValidator implemented with robust UTC handling
    - All 21 schema files fully compliant with ADR-011 and ADR-012
    - Comprehensive schema review documentation
@@ -306,48 +304,45 @@
    - Model tests for 4 decimal precision complete
    - Special test cases for distribution scenarios complete
 
-## What's Left to Build
-1. **Implement Pydantic V2 Compatible Decimal Precision Handling**
-   - Update remaining 9 schema files to use the new Annotated types:
-     * Replace all utility method calls with direct type annotations
-     * Update dictionary field validation
-     * Add proper Field constraints with descriptions
-   - Update any remaining schema test files:
-     * Update error message expectations to match Pydantic V2 patterns
-     * Add tests for dictionary validation
-   - Update documentation:
-     * Update developer guidelines with new patterns
-     * Ensure ADR-013 reflects the revised approach
-     * Complete implementation checklist
+8. **Pydantic V2 Compatibility for Decimal Fields** ✓
+   - All schema files updated to use Annotated types
+   - MoneyDecimal type for 2 decimal place fields
+   - PercentageDecimal type for 4 decimal place percentage fields
+   - CorrelationDecimal type for correlation values (-1 to 1)
+   - Dictionary validation for collections of decimal values
+   - Modern Pydantic V2 validator syntax throughout the codebase
 
-2. **API Enhancement Project - Phase 6**
+## What's Left to Build
+1. **Update Schema Tests for Pydantic V2 Compatible Validation**
+   - Update remaining test files with new validation patterns
+   - Add dedicated tests for dictionary validation
+   - Update error message expectations to match Pydantic V2 format
+
+2. **Update Documentation for Pydantic V2 Compatibility**
+   - Update ADR-013 with details of the new implementation approach
+   - Update developer guidelines with examples of the new patterns
+   - Document dictionary validation strategy
+
+3. **Complete Service Tests for Decimal Precision**
+   - Implement tests for bill splits, payments, and accounts
+   - Verify decimal precision handling in business logic
+   - Test distribution scenarios with 4 decimal place precision
+
+4. **API Enhancement Project - Phase 6**
    - Implement recommendations API using the new schema approach
    - Continue trend reporting development with improved validation
    - Proceed with frontend development leveraging enhanced schema validation
    - Create comprehensive API documentation with validation requirements
 
-3. **Frontend Development**
-   - Update React components for new API endpoints
-   - Enhance data visualization
-   - Implement advanced filtering
-   - Create responsive dashboard
-   - Improve mobile experience
-
 ## What's New
-1. **Reverted ConstrainedDecimal Implementation Due to Pydantic V2 Incompatibility** ✓
-   - Identified critical compatibility issue with our decimal precision implementation:
-     * The `ConstrainedDecimal` class used in our implementation has been removed in Pydantic V2
-     * This caused import errors that broke the application completely
-     * Needed immediate action to restore application functionality
-   - Implemented a clean solution to restore functionality:
-     * Used `git reset --hard f31eb74` to revert to previous working commit
-     * Verified application functionality was restored
-     * Created a new implementation plan compatible with Pydantic V2
-   - Updated ADR-013 with a comprehensive revision:
-     * Added a new "Implementation Revision" section
-     * Updated code samples with the Annotated types approach
-     * Added a new revision entry (3.0) for the Pydantic V2 compatibility changes
-     * Added details about dictionary validation strategy
+1. **Completed Schema File Updates for Pydantic V2 Compatibility** ✓
+   - Updated all remaining schema files to use the new Annotated types approach:
+     * Updated `balance_history.py`, `balance_reconciliation.py`, and other schema files
+     * Replaced all utility method calls with direct type annotations
+     * Added proper Field constraints with descriptions throughout
+   - Marked Phase 3 (Schema Updates) as complete in the implementation checklist
+   - Improved overall implementation progress to 91% (up from 89%)
+   - All schema files now use the Pydantic V2-compatible approach with Annotated types
 
 2. **Developed Enhanced Dictionary Validation Strategy** ✓
    - Created a robust dictionary validation strategy:
@@ -404,14 +399,13 @@
    - ADR-013 updated with Pydantic V2 compatibility revision
    - Need to update the working_with_money.md guide with new patterns
 
-5. **Pydantic V2 Compliance**: IN PROGRESS (75%)
+5. **Pydantic V2 Compliance**: IN PROGRESS (95%)
    - All schema validators updated to use Pydantic V2 validator syntax
-   - Created compatibility plan for decimal precision handling
-   - Identified and resolved ConstrainedDecimal incompatibility
-   - Implemented Annotated types for many decimal fields
+   - All 22 schema files updated to use Annotated types approach (100%)
+   - Dictionary validation strategy implemented
    - Need to update tests for new validation patterns
 
-6. **Decimal Precision Handling**: IN PROGRESS (85%)
+6. **Decimal Precision Handling**: IN PROGRESS (91%)
    - ✓ Core module implementation with DecimalPrecision utilities (100%)
    - ✓ Database schema updates to Numeric(12, 4) (100%)
    - ✓ SQLAlchemy model updates (100%)
@@ -421,8 +415,8 @@
    - ✓ Special test cases for distribution scenarios (100%)
    - ✓ BaseSchemaValidator update with Annotated types (100%)
    - ✓ Dictionary validation implementation (100%)
-   - ✓ Schema tests for cashflow modules (83%)
-   - ◼ Pydantic schema updates to use Annotated types (59%)
+   - ✓ Pydantic schema updates to use Annotated types (100%)
+   - ◼ Schema tests for new validation patterns (83%)
    - ◼ Developer guidelines with Annotated types examples (50%)
    - ◼ Quality assurance for revised implementation (0%)
 
@@ -442,35 +436,30 @@
    - Synchronized with existing version in pyproject.toml
 
 ## Next Actions
-1. **Implement Pydantic V2 Compatible Decimal Precision Handling**
-   - Follow the new implementation checklist:
-     * Update remaining schema files to use the new Annotated types
-     * Update any remaining schema test files
-     * Complete documentation updates
-   - Continue with a systematic approach:
-     * Group related schema files for consistent updates
-     * Test each group after updates
-     * Then proceed with the next group
-   - Focus on minimizing technical debt throughout implementation
-   - Update documentation for the new approach
+1. **Update Schema Tests for Pydantic V2 Compatible Validation**
+   - Update test files to reflect new validation behavior with Annotated types
+   - Add dedicated tests for dictionary validation
+   - Update error message expectations to match Pydantic V2 format
+   - Ensure proper test coverage for all schema files
+   - Focus on high-priority schema files first
 
-2. **Resume API Enhancement Project - Phase 6**
+2. **Update Documentation for Pydantic V2 Compatibility**
+   - Update ADR-013 with details of the new implementation approach
+   - Update developer guidelines with examples of Annotated types
+   - Create examples of common patterns with the new approach
+   - Document dictionary validation strategy
+
+3. **Complete Service Tests for Decimal Precision**
+   - Implement tests for bill splits, payments, and accounts
+   - Verify decimal precision handling in business logic
+   - Test distribution scenarios with 4 decimal place precision
+   - Verify rounding behavior at API boundaries
+
+4. **Resume API Enhancement Project - Phase 6**
    - Implement recommendations API using the new schema approach
    - Continue trend reporting development with improved validation
    - Proceed with frontend development leveraging enhanced schema validation
    - Create comprehensive API documentation with validation requirements
-
-3. **Improve Developer Experience**
-   - Add IDE snippets for common schema validation patterns
-   - Document version.py usage patterns
-   - Enhance API documentation with schema validation requirements
-   - Create tutorials for working with the validation system
-
-4. **Implement Compliance Monitoring**
-   - Add ADR compliance checks to code review process
-   - Update developer onboarding documentation with validation standards
-   - Consider static analysis tools to enforce ADR rules
-   - Implement scheduled reviews to maintain compliance
 
 ## Known Issues
 1. **ConstrainedDecimal Incompatibility with Pydantic V2**

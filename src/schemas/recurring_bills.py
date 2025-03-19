@@ -4,7 +4,7 @@ from typing import Optional
 
 from pydantic import Field, field_validator
 
-from src.schemas import BaseSchemaValidator
+from src.schemas import BaseSchemaValidator, MoneyDecimal
 
 class RecurringBillBase(BaseSchemaValidator):
     """
@@ -19,7 +19,8 @@ class RecurringBillBase(BaseSchemaValidator):
         max_length=255, 
         description="Name of the recurring bill"
     )
-    amount: Decimal = BaseSchemaValidator.money_field(
+    amount: MoneyDecimal = Field(
+        ...,
         gt=0,
         description="Amount of the recurring bill in dollars"
     )
@@ -62,7 +63,7 @@ class RecurringBillUpdate(BaseSchemaValidator):
         max_length=255, 
         description="Updated name of the recurring bill"
     )
-    amount: Optional[Decimal] = BaseSchemaValidator.money_field(
+    amount: Optional[MoneyDecimal] = Field(
         default=None,
         gt=0,
         description="Updated amount of the recurring bill in dollars"

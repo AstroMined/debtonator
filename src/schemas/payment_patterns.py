@@ -5,7 +5,7 @@ from typing import Dict, List, Optional
 
 from pydantic import Field, ConfigDict
 
-from src.schemas import BaseSchemaValidator
+from src.schemas import BaseSchemaValidator, MoneyDecimal, PercentageDecimal
 
 
 class PatternType(str, Enum):
@@ -54,20 +54,25 @@ class AmountStatistics(BaseSchemaValidator):
     
     Contains various statistical measures of payment amounts over time.
     """
-    average_amount: Decimal = BaseSchemaValidator.money_field(
+    average_amount: MoneyDecimal = Field(
+        ...,
         description="Average payment amount"
     )
-    std_dev_amount: Decimal = BaseSchemaValidator.money_field(
+    std_dev_amount: MoneyDecimal = Field(
+        ...,
         ge=0,
         description="Standard deviation of payment amounts"
     )
-    min_amount: Decimal = BaseSchemaValidator.money_field(
+    min_amount: MoneyDecimal = Field(
+        ...,
         description="Minimum payment amount"
     )
-    max_amount: Decimal = BaseSchemaValidator.money_field(
+    max_amount: MoneyDecimal = Field(
+        ...,
         description="Maximum payment amount"
     )
-    total_amount: Decimal = BaseSchemaValidator.money_field(
+    total_amount: MoneyDecimal = Field(
+        ...,
         description="Total amount of all payments"
     )
 
@@ -107,10 +112,8 @@ class PaymentPatternAnalysis(BaseSchemaValidator):
         ..., 
         description="Type of payment pattern detected"
     )
-    confidence_score: float = Field(
+    confidence_score: PercentageDecimal = Field(
         ..., 
-        ge=0, 
-        le=1, 
         description="Confidence score between 0 and 1"
     )
     frequency_metrics: FrequencyMetrics = Field(

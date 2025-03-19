@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import Field, field_validator
 
-from src.schemas import BaseSchemaValidator
+from src.schemas import BaseSchemaValidator, MoneyDecimal
 
 
 class BalanceHistoryBase(BaseSchemaValidator):
@@ -18,10 +18,11 @@ class BalanceHistoryBase(BaseSchemaValidator):
         gt=0,
         description="ID of the account this balance history is for"
     )
-    balance: Decimal = BaseSchemaValidator.money_field(
+    balance: MoneyDecimal = Field(
+        ...,
         description="Current balance of the account"
     )
-    available_credit: Decimal | None = BaseSchemaValidator.money_field(
+    available_credit: MoneyDecimal | None = Field(
         default=None,
         description="Available credit for credit accounts (null for non-credit accounts)"
     )
@@ -89,29 +90,36 @@ class BalanceTrend(BaseSchemaValidator):
         ...,
         description="End date of the analysis period in UTC timezone"
     )
-    start_balance: Decimal = BaseSchemaValidator.money_field(
+    start_balance: MoneyDecimal = Field(
+        ...,
         description="Balance at the start of the period"
     )
-    end_balance: Decimal = BaseSchemaValidator.money_field(
+    end_balance: MoneyDecimal = Field(
+        ...,
         description="Balance at the end of the period"
     )
-    net_change: Decimal = BaseSchemaValidator.money_field(
+    net_change: MoneyDecimal = Field(
+        ...,
         description="Change in balance over the period (end_balance - start_balance)"
     )
-    average_balance: Decimal = BaseSchemaValidator.money_field(
+    average_balance: MoneyDecimal = Field(
+        ...,
         description="Average balance during the period"
     )
-    min_balance: Decimal = BaseSchemaValidator.money_field(
+    min_balance: MoneyDecimal = Field(
+        ...,
         description="Minimum balance during the period"
     )
-    max_balance: Decimal = BaseSchemaValidator.money_field(
+    max_balance: MoneyDecimal = Field(
+        ...,
         description="Maximum balance during the period"
     )
     trend_direction: str = Field(
         ...,
         description="Direction of the trend (increasing, decreasing, or stable)"
     )
-    volatility: Decimal = BaseSchemaValidator.money_field(
+    volatility: MoneyDecimal = Field(
+        ...,
         description="Standard deviation of balance changes during the period"
     )
     
@@ -136,7 +144,7 @@ class BalanceTrend(BaseSchemaValidator):
     
     @field_validator("net_change")
     @classmethod
-    def validate_net_change(cls, value: Decimal, info: any) -> Decimal:
+    def validate_net_change(cls, value: MoneyDecimal, info: any) -> MoneyDecimal:
         """Validate that net_change equals end_balance - start_balance."""
         if "end_balance" in info.data and "start_balance" in info.data:
             expected_net_change = info.data["end_balance"] - info.data["start_balance"]

@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from pydantic import Field, ConfigDict
 
-from src.schemas import BaseSchemaValidator
+from src.schemas import BaseSchemaValidator, MoneyDecimal
 
 class BalanceReconciliationBase(BaseSchemaValidator):
     """
@@ -11,10 +11,12 @@ class BalanceReconciliationBase(BaseSchemaValidator):
     Contains the core fields required for all balance reconciliation operations.
     """
     account_id: int = Field(..., description="ID of the account being reconciled")
-    previous_balance: Decimal = BaseSchemaValidator.money_field(
+    previous_balance: MoneyDecimal = Field(
+        ...,
         description="Balance before reconciliation"
     )
-    new_balance: Decimal = BaseSchemaValidator.money_field(
+    new_balance: MoneyDecimal = Field(
+        ...,
         description="Balance after reconciliation"
     )
     reason: str | None = Field(
@@ -50,7 +52,8 @@ class BalanceReconciliation(BalanceReconciliationBase):
     Includes all fields from the base schema plus system-generated fields.
     """
     id: int = Field(..., description="Unique identifier for the reconciliation record")
-    adjustment_amount: Decimal = BaseSchemaValidator.money_field(
+    adjustment_amount: MoneyDecimal = Field(
+        ...,
         description="Amount of adjustment (new_balance - previous_balance)"
     )
     reconciliation_date: datetime = Field(

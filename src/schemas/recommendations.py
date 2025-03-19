@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from pydantic import Field
 
-from src.schemas import BaseSchemaValidator
+from src.schemas import BaseSchemaValidator, MoneyDecimal, PercentageDecimal
 
 
 class RecommendationType(str, Enum):
@@ -37,14 +37,16 @@ class ImpactMetrics(BaseSchemaValidator):
     
     Contains financial measurements of how a recommendation would affect accounts.
     """
-    balance_impact: Decimal = BaseSchemaValidator.money_field(
+    balance_impact: MoneyDecimal = Field(
+        ...,
         description="Impact on account balance in currency units"
     )
-    credit_utilization_impact: Optional[Decimal] = BaseSchemaValidator.percentage_field(
+    credit_utilization_impact: Optional[Decimal] = Field(
         default=None, 
         description="Impact on credit utilization percentage (if applicable)",
         ge=0, 
-        le=100
+        le=100, 
+        multiple_of=Decimal("0.1")
     )
     risk_score: Decimal = Field(
         ..., 
@@ -53,7 +55,7 @@ class ImpactMetrics(BaseSchemaValidator):
         le=100, 
         decimal_places=1
     )
-    savings_potential: Optional[Decimal] = BaseSchemaValidator.money_field(
+    savings_potential: Optional[MoneyDecimal] = Field(
         default=None,
         ge=0,
         description="Potential savings in currency units"
@@ -112,9 +114,8 @@ class BillPaymentTimingRecommendation(RecommendationBase):
         description="Explanation of why this recommendation is being made",
         max_length=500
     )
-    historical_pattern_strength: Decimal = BaseSchemaValidator.percentage_field(
-        ge=0, 
-        le=1, 
+    historical_pattern_strength: PercentageDecimal = Field(
+        ...,
         description="Strength of historical pattern supporting this recommendation (0-1)"
     )
     affected_accounts: List[int] = Field(
@@ -135,13 +136,13 @@ class RecommendationResponse(BaseSchemaValidator):
         ..., 
         description="List of bill payment timing recommendations"
     )
-    total_savings_potential: Decimal = BaseSchemaValidator.money_field(
+    total_savings_potential: MoneyDecimal = Field(
+        ...,
         ge=0,
         description="Total potential savings across all recommendations"
     )
-    average_confidence: Decimal = BaseSchemaValidator.percentage_field(
-        ge=0, 
-        le=1, 
+    average_confidence: PercentageDecimal = Field(
+        ...,
         description="Average confidence level across all recommendations (0-1)"
     )
     generated_at: datetime = Field(

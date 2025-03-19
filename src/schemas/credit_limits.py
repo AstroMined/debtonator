@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from pydantic import Field
 
-from src.schemas import BaseSchemaValidator
+from src.schemas import BaseSchemaValidator, MoneyDecimal
 
 class CreditLimitHistoryBase(BaseSchemaValidator):
     """
@@ -13,7 +13,8 @@ class CreditLimitHistoryBase(BaseSchemaValidator):
     Contains the core fields for credit limit history entries.
     All datetime fields are stored in UTC timezone.
     """
-    credit_limit: Decimal = BaseSchemaValidator.money_field(
+    credit_limit: MoneyDecimal = Field(
+        ...,
         gt=0,
         description="Credit limit amount in dollars"
     )
@@ -62,7 +63,8 @@ class CreditLimitUpdate(BaseSchemaValidator):
     Contains all fields needed to create a new credit limit history entry.
     All datetime fields are stored in UTC timezone.
     """
-    credit_limit: Decimal = BaseSchemaValidator.money_field(
+    credit_limit: MoneyDecimal = Field(
+        ...,
         gt=0,
         description="New credit limit amount in dollars"
     )
@@ -91,7 +93,8 @@ class AccountCreditLimitHistoryResponse(BaseSchemaValidator):
         ..., 
         description="Account name"
     )
-    current_credit_limit: Decimal = BaseSchemaValidator.money_field(
+    current_credit_limit: MoneyDecimal = Field(
+        ...,
         description="Current credit limit in dollars"
     )
     credit_limit_history: List[CreditLimitHistoryInDB] = Field(
