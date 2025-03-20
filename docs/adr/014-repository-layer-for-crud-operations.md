@@ -24,6 +24,100 @@ We will introduce a repository layer dedicated to CRUD operations for all SQLAlc
 
 Services will use these repositories for data access while focusing on business logic, validation, and orchestration.
 
+## Validation Strategy
+
+Our validation strategy follows a multi-layer approach to ensure data integrity:
+
+1. **API Boundary Validation**:
+   - Pydantic schemas validate all incoming requests from external sources
+   - All data entering the system through the API is validated for structural correctness
+   - This provides our first line of defense against invalid data
+
+2. **Service Layer Validation**:
+   - Services MUST validate all data through Pydantic schemas before passing to repositories
+   - Services own business logic validation (e.g., balance sufficiency, credit limits)
+   - Even internal service-to-service communication must maintain validation
+   - Services are responsible for data integrity and consistency validation
+
+3. **Repository Layer Focus**:
+   - Repositories focus on efficient data access patterns, not validation
+   - Repositories ASSUME data has been validated by the service layer
+   - Repositories handle relationship loading, complex queries, and transactions
+   - Repositories must never be called with raw, unvalidated data
+
+This approach maintains clear separation of concerns while ensuring data integrity throughout the system. Services act as the gatekeepers for data quality, while repositories focus on data access patterns.
+
+All tests must reflect this validation flow by passing data through appropriate Pydantic schemas before calling repository methods, simulating the actual service-to-repository flow in the application.
+
+```python
+# Example of proper service-to-repository flow
+class AccountService:
+    def __init__(self, account_repo: AccountRepository):
+        self.account_repo = account_repo
+        
+    async def create_account(self, account_in: AccountCreate) -> Account:
+        # Service uses Pydantic schema to validate data
+        # This is a critical step - all repository data must be validated first
+        validated_data = account_in.model_dump()
+        
+        # Business logic validation
+        if validated_data["type"] == "credit" and "total_limit" not in validated_data:
+            raise ValueError("Credit accounts must have a total_limit")
+            
+        # Repository handles data access
+        return await self.account_repo.create(validated_data)
+```
+
+Even for internal service methods that might not directly receive data from the API, validation through schemas is still required:
+
+```python
+# Internal method still uses schema validation
+async def _update_account_balance(self, account_id: int, new_balance: Decimal) -> Account:
+    # Retrieve the account
+    account = await self.account_repo.get(account_id)
+    if not account:
+        raise ValueError(f"Account with ID {account_id} not found")
+    
+    # Validate through schema even for internal operations
+    update_data = AccountUpdate(
+        available_balance=new_balance
+    )
+    
+    # Business logic validation
+    if account.type == "credit" and new_balance > account.total_limit:
+        raise ValueError("New balance cannot exceed credit limit")
+    
+    # Pass validated data to repository
+    return await self.account_repo.update(account_id, update_data.model_dump())
+```
+
+This strategy must be consistently reflected in our testing approach as well, with repository tests passing data through Pydantic schemas first, simulating the real service layer behavior.
+
+```python
+# Example of proper repository testing reflecting validation flow
+@pytest.mark.asyncio
+async def test_create_account(db_session: AsyncSession):
+    # Create repository
+    repo = AccountRepository(db_session)
+    
+    # Validate data through schema first (reflecting real service behavior)
+    account_data = AccountCreate(
+        name="Test Account",
+        type="checking",
+        available_balance=Decimal("1000.00")
+    )
+    
+    # Use validated data for repository operation
+    account = await repo.create(account_data.model_dump())
+    
+    # Assertions...
+    assert account.name == "Test Account"
+    assert account.type == "checking"
+    assert account.available_balance == Decimal("1000.00")
+```
+
+This testing approach ensures our tests validate both the repository functionality and the proper validation flow, making our tests more realistic and effective at catching potential issues before they reach production.
+
 ## Detailed Design
 
 ### 1. Base Repository
@@ -326,6 +420,31 @@ We will primarily use integration tests with real DB fixtures to validate reposi
 3. **Transaction tests**: Ensure operations respect transaction boundaries
 4. **Complex query tests**: Validate joins, filters, and pagination
 5. **Edge case tests**: Test error cases and boundary conditions
+
+### Testing Validation Flow
+
+Tests must reflect the actual application flow, where data passes through Pydantic schemas before reaching repositories:
+
+```python
+@pytest.mark.asyncio
+async def test_create_account(db_session: AsyncSession):
+    # Create repository
+    repo = AccountRepository(db_session)
+    
+    # Simulate service layer validation through Pydantic schema
+    account_data = AccountCreate(
+        name="Test Account",
+        type="checking",
+        available_balance=Decimal("1000.00")
+    )
+    
+    # Use validated data for repository operation
+    account = await repo.create(account_data.model_dump())
+    
+    # Assertions...
+```
+
+This testing approach ensures our integration tests validate both the repository functionality and the proper validation flow.
 
 ## Consequences
 

@@ -1,5 +1,33 @@
 # ADR-014 Repository Layer Implementation Checklist
 
+## Testing Strategy
+
+1. **Validation Flow**
+   - [x] Document validation strategy in ADR-014
+   - [ ] Update existing tests to simulate service layer validation
+   - [ ] All repository tests must pass data through Pydantic schemas first
+   - [ ] Use model_dump() to convert validated schema data to dict
+   - [ ] Add assertions to verify validation behavior
+
+2. **Repository Test Template Pattern**
+   - [x] Create reference pattern for consistent test structure
+   - [ ] Document the standard 4-step test pattern (Arrange-Schema-Act-Assert)
+   - [ ] Create a reference implementation in one repository test file
+   - [ ] Share the pattern with the team for standardization
+
+3. **Integration Test Structure**
+   - [ ] Import appropriate schema files in each test module
+   - [ ] Create schema instances before calling repository methods
+   - [ ] Ensure all repository method calls use validated data
+   - [ ] Add validation-specific test cases
+   - [ ] Test error scenarios with invalid data that would be caught by schemas
+
+4. **Test Factory Functions**
+   - [ ] Create factory functions that return validated schema instances
+   - [ ] Use factory functions in tests to reduce code duplication
+   - [ ] Provide factory customization options for test-specific scenarios
+   - [ ] Document factory function usage in test files
+
 ## Phase 1: Foundation Setup
 
 1. **Directory Structure**

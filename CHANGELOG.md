@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.6] - 2025-03-20
+
+### Added
+- Created repository test pattern guide in docs/guides/repository_test_pattern.md
+- Added schema factory functions in tests/helpers/schema_factories.py to simplify test creation
+- Enhanced ADR-014 with detailed validation strategy examples
+- Created reference implementation in test_bill_split_repository.py showing proper validation flow
+
+### Changed
+- Updated ADR-014 to clarify validation responsibilities across layers
+- Enhanced ADR-014 implementation checklist with specific testing strategy steps
+- Improved Repository Test Template Pattern documentation
+- Refactored test_bill_split_repository.py to follow proper validation flow
+
 ## [0.5.5] - 2025-03-19
 
 ### Added

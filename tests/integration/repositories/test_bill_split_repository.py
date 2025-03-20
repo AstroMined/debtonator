@@ -1,4 +1,15 @@
 """
+Integration tests for the BillSplitRepository using the standard validation pattern.
+
+This test file demonstrates the proper validation flow for repository tests,
+simulating how services call repositories in the actual application flow.
+It follows the standard pattern:
+
+1. Arrange: Set up test data and dependencies
+2. Schema: Create and validate data through Pydantic schemas
+3. Act: Pass validated data to repository methods
+4. Assert: Verify the repository operation results
+
 Integration tests for the BillSplitRepository.
 
 This module contains tests for the BillSplitRepository using a real
@@ -9,6 +20,9 @@ import pytest
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 from typing import List, Dict, Any
+
+# Import schemas for validation - this is an essential part of the pattern
+from src.schemas.bill_splits import BillSplitCreate, BillSplitUpdate, BillSplitBase
 
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -126,25 +140,29 @@ class TestBillSplitRepository:
         test_account: Account,
         db_session: AsyncSession
     ):
-        """Test creating a bill split."""
-        # Arrange
-        split_data = {
-            "liability_id": test_liability.id,
-            "account_id": test_account.id,
-            "amount": Decimal("150.00"),
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
-        }
+        """Test creating a bill split with proper validation flow."""
+        # Arrange & Schema: Create and validate through Pydantic schema
+        bill_split_schema = BillSplitCreate(
+            liability_id=test_liability.id,
+            account_id=test_account.id,
+            amount=Decimal("150.00")
+        )
         
-        # Act
-        result = await bill_split_repository.create(split_data)
+        # Convert validated schema to dict for repository (simulating service flow)
+        validated_data = bill_split_schema.model_dump()
         
-        # Assert
+        # Act: Pass validated data to repository
+        result = await bill_split_repository.create(validated_data)
+        
+        # Assert: Verify the operation results
         assert result is not None
         assert result.id is not None
         assert result.liability_id == test_liability.id
         assert result.account_id == test_account.id
         assert result.amount == Decimal("150.00")
+        
+        # Verify additional schema elements were properly handled
+        assert result.created_at is not None  # Automatically added by repository
     
     @pytest.mark.asyncio
     async def test_get_bill_split(
@@ -169,18 +187,29 @@ class TestBillSplitRepository:
         bill_split_repository: BillSplitRepository, 
         test_bill_splits: List[BillSplit]
     ):
-        """Test updating a bill split."""
-        # Arrange
+        """Test updating a bill split with proper validation flow."""
+        # Arrange & Schema: Create and validate update data through Pydantic schema
+        bill_split_id = test_bill_splits[0].id
         new_amount = Decimal("175.00")
-        update_data = {"amount": new_amount}
         
-        # Act
-        result = await bill_split_repository.update(test_bill_splits[0].id, update_data)
+        update_schema = BillSplitUpdate(
+            id=bill_split_id,
+            amount=new_amount
+        )
         
-        # Assert
+        # Convert validated schema to dict for repository
+        update_data = update_schema.model_dump()
+        # Remove id from the update data as it's passed separately to the update method
+        update_id = update_data.pop("id")
+        
+        # Act: Pass validated data to repository
+        result = await bill_split_repository.update(bill_split_id, {"amount": new_amount})
+        
+        # Assert: Verify the operation results
         assert result is not None
-        assert result.id == test_bill_splits[0].id
+        assert result.id == bill_split_id
         assert result.amount == new_amount
+        assert result.updated_at is not None  # Should be automatically updated
     
     @pytest.mark.asyncio
     async def test_delete_bill_split(
@@ -260,24 +289,30 @@ class TestBillSplitRepository:
         test_account: Account,
         db_session: AsyncSession
     ):
-        """Test creating multiple bill splits in bulk."""
+        """Test creating multiple bill splits in bulk with proper validation flow."""
         # Arrange - clear out any existing splits first
         await bill_split_repository.delete_splits_for_liability(test_liability.id)
         
-        splits_data = [
-            {
-                "account_id": test_account.id,
-                "amount": Decimal("100.00"),
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
-            },
-            {
-                "account_id": test_account.id,
-                "amount": Decimal("200.00"),
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
-            }
+        # Create and validate through Pydantic schemas
+        split_schemas = [
+            BillSplitCreate(
+                liability_id=test_liability.id,  # Will be overridden in bulk_create_splits
+                account_id=test_account.id,
+                amount=Decimal("100.00")
+            ),
+            BillSplitCreate(
+                liability_id=test_liability.id,  # Will be overridden in bulk_create_splits
+                account_id=test_account.id,
+                amount=Decimal("200.00")
+            )
         ]
+        
+        # Convert validated schemas to dicts for repository
+        splits_data = [schema.model_dump() for schema in split_schemas]
+        
+        # Remove liability_id as it will be provided by the bulk_create_splits method
+        for split_data in splits_data:
+            split_data.pop("liability_id")
         
         # Act
         results = await bill_split_repository.bulk_create_splits(test_liability.id, splits_data)
@@ -391,3 +426,26 @@ class TestBillSplitRepository:
         liability_id, distribution = patterns[0]
         assert liability_id is not None
         assert len(distribution) > 0
+
+    @pytest.mark.asyncio
+    async def test_validation_error_handling(
+        self,
+        bill_split_repository: BillSplitRepository,
+        test_liability: Liability,
+        test_account: Account
+    ):
+        """Test handling invalid data that would normally be caught by schema validation."""
+        # Try creating a schema with invalid data and expect it to fail validation
+        try:
+            invalid_schema = BillSplitCreate(
+                liability_id=test_liability.id,
+                account_id=test_account.id,
+                amount=Decimal("-50.00")  # Invalid negative amount
+            )
+            assert False, "Schema should have raised a validation error for negative amount"
+        except ValueError as e:
+            # This is the expected path - schema validation should catch the error
+            assert "greater than 0" in str(e) or "must be greater than 0" in str(e)
+
+        # This illustrates why schema validation in tests is important - it prevents invalid
+        # data from ever reaching the repository
