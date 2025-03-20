@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2] - 2025-03-19
+
+### Added
+- Implemented Payment and PaymentSource repositories (ADR-014):
+  * Created PaymentRepository with complete CRUD operations and specialized query methods
+  * Created PaymentSourceRepository for payment allocation tracking
+  * Added 10+ specialized methods for payment operations
+  * Created test structure for both repositories
+  * Added dependency providers for repository injection
+
+### Changed
+- Enhanced repository pattern implementation for financial records:
+  * Added payment retrieval methods by bill, account, and date range
+  * Implemented account-based payment source queries
+  * Added calculation utilities for financial analysis
+  * Improved relationship loading with specialized methods
+  * Updated ADR-014 implementation checklist to reflect progress
+
 ## [0.5.1] - 2025-03-19
 
 ### Added

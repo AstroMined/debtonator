@@ -27,6 +27,8 @@
    - [x] Implement repository provider functions
    - [x] Add dependency for AccountRepository
    - [x] Add dependency for LiabilityRepository
+   - [x] Add dependency for PaymentRepository
+   - [x] Add dependency for PaymentSourceRepository
    - [ ] Add dependencies for remaining repositories
 
 ## Phase 2: Core Repositories
@@ -59,14 +61,30 @@
      - [x] `reset_payment_status()`
 
 3. **Payment Repository**
-   - [ ] Create `src/repositories/payments.py`
-   - [ ] Implement `PaymentRepository` class
-   - [ ] Add payment-specific methods:
-     - [ ] `get_payments_for_bill()`
-     - [ ] `get_payments_for_account()`
-     - [ ] `get_payments_in_date_range()`
+   - [x] Create `src/repositories/payments.py`
+   - [x] Implement `PaymentRepository` class
+   - [x] Add payment-specific methods:
+     - [x] `get_payments_for_bill()`
+     - [x] `get_payments_for_account()`
+     - [x] `get_payments_in_date_range()`
+     - [x] `get_with_sources()`
+     - [x] `get_with_relationships()`
+     - [x] `get_payments_by_category()`
+     - [x] `get_total_amount_in_range()`
+     - [x] `get_recent_payments()`
 
-4. **Bill Split Repository**
+4. **Payment Source Repository**
+   - [x] Create `src/repositories/payment_sources.py`
+   - [x] Implement `PaymentSourceRepository` class
+   - [x] Add payment source-specific methods:
+     - [x] `get_sources_for_payment()`
+     - [x] `get_sources_for_account()`
+     - [x] `bulk_create_sources()`
+     - [x] `get_with_relationships()`
+     - [x] `get_total_amount_by_account()`
+     - [x] `delete_sources_for_payment()`
+
+5. **Bill Split Repository**
    - [ ] Create `src/repositories/bill_splits.py`
    - [ ] Implement `BillSplitRepository` class
    - [ ] Add bill split-specific methods:
@@ -74,7 +92,7 @@
      - [ ] `get_splits_for_account()`
      - [ ] `bulk_create_splits()`
 
-5. **Income Repository**
+6. **Income Repository**
    - [ ] Create `src/repositories/income.py`
    - [ ] Implement `IncomeRepository` class
    - [ ] Add income-specific methods:
@@ -119,6 +137,8 @@
 
 3. **Model-Specific Repository Tests**
    - [x] Create test file for LiabilityRepository
+   - [x] Create test file for PaymentRepository
+   - [x] Create test file for PaymentSourceRepository
    - [ ] Create test files for remaining repositories
    - [ ] Implement comprehensive tests for model-specific methods
    - [ ] Test advanced querying features
