@@ -43,6 +43,139 @@ def setup_test_data():
     }
 ```
 
+## Repository Patterns
+
+### Base Repository
+```mermaid
+graph TD
+    A[Service Layer] --> B[Repository Layer]
+    B --> C[Database Layer]
+    
+    B1[BaseRepository] --> B2[AccountRepository]
+    B1 --> B3[BillRepository]
+    B1 --> B4[PaymentRepository]
+    B1 --> B5[BillSplitRepository]
+    B1 --> B6[IncomeRepository]
+    
+    D[RepositoryFactory] --> B2
+    D --> B3
+    D --> B4
+    D --> B5
+    D --> B6
+```
+
+```python
+# BaseRepository Pattern
+class BaseRepository(Generic[ModelType, PKType]):
+    def __init__(self, session: AsyncSession, model_class: Type[ModelType]):
+        self.session = session
+        self.model_class = model_class
+
+    async def create(self, obj_in: Dict[str, Any]) -> ModelType:
+        db_obj = self.model_class(**obj_in)
+        self.session.add(db_obj)
+        await self.session.flush()
+        await self.session.refresh(db_obj)
+        return db_obj
+
+    async def get(self, id: PKType) -> Optional[ModelType]:
+        result = await self.session.execute(
+            select(self.model_class).where(self.model_class.id == id)
+        )
+        return result.scalars().first()
+
+    async def get_multi(
+        self, *, skip: int = 0, limit: int = 100, filters: Optional[Dict[str, Any]] = None
+    ) -> List[ModelType]:
+        query = select(self.model_class).offset(skip).limit(limit)
+        
+        if filters:
+            for field, value in filters.items():
+                if hasattr(self.model_class, field):
+                    query = query.where(getattr(self.model_class, field) == value)
+        
+        result = await self.session.execute(query)
+        return result.scalars().all()
+
+    async def update(
+        self, id: PKType, obj_in: Dict[str, Any]
+    ) -> Optional[ModelType]:
+        db_obj = await self.get(id)
+        if not db_obj:
+            return None
+            
+        for field, value in obj_in.items():
+            setattr(db_obj, field, value)
+            
+        await self.session.flush()
+        await self.session.refresh(db_obj)
+        return db_obj
+
+    async def delete(self, id: PKType) -> bool:
+        result = await self.session.execute(
+            delete(self.model_class).where(self.model_class.id == id)
+        )
+        return result.rowcount > 0
+```
+
+### Model-Specific Repository
+```python
+# Model-specific repository pattern
+class AccountRepository(BaseRepository[Account, int]):
+    def __init__(self, session: AsyncSession):
+        super().__init__(session, Account)
+        
+    async def get_by_name(self, name: str) -> Optional[Account]:
+        result = await self.session.execute(
+            select(Account).where(Account.name == name)
+        )
+        return result.scalars().first()
+        
+    async def get_with_statement_history(self, account_id: int) -> Optional[Account]:
+        result = await self.session.execute(
+            select(Account)
+            .options(selectinload(Account.statement_history))
+            .where(Account.id == account_id)
+        )
+        return result.scalars().first()
+```
+
+### Repository Factory
+```python
+# Repository factory pattern
+class RepositoryFactory:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+        self._repositories: Dict[Type[BaseRepository], BaseRepository] = {}
+    
+    def get_repository(self, repository_class: Type[T]) -> T:
+        if repository_class not in self._repositories:
+            self._repositories[repository_class] = repository_class(self.session)
+        return self._repositories[repository_class]
+```
+
+### Dependency Injection
+```python
+# Dependency injection pattern
+def get_account_repository(db: AsyncSession = Depends(get_db)) -> AccountRepository:
+    return AccountRepository(db)
+
+def get_account_service(
+    account_repo: AccountRepository = Depends(get_account_repository),
+) -> AccountService:
+    return AccountService(account_repo)
+
+@router.get("/{account_id}", response_model=AccountResponse)
+async def get_account(
+    account_id: int,
+    account_service: AccountService = Depends(get_account_service)
+):
+    account = await account_service.get_account(account_id)
+    if not account:
+        raise HTTPException(status_code=404, detail="Account not found")
+    return account
+```
+
 ## Validation Patterns
 
 ### Bill Splits Validation
@@ -373,3 +506,4 @@ const useForm = (initialData: FormData) => {
     
     return { data, setData, errors, handleSubmit };
 };
+```

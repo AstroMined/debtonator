@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-03-19
+
+### Added
+- Implemented repository layer foundation (ADR-014):
+  * Created BaseRepository with generic CRUD operations
+  * Implemented RepositoryFactory for dependency injection
+  * Added comprehensive type safety with generics
+  * Created detailed implementation checklist
+- Implemented advanced repository features:
+  * Added pagination with get_paginated() method
+  * Added relationship loading with joinedload
+  * Implemented bulk_create() for transaction support
+  * Added filtering and ordering capabilities
+- Implemented first model-specific repository:
+  * Created AccountRepository with specialized methods
+  * Added methods for account-specific operations
+  * Implemented relationship loading patterns
+  * Added balance update and statement management functions
+
+### Changed
+- Enhanced service layer architecture with repository pattern:
+  * Improved separation between data access and business logic
+  * Standardized data access patterns
+  * Reduced code duplication in data operations
+  * Increased code maintainability
+
 ## [0.4.27] - 2025-03-19
 
 ### Added

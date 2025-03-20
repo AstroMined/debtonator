@@ -9,6 +9,28 @@
   - Automatic OpenAPI documentation
   - Built-in data validation with Pydantic
 
+- **Repository Pattern**:
+  - Separates data access logic from business logic
+  - Provides a consistent interface for database operations
+  - Encapsulates SQLAlchemy-specific implementation details
+  - Enables easier testing through dependency injection
+  - Reduces code duplication across services
+  - Improves maintainability through smaller, focused components
+
+- **Repository Components**:
+  - BaseRepository<ModelType, PKType>: Generic base class with CRUD operations
+  - Model-specific repositories: Extend BaseRepository with specialized queries
+  - RepositoryFactory: Manages and caches repository instances
+  - Dependency injection: Provides repositories to services via FastAPI dependencies
+
+- **Repository Features**:
+  - Type-safe operations with generics
+  - Pagination support for querying large datasets
+  - Filtering capabilities for complex queries
+  - Relationship loading with eager loading patterns
+  - Transaction support for multi-operation consistency
+  - Bulk operations for improved performance
+
 - **Database**:
   - Development: SQLite
     - Simple setup
