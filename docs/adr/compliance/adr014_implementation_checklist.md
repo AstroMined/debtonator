@@ -25,7 +25,9 @@
 4. **Dependency Injection Setup**
    - [x] Create `src/api/dependencies/repositories.py`
    - [x] Implement repository provider functions
-   - [x] Create service providers that use repositories (started with AccountRepository)
+   - [x] Add dependency for AccountRepository
+   - [x] Add dependency for LiabilityRepository
+   - [ ] Add dependencies for remaining repositories
 
 ## Phase 2: Core Repositories
 
@@ -39,12 +41,22 @@
      - [x] Additional methods (`get_with_relationships()`, `get_by_type()`, etc.)
 
 2. **Bill Repository**
-   - [ ] Create `src/repositories/bills.py`
-   - [ ] Implement `BillRepository` class
-   - [ ] Add bill-specific methods:
-     - [ ] `get_bills_due_in_range()`
-     - [ ] `get_bills_by_category()`
-     - [ ] `get_recurring_bills()`
+   - [x] Create `src/repositories/liabilities.py`
+   - [x] Implement `LiabilityRepository` class
+   - [x] Add bill-specific methods:
+     - [x] `get_bills_due_in_range()`
+     - [x] `get_bills_by_category()`
+     - [x] `get_recurring_bills()`
+     - [x] `get_with_splits()`
+     - [x] `get_with_payments()`
+     - [x] `get_with_relationships()`
+     - [x] `find_bills_by_status()`
+     - [x] `get_bills_for_account()`
+     - [x] `get_upcoming_payments()`
+     - [x] `get_overdue_bills()`
+     - [x] `get_monthly_liability_amount()`
+     - [x] `mark_as_paid()`
+     - [x] `reset_payment_status()`
 
 3. **Payment Repository**
    - [ ] Create `src/repositories/payments.py`
@@ -95,8 +107,9 @@
 ## Phase 4: Testing
 
 1. **Test Fixtures**
-   - [ ] Create test database fixtures for repositories
-   - [ ] Implement fixture setup and teardown
+   - [x] Create test database fixtures for repositories
+   - [x] Implement repository test fixtures
+   - [ ] Implement complete test data generation
    - [ ] Add common test utility functions
 
 2. **Base Repository Tests**
@@ -105,8 +118,9 @@
    - [ ] Test filtering and pagination
 
 3. **Model-Specific Repository Tests**
-   - [ ] Create test files for each repository
-   - [ ] Test model-specific methods
+   - [x] Create test file for LiabilityRepository
+   - [ ] Create test files for remaining repositories
+   - [ ] Implement comprehensive tests for model-specific methods
    - [ ] Test advanced querying features
 
 4. **Integration Tests**

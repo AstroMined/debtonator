@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2025-03-19
+
+### Added
+- Implemented LiabilityRepository with comprehensive CRUD operations and specialized methods
+- Added 15+ specialized query methods for bill-related functionality
+- Created integration test skeleton for repository testing
+- Added dependency provider for LiabilityRepository
+
+### Changed
+- Updated ADR-014 implementation checklist to track progress
+- Changed ADR-014 status from "Proposed" to "Accepted - In Implementation"
+- Updated progress tracking in documentation files
+
+### Improved
+- Enhanced repository pattern implementation with relationship loading capabilities
+- Added support for complex bill querying and filtering
+- Improved bill payment status management
+
 ## [0.5.0] - 2025-03-19
 
 ### Added

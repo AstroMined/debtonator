@@ -1,7 +1,7 @@
 # ADR-014: Repository Layer for CRUD Operations
 
 ## Status
-Proposed
+Accepted - In Implementation
 
 ## Context
 Our services layer currently handles both CRUD operations and business logic, leading to several architectural challenges:
