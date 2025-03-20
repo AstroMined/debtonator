@@ -48,12 +48,34 @@ class StatementHistoryRepository(BaseRepository[StatementHistory, int]):
         Returns:
             List[StatementHistory]: List of statement history records
         """
-        result = await self.session.execute(
-            select(StatementHistory)
-            .where(StatementHistory.account_id == account_id)
-            .order_by(desc(StatementHistory.statement_date))
-            .limit(limit)
+        return await self.get_by_account_ordered(
+            account_id=account_id, order_by_desc=True, limit=limit
         )
+
+    async def get_by_account_ordered(
+        self, account_id: int, order_by_desc: bool = False, limit: int = 12
+    ) -> List[StatementHistory]:
+        """
+        Get statement history for an account with ordering option.
+
+        Args:
+            account_id (int): Account ID
+            order_by_desc (bool): Order by statement_date descending if True
+            limit (int): Maximum number of statements to return
+
+        Returns:
+            List[StatementHistory]: List of statement history records
+        """
+        query = select(StatementHistory).where(StatementHistory.account_id == account_id)
+        
+        if order_by_desc:
+            query = query.order_by(desc(StatementHistory.statement_date))
+        else:
+            query = query.order_by(StatementHistory.statement_date)
+        
+        query = query.limit(limit)
+        
+        result = await self.session.execute(query)
         return result.scalars().all()
 
     async def get_latest_statement(self, account_id: int) -> Optional[StatementHistory]:

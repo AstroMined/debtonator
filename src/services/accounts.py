@@ -1,14 +1,20 @@
+"""
+Account service implementation.
+
+This module provides service methods for account management, including account creation,
+update, deletion, and specialized operations like statement balance and credit limit updates.
+"""
+
 from datetime import date
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy import and_, desc, func, select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.core.decimal_precision import DecimalPrecision
 from src.models.accounts import Account as AccountModel
-from src.models.credit_limit_history import CreditLimitHistory
-from src.models.statement_history import StatementHistory
+from src.repositories.accounts import AccountRepository
+from src.repositories.statement_history import StatementHistoryRepository
+from src.repositories.credit_limit_history import CreditLimitHistoryRepository
+from src.repositories.transaction_history import TransactionHistoryRepository
 from src.schemas.accounts import (
     AccountCreate,
     AccountInDB,
@@ -22,11 +28,37 @@ from src.schemas.credit_limit_history import (
     CreditLimitHistoryCreate,
     CreditLimitHistoryUpdate,
 )
+from src.schemas.statement_history import StatementHistoryCreate
 
 
 class AccountService:
-    def __init__(self, session: AsyncSession):
-        self.session = session
+    """
+    Service for account management operations.
+
+    This service handles business logic for account operations including validation,
+    creation, updates, and specialized operations like statement and credit limit management.
+    """
+
+    def __init__(
+        self,
+        account_repo: AccountRepository,
+        statement_repo: StatementHistoryRepository,
+        credit_limit_repo: CreditLimitHistoryRepository,
+        transaction_repo: TransactionHistoryRepository,
+    ):
+        """
+        Initialize service with required repositories.
+
+        Args:
+            account_repo (AccountRepository): Repository for account operations
+            statement_repo (StatementHistoryRepository): Repository for statement history operations
+            credit_limit_repo (CreditLimitHistoryRepository): Repository for credit limit history operations
+            transaction_repo (TransactionHistoryRepository): Repository for transaction history operations
+        """
+        self.account_repo = account_repo
+        self.statement_repo = statement_repo
+        self.credit_limit_repo = credit_limit_repo
+        self.transaction_repo = transaction_repo
 
     async def validate_account_balance(
         self, account: AccountModel, amount: Decimal
@@ -132,11 +164,8 @@ class AccountService:
         Returns:
             Tuple of (is_valid, error_message)
         """
-        # Get the account
-        result = await self.session.execute(
-            select(AccountModel).where(AccountModel.id == account_id)
-        )
-        account = result.scalar_one_or_none()
+        # Get the account using the repository
+        account = await self.account_repo.get(account_id)
 
         # Check if account exists
         if not account:
@@ -224,24 +253,30 @@ class AccountService:
             if not is_valid:
                 raise ValueError(error_message)
 
-        db_account = AccountModel(**account_data.model_dump())
+        # Initialize available_credit for credit accounts
+        account_dict = account_data.model_dump()
+        account_obj = AccountModel(**account_dict)
+        
+        # Calculate available_credit before database insertion
+        if account_obj.type == "credit" and account_obj.total_limit is not None:
+            self._update_available_credit(account_obj)
+            account_dict["available_credit"] = account_obj.available_credit
 
-        # Initialize credit-related fields for credit accounts
-        if db_account.type == "credit" and db_account.total_limit is not None:
-            # Use DecimalPrecision for accurate calculations
-            self._update_available_credit(db_account)
-
-        self.session.add(db_account)
-        await self.session.commit()
-        await self.session.refresh(db_account)
+        # Use repository to create account
+        db_account = await self.account_repo.create(account_dict)
         return AccountInDB.model_validate(db_account)
 
     async def get_account(self, account_id: int) -> Optional[AccountInDB]:
-        """Get an account by ID"""
-        result = await self.session.execute(
-            select(AccountModel).where(AccountModel.id == account_id)
-        )
-        db_account = result.scalar_one_or_none()
+        """
+        Get an account by ID
+
+        Args:
+            account_id: ID of the account to retrieve
+
+        Returns:
+            Account data or None if not found
+        """
+        db_account = await self.account_repo.get(account_id)
         return AccountInDB.model_validate(db_account) if db_account else None
 
     async def update_account(
@@ -260,10 +295,7 @@ class AccountService:
         Raises:
             ValueError: If validation fails
         """
-        result = await self.session.execute(
-            select(AccountModel).where(AccountModel.id == account_id)
-        )
-        db_account = result.scalar_one_or_none()
+        db_account = await self.account_repo.get(account_id)
         if not db_account:
             return None
 
@@ -288,17 +320,18 @@ class AccountService:
             if not is_valid:
                 raise ValueError(error_message)
 
-        # Update fields
+        # Update fields directly in model object for available_credit calculation
         for field, value in update_data.items():
             setattr(db_account, field, value)
 
-        # Update available credit if this is a credit account
+        # Calculate available_credit if this is a credit account
         if db_account.type == "credit":
             self._update_available_credit(db_account)
+            update_data["available_credit"] = db_account.available_credit
 
-        await self.session.commit()
-        await self.session.refresh(db_account)
-        return AccountInDB.model_validate(db_account)
+        # Use repository to update account
+        updated_account = await self.account_repo.update(account_id, update_data)
+        return AccountInDB.model_validate(updated_account) if updated_account else None
 
     async def validate_account_deletion(
         self, account: AccountModel
@@ -357,10 +390,7 @@ class AccountService:
         Raises:
             ValueError: If validation fails
         """
-        result = await self.session.execute(
-            select(AccountModel).where(AccountModel.id == account_id)
-        )
-        db_account = result.scalar_one_or_none()
+        db_account = await self.account_repo.get(account_id)
         if not db_account:
             return False
 
@@ -369,14 +399,17 @@ class AccountService:
         if not is_valid:
             raise ValueError(error_message)
 
-        await self.session.delete(db_account)
-        await self.session.commit()
-        return True
+        # Use repository to delete account
+        return await self.account_repo.delete(account_id)
 
     async def list_accounts(self) -> List[AccountInDB]:
-        """List all accounts"""
-        result = await self.session.execute(select(AccountModel))
-        accounts = result.scalars().all()
+        """
+        List all accounts
+
+        Returns:
+            List of all accounts
+        """
+        accounts = await self.account_repo.get_active_accounts()
         return [AccountInDB.model_validate(account) for account in accounts]
 
     async def validate_statement_update(
@@ -448,10 +481,7 @@ class AccountService:
         Raises:
             ValueError: If validation fails
         """
-        result = await self.session.execute(
-            select(AccountModel).where(AccountModel.id == account_id)
-        )
-        db_account = result.scalar_one_or_none()
+        db_account = await self.account_repo.get(account_id)
         if not db_account:
             return None
 
@@ -462,23 +492,24 @@ class AccountService:
         if not is_valid:
             raise ValueError(error_message)
 
-        # Update current statement info
-        db_account.last_statement_balance = statement_balance
-        db_account.last_statement_date = statement_date
+        # Update current statement info using the account repository
+        account_update = {
+            "last_statement_balance": statement_balance,
+            "last_statement_date": statement_date
+        }
+        updated_account = await self.account_repo.update(account_id, account_update)
 
-        # Create statement history entry
-        statement_history = StatementHistory(
+        # Create statement history entry using the statement repository
+        statement_data = StatementHistoryCreate(
             account_id=account_id,
             statement_date=statement_date,
             statement_balance=statement_balance,
             minimum_payment=minimum_payment,
-            due_date=due_date,
+            due_date=due_date
         )
-        self.session.add(statement_history)
+        await self.statement_repo.create(statement_data.model_dump())
 
-        await self.session.commit()
-        await self.session.refresh(db_account)
-        return AccountInDB.model_validate(db_account)
+        return AccountInDB.model_validate(updated_account) if updated_account else None
 
     async def update_credit_limit(
         self, account_id: int, credit_limit_data: CreditLimitHistoryUpdate
@@ -496,10 +527,7 @@ class AccountService:
         Raises:
             ValueError: If validation fails
         """
-        result = await self.session.execute(
-            select(AccountModel).where(AccountModel.id == account_id)
-        )
-        db_account = result.scalar_one_or_none()
+        db_account = await self.account_repo.get(account_id)
         if not db_account:
             return None
 
@@ -519,27 +547,40 @@ class AccountService:
         db_account.total_limit = credit_limit_data.credit_limit
         self._update_available_credit(db_account)
 
-        # Create credit limit history entry
-        history_entry = CreditLimitHistory(
+        # Use account repository to update the account
+        account_update = {
+            "total_limit": credit_limit_data.credit_limit,
+            "available_credit": db_account.available_credit
+        }
+        updated_account = await self.account_repo.update(account_id, account_update)
+
+        # Create credit limit history entry using the credit limit repository
+        history_data = CreditLimitHistoryCreate(
             account_id=account_id,
             credit_limit=credit_limit_data.credit_limit,
             effective_date=credit_limit_data.effective_date,
-            reason=credit_limit_data.reason,
+            reason=credit_limit_data.reason
         )
-        self.session.add(history_entry)
+        await self.credit_limit_repo.create(history_data.model_dump())
 
-        await self.session.commit()
-        await self.session.refresh(db_account)
-        return AccountInDB.model_validate(db_account)
+        return AccountInDB.model_validate(updated_account) if updated_account else None
 
     async def get_credit_limit_history(
         self, account_id: int
     ) -> Optional[AccountCreditLimitHistoryResponse]:
-        """Get credit limit history for an account"""
-        result = await self.session.execute(
-            select(AccountModel).where(AccountModel.id == account_id)
-        )
-        db_account = result.scalar_one_or_none()
+        """
+        Get credit limit history for an account
+        
+        Args:
+            account_id: ID of the account to get history for
+            
+        Returns:
+            Credit limit history or None if account not found
+            
+        Raises:
+            ValueError: If account is not a credit account
+        """
+        db_account = await self.account_repo.get(account_id)
         if not db_account:
             return None
 
@@ -547,12 +588,9 @@ class AccountService:
             raise ValueError("Credit limit history only available for credit accounts")
 
         # Get credit limit history ordered by effective date descending
-        history_result = await self.session.execute(
-            select(CreditLimitHistory)
-            .where(CreditLimitHistory.account_id == account_id)
-            .order_by(desc(CreditLimitHistory.effective_date))
+        history_records = await self.credit_limit_repo.get_by_account_ordered(
+            account_id, order_by_desc=True
         )
-        history_records = history_result.scalars().all()
 
         return AccountCreditLimitHistoryResponse(
             account_id=db_account.id,
@@ -564,11 +602,19 @@ class AccountService:
     async def calculate_available_credit(
         self, account_id: int
     ) -> Optional[AvailableCreditResponse]:
-        """Calculate real-time available credit for a credit account"""
-        result = await self.session.execute(
-            select(AccountModel).where(AccountModel.id == account_id)
-        )
-        db_account = result.scalar_one_or_none()
+        """
+        Calculate real-time available credit for a credit account
+        
+        Args:
+            account_id: ID of the account to calculate credit for
+            
+        Returns:
+            Available credit information or None if account not found
+            
+        Raises:
+            ValueError: If account is not a credit account
+        """
+        db_account = await self.account_repo.get(account_id)
         if not db_account:
             return None
 
@@ -577,7 +623,7 @@ class AccountService:
                 "Available credit calculation only available for credit accounts"
             )
 
-        # Get pending payments and transactions
+        # Get pending payments and transactions using transaction repository
         pending_debits = await self._get_pending_transactions(account_id)
         pending_credits = await self._get_pending_payments(account_id)
 
@@ -622,49 +668,54 @@ class AccountService:
         )
 
     async def _get_pending_transactions(self, account_id: int) -> Decimal:
-        """Get sum of pending debit transactions"""
-        from src.models.transaction_history import TransactionHistory
-
-        result = await self.session.execute(
-            select(func.sum(TransactionHistory.amount)).where(
-                TransactionHistory.account_id == account_id,
-                TransactionHistory.transaction_type == "debit",
-            )
-        )
-        return result.scalar_one_or_none() or Decimal(0)
+        """
+        Get sum of pending debit transactions
+        
+        Args:
+            account_id: ID of the account to get transactions for
+            
+        Returns:
+            Sum of pending debit transactions
+        """
+        transactions = await self.transaction_repo.get_debit_sum_for_account(account_id)
+        return transactions or Decimal(0)
 
     async def _get_pending_payments(self, account_id: int) -> Decimal:
-        """Get sum of pending credit transactions"""
-        from src.models.transaction_history import TransactionHistory
-
-        result = await self.session.execute(
-            select(func.sum(TransactionHistory.amount)).where(
-                TransactionHistory.account_id == account_id,
-                TransactionHistory.transaction_type == "credit",
-            )
-        )
-        return result.scalar_one_or_none() or Decimal(0)
+        """
+        Get sum of pending credit transactions
+        
+        Args:
+            account_id: ID of the account to get transactions for
+            
+        Returns:
+            Sum of pending credit transactions
+        """
+        payments = await self.transaction_repo.get_credit_sum_for_account(account_id)
+        return payments or Decimal(0)
 
     async def get_statement_history(
         self, account_id: int
     ) -> Optional[AccountStatementHistoryResponse]:
-        """Get statement balance history for an account"""
-        # Get account
-        result = await self.session.execute(
-            select(AccountModel).where(AccountModel.id == account_id)
-        )
-        db_account = result.scalar_one_or_none()
+        """
+        Get statement balance history for an account
+        
+        Args:
+            account_id: ID of the account to get history for
+            
+        Returns:
+            Statement history or None if account not found
+        """
+        # Get account using repository
+        db_account = await self.account_repo.get(account_id)
         if not db_account:
             return None
 
         # Get statement history ordered by date descending
-        history_result = await self.session.execute(
-            select(StatementHistory)
-            .where(StatementHistory.account_id == account_id)
-            .order_by(desc(StatementHistory.statement_date))
+        history_records = await self.statement_repo.get_by_account_ordered(
+            account_id, order_by_desc=True
         )
-        history_records = history_result.scalars().all()
 
+        # Convert to schema response format
         statement_history = [
             StatementBalanceHistory(
                 statement_date=record.statement_date,

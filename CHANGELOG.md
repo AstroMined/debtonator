@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.9] - 2025-03-20
+
+### Added
+- Created unit tests for BaseRepository with comprehensive coverage:
+  * Added tests for CRUD operations with real database fixtures
+  * Implemented tests for filtering, pagination, and relationship loading
+  * Added tests for transaction boundaries and error handling
+  * Created tests for bulk operations with proper validation
+
+### Changed
+- Refactored AccountService to use repository pattern:
+  * Updated service to inject repositories through constructor
+  * Removed direct database access in favor of repository methods
+  * Maintained existing functionality while improving architecture
+  * Implemented proper schema validation flow throughout the service
+- Added required repository methods to support the AccountService:
+  * Added get_by_account_ordered to StatementHistoryRepository and CreditLimitHistoryRepository
+  * Added get_debit_sum_for_account and get_credit_sum_for_account to TransactionHistoryRepository
+  * Ensured backward compatibility with existing code
+
+### Improved
+- Created comprehensive documentation for service-repository integration:
+  * Documented patterns for integrating services with repositories
+  * Included examples of dependency injection and transaction management
+  * Defined clear validation flow and error handling patterns
+  * Established testing approach with real fixtures
+
 ## [0.5.8] - 2025-03-20
 
 ### Changed

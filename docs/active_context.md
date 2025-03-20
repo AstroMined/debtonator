@@ -1,77 +1,70 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Completing Repository Layer Implementation (ADR-014)
+Implementing Service Layer Refactoring (ADR-014)
 
 ### Recent Changes
 
-1. **Completed All Repository Implementations** ✓
-   - Implemented CreditLimitHistoryRepository for tracking credit limit changes
-   - Created BalanceReconciliationRepository for managing balance reconciliations
-   - Added TransactionHistoryRepository for transaction tracking
-   - Enhanced BaseRepository with bulk_update and transaction support
-   - Added specialized methods for each repository following consistent patterns
+1. **Completed AccountService Refactoring** ✓
+   - Refactored AccountService to use repositories instead of direct database access
+   - Updated service to inject repositories through constructor
+   - Maintained existing functionality while improving architecture
+   - Implemented proper schema validation flow throughout the service
 
-2. **Created Comprehensive Repository Tests** ✓
-   - Implemented tests for all new repositories following the 4-step pattern
-   - Added validation error testing for each repository
-   - Created fixtures and test data generation for thorough testing
-   - Ensured all tests pass data through Pydantic schemas first
+2. **Added Required Repository Methods** ✓
+   - Added `get_by_account_ordered` to StatementHistoryRepository
+   - Added `get_by_account_ordered` to CreditLimitHistoryRepository
+   - Added `get_debit_sum_for_account` and `get_credit_sum_for_account` to TransactionHistoryRepository
+   - Ensured backward compatibility with existing code
 
-3. **Enhanced Schema Factory Functions** ✓
-   - Added factory functions for CreditLimitHistory, BalanceReconciliation, and TransactionHistory
-   - Made factory functions configurable with sensible defaults
-   - Ensured proper validation flow in test code
-   - Used model_dump() consistently to convert schemas to dicts
-
-4. **Updated Dependency Injection Setup** ✓
-   - Added dependency provider functions for all new repositories
-   - Maintained consistent pattern across all repositories
-   - Connected repositories to dependency injection system
-   - Ensured proper session management across dependencies
-
-5. **Completed the Repository Testing Pattern** ✓
-   - Finalized the Arrange-Schema-Act-Assert pattern across all tests
-   - Ensured proper validation flow in all test modules
+3. **Implemented Unit Tests for BaseRepository** ✓
+   - Created dedicated unit tests for BaseRepository
+   - Tested all CRUD operations with real database fixtures
+   - Implemented tests for filtering, pagination, and relationship loading
    - Added tests for transaction boundaries and error handling
-   - Implemented tests for advanced querying features
 
-6. **Standardized Schema File Organization** ✓
-   - Created dedicated schema files that match model naming (transaction_history, credit_limit_history)
-   - Eliminated circular imports by removing re-exports from __init__.py
-   - Fixed test inconsistencies with explicit required fields in schemas
-   - Made schema Create/Update classes consistent with repository expectations
+4. **Updated Service Tests** ✓
+   - Updated AccountService tests to work with repository pattern
+   - Used real database fixtures instead of mocks
+   - Added tests for new functionality like retrieving history
+   - Followed the Arrange-Schema-Act-Assert pattern consistently
+
+5. **Created Service-Repository Integration Documentation** ✓
+   - Documented patterns for integrating services with repositories
+   - Included examples of dependency injection and transaction management
+   - Defined clear validation flow and error handling patterns
+   - Established testing approach with real fixtures
 
 ## Next Steps
 
-1. **Begin Service Layer Refactoring**
-   - Start with AccountService as proof of concept
-   - Update service to use repository pattern
-   - Create unit tests using mock repositories
-   - Update API endpoints to use refactored service
+1. **Refactor Remaining Core Services**
+   - Apply the repository pattern to BillService and PaymentService
+   - Update service tests to use the new pattern
+   - Ensure proper validation flow in all services
+   - Maintain backward compatibility with existing code
 
-2. **Complete Unit Tests for BaseRepository**
-   - Create dedicated unit tests for BaseRepository
-   - Test all CRUD operations with controlled fixtures
-   - Ensure proper coverage of filtering and pagination
-   - Test transaction handling and error scenarios
+2. **Update API Dependency Injection**
+   - Update API endpoints to use the refactored services
+   - Create dedicated service provider functions
+   - Update API tests to use the new dependencies
+   - Ensure proper error handling at the API level
 
-3. **Create Repository Documentation**
-   - Document common patterns and best practices
-   - Create usage examples for repositories
-   - Document repository interfaces and methods
-   - Create examples of service-repository integration
+3. **Complete Repository Error Handling**
+   - Implement custom repository exceptions
+   - Add error translation in services
+   - Update tests to verify error handling behavior
+   - Document exception handling patterns
 
 ## Implementation Lessons
 
-1. **Repository Transaction Pattern**
-   - Using async context managers for transaction boundaries provides a clean API
-   - Context managers handle both commit and rollback cases automatically
-   - This pattern enables method chaining within transaction blocks
-   - Transactions should be managed at the service layer, not within repositories
+1. **Service-Repository Boundary**
+   - Services own business logic and validation
+   - Repositories focus solely on data access patterns
+   - Clear separation improves testability and maintainability
+   - Pydantic schemas provide the boundary between layers
 
-2. **Factory Function Design**
-   - Factory functions should have sensible defaults but allow overrides
-   - Use optional parameters with None defaults for flexibility
-   - Calculate derived fields within the factory when possible
-   - Document factory function usage patterns for team reference
+2. **Testing with Real Database Fixtures**
+   - Using real database fixtures is preferable to mocks
+   - Real fixtures validate actual behavior and catch integration issues
+   - Following the Arrange-Schema-Act-Assert pattern ensures proper validation flow
+   - Fixtures should be reusable across multiple test cases

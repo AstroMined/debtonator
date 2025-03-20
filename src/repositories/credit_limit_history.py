@@ -47,12 +47,33 @@ class CreditLimitHistoryRepository(BaseRepository[CreditLimitHistory, int]):
         Returns:
             List[CreditLimitHistory]: List of credit limit history entries
         """
-        query = (
-            select(CreditLimitHistory)
-            .where(CreditLimitHistory.account_id == account_id)
-            .order_by(CreditLimitHistory.effective_date.desc())
-            .limit(limit)
+        return await self.get_by_account_ordered(
+            account_id=account_id, order_by_desc=True, limit=limit
         )
+
+    async def get_by_account_ordered(
+        self, account_id: int, order_by_desc: bool = False, limit: int = 100
+    ) -> List[CreditLimitHistory]:
+        """
+        Get credit limit history entries for an account with ordering option.
+
+        Args:
+            account_id (int): Account ID to get history for
+            order_by_desc (bool): Order by effective_date descending if True
+            limit (int, optional): Maximum number of entries to return
+
+        Returns:
+            List[CreditLimitHistory]: List of credit limit history entries
+        """
+        query = select(CreditLimitHistory).where(CreditLimitHistory.account_id == account_id)
+        
+        if order_by_desc:
+            query = query.order_by(CreditLimitHistory.effective_date.desc())
+        else:
+            query = query.order_by(CreditLimitHistory.effective_date)
+            
+        query = query.limit(limit)
+        
         result = await self.session.execute(query)
         return result.scalars().all()
 

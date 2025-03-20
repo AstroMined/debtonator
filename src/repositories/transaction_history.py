@@ -34,6 +34,30 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
         """
         super().__init__(session, TransactionHistory)
 
+    async def get_debit_sum_for_account(self, account_id: int) -> Decimal:
+        """
+        Get sum of debit transactions for an account.
+        
+        Args:
+            account_id (int): Account ID to get sum for
+            
+        Returns:
+            Decimal: Sum of debit transactions
+        """
+        return await self.get_total_by_type(account_id, TransactionType.DEBIT)
+
+    async def get_credit_sum_for_account(self, account_id: int) -> Decimal:
+        """
+        Get sum of credit transactions for an account.
+        
+        Args:
+            account_id (int): Account ID to get sum for
+            
+        Returns:
+            Decimal: Sum of credit transactions
+        """
+        return await self.get_total_by_type(account_id, TransactionType.CREDIT)
+
     async def get_by_account(
         self, account_id: int, limit: int = 100
     ) -> List[TransactionHistory]:
@@ -443,3 +467,31 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
 
         # Use bulk_create method from BaseRepository
         return await self.bulk_create(transactions)
+        
+    async def get_by_account_ordered(
+        self, account_id: int, order_by_desc: bool = False, limit: int = 100
+    ) -> List[TransactionHistory]:
+        """
+        Get transaction history entries for an account with ordering option.
+
+        Args:
+            account_id (int): Account ID to get history for
+            order_by_desc (bool): Order by transaction_date descending if True
+            limit (int, optional): Maximum number of entries to return
+
+        Returns:
+            List[TransactionHistory]: List of transaction history entries
+        """
+        query = select(TransactionHistory).where(
+            TransactionHistory.account_id == account_id
+        )
+        
+        if order_by_desc:
+            query = query.order_by(TransactionHistory.transaction_date.desc())
+        else:
+            query = query.order_by(TransactionHistory.transaction_date)
+            
+        query = query.limit(limit)
+        
+        result = await self.session.execute(query)
+        return result.scalars().all()
