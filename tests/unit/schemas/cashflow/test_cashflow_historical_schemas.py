@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Dict, List, Tuple
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
@@ -7,10 +7,10 @@ import pytest
 from pydantic import ValidationError
 
 from src.schemas.cashflow.historical import (
-    HistoricalTrendMetrics,
     HistoricalPeriodAnalysis,
+    HistoricalTrendMetrics,
+    HistoricalTrendsResponse,
     SeasonalityAnalysis,
-    HistoricalTrendsResponse
 )
 
 
@@ -23,14 +23,17 @@ def test_historical_trend_metrics_valid():
         trend_direction="increasing",
         trend_strength=Decimal("0.75"),
         seasonal_factors={"monthly": Decimal("0.5"), "holiday": Decimal("0.3")},
-        confidence_score=Decimal("0.85")
+        confidence_score=Decimal("0.85"),
     )
-    
+
     assert metrics.average_daily_change == Decimal("25.50")
     assert metrics.volatility == Decimal("75.25")
     assert metrics.trend_direction == "increasing"
     assert metrics.trend_strength == Decimal("0.75")
-    assert metrics.seasonal_factors == {"monthly": Decimal("0.5"), "holiday": Decimal("0.3")}
+    assert metrics.seasonal_factors == {
+        "monthly": Decimal("0.5"),
+        "holiday": Decimal("0.3"),
+    }
     assert metrics.confidence_score == Decimal("0.85")
 
 
@@ -38,7 +41,7 @@ def test_historical_period_analysis_valid():
     """Test valid historical period analysis schema creation"""
     now = datetime.now(timezone.utc)
     past = now - timedelta(days=30)
-    
+
     analysis = HistoricalPeriodAnalysis(
         period_start=past,
         period_end=now,
@@ -50,10 +53,10 @@ def test_historical_period_analysis_valid():
         net_change=Decimal("800.00"),
         significant_events=[
             {"date": "2025-02-15", "description": "Large deposit received"},
-            {"date": "2025-02-28", "description": "Annual subscription payment"}
-        ]
+            {"date": "2025-02-28", "description": "Annual subscription payment"},
+        ],
     )
-    
+
     assert analysis.period_start == past
     assert analysis.period_end == now
     assert analysis.average_balance == Decimal("2500.00")
@@ -72,25 +75,22 @@ def test_seasonality_analysis_valid():
         monthly_patterns={
             1: Decimal("0.8"),  # January
             2: Decimal("0.7"),  # February
-            3: Decimal("0.6")   # March
+            3: Decimal("0.6"),  # March
         },
         day_of_week_patterns={
             0: Decimal("0.4"),  # Sunday
             1: Decimal("0.6"),  # Monday
-            5: Decimal("0.8")   # Friday
+            5: Decimal("0.8"),  # Friday
         },
         day_of_month_patterns={
-            1: Decimal("0.9"),   # 1st of month
+            1: Decimal("0.9"),  # 1st of month
             15: Decimal("0.7"),  # 15th of month
-            30: Decimal("0.5")   # 30th of month
+            30: Decimal("0.5"),  # 30th of month
         },
-        holiday_impacts={
-            "Christmas": Decimal("0.9"),
-            "Thanksgiving": Decimal("0.7")
-        },
-        seasonal_strength=Decimal("0.75")
+        holiday_impacts={"Christmas": Decimal("0.9"), "Thanksgiving": Decimal("0.7")},
+        seasonal_strength=Decimal("0.75"),
     )
-    
+
     assert seasonality.monthly_patterns[1] == Decimal("0.8")
     assert seasonality.day_of_week_patterns[5] == Decimal("0.8")
     assert seasonality.day_of_month_patterns[15] == Decimal("0.7")
@@ -102,16 +102,16 @@ def test_historical_trends_response_valid():
     """Test valid historical trends response schema creation"""
     now = datetime.now(timezone.utc)
     past = now - timedelta(days=30)
-    
+
     metrics = HistoricalTrendMetrics(
         average_daily_change=Decimal("25.50"),
         volatility=Decimal("75.25"),
         trend_direction="increasing",
         trend_strength=Decimal("0.75"),
         seasonal_factors={"monthly": Decimal("0.5")},
-        confidence_score=Decimal("0.85")
+        confidence_score=Decimal("0.85"),
     )
-    
+
     analysis = HistoricalPeriodAnalysis(
         period_start=past,
         period_end=now,
@@ -121,37 +121,24 @@ def test_historical_trends_response_valid():
         total_inflow=Decimal("5000.00"),
         total_outflow=Decimal("4200.00"),
         net_change=Decimal("800.00"),
-        significant_events=[
-            {"date": "2025-02-15", "description": "Large deposit"}
-        ]
+        significant_events=[{"date": "2025-02-15", "description": "Large deposit"}],
     )
-    
+
     seasonality = SeasonalityAnalysis(
-        monthly_patterns={
-            1: Decimal("0.8"),
-            2: Decimal("0.7")
-        },
-        day_of_week_patterns={
-            0: Decimal("0.4"),
-            1: Decimal("0.6")
-        },
-        day_of_month_patterns={
-            1: Decimal("0.9"),
-            15: Decimal("0.7")
-        },
-        holiday_impacts={
-            "Christmas": Decimal("0.9")
-        },
-        seasonal_strength=Decimal("0.75")
+        monthly_patterns={1: Decimal("0.8"), 2: Decimal("0.7")},
+        day_of_week_patterns={0: Decimal("0.4"), 1: Decimal("0.6")},
+        day_of_month_patterns={1: Decimal("0.9"), 15: Decimal("0.7")},
+        holiday_impacts={"Christmas": Decimal("0.9")},
+        seasonal_strength=Decimal("0.75"),
     )
-    
+
     response = HistoricalTrendsResponse(
         metrics=metrics,
         period_analysis=[analysis],
         seasonality=seasonality,
-        timestamp=now
+        timestamp=now,
     )
-    
+
     assert response.metrics == metrics
     assert len(response.period_analysis) == 1
     assert response.period_analysis[0] == analysis
@@ -170,80 +157,92 @@ def test_trend_direction_validation():
             trend_direction="sideways",  # Invalid value
             trend_strength=Decimal("0.75"),
             seasonal_factors={"monthly": Decimal("0.5")},
-            confidence_score=Decimal("0.85")
+            confidence_score=Decimal("0.85"),
         )
 
 
 def test_trend_strength_range():
     """Test trend strength range validation"""
     # Test below minimum
-    with pytest.raises(ValidationError, match="Input should be greater than or equal to 0"):
+    with pytest.raises(
+        ValidationError, match="Input should be greater than or equal to 0"
+    ):
         HistoricalTrendMetrics(
             average_daily_change=Decimal("25.50"),
             volatility=Decimal("75.25"),
             trend_direction="increasing",
             trend_strength=Decimal("-0.1"),  # Below minimum
             seasonal_factors={"monthly": Decimal("0.5")},
-            confidence_score=Decimal("0.85")
+            confidence_score=Decimal("0.85"),
         )
-    
+
     # Test above maximum
-    with pytest.raises(ValidationError, match="Input should be less than or equal to 1"):
+    with pytest.raises(
+        ValidationError, match="Input should be less than or equal to 1"
+    ):
         HistoricalTrendMetrics(
             average_daily_change=Decimal("25.50"),
             volatility=Decimal("75.25"),
             trend_direction="increasing",
             trend_strength=Decimal("1.1"),  # Above maximum
             seasonal_factors={"monthly": Decimal("0.5")},
-            confidence_score=Decimal("0.85")
+            confidence_score=Decimal("0.85"),
         )
 
 
 def test_confidence_score_range():
     """Test confidence score range validation"""
     # Test below minimum
-    with pytest.raises(ValidationError, match="Input should be greater than or equal to 0"):
+    with pytest.raises(
+        ValidationError, match="Input should be greater than or equal to 0"
+    ):
         HistoricalTrendMetrics(
             average_daily_change=Decimal("25.50"),
             volatility=Decimal("75.25"),
             trend_direction="increasing",
             trend_strength=Decimal("0.75"),
             seasonal_factors={"monthly": Decimal("0.5")},
-            confidence_score=Decimal("-0.1")  # Below minimum
+            confidence_score=Decimal("-0.1"),  # Below minimum
         )
-    
+
     # Test above maximum
-    with pytest.raises(ValidationError, match="Input should be less than or equal to 1"):
+    with pytest.raises(
+        ValidationError, match="Input should be less than or equal to 1"
+    ):
         HistoricalTrendMetrics(
             average_daily_change=Decimal("25.50"),
             volatility=Decimal("75.25"),
             trend_direction="increasing",
             trend_strength=Decimal("0.75"),
             seasonal_factors={"monthly": Decimal("0.5")},
-            confidence_score=Decimal("1.1")  # Above maximum
+            confidence_score=Decimal("1.1"),  # Above maximum
         )
 
 
 def test_seasonal_strength_range():
     """Test seasonal strength range validation"""
     # Test below minimum
-    with pytest.raises(ValidationError, match="Input should be greater than or equal to 0"):
+    with pytest.raises(
+        ValidationError, match="Input should be greater than or equal to 0"
+    ):
         SeasonalityAnalysis(
             monthly_patterns={1: Decimal("0.8")},
             day_of_week_patterns={0: Decimal("0.4")},
             day_of_month_patterns={1: Decimal("0.9")},
             holiday_impacts={"Christmas": Decimal("0.9")},
-            seasonal_strength=Decimal("-0.1")  # Below minimum
+            seasonal_strength=Decimal("-0.1"),  # Below minimum
         )
-    
+
     # Test above maximum
-    with pytest.raises(ValidationError, match="Input should be less than or equal to 1"):
+    with pytest.raises(
+        ValidationError, match="Input should be less than or equal to 1"
+    ):
         SeasonalityAnalysis(
             monthly_patterns={1: Decimal("0.8")},
             day_of_week_patterns={0: Decimal("0.4")},
             day_of_month_patterns={1: Decimal("0.9")},
             holiday_impacts={"Christmas": Decimal("0.9")},
-            seasonal_strength=Decimal("1.1")  # Above maximum
+            seasonal_strength=Decimal("1.1"),  # Above maximum
         )
 
 
@@ -257,13 +256,13 @@ def test_decimal_precision():
             trend_direction="increasing",
             trend_strength=Decimal("0.75"),
             seasonal_factors={"monthly": Decimal("0.5")},
-            confidence_score=Decimal("0.85")
+            confidence_score=Decimal("0.85"),
         )
-    
+
     # Test too many decimal places in average_balance
     now = datetime.now(timezone.utc)
     past = now - timedelta(days=30)
-    
+
     with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         HistoricalPeriodAnalysis(
             period_start=past,
@@ -274,9 +273,9 @@ def test_decimal_precision():
             total_inflow=Decimal("5000.00"),
             total_outflow=Decimal("4200.00"),
             net_change=Decimal("800.00"),
-            significant_events=[]
+            significant_events=[],
         )
-        
+
     # Test too many decimal places in percentage fields
     with pytest.raises(ValidationError, match="Input should be a multiple of 0.0001"):
         HistoricalTrendMetrics(
@@ -285,7 +284,7 @@ def test_decimal_precision():
             trend_direction="increasing",
             trend_strength=Decimal("0.75001"),  # Too many decimal places
             seasonal_factors={"monthly": Decimal("0.5")},
-            confidence_score=Decimal("0.85")
+            confidence_score=Decimal("0.85"),
         )
 
 
@@ -293,7 +292,7 @@ def test_datetime_utc_validation():
     """Test datetime UTC validation per ADR-011"""
     now = datetime.now(timezone.utc)
     past = now - timedelta(days=30)
-    
+
     # Test naive datetime in period_start
     with pytest.raises(ValidationError, match="Datetime must be UTC"):
         HistoricalPeriodAnalysis(
@@ -305,9 +304,9 @@ def test_datetime_utc_validation():
             total_inflow=Decimal("5000.00"),
             total_outflow=Decimal("4200.00"),
             net_change=Decimal("800.00"),
-            significant_events=[]
+            significant_events=[],
         )
-    
+
     # Test non-UTC timezone in period_end
     with pytest.raises(ValidationError, match="Datetime must be UTC"):
         HistoricalPeriodAnalysis(
@@ -319,9 +318,9 @@ def test_datetime_utc_validation():
             total_inflow=Decimal("5000.00"),
             total_outflow=Decimal("4200.00"),
             net_change=Decimal("800.00"),
-            significant_events=[]
+            significant_events=[],
         )
-    
+
     # Create valid component schemas for testing response
     metrics = HistoricalTrendMetrics(
         average_daily_change=Decimal("25.50"),
@@ -329,9 +328,9 @@ def test_datetime_utc_validation():
         trend_direction="increasing",
         trend_strength=Decimal("0.75"),
         seasonal_factors={"monthly": Decimal("0.5")},
-        confidence_score=Decimal("0.85")
+        confidence_score=Decimal("0.85"),
     )
-    
+
     analysis = HistoricalPeriodAnalysis(
         period_start=past,
         period_end=now,
@@ -341,33 +340,33 @@ def test_datetime_utc_validation():
         total_inflow=Decimal("5000.00"),
         total_outflow=Decimal("4200.00"),
         net_change=Decimal("800.00"),
-        significant_events=[]
+        significant_events=[],
     )
-    
+
     seasonality = SeasonalityAnalysis(
         monthly_patterns={1: Decimal("0.8")},
         day_of_week_patterns={0: Decimal("0.4")},
         day_of_month_patterns={1: Decimal("0.9")},
         holiday_impacts={"Christmas": Decimal("0.9")},
-        seasonal_strength=Decimal("0.75")
+        seasonal_strength=Decimal("0.75"),
     )
-    
+
     # Test naive datetime in timestamp
     with pytest.raises(ValidationError, match="Datetime must be UTC"):
         HistoricalTrendsResponse(
             metrics=metrics,
             period_analysis=[analysis],
             seasonality=seasonality,
-            timestamp=datetime.now()  # Naive datetime
+            timestamp=datetime.now(),  # Naive datetime
         )
-    
+
     # Test non-UTC timezone in timestamp
     with pytest.raises(ValidationError, match="Datetime must be UTC"):
         HistoricalTrendsResponse(
             metrics=metrics,
             period_analysis=[analysis],
             seasonality=seasonality,
-            timestamp=datetime.now(ZoneInfo("America/New_York"))  # Non-UTC timezone
+            timestamp=datetime.now(ZoneInfo("America/New_York")),  # Non-UTC timezone
         )
 
 
@@ -380,13 +379,13 @@ def test_required_fields():
             trend_direction="increasing",
             trend_strength=Decimal("0.75"),
             seasonal_factors={"monthly": Decimal("0.5")},
-            confidence_score=Decimal("0.85")
+            confidence_score=Decimal("0.85"),
         )
-    
+
     # Test missing fields in HistoricalPeriodAnalysis
     now = datetime.now(timezone.utc)
     past = now - timedelta(days=30)
-    
+
     with pytest.raises(ValidationError, match="Field required"):
         HistoricalPeriodAnalysis(
             period_start=past,
@@ -396,19 +395,19 @@ def test_required_fields():
             total_inflow=Decimal("5000.00"),
             total_outflow=Decimal("4200.00"),
             net_change=Decimal("800.00"),
-            significant_events=[]
+            significant_events=[],
         )
-    
+
     # Test missing fields in SeasonalityAnalysis
     with pytest.raises(ValidationError, match="Field required"):
         SeasonalityAnalysis(
             monthly_patterns={1: Decimal("0.8")},
             day_of_week_patterns={0: Decimal("0.4")},
             day_of_month_patterns={1: Decimal("0.9")},
-            holiday_impacts={"Christmas": Decimal("0.9")}
+            holiday_impacts={"Christmas": Decimal("0.9")},
             # Missing seasonal_strength
         )
-    
+
     # Test missing fields in HistoricalTrendsResponse
     metrics = HistoricalTrendMetrics(
         average_daily_change=Decimal("25.50"),
@@ -416,9 +415,9 @@ def test_required_fields():
         trend_direction="increasing",
         trend_strength=Decimal("0.75"),
         seasonal_factors={"monthly": Decimal("0.5")},
-        confidence_score=Decimal("0.85")
+        confidence_score=Decimal("0.85"),
     )
-    
+
     analysis = HistoricalPeriodAnalysis(
         period_start=past,
         period_end=now,
@@ -428,20 +427,18 @@ def test_required_fields():
         total_inflow=Decimal("5000.00"),
         total_outflow=Decimal("4200.00"),
         net_change=Decimal("800.00"),
-        significant_events=[]
+        significant_events=[],
     )
-    
+
     seasonality = SeasonalityAnalysis(
         monthly_patterns={1: Decimal("0.8")},
         day_of_week_patterns={0: Decimal("0.4")},
         day_of_month_patterns={1: Decimal("0.9")},
         holiday_impacts={"Christmas": Decimal("0.9")},
-        seasonal_strength=Decimal("0.75")
+        seasonal_strength=Decimal("0.75"),
     )
-    
+
     with pytest.raises(ValidationError, match="Field required"):
         HistoricalTrendsResponse(
-            period_analysis=[analysis],
-            seasonality=seasonality,
-            timestamp=now
+            period_analysis=[analysis], seasonality=seasonality, timestamp=now
         )

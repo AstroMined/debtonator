@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import DateTime, Index, Numeric, String
+from sqlalchemy import DateTime, Index, Numeric
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base_model import BaseDBModel

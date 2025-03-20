@@ -1,5 +1,5 @@
-from sqlalchemy.orm import DeclarativeBase, declared_attr
 from sqlalchemy import MetaData
+from sqlalchemy.orm import DeclarativeBase, declared_attr
 
 # Define naming convention for constraints
 NAMING_CONVENTION = {
@@ -7,24 +7,24 @@ NAMING_CONVENTION = {
     "uq": "uq_%(table_name)s_%(column_0_name)s",
     "ck": "ck_%(table_name)s_%(constraint_name)s",
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-    "pk": "pk_%(table_name)s"
+    "pk": "pk_%(table_name)s",
 }
 
 # Create a base metadata instance with proper dialect options
-metadata = MetaData(
-    naming_convention=NAMING_CONVENTION
-)
+metadata = MetaData(naming_convention=NAMING_CONVENTION)
 
 # Configure SQLite dialect options
 from sqlalchemy.dialects import sqlite
+
 sqlite.DATETIME = sqlite.DATETIME(
     timezone=True,
-    storage_format="%(year)04d-%(month)02d-%(day)02d %(hour)02d:%(minute)02d:%(second)02d%(tz_name)s"
+    storage_format="%(year)04d-%(month)02d-%(day)02d %(hour)02d:%(minute)02d:%(second)02d%(tz_name)s",
 )
+
 
 class Base(DeclarativeBase):
     """Base class for all database models"""
-    
+
     @declared_attr.directive
     @classmethod
     def __tablename__(cls) -> str:
@@ -34,19 +34,20 @@ class Base(DeclarativeBase):
     # Use the configured metadata
     metadata = metadata
 
+
 # Import all models at the bottom to avoid circular imports
 from ..models import (
     accounts,
     bill_splits,
-    recurring_bills,
-    income,
     cashflow,
+    categories,
+    deposit_schedules,
+    income,
+    income_categories,
     liabilities,
     payments,
-    categories,
-    income_categories,
-    deposit_schedules,
-    recurring_income
+    recurring_bills,
+    recurring_income,
 )
 
 __all__ = [
@@ -61,5 +62,5 @@ __all__ = [
     "categories",
     "income_categories",
     "deposit_schedules",
-    "recurring_income"
+    "recurring_income",
 ]

@@ -32,7 +32,3 @@ class BalanceHistory(BaseDBModel):
     account: Mapped["Account"] = relationship(
         "Account", back_populates="balance_history"
     )
-
-
-# Add this to Account model in src/models/accounts.py:
-# balance_history = relationship("BalanceHistory", back_populates="account", cascade="all, delete-orphan")

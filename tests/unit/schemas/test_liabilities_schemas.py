@@ -326,7 +326,5 @@ def test_liability_date_range_validation():
     # Test non-UTC datetime rejection
     est_time = datetime.now(ZoneInfo("America/New_York"))
     with pytest.raises(ValidationError) as exc_info:
-        LiabilityDateRange(
-            start_date=est_time, end_date=now + timedelta(days=10)
-        )
+        LiabilityDateRange(start_date=est_time, end_date=now + timedelta(days=10))
     assert "Datetime must be UTC" in str(exc_info.value)

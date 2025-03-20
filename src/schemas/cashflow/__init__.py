@@ -1,42 +1,38 @@
 # Re-export all schemas for backward compatibility
+from src.schemas.cashflow.account_analysis import (
+    AccountCorrelation,
+    AccountRiskAssessment,
+    AccountUsagePattern,
+    BalanceDistribution,
+    CrossAccountAnalysis,
+    TransferPattern,
+)
 from src.schemas.cashflow.base import (
     CashflowBase,
     CashflowCreate,
-    CashflowUpdate,
+    CashflowFilters,
     CashflowInDB,
-    CashflowResponse,
     CashflowList,
-    CashflowFilters
+    CashflowResponse,
+    CashflowUpdate,
 )
-
-from src.schemas.cashflow.metrics import (
-    MinimumRequired,
-    DeficitCalculation,
-    HourlyRates
-)
-
-from src.schemas.cashflow.account_analysis import (
-    AccountCorrelation,
-    TransferPattern,
-    AccountUsagePattern,
-    BalanceDistribution,
-    AccountRiskAssessment,
-    CrossAccountAnalysis
-)
-
 from src.schemas.cashflow.forecasting import (
-    CustomForecastParameters,
-    CustomForecastResult,
-    CustomForecastResponse,
-    AccountForecastRequest,
     AccountForecastMetrics,
+    AccountForecastRequest,
+    AccountForecastResponse,
     AccountForecastResult,
-    AccountForecastResponse
+    CustomForecastParameters,
+    CustomForecastResponse,
+    CustomForecastResult,
 )
-
 from src.schemas.cashflow.historical import (
-    HistoricalTrendMetrics,
     HistoricalPeriodAnalysis,
+    HistoricalTrendMetrics,
+    HistoricalTrendsResponse,
     SeasonalityAnalysis,
-    HistoricalTrendsResponse
+)
+from src.schemas.cashflow.metrics import (
+    DeficitCalculation,
+    HourlyRates,
+    MinimumRequired,
 )

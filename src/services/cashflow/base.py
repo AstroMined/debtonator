@@ -1,15 +1,17 @@
 from datetime import date
-from sqlalchemy.ext.asyncio import AsyncSession
 from zoneinfo import ZoneInfo
 
-from .types import CashflowWarningThresholds, CashflowHolidays
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from .types import CashflowHolidays, CashflowWarningThresholds
+
 
 class BaseService:
     """Base service with shared functionality for cashflow services."""
-    
+
     def __init__(self, db: AsyncSession):
         """Initialize the base service.
-        
+
         Args:
             db: SQLAlchemy async session for database operations
         """
@@ -32,7 +34,7 @@ class BaseService:
 
     async def _validate_session(self) -> bool:
         """Validate that the database session is active and usable.
-        
+
         Returns:
             bool: True if session is valid, False otherwise
         """

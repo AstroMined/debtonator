@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
+
 import pytest
 from sqlalchemy import select
 
@@ -7,6 +8,7 @@ from src.models.accounts import Account
 from src.models.payments import Payment, PaymentSource
 from src.models.transaction_history import TransactionHistory
 from src.services.realtime_cashflow import RealtimeCashflowService
+
 
 @pytest.mark.asyncio
 async def test_analyze_account_correlations(db_session):
@@ -17,7 +19,7 @@ async def test_analyze_account_correlations(db_session):
         type="checking",
         available_balance=Decimal("1000.00"),
         created_at=datetime.now().date(),
-        updated_at=datetime.now().date()
+        updated_at=datetime.now().date(),
     )
     credit = Account(
         name="Test Credit",
@@ -26,7 +28,7 @@ async def test_analyze_account_correlations(db_session):
         available_credit=Decimal("1500.00"),
         total_limit=Decimal("2000.00"),
         created_at=datetime.now().date(),
-        updated_at=datetime.now().date()
+        updated_at=datetime.now().date(),
     )
     db_session.add_all([checking, credit])
     await db_session.commit()
@@ -37,7 +39,7 @@ async def test_analyze_account_correlations(db_session):
         payment_date=datetime.now().date(),
         category="Transfer",
         created_at=datetime.now(),
-        updated_at=datetime.now()
+        updated_at=datetime.now(),
     )
     db_session.add(payment)
     await db_session.commit()
@@ -47,7 +49,7 @@ async def test_analyze_account_correlations(db_session):
         account_id=checking.id,
         amount=Decimal("100.00"),
         created_at=datetime.now(),
-        updated_at=datetime.now()
+        updated_at=datetime.now(),
     )
     db_session.add(source)
     await db_session.commit()
@@ -59,7 +61,12 @@ async def test_analyze_account_correlations(db_session):
     assert str(checking.id) in correlations
     assert str(credit.id) in correlations[str(checking.id)]
     correlation = correlations[str(checking.id)][str(credit.id)]
-    assert correlation.relationship_type in ["complementary", "supplementary", "independent"]
+    assert correlation.relationship_type in [
+        "complementary",
+        "supplementary",
+        "independent",
+    ]
+
 
 @pytest.mark.asyncio
 async def test_analyze_transfer_patterns(db_session):
@@ -70,7 +77,7 @@ async def test_analyze_transfer_patterns(db_session):
         type="checking",
         available_balance=Decimal("1000.00"),
         created_at=datetime.now().date(),
-        updated_at=datetime.now().date()
+        updated_at=datetime.now().date(),
     )
     db_session.add(account)
     await db_session.commit()
@@ -82,7 +89,7 @@ async def test_analyze_transfer_patterns(db_session):
             payment_date=datetime.now().date(),
             category="Transfer",
             created_at=datetime.now(),
-            updated_at=datetime.now()
+            updated_at=datetime.now(),
         )
         db_session.add(payment)
         await db_session.commit()
@@ -92,7 +99,7 @@ async def test_analyze_transfer_patterns(db_session):
             account_id=account.id,
             amount=Decimal("50.00"),
             created_at=datetime.now(),
-            updated_at=datetime.now()
+            updated_at=datetime.now(),
         )
         db_session.add(source)
         await db_session.commit()
@@ -107,6 +114,7 @@ async def test_analyze_transfer_patterns(db_session):
     assert pattern.average_amount == Decimal("50.00")
     assert pattern.frequency == 3
 
+
 @pytest.mark.asyncio
 async def test_analyze_usage_patterns(db_session):
     """Test account usage pattern analysis."""
@@ -116,7 +124,7 @@ async def test_analyze_usage_patterns(db_session):
         type="checking",
         available_balance=Decimal("1000.00"),
         created_at=datetime.now().date(),
-        updated_at=datetime.now().date()
+        updated_at=datetime.now().date(),
     )
     db_session.add(account)
     await db_session.commit()
@@ -130,7 +138,7 @@ async def test_analyze_usage_patterns(db_session):
             description="Grocery Store",
             transaction_date=datetime.now() - timedelta(days=i),
             created_at=datetime.now(),
-            updated_at=datetime.now()
+            updated_at=datetime.now(),
         )
         for i in range(5)
     ]
@@ -147,6 +155,7 @@ async def test_analyze_usage_patterns(db_session):
     assert pattern.average_transaction_size == Decimal("100.00")
     assert "Grocery Store" in pattern.common_merchants
 
+
 @pytest.mark.asyncio
 async def test_analyze_balance_distribution(db_session):
     """Test balance distribution analysis."""
@@ -156,7 +165,7 @@ async def test_analyze_balance_distribution(db_session):
         type="checking",
         available_balance=Decimal("1000.00"),
         created_at=datetime.now().date(),
-        updated_at=datetime.now().date()
+        updated_at=datetime.now().date(),
     )
     db_session.add(account)
     await db_session.commit()
@@ -171,7 +180,7 @@ async def test_analyze_balance_distribution(db_session):
             description="Test Transaction",
             transaction_date=datetime.now() - timedelta(days=i),
             created_at=datetime.now(),
-            updated_at=datetime.now()
+            updated_at=datetime.now(),
         )
         for i, amount in enumerate(amounts)
     ]
@@ -188,6 +197,7 @@ async def test_analyze_balance_distribution(db_session):
     assert distribution.min_balance_30d == min(amounts)
     assert distribution.max_balance_30d == max(amounts)
 
+
 @pytest.mark.asyncio
 async def test_assess_account_risks(db_session):
     """Test account risk assessment."""
@@ -197,7 +207,7 @@ async def test_assess_account_risks(db_session):
         type="checking",
         available_balance=Decimal("100.00"),
         created_at=datetime.now().date(),
-        updated_at=datetime.now().date()
+        updated_at=datetime.now().date(),
     )
     credit = Account(
         name="Test Credit",
@@ -206,7 +216,7 @@ async def test_assess_account_risks(db_session):
         available_credit=Decimal("500.00"),
         total_limit=Decimal("2000.00"),
         created_at=datetime.now().date(),
-        updated_at=datetime.now().date()
+        updated_at=datetime.now().date(),
     )
     db_session.add_all([checking, credit])
     await db_session.commit()
@@ -220,7 +230,7 @@ async def test_assess_account_risks(db_session):
             description="Test Transaction",
             transaction_date=datetime.now() - timedelta(days=i),
             created_at=datetime.now(),
-            updated_at=datetime.now()
+            updated_at=datetime.now(),
         )
         for i in range(3)
     ]
@@ -233,7 +243,7 @@ async def test_assess_account_risks(db_session):
     assert risks
     assert checking.id in risks
     assert credit.id in risks
-    
+
     checking_risk = risks[checking.id]
     assert checking_risk.account_id == checking.id
     assert checking_risk.overdraft_risk >= Decimal(0)
@@ -247,6 +257,7 @@ async def test_assess_account_risks(db_session):
     assert credit_risk.credit_utilization_risk >= Decimal(0)
     assert credit_risk.credit_utilization_risk <= Decimal(1)
 
+
 @pytest.mark.asyncio
 async def test_get_cross_account_analysis(db_session):
     """Test comprehensive cross-account analysis."""
@@ -256,7 +267,7 @@ async def test_get_cross_account_analysis(db_session):
         type="checking",
         available_balance=Decimal("1000.00"),
         created_at=datetime.now().date(),
-        updated_at=datetime.now().date()
+        updated_at=datetime.now().date(),
     )
     db_session.add(account)
     await db_session.commit()
@@ -269,7 +280,7 @@ async def test_get_cross_account_analysis(db_session):
         description="Test Transaction",
         transaction_date=datetime.now(),
         created_at=datetime.now(),
-        updated_at=datetime.now()
+        updated_at=datetime.now(),
     )
     db_session.add(transaction)
     await db_session.commit()

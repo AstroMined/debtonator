@@ -4,14 +4,18 @@ from typing import Dict, Union
 
 DateType = Union[date, datetime]
 
+
 class CashflowWarningThresholds:
     """Standard warning thresholds for cashflow analysis."""
+
     LOW_BALANCE = Decimal("100.00")  # Warning when balance drops below $100
     HIGH_CREDIT_UTILIZATION = Decimal("0.80")  # Warning at 80% credit utilization
     LARGE_OUTFLOW = Decimal("1000.00")  # Warning for outflows over $1000
 
+
 class CashflowHolidays:
     """Major US holidays that might impact cashflow."""
+
     def __init__(self, year: int):
         self.holidays: Dict[str, date] = {
             "new_years": date(year, 1, 1),

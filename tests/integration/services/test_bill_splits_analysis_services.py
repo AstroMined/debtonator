@@ -1,12 +1,15 @@
-from decimal import Decimal
 from datetime import date, timedelta
+from decimal import Decimal
+
 import pytest
 from sqlalchemy import select
+
 from src.models.accounts import Account
-from src.models.liabilities import Liability
 from src.models.bill_splits import BillSplit
+from src.models.liabilities import Liability
 from src.schemas.bill_splits import BillSplitCreate, OptimizationSuggestion
 from src.services.bill_splits import BillSplitService
+
 
 @pytest.mark.asyncio
 async def test_calculate_optimization_metrics(db_session):
@@ -16,7 +19,7 @@ async def test_calculate_optimization_metrics(db_session):
         type="checking",
         available_balance=Decimal("1000.00"),
         created_at=date.today(),
-        updated_at=date.today()
+        updated_at=date.today(),
     )
     credit = Account(
         name="Test Credit",
@@ -24,7 +27,7 @@ async def test_calculate_optimization_metrics(db_session):
         available_balance=Decimal("-500.00"),
         total_limit=Decimal("2000.00"),
         created_at=date.today(),
-        updated_at=date.today()
+        updated_at=date.today(),
     )
     db_session.add_all([checking, credit])
     await db_session.commit()
@@ -32,26 +35,23 @@ async def test_calculate_optimization_metrics(db_session):
     # Create test splits
     splits = [
         BillSplitCreate(
-            liability_id=1,
-            account_id=checking.id,
-            amount=Decimal("300.00")
+            liability_id=1, account_id=checking.id, amount=Decimal("300.00")
         ),
-        BillSplitCreate(
-            liability_id=1,
-            account_id=credit.id,
-            amount=Decimal("700.00")
-        )
+        BillSplitCreate(liability_id=1, account_id=credit.id, amount=Decimal("700.00")),
     ]
 
     service = BillSplitService(db_session)
     accounts = {checking.id: checking, credit.id: credit}
     metrics = await service.calculate_optimization_metrics(splits, accounts)
 
-    assert metrics.credit_utilization[credit.id] == pytest.approx(60.0)  # (500 + 700) / 2000 * 100
+    assert metrics.credit_utilization[credit.id] == pytest.approx(
+        60.0
+    )  # (500 + 700) / 2000 * 100
     assert metrics.balance_impact[checking.id] == Decimal("-300.00")
     assert metrics.balance_impact[credit.id] == Decimal("-700.00")
     assert 0 <= metrics.risk_score <= 1
     assert 0 <= metrics.optimization_score <= 1
+
 
 @pytest.mark.asyncio
 async def test_analyze_split_impact(db_session):
@@ -61,7 +61,7 @@ async def test_analyze_split_impact(db_session):
         type="checking",
         available_balance=Decimal("1000.00"),
         created_at=date.today(),
-        updated_at=date.today()
+        updated_at=date.today(),
     )
     credit = Account(
         name="Test Credit",
@@ -69,7 +69,7 @@ async def test_analyze_split_impact(db_session):
         available_balance=Decimal("-500.00"),
         total_limit=Decimal("2000.00"),
         created_at=date.today(),
-        updated_at=date.today()
+        updated_at=date.today(),
     )
     db_session.add_all([checking, credit])
     await db_session.commit()
@@ -87,7 +87,7 @@ async def test_analyze_split_impact(db_session):
         paid=False,
         recurring=False,
         created_at=date.today(),
-        updated_at=date.today()
+        updated_at=date.today(),
     )
     db_session.add(liability)
     await db_session.commit()
@@ -95,15 +95,11 @@ async def test_analyze_split_impact(db_session):
     # Create test splits
     splits = [
         BillSplitCreate(
-            liability_id=liability.id,
-            account_id=checking.id,
-            amount=Decimal("300.00")
+            liability_id=liability.id, account_id=checking.id, amount=Decimal("300.00")
         ),
         BillSplitCreate(
-            liability_id=liability.id,
-            account_id=credit.id,
-            amount=Decimal("700.00")
-        )
+            liability_id=liability.id, account_id=credit.id, amount=Decimal("700.00")
+        ),
     ]
 
     service = BillSplitService(db_session)
@@ -118,6 +114,7 @@ async def test_analyze_split_impact(db_session):
     assert isinstance(impact.risk_factors, list)
     assert isinstance(impact.recommendations, list)
 
+
 @pytest.mark.asyncio
 async def test_generate_optimization_suggestions(db_session):
     # Create test accounts
@@ -126,7 +123,7 @@ async def test_generate_optimization_suggestions(db_session):
         type="checking",
         available_balance=Decimal("1000.00"),
         created_at=date.today(),
-        updated_at=date.today()
+        updated_at=date.today(),
     )
     credit1 = Account(
         name="Credit Card 1",
@@ -134,7 +131,7 @@ async def test_generate_optimization_suggestions(db_session):
         available_balance=Decimal("-1500.00"),
         total_limit=Decimal("2000.00"),
         created_at=date.today(),
-        updated_at=date.today()
+        updated_at=date.today(),
     )
     credit2 = Account(
         name="Credit Card 2",
@@ -142,7 +139,7 @@ async def test_generate_optimization_suggestions(db_session):
         available_balance=Decimal("-200.00"),
         total_limit=Decimal("2000.00"),
         created_at=date.today(),
-        updated_at=date.today()
+        updated_at=date.today(),
     )
     db_session.add_all([checking, credit1, credit2])
     await db_session.commit()
@@ -160,7 +157,7 @@ async def test_generate_optimization_suggestions(db_session):
         paid=False,
         recurring=False,
         created_at=date.today(),
-        updated_at=date.today()
+        updated_at=date.today(),
     )
     db_session.add(liability)
     await db_session.commit()
@@ -171,7 +168,7 @@ async def test_generate_optimization_suggestions(db_session):
         account_id=credit1.id,
         amount=Decimal("1200.00"),
         created_at=date.today(),
-        updated_at=date.today()
+        updated_at=date.today(),
     )
     db_session.add(split)
     await db_session.commit()

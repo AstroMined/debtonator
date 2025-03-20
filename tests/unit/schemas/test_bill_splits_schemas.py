@@ -1,10 +1,10 @@
 from datetime import datetime, timezone
 from decimal import Decimal
+from typing import Dict
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
 from pydantic import ValidationError
-from typing import Dict
 
 from src.schemas.bill_splits import (
     BillSplitBase,
@@ -212,23 +212,21 @@ def test_required_fields():
 def test_decimal_precision():
     """Test decimal precision validation for monetary fields"""
     # Test too many decimal places
-    with pytest.raises(
-        ValidationError, match="Input should be a multiple of 0.01"
-    ):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         BillSplitBase(amount=Decimal("100.123"))
 
     # Test valid decimal places (2 decimals)
     data = BillSplitBase(amount=Decimal("100.12"))
     assert data.amount == Decimal("100.12")
-    
+
     # Test valid decimal places (1 decimal)
     data = BillSplitBase(amount=Decimal("100.1"))
     assert data.amount == Decimal("100.1")
-    
+
     # Test valid decimal places (0 decimals)
     data = BillSplitBase(amount=Decimal("100"))
     assert data.amount == Decimal("100")
-    
+
     # Test valid decimal places with trailing zeros
     data = BillSplitBase(amount=Decimal("100.10"))
     assert data.amount == Decimal("100.10")
@@ -289,7 +287,7 @@ def test_bill_split_validation():
     # Test empty splits
     with pytest.raises(ValidationError, match="At least one split is required"):
         BillSplitValidation(liability_id=1, total_amount=Decimal("100.00"), splits=[])
-        
+
     # Test split validation with epsilon tolerance
     # Sum within 0.01 of total should be acceptable
     splits = [
@@ -303,7 +301,7 @@ def test_bill_split_validation():
     )
     assert data.liability_id == 1
     assert sum(split.amount for split in data.splits) == Decimal("99.99")
-    
+
     # Test the "$100 split three ways" case specifically
     splits = [
         BillSplitCreate(amount=Decimal("33.34"), liability_id=1, account_id=2),
@@ -390,7 +388,7 @@ def test_confidence_score_validation():
         reason="Based on historical patterns",
     )
     assert data2.confidence_score == Decimal("1")
-    
+
     # Test with 4 decimal places (should pass for percentage field)
     data3 = SplitSuggestion(
         account_id=1,
@@ -462,31 +460,31 @@ def test_percentage_field_precision():
         first_seen=datetime.now(timezone.utc),
         last_seen=datetime.now(timezone.utc),
         average_total=Decimal("100.00"),
-        confidence_score=Decimal("0.8765")
+        confidence_score=Decimal("0.8765"),
     )
     assert pattern.account_splits[1] == Decimal("0.3333")
     assert pattern.account_splits[2] == Decimal("0.6667")
-    
+
     # Test with different precision formats for percentage fields
     pattern = SplitPattern(
         pattern_id="test",
         account_splits={
-            1: Decimal("0.5"),        # 1 decimal place
-            2: Decimal("0.25"),       # 2 decimal places
-            3: Decimal("0.125"),      # 3 decimal places
-            4: Decimal("0.0625")      # 4 decimal places
+            1: Decimal("0.5"),  # 1 decimal place
+            2: Decimal("0.25"),  # 2 decimal places
+            3: Decimal("0.125"),  # 3 decimal places
+            4: Decimal("0.0625"),  # 4 decimal places
         },
         total_occurrences=10,
         first_seen=datetime.now(timezone.utc),
         last_seen=datetime.now(timezone.utc),
         average_total=Decimal("100.00"),
-        confidence_score=Decimal("0.8765")
+        confidence_score=Decimal("0.8765"),
     )
     assert pattern.account_splits[1] == Decimal("0.5")
     assert pattern.account_splits[2] == Decimal("0.25")
     assert pattern.account_splits[3] == Decimal("0.125")
     assert pattern.account_splits[4] == Decimal("0.0625")
-    
+
     # Test with too many decimal places for percentage fields (5 decimal places)
     with pytest.raises(ValidationError, match="Input should be a multiple of 0.0001"):
         SplitPattern(
@@ -496,5 +494,5 @@ def test_percentage_field_precision():
             first_seen=datetime.now(timezone.utc),
             last_seen=datetime.now(timezone.utc),
             average_total=Decimal("100.00"),
-            confidence_score=Decimal("0.8765")
+            confidence_score=Decimal("0.8765"),
         )

@@ -1,24 +1,27 @@
 from datetime import datetime, timezone
 from decimal import Decimal
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import Account, TransactionHistory, TransactionType
-from src.schemas.transaction_history import TransactionHistoryCreate as TransactionCreate
+from src.schemas.transaction_history import (
+    TransactionHistoryCreate as TransactionCreate,
+)
 from src.services.transactions import TransactionService
+
 
 @pytest.fixture
 async def test_account(db_session: AsyncSession) -> Account:
     """Create a test account"""
     account = Account(
-        name="Test Account",
-        type="checking",
-        available_balance=Decimal("1000.00")
+        name="Test Account", type="checking", available_balance=Decimal("1000.00")
     )
     db_session.add(account)
     await db_session.commit()
     await db_session.refresh(account)
     return account
+
 
 @pytest.fixture
 def transaction_create_data() -> TransactionCreate:
@@ -27,13 +30,14 @@ def transaction_create_data() -> TransactionCreate:
         amount=Decimal("100.00"),
         transaction_type=TransactionType.DEBIT,
         description="Test transaction",
-        transaction_date=datetime.now(timezone.utc)
+        transaction_date=datetime.now(timezone.utc),
     )
+
 
 async def test_create_transaction(
     db_session: AsyncSession,
     test_account: Account,
-    transaction_create_data: TransactionCreate
+    transaction_create_data: TransactionCreate,
 ):
     """Test creating a transaction"""
     service = TransactionService(db_session)
@@ -41,8 +45,7 @@ async def test_create_transaction(
 
     # Create transaction
     transaction = await service.create_transaction(
-        test_account.id,
-        transaction_create_data
+        test_account.id, transaction_create_data
     )
 
     # Verify transaction was created
@@ -57,18 +60,18 @@ async def test_create_transaction(
     expected_balance = initial_balance - transaction_create_data.amount
     assert test_account.available_balance == expected_balance
 
+
 async def test_get_transaction(
     db_session: AsyncSession,
     test_account: Account,
-    transaction_create_data: TransactionCreate
+    transaction_create_data: TransactionCreate,
 ):
     """Test retrieving a transaction"""
     service = TransactionService(db_session)
-    
+
     # Create transaction
     created_transaction = await service.create_transaction(
-        test_account.id,
-        transaction_create_data
+        test_account.id, transaction_create_data
     )
 
     # Get transaction
@@ -78,12 +81,15 @@ async def test_get_transaction(
     assert retrieved_transaction is not None
     assert retrieved_transaction.id == created_transaction.id
     assert retrieved_transaction.amount == created_transaction.amount
-    assert retrieved_transaction.transaction_type == created_transaction.transaction_type
+    assert (
+        retrieved_transaction.transaction_type == created_transaction.transaction_type
+    )
+
 
 async def test_get_account_transactions(
     db_session: AsyncSession,
     test_account: Account,
-    transaction_create_data: TransactionCreate
+    transaction_create_data: TransactionCreate,
 ):
     """Test retrieving transactions for an account"""
     service = TransactionService(db_session)
@@ -92,16 +98,13 @@ async def test_get_account_transactions(
     transactions = []
     for i in range(3):
         transaction = await service.create_transaction(
-            test_account.id,
-            transaction_create_data
+            test_account.id, transaction_create_data
         )
         transactions.append(transaction)
 
     # Get transactions
     retrieved_transactions, total = await service.get_account_transactions(
-        test_account.id,
-        skip=0,
-        limit=10
+        test_account.id, skip=0, limit=10
     )
 
     # Verify transactions
@@ -110,10 +113,11 @@ async def test_get_account_transactions(
     for transaction in retrieved_transactions:
         assert transaction.account_id == test_account.id
 
+
 async def test_update_transaction(
     db_session: AsyncSession,
     test_account: Account,
-    transaction_create_data: TransactionCreate
+    transaction_create_data: TransactionCreate,
 ):
     """Test updating a transaction"""
     service = TransactionService(db_session)
@@ -121,8 +125,7 @@ async def test_update_transaction(
 
     # Create transaction
     transaction = await service.create_transaction(
-        test_account.id,
-        transaction_create_data
+        test_account.id, transaction_create_data
     )
 
     # Update transaction amount
@@ -133,8 +136,8 @@ async def test_update_transaction(
             amount=new_amount,
             transaction_type=transaction.transaction_type,
             description=transaction.description,
-            transaction_date=transaction.transaction_date
-        )
+            transaction_date=transaction.transaction_date,
+        ),
     )
 
     # Verify transaction was updated
@@ -145,10 +148,11 @@ async def test_update_transaction(
     expected_balance = initial_balance - new_amount
     assert test_account.available_balance == expected_balance
 
+
 async def test_delete_transaction(
     db_session: AsyncSession,
     test_account: Account,
-    transaction_create_data: TransactionCreate
+    transaction_create_data: TransactionCreate,
 ):
     """Test deleting a transaction"""
     service = TransactionService(db_session)
@@ -156,8 +160,7 @@ async def test_delete_transaction(
 
     # Create transaction
     transaction = await service.create_transaction(
-        test_account.id,
-        transaction_create_data
+        test_account.id, transaction_create_data
     )
 
     # Delete transaction

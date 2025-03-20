@@ -5,6 +5,6 @@ This module provides a standardized approach to database operations through the 
 Repositories handle all interactions with the database, separating data access from business logic.
 """
 
+from src.repositories.accounts import AccountRepository
 from src.repositories.base import BaseRepository, ModelType, PKType
 from src.repositories.factory import RepositoryFactory
-from src.repositories.accounts import AccountRepository

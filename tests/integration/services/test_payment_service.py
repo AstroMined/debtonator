@@ -1,14 +1,16 @@
-import pytest
 from datetime import datetime
 from decimal import Decimal
 from zoneinfo import ZoneInfo
 
-from src.services.payments import PaymentService
-from src.models.payments import Payment, PaymentSource
+import pytest
+
 from src.models.accounts import Account
-from src.models.liabilities import Liability
 from src.models.income import Income
+from src.models.liabilities import Liability
+from src.models.payments import Payment, PaymentSource
 from src.schemas.payments import PaymentCreate, PaymentSourceCreate, PaymentUpdate
+from src.services.payments import PaymentService
+
 
 @pytest.mark.asyncio
 class TestPaymentService:
@@ -16,29 +18,21 @@ class TestPaymentService:
         # Setup
         service = PaymentService(db_session)
         account = Account(
-            name="Test Account",
-            type="checking",
-            available_balance=Decimal("1000.00")
+            name="Test Account", type="checking", available_balance=Decimal("1000.00")
         )
         db_session.add(account)
         await db_session.flush()
 
-        sources = [{
-            "account_id": account.id,
-            "amount": Decimal("100.00")
-        }]
-        
+        sources = [{"account_id": account.id, "amount": Decimal("100.00")}]
+
         valid, error = await service.validate_account_availability(sources)
         assert valid is True
         assert error is None
 
     async def test_validate_account_availability_account_not_found(self, db_session):
         service = PaymentService(db_session)
-        sources = [{
-            "account_id": 999,
-            "amount": Decimal("100.00")
-        }]
-        
+        sources = [{"account_id": 999, "amount": Decimal("100.00")}]
+
         valid, error = await service.validate_account_availability(sources)
         assert valid is False
         assert "not found" in error
@@ -47,18 +41,13 @@ class TestPaymentService:
         # Setup
         service = PaymentService(db_session)
         account = Account(
-            name="Test Account",
-            type="checking",
-            available_balance=Decimal("50.00")
+            name="Test Account", type="checking", available_balance=Decimal("50.00")
         )
         db_session.add(account)
         await db_session.flush()
 
-        sources = [{
-            "account_id": account.id,
-            "amount": Decimal("100.00")
-        }]
-        
+        sources = [{"account_id": account.id, "amount": Decimal("100.00")}]
+
         valid, error = await service.validate_account_availability(sources)
         assert valid is False
         assert "insufficient funds" in error.lower()
@@ -70,16 +59,13 @@ class TestPaymentService:
             name="Test Credit Card",
             type="credit",
             available_balance=Decimal("-900.00"),
-            total_limit=Decimal("1000.00")
+            total_limit=Decimal("1000.00"),
         )
         db_session.add(account)
         await db_session.flush()
 
-        sources = [{
-            "account_id": account.id,
-            "amount": Decimal("200.00")
-        }]
-        
+        sources = [{"account_id": account.id, "amount": Decimal("200.00")}]
+
         valid, error = await service.validate_account_availability(sources)
         assert valid is False
         assert "insufficient credit" in error.lower()
@@ -91,7 +77,7 @@ class TestPaymentService:
         income = Income(
             date=datetime.now(ZoneInfo("UTC")),
             source="Test Income",
-            amount=Decimal("1000.00")
+            amount=Decimal("1000.00"),
         )
         db_session.add_all([liability, income])
         await db_session.flush()
@@ -116,9 +102,7 @@ class TestPaymentService:
         # Setup
         service = PaymentService(db_session)
         account = Account(
-            name="Test Account",
-            type="checking",
-            available_balance=Decimal("1000.00")
+            name="Test Account", type="checking", available_balance=Decimal("1000.00")
         )
         liability = Liability(name="Test Bill", amount=Decimal("100.00"))
         db_session.add_all([account, liability])
@@ -130,11 +114,8 @@ class TestPaymentService:
             payment_date=datetime.now(ZoneInfo("UTC")),
             category="Test",
             sources=[
-                PaymentSourceCreate(
-                    account_id=account.id,
-                    amount=Decimal("100.00")
-                )
-            ]
+                PaymentSourceCreate(account_id=account.id, amount=Decimal("100.00"))
+            ],
         )
 
         # Execute
@@ -151,9 +132,7 @@ class TestPaymentService:
         # Setup
         service = PaymentService(db_session)
         account = Account(
-            name="Test Account",
-            type="checking",
-            available_balance=Decimal("50.00")
+            name="Test Account", type="checking", available_balance=Decimal("50.00")
         )
         liability = Liability(name="Test Bill", amount=Decimal("100.00"))
         db_session.add_all([account, liability])
@@ -165,11 +144,8 @@ class TestPaymentService:
             payment_date=datetime.now(ZoneInfo("UTC")),
             category="Test",
             sources=[
-                PaymentSourceCreate(
-                    account_id=account.id,
-                    amount=Decimal("100.00")
-                )
-            ]
+                PaymentSourceCreate(account_id=account.id, amount=Decimal("100.00"))
+            ],
         )
 
         # Execute and Assert
@@ -180,9 +156,7 @@ class TestPaymentService:
         # Setup
         service = PaymentService(db_session)
         account = Account(
-            name="Test Account",
-            type="checking",
-            available_balance=Decimal("1000.00")
+            name="Test Account", type="checking", available_balance=Decimal("1000.00")
         )
         liability = Liability(name="Test Bill", amount=Decimal("100.00"))
         db_session.add_all([account, liability])
@@ -193,12 +167,9 @@ class TestPaymentService:
             liability_id=liability.id,
             amount=Decimal("100.00"),
             payment_date=datetime.now(ZoneInfo("UTC")),
-            category="Test"
+            category="Test",
         )
-        source = PaymentSource(
-            account_id=account.id,
-            amount=Decimal("100.00")
-        )
+        source = PaymentSource(account_id=account.id, amount=Decimal("100.00"))
         payment.sources = [source]
         db_session.add(payment)
         await db_session.flush()
@@ -207,11 +178,8 @@ class TestPaymentService:
         payment_update = PaymentUpdate(
             amount=Decimal("150.00"),
             sources=[
-                PaymentSourceCreate(
-                    account_id=account.id,
-                    amount=Decimal("150.00")
-                )
-            ]
+                PaymentSourceCreate(account_id=account.id, amount=Decimal("150.00"))
+            ],
         )
 
         # Execute
@@ -227,9 +195,7 @@ class TestPaymentService:
         # Setup
         service = PaymentService(db_session)
         account = Account(
-            name="Test Account",
-            type="checking",
-            available_balance=Decimal("100.00")
+            name="Test Account", type="checking", available_balance=Decimal("100.00")
         )
         liability = Liability(name="Test Bill", amount=Decimal("100.00"))
         db_session.add_all([account, liability])
@@ -240,12 +206,9 @@ class TestPaymentService:
             liability_id=liability.id,
             amount=Decimal("50.00"),
             payment_date=datetime.now(ZoneInfo("UTC")),
-            category="Test"
+            category="Test",
         )
-        source = PaymentSource(
-            account_id=account.id,
-            amount=Decimal("50.00")
-        )
+        source = PaymentSource(account_id=account.id, amount=Decimal("50.00"))
         payment.sources = [source]
         db_session.add(payment)
         await db_session.flush()
@@ -254,11 +217,8 @@ class TestPaymentService:
         payment_update = PaymentUpdate(
             amount=Decimal("200.00"),
             sources=[
-                PaymentSourceCreate(
-                    account_id=account.id,
-                    amount=Decimal("200.00")
-                )
-            ]
+                PaymentSourceCreate(account_id=account.id, amount=Decimal("200.00"))
+            ],
         )
 
         # Execute and Assert
@@ -269,19 +229,14 @@ class TestPaymentService:
         # Setup
         service = PaymentService(db_session)
         account = Account(
-            name="Test Account",
-            type="checking",
-            available_balance=Decimal("1000.00")
+            name="Test Account", type="checking", available_balance=Decimal("1000.00")
         )
         payment = Payment(
             amount=Decimal("100.00"),
             payment_date=datetime.now(ZoneInfo("UTC")),
-            category="Test"
+            category="Test",
         )
-        source = PaymentSource(
-            account_id=account.id,
-            amount=Decimal("100.00")
-        )
+        source = PaymentSource(account_id=account.id, amount=Decimal("100.00"))
         payment.sources = [source]
         db_session.add_all([account, payment])
         await db_session.flush()

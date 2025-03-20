@@ -206,9 +206,7 @@ def test_decimal_precision():
     now = datetime.now(timezone.utc)
 
     # Test too many decimal places
-    with pytest.raises(
-        ValidationError, match="Input should be a multiple of 0.01"
-    ):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         CreditLimitHistoryBase(
             credit_limit=Decimal("5000.123"), effective_date=now  # 3 decimal places
         )

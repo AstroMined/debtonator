@@ -166,9 +166,7 @@ def test_reason_validation():
 def test_decimal_precision():
     """Test decimal precision validation"""
     # Test too many decimal places in previous_balance
-    with pytest.raises(
-        ValidationError, match="Input should be a multiple of 0.01"
-    ):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         BalanceReconciliationBase(
             account_id=1,
             previous_balance=Decimal("1000.123"),
@@ -176,9 +174,7 @@ def test_decimal_precision():
         )
 
     # Test too many decimal places in new_balance
-    with pytest.raises(
-        ValidationError, match="Input should be a multiple of 0.01"
-    ):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         BalanceReconciliationBase(
             account_id=1,
             previous_balance=Decimal("1000.00"),
@@ -186,9 +182,7 @@ def test_decimal_precision():
         )
 
     # Test too many decimal places in adjustment_amount
-    with pytest.raises(
-        ValidationError, match="Input should be a multiple of 0.01"
-    ):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         BalanceReconciliation(
             id=1,
             account_id=1,

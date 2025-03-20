@@ -10,9 +10,7 @@ pytestmark = pytest.mark.asyncio
 
 
 async def test_datetime_handling(
-    db_session: AsyncSession,
-    test_checking_account: Account,
-    test_liability: Liability
+    db_session: AsyncSession, test_checking_account: Account, test_liability: Liability
 ):
     """Test proper datetime handling in PaymentSchedule model"""
     # Create payment_schedule with explicit datetime values
@@ -23,7 +21,7 @@ async def test_datetime_handling(
         amount=1000.00,
         auto_process=True,
         created_at=naive_utc_from_date(2025, 3, 15),
-        updated_at=naive_utc_from_date(2025, 3, 15)
+        updated_at=naive_utc_from_date(2025, 3, 15),
     )
 
     db_session.add(payment_schedule)
@@ -59,10 +57,9 @@ async def test_datetime_handling(
     assert payment_schedule.updated_at.minute == 0
     assert payment_schedule.updated_at.second == 0
 
+
 async def test_default_datetime_handling(
-    db_session: AsyncSession,
-    test_checking_account: Account,
-    test_liability: Liability
+    db_session: AsyncSession, test_checking_account: Account, test_liability: Liability
 ):
     """Test default datetime values are properly set"""
     payment_schedule = PaymentSchedule(
@@ -70,7 +67,7 @@ async def test_default_datetime_handling(
         account_id=1,
         scheduled_date=naive_utc_now(),
         amount=1000.00,
-        auto_process=True
+        auto_process=True,
     )
 
     db_session.add(payment_schedule)
@@ -83,10 +80,9 @@ async def test_default_datetime_handling(
     assert payment_schedule.created_at.tzinfo is None
     assert payment_schedule.updated_at.tzinfo is None
 
+
 async def test_relationship_datetime_handling(
-    db_session: AsyncSession,
-    test_checking_account: Account,
-    test_liability: Liability
+    db_session: AsyncSession, test_checking_account: Account, test_liability: Liability
 ):
     """Test datetime handling with relationships"""
     payment_schedule = PaymentSchedule(
@@ -94,14 +90,14 @@ async def test_relationship_datetime_handling(
         account_id=test_checking_account.id,
         scheduled_date=naive_utc_now(),
         amount=1000.00,
-        auto_process=True
+        auto_process=True,
     )
 
     db_session.add(payment_schedule)
     await db_session.commit()
 
     # Refresh to load relationships
-    await db_session.refresh(payment_schedule, ['liability', 'account'])
+    await db_session.refresh(payment_schedule, ["liability", "account"])
 
     # Verify datetime fields remain naive after refresh
     assert payment_schedule.scheduled_date.tzinfo is None

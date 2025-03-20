@@ -2,10 +2,10 @@ import pytest
 from pydantic import ValidationError
 
 from src.schemas.income_categories import (
+    IncomeCategory,
     IncomeCategoryBase,
     IncomeCategoryCreate,
     IncomeCategoryUpdate,
-    IncomeCategory,
 )
 
 
@@ -20,7 +20,7 @@ def test_income_category_base_valid():
     # With all fields
     data2 = IncomeCategoryBase(
         name="Freelance Income",
-        description="Income from freelance projects and consulting work"
+        description="Income from freelance projects and consulting work",
     )
     assert data2.name == "Freelance Income"
     assert data2.description == "Income from freelance projects and consulting work"
@@ -36,7 +36,7 @@ def test_income_category_create_valid():
     # With all fields
     data2 = IncomeCategoryCreate(
         name="Freelance Income",
-        description="Income from freelance projects and consulting work"
+        description="Income from freelance projects and consulting work",
     )
     assert data2.name == "Freelance Income"
     assert data2.description == "Income from freelance projects and consulting work"
@@ -62,7 +62,7 @@ def test_income_category_update_valid():
     # With all fields
     data4 = IncomeCategoryUpdate(
         name="Updated Freelance Income",
-        description="Updated description for freelance work"
+        description="Updated description for freelance work",
     )
     assert data4.name == "Updated Freelance Income"
     assert data4.description == "Updated description for freelance work"
@@ -71,10 +71,7 @@ def test_income_category_update_valid():
 def test_income_category_valid():
     """Test valid income category schema creation"""
     # With required fields only
-    data1 = IncomeCategory(
-        id=1,
-        name="Salary"
-    )
+    data1 = IncomeCategory(id=1, name="Salary")
     assert data1.id == 1
     assert data1.name == "Salary"
     assert data1.description is None
@@ -83,7 +80,7 @@ def test_income_category_valid():
     data2 = IncomeCategory(
         id=2,
         name="Freelance Income",
-        description="Income from freelance projects and consulting work"
+        description="Income from freelance projects and consulting work",
     )
     assert data2.id == 2
     assert data2.name == "Freelance Income"
@@ -94,62 +91,76 @@ def test_income_category_valid():
 def test_string_length_validation():
     """Test string length validation"""
     # Test empty name in base schema
-    with pytest.raises(ValidationError, match="String should have at least 1 character"):
+    with pytest.raises(
+        ValidationError, match="String should have at least 1 character"
+    ):
         IncomeCategoryBase(name="")
 
     # Test name too long in base schema
-    with pytest.raises(ValidationError, match="String should have at most 100 characters"):
+    with pytest.raises(
+        ValidationError, match="String should have at most 100 characters"
+    ):
         IncomeCategoryBase(name="X" * 101)
 
     # Test description too long in base schema
-    with pytest.raises(ValidationError, match="String should have at most 500 characters"):
-        IncomeCategoryBase(
-            name="Valid Name",
-            description="X" * 501
-        )
+    with pytest.raises(
+        ValidationError, match="String should have at most 500 characters"
+    ):
+        IncomeCategoryBase(name="Valid Name", description="X" * 501)
 
     # Test empty name in create schema
-    with pytest.raises(ValidationError, match="String should have at least 1 character"):
+    with pytest.raises(
+        ValidationError, match="String should have at least 1 character"
+    ):
         IncomeCategoryCreate(name="")
 
     # Test name too long in create schema
-    with pytest.raises(ValidationError, match="String should have at most 100 characters"):
+    with pytest.raises(
+        ValidationError, match="String should have at most 100 characters"
+    ):
         IncomeCategoryCreate(name="X" * 101)
 
     # Test description too long in create schema
-    with pytest.raises(ValidationError, match="String should have at most 500 characters"):
-        IncomeCategoryCreate(
-            name="Valid Name",
-            description="X" * 501
-        )
+    with pytest.raises(
+        ValidationError, match="String should have at most 500 characters"
+    ):
+        IncomeCategoryCreate(name="Valid Name", description="X" * 501)
 
     # Test empty name in update schema (when provided)
-    with pytest.raises(ValidationError, match="String should have at least 1 character"):
+    with pytest.raises(
+        ValidationError, match="String should have at least 1 character"
+    ):
         IncomeCategoryUpdate(name="")
 
     # Test name too long in update schema
-    with pytest.raises(ValidationError, match="String should have at most 100 characters"):
+    with pytest.raises(
+        ValidationError, match="String should have at most 100 characters"
+    ):
         IncomeCategoryUpdate(name="X" * 101)
 
     # Test description too long in update schema
-    with pytest.raises(ValidationError, match="String should have at most 500 characters"):
+    with pytest.raises(
+        ValidationError, match="String should have at most 500 characters"
+    ):
         IncomeCategoryUpdate(description="X" * 501)
 
     # Test empty name in full schema
-    with pytest.raises(ValidationError, match="String should have at least 1 character"):
+    with pytest.raises(
+        ValidationError, match="String should have at least 1 character"
+    ):
         IncomeCategory(id=1, name="")
 
     # Test name too long in full schema
-    with pytest.raises(ValidationError, match="String should have at most 100 characters"):
+    with pytest.raises(
+        ValidationError, match="String should have at most 100 characters"
+    ):
         IncomeCategory(id=1, name="X" * 101)
 
     # Test description too long in full schema
-    with pytest.raises(ValidationError, match="String should have at most 500 characters"):
-        IncomeCategory(
-            id=1,
-            name="Valid Name",
-            description="X" * 501
-        )
+    with pytest.raises(
+        ValidationError, match="String should have at most 500 characters"
+    ):
+        IncomeCategory(id=1, name="Valid Name", description="X" * 501)
 
 
 def test_required_fields():

@@ -1,55 +1,58 @@
 from datetime import date, datetime
 from decimal import Decimal
 from typing import List, Optional, Tuple
-from sqlalchemy import select, delete
+
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from src.core.decimal_precision import DecimalPrecision
 
-from ..models.payments import Payment, PaymentSource
 from ..models.accounts import Account
-from ..schemas.payments import PaymentCreate, PaymentUpdate
-from ..models.liabilities import Liability
 from ..models.income import Income
+from ..models.liabilities import Liability
+from ..models.payments import Payment, PaymentSource
+from ..schemas.payments import PaymentCreate, PaymentUpdate
+
 
 class PaymentService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
     async def validate_account_availability(
-        self,
-        sources: List[dict]
+        self, sources: List[dict]
     ) -> Tuple[bool, Optional[str]]:
         """Validates accounts exist and have sufficient funds/credit."""
         for source in sources:
             account_result = await self.db.execute(
-                select(Account).filter(Account.id == source['account_id'])
+                select(Account).filter(Account.id == source["account_id"])
             )
             account = account_result.scalar_one_or_none()
             if not account:
                 return False, f"Account {source['account_id']} not found"
 
             # Validate account has sufficient funds/credit
-            source_amount = Decimal(str(source['amount']))
+            source_amount = Decimal(str(source["amount"]))
             # Round for internal calculation to ensure consistency
             source_amount = DecimalPrecision.round_for_calculation(source_amount)
-            
-            if account.type == 'credit':
-                available_credit = DecimalPrecision.round_for_calculation(account.available_credit)
+
+            if account.type == "credit":
+                available_credit = DecimalPrecision.round_for_calculation(
+                    account.available_credit
+                )
                 if available_credit < source_amount:
                     return False, f"Insufficient credit in account {account.name}"
             else:
-                available_balance = DecimalPrecision.round_for_calculation(account.available_balance)
+                available_balance = DecimalPrecision.round_for_calculation(
+                    account.available_balance
+                )
                 if available_balance < source_amount:
                     return False, f"Insufficient funds in account {account.name}"
 
         return True, None
 
     async def validate_references(
-        self,
-        liability_id: Optional[int],
-        income_id: Optional[int]
+        self, liability_id: Optional[int], income_id: Optional[int]
     ) -> Tuple[bool, Optional[str]]:
         """Validates optional liability and income references exist."""
         if liability_id:
@@ -98,8 +101,7 @@ class PaymentService:
 
         # Validate references
         valid, error = await self.validate_references(
-            payment_create.liability_id,
-            payment_create.income_id
+            payment_create.liability_id, payment_create.income_id
         )
         if not valid:
             raise ValueError(error)
@@ -113,7 +115,7 @@ class PaymentService:
             amount=amount,
             payment_date=payment_create.payment_date,
             description=payment_create.description,
-            category=payment_create.category
+            category=payment_create.category,
         )
         self.db.add(db_payment)
         await self.db.flush()
@@ -124,12 +126,12 @@ class PaymentService:
             db_source = PaymentSource(
                 payment_id=db_payment.id,
                 account_id=source.account_id,
-                amount=source_amount
+                amount=source_amount,
             )
             self.db.add(db_source)
 
         await self.db.commit()
-        
+
         # Fetch the complete payment with sources
         stmt = (
             select(Payment)
@@ -148,7 +150,7 @@ class PaymentService:
             return None
 
         # Prepare update data
-        update_data = payment_update.model_dump(exclude_unset=True, exclude={'sources'})
+        update_data = payment_update.model_dump(exclude_unset=True, exclude={"sources"})
 
         # Update payment fields
         for key, value in update_data.items():
@@ -168,11 +170,11 @@ class PaymentService:
                 PaymentSource(
                     payment_id=payment_id,
                     account_id=source.account_id,
-                    amount=source.amount
+                    amount=source.amount,
                 )
                 for source in payment_update.sources
             ]
-            
+
             await self.db.commit()
             return await self.get_payment(payment_id)
         else:
@@ -183,7 +185,7 @@ class PaymentService:
         db_payment = await self.get_payment(payment_id)
         if not db_payment:
             return False
-        
+
         await self.db.delete(db_payment)
         await self.db.commit()
         return True

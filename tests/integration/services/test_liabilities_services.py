@@ -1,14 +1,16 @@
-import pytest
 from datetime import date, timedelta
 from decimal import Decimal
 
-from src.services.liabilities import LiabilityService
+import pytest
+
 from src.schemas.liabilities import (
-    LiabilityCreate, 
-    LiabilityUpdate,
+    AutoPaySettings,
     AutoPayUpdate,
-    AutoPaySettings
+    LiabilityCreate,
+    LiabilityUpdate,
 )
+from src.services.liabilities import LiabilityService
+
 
 @pytest.mark.asyncio
 async def test_get_liabilities(db_session, base_bill):
@@ -20,6 +22,7 @@ async def test_get_liabilities(db_session, base_bill):
     assert liabilities[0].name == base_bill.name
     assert liabilities[0].amount == base_bill.amount
 
+
 @pytest.mark.asyncio
 async def test_get_liability(db_session, base_bill):
     """Test retrieving a specific liability"""
@@ -30,6 +33,7 @@ async def test_get_liability(db_session, base_bill):
     assert liability.name == base_bill.name
     assert liability.amount == base_bill.amount
 
+
 @pytest.mark.asyncio
 async def test_get_nonexistent_liability(db_session):
     """Test retrieving a non-existent liability"""
@@ -37,13 +41,14 @@ async def test_get_nonexistent_liability(db_session):
     liability = await service.get_liability(999999)
     assert liability is None
 
+
 @pytest.mark.asyncio
 async def test_get_liabilities_by_date_range(db_session, base_bill):
     """Test retrieving liabilities within a date range"""
     service = LiabilityService(db_session)
     start_date = base_bill.due_date - timedelta(days=30)
     end_date = base_bill.due_date + timedelta(days=30)
-    
+
     liabilities = await service.get_liabilities_by_date_range(start_date, end_date)
     assert len(liabilities) == 1
     assert liabilities[0].id == base_bill.id
@@ -51,8 +56,11 @@ async def test_get_liabilities_by_date_range(db_session, base_bill):
     # Test empty range
     future_start = base_bill.due_date + timedelta(days=60)
     future_end = base_bill.due_date + timedelta(days=90)
-    empty_liabilities = await service.get_liabilities_by_date_range(future_start, future_end)
+    empty_liabilities = await service.get_liabilities_by_date_range(
+        future_start, future_end
+    )
     assert len(empty_liabilities) == 0
+
 
 @pytest.mark.asyncio
 async def test_get_unpaid_liabilities(db_session, base_bill):
@@ -62,12 +70,14 @@ async def test_get_unpaid_liabilities(db_session, base_bill):
     assert len(unpaid) == 1
     assert unpaid[0].id == base_bill.id
 
+
 @pytest.mark.asyncio
 async def test_get_unpaid_liabilities_with_payment(db_session, base_bill, base_payment):
     """Test retrieving unpaid liabilities when bill has payment"""
     service = LiabilityService(db_session)
     unpaid = await service.get_unpaid_liabilities()
     assert len(unpaid) == 0
+
 
 @pytest.mark.asyncio
 async def test_create_liability(db_session, base_account, base_category):
@@ -84,9 +94,9 @@ async def test_create_liability(db_session, base_account, base_category):
         primary_account_id=base_account.id,
         auto_pay=False,
         auto_pay_enabled=False,
-        paid=False
+        paid=False,
     )
-    
+
     liability = await service.create_liability(liability_data)
     assert liability.name == liability_data.name
     assert liability.amount == liability_data.amount
@@ -96,6 +106,7 @@ async def test_create_liability(db_session, base_account, base_category):
     assert liability.recurring == liability_data.recurring
     assert liability.recurrence_pattern == liability_data.recurrence_pattern
 
+
 @pytest.mark.asyncio
 async def test_update_liability(db_session, base_bill):
     """Test updating an existing liability"""
@@ -103,9 +114,9 @@ async def test_update_liability(db_session, base_bill):
     update_data = LiabilityUpdate(
         name="Updated Test Bill",
         amount=Decimal("200.00"),
-        description="Updated description"
+        description="Updated description",
     )
-    
+
     updated = await service.update_liability(base_bill.id, update_data)
     assert updated is not None
     assert updated.name == update_data.name
@@ -115,6 +126,7 @@ async def test_update_liability(db_session, base_bill):
     assert updated.due_date == base_bill.due_date
     assert updated.category_id == base_bill.category_id
 
+
 @pytest.mark.asyncio
 async def test_update_nonexistent_liability(db_session):
     """Test updating a non-existent liability"""
@@ -123,16 +135,18 @@ async def test_update_nonexistent_liability(db_session):
     updated = await service.update_liability(999999, update_data)
     assert updated is None
 
+
 @pytest.mark.asyncio
 async def test_delete_liability(db_session, base_bill):
     """Test deleting a liability"""
     service = LiabilityService(db_session)
     result = await service.delete_liability(base_bill.id)
     assert result is True
-    
+
     # Verify deletion
     liability = await service.get_liability(base_bill.id)
     assert liability is None
+
 
 @pytest.mark.asyncio
 async def test_delete_nonexistent_liability(db_session):
@@ -141,12 +155,14 @@ async def test_delete_nonexistent_liability(db_session):
     result = await service.delete_liability(999999)
     assert result is False
 
+
 @pytest.mark.asyncio
 async def test_is_paid_with_payment(db_session, base_bill, base_payment):
     """Test checking if liability is paid when it has a payment"""
     service = LiabilityService(db_session)
     is_paid = await service.is_paid(base_bill.id)
     assert is_paid is True
+
 
 @pytest.mark.asyncio
 async def test_is_paid_without_payment(db_session, base_bill):
@@ -155,91 +171,95 @@ async def test_is_paid_without_payment(db_session, base_bill):
     is_paid = await service.is_paid(base_bill.id)
     assert is_paid is False
 
+
 @pytest.mark.asyncio
 async def test_update_auto_pay(db_session, base_bill):
     """Test updating auto-pay settings"""
     service = LiabilityService(db_session)
-    
+
     settings = AutoPaySettings(
         preferred_pay_date=15,
         days_before_due=5,
         payment_method="bank_transfer",
         minimum_balance_required=Decimal("100.00"),
         retry_on_failure=True,
-        notification_email="test@example.com"
+        notification_email="test@example.com",
     )
-    
+
     update = AutoPayUpdate(enabled=True, settings=settings)
     updated = await service.update_auto_pay(base_bill.id, update)
-    
+
     assert updated is not None
     assert updated.auto_pay is True
     assert updated.auto_pay_enabled is True
     settings_dict = settings.model_dump()
-    settings_dict['minimum_balance_required'] = str(settings_dict['minimum_balance_required'])
+    settings_dict["minimum_balance_required"] = str(
+        settings_dict["minimum_balance_required"]
+    )
     assert updated.auto_pay_settings == settings_dict
+
 
 @pytest.mark.asyncio
 async def test_get_auto_pay_candidates(db_session, base_bill):
     """Test getting auto-pay candidates"""
     service = LiabilityService(db_session)
-    
+
     # First enable auto-pay
     settings = AutoPaySettings(payment_method="bank_transfer")
     update = AutoPayUpdate(enabled=True, settings=settings)
     await service.update_auto_pay(base_bill.id, update)
-    
+
     # Get candidates - use 30 days to ensure we catch the test bill's due date
     candidates = await service.get_auto_pay_candidates(days_ahead=30)
     assert len(candidates) == 1
     assert candidates[0].id == base_bill.id
 
+
 @pytest.mark.asyncio
 async def test_process_auto_pay(db_session, base_bill):
     """Test processing auto-pay"""
     service = LiabilityService(db_session)
-    
+
     # First enable auto-pay
     settings = AutoPaySettings(payment_method="bank_transfer")
     update = AutoPayUpdate(enabled=True, settings=settings)
     await service.update_auto_pay(base_bill.id, update)
-    
+
     # Process auto-pay
     result = await service.process_auto_pay(base_bill.id)
     assert result is True
-    
+
     # Verify last attempt was updated
     liability = await service.get_liability(base_bill.id)
     assert liability.last_auto_pay_attempt is not None
+
 
 @pytest.mark.asyncio
 async def test_disable_auto_pay(db_session, base_bill):
     """Test disabling auto-pay"""
     service = LiabilityService(db_session)
-    
+
     # First enable auto-pay
     settings = AutoPaySettings(payment_method="bank_transfer")
     update = AutoPayUpdate(enabled=True, settings=settings)
     await service.update_auto_pay(base_bill.id, update)
-    
+
     # Then disable it
     disabled = await service.disable_auto_pay(base_bill.id)
     assert disabled is not None
     assert disabled.auto_pay_enabled is False
 
+
 @pytest.mark.asyncio
 async def test_get_auto_pay_status(db_session, base_bill):
     """Test getting auto-pay status"""
     service = LiabilityService(db_session)
-    
+
     # First enable auto-pay with settings
-    settings = AutoPaySettings(
-        preferred_pay_date=15,
-        payment_method="bank_transfer"
-    )
+    settings = AutoPaySettings(preferred_pay_date=15, payment_method="bank_transfer")
     update = AutoPayUpdate(enabled=True, settings=settings)
     await service.update_auto_pay(base_bill.id, update)
-    
+
     # Get status
     status = await service.get_auto_pay_status(base_bill.id)
     assert status is not None
@@ -249,14 +269,15 @@ async def test_get_auto_pay_status(db_session, base_bill):
     assert status["settings"]["payment_method"] == "bank_transfer"
     assert status["last_attempt"] is None
 
+
 @pytest.mark.asyncio
 async def test_auto_pay_with_nonexistent_liability(db_session):
     """Test auto-pay operations with non-existent liability"""
     service = LiabilityService(db_session)
-    
+
     settings = AutoPaySettings(payment_method="bank_transfer")
     update = AutoPayUpdate(enabled=True, settings=settings)
-    
+
     # Test various operations
     assert await service.update_auto_pay(999999, update) is None
     assert await service.get_auto_pay_status(999999) is None

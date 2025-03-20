@@ -36,16 +36,16 @@ def test_payment_source_base_validation():
         ValidationError, match="Value error, Amount must have at most 2 decimal places"
     ):
         PaymentSourceBase(account_id=1, amount=Decimal("100.001"))
-        
+
     # Test valid decimal formats with different precision levels
     # 0 decimal places
     source = PaymentSourceBase(account_id=1, amount=Decimal("100"))
     assert source.amount == Decimal("100")
-    
+
     # 1 decimal place
     source = PaymentSourceBase(account_id=1, amount=Decimal("100.5"))
     assert source.amount == Decimal("100.5")
-    
+
     # 2 decimal places
     source = PaymentSourceBase(account_id=1, amount=Decimal("100.50"))
     assert source.amount == Decimal("100.50")
@@ -77,12 +77,12 @@ def test_payment_base_validation():
         ValidationError, match="Value error, Amount must have at most 2 decimal places"
     ):
         PaymentBase(**{**valid_data, "amount": Decimal("100.001")})
-        
+
     # Test valid decimal formats for amount
     # 0 decimal places
     payment = PaymentBase(**{**valid_data, "amount": Decimal("100")})
     assert payment.amount == Decimal("100")
-    
+
     # 1 decimal place
     payment = PaymentBase(**{**valid_data, "amount": Decimal("100.5")})
     assert payment.amount == Decimal("100.5")
@@ -90,7 +90,9 @@ def test_payment_base_validation():
     # Note: The payment date validation has changed, it now accepts future dates
     # This test no longer applies, so we'll remove it and add a comment
     # Future dates are now allowed in payments
-    future_payment = PaymentBase(**{**valid_data, "payment_date": now + timedelta(days=1)})
+    future_payment = PaymentBase(
+        **{**valid_data, "payment_date": now + timedelta(days=1)}
+    )
     assert future_payment.payment_date > now
 
     # Invalid payment_date (naive datetime)
@@ -157,7 +159,7 @@ def test_payment_create_validation():
         ValidationError, match="Sum of payment sources .* must equal payment amount"
     ):
         PaymentCreate(**{**valid_data, "sources": invalid_sources})
-        
+
     # Test the "$100 split three ways" case
     # The DecimalPrecision utility should distribute this correctly
     split_three_ways_data = {
@@ -176,7 +178,7 @@ def test_payment_create_validation():
     assert payment.amount == Decimal("100.00")
     assert len(payment.sources) == 3
     assert sum(source.amount for source in payment.sources) == Decimal("100.00")
-    
+
     # Test epsilon tolerance (within 0.01)
     epsilon_data = {
         "amount": Decimal("100.00"),

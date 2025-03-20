@@ -183,12 +183,12 @@ def test_category_with_bills_valid():
 
     # Create liability
     liability = LiabilityBase(
-        name="Test Liability", 
-        amount=100.00, 
+        name="Test Liability",
+        amount=100.00,
         description="Test liability description",
         due_date=now.replace(day=now.day + 1),  # Due date in the future
         category_id=1,
-        primary_account_id=1
+        primary_account_id=1,
     )
 
     # Create category with bills

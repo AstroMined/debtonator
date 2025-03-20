@@ -1,5 +1,6 @@
-import pytest
 from datetime import datetime
+
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
@@ -11,9 +12,7 @@ pytestmark = pytest.mark.asyncio
 
 
 async def test_datetime_handling(
-    db_session: AsyncSession,
-    test_income_record: Income,
-    test_checking_account: Account
+    db_session: AsyncSession, test_income_record: Income, test_checking_account: Account
 ):
     """Test proper datetime handling in DepositSchedule model"""
     # Create deposit_schedule with explicit datetime values
@@ -24,7 +23,7 @@ async def test_datetime_handling(
         amount=1000.00,
         recurring=True,
         created_at=naive_utc_from_date(2025, 3, 15),
-        updated_at=naive_utc_from_date(2025, 3, 15)
+        updated_at=naive_utc_from_date(2025, 3, 15),
     )
 
     db_session.add(deposit_schedule)
@@ -60,10 +59,9 @@ async def test_datetime_handling(
     assert deposit_schedule.updated_at.minute == 0
     assert deposit_schedule.updated_at.second == 0
 
+
 async def test_default_datetime_handling(
-    db_session: AsyncSession,
-    test_income_record: Income,
-    test_checking_account: Account
+    db_session: AsyncSession, test_income_record: Income, test_checking_account: Account
 ):
     """Test default datetime values are properly set"""
     deposit_schedule = DepositSchedule(
@@ -71,7 +69,7 @@ async def test_default_datetime_handling(
         account_id=test_checking_account.id,
         schedule_date=naive_utc_now(),
         amount=1000.00,
-        recurring=True
+        recurring=True,
     )
 
     db_session.add(deposit_schedule)
@@ -84,10 +82,9 @@ async def test_default_datetime_handling(
     assert deposit_schedule.created_at.tzinfo is None
     assert deposit_schedule.updated_at.tzinfo is None
 
+
 async def test_model_relationships(
-    db_session: AsyncSession,
-    test_income_record: Income,
-    test_checking_account: Account
+    db_session: AsyncSession, test_income_record: Income, test_checking_account: Account
 ):
     """Test relationships between models"""
     deposit_schedule = DepositSchedule(
@@ -95,20 +92,20 @@ async def test_model_relationships(
         account_id=test_checking_account.id,
         schedule_date=naive_utc_now(),
         amount=1000.00,
-        recurring=True
+        recurring=True,
     )
     db_session.add(deposit_schedule)
     await db_session.commit()
 
     # Refresh to load relationships
-    await db_session.refresh(deposit_schedule, ['income', 'account'])
+    await db_session.refresh(deposit_schedule, ["income", "account"])
 
     # Verify relationships are properly loaded
     assert deposit_schedule.income is not None
     assert deposit_schedule.income.id == test_income_record.id
     assert deposit_schedule.account is not None
     assert deposit_schedule.account.id == test_checking_account.id
-    
+
     # Verify datetime fields remain naive after refresh
     assert deposit_schedule.schedule_date.tzinfo is None
     assert deposit_schedule.created_at.tzinfo is None

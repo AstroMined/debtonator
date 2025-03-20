@@ -8,7 +8,9 @@ from src.models.base_model import naive_utc_from_date, naive_utc_now
 pytestmark = pytest.mark.asyncio
 
 
-async def test_datetime_handling(db_session: AsyncSession, test_checking_account: Account):
+async def test_datetime_handling(
+    db_session: AsyncSession, test_checking_account: Account
+):
     """Test proper datetime handling in BalanceHistory model"""
     # Create instance with explicit datetime values
     balance_history = BalanceHistory(
@@ -16,7 +18,7 @@ async def test_datetime_handling(db_session: AsyncSession, test_checking_account
         balance=1000.00,
         timestamp=naive_utc_from_date(2025, 3, 15),
         created_at=naive_utc_from_date(2025, 3, 15),
-        updated_at=naive_utc_from_date(2025, 3, 15)
+        updated_at=naive_utc_from_date(2025, 3, 15),
     )
 
     db_session.add(balance_history)
@@ -52,12 +54,13 @@ async def test_datetime_handling(db_session: AsyncSession, test_checking_account
     assert balance_history.updated_at.minute == 0
     assert balance_history.updated_at.second == 0
 
-async def test_default_datetime_handling(db_session: AsyncSession, test_checking_account: Account):
+
+async def test_default_datetime_handling(
+    db_session: AsyncSession, test_checking_account: Account
+):
     """Test default datetime values are properly set"""
     balance_history = BalanceHistory(
-        account_id=test_checking_account.id,
-        balance=1000.00,
-        timestamp=naive_utc_now()
+        account_id=test_checking_account.id, balance=1000.00, timestamp=naive_utc_now()
     )
 
     db_session.add(balance_history)
@@ -70,18 +73,17 @@ async def test_default_datetime_handling(db_session: AsyncSession, test_checking
     assert balance_history.created_at.tzinfo is None
     assert balance_history.updated_at.tzinfo is None
 
+
 async def test_relationship_datetime_handling(db_session):
     """Test datetime handling with relationships"""
     balance_history = BalanceHistory(
-        account_id=1,
-        balance=1000.00,
-        timestamp=naive_utc_now()
+        account_id=1, balance=1000.00, timestamp=naive_utc_now()
     )
     db_session.add(balance_history)
     await db_session.commit()
 
     # Refresh to load relationships
-    await db_session.refresh(balance_history, ['account'])
+    await db_session.refresh(balance_history, ["account"])
 
     # Verify datetime fields remain naive after refresh
     assert balance_history.timestamp.tzinfo is None

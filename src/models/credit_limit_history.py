@@ -48,7 +48,3 @@ class CreditLimitHistory(BaseDBModel):
 
     def __repr__(self) -> str:
         return f"<CreditLimitHistory account_id={self.account_id} limit={self.credit_limit}>"
-
-
-# Event listeners for validation have been removed
-# Validation is now handled in the AccountService.validate_credit_limit_history method

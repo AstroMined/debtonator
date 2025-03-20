@@ -1,13 +1,15 @@
 from datetime import date
 from typing import List, Optional, Tuple
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.models.accounts import Account
 from src.models.deposit_schedules import DepositSchedule
 from src.models.income import Income
-from src.models.accounts import Account
 from src.schemas.deposit_schedules import DepositScheduleCreate, DepositScheduleUpdate
+
 
 class DepositScheduleService:
     def __init__(self, session: AsyncSession):
@@ -40,7 +42,7 @@ class DepositScheduleService:
                 amount=schedule.amount,
                 recurring=schedule.recurring,
                 recurrence_pattern=schedule.recurrence_pattern,
-                status=schedule.status
+                status=schedule.status,
             )
             self.session.add(db_schedule)
             await self.session.commit()
@@ -82,7 +84,9 @@ class DepositScheduleService:
             await self.session.rollback()
             return False, str(e), None
 
-    async def delete_deposit_schedule(self, schedule_id: int) -> Tuple[bool, Optional[str]]:
+    async def delete_deposit_schedule(
+        self, schedule_id: int
+    ) -> Tuple[bool, Optional[str]]:
         """Delete a deposit schedule"""
         try:
             db_schedule = await self.get_deposit_schedule(schedule_id)
@@ -102,7 +106,7 @@ class DepositScheduleService:
         account_id: Optional[int] = None,
         status: Optional[str] = None,
         from_date: Optional[date] = None,
-        to_date: Optional[date] = None
+        to_date: Optional[date] = None,
     ) -> List[DepositSchedule]:
         """List deposit schedules with optional filters"""
         query = select(DepositSchedule)
@@ -126,10 +130,10 @@ class DepositScheduleService:
     ) -> List[DepositSchedule]:
         """Get all pending deposits, optionally filtered by account"""
         query = select(DepositSchedule).where(DepositSchedule.status == "pending")
-        
+
         if account_id is not None:
             query = query.where(DepositSchedule.account_id == account_id)
-            
+
         query = query.order_by(DepositSchedule.schedule_date)
         result = await self.session.execute(query)
         return list(result.scalars().all())

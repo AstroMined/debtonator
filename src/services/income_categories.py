@@ -1,11 +1,13 @@
 from typing import List, Optional
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete
+
+from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.income_categories import IncomeCategory
 from ..schemas.income_categories import IncomeCategoryCreate, IncomeCategoryUpdate
 from ..utils.db import handle_db_error
+
 
 class IncomeCategoryService:
     def __init__(self, session: AsyncSession):

@@ -1,13 +1,20 @@
 from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
-from sqlalchemy import select, func
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.models.transaction_history import TransactionHistory, TransactionType
 from src.models.accounts import Account
-from src.schemas.transaction_history import TransactionHistoryCreate as TransactionCreate, TransactionHistoryUpdate as TransactionUpdate
+from src.models.transaction_history import TransactionHistory, TransactionType
+from src.schemas.transaction_history import (
+    TransactionHistoryCreate as TransactionCreate,
+)
+from src.schemas.transaction_history import (
+    TransactionHistoryUpdate as TransactionUpdate,
+)
+
 
 class TransactionService:
     """Service for handling transaction operations"""
@@ -30,7 +37,7 @@ class TransactionService:
             amount=transaction_data.amount,
             transaction_type=transaction_data.transaction_type,
             description=transaction_data.description,
-            transaction_date=transaction_data.transaction_date
+            transaction_date=transaction_data.transaction_date,
         )
 
         # Update account balance based on transaction type
@@ -46,12 +53,16 @@ class TransactionService:
 
         return transaction
 
-    async def get_transaction(self, transaction_id: int) -> Optional[TransactionHistory]:
+    async def get_transaction(
+        self, transaction_id: int
+    ) -> Optional[TransactionHistory]:
         """Get a transaction by ID"""
-        query = select(TransactionHistory).where(
-            TransactionHistory.id == transaction_id
-        ).options(selectinload(TransactionHistory.account))
-        
+        query = (
+            select(TransactionHistory)
+            .where(TransactionHistory.id == transaction_id)
+            .options(selectinload(TransactionHistory.account))
+        )
+
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
 
@@ -61,7 +72,7 @@ class TransactionService:
         skip: int = 0,
         limit: int = 100,
         start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None
+        end_date: Optional[datetime] = None,
     ) -> tuple[List[TransactionHistory], int]:
         """Get transactions for an account with optional date filtering"""
         query = select(TransactionHistory).where(
@@ -81,13 +92,11 @@ class TransactionService:
         query = query.order_by(TransactionHistory.transaction_date.desc())
         query = query.offset(skip).limit(limit)
         result = await self.session.execute(query)
-        
+
         return list(result.scalars().all()), total
 
     async def update_transaction(
-        self,
-        transaction_id: int,
-        transaction_data: TransactionUpdate
+        self, transaction_id: int, transaction_data: TransactionUpdate
     ) -> Optional[TransactionHistory]:
         """Update a transaction and adjust account balance if amount changes"""
         transaction = await self.get_transaction(transaction_id)
@@ -96,19 +105,19 @@ class TransactionService:
 
         # Calculate balance adjustment if amount or type changes
         old_impact = (
-            transaction.amount 
-            if transaction.transaction_type == TransactionType.CREDIT 
+            transaction.amount
+            if transaction.transaction_type == TransactionType.CREDIT
             else -transaction.amount
         )
-        
+
         # Update transaction fields
         for field, value in transaction_data.model_dump(exclude_unset=True).items():
             setattr(transaction, field, value)
 
         # Calculate new balance impact
         new_impact = (
-            transaction.amount 
-            if transaction.transaction_type == TransactionType.CREDIT 
+            transaction.amount
+            if transaction.transaction_type == TransactionType.CREDIT
             else -transaction.amount
         )
 

@@ -1,21 +1,25 @@
+import statistics
+from collections import defaultdict
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import List, Optional, Tuple, Dict
-from collections import defaultdict
-import statistics
+from typing import Dict, List, Optional, Tuple
 
-from sqlalchemy import select, and_, func
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
 from src.models.transaction_history import TransactionHistory
-from src.schemas.realtime_cashflow import AccountBalance, RealtimeCashflow
 from src.schemas.cashflow import (
-    CrossAccountAnalysis, AccountCorrelation, TransferPattern,
-    AccountUsagePattern, BalanceDistribution, AccountRiskAssessment
+    AccountCorrelation,
+    AccountRiskAssessment,
+    AccountUsagePattern,
+    BalanceDistribution,
+    CrossAccountAnalysis,
+    TransferPattern,
 )
+from src.schemas.realtime_cashflow import AccountBalance, RealtimeCashflow
 
 
 class RealtimeCashflowService:
@@ -35,18 +39,22 @@ class RealtimeCashflowService:
                 type=account.type,
                 current_balance=account.available_balance,
                 available_credit=account.available_credit,
-                total_limit=account.total_limit
+                total_limit=account.total_limit,
             )
             for account in accounts
         ]
 
     async def get_upcoming_bill(self) -> Tuple[Optional[datetime], Optional[int]]:
         """Get the next upcoming bill and days until due."""
-        query = select(Liability).where(
-            Liability.paid == False,  # noqa: E712
-            Liability.due_date >= datetime.now().date()
-        ).order_by(Liability.due_date)
-        
+        query = (
+            select(Liability)
+            .where(
+                Liability.paid == False,  # noqa: E712
+                Liability.due_date >= datetime.now().date(),
+            )
+            .order_by(Liability.due_date)
+        )
+
         result = await self.db.execute(query)
         bills = result.scalars().all()
 
@@ -62,7 +70,7 @@ class RealtimeCashflowService:
         """Calculate minimum balance required for upcoming bills."""
         query = select(Liability).where(
             Liability.paid == False,  # noqa: E712
-            Liability.due_date <= (datetime.now() + timedelta(days=14)).date()
+            Liability.due_date <= (datetime.now() + timedelta(days=14)).date(),
         )
         result = await self.db.execute(query)
         upcoming_bills = result.scalars().all()
@@ -72,23 +80,25 @@ class RealtimeCashflowService:
     async def get_realtime_cashflow(self) -> RealtimeCashflow:
         """Get real-time cashflow data across all accounts."""
         account_balances = await self.get_account_balances()
-        
+
         total_funds = sum(
-            (acc.current_balance for acc in account_balances 
-             if acc.type != "credit"),
-            Decimal(0)
+            (acc.current_balance for acc in account_balances if acc.type != "credit"),
+            Decimal(0),
         )
-        
+
         total_credit = sum(
-            (acc.available_credit for acc in account_balances 
-             if acc.type == "credit" and acc.available_credit is not None),
-            Decimal(0)
+            (
+                acc.available_credit
+                for acc in account_balances
+                if acc.type == "credit" and acc.available_credit is not None
+            ),
+            Decimal(0),
         )
 
         # Get upcoming bills
         query = select(Liability).where(
             Liability.paid == False,  # noqa: E712
-            Liability.due_date >= datetime.now().date()
+            Liability.due_date >= datetime.now().date(),
         )
         result = await self.db.execute(query)
         upcoming_bills = result.scalars().all()
@@ -111,10 +121,12 @@ class RealtimeCashflowService:
             next_bill_due=next_bill_date,
             days_until_next_bill=days_until_bill,
             minimum_balance_required=min_balance,
-            projected_deficit=projected_deficit
+            projected_deficit=projected_deficit,
         )
 
-    async def analyze_account_correlations(self) -> Dict[str, Dict[str, AccountCorrelation]]:
+    async def analyze_account_correlations(
+        self,
+    ) -> Dict[str, Dict[str, AccountCorrelation]]:
         """Analyze correlations between accounts based on transaction patterns."""
         # Get all accounts
         query = select(Account)
@@ -129,13 +141,14 @@ class RealtimeCashflowService:
                     continue
 
                 # Get transfers between accounts
-                transfers_query = select(PaymentSource).join(
-                    Payment,
-                    PaymentSource.payment_id == Payment.id
-                ).where(
-                    and_(
-                        PaymentSource.account_id.in_([acc1.id, acc2.id]),
-                        Payment.category == "Transfer"
+                transfers_query = (
+                    select(PaymentSource)
+                    .join(Payment, PaymentSource.payment_id == Payment.id)
+                    .where(
+                        and_(
+                            PaymentSource.account_id.in_([acc1.id, acc2.id]),
+                            Payment.category == "Transfer",
+                        )
                     )
                 )
                 result = await self.db.execute(transfers_query)
@@ -143,7 +156,7 @@ class RealtimeCashflowService:
 
                 # Calculate correlation metrics
                 transfer_frequency = len(transfers)
-                
+
                 # Get common categories from transactions
                 categories_query = select(TransactionHistory.description).where(
                     TransactionHistory.account_id.in_([acc1.id, acc2.id])
@@ -155,13 +168,19 @@ class RealtimeCashflowService:
                 # Determine relationship type
                 relationship_type = "independent"
                 if transfer_frequency > 5:
-                    relationship_type = "complementary" if acc1.type != acc2.type else "supplementary"
+                    relationship_type = (
+                        "complementary" if acc1.type != acc2.type else "supplementary"
+                    )
 
                 correlations[str(acc1.id)][str(acc2.id)] = AccountCorrelation(
-                    correlation_score=Decimal(transfer_frequency / 10).min(Decimal('1')),
+                    correlation_score=Decimal(transfer_frequency / 10).min(
+                        Decimal("1")
+                    ),
                     transfer_frequency=transfer_frequency,
-                    common_categories=common_categories[:10],  # Limit to top 10 categories
-                    relationship_type=relationship_type
+                    common_categories=common_categories[
+                        :10
+                    ],  # Limit to top 10 categories
+                    relationship_type=relationship_type,
                 )
 
         return correlations
@@ -169,23 +188,20 @@ class RealtimeCashflowService:
     async def analyze_transfer_patterns(self) -> List[TransferPattern]:
         """Analyze transfer patterns between accounts."""
         patterns = []
-        
+
         # Get all transfers
-        transfers_query = select(
-            PaymentSource, 
-            Payment,
-            func.count(PaymentSource.id).label('frequency'),
-            func.avg(PaymentSource.amount).label('avg_amount')
-        ).join(
-            Payment,
-            PaymentSource.payment_id == Payment.id
-        ).where(
-            Payment.category == "Transfer"
-        ).group_by(
-            PaymentSource.account_id,
-            Payment.category
+        transfers_query = (
+            select(
+                PaymentSource,
+                Payment,
+                func.count(PaymentSource.id).label("frequency"),
+                func.avg(PaymentSource.amount).label("avg_amount"),
+            )
+            .join(Payment, PaymentSource.payment_id == Payment.id)
+            .where(Payment.category == "Transfer")
+            .group_by(PaymentSource.account_id, Payment.category)
         )
-        
+
         result = await self.db.execute(transfers_query)
         transfers = result.all()
 
@@ -196,29 +212,29 @@ class RealtimeCashflowService:
             avg_amount = Decimal(str(transfer[3]))
 
             # Get category distribution
-            category_query = select(
-                Payment.category,
-                func.sum(PaymentSource.amount).label('total_amount')
-            ).join(
-                PaymentSource,
-                PaymentSource.payment_id == Payment.id
-            ).where(
-                PaymentSource.account_id == source.account_id
-            ).group_by(
-                Payment.category
+            category_query = (
+                select(
+                    Payment.category,
+                    func.sum(PaymentSource.amount).label("total_amount"),
+                )
+                .join(PaymentSource, PaymentSource.payment_id == Payment.id)
+                .where(PaymentSource.account_id == source.account_id)
+                .group_by(Payment.category)
             )
-            
+
             cat_result = await self.db.execute(category_query)
             categories = {row[0]: Decimal(str(row[1])) for row in cat_result}
 
-            patterns.append(TransferPattern(
-                source_account_id=source.account_id,
-                target_account_id=payment.id,  # Using payment ID as target for this example
-                average_amount=avg_amount,
-                frequency=frequency,
-                typical_day_of_month=None,  # Would require more complex analysis
-                category_distribution=categories
-            ))
+            patterns.append(
+                TransferPattern(
+                    source_account_id=source.account_id,
+                    target_account_id=payment.id,  # Using payment ID as target for this example
+                    average_amount=avg_amount,
+                    frequency=frequency,
+                    typical_day_of_month=None,  # Would require more complex analysis
+                    category_distribution=categories,
+                )
+            )
 
         return patterns
 
@@ -249,7 +265,7 @@ class RealtimeCashflowService:
                         abs(account.available_balance) / account.total_limit
                         if account.type == "credit" and account.total_limit
                         else None
-                    )
+                    ),
                 )
                 continue
 
@@ -257,13 +273,13 @@ class RealtimeCashflowService:
             amounts = [tx.amount for tx in transactions]
             avg_transaction = sum(amounts, Decimal(0)) / len(amounts)
             volatility = statistics.stdev(amounts) if len(amounts) > 1 else Decimal(0)
-            
+
             # Get common merchants (from description)
             merchants = defaultdict(int)
             for tx in transactions:
                 if tx.description:
                     merchants[tx.description] += 1
-            
+
             # Get peak usage days
             days = [tx.transaction_date.day for tx in transactions]
             peak_days = list(set(days))[:31]  # Limit to 31 days
@@ -277,10 +293,12 @@ class RealtimeCashflowService:
                 account_id=account.id,
                 primary_use=self._determine_primary_use(transactions),
                 average_transaction_size=avg_transaction,
-                common_merchants=sorted(merchants, key=merchants.get, reverse=True)[:10],
+                common_merchants=sorted(merchants, key=merchants.get, reverse=True)[
+                    :10
+                ],
                 peak_usage_days=peak_days,
                 category_preferences=self._calculate_category_preferences(transactions),
-                utilization_rate=utilization_rate
+                utilization_rate=utilization_rate,
             )
 
         return patterns
@@ -290,14 +308,13 @@ class RealtimeCashflowService:
         categories = [tx.description for tx in transactions if tx.description]
         if not categories:
             return "general"
-        
+
         # Simple logic - could be made more sophisticated
         most_common = max(set(categories), key=categories.count)
         return most_common.lower()
 
     def _calculate_category_preferences(
-        self, 
-        transactions: List[TransactionHistory]
+        self, transactions: List[TransactionHistory]
     ) -> Dict[str, Decimal]:
         """Calculate category preferences based on transaction amounts."""
         categories = defaultdict(Decimal)
@@ -311,7 +328,7 @@ class RealtimeCashflowService:
         if total == 0:
             return {}
 
-        return {k: v/total for k, v in categories.items()}
+        return {k: v / total for k, v in categories.items()}
 
     async def analyze_balance_distribution(self) -> Dict[int, BalanceDistribution]:
         """Analyze balance distribution across accounts."""
@@ -325,15 +342,18 @@ class RealtimeCashflowService:
 
         for account in accounts:
             # Get historical balances from transaction history
-            balance_query = select(TransactionHistory).where(
-                and_(
-                    TransactionHistory.account_id == account.id,
-                    TransactionHistory.transaction_date >= (
-                        datetime.now() - timedelta(days=30)
+            balance_query = (
+                select(TransactionHistory)
+                .where(
+                    and_(
+                        TransactionHistory.account_id == account.id,
+                        TransactionHistory.transaction_date
+                        >= (datetime.now() - timedelta(days=30)),
                     )
                 )
-            ).order_by(TransactionHistory.transaction_date)
-            
+                .order_by(TransactionHistory.transaction_date)
+            )
+
             result = await self.db.execute(balance_query)
             transactions = result.scalars().all()
 
@@ -343,8 +363,10 @@ class RealtimeCashflowService:
             # Calculate balance metrics
             balances = [tx.amount for tx in transactions]
             avg_balance = statistics.mean(balances)
-            balance_volatility = statistics.stdev(balances) if len(balances) > 1 else Decimal(0)
-            
+            balance_volatility = (
+                statistics.stdev(balances) if len(balances) > 1 else Decimal(0)
+            )
+
             distributions[account.id] = BalanceDistribution(
                 account_id=account.id,
                 average_balance=Decimal(str(avg_balance)),
@@ -353,13 +375,13 @@ class RealtimeCashflowService:
                 max_balance_30d=max(balances),
                 typical_balance_range=(
                     Decimal(str(avg_balance - balance_volatility)),
-                    Decimal(str(avg_balance + balance_volatility))
+                    Decimal(str(avg_balance + balance_volatility)),
                 ),
                 percentage_of_total=(
-                    abs(account.available_balance) / total_balance 
+                    abs(account.available_balance) / total_balance
                     if total_balance > 0 and account.type != "credit"
                     else Decimal(0)
-                )
+                ),
             )
 
         return distributions
@@ -376,16 +398,19 @@ class RealtimeCashflowService:
             transactions_query = select(TransactionHistory).where(
                 and_(
                     TransactionHistory.account_id == account.id,
-                    TransactionHistory.transaction_date >= (
-                        datetime.now() - timedelta(days=30)
-                    )
+                    TransactionHistory.transaction_date
+                    >= (datetime.now() - timedelta(days=30)),
                 )
             )
             result = await self.db.execute(transactions_query)
             transactions = result.scalars().all()
 
             # Initialize risk metrics with defaults if no transactions
-            balances = [tx.amount for tx in transactions] if transactions else [account.available_balance]
+            balances = (
+                [tx.amount for tx in transactions]
+                if transactions
+                else [account.available_balance]
+            )
             volatility = statistics.stdev(balances) if len(balances) > 1 else Decimal(0)
 
             # Calculate overdraft risk
@@ -393,33 +418,39 @@ class RealtimeCashflowService:
             if account.type != "credit":
                 min_balance = min(balances)
                 overdraft_risk = (
-                    Decimal('1') if min_balance < 0 
-                    else (Decimal('0.5') if min_balance < 100 
-                    else Decimal('0'))
+                    Decimal("1")
+                    if min_balance < 0
+                    else (Decimal("0.5") if min_balance < 100 else Decimal("0"))
                 )
 
             # Calculate credit utilization risk
             credit_utilization_risk = None
             if account.type == "credit" and account.total_limit:
                 utilization = abs(account.available_balance) / account.total_limit
-                credit_utilization_risk = min(utilization, Decimal('1'))
+                credit_utilization_risk = min(utilization, Decimal("1"))
 
             # Calculate payment failure risk based on transaction patterns
-            payment_failure_risk = Decimal('0.5') if volatility > 1000 else Decimal('0.2')
+            payment_failure_risk = (
+                Decimal("0.5") if volatility > 1000 else Decimal("0.2")
+            )
 
             # Calculate volatility score
             max_volatility = max(abs(amount) for amount in balances)
             volatility_score = min(
                 volatility / max_volatility if max_volatility > 0 else Decimal(0),
-                Decimal('1')
+                Decimal("1"),
             )
 
             # Calculate overall risk score
             risk_factors = [
                 overdraft_risk,
-                credit_utilization_risk if credit_utilization_risk is not None else Decimal(0),
+                (
+                    credit_utilization_risk
+                    if credit_utilization_risk is not None
+                    else Decimal(0)
+                ),
                 payment_failure_risk,
-                volatility_score
+                volatility_score,
             ]
             overall_risk = sum(risk_factors, Decimal(0)) / len(risk_factors)
 
@@ -429,7 +460,7 @@ class RealtimeCashflowService:
                 credit_utilization_risk=credit_utilization_risk,
                 payment_failure_risk=payment_failure_risk,
                 volatility_score=volatility_score,
-                overall_risk_score=overall_risk
+                overall_risk_score=overall_risk,
             )
 
         return risks
@@ -448,5 +479,5 @@ class RealtimeCashflowService:
             usage_patterns=usage_patterns,
             balance_distribution=balance_distribution,
             risk_assessment=risk_assessment,
-            timestamp=datetime.now().date()
+            timestamp=datetime.now().date(),
         )

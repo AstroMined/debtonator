@@ -1,13 +1,14 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Dict, Optional
+
 import pytest
 from pydantic import ValidationError
 
 from src.schemas.balance_history import (
+    BalanceHistory,
     BalanceHistoryBase,
     BalanceHistoryCreate,
-    BalanceHistory,
     BalanceTrend,
 )
 
@@ -20,9 +21,9 @@ def test_balance_history_base_valid():
         balance=Decimal("100.00"),
         available_credit=Decimal("500.00"),
         is_reconciled=True,
-        notes="Initial balance entry"
+        notes="Initial balance entry",
     )
-    
+
     assert data.account_id == 1
     assert data.balance == Decimal("100.00")
     assert data.available_credit == Decimal("500.00")
@@ -32,11 +33,8 @@ def test_balance_history_base_valid():
 
 def test_balance_history_base_minimal():
     """Test balance history base schema with only required fields"""
-    data = BalanceHistoryBase(
-        account_id=1,
-        balance=Decimal("100.00")
-    )
-    
+    data = BalanceHistoryBase(account_id=1, balance=Decimal("100.00"))
+
     assert data.account_id == 1
     assert data.balance == Decimal("100.00")
     assert data.available_credit is None
@@ -51,9 +49,9 @@ def test_balance_history_create_valid():
         balance=Decimal("100.00"),
         available_credit=Decimal("500.00"),
         is_reconciled=True,
-        notes="Initial balance entry"
+        notes="Initial balance entry",
     )
-    
+
     assert data.account_id == 1
     assert data.balance == Decimal("100.00")
     assert data.available_credit == Decimal("500.00")
@@ -64,7 +62,7 @@ def test_balance_history_create_valid():
 def test_balance_history_valid():
     """Test valid balance history schema with all fields"""
     now = datetime.now(timezone.utc)
-    
+
     data = BalanceHistory(
         id=1,
         account_id=2,
@@ -74,9 +72,9 @@ def test_balance_history_valid():
         notes="Initial balance entry",
         timestamp=now,
         created_at=now,
-        updated_at=now
+        updated_at=now,
     )
-    
+
     assert data.id == 1
     assert data.account_id == 2
     assert data.balance == Decimal("100.00")
@@ -92,7 +90,7 @@ def test_balance_trend_valid():
     """Test valid balance trend schema with all fields"""
     start_date = datetime(2025, 1, 1, tzinfo=timezone.utc)
     end_date = datetime(2025, 1, 31, tzinfo=timezone.utc)
-    
+
     data = BalanceTrend(
         account_id=1,
         start_date=start_date,
@@ -104,9 +102,9 @@ def test_balance_trend_valid():
         min_balance=Decimal("900.00"),
         max_balance=Decimal("1600.00"),
         trend_direction="increasing",
-        volatility=Decimal("75.50")
+        volatility=Decimal("75.50"),
     )
-    
+
     assert data.account_id == 1
     assert data.start_date == start_date
     assert data.end_date == end_date
@@ -126,10 +124,10 @@ def test_account_id_validation():
     # Test account_id <= 0
     with pytest.raises(ValidationError, match="Input should be greater than 0"):
         BalanceHistoryBase(account_id=0, balance=Decimal("100.00"))
-    
+
     with pytest.raises(ValidationError, match="Input should be greater than 0"):
         BalanceHistoryBase(account_id=-1, balance=Decimal("100.00"))
-    
+
     # Test valid account_id
     data = BalanceHistoryBase(account_id=1, balance=Decimal("100.00"))
     assert data.account_id == 1
@@ -138,19 +136,13 @@ def test_account_id_validation():
 def test_notes_length_validation():
     """Test notes length validation"""
     # Test notes too long
-    with pytest.raises(ValidationError, match="String should have at most 500 characters"):
-        BalanceHistoryBase(
-            account_id=1, 
-            balance=Decimal("100.00"), 
-            notes="X" * 501
-        )
-    
+    with pytest.raises(
+        ValidationError, match="String should have at most 500 characters"
+    ):
+        BalanceHistoryBase(account_id=1, balance=Decimal("100.00"), notes="X" * 501)
+
     # Test valid notes length
-    data = BalanceHistoryBase(
-        account_id=1, 
-        balance=Decimal("100.00"), 
-        notes="X" * 500
-    )
+    data = BalanceHistoryBase(account_id=1, balance=Decimal("100.00"), notes="X" * 500)
     assert len(data.notes) == 500
 
 
@@ -160,20 +152,16 @@ def test_decimal_precision():
     # Test too many decimal places on balance
     with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         BalanceHistoryBase(account_id=1, balance=Decimal("100.123"))
-    
+
     # Test too many decimal places on available_credit
     with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         BalanceHistoryBase(
-            account_id=1, 
-            balance=Decimal("100.00"), 
-            available_credit=Decimal("500.123")
+            account_id=1, balance=Decimal("100.00"), available_credit=Decimal("500.123")
         )
-    
+
     # Test valid decimal places
     data = BalanceHistoryBase(
-        account_id=1, 
-        balance=Decimal("100.12"), 
-        available_credit=Decimal("500.12")
+        account_id=1, balance=Decimal("100.12"), available_credit=Decimal("500.12")
     )
     assert data.balance == Decimal("100.12")
     assert data.available_credit == Decimal("500.12")
@@ -183,7 +171,7 @@ def test_decimal_precision():
 def test_datetime_utc_validation():
     """Test datetime UTC validation per ADR-011"""
     now_utc = datetime.now(timezone.utc)
-    
+
     # Test naive datetime in timestamp
     with pytest.raises(ValidationError, match="Datetime must be UTC"):
         BalanceHistory(
@@ -192,9 +180,9 @@ def test_datetime_utc_validation():
             balance=Decimal("100.00"),
             timestamp=datetime.now(),  # Naive datetime
             created_at=now_utc,
-            updated_at=now_utc
+            updated_at=now_utc,
         )
-    
+
     # Test non-UTC timezone in created_at
     with pytest.raises(ValidationError, match="Datetime must be UTC"):
         BalanceHistory(
@@ -203,7 +191,9 @@ def test_datetime_utc_validation():
             balance=Decimal("100.00"),
             timestamp=now_utc,
             created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now().replace(tzinfo=timezone(timedelta(hours=5)))  # Non-UTC timezone
+            updated_at=datetime.now().replace(
+                tzinfo=timezone(timedelta(hours=5))
+            ),  # Non-UTC timezone
         )
 
 
@@ -212,7 +202,7 @@ def test_trend_direction_validation():
     """Test trend_direction validator"""
     start_date = datetime(2025, 1, 1, tzinfo=timezone.utc)
     end_date = datetime(2025, 1, 31, tzinfo=timezone.utc)
-    
+
     # Test invalid trend_direction
     with pytest.raises(ValidationError, match="trend_direction must be one of"):
         BalanceTrend(
@@ -226,9 +216,9 @@ def test_trend_direction_validation():
             min_balance=Decimal("900.00"),
             max_balance=Decimal("1600.00"),
             trend_direction="upward",  # Invalid value
-            volatility=Decimal("75.50")
+            volatility=Decimal("75.50"),
         )
-    
+
     # Test valid trend_direction values
     for direction in ["increasing", "decreasing", "stable"]:
         data = BalanceTrend(
@@ -242,7 +232,7 @@ def test_trend_direction_validation():
             min_balance=Decimal("900.00"),
             max_balance=Decimal("1600.00"),
             trend_direction=direction,
-            volatility=Decimal("75.50")
+            volatility=Decimal("75.50"),
         )
         assert data.trend_direction == direction
 
@@ -262,9 +252,9 @@ def test_date_range_validation():
             min_balance=Decimal("900.00"),
             max_balance=Decimal("1600.00"),
             trend_direction="increasing",
-            volatility=Decimal("75.50")
+            volatility=Decimal("75.50"),
         )
-    
+
     # Test end_date equal to start_date (valid)
     same_date = datetime(2025, 1, 15, tzinfo=timezone.utc)
     data = BalanceTrend(
@@ -278,7 +268,7 @@ def test_date_range_validation():
         min_balance=Decimal("900.00"),
         max_balance=Decimal("1600.00"),
         trend_direction="increasing",
-        volatility=Decimal("75.50")
+        volatility=Decimal("75.50"),
     )
     assert data.start_date == data.end_date
 
@@ -286,7 +276,9 @@ def test_date_range_validation():
 def test_net_change_validation():
     """Test net_change validation (must equal end_balance - start_balance)"""
     # Test incorrect net_change
-    with pytest.raises(ValidationError, match="net_change must equal end_balance - start_balance"):
+    with pytest.raises(
+        ValidationError, match="net_change must equal end_balance - start_balance"
+    ):
         BalanceTrend(
             account_id=1,
             start_date=datetime(2025, 1, 1, tzinfo=timezone.utc),
@@ -298,9 +290,9 @@ def test_net_change_validation():
             min_balance=Decimal("900.00"),
             max_balance=Decimal("1600.00"),
             trend_direction="increasing",
-            volatility=Decimal("75.50")
+            volatility=Decimal("75.50"),
         )
-    
+
     # Test correct net_change
     data = BalanceTrend(
         account_id=1,
@@ -313,6 +305,6 @@ def test_net_change_validation():
         min_balance=Decimal("900.00"),
         max_balance=Decimal("1600.00"),
         trend_direction="increasing",
-        volatility=Decimal("75.50")
+        volatility=Decimal("75.50"),
     )
     assert data.net_change == data.end_balance - data.start_balance

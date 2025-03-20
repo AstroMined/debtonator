@@ -1,10 +1,10 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+from typing import Dict
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
 from pydantic import ValidationError
-from typing import Dict
 
 from src.schemas.accounts import (
     AccountBase,
@@ -12,8 +12,8 @@ from src.schemas.accounts import (
     AccountInDB,
     AccountType,
     AccountUpdate,
-    StatementBalanceHistory,
     AvailableCreditResponse,
+    StatementBalanceHistory,
 )
 
 
@@ -50,9 +50,7 @@ def test_account_base_name_validation():
 def test_account_base_decimal_validation():
     """Test decimal field validation"""
     # Test decimal places (too many decimal places)
-    with pytest.raises(
-        ValidationError, match="Input should be a multiple of 0.01"
-    ):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         AccountBase(
             name="Test Account",
             type=AccountType.CHECKING,
@@ -175,18 +173,16 @@ def test_account_update_validation():
         AccountUpdate(type=AccountType.CHECKING, total_limit=Decimal("1000.00"))
 
     # Test too many decimal places
-    with pytest.raises(
-        ValidationError, match="Input should be a multiple of 0.01"
-    ):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         AccountUpdate(available_balance=Decimal("100.123"))
-        
+
     # Test valid decimal formats
     update1 = AccountUpdate(available_balance=Decimal("100"))  # 0 decimal places
     assert update1.available_balance == Decimal("100")
-    
+
     update2 = AccountUpdate(available_balance=Decimal("100.5"))  # 1 decimal place
     assert update2.available_balance == Decimal("100.5")
-    
+
     update3 = AccountUpdate(available_balance=Decimal("100.50"))  # 2 decimal places
     assert update3.available_balance == Decimal("100.50")
 
@@ -310,24 +306,22 @@ def test_statement_balance_history_validation():
     now = datetime.now(timezone.utc)
 
     # Test too many decimal places
-    with pytest.raises(
-        ValidationError, match="Input should be a multiple of 0.01"
-    ):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         StatementBalanceHistory(
             statement_date=now, statement_balance=Decimal("1000.123")
         )
-        
+
     # Test valid decimal places
     valid_history = StatementBalanceHistory(
         statement_date=now, statement_balance=Decimal("1000.00")
     )
     assert valid_history.statement_balance == Decimal("1000.00")
-    
+
     valid_history = StatementBalanceHistory(
         statement_date=now, statement_balance=Decimal("1000.5")
     )
     assert valid_history.statement_balance == Decimal("1000.5")
-    
+
     valid_history = StatementBalanceHistory(
         statement_date=now, statement_balance=Decimal("1000")
     )
@@ -379,20 +373,18 @@ def test_money_field_type():
         current_balance=Decimal("2500.00"),
         pending_transactions=Decimal("500.00"),
         adjusted_balance=Decimal("3000.00"),
-        available_credit=Decimal("2000.00")
+        available_credit=Decimal("2000.00"),
     )
-    
+
     # Verify all money fields have proper values
     assert account.total_limit == Decimal("5000.00")
     assert account.current_balance == Decimal("2500.00")
     assert account.pending_transactions == Decimal("500.00")
     assert account.adjusted_balance == Decimal("3000.00")
     assert account.available_credit == Decimal("2000.00")
-    
+
     # Test validation error with too many decimal places
-    with pytest.raises(
-        ValidationError, match="Input should be a multiple of 0.01"
-    ):
+    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         AvailableCreditResponse(
             account_id=1,
             account_name="Test Credit Card",
@@ -400,13 +392,11 @@ def test_money_field_type():
             current_balance=Decimal("2500.00"),
             pending_transactions=Decimal("500.00"),
             adjusted_balance=Decimal("3000.00"),
-            available_credit=Decimal("2000.00")
+            available_credit=Decimal("2000.00"),
         )
-    
+
     # Test validation with gt constraint
-    with pytest.raises(
-        ValidationError, match="Input should be greater than 0"
-    ):
+    with pytest.raises(ValidationError, match="Input should be greater than 0"):
         AvailableCreditResponse(
             account_id=1,
             account_name="Test Credit Card",
@@ -414,9 +404,9 @@ def test_money_field_type():
             current_balance=Decimal("0.00"),
             pending_transactions=Decimal("0.00"),
             adjusted_balance=Decimal("0.00"),
-            available_credit=Decimal("0.00")
+            available_credit=Decimal("0.00"),
         )
-    
+
     # Test validation with ge constraint
     with pytest.raises(
         ValidationError, match="Input should be greater than or equal to 0"
@@ -428,5 +418,5 @@ def test_money_field_type():
             current_balance=Decimal("2500.00"),
             pending_transactions=Decimal("500.00"),
             adjusted_balance=Decimal("3000.00"),
-            available_credit=Decimal("-0.01")  # Negative value violates ge=0
+            available_credit=Decimal("-0.01"),  # Negative value violates ge=0
         )

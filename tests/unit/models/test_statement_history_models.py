@@ -1,18 +1,18 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
+from src.models.base_model import naive_utc_from_date, naive_utc_now
 from src.models.statement_history import StatementHistory
-from src.models.base_model import naive_utc_now, naive_utc_from_date
 
 pytestmark = pytest.mark.asyncio
 
 
 async def test_create_statement_history(
-    db_session: AsyncSession,
-    test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: Account
 ):
     """Test creating a statement history record."""
     statement = StatementHistory(
@@ -20,7 +20,7 @@ async def test_create_statement_history(
         statement_date=naive_utc_now(),
         statement_balance=Decimal("500.00"),
         minimum_payment=Decimal("25.00"),
-        due_date=naive_utc_now() + timedelta(days=25)
+        due_date=naive_utc_now() + timedelta(days=25),
     )
     db_session.add(statement)
     await db_session.commit()
@@ -35,9 +35,9 @@ async def test_create_statement_history(
     assert isinstance(statement.created_at, datetime)
     assert isinstance(statement.updated_at, datetime)
 
+
 async def test_statement_history_relationships(
-    db_session: AsyncSession,
-    test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: Account
 ):
     """Test statement history relationships."""
     statement = StatementHistory(
@@ -45,14 +45,14 @@ async def test_statement_history_relationships(
         statement_date=naive_utc_now(),
         statement_balance=Decimal("500.00"),
         minimum_payment=Decimal("25.00"),
-        due_date=naive_utc_now() + timedelta(days=25)
+        due_date=naive_utc_now() + timedelta(days=25),
     )
     db_session.add(statement)
     await db_session.commit()
     await db_session.refresh(statement)
 
     # Refresh test_credit_account to load specific relationship
-    await db_session.refresh(test_credit_account, ['statement_history'])
+    await db_session.refresh(test_credit_account, ["statement_history"])
 
     # Test account relationship
     assert statement.account is not None
@@ -62,9 +62,9 @@ async def test_statement_history_relationships(
     # Test relationship from account side
     assert statement in test_credit_account.statement_history
 
+
 async def test_statement_history_string_representation(
-    db_session: AsyncSession,
-    test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: Account
 ):
     """Test the string representation of a statement history record."""
     statement_date = naive_utc_now()
@@ -73,7 +73,7 @@ async def test_statement_history_string_representation(
         statement_date=statement_date,
         statement_balance=Decimal("500.00"),
         minimum_payment=Decimal("25.00"),
-        due_date=statement_date + timedelta(days=25)
+        due_date=statement_date + timedelta(days=25),
     )
     db_session.add(statement)
     await db_session.commit()
@@ -82,9 +82,9 @@ async def test_statement_history_string_representation(
     assert str(statement) == expected_str
     assert repr(statement) == expected_str
 
+
 async def test_statement_history_cascade_delete(
-    db_session: AsyncSession,
-    test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: Account
 ):
     """Test that statement history records are deleted when account is deleted."""
     statement = StatementHistory(
@@ -92,7 +92,7 @@ async def test_statement_history_cascade_delete(
         statement_date=naive_utc_now(),
         statement_balance=Decimal("500.00"),
         minimum_payment=Decimal("25.00"),
-        due_date=naive_utc_now() + timedelta(days=25)
+        due_date=naive_utc_now() + timedelta(days=25),
     )
     db_session.add(statement)
     await db_session.commit()
@@ -105,9 +105,9 @@ async def test_statement_history_cascade_delete(
     result = await db_session.get(StatementHistory, statement.id)
     assert result is None
 
+
 async def test_statement_history_due_date_field(
-    db_session: AsyncSession,
-    test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: Account
 ):
     """Test due date as a regular field in statement history model."""
     statement_date = naive_utc_now()
@@ -118,7 +118,7 @@ async def test_statement_history_due_date_field(
         account_id=test_credit_account.id,
         statement_date=statement_date,
         statement_balance=Decimal("600.00"),
-        due_date=explicit_due_date
+        due_date=explicit_due_date,
     )
     db_session.add(statement)
     await db_session.commit()
@@ -133,7 +133,7 @@ async def test_statement_history_due_date_field(
         account_id=test_credit_account.id,
         statement_date=statement_date,
         statement_balance=Decimal("700.00"),
-        due_date=None
+        due_date=None,
     )
     db_session.add(statement2)
     await db_session.commit()
@@ -142,9 +142,9 @@ async def test_statement_history_due_date_field(
     # Due date can be null in model (will be calculated in service)
     assert statement2.due_date is None
 
+
 async def test_multiple_statement_history(
-    db_session: AsyncSession,
-    test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: Account
 ):
     """Test recording multiple statements for an account."""
     # First statement
@@ -153,7 +153,7 @@ async def test_multiple_statement_history(
         statement_date=naive_utc_now() - timedelta(days=30),
         statement_balance=Decimal("500.00"),
         minimum_payment=Decimal("25.00"),
-        due_date=naive_utc_now() - timedelta(days=5)
+        due_date=naive_utc_now() - timedelta(days=5),
     )
     db_session.add(statement1)
     await db_session.commit()
@@ -164,13 +164,13 @@ async def test_multiple_statement_history(
         statement_date=naive_utc_now(),
         statement_balance=Decimal("600.00"),
         minimum_payment=Decimal("30.00"),
-        due_date=naive_utc_now() + timedelta(days=25)
+        due_date=naive_utc_now() + timedelta(days=25),
     )
     db_session.add(statement2)
     await db_session.commit()
 
     # Refresh test_credit_account to load specific relationship
-    await db_session.refresh(test_credit_account, ['statement_history'])
+    await db_session.refresh(test_credit_account, ["statement_history"])
 
     # Verify both records exist and are correctly ordered by statement_date
     statements = test_credit_account.statement_history
@@ -178,9 +178,9 @@ async def test_multiple_statement_history(
     assert statements[0].statement_balance == Decimal("500.00")
     assert statements[1].statement_balance == Decimal("600.00")
 
+
 async def test_datetime_handling(
-    db_session: AsyncSession,
-    test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: Account
 ):
     """Test proper datetime handling in statement history"""
     # Create statement with explicit datetime values
@@ -191,7 +191,7 @@ async def test_datetime_handling(
         minimum_payment=Decimal("25.00"),
         due_date=naive_utc_from_date(2025, 4, 10),
         created_at=naive_utc_now(),
-        updated_at=naive_utc_now()
+        updated_at=naive_utc_now(),
     )
     db_session.add(statement)
     await db_session.commit()

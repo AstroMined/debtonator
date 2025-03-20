@@ -1,23 +1,27 @@
 from datetime import date, datetime
-from typing import List, Optional
 from decimal import Decimal
+from typing import List, Optional
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from src.models.payment_schedules import PaymentSchedule
-from src.models.liabilities import Liability
 from src.models.accounts import Account
+from src.models.liabilities import Liability
+from src.models.payment_schedules import PaymentSchedule
 from src.schemas.payment_schedules import PaymentScheduleCreate
-from src.services.payments import PaymentService
 from src.schemas.payments import PaymentCreate, PaymentSourceCreate
+from src.services.payments import PaymentService
+
 
 class PaymentScheduleService:
     def __init__(self, session: AsyncSession):
         self.session = session
         self.payment_service = PaymentService(session)
 
-    async def create_schedule(self, schedule_data: PaymentScheduleCreate) -> PaymentSchedule:
+    async def create_schedule(
+        self, schedule_data: PaymentScheduleCreate
+    ) -> PaymentSchedule:
         """Create a new payment schedule"""
         # Verify liability exists and is not paid
         liability = await self.session.get(Liability, schedule_data.liability_id)
@@ -38,7 +42,7 @@ class PaymentScheduleService:
             scheduled_date=schedule_data.scheduled_date,
             amount=Decimal(str(schedule_data.amount)),
             description=schedule_data.description,
-            auto_process=schedule_data.auto_process
+            auto_process=schedule_data.auto_process,
         )
 
         self.session.add(schedule)
@@ -53,17 +57,13 @@ class PaymentScheduleService:
         return result.scalar_one_or_none()
 
     async def get_schedules_by_date_range(
-        self, 
-        start_date: date, 
-        end_date: date,
-        include_processed: bool = False
+        self, start_date: date, end_date: date, include_processed: bool = False
     ) -> List[PaymentSchedule]:
         """Get payment schedules within a date range"""
-        query = (
-            select(PaymentSchedule)
-            .where(PaymentSchedule.scheduled_date.between(start_date, end_date))
+        query = select(PaymentSchedule).where(
+            PaymentSchedule.scheduled_date.between(start_date, end_date)
         )
-        
+
         if not include_processed:
             query = query.where(PaymentSchedule.processed == False)
 
@@ -71,13 +71,13 @@ class PaymentScheduleService:
         return list(result.scalars().all())
 
     async def get_schedules_by_liability(
-        self, 
-        liability_id: int,
-        include_processed: bool = False
+        self, liability_id: int, include_processed: bool = False
     ) -> List[PaymentSchedule]:
         """Get payment schedules for a specific liability"""
-        query = select(PaymentSchedule).where(PaymentSchedule.liability_id == liability_id)
-        
+        query = select(PaymentSchedule).where(
+            PaymentSchedule.liability_id == liability_id
+        )
+
         if not include_processed:
             query = query.where(PaymentSchedule.processed == False)
 
@@ -89,7 +89,7 @@ class PaymentScheduleService:
         schedule = await self.get_schedule(schedule_id)
         if not schedule:
             raise ValueError("Schedule not found")
-        
+
         if schedule.processed:
             raise ValueError("Schedule already processed")
 
@@ -102,10 +102,9 @@ class PaymentScheduleService:
             category="Scheduled Payment",  # Default category for scheduled payments
             sources=[
                 PaymentSourceCreate(
-                    account_id=schedule.account_id,
-                    amount=schedule.amount
+                    account_id=schedule.account_id, amount=schedule.amount
                 )
-            ]
+            ],
         )
         await self.payment_service.create_payment(payment_data)
 
@@ -122,7 +121,7 @@ class PaymentScheduleService:
         schedule = await self.get_schedule(schedule_id)
         if not schedule:
             return False
-        
+
         if schedule.processed:
             raise ValueError("Cannot delete processed schedule")
 
@@ -134,9 +133,7 @@ class PaymentScheduleService:
         """Process all auto-process schedules that are due"""
         today = date.today()
         due_schedules = await self.get_schedules_by_date_range(
-            start_date=today,
-            end_date=today,
-            include_processed=False
+            start_date=today, end_date=today, include_processed=False
         )
 
         processed_schedules = []

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
@@ -23,7 +23,7 @@ def test_account_impact_valid():
         projected_balance=Decimal("400.00"),
         current_credit_utilization=Decimal("0.30"),
         projected_credit_utilization=Decimal("0.40"),
-        risk_score=25
+        risk_score=25,
     )
 
     assert data.account_id == 1
@@ -40,7 +40,7 @@ def test_account_impact_optional_fields():
         account_id=1,
         current_balance=Decimal("500.00"),
         projected_balance=Decimal("400.00"),
-        risk_score=25
+        risk_score=25,
     )
 
     assert data.account_id == 1
@@ -54,12 +54,12 @@ def test_account_impact_optional_fields():
 def test_cashflow_impact_valid():
     """Test valid cashflow impact schema creation"""
     now = datetime.now(timezone.utc)
-    
+
     data = CashflowImpact(
         date=now,
         total_bills=Decimal("250.00"),
         available_funds=Decimal("300.00"),
-        projected_deficit=Decimal("-50.00")
+        projected_deficit=Decimal("-50.00"),
     )
 
     assert data.date == now
@@ -72,8 +72,7 @@ def test_cashflow_impact_default_date():
     """Test cashflow impact with default date"""
     before = datetime.now(timezone.utc)
     data = CashflowImpact(
-        total_bills=Decimal("250.00"),
-        available_funds=Decimal("300.00")
+        total_bills=Decimal("250.00"), available_funds=Decimal("300.00")
     )
     after = datetime.now(timezone.utc)
 
@@ -91,7 +90,7 @@ def test_risk_factor_valid():
     data = RiskFactor(
         name="Insufficient funds",
         severity=75,
-        description="Account may have insufficient funds for upcoming bills"
+        description="Account may have insufficient funds for upcoming bills",
     )
 
     assert data.name == "Insufficient funds"
@@ -106,56 +105,54 @@ def test_split_impact_analysis_valid():
             account_id=1,
             current_balance=Decimal("500.00"),
             projected_balance=Decimal("400.00"),
-            risk_score=25
+            risk_score=25,
         ),
         AccountImpact(
             account_id=2,
             current_balance=Decimal("300.00"),
             projected_balance=Decimal("200.00"),
-            risk_score=40
-        )
+            risk_score=40,
+        ),
     ]
-    
+
     now = datetime.now(timezone.utc)
     cashflow_impacts = [
         CashflowImpact(
-            date=now,
-            total_bills=Decimal("250.00"),
-            available_funds=Decimal("300.00")
+            date=now, total_bills=Decimal("250.00"), available_funds=Decimal("300.00")
         ),
         CashflowImpact(
             date=now + timedelta(days=30),
             total_bills=Decimal("300.00"),
             available_funds=Decimal("250.00"),
-            projected_deficit=Decimal("-50.00")
-        )
+            projected_deficit=Decimal("-50.00"),
+        ),
     ]
-    
+
     risk_factors = [
         RiskFactor(
             name="Insufficient funds",
             severity=75,
-            description="Account may have insufficient funds for upcoming bills"
+            description="Account may have insufficient funds for upcoming bills",
         ),
         RiskFactor(
             name="High utilization",
             severity=60,
-            description="Credit utilization may exceed recommended limits"
-        )
+            description="Credit utilization may exceed recommended limits",
+        ),
     ]
-    
+
     recommendations = [
         "Consider delaying payment until after next deposit",
-        "Split bill across multiple accounts to reduce impact"
+        "Split bill across multiple accounts to reduce impact",
     ]
-    
+
     data = SplitImpactAnalysis(
         total_amount=Decimal("600.00"),
         account_impacts=account_impacts,
         cashflow_impacts=cashflow_impacts,
         risk_factors=risk_factors,
         overall_risk_score=65,
-        recommendations=recommendations
+        recommendations=recommendations,
     )
 
     assert data.total_amount == Decimal("600.00")
@@ -171,14 +168,11 @@ def test_split_impact_request_valid():
     now = datetime.now(timezone.utc)
     splits = [
         {"account_id": 1, "amount": Decimal("300.00")},
-        {"account_id": 2, "amount": Decimal("200.00")}
+        {"account_id": 2, "amount": Decimal("200.00")},
     ]
-    
+
     data = SplitImpactRequest(
-        liability_id=5,
-        splits=splits,
-        analysis_period_days=60,
-        start_date=now
+        liability_id=5, splits=splits, analysis_period_days=60, start_date=now
     )
 
     assert data.liability_id == 5
@@ -192,13 +186,10 @@ def test_split_impact_request_defaults():
     before = datetime.now(timezone.utc)
     splits = [
         {"account_id": 1, "amount": Decimal("300.00")},
-        {"account_id": 2, "amount": Decimal("200.00")}
+        {"account_id": 2, "amount": Decimal("200.00")},
     ]
-    
-    data = SplitImpactRequest(
-        liability_id=5,
-        splits=splits
-    )
+
+    data = SplitImpactRequest(liability_id=5, splits=splits)
     after = datetime.now(timezone.utc)
 
     assert data.liability_id == 5
@@ -207,6 +198,7 @@ def test_split_impact_request_defaults():
     assert data.start_date is not None
     assert before <= data.start_date <= after
     assert data.start_date.tzinfo == timezone.utc
+
 
 # Test field validations
 def test_account_id_validation():
@@ -217,7 +209,7 @@ def test_account_id_validation():
             account_id=0,
             current_balance=Decimal("500.00"),
             projected_balance=Decimal("400.00"),
-            risk_score=25
+            risk_score=25,
         )
 
     with pytest.raises(ValidationError, match="Input should be greater than 0"):
@@ -225,7 +217,7 @@ def test_account_id_validation():
             account_id=-1,
             current_balance=Decimal("500.00"),
             projected_balance=Decimal("400.00"),
-            risk_score=25
+            risk_score=25,
         )
 
 
@@ -237,7 +229,7 @@ def test_decimal_precision():
             account_id=1,
             current_balance=Decimal("500.123"),
             projected_balance=Decimal("400.00"),
-            risk_score=25
+            risk_score=25,
         )
 
     with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
@@ -245,7 +237,7 @@ def test_decimal_precision():
             account_id=1,
             current_balance=Decimal("500.00"),
             projected_balance=Decimal("400.123"),
-            risk_score=25
+            risk_score=25,
         )
 
     # Test too many decimal places for percentage fields
@@ -255,39 +247,43 @@ def test_decimal_precision():
             current_balance=Decimal("500.00"),
             projected_balance=Decimal("400.00"),
             current_credit_utilization=Decimal("0.30001"),
-            risk_score=25
+            risk_score=25,
         )
 
 
 def test_credit_utilization_range():
     """Test credit utilization range validation"""
     # Test below minimum (0)
-    with pytest.raises(ValidationError, match="Input should be greater than or equal to 0"):
+    with pytest.raises(
+        ValidationError, match="Input should be greater than or equal to 0"
+    ):
         AccountImpact(
             account_id=1,
             current_balance=Decimal("500.00"),
             projected_balance=Decimal("400.00"),
             current_credit_utilization=Decimal("-0.01"),
-            risk_score=25
+            risk_score=25,
         )
 
     # Test above maximum (1)
-    with pytest.raises(ValidationError, match="Input should be less than or equal to 1"):
+    with pytest.raises(
+        ValidationError, match="Input should be less than or equal to 1"
+    ):
         AccountImpact(
             account_id=1,
             current_balance=Decimal("500.00"),
             projected_balance=Decimal("400.00"),
             current_credit_utilization=Decimal("1.01"),
-            risk_score=25
+            risk_score=25,
         )
-    
+
     # Test valid boundary values
     data1 = AccountImpact(
         account_id=1,
         current_balance=Decimal("500.00"),
         projected_balance=Decimal("400.00"),
         current_credit_utilization=Decimal("0.00"),
-        risk_score=25
+        risk_score=25,
     )
     assert data1.current_credit_utilization == Decimal("0.00")
 
@@ -296,7 +292,7 @@ def test_credit_utilization_range():
         current_balance=Decimal("500.00"),
         projected_balance=Decimal("400.00"),
         current_credit_utilization=Decimal("1.00"),
-        risk_score=25
+        risk_score=25,
     )
     assert data2.current_credit_utilization == Decimal("1.00")
 
@@ -304,29 +300,33 @@ def test_credit_utilization_range():
 def test_risk_score_range():
     """Test risk score range validation"""
     # Test below minimum (0)
-    with pytest.raises(ValidationError, match="Input should be greater than or equal to 0"):
+    with pytest.raises(
+        ValidationError, match="Input should be greater than or equal to 0"
+    ):
         AccountImpact(
             account_id=1,
             current_balance=Decimal("500.00"),
             projected_balance=Decimal("400.00"),
-            risk_score=-1
+            risk_score=-1,
         )
 
     # Test above maximum (100)
-    with pytest.raises(ValidationError, match="Input should be less than or equal to 100"):
+    with pytest.raises(
+        ValidationError, match="Input should be less than or equal to 100"
+    ):
         AccountImpact(
             account_id=1,
             current_balance=Decimal("500.00"),
             projected_balance=Decimal("400.00"),
-            risk_score=101
+            risk_score=101,
         )
-    
+
     # Test valid boundary values
     data1 = AccountImpact(
         account_id=1,
         current_balance=Decimal("500.00"),
         projected_balance=Decimal("400.00"),
-        risk_score=0
+        risk_score=0,
     )
     assert data1.risk_score == 0
 
@@ -334,7 +334,7 @@ def test_risk_score_range():
         account_id=1,
         current_balance=Decimal("500.00"),
         projected_balance=Decimal("400.00"),
-        risk_score=100
+        risk_score=100,
     )
     assert data2.risk_score == 100
 
@@ -342,20 +342,18 @@ def test_risk_score_range():
 def test_total_bills_non_negative():
     """Test total_bills must be non-negative"""
     now = datetime.now(timezone.utc)
-    
+
     # Test negative value
-    with pytest.raises(ValidationError, match="Input should be greater than or equal to 0"):
+    with pytest.raises(
+        ValidationError, match="Input should be greater than or equal to 0"
+    ):
         CashflowImpact(
-            date=now,
-            total_bills=Decimal("-0.01"),
-            available_funds=Decimal("300.00")
+            date=now, total_bills=Decimal("-0.01"), available_funds=Decimal("300.00")
         )
-    
+
     # Test zero (valid)
     data = CashflowImpact(
-        date=now,
-        total_bills=Decimal("0.00"),
-        available_funds=Decimal("300.00")
+        date=now, total_bills=Decimal("0.00"), available_funds=Decimal("300.00")
     )
     assert data.total_bills == Decimal("0.00")
 
@@ -363,27 +361,19 @@ def test_total_bills_non_negative():
 def test_string_length_validation():
     """Test string length validation"""
     # Test name too long (max 100)
-    with pytest.raises(ValidationError, match="String should have at most 100 characters"):
-        RiskFactor(
-            name="X" * 101,
-            severity=75,
-            description="Valid description"
-        )
-    
+    with pytest.raises(
+        ValidationError, match="String should have at most 100 characters"
+    ):
+        RiskFactor(name="X" * 101, severity=75, description="Valid description")
+
     # Test description too long (max 500)
-    with pytest.raises(ValidationError, match="String should have at most 500 characters"):
-        RiskFactor(
-            name="Valid name",
-            severity=75,
-            description="X" * 501
-        )
-    
+    with pytest.raises(
+        ValidationError, match="String should have at most 500 characters"
+    ):
+        RiskFactor(name="Valid name", severity=75, description="X" * 501)
+
     # Test valid boundary values
-    data = RiskFactor(
-        name="X" * 100,
-        severity=75,
-        description="X" * 500
-    )
+    data = RiskFactor(name="X" * 100, severity=75, description="X" * 500)
     assert len(data.name) == 100
     assert len(data.description) == 500
 
@@ -395,27 +385,19 @@ def test_positive_amount_validation():
             account_id=1,
             current_balance=Decimal("500.00"),
             projected_balance=Decimal("400.00"),
-            risk_score=25
+            risk_score=25,
         )
     ]
-    
+
     now = datetime.now(timezone.utc)
     cashflow_impacts = [
         CashflowImpact(
-            date=now,
-            total_bills=Decimal("250.00"),
-            available_funds=Decimal("300.00")
+            date=now, total_bills=Decimal("250.00"), available_funds=Decimal("300.00")
         )
     ]
-    
-    risk_factors = [
-        RiskFactor(
-            name="Risk",
-            severity=75,
-            description="Description"
-        )
-    ]
-    
+
+    risk_factors = [RiskFactor(name="Risk", severity=75, description="Description")]
+
     # Test zero amount
     with pytest.raises(ValidationError, match="Input should be greater than 0"):
         SplitImpactAnalysis(
@@ -424,9 +406,9 @@ def test_positive_amount_validation():
             cashflow_impacts=cashflow_impacts,
             risk_factors=risk_factors,
             overall_risk_score=65,
-            recommendations=["Recommendation"]
+            recommendations=["Recommendation"],
         )
-    
+
     # Test negative amount
     with pytest.raises(ValidationError, match="Input should be greater than 0"):
         SplitImpactAnalysis(
@@ -435,43 +417,31 @@ def test_positive_amount_validation():
             cashflow_impacts=cashflow_impacts,
             risk_factors=risk_factors,
             overall_risk_score=65,
-            recommendations=["Recommendation"]
+            recommendations=["Recommendation"],
         )
 
 
 def test_analysis_period_range():
     """Test analysis period range validation"""
     splits = [{"account_id": 1, "amount": Decimal("100.00")}]
-    
+
     # Test below minimum (14 days)
-    with pytest.raises(ValidationError, match="Input should be greater than or equal to 14"):
-        SplitImpactRequest(
-            liability_id=5,
-            splits=splits,
-            analysis_period_days=13
-        )
-    
+    with pytest.raises(
+        ValidationError, match="Input should be greater than or equal to 14"
+    ):
+        SplitImpactRequest(liability_id=5, splits=splits, analysis_period_days=13)
+
     # Test above maximum (365 days)
-    with pytest.raises(ValidationError, match="Input should be less than or equal to 365"):
-        SplitImpactRequest(
-            liability_id=5,
-            splits=splits,
-            analysis_period_days=366
-        )
-    
+    with pytest.raises(
+        ValidationError, match="Input should be less than or equal to 365"
+    ):
+        SplitImpactRequest(liability_id=5, splits=splits, analysis_period_days=366)
+
     # Test valid boundary values
-    data1 = SplitImpactRequest(
-        liability_id=5,
-        splits=splits,
-        analysis_period_days=14
-    )
+    data1 = SplitImpactRequest(liability_id=5, splits=splits, analysis_period_days=14)
     assert data1.analysis_period_days == 14
 
-    data2 = SplitImpactRequest(
-        liability_id=5,
-        splits=splits,
-        analysis_period_days=365
-    )
+    data2 = SplitImpactRequest(liability_id=5, splits=splits, analysis_period_days=365)
     assert data2.analysis_period_days == 365
 
 
@@ -479,13 +449,11 @@ def test_analysis_period_range():
 def test_datetime_utc_validation():
     """Test datetime UTC validation per ADR-011"""
     splits = [{"account_id": 1, "amount": Decimal("100.00")}]
-    
+
     # Test naive datetime
     with pytest.raises(ValidationError, match="Datetime must be UTC"):
         SplitImpactRequest(
-            liability_id=5,
-            splits=splits,
-            start_date=datetime.now()  # Naive datetime
+            liability_id=5, splits=splits, start_date=datetime.now()  # Naive datetime
         )
 
     # Test non-UTC timezone
@@ -493,14 +461,12 @@ def test_datetime_utc_validation():
         SplitImpactRequest(
             liability_id=5,
             splits=splits,
-            start_date=datetime.now(ZoneInfo("America/New_York"))  # Non-UTC timezone
+            start_date=datetime.now(ZoneInfo("America/New_York")),  # Non-UTC timezone
         )
-    
+
     # Test valid UTC datetime
     data = SplitImpactRequest(
-        liability_id=5,
-        splits=splits,
-        start_date=datetime.now(timezone.utc)
+        liability_id=5, splits=splits, start_date=datetime.now(timezone.utc)
     )
     assert data.start_date.tzinfo == timezone.utc
 
@@ -512,29 +478,21 @@ def test_required_fields():
         AccountImpact(
             current_balance=Decimal("500.00"),
             projected_balance=Decimal("400.00"),
-            risk_score=25
+            risk_score=25,
         )
-    
+
     # Test missing current_balance
     with pytest.raises(ValidationError, match="Field required"):
-        AccountImpact(
-            account_id=1,
-            projected_balance=Decimal("400.00"),
-            risk_score=25
-        )
-    
+        AccountImpact(account_id=1, projected_balance=Decimal("400.00"), risk_score=25)
+
     # Test missing projected_balance
     with pytest.raises(ValidationError, match="Field required"):
-        AccountImpact(
-            account_id=1,
-            current_balance=Decimal("500.00"),
-            risk_score=25
-        )
-    
+        AccountImpact(account_id=1, current_balance=Decimal("500.00"), risk_score=25)
+
     # Test missing risk_score
     with pytest.raises(ValidationError, match="Field required"):
         AccountImpact(
             account_id=1,
             current_balance=Decimal("500.00"),
-            projected_balance=Decimal("400.00")
+            projected_balance=Decimal("400.00"),
         )

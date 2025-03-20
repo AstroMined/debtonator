@@ -2,22 +2,24 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal
 from statistics import mean, stdev
 from typing import Dict, List, Optional, Tuple, cast
+
 from sqlalchemy import select
 
 from src.models.accounts import Account
 from src.schemas.cashflow import (
+    AccountForecastMetrics,
     AccountForecastRequest,
     AccountForecastResponse,
-    AccountForecastMetrics,
     AccountForecastResult,
     CustomForecastParameters,
     CustomForecastResponse,
-    CustomForecastResult
+    CustomForecastResult,
 )
 
 from .base import BaseService
 from .transaction_service import TransactionService
 from .types import DateType
+
 
 class ForecastService(BaseService):
     """Service for generating cashflow forecasts."""
@@ -27,14 +29,13 @@ class ForecastService(BaseService):
         self._transaction_service = TransactionService(db)
 
     async def get_account_forecast(
-        self,
-        params: AccountForecastRequest
+        self, params: AccountForecastRequest
     ) -> AccountForecastResponse:
         """Generate account-specific forecast with detailed metrics.
-        
+
         Args:
             params: Parameters for the forecast
-            
+
         Returns:
             AccountForecastResponse with forecast details
         """
@@ -49,7 +50,7 @@ class ForecastService(BaseService):
             params.start_date,
             params.end_date,
             params.include_pending,
-            params.include_recurring
+            params.include_recurring,
         )
 
         # Generate daily forecasts
@@ -59,14 +60,12 @@ class ForecastService(BaseService):
             params.end_date,
             params.include_pending,
             params.include_recurring,
-            params.include_transfers
+            params.include_transfers,
         )
 
         # Calculate overall confidence
         overall_confidence = await self._calculate_forecast_confidence(
-            account,
-            daily_forecasts,
-            metrics
+            account, daily_forecasts, metrics
         )
 
         return AccountForecastResponse(
@@ -75,18 +74,17 @@ class ForecastService(BaseService):
             metrics=metrics,
             daily_forecasts=daily_forecasts,
             overall_confidence=overall_confidence,
-            timestamp=date.today()
+            timestamp=date.today(),
         )
 
     async def get_custom_forecast(
-        self,
-        params: CustomForecastParameters
+        self, params: CustomForecastParameters
     ) -> CustomForecastResponse:
         """Calculate a custom forecast based on provided parameters.
-        
+
         Args:
             params: Parameters for the custom forecast
-            
+
         Returns:
             CustomForecastResponse with forecast details
         """
@@ -97,7 +95,7 @@ class ForecastService(BaseService):
             "total_projected_expenses": Decimal("0.0"),
             "average_confidence": Decimal("0.0"),
             "min_balance": Decimal("999999999.99"),
-            "max_balance": Decimal("-999999999.99")
+            "max_balance": Decimal("-999999999.99"),
         }
 
         # Get accounts to analyze
@@ -105,56 +103,50 @@ class ForecastService(BaseService):
         if params.account_ids:
             accounts_query = accounts_query.where(Account.id.in_(params.account_ids))
         accounts = (await self.db.execute(accounts_query)).scalars().all()
-        
+
         if not accounts:
             raise ValueError("No valid accounts found for analysis")
 
         # Initialize starting balances
-        current_balances = {
-            acc.id: acc.available_balance for acc in accounts
-        }
+        current_balances = {acc.id: acc.available_balance for acc in accounts}
 
         # Process each day in the forecast period
         current_date = params.start_date
         days_processed = 0
-        
+
         while current_date <= params.end_date:
             daily_result = await self._calculate_daily_forecast(
-                current_date,
-                accounts,
-                current_balances,
-                params
+                current_date, accounts, current_balances, params
             )
-            
+
             if daily_result:
                 results.append(daily_result)
                 summary_stats["total_projected_income"] += daily_result.projected_income
-                summary_stats["total_projected_expenses"] += daily_result.projected_expenses
+                summary_stats[
+                    "total_projected_expenses"
+                ] += daily_result.projected_expenses
                 summary_stats["min_balance"] = min(
-                    summary_stats["min_balance"],
-                    daily_result.projected_balance
+                    summary_stats["min_balance"], daily_result.projected_balance
                 )
                 summary_stats["max_balance"] = max(
-                    summary_stats["max_balance"],
-                    daily_result.projected_balance
+                    summary_stats["max_balance"], daily_result.projected_balance
                 )
                 total_confidence += daily_result.confidence_score
                 days_processed += 1
-            
+
             current_date += timedelta(days=1)
-        
+
         # Calculate average confidence
         summary_stats["average_confidence"] = (
-            total_confidence / days_processed if days_processed > 0
-            else Decimal("0.0")
+            total_confidence / days_processed if days_processed > 0 else Decimal("0.0")
         )
-        
+
         return CustomForecastResponse(
             parameters=params,
             results=results,
             overall_confidence=summary_stats["average_confidence"],
             summary_statistics=summary_stats,
-            timestamp=date.today()
+            timestamp=date.today(),
         )
 
     async def _calculate_account_metrics(
@@ -163,17 +155,17 @@ class ForecastService(BaseService):
         start_date: DateType,
         end_date: DateType,
         include_pending: bool,
-        include_recurring: bool
+        include_recurring: bool,
     ) -> AccountForecastMetrics:
         """Calculate account-specific forecast metrics.
-        
+
         Args:
             account: Account to calculate metrics for
             start_date: Start date for metrics
             end_date: End date for metrics
             include_pending: Whether to include pending transactions
             include_recurring: Whether to include recurring transactions
-            
+
         Returns:
             AccountForecastMetrics with calculated metrics
         """
@@ -184,18 +176,14 @@ class ForecastService(BaseService):
             else start_date.date() - timedelta(days=90)
         )
         transactions = await self._transaction_service.get_historical_transactions(
-            [account.id],
-            historical_start,
-            start_date
+            [account.id], historical_start, start_date
         )
 
         # Calculate projected transactions
-        projected_transactions = await self._transaction_service.get_projected_transactions(
-            account,
-            start_date,
-            end_date,
-            include_pending,
-            include_recurring
+        projected_transactions = (
+            await self._transaction_service.get_projected_transactions(
+                account, start_date, end_date, include_pending, include_recurring
+            )
         )
 
         # Calculate metrics
@@ -214,8 +202,10 @@ class ForecastService(BaseService):
 
         # Identify low balance dates
         low_balance_dates = [
-            trans["date"] for trans in projected_transactions
-            if (current_balance + trans["amount"]) < self._warning_thresholds.LOW_BALANCE
+            trans["date"]
+            for trans in projected_transactions
+            if (current_balance + trans["amount"])
+            < self._warning_thresholds.LOW_BALANCE
         ]
 
         # Calculate credit utilization for credit accounts
@@ -224,24 +214,35 @@ class ForecastService(BaseService):
             if daily_balances:
                 credit_utilization = abs(min(daily_balances)) / account.total_limit
             else:
-                credit_utilization = abs(account.available_balance) / account.total_limit
+                credit_utilization = (
+                    abs(account.available_balance) / account.total_limit
+                )
 
         # Calculate balance volatility
         balance_volatility = (
-            Decimal(str(stdev(daily_balances))) if len(daily_balances) > 1
+            Decimal(str(stdev(daily_balances)))
+            if len(daily_balances) > 1
             else Decimal("0")
         )
 
         return AccountForecastMetrics(
-            average_daily_balance=Decimal(str(mean(daily_balances))) if daily_balances else Decimal("0"),
-            minimum_projected_balance=min(daily_balances) if daily_balances else account.available_balance,
-            maximum_projected_balance=max(daily_balances) if daily_balances else account.available_balance,
+            average_daily_balance=(
+                Decimal(str(mean(daily_balances))) if daily_balances else Decimal("0")
+            ),
+            minimum_projected_balance=(
+                min(daily_balances) if daily_balances else account.available_balance
+            ),
+            maximum_projected_balance=(
+                max(daily_balances) if daily_balances else account.available_balance
+            ),
             average_inflow=Decimal(str(mean(inflows))) if inflows else Decimal("0"),
             average_outflow=Decimal(str(mean(outflows))) if outflows else Decimal("0"),
             projected_low_balance_dates=low_balance_dates,
             credit_utilization=credit_utilization,
             balance_volatility=balance_volatility,
-            forecast_confidence=Decimal("0.9")  # Will be adjusted in _calculate_forecast_confidence
+            forecast_confidence=Decimal(
+                "0.9"
+            ),  # Will be adjusted in _calculate_forecast_confidence
         )
 
     async def _generate_account_daily_forecasts(
@@ -251,10 +252,10 @@ class ForecastService(BaseService):
         end_date: DateType,
         include_pending: bool,
         include_recurring: bool,
-        include_transfers: bool
+        include_transfers: bool,
     ) -> List[AccountForecastResult]:
         """Generate daily forecast results for an account.
-        
+
         Args:
             account: Account to generate forecasts for
             start_date: Start date for forecasts
@@ -262,7 +263,7 @@ class ForecastService(BaseService):
             include_pending: Whether to include pending transactions
             include_recurring: Whether to include recurring transactions
             include_transfers: Whether to include transfers
-            
+
         Returns:
             List of AccountForecastResult for each day
         """
@@ -277,15 +278,17 @@ class ForecastService(BaseService):
                 current_date,
                 include_pending,
                 include_recurring,
-                include_transfers
+                include_transfers,
             )
 
             # Calculate day's inflow/outflow
             day_inflow = sum(t["amount"] for t in day_transactions if t["amount"] > 0)
-            day_outflow = sum(abs(t["amount"]) for t in day_transactions if t["amount"] < 0)
+            day_outflow = sum(
+                abs(t["amount"]) for t in day_transactions if t["amount"] < 0
+            )
 
             # Update balance
-            current_balance += (day_inflow - day_outflow)
+            current_balance += day_inflow - day_outflow
 
             # Generate warning flags
             warning_flags = []
@@ -300,24 +303,23 @@ class ForecastService(BaseService):
 
             # Calculate confidence score for the day
             confidence_score = self._calculate_day_confidence(
-                account,
-                current_balance,
-                day_transactions,
-                warning_flags
+                account, current_balance, day_transactions, warning_flags
             )
 
-            daily_forecasts.append(AccountForecastResult(
-                date=current_date,
-                projected_balance=current_balance,
-                projected_inflow=day_inflow,
-                projected_outflow=day_outflow,
-                confidence_score=confidence_score,
-                contributing_transactions=[
-                    {"amount": t["amount"], "description": t["description"]}
-                    for t in day_transactions
-                ],
-                warning_flags=warning_flags
-            ))
+            daily_forecasts.append(
+                AccountForecastResult(
+                    date=current_date,
+                    projected_balance=current_balance,
+                    projected_inflow=day_inflow,
+                    projected_outflow=day_outflow,
+                    confidence_score=confidence_score,
+                    contributing_transactions=[
+                        {"amount": t["amount"], "description": t["description"]}
+                        for t in day_transactions
+                    ],
+                    warning_flags=warning_flags,
+                )
+            )
 
             current_date += timedelta(days=1)
 
@@ -327,15 +329,15 @@ class ForecastService(BaseService):
         self,
         account: Account,
         daily_forecasts: List[AccountForecastResult],
-        metrics: AccountForecastMetrics
+        metrics: AccountForecastMetrics,
     ) -> Decimal:
         """Calculate overall confidence score for the forecast.
-        
+
         Args:
             account: Account being forecasted
             daily_forecasts: List of daily forecast results
             metrics: Account forecast metrics
-            
+
         Returns:
             Overall confidence score as Decimal
         """
@@ -348,14 +350,15 @@ class ForecastService(BaseService):
         # Adjust for account type specific factors
         if account.type == "credit":
             # Lower confidence if projected to exceed credit limit
-            if metrics.credit_utilization and metrics.credit_utilization > Decimal("0.9"):
+            if metrics.credit_utilization and metrics.credit_utilization > Decimal(
+                "0.9"
+            ):
                 avg_confidence *= Decimal("0.8")
         else:  # checking/savings
             # Lower confidence if multiple low balance warnings
-            low_balance_days = len([
-                f for f in daily_forecasts
-                if "low_balance" in f.warning_flags
-            ])
+            low_balance_days = len(
+                [f for f in daily_forecasts if "low_balance" in f.warning_flags]
+            )
             if low_balance_days > len(daily_forecasts) // 4:  # More than 25% of days
                 avg_confidence *= Decimal("0.85")
 
@@ -370,16 +373,16 @@ class ForecastService(BaseService):
         account: Account,
         balance: Decimal,
         transactions: List[Dict],
-        warning_flags: List[str]
+        warning_flags: List[str],
     ) -> Decimal:
         """Calculate confidence score for a day's forecast.
-        
+
         Args:
             account: Account being analyzed
             balance: Current balance
             transactions: List of transactions
             warning_flags: List of warning flags
-            
+
         Returns:
             Confidence score as Decimal
         """
@@ -389,9 +392,9 @@ class ForecastService(BaseService):
         confidence_deductions = {
             "low_balance": Decimal("0.2"),
             "high_credit_utilization": Decimal("0.15"),
-            "large_outflow": Decimal("0.1")
+            "large_outflow": Decimal("0.1"),
         }
-        
+
         for flag in warning_flags:
             if flag in confidence_deductions:
                 base_confidence -= confidence_deductions[flag]
@@ -408,16 +411,16 @@ class ForecastService(BaseService):
         current_date: DateType,
         accounts: List[Account],
         current_balances: Dict[int, Decimal],
-        params: CustomForecastParameters
+        params: CustomForecastParameters,
     ) -> Optional[CustomForecastResult]:
         """Calculate forecast for a specific day.
-        
+
         Args:
             current_date: Date to calculate forecast for
             accounts: List of accounts to include
             current_balances: Current balance for each account
             params: Forecast parameters
-            
+
         Returns:
             CustomForecastResult for the day or None if no data
         """
@@ -425,16 +428,16 @@ class ForecastService(BaseService):
         daily_income = Decimal("0.0")
         contributing_factors: Dict[str, Decimal] = {}
         risk_factors: Dict[str, Decimal] = {}
-        
+
         for account in accounts:
             transactions = await self._transaction_service.get_day_transactions(
                 account,
                 current_date,
                 include_pending=True,
                 include_recurring=True,
-                include_transfers=True
+                include_transfers=True,
             )
-            
+
             # Update totals
             for trans in transactions:
                 if trans["amount"] > 0:
@@ -444,20 +447,20 @@ class ForecastService(BaseService):
                     amount = abs(trans["amount"])
                     daily_expenses += amount
                     contributing_factors[f"expense_{trans['type']}"] = amount
-                    
+
                     # Risk assessment
                     if amount > current_balances[account.id]:
                         risk_factors["insufficient_funds"] = Decimal("0.3")
-            
+
             # Update balances
-            current_balances[account.id] += (daily_income - daily_expenses)
+            current_balances[account.id] += daily_income - daily_expenses
 
         # Calculate confidence score
         base_confidence = Decimal("1.0")
         if risk_factors:
             base_confidence -= sum(risk_factors.values())
         confidence_score = max(min(base_confidence, Decimal("1.0")), Decimal("0.0"))
-        
+
         return CustomForecastResult(
             date=current_date,
             projected_balance=sum(current_balances.values()),
@@ -465,5 +468,5 @@ class ForecastService(BaseService):
             projected_expenses=daily_expenses,
             confidence_score=confidence_score,
             contributing_factors=contributing_factors,
-            risk_factors=risk_factors
+            risk_factors=risk_factors,
         )
