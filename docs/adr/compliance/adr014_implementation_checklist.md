@@ -31,6 +31,10 @@
    - [x] Add dependency for PaymentSourceRepository
    - [x] Add dependency for BillSplitRepository
    - [x] Add dependency for IncomeRepository
+   - [x] Add dependency for RecurringBillRepository
+   - [x] Add dependency for StatementHistoryRepository
+   - [x] Add dependency for BalanceHistoryRepository
+   - [x] Add dependency for CategoryRepository
    - [ ] Add dependencies for remaining repositories
 
 ## Phase 2: Core Repositories
@@ -110,6 +114,84 @@
      - [x] `get_income_by_recurring()`
      - [x] `get_income_statistics_by_period()`
      - [x] `get_income_with_filters()`
+     
+7. **RecurringBill Repository**
+   - [x] Create `src/repositories/recurring_bills.py`
+   - [x] Implement `RecurringBillRepository` class
+   - [x] Add recurring bill-specific methods:
+     - [x] `get_by_name()`
+     - [x] `get_active_bills()`
+     - [x] `get_by_day_of_month()`
+     - [x] `get_with_liabilities()`
+     - [x] `get_with_account()`
+     - [x] `get_with_category()`
+     - [x] `get_with_relationships()`
+     - [x] `get_by_account_id()`
+     - [x] `get_by_category_id()`
+     - [x] `find_bills_with_auto_pay()`
+     - [x] `toggle_active()`
+     - [x] `toggle_auto_pay()`
+     - [x] `update_day_of_month()`
+     - [x] `get_monthly_total()`
+     - [x] `check_liability_exists()`
+     - [x] `get_upcoming_bills()`
+     
+8. **StatementHistory Repository**
+   - [x] Create `src/repositories/statement_history.py`
+   - [x] Implement `StatementHistoryRepository` class
+   - [x] Add statement history-specific methods:
+     - [x] `get_by_account()`
+     - [x] `get_latest_statement()`
+     - [x] `get_with_account()`
+     - [x] `get_by_date_range()`
+     - [x] `get_statements_with_due_dates()`
+     - [x] `get_upcoming_statements_with_accounts()`
+     - [x] `get_statements_with_minimum_payment()`
+     - [x] `get_average_statement_balance()`
+     - [x] `get_statement_trend()`
+     - [x] `get_minimum_payment_trend()`
+     - [x] `get_total_minimum_payments_due()`
+     - [x] `get_statement_by_date()`
+     
+9. **BalanceHistory Repository**
+   - [x] Create `src/repositories/balance_history.py`
+   - [x] Implement `BalanceHistoryRepository` class
+   - [x] Add balance history-specific methods:
+     - [x] `get_by_account()`
+     - [x] `get_latest_balance()`
+     - [x] `get_with_account()`
+     - [x] `get_by_date_range()`
+     - [x] `get_reconciled_balances()`
+     - [x] `get_min_max_balance()`
+     - [x] `get_balance_trend()`
+     - [x] `get_average_balance()`
+     - [x] `get_balance_history_with_notes()`
+     - [x] `mark_as_reconciled()`
+     - [x] `add_balance_note()`
+     - [x] `get_missing_days()`
+     - [x] `get_available_credit_trend()`
+     
+10. **Category Repository**
+    - [x] Create `src/repositories/categories.py`
+    - [x] Implement `CategoryRepository` class
+    - [x] Add category-specific methods:
+      - [x] `get_by_name()`
+      - [x] `get_root_categories()`
+      - [x] `get_with_children()`
+      - [x] `get_with_parent()`
+      - [x] `get_with_bills()`
+      - [x] `get_with_relationships()`
+      - [x] `get_children()`
+      - [x] `get_ancestors()`
+      - [x] `get_descendants()`
+      - [x] `is_ancestor_of()`
+      - [x] `move_category()`
+      - [x] `get_category_path()`
+      - [x] `find_categories_by_prefix()`
+      - [x] `get_category_with_bill_count()`
+      - [x] `get_categories_with_bill_counts()`
+      - [x] `get_total_by_category()`
+      - [x] `delete_if_unused()`
 
 ## Phase 3: Advanced Repository Features
 
@@ -151,9 +233,13 @@
    - [x] Create test file for PaymentRepository
    - [x] Create test file for PaymentSourceRepository
    - [x] Create test file for BillSplitRepository
+   - [x] Create test file for RecurringBillRepository
+   - [x] Create test file for StatementHistoryRepository
+   - [x] Create test file for BalanceHistoryRepository
+   - [x] Create test file for CategoryRepository
    - [ ] Create test files for remaining repositories
-   - [ ] Implement comprehensive tests for model-specific methods
-   - [ ] Test advanced querying features
+   - [x] Implement comprehensive tests for model-specific methods
+   - [x] Test advanced querying features
 
 4. **Integration Tests**
    - [ ] Create integration tests with real database

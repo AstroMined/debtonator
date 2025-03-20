@@ -16,6 +16,10 @@ from src.repositories.payments import PaymentRepository
 from src.repositories.payment_sources import PaymentSourceRepository
 from src.repositories.bill_splits import BillSplitRepository
 from src.repositories.income import IncomeRepository
+from src.repositories.recurring_bills import RecurringBillRepository
+from src.repositories.statement_history import StatementHistoryRepository
+from src.repositories.balance_history import BalanceHistoryRepository
+from src.repositories.categories import CategoryRepository
 
 
 def get_repository_factory(db: AsyncSession = Depends(get_db)) -> RepositoryFactory:
@@ -107,3 +111,55 @@ def get_income_repository(db: AsyncSession = Depends(get_db)) -> IncomeRepositor
         IncomeRepository: Income repository instance
     """
     return IncomeRepository(db)
+
+
+def get_recurring_bill_repository(db: AsyncSession = Depends(get_db)) -> RecurringBillRepository:
+    """
+    Dependency provider for recurring bill repository.
+    
+    Args:
+        db (AsyncSession): Database session from dependency injection
+        
+    Returns:
+        RecurringBillRepository: Recurring bill repository instance
+    """
+    return RecurringBillRepository(db)
+
+
+def get_statement_history_repository(db: AsyncSession = Depends(get_db)) -> StatementHistoryRepository:
+    """
+    Dependency provider for statement history repository.
+    
+    Args:
+        db (AsyncSession): Database session from dependency injection
+        
+    Returns:
+        StatementHistoryRepository: Statement history repository instance
+    """
+    return StatementHistoryRepository(db)
+
+
+def get_balance_history_repository(db: AsyncSession = Depends(get_db)) -> BalanceHistoryRepository:
+    """
+    Dependency provider for balance history repository.
+    
+    Args:
+        db (AsyncSession): Database session from dependency injection
+        
+    Returns:
+        BalanceHistoryRepository: Balance history repository instance
+    """
+    return BalanceHistoryRepository(db)
+
+
+def get_category_repository(db: AsyncSession = Depends(get_db)) -> CategoryRepository:
+    """
+    Dependency provider for category repository.
+    
+    Args:
+        db (AsyncSession): Database session from dependency injection
+        
+    Returns:
+        CategoryRepository: Category repository instance
+    """
+    return CategoryRepository(db)

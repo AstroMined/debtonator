@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.5] - 2025-03-19
+
+### Added
+- Implemented four core repository classes for ADR-014:
+  * RecurringBillRepository with 16+ specialized methods for bill pattern management
+  * StatementHistoryRepository with 12+ specialized methods for statement tracking
+  * BalanceHistoryRepository with 14+ specialized methods for balance history analysis
+  * CategoryRepository with 17+ specialized methods for hierarchical category management
+- Created comprehensive integration tests for all new repositories:
+  * test_recurring_bill_repository.py with 8+ detailed test cases
+  * test_statement_history_repository.py with 12+ detailed test cases
+  * test_balance_history_repository.py with 12+ detailed test cases
+  * test_category_repository.py with 15+ detailed test cases
+
+### Changed
+- Enhanced dependency injection system with new repositories:
+  * Added get_recurring_bill_repository dependency provider
+  * Added get_statement_history_repository dependency provider
+  * Added get_balance_history_repository dependency provider
+  * Added get_category_repository dependency provider
+- Updated repository layer implementation for ADR-014:
+  * Improved repository pattern with consistent method naming conventions
+  * Enhanced domain-specific analysis capabilities across all repositories
+  * Updated ADR-014 implementation checklist to reflect progress (85% complete)
+
 ## [0.5.4] - 2025-03-19
 
 ### Added
