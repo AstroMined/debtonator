@@ -15,6 +15,7 @@ from src.repositories.liabilities import LiabilityRepository
 from src.repositories.payments import PaymentRepository
 from src.repositories.payment_sources import PaymentSourceRepository
 from src.repositories.bill_splits import BillSplitRepository
+from src.repositories.income import IncomeRepository
 
 
 def get_repository_factory(db: AsyncSession = Depends(get_db)) -> RepositoryFactory:
@@ -93,3 +94,16 @@ def get_bill_split_repository(db: AsyncSession = Depends(get_db)) -> BillSplitRe
         BillSplitRepository: Bill split repository instance
     """
     return BillSplitRepository(db)
+
+
+def get_income_repository(db: AsyncSession = Depends(get_db)) -> IncomeRepository:
+    """
+    Dependency provider for income repository.
+    
+    Args:
+        db (AsyncSession): Database session from dependency injection
+        
+    Returns:
+        IncomeRepository: Income repository instance
+    """
+    return IncomeRepository(db)

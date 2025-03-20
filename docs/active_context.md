@@ -108,6 +108,31 @@
      * Bulk split creation with transaction support
      * Bill-specific and account-specific split queries
 
+1. **Implemented Income Repository as Part of ADR-014** ✓
+   - Created comprehensive repository for income management:
+     * Implemented `IncomeRepository` class with complete CRUD operations
+     * Added 12+ specialized query methods for income operations
+     * Updated dependency injection system with new repository
+     * Marked implementation as completed in ADR-014 checklist
+   - Enhanced the repository pattern with income-specific methods:
+     * Added methods for income retrieval by source, date range, account
+     * Implemented undeposited income queries and calculations
+     * Created total amount calculation for financial reporting
+     * Added relationship handling for complex income queries
+     * Implemented statistical analysis methods for income data
+   - Advanced repository functionality includes:
+     * Comprehensive filtering for flexible data retrieval
+     * Efficient aggregation for financial reporting
+     * Relationship loading for related entities
+     * Support for statistical analysis and trends
+     * Full pagination and sorting capabilities
+   - The implementation includes key financial features:
+     * Undeposited income tracking and analysis
+     * Account-specific income monitoring
+     * Income category management
+     * Recurring income pattern analysis
+     * Period-based income statistics calculation
+
 # Active Context: Debtonator
 
 ## Current Focus

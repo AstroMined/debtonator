@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.4] - 2025-03-19
+
+### Added
+- Implemented Income Repository for repository pattern (ADR-014):
+  * Created comprehensive IncomeRepository with complete CRUD operations
+  * Added 12+ specialized query methods for income operations
+  * Implemented financial analysis methods for income data
+  * Added statistical analysis methods for income by period
+  * Created get_income_repository() dependency provider
+
+### Changed
+- Enhanced repository layer implementation for ADR-014:
+  * Updated dependency injection system with IncomeRepository
+  * Improved repository pattern documentation
+  * Added income financial analysis capabilities to repository layer
+  * Updated ADR-014 implementation checklist to reflect progress (75% complete)
+
 ## [0.5.3] - 2025-03-19
 
 ### Added

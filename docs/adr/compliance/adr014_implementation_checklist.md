@@ -30,6 +30,7 @@
    - [x] Add dependency for PaymentRepository
    - [x] Add dependency for PaymentSourceRepository
    - [x] Add dependency for BillSplitRepository
+   - [x] Add dependency for IncomeRepository
    - [ ] Add dependencies for remaining repositories
 
 ## Phase 2: Core Repositories
@@ -94,12 +95,21 @@
      - [x] `bulk_create_splits()`
 
 6. **Income Repository**
-   - [ ] Create `src/repositories/income.py`
-   - [ ] Implement `IncomeRepository` class
-   - [ ] Add income-specific methods:
-     - [ ] `get_income_by_source()`
-     - [ ] `get_income_in_date_range()`
-     - [ ] `get_undeposited_income()`
+   - [x] Create `src/repositories/income.py`
+   - [x] Implement `IncomeRepository` class
+   - [x] Add income-specific methods:
+     - [x] `get_by_source()`
+     - [x] `get_income_in_date_range()`
+     - [x] `get_undeposited_income()`
+     - [x] `get_income_by_account()`
+     - [x] `get_total_undeposited()`
+     - [x] `get_total_undeposited_by_account()`
+     - [x] `get_with_relationships()`
+     - [x] `get_income_by_category()`
+     - [x] `mark_as_deposited()`
+     - [x] `get_income_by_recurring()`
+     - [x] `get_income_statistics_by_period()`
+     - [x] `get_income_with_filters()`
 
 ## Phase 3: Advanced Repository Features
 
