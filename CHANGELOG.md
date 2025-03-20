@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.8] - 2025-03-20
+
+### Changed
+- Standardized schema file organization:
+  * Created dedicated schema files that match model naming (transaction_history, credit_limit_history)
+  * Eliminated circular imports by removing re-exports from __init__.py
+  * Fixed test inconsistencies with explicit required fields in schemas
+  * Made schema Create/Update classes consistent with repository expectations
+
+### Fixed
+- Fixed integration test suite schema import issues:
+  * Created proper schema files for TransactionHistory, CreditLimitHistory, and BalanceReconciliation
+  * Fixed field requirement consistency across schema files
+  * Updated unit tests to provide required fields (id, account_id)
+  * Eliminated tech debt in schema organization
+
 ## [0.5.7] - 2025-03-20
 
 ### Added

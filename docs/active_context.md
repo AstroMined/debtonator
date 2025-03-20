@@ -36,6 +36,12 @@ Completing Repository Layer Implementation (ADR-014)
    - Added tests for transaction boundaries and error handling
    - Implemented tests for advanced querying features
 
+6. **Standardized Schema File Organization** ✓
+   - Created dedicated schema files that match model naming (transaction_history, credit_limit_history)
+   - Eliminated circular imports by removing re-exports from __init__.py
+   - Fixed test inconsistencies with explicit required fields in schemas
+   - Made schema Create/Update classes consistent with repository expectations
+
 ## Next Steps
 
 1. **Begin Service Layer Refactoring**

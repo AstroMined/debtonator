@@ -15,9 +15,9 @@ from src.schemas.accounts import (
     AccountStatementHistoryResponse,
     AvailableCreditResponse
 )
-from src.schemas.credit_limits import (
+from src.schemas.credit_limit_history import (
     CreditLimitHistoryCreate,
-    CreditLimitUpdate,
+    CreditLimitHistoryUpdate,
     AccountCreditLimitHistoryResponse
 )
 from src.models.credit_limit_history import CreditLimitHistory
@@ -74,7 +74,7 @@ class AccountService:
                 
             return True, None
 
-    async def validate_credit_limit_update(
+    async def validate_credit_limit_history_update(
         self, account: AccountModel, new_limit: Decimal
     ) -> Tuple[bool, Optional[str]]:
         """
@@ -194,7 +194,7 @@ class AccountService:
                 raise ValueError("Credit accounts must have a total limit")
                 
             # Validate initial credit limit
-            is_valid, error_message = await self.validate_credit_limit_update(
+            is_valid, error_message = await self.validate_credit_limit_history_update(
                 AccountModel(type="credit", available_balance=Decimal(0)),
                 account_data.total_limit
             )
@@ -255,7 +255,7 @@ class AccountService:
 
         # Validate credit limit changes
         if "total_limit" in update_data:
-            is_valid, error_message = await self.validate_credit_limit_update(
+            is_valid, error_message = await self.validate_credit_limit_history_update(
                 db_account, update_data["total_limit"]
             )
             if not is_valid:
@@ -445,7 +445,7 @@ class AccountService:
     async def update_credit_limit(
         self,
         account_id: int,
-        credit_limit_data: CreditLimitUpdate
+        credit_limit_data: CreditLimitHistoryUpdate
     ) -> Optional[AccountInDB]:
         """
         Update an account's credit limit and record in history
@@ -468,7 +468,7 @@ class AccountService:
             return None
 
         # Validate credit limit update
-        is_valid, error_message = await self.validate_credit_limit_update(
+        is_valid, error_message = await self.validate_credit_limit_history_update(
             db_account, credit_limit_data.credit_limit
         )
         if not is_valid:

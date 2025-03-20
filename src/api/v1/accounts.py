@@ -16,8 +16,8 @@ from ...schemas.accounts import (
     AccountStatementHistoryResponse,
     AvailableCreditResponse,
 )
-from ...schemas.credit_limits import (
-    CreditLimitUpdate,
+from ...schemas.credit_limit_history import (
+    CreditLimitHistoryUpdate,
     AccountCreditLimitHistoryResponse,
 )
 from ...schemas.balance_reconciliation import (
@@ -146,7 +146,7 @@ async def update_statement_balance(
 @router.post("/{account_id}/credit-limit", response_model=AccountResponse)
 async def update_credit_limit(
     account_id: int,
-    credit_limit_data: CreditLimitUpdate,
+    credit_limit_data: CreditLimitHistoryUpdate,
     account_service: AccountService = Depends(get_account_service)
 ):
     """Update an account's credit limit and record in history"""

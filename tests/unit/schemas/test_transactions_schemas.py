@@ -5,14 +5,14 @@ from zoneinfo import ZoneInfo
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.transactions import (
-    Transaction,
-    TransactionBase,
-    TransactionCreate,
-    TransactionInDB,
-    TransactionList,
+from src.schemas.transaction_history import (
+    TransactionHistoryInDB as Transaction,
+    TransactionHistoryBase as TransactionBase,
+    TransactionHistoryCreate as TransactionCreate,
+    TransactionHistoryInDB,
+    TransactionHistoryList as TransactionList,
     TransactionType,
-    TransactionUpdate,
+    TransactionHistoryUpdate as TransactionUpdate,
 )
 
 
@@ -59,6 +59,7 @@ def test_transaction_update_valid():
     """Test valid transaction update schema"""
     transaction_date = datetime.now(ZoneInfo("UTC"))
     update = TransactionUpdate(
+        id=1,  # Add required id field
         amount=Decimal("150.00"),
         transaction_type=TransactionType.DEBIT,
         transaction_date=transaction_date,
@@ -74,20 +75,20 @@ def test_transaction_update_invalid_date():
     with pytest.raises(
         ValidationError, match="Datetime must be UTC"
     ):
-        TransactionUpdate(amount=Decimal("150.00"), transaction_date=datetime.now())
+        TransactionUpdate(id=1, amount=Decimal("150.00"), transaction_date=datetime.now())
 
     # Test non-UTC timezone
     non_utc_date = datetime.now(ZoneInfo("America/New_York"))
     with pytest.raises(
         ValidationError, match="Datetime must be UTC"
     ):
-        TransactionUpdate(amount=Decimal("150.00"), transaction_date=non_utc_date)
+        TransactionUpdate(id=1, amount=Decimal("150.00"), transaction_date=non_utc_date)
 
 
 def test_transaction_in_db_valid():
     """Test valid transaction in DB schema"""
     now = datetime.now(ZoneInfo("UTC"))
-    transaction = TransactionInDB(
+    transaction = TransactionHistoryInDB(
         id=1,
         account_id=1,
         amount=Decimal("100.00"),
@@ -112,7 +113,7 @@ def test_transaction_in_db_invalid_timestamps():
 
     # Test naive created_at
     with pytest.raises(ValidationError, match="Datetime must be UTC"):
-        TransactionInDB(
+        TransactionHistoryInDB(
             id=1,
             account_id=1,
             amount=Decimal("100.00"),
@@ -124,7 +125,7 @@ def test_transaction_in_db_invalid_timestamps():
 
     # Test naive updated_at
     with pytest.raises(ValidationError, match="Datetime must be UTC"):
-        TransactionInDB(
+        TransactionHistoryInDB(
             id=1,
             account_id=1,
             amount=Decimal("100.00"),
@@ -137,7 +138,7 @@ def test_transaction_in_db_invalid_timestamps():
     # Test non-UTC timezone
     non_utc = datetime.now(ZoneInfo("America/New_York"))
     with pytest.raises(ValidationError, match="Datetime must be UTC"):
-        TransactionInDB(
+        TransactionHistoryInDB(
             id=1,
             account_id=1,
             amount=Decimal("100.00"),

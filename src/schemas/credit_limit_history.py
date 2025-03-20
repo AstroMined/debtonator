@@ -32,9 +32,34 @@ class CreditLimitHistoryCreate(CreditLimitHistoryBase):
     """
     Schema for creating a new credit limit history entry.
     
-    Extends the base schema without adding additional fields.
+    Extends the base schema with account_id field.
     """
-    pass
+    account_id: int = Field(
+        ...,
+        description="ID of the account this credit limit applies to"
+    )
+
+class CreditLimitHistoryUpdate(BaseSchemaValidator):
+    """
+    Schema for updating a credit limit history entry.
+    
+    Contains all fields that can be updated.
+    """
+    id: int = Field(..., description="ID of the credit limit history to update")
+    credit_limit: Optional[MoneyDecimal] = Field(
+        None,
+        gt=0,
+        description="Credit limit amount in dollars"
+    )
+    effective_date: Optional[datetime] = Field(
+        None, 
+        description="Date when this credit limit became effective in UTC timezone"
+    )
+    reason: Optional[str] = Field(
+        None, 
+        max_length=500,
+        description="Reason for credit limit change"
+    )
 
 class CreditLimitHistoryInDB(CreditLimitHistoryBase):
     """
@@ -54,28 +79,6 @@ class CreditLimitHistoryInDB(CreditLimitHistoryBase):
     created_at: datetime = Field(
         ...,
         description="Date and time when this record was created in UTC timezone"
-    )
-
-class CreditLimitUpdate(BaseSchemaValidator):
-    """
-    Schema for updating an account's credit limit.
-    
-    Contains all fields needed to create a new credit limit history entry.
-    All datetime fields are stored in UTC timezone.
-    """
-    credit_limit: MoneyDecimal = Field(
-        ...,
-        gt=0,
-        description="New credit limit amount in dollars"
-    )
-    effective_date: datetime = Field(
-        ..., 
-        description="Date when this credit limit becomes effective in UTC timezone"
-    )
-    reason: Optional[str] = Field(
-        None, 
-        max_length=500,
-        description="Reason for credit limit change"
     )
 
 class AccountCreditLimitHistoryResponse(BaseSchemaValidator):

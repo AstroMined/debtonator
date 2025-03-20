@@ -6,12 +6,12 @@ from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.credit_limits import (
+from src.schemas.credit_limit_history import (
     AccountCreditLimitHistoryResponse,
     CreditLimitHistoryBase,
     CreditLimitHistoryCreate,
     CreditLimitHistoryInDB,
-    CreditLimitUpdate,
+    CreditLimitHistoryUpdate,
 )
 
 
@@ -47,6 +47,7 @@ def test_credit_limit_history_create_valid():
     now = datetime.now(timezone.utc)
 
     data = CreditLimitHistoryCreate(
+        account_id=1,  # Add required account_id field
         credit_limit=Decimal("5000.00"),
         effective_date=now,
         reason="Initial credit limit",
@@ -78,11 +79,12 @@ def test_credit_limit_history_in_db_valid():
     assert data.created_at == now
 
 
-def test_credit_limit_update_valid():
+def test_credit_limit_history_update_valid():
     """Test valid credit limit update schema"""
     now = datetime.now(timezone.utc)
 
-    data = CreditLimitUpdate(
+    data = CreditLimitHistoryUpdate(
+        id=1,  # Add required id field
         credit_limit=Decimal("7500.00"),
         effective_date=now,
         reason="Increased credit limit due to good payment history",

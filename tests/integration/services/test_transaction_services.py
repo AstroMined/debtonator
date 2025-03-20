@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import Account, TransactionHistory, TransactionType
-from src.schemas.transactions import TransactionCreate
+from src.schemas.transaction_history import TransactionHistoryCreate as TransactionCreate
 from src.services.transactions import TransactionService
 
 @pytest.fixture

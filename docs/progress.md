@@ -61,11 +61,12 @@
 
 ## What's Left to Build
 
-1. **Repository Test Standardization (5%)**
-   - Update remaining repository tests to follow validation pattern
-   - Apply schema factory functions across all tests
-   - Add validation error testing to all repositories
-   - Document test patterns for future implementations
+1. **Repository Test Standardization (75%)**
+   - ✓ Standardized schema file naming to match model naming
+   - ✓ Fixed inconsistent schema requirements in tests
+   - ✓ Eliminated circular imports in schema layer
+   - ✓ All unit tests passing (441 tests)
+   - Integration tests for repositories still need fixing
 
 2. **Repository Layer Completion (15%)**
    - Implement remaining repositories

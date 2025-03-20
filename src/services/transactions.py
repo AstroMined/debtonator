@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from src.models.transaction_history import TransactionHistory, TransactionType
 from src.models.accounts import Account
-from src.schemas.transactions import TransactionCreate, TransactionUpdate
+from src.schemas.transaction_history import TransactionHistoryCreate as TransactionCreate, TransactionHistoryUpdate as TransactionUpdate
 
 class TransactionService:
     """Service for handling transaction operations"""

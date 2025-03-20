@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 from src.models.accounts import Account as AccountModel
 from src.services.accounts import AccountService
 from src.schemas.accounts import AccountCreate, AccountUpdate
-from src.schemas.credit_limits import CreditLimitUpdate
+from src.schemas.credit_limit_history import CreditLimitHistoryUpdate
 
 @pytest.mark.asyncio
 class TestAccountService:
@@ -82,7 +82,7 @@ class TestAccountService:
         account = await service.create_account(account_data)
         
         # Update credit limit
-        update_data = CreditLimitUpdate(
+        update_data = CreditLimitHistoryUpdate(
             credit_limit=Decimal("10000.00"),
             effective_date=date.today(),
             reason="Credit increase"
@@ -105,7 +105,7 @@ class TestAccountService:
         account = await service.create_account(account_data)
         
         # Try to update credit limit below current balance
-        update_data = CreditLimitUpdate(
+        update_data = CreditLimitHistoryUpdate(
             credit_limit=Decimal("1000.00"),
             effective_date=date.today(),
             reason="Credit decrease"

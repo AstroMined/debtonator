@@ -4,11 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.database import get_db
-from src.schemas.transactions import (
-    Transaction,
-    TransactionCreate,
-    TransactionUpdate,
-    TransactionList
+from src.schemas.transaction_history import (
+    TransactionHistoryInDB as Transaction,
+    TransactionHistoryCreate as TransactionCreate,
+    TransactionHistoryUpdate as TransactionUpdate,
+    TransactionHistoryList as TransactionList
 )
 from src.services.transactions import TransactionService
 
