@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.27] - 2025-03-19
+
+### Added
+- Created ADR-014 for Repository Layer implementation:
+  * Designed a comprehensive architecture to separate CRUD operations from business logic
+  * Defined BaseRepository with generic CRUD operations
+  * Outlined model-specific repository pattern with type safety
+  * Developed dependency injection approach for repositories
+  * Included advanced repository features (pagination, filtering, joins)
+
+### Changed
+- Updated architectural documentation with repository pattern approach:
+  * Updated active_context.md with current focus on Repository Layer
+  * Updated progress.md with implementation planning and status tracking
+  * Added Service Layer Architecture section to progress tracking
+
 ## [0.4.26] - 2025-03-19
 
 ### Changed

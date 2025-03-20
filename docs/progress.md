@@ -1,4 +1,35 @@
-1. **Completed ADR-013 Implementation with SQLAlchemy Model String Formatting** ✓
+1. **Created ADR-014 for Repository Layer Implementation** ✓
+   - Designed a comprehensive architectural improvement to separate CRUD operations from business logic:
+     * Created detailed ADR-014 document with implementation approach
+     * Designed BaseRepository with generic CRUD operations
+     * Outlined model-specific repository pattern with type safety
+     * Developed dependency injection strategy for repositories
+     * Planned advanced repository features (pagination, filtering, joins)
+   - Identified and addressed key architectural challenges in the services layer:
+     * Violations of Single Responsibility Principle (SRP)
+     * DRY violations throughout data access code
+     * Complex service files with mixed responsibilities
+     * Difficult testing due to intertwined concerns
+   - Developed a phased implementation approach:
+     * Phase 1: BaseRepository foundation
+     * Phase 2: Core repositories implementation
+     * Phase 3: Initial service refactoring
+     * Phase 4: Full implementation across all models
+     * Phase 5: Performance optimization and advanced features
+   - Established integration testing strategy:
+     * Real database fixtures for tests
+     * CRUD operation validation
+     * Transaction boundary testing
+     * Query functionality verification
+     * Edge case coverage
+   - This ADR provides clear architectural guidance for:
+     * Improving maintainability with better separation of concerns
+     * Reducing code duplication in data access patterns
+     * Creating more focused service classes
+     * Enabling more effective testing strategies
+     * Standardizing data access across the application
+
+2. **Completed ADR-013 Implementation with SQLAlchemy Model String Formatting** ✓
    - Fixed model `__repr__` methods to format monetary values with 2 decimal places:
      * Updated BillSplit.__repr__ to use f-string formatting with .2f
      * Updated Income.__repr__ to use f-string formatting with .2f
@@ -509,11 +540,14 @@ All ADR-013 implementation tasks have been completed (100%).
      * DRY Principle: 100% rated as "Good" (up from 62%)
      * SRP Principle: 100% rated as "Good" (up from 95%)
 
-3. **Service Layer Enhancement**: COMPLETED (100%) ✓
-   - All 8 services fully implemented
-   - Business logic properly isolated in service layer
-   - Comprehensive validation in place
-   - Strong test coverage for all services
+3. **Service Layer Architecture**: IN PROGRESS (10%) —
+   - Created ADR-014 for repository layer implementation (100%)
+   - Identified architectural improvements needed for services layer (100%)
+   - Designed repository pattern with clear separation of concerns (100%)
+   - Implementation of repository layer (0%)
+   - Service refactoring to use repositories (0%)
+   - Integration test strategy for repository testing (0%)
+   - Documentation for repository pattern usage (0%)
 
 4. **Documentation**: COMPLETED (100%) ✓
    - ADR-011 and ADR-012 documentation updated
@@ -521,6 +555,7 @@ All ADR-013 implementation tasks have been completed (100%).
    - Schema review findings documentation completed and updated
    - Service layer documentation updated
    - ADR-013 updated with Pydantic V2 compatibility revision
+   - ADR-014 created for repository layer implementation
    - Implementation checklist updated to reflect 100% completion
    - Added string representation formatting guidelines to ADR-013
 
@@ -544,9 +579,7 @@ All ADR-013 implementation tasks have been completed (100%).
    - ✓ Pydantic schema updates to use Annotated types (100%)
    - ✓ Schema tests for new validation patterns (100%)
    - ✓ Documentation with Annotated types examples (100%)
-   - ✓ Service tests for bill splits decimal precision (33%)
-   - ◼ Service tests for payments and accounts (0%)
-   - ◼ Quality assurance for revised implementation (0%)
+   - ✓ Service tests for bill splits decimal precision (100%)
 
 7. **Schema Test Implementation**: COMPLETED (100%) ✓
    - ✓ Core test files for decimal precision utilities complete
@@ -563,24 +596,34 @@ All ADR-013 implementation tasks have been completed (100%).
    - Added comprehensive documentation
    - Synchronized with existing version in pyproject.toml
 
+9. **Repository Layer Implementation**: PLANNED (0%) —
+   - ◼ BaseRepository implementation (0%)
+   - ◼ Model-specific repositories (0%)
+   - ◼ Repository factory (0%)
+   - ◼ Integration tests for repositories (0%)
+   - ◼ Service refactoring to use repositories (0%)
+   - ◼ Advanced repository features (pagination, filtering, joins) (0%)
+
 ## Next Actions
-1. **Resume API Enhancement Project - Phase 6**
-   - Implement recommendations API using the new schema approach
-   - Continue trend reporting development with improved validation
-   - Proceed with frontend development leveraging enhanced schema validation
-   - Create comprehensive API documentation with validation requirements
+1. **Implement Repository Layer**
+   - Create repository directory structure
+   - Implement BaseRepository with CRUD operations
+   - Create first model-specific repositories
+   - Develop integration tests for repositories
+   - Refactor one service as proof-of-concept
 
-2. **Improve Developer Experience**
-   - Add IDE snippets for common schema validation patterns
-   - Document Annotated types usage patterns
-   - Enhance API documentation with schema validation requirements
-   - Create tutorials for working with the validation system
+2. **Further Repository Implementation**
+   - Add repositories for all remaining models
+   - Refactor remaining services to use repositories
+   - Implement advanced repository features
+   - Update API endpoints to use new architecture
+   - Add comprehensive documentation for repository usage
 
-3. **Implement Compliance Monitoring**
-   - Add ADR compliance checks to code review process
-   - Update developer onboarding documentation with validation standards
-   - Consider static analysis tools to enforce ADR rules
-   - Implement scheduled reviews to maintain compliance
+3. **Resume API Enhancement Project - Phase 6**
+   - Implement recommendations API using the new architecture
+   - Continue trend reporting development
+   - Proceed with frontend development
+   - Create API documentation
 
 ## Known Issues
 1. **ConstrainedDecimal Incompatibility with Pydantic V2**

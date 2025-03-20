@@ -1,4 +1,35 @@
-1. **Completed ADR-013 Implementation with SQLAlchemy Model String Formatting** ✓
+1. **Created ADR-014 for Repository Layer Implementation** ✓
+   - Designed a new architecture to separate CRUD operations from business logic:
+     * Created comprehensive ADR with detailed implementation approach
+     * Designed BaseRepository with generic CRUD operations
+     * Added model-specific repository pattern with type safety
+     * Developed dependency injection approach for repositories
+     * Included advanced repository features (pagination, filtering, joins)
+   - Addressed core architectural challenges in services layer:
+     * Single Responsibility Principle violations
+     * DRY violations in data access code
+     * Complex service files with mixed concerns
+     * Testing difficulties with intertwined responsibilities
+   - Detailed a phased implementation approach:
+     * Phase 1: Foundation with BaseRepository
+     * Phase 2: Core repositories for key models
+     * Phase 3: Service refactoring proof-of-concept
+     * Phase 4: Full implementation across all models
+     * Phase 5: Optimization and advanced features
+   - Defined integration testing strategy using real DB fixtures:
+     * Test fixture setup with predefined data
+     * CRUD operation tests with real database
+     * Transaction boundary validation
+     * Complex query testing with joins and filters
+     * Edge case testing for error scenarios
+   - The ADR provides a clear path to:
+     * Improve code maintainability through better separation of concerns
+     * Reduce duplication in data access patterns
+     * Make services more focused on business logic
+     * Enable more effective testing strategies
+     * Create a consistent approach to data access
+
+2. **Completed ADR-013 Implementation with SQLAlchemy Model String Formatting** ✓
    - Fixed model `__repr__` methods to format monetary values with 2 decimal places:
      * Updated BillSplit.__repr__ to use f-string formatting with .2f
      * Updated Income.__repr__ to use f-string formatting with .2f
@@ -57,7 +88,7 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Completing Decimal Precision Handling Implementation with Pydantic V2 Compatibility
+Creating Repository Layer for CRUD Operations
 
 ### Recent Changes
 
@@ -460,20 +491,28 @@ Completing Decimal Precision Handling Implementation with Pydantic V2 Compatibil
    - ADR-013 implementation is now 100% complete
 
 ## Next Steps
-1. **Resume API Enhancement Project - Phase 6**
-   - Implement recommendations API using the new schema approach
-   - Continue trend reporting development with improved validation
-   - Proceed with frontend development leveraging enhanced schema validation
-   - Create comprehensive API documentation with validation requirements
+1. **Implement Repository Layer Based on ADR-014**
+   - Create `src/repositories` directory with base implementation
+   - Implement BaseRepository with generic CRUD operations
+   - Add model-specific repositories for core models
+   - Develop integration tests with real database fixtures
+   - Refactor one service as proof-of-concept
+
+2. **Continue Implementation of Repository Pattern**
+   - Complete repositories for all models
+   - Gradually refactor services to use repositories
+   - Update API endpoints to use refactored services
+   - Migrate existing tests to new architecture
+   - Add specialized repository methods for common queries
+
+3. **Resume API Enhancement Project - Phase 6**
+   - Implement recommendations API using the new architecture
+   - Continue trend reporting development with the repository pattern
+   - Proceed with frontend development leveraging improved backend
+   - Create comprehensive API documentation
 
 4. **Improve Developer Experience**
-   - Add IDE snippets for common schema validation patterns
-   - Document version.py usage patterns
-   - Enhance API documentation with schema validation requirements
-   - Create tutorials for working with the validation system
-
-5. **Implement Compliance Monitoring**
-   - Add ADR compliance checks to code review process
-   - Update developer onboarding documentation with validation standards
-   - Consider static analysis tools to enforce ADR rules
-   - Implement scheduled reviews to maintain compliance
+   - Add IDE snippets for repository pattern
+   - Document repository pattern usage
+   - Enhance API documentation
+   - Create tutorials for working with repositories
