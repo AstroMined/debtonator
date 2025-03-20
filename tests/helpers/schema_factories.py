@@ -27,7 +27,11 @@ from src.schemas.bill_splits import BillSplitCreate, BillSplitUpdate
 from src.schemas.liabilities import LiabilityCreate, LiabilityUpdate
 from src.schemas.accounts import AccountCreate, AccountUpdate
 from src.schemas.payments import PaymentCreate, PaymentUpdate
+from src.schemas.credit_limit_history import CreditLimitHistoryCreate, CreditLimitHistoryUpdate
+from src.schemas.balance_reconciliation import BalanceReconciliationCreate, BalanceReconciliationUpdate
+from src.schemas.transaction_history import TransactionHistoryCreate, TransactionHistoryUpdate
 from src.models.liabilities import LiabilityStatus
+from src.models.transaction_history import TransactionType
 
 def create_bill_split_schema(
     liability_id: int,
@@ -205,3 +209,131 @@ def create_payment_schema(
     }
     
     return PaymentCreate(**data)
+
+
+def create_credit_limit_history_schema(
+    account_id: int,
+    credit_limit: Optional[Decimal] = None,
+    effective_date: Optional[datetime] = None,
+    reason: Optional[str] = None,
+    **kwargs: Any
+) -> CreditLimitHistoryCreate:
+    """
+    Create a valid CreditLimitHistoryCreate schema instance.
+    
+    Args:
+        account_id: ID of the account
+        credit_limit: Credit limit (defaults to 5000.00)
+        effective_date: Date when limit became effective (defaults to now)
+        reason: Reason for credit limit change (optional)
+        **kwargs: Additional fields to override
+        
+    Returns:
+        CreditLimitHistoryCreate: Validated schema instance
+    """
+    if credit_limit is None:
+        credit_limit = Decimal("5000.00")
+        
+    if effective_date is None:
+        effective_date = datetime.utcnow()
+        
+    data = {
+        "account_id": account_id,
+        "credit_limit": credit_limit,
+        "effective_date": effective_date,
+        **kwargs
+    }
+    
+    if reason is not None:
+        data["reason"] = reason
+    
+    return CreditLimitHistoryCreate(**data)
+
+
+def create_balance_reconciliation_schema(
+    account_id: int,
+    previous_balance: Optional[Decimal] = None,
+    new_balance: Optional[Decimal] = None,
+    reason: str = "Balance correction",
+    reconciliation_date: Optional[datetime] = None,
+    **kwargs: Any
+) -> BalanceReconciliationCreate:
+    """
+    Create a valid BalanceReconciliationCreate schema instance.
+    
+    Args:
+        account_id: ID of the account
+        previous_balance: Previous balance (defaults to 1000.00)
+        new_balance: New balance (defaults to 1100.00)
+        reason: Reason for reconciliation
+        reconciliation_date: Date of reconciliation (defaults to now)
+        **kwargs: Additional fields to override
+        
+    Returns:
+        BalanceReconciliationCreate: Validated schema instance
+    """
+    if previous_balance is None:
+        previous_balance = Decimal("1000.00")
+        
+    if new_balance is None:
+        new_balance = Decimal("1100.00")
+        
+    if reconciliation_date is None:
+        reconciliation_date = datetime.utcnow()
+    
+    # Calculate adjustment amount
+    adjustment_amount = new_balance - previous_balance
+        
+    data = {
+        "account_id": account_id,
+        "previous_balance": previous_balance,
+        "new_balance": new_balance,
+        "adjustment_amount": adjustment_amount,
+        "reason": reason,
+        "reconciliation_date": reconciliation_date,
+        **kwargs
+    }
+    
+    return BalanceReconciliationCreate(**data)
+
+
+def create_transaction_history_schema(
+    account_id: int,
+    amount: Optional[Decimal] = None,
+    transaction_type: TransactionType = TransactionType.CREDIT,
+    description: Optional[str] = None,
+    transaction_date: Optional[datetime] = None,
+    **kwargs: Any
+) -> TransactionHistoryCreate:
+    """
+    Create a valid TransactionHistoryCreate schema instance.
+    
+    Args:
+        account_id: ID of the account
+        amount: Transaction amount (defaults to 100.00)
+        transaction_type: Type of transaction (credit or debit)
+        description: Transaction description
+        transaction_date: Date of transaction (defaults to now)
+        **kwargs: Additional fields to override
+        
+    Returns:
+        TransactionHistoryCreate: Validated schema instance
+    """
+    if amount is None:
+        amount = Decimal("100.00")
+        
+    if transaction_date is None:
+        transaction_date = datetime.utcnow()
+        
+    data = {
+        "account_id": account_id,
+        "amount": amount,
+        "transaction_type": transaction_type,
+        "transaction_date": transaction_date,
+        **kwargs
+    }
+    
+    if description is not None:
+        data["description"] = description
+    
+    return TransactionHistoryCreate(**data)

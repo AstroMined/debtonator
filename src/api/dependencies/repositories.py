@@ -20,6 +20,9 @@ from src.repositories.recurring_bills import RecurringBillRepository
 from src.repositories.statement_history import StatementHistoryRepository
 from src.repositories.balance_history import BalanceHistoryRepository
 from src.repositories.categories import CategoryRepository
+from src.repositories.credit_limit_history import CreditLimitHistoryRepository
+from src.repositories.balance_reconciliation import BalanceReconciliationRepository
+from src.repositories.transaction_history import TransactionHistoryRepository
 
 
 def get_repository_factory(db: AsyncSession = Depends(get_db)) -> RepositoryFactory:
@@ -163,3 +166,42 @@ def get_category_repository(db: AsyncSession = Depends(get_db)) -> CategoryRepos
         CategoryRepository: Category repository instance
     """
     return CategoryRepository(db)
+
+
+def get_credit_limit_history_repository(db: AsyncSession = Depends(get_db)) -> CreditLimitHistoryRepository:
+    """
+    Dependency provider for credit limit history repository.
+    
+    Args:
+        db (AsyncSession): Database session from dependency injection
+        
+    Returns:
+        CreditLimitHistoryRepository: Credit limit history repository instance
+    """
+    return CreditLimitHistoryRepository(db)
+
+
+def get_balance_reconciliation_repository(db: AsyncSession = Depends(get_db)) -> BalanceReconciliationRepository:
+    """
+    Dependency provider for balance reconciliation repository.
+    
+    Args:
+        db (AsyncSession): Database session from dependency injection
+        
+    Returns:
+        BalanceReconciliationRepository: Balance reconciliation repository instance
+    """
+    return BalanceReconciliationRepository(db)
+
+
+def get_transaction_history_repository(db: AsyncSession = Depends(get_db)) -> TransactionHistoryRepository:
+    """
+    Dependency provider for transaction history repository.
+    
+    Args:
+        db (AsyncSession): Database session from dependency injection
+        
+    Returns:
+        TransactionHistoryRepository: Transaction history repository instance
+    """
+    return TransactionHistoryRepository(db)

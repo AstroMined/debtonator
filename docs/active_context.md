@@ -1,78 +1,71 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Strengthening Repository Layer Validation and Testing (ADR-014)
+Completing Repository Layer Implementation (ADR-014)
 
 ### Recent Changes
 
-1. **Enhanced Repository Layer Validation Strategy in ADR-014** ✓
-   - Updated ADR-014 to clarify validation responsibilities across architectural layers
-   - Explicitly defined the validation boundary between service and repository layers
-   - Added detailed examples of proper service-to-repository validation flow
-   - Emphasized that repositories must never be called with raw, unvalidated data
-   - Created clear coding examples showing validation in both services and tests
+1. **Completed All Repository Implementations** ✓
+   - Implemented CreditLimitHistoryRepository for tracking credit limit changes
+   - Created BalanceReconciliationRepository for managing balance reconciliations
+   - Added TransactionHistoryRepository for transaction tracking
+   - Enhanced BaseRepository with bulk_update and transaction support
+   - Added specialized methods for each repository following consistent patterns
 
-2. **Created Repository Test Template Pattern** ✓
-   - Developed standardized 4-step pattern for repository tests (Arrange-Schema-Act-Assert)
-   - Created comprehensive repository_test_pattern.md guide in docs/guides
-   - Documented common pitfalls and best practices for repository testing
-   - Provided clear examples for all test scenarios (creation, updates, validation errors)
-   - Created consistent pattern for test organization and structure
+2. **Created Comprehensive Repository Tests** ✓
+   - Implemented tests for all new repositories following the 4-step pattern
+   - Added validation error testing for each repository
+   - Created fixtures and test data generation for thorough testing
+   - Ensured all tests pass data through Pydantic schemas first
 
-3. **Implemented Schema Factory Functions** ✓
-   - Created tests/helpers/schema_factories.py with factory functions for test data
-   - Implemented functions for BillSplit, Liability, Account, and Payment schemas
-   - Added flexible override capabilities to all factory functions
-   - Standardized default values and patterns across all schemas
-   - Documented usage patterns for maintainability
+3. **Enhanced Schema Factory Functions** ✓
+   - Added factory functions for CreditLimitHistory, BalanceReconciliation, and TransactionHistory
+   - Made factory functions configurable with sensible defaults
+   - Ensured proper validation flow in test code
+   - Used model_dump() consistently to convert schemas to dicts
 
-4. **Created Reference Implementation for Repository Tests** ✓
-   - Refactored test_bill_split_repository.py to follow proper validation flow
-   - Implemented full Pydantic validation in existing tests (create, update, bulk_create)
-   - Added explicit validation error test demonstrating schema validation importance
-   - Updated all assertions to verify both repository operation and schema validation
-   - Created pattern for other repository tests to follow
+4. **Updated Dependency Injection Setup** ✓
+   - Added dependency provider functions for all new repositories
+   - Maintained consistent pattern across all repositories
+   - Connected repositories to dependency injection system
+   - Ensured proper session management across dependencies
 
-5. **Enhanced Validation Test Coverage** ✓
-   - Added test_validation_error_handling to demonstrate proper error handling
-   - Improved test documentation with clear explanations of validation pattern importance
-   - Updated test fixtures to work with schema validation approach
-   - Added proper model_dump() handling to convert validated schema to dict
-   - Ensured comprehensive validation testing for Bill Split repository
+5. **Completed the Repository Testing Pattern** ✓
+   - Finalized the Arrange-Schema-Act-Assert pattern across all tests
+   - Ensured proper validation flow in all test modules
+   - Added tests for transaction boundaries and error handling
+   - Implemented tests for advanced querying features
 
 ## Next Steps
 
-1. **Refactor Remaining Repository Tests**
-   - Update integration tests for all repositories to follow the validation pattern
-   - Update test fixtures to use schema factory functions
-   - Add validation error tests for each repository
-   - Update all repository tests to follow the 4-step pattern
-   - Ensure complete test coverage of validation flow
-
-2. **Complete Repository Layer Implementation**
-   - Implement the remaining repositories (CreditLimitHistory, BalanceReconciliation, TransactionHistory)
-   - Implement advanced repository features (bulk_update, transaction boundaries)
-   - Ensure all new repository implementations follow validation pattern
-   - Complete integration test coverage for all repositories
-
-3. **Start Service Layer Refactoring**
-   - Refactor AccountService as proof of concept
+1. **Begin Service Layer Refactoring**
+   - Start with AccountService as proof of concept
+   - Update service to use repository pattern
    - Create unit tests using mock repositories
-   - Ensure proper schema validation in service-to-repository flow
-   - Update API endpoints to use refactored services
+   - Update API endpoints to use refactored service
+
+2. **Complete Unit Tests for BaseRepository**
+   - Create dedicated unit tests for BaseRepository
+   - Test all CRUD operations with controlled fixtures
+   - Ensure proper coverage of filtering and pagination
+   - Test transaction handling and error scenarios
+
+3. **Create Repository Documentation**
+   - Document common patterns and best practices
+   - Create usage examples for repositories
+   - Document repository interfaces and methods
+   - Create examples of service-repository integration
 
 ## Implementation Lessons
 
-1. **Repository Testing Best Practices**
-   - Repository tests must reflect actual application flow by validating through schemas first
-   - Use factory functions to reduce test code duplication and maintain consistency
-   - Follow the standard 4-step pattern: Arrange, Schema, Act, Assert
-   - Add explicit validation error tests to verify schema validation behavior
-   - Include both happy path and error case tests for comprehensive coverage
+1. **Repository Transaction Pattern**
+   - Using async context managers for transaction boundaries provides a clean API
+   - Context managers handle both commit and rollback cases automatically
+   - This pattern enables method chaining within transaction blocks
+   - Transactions should be managed at the service layer, not within repositories
 
-2. **Validation Responsibility Boundaries**
-   - Services are responsible for all data validation before passing to repositories
-   - Repositories should assume data has been validated and focus purely on data access
-   - Tests must simulate this flow by using schemas for validation
-   - Never pass raw, unvalidated data to repositories, even in tests
-   - When in doubt, validate through schemas to ensure consistency
+2. **Factory Function Design**
+   - Factory functions should have sensible defaults but allow overrides
+   - Use optional parameters with None defaults for flexibility
+   - Calculate derived fields within the factory when possible
+   - Document factory function usage patterns for team reference

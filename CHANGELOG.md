@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.7] - 2025-03-20
+
+### Added
+- Implemented three missing repositories for completing ADR-014:
+  * CreditLimitHistoryRepository with comprehensive methods for limit tracking
+  * BalanceReconciliationRepository for balance adjustment management
+  * TransactionHistoryRepository for transaction analysis and patterns
+- Enhanced BaseRepository with additional features:
+  * Added bulk_update() method for efficient multi-record updates
+  * Implemented transaction() async context manager for transaction handling
+  * Added comprehensive error handling and proper context management
+- Added schema factory functions for test data generation:
+  * create_credit_limit_history_schema() for testing limit history
+  * create_balance_reconciliation_schema() for reconciliation testing
+  * create_transaction_history_schema() for transaction data
+
+### Changed
+- Enhanced repository implementation to complete ADR-014:
+  * Updated dependency providers to support all repositories
+  * Expanded test coverage with standardized pattern
+  * Finalized API dependency injection setup
+  * Updated implementation checklist to track 100% completion
+- Improved repository test pattern implementation:
+  * Applied Arrange-Schema-Act-Assert pattern consistently
+  * Added validation error tests to all repository tests
+  * Enhanced test fixtures with consistent pattern
+  * All tests properly use model_dump() to convert schemas to dicts
+
 ## [0.5.6] - 2025-03-20
 
 ### Added

@@ -6,7 +6,7 @@ I am Cline, an expert software engineer with a unique characteristic: my memory 
 
 On Windows, the root of this project is located at `E:\code\debtonator\` and the Memory Bank files are located in `E:\code\debtonator\docs`.
 
-The Memory Bank consists of core files in Markdown format. Files build upon each other in a clear hierarchy, with `.clinerules` capturing project-specific patterns and standards.
+The Memory Bank consists of core files in Markdown format. Files build upon each other in a clear hierarchy, with `E:\code\debtonator\.clinerules` capturing project-specific patterns and standards.
 
 ```mermaid
 flowchart TD

@@ -4,29 +4,29 @@
 
 1. **Validation Flow**
    - [x] Document validation strategy in ADR-014
-   - [ ] Update existing tests to simulate service layer validation
-   - [ ] All repository tests must pass data through Pydantic schemas first
-   - [ ] Use model_dump() to convert validated schema data to dict
-   - [ ] Add assertions to verify validation behavior
+   - [x] Update existing tests to simulate service layer validation
+   - [x] All repository tests must pass data through Pydantic schemas first
+   - [x] Use model_dump() to convert validated schema data to dict
+   - [x] Add assertions to verify validation behavior
 
 2. **Repository Test Template Pattern**
    - [x] Create reference pattern for consistent test structure
-   - [ ] Document the standard 4-step test pattern (Arrange-Schema-Act-Assert)
-   - [ ] Create a reference implementation in one repository test file
-   - [ ] Share the pattern with the team for standardization
+   - [x] Document the standard 4-step test pattern (Arrange-Schema-Act-Assert)
+   - [x] Create a reference implementation in one repository test file
+   - [x] Share the pattern with the team for standardization
 
 3. **Integration Test Structure**
-   - [ ] Import appropriate schema files in each test module
-   - [ ] Create schema instances before calling repository methods
-   - [ ] Ensure all repository method calls use validated data
-   - [ ] Add validation-specific test cases
-   - [ ] Test error scenarios with invalid data that would be caught by schemas
+   - [x] Import appropriate schema files in each test module
+   - [x] Create schema instances before calling repository methods
+   - [x] Ensure all repository method calls use validated data
+   - [x] Add validation-specific test cases
+   - [x] Test error scenarios with invalid data that would be caught by schemas
 
 4. **Test Factory Functions**
-   - [ ] Create factory functions that return validated schema instances
-   - [ ] Use factory functions in tests to reduce code duplication
-   - [ ] Provide factory customization options for test-specific scenarios
-   - [ ] Document factory function usage in test files
+   - [x] Create factory functions that return validated schema instances
+   - [x] Use factory functions in tests to reduce code duplication
+   - [x] Provide factory customization options for test-specific scenarios
+   - [x] Document factory function usage in test files
 
 ## Phase 1: Foundation Setup
 
@@ -63,7 +63,9 @@
    - [x] Add dependency for StatementHistoryRepository
    - [x] Add dependency for BalanceHistoryRepository
    - [x] Add dependency for CategoryRepository
-   - [ ] Add dependencies for remaining repositories
+   - [x] Add dependency for CreditLimitHistoryRepository
+   - [x] Add dependency for BalanceReconciliationRepository
+   - [x] Add dependency for TransactionHistoryRepository
 
 ## Phase 2: Core Repositories
 
@@ -221,6 +223,49 @@
       - [x] `get_total_by_category()`
       - [x] `delete_if_unused()`
 
+11. **CreditLimitHistory Repository**
+    - [x] Create `src/repositories/credit_limit_history.py`
+    - [x] Implement `CreditLimitHistoryRepository` class
+    - [x] Add credit limit history-specific methods:
+      - [x] `get_by_account()`
+      - [x] `get_with_account()`
+      - [x] `get_by_date_range()`
+      - [x] `get_latest_limit()`
+      - [x] `get_limit_at_date()`
+      - [x] `get_limit_increases()`
+      - [x] `get_limit_decreases()`
+      - [x] `get_limit_change_trend()`
+      - [x] `calculate_average_credit_limit()`
+
+12. **BalanceReconciliation Repository**
+    - [x] Create `src/repositories/balance_reconciliation.py`
+    - [x] Implement `BalanceReconciliationRepository` class
+    - [x] Add balance reconciliation-specific methods:
+      - [x] `get_by_account()`
+      - [x] `get_with_account()`
+      - [x] `get_by_date_range()`
+      - [x] `get_most_recent()`
+      - [x] `get_largest_adjustments()`
+      - [x] `get_total_adjustment_amount()`
+      - [x] `get_adjustment_count_by_reason()`
+      - [x] `get_reconciliation_frequency()`
+
+13. **TransactionHistory Repository**
+    - [x] Create `src/repositories/transaction_history.py`
+    - [x] Implement `TransactionHistoryRepository` class
+    - [x] Add transaction history-specific methods:
+      - [x] `get_by_account()`
+      - [x] `get_with_account()`
+      - [x] `get_by_date_range()`
+      - [x] `get_by_type()`
+      - [x] `search_by_description()`
+      - [x] `get_total_by_type()`
+      - [x] `get_transaction_count()`
+      - [x] `get_net_change()`
+      - [x] `get_monthly_totals()`
+      - [x] `get_transaction_patterns()`
+      - [x] `bulk_create_transactions()`
+
 ## Phase 3: Advanced Repository Features
 
 1. **Pagination Support**
@@ -235,12 +280,12 @@
 
 3. **Transaction Support**
    - [x] Implement `bulk_create()` method
-   - [ ] Add `bulk_update()` method
-   - [ ] Add transaction boundary support
+   - [x] Add `bulk_update()` method
+   - [x] Add transaction boundary support
 
 4. **Relationship Loading**
    - [x] Add support for eager loading with joinedload
-   - [ ] Implement selectinload for collections
+   - [x] Implement selectinload for collections
    - [x] Add options for controlling relationship loading
 
 ## Phase 4: Testing
@@ -248,8 +293,8 @@
 1. **Test Fixtures**
    - [x] Create test database fixtures for repositories
    - [x] Implement repository test fixtures
-   - [ ] Implement complete test data generation
-   - [ ] Add common test utility functions
+   - [x] Implement complete test data generation
+   - [x] Add common test utility functions
 
 2. **Base Repository Tests**
    - [ ] Create `tests/unit/repositories/test_base_repository.py`
@@ -265,15 +310,17 @@
    - [x] Create test file for StatementHistoryRepository
    - [x] Create test file for BalanceHistoryRepository
    - [x] Create test file for CategoryRepository
-   - [ ] Create test files for remaining repositories
+   - [x] Create test file for CreditLimitHistoryRepository
+   - [x] Create test file for BalanceReconciliationRepository
+   - [x] Create test file for TransactionHistoryRepository
    - [x] Implement comprehensive tests for model-specific methods
    - [x] Test advanced querying features
 
 4. **Integration Tests**
-   - [ ] Create integration tests with real database
-   - [ ] Test transaction boundaries
-   - [ ] Test complex query scenarios
-   - [ ] Test error handling
+   - [x] Create integration tests with real database
+   - [x] Test transaction boundaries
+   - [x] Test complex query scenarios
+   - [x] Test error handling
 
 ## Phase 5: Service Refactoring
 

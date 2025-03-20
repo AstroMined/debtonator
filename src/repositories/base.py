@@ -6,7 +6,8 @@ allowing model-specific repositories to inherit common functionality while focus
 their unique requirements.
 """
 
-from typing import TypeVar, Generic, Type, Optional, List, Dict, Any, Tuple, Union
+from typing import TypeVar, Generic, Type, Optional, List, Dict, Any, Tuple, Union, AsyncContextManager
+from contextlib import asynccontextmanager
 from sqlalchemy import select, update, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
@@ -224,3 +225,50 @@ class BaseRepository(Generic[ModelType, PKType]):
             await self.session.refresh(obj)
         
         return db_objects
+    
+    async def bulk_update(
+        self, 
+        ids: List[PKType], 
+        obj_in: Dict[str, Any]
+    ) -> List[Optional[ModelType]]:
+        """
+        Bulk update records identified by their primary keys.
+
+        Args:
+            ids (List[PKType]): List of primary keys to update
+            obj_in (Dict[str, Any]): Dictionary containing fields to update
+
+        Returns:
+            List[Optional[ModelType]]: List of updated model instances (None for any IDs not found)
+        """
+        results = []
+        for id in ids:
+            result = await self.update(id, obj_in)
+            results.append(result)
+        
+        return results
+    
+    @asynccontextmanager
+    async def transaction(self) -> AsyncContextManager['BaseRepository[ModelType, PKType]']:
+        """
+        Begin a transaction and return a repository instance with the same session.
+        
+        Usage:
+            async with repo.transaction() as tx_repo:
+                # Operations within transaction
+                await tx_repo.create(...)
+                await tx_repo.update(...)
+        
+        Returns:
+            BaseRepository: A repository instance with the transaction-bound session
+        """
+        async with self.session.begin():
+            # Create a new repository instance with the same session
+            # This allows for method chaining within the transaction context
+            repo = self.__class__(self.session, self.model_class)
+            try:
+                yield repo
+                # Transaction auto-commits unless an exception occurs
+            except Exception as e:
+                # Transaction auto-rollbacks on exception
+                raise e
