@@ -29,6 +29,7 @@
    - [x] Add dependency for LiabilityRepository
    - [x] Add dependency for PaymentRepository
    - [x] Add dependency for PaymentSourceRepository
+   - [x] Add dependency for BillSplitRepository
    - [ ] Add dependencies for remaining repositories
 
 ## Phase 2: Core Repositories
@@ -85,12 +86,12 @@
      - [x] `delete_sources_for_payment()`
 
 5. **Bill Split Repository**
-   - [ ] Create `src/repositories/bill_splits.py`
-   - [ ] Implement `BillSplitRepository` class
-   - [ ] Add bill split-specific methods:
-     - [ ] `get_splits_for_bill()`
-     - [ ] `get_splits_for_account()`
-     - [ ] `bulk_create_splits()`
+   - [x] Create `src/repositories/bill_splits.py`
+   - [x] Implement `BillSplitRepository` class
+   - [x] Add bill split-specific methods:
+     - [x] `get_splits_for_bill()`
+     - [x] `get_splits_for_account()`
+     - [x] `bulk_create_splits()`
 
 6. **Income Repository**
    - [ ] Create `src/repositories/income.py`
@@ -139,6 +140,7 @@
    - [x] Create test file for LiabilityRepository
    - [x] Create test file for PaymentRepository
    - [x] Create test file for PaymentSourceRepository
+   - [x] Create test file for BillSplitRepository
    - [ ] Create test files for remaining repositories
    - [ ] Implement comprehensive tests for model-specific methods
    - [ ] Test advanced querying features

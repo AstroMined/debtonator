@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.3] - 2025-03-19
+
+### Added
+- Implemented BillSplitRepository for repository pattern (ADR-014):
+  * Created comprehensive BillSplitRepository with complete CRUD operations
+  * Added 10+ specialized query methods for bill split operations
+  * Implemented bulk_create_splits() method with transaction support
+  * Added financial analysis methods (calculate_split_totals, get_split_distribution)
+  * Created get_bill_split_repository() dependency provider
+
+### Changed
+- Enhanced repository layer implementation for ADR-014:
+  * Updated dependency injection system with BillSplitRepository
+  * Improved integration test framework with comprehensive bill split repository tests
+  * Added bill split financial analysis capabilities to repository layer
+  * Updated ADR-014 implementation checklist to reflect progress (70% complete)
+
 ## [0.5.2] - 2025-03-19
 
 ### Added
