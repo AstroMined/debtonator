@@ -159,7 +159,7 @@ class BaseRepository(Generic[ModelType, PKType]):
         skip = (page - 1) * items_per_page
 
         # Get total count
-        count_query = select(func.count()).select_from(self.model_class)
+        count_query = select(func.count()).select_from(self.model_class)  # This is correct SQLAlchemy usage, ignore Pylint
         if filters:
             for field, value in filters.items():
                 if hasattr(self.model_class, field):
@@ -186,13 +186,21 @@ class BaseRepository(Generic[ModelType, PKType]):
         Returns:
             Optional[ModelType]: Updated object or None if not found
         """
-        db_obj = await self.get(id)
+        # Retrieve the ORM instance
+        query = select(self.model_class).where(self.model_class.id == id)
+        result = await self.session.execute(query)
+        db_obj = result.scalars().first()
         if not db_obj:
             return None
 
-        for field, value in obj_in.items():
-            setattr(db_obj, field, value)
-
+        # Update fields; the ORM will trigger the onupdate for updated_at
+        for key, value in obj_in.items():
+            setattr(db_obj, key, value)
+        
+        # Explicitly mark as modified to ensure SQLAlchemy tracks changes
+        self.session.add(db_obj)
+        
+        # Flush changes so that onupdate is applied
         await self.session.flush()
         await self.session.refresh(db_obj)
         return db_obj

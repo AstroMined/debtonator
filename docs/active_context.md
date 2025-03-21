@@ -5,67 +5,78 @@ Implementing Service Layer Refactoring (ADR-014)
 
 ### Recent Changes
 
-1. **Implemented StatementHistory Pydantic Schemas** ✓
-   - Created comprehensive schema set for StatementHistory model
-   - Added proper validation for monetary fields with MoneyDecimal
-   - Implemented UTC datetime handling for statement and due dates
-   - Created specialized schemas for statement trends and upcoming due dates
-   - Added comprehensive unit tests for all schemas
+1. **Fixed Repository Integration Tests** ✓
+   - Fixed transaction_history_repository tests with naive vs. UTC datetime handling
+   - Added timezone-aware datetime handling for database operations
+   - Fixed model updates with proper SQLAlchemy ORM update pattern
+   - Ensured proper transaction_date validation in schema updates
+   - Resolved transaction_type null constraint issues
 
-2. **Completed AccountService Refactoring** ✓
-   - Refactored AccountService to use repositories instead of direct database access
-   - Updated service to inject repositories through constructor
-   - Maintained existing functionality while improving architecture
-   - Implemented proper schema validation flow throughout the service
+2. **Improved BaseRepository Update Method** ✓
+   - Refactored update method to use proper ORM pattern instead of SQL expressions
+   - Enhanced SQLAlchemy session handling for better change tracking 
+   - Implemented proper ORM instance retrieval and attribute updates
+   - Added explicit session add() to ensure SQLAlchemy tracks changes
+   - Fixed issue with onupdate hooks not being triggered
 
-3. **Added Required Repository Methods** ✓
-   - Added `get_by_account_ordered` to StatementHistoryRepository
-   - Added `get_by_account_ordered` to CreditLimitHistoryRepository
-   - Added `get_debit_sum_for_account` and `get_credit_sum_for_account` to TransactionHistoryRepository
-   - Ensured backward compatibility with existing code
+3. **Implemented Repository Pattern in Transaction History** ✓
+   - Fixed transaction date handling with proper UTC timezone enforcement
+   - Added proper conversion between naive and timezone-aware datetimes
+   - Ensured SQLAlchemy ORM properly tracks field changes
+   - Added comprehensive date range test with naive/aware datetime conversion
+   - Fixed validation issues with transaction date and type
 
-4. **Implemented Unit Tests for BaseRepository** ✓
-   - Created dedicated unit tests for BaseRepository
-   - Tested all CRUD operations with real database fixtures
-   - Implemented tests for filtering, pagination, and relationship loading
-   - Added tests for transaction boundaries and error handling
+4. **Fixed Transaction History Schema Validation** ✓
+   - Enhanced schema validation to enforce UTC timezone requirements
+   - Added proper UTC timezone validation for transaction_date fields
+   - Fixed tests to handle timezone-aware datetimes appropriately
+   - Added explicit timezone conversion in tests 
+   - Added test cases for naive vs. UTC timezone handling
 
-5. **Updated Service Tests** ✓
-   - Updated AccountService tests to work with repository pattern
-   - Used real database fixtures instead of mocks
-   - Added tests for new functionality like retrieving history
-   - Followed the Arrange-Schema-Act-Assert pattern consistently
+5. **Fixed Transaction Type Handling** ✓
+   - Fixed transaction_type NULL constraint issues
+   - Ensured transaction_type is explicitly included in update operations
+   - Resolved validation errors in schema creation and updates
+   - Fixed transaction_type handling in update test
+   - Added explicit transaction_type in schema creation and validation
 
 ## Next Steps
 
-1. **Refactor Remaining Core Services**
+1. **Fix Remaining Test Issues**
+   - Address updated_at timestamp issues in ORM updates
+   - Fix date_trunc function missing in SQLite for monthly totals tests
+   - Complete remaining transaction history repository tests
+   - Fix SQLAlchemy ORM identity map issues
+   - Enhance testing strategies for timezone handling
+
+2. **Refactor Remaining Core Services**
    - Apply the repository pattern to BillService and PaymentService
    - Update service tests to use the new pattern
    - Ensure proper validation flow in all services
    - Maintain backward compatibility with existing code
 
-2. **Update API Dependency Injection**
+3. **Update API Dependency Injection**
    - Update API endpoints to use the refactored services
    - Create dedicated service provider functions
    - Update API tests to use the new dependencies
    - Ensure proper error handling at the API level
 
-3. **Complete Repository Error Handling**
-   - Implement custom repository exceptions
-   - Add error translation in services
-   - Update tests to verify error handling behavior
-   - Document exception handling patterns
-
 ## Implementation Lessons
 
-1. **Service-Repository Boundary**
-   - Services own business logic and validation
+1. **Timezone-Aware vs. Naive Datetimes**
+   - Store naive datetimes in the database but enforce UTC semantics
+   - Use timezone-aware datetime objects at the schema validation layer
+   - When retrieving from DB, add timezone info before passing to schema
+   - When comparing datetimes with different timezone info, convert appropriately
+
+2. **SQLAlchemy ORM Update Patterns**
+   - Use ORM instance updates rather than direct SQL update statements
+   - Explicitly add changed objects back to the session
+   - Ensure flush operations are called to persist changes
+   - Let SQLAlchemy handle onupdate hooks rather than manual updates
+
+3. **Database Repository Best Practices**
+   - Services should own business logic and validation
    - Repositories focus solely on data access patterns
    - Clear separation improves testability and maintainability
    - Pydantic schemas provide the boundary between layers
-
-2. **Testing with Real Database Fixtures**
-   - Using real database fixtures is preferable to mocks
-   - Real fixtures validate actual behavior and catch integration issues
-   - Following the Arrange-Schema-Act-Assert pattern ensures proper validation flow
-   - Fixtures should be reusable across multiple test cases

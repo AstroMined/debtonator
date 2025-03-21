@@ -15,7 +15,7 @@
 3. **Service Layer**: IN PROGRESS (90%)
    - Repository pattern foundation complete (ADR-014)
    - 13 of 13 core repositories implemented (100%)
-   - Integration tests for repositories (100%)
+   - Integration tests for repositories (95%)
    - Repository test standardization (100%)
    - Service refactoring to use repositories (10%)
    - AccountService refactored and tested (100%)
@@ -66,11 +66,12 @@
 
 ## What's Left to Build
 
-1. **BaseRepository Tests (100%)** ✓
-   - ✓ Created dedicated unit tests for BaseRepository
-   - ✓ Tested CRUD operations with real fixtures
-   - ✓ Tested transaction boundaries
-   - ✓ Added tests for advanced features (filtering, pagination)
+1. **Repository Integration Tests (95%)**
+   - ✓ Fixed UTC datetime handling in transaction_history_repository
+   - ✓ Resolved SQLAlchemy ORM update pattern issues
+   - ✓ Fixed transaction_type constraint issues
+   - Resolve remaining updated_at timestamp issues
+   - Fix date_trunc function missing in SQLite for monthly totals
 
 2. **Repository Layer Completion (100%)** ✓
    - ✓ Implemented all required repositories
@@ -112,3 +113,8 @@
    - Need to implement custom repository exceptions
    - Error translation in services needs to be standardized
    - Exception hierarchy should be consistent across the application
+
+4. **SQLAlchemy ORM Update Patterns**
+   - Identified and fixed issues with updated_at timestamps not updating properly
+   - Need to ensure proper ORM update pattern usage across all repositories
+   - Improved documentation needed for SQLAlchemy best practices

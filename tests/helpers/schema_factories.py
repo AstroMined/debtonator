@@ -19,7 +19,7 @@ Usage:
     result = await bill_split_repository.create(validated_data)
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
@@ -122,8 +122,8 @@ def create_liability_schema(
     if amount is None:
         amount = Decimal("200.00")
 
-    # Create a future due date
-    due_date = datetime.utcnow() + timedelta(days=due_date_days)
+    # Create a future due date with UTC timezone
+    due_date = datetime.now(timezone.utc) + timedelta(days=due_date_days)
 
     data = {
         "name": name,
@@ -204,7 +204,7 @@ def create_payment_schema(
         amount = Decimal("100.00")
 
     if payment_date is None:
-        payment_date = datetime.utcnow()
+        payment_date = datetime.now(timezone.utc)
 
     data = {
         "liability_id": liability_id,
@@ -240,7 +240,7 @@ def create_credit_limit_history_schema(
         credit_limit = Decimal("5000.00")
 
     if effective_date is None:
-        effective_date = datetime.utcnow()
+        effective_date = datetime.now(timezone.utc)
 
     data = {
         "account_id": account_id,
@@ -284,7 +284,7 @@ def create_balance_reconciliation_schema(
         new_balance = Decimal("1100.00")
 
     if reconciliation_date is None:
-        reconciliation_date = datetime.utcnow()
+        reconciliation_date = datetime.now(timezone.utc)
 
     # Calculate adjustment amount
     adjustment_amount = new_balance - previous_balance
@@ -328,7 +328,7 @@ def create_transaction_history_schema(
         amount = Decimal("100.00")
 
     if transaction_date is None:
-        transaction_date = datetime.utcnow()
+        transaction_date = datetime.now(timezone.utc)
 
     data = {
         "account_id": account_id,

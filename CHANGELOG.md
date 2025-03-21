@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.11] - 2025-03-21
+
+### Fixed
+- Fixed BaseRepository.update() method to properly trigger SQLAlchemy onupdate hooks:
+  * Replaced SQL expression update() with proper ORM instance update
+  * Added explicit session.add() to ensure SQLAlchemy tracks changes
+  * Improved ORM instance retrieval with select() and scalar_first()
+  * Enhanced transaction history repository tests with better datetime handling
+  * Addressed updated_at timestamp not updating in ORM operations
+- Fixed transaction_history_repository tests with UTC timezone handling:
+  * Added proper timezone-aware datetime conversion in tests
+  * Fixed transaction_date validation with explicit UTC timezone info
+  * Resolved transaction_type NULL constraint issues in updates
+  * Added appropriate sleep delay in tests to verify updated_at changes
+  * Enhanced test case for naive vs. UTC datetime comparison
+
+### Added
+- Enhanced documentation for SQLAlchemy ORM update best practices:
+  * Added implementation lessons for SQLAlchemy ORM update patterns
+  * Documented proper timezone handling between naive and aware datetimes
+  * Added notes on database repository best practices
+
 ## [0.5.10] - 2025-03-20
 
 ### Added

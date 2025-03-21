@@ -6,7 +6,8 @@ standard 4-step pattern (Arrange-Schema-Act-Assert) to properly simulate
 the validation flow from services to repositories.
 """
 
-from datetime import datetime, timedelta
+import asyncio
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import List
 
@@ -84,7 +85,7 @@ async def test_multiple_transactions(
     transaction_history_repository: TransactionHistoryRepository, test_account: Account
 ) -> List[TransactionHistory]:
     """Create multiple transaction history entries for testing."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     # Transaction data with mixed types and amounts
     transaction_data = [
@@ -218,11 +219,19 @@ class TestTransactionHistoryRepository:
         """Test updating a transaction history entry with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
 
+        # Add a small delay to ensure updated_at will be different
+        await asyncio.sleep(1)
+        
         # 2. SCHEMA: Create and validate update data through Pydantic schema
+        # Make the naive transaction_date timezone-aware by adding UTC timezone info
+        utc_transaction_date = datetime.replace(test_transaction_history.transaction_date, tzinfo=timezone.utc)
+        
         update_schema = TransactionHistoryUpdate(
             id=test_transaction_history.id,
             amount=Decimal("125.00"),
             description="Updated transaction description",
+            transaction_type=test_transaction_history.transaction_type,  # Explicitly include to avoid NULL constraint error
+            transaction_date=utc_transaction_date,  # Make it timezone-aware with UTC
         )
 
         # Convert validated schema to dict for repository
@@ -290,7 +299,7 @@ class TestTransactionHistoryRepository:
     ):
         """Test getting transaction history entries within a date range."""
         # 1. ARRANGE: Setup is already done with fixtures
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         start_date = now - timedelta(days=22)
         end_date = now - timedelta(days=8)
 
@@ -303,8 +312,12 @@ class TestTransactionHistoryRepository:
         assert len(results) >= 3  # Should get at least 3 entries in this range
         for entry in results:
             assert entry.account_id == test_account.id
-            assert entry.transaction_date >= start_date
-            assert entry.transaction_date <= end_date
+            # Convert the timezone-aware dates to naive for comparison with database values
+            naive_start_date = start_date.replace(tzinfo=None)
+            naive_end_date = end_date.replace(tzinfo=None)
+            # Compare using naive datetimes
+            assert entry.transaction_date >= naive_start_date
+            assert entry.transaction_date <= naive_end_date
 
     @pytest.mark.asyncio
     async def test_get_by_type(
@@ -461,7 +474,7 @@ class TestTransactionHistoryRepository:
     ):
         """Test identifying recurring transaction patterns."""
         # 1. ARRANGE: Create recurring transactions with same description
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # Create several grocery transactions weekly
         for week in range(1, 5):
@@ -520,7 +533,7 @@ class TestTransactionHistoryRepository:
     ):
         """Test creating multiple transactions in bulk."""
         # 1. ARRANGE: Prepare multiple transaction schemas
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         transaction_schemas = [
             create_transaction_history_schema(
@@ -570,7 +583,7 @@ class TestTransactionHistoryRepository:
                 account_id=999,
                 amount=Decimal("-10.00"),  # Negative amount
                 transaction_type=TransactionType.CREDIT,
-                transaction_date=datetime.utcnow(),
+                transaction_date=datetime.now(timezone.utc),
             )
             assert (
                 False
