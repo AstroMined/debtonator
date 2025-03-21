@@ -15,7 +15,7 @@
 3. **Service Layer**: IN PROGRESS (90%)
    - Repository pattern foundation complete (ADR-014)
    - 13 of 13 core repositories implemented (100%)
-   - Integration tests for repositories (95%)
+   - Integration tests for repositories (96%)
    - Repository test standardization (100%)
    - Service refactoring to use repositories (10%)
    - AccountService refactored and tested (100%)
@@ -66,10 +66,13 @@
 
 ## What's Left to Build
 
-1. **Repository Integration Tests (95%)**
+1. **Repository Integration Tests (96%)**
    - ✓ Fixed UTC datetime handling in transaction_history_repository
    - ✓ Resolved SQLAlchemy ORM update pattern issues
    - ✓ Fixed transaction_type constraint issues
+   - ✓ Fixed credit_limit_history_repository schema validation
+   - ✓ Aligned schema requirements with database constraints
+   - Implement comprehensive timezone handling in repository tests
    - Resolve remaining updated_at timestamp issues
    - Fix date_trunc function missing in SQLite for monthly totals
 
@@ -118,3 +121,9 @@
    - Identified and fixed issues with updated_at timestamps not updating properly
    - Need to ensure proper ORM update pattern usage across all repositories
    - Improved documentation needed for SQLAlchemy best practices
+
+5. **Timezone Handling in Repository Tests**
+   - Inconsistent datetime comparison between timezone-aware and naive datetimes
+   - Need standardized approach for comparing database return values
+   - Apply ADR-011 principles consistently across all repositories
+   - Repository test cases need updates for proper datetime handling

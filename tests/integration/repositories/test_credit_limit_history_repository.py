@@ -6,7 +6,7 @@ standard 4-step pattern (Arrange-Schema-Act-Assert) to properly simulate
 the validation flow from services to repositories.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import List
 
@@ -70,7 +70,7 @@ async def test_credit_limit_history(
     history_schema = create_credit_limit_history_schema(
         account_id=test_credit_account.id,
         credit_limit=Decimal("5000.00"),
-        effective_date=datetime.utcnow() - timedelta(days=30),
+        effective_date=datetime.now(timezone.utc) - timedelta(days=30),
         reason="Initial credit limit",
     )
 
@@ -87,7 +87,7 @@ async def test_credit_limit_changes(
     test_credit_account: Account,
 ) -> List[CreditLimitHistory]:
     """Create multiple credit limit history entries for testing."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     # Create base entry (already created in test_credit_limit_history)
     base_schema = create_credit_limit_history_schema(
@@ -203,6 +203,7 @@ class TestCreditLimitHistoryRepository:
             id=test_credit_limit_history.id,
             credit_limit=Decimal("12000.00"),
             reason="Updated credit limit increase",
+            effective_date=datetime.now(timezone.utc),  # Provide required effective_date
         )
 
         # Convert validated schema to dict for repository
@@ -269,7 +270,7 @@ class TestCreditLimitHistoryRepository:
     ):
         """Test getting credit limit history entries within a date range."""
         # 1. ARRANGE: Setup is already done with fixtures
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         start_date = now - timedelta(days=70)
         end_date = now - timedelta(days=20)
 
@@ -282,8 +283,10 @@ class TestCreditLimitHistoryRepository:
         assert len(results) >= 2  # At least 2 entries in this range
         for entry in results:
             assert entry.account_id == test_credit_account.id
-            assert entry.effective_date >= start_date
-            assert entry.effective_date <= end_date
+            # Add timezone info to naive datetime values for correct comparison with timezone-aware dates
+            effective_date_utc = entry.effective_date.replace(tzinfo=timezone.utc)
+            assert effective_date_utc >= start_date
+            assert effective_date_utc <= end_date
 
     @pytest.mark.asyncio
     async def test_get_latest_limit(
@@ -314,7 +317,7 @@ class TestCreditLimitHistoryRepository:
     ):
         """Test getting the credit limit that was effective at a specific date."""
         # 1. ARRANGE: Setup is already done with fixtures
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         # Check limit at midpoint (should be the decrease to 6500)
         target_date = now - timedelta(days=45)
 
@@ -401,7 +404,7 @@ class TestCreditLimitHistoryRepository:
             invalid_schema = CreditLimitHistoryCreate(
                 account_id=test_credit_account.id,
                 credit_limit=Decimal("-5000.00"),  # Invalid negative credit limit
-                effective_date=datetime.utcnow(),
+                effective_date=datetime.now(timezone.utc),
             )
             assert (
                 False

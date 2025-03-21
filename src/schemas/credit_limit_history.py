@@ -49,8 +49,8 @@ class CreditLimitHistoryUpdate(BaseSchemaValidator):
     credit_limit: Optional[MoneyDecimal] = Field(
         None, gt=0, description="Credit limit amount in dollars"
     )
-    effective_date: Optional[datetime] = Field(
-        None, description="Date when this credit limit became effective in UTC timezone"
+    effective_date: datetime = Field(
+        ..., description="Date when this credit limit became effective in UTC timezone"
     )
     reason: Optional[str] = Field(
         None, max_length=500, description="Reason for credit limit change"

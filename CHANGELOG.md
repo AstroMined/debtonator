@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.12] - 2025-03-21
+
+### Fixed
+- Fixed credit limit history repository tests with UTC datetime handling:
+  * Updated CreditLimitHistoryUpdate schema to require effective_date field
+  * Fixed datetime comparison between naive and timezone-aware datetimes
+  * Aligned schema requirements with database constraints
+  * Implemented proper handling for datetime comparisons following ADR-011
+  * Enhanced test assertions with explicit timezone attachment
+
+### Added
+- Enhanced schema validation documentation:
+  * Added schema validation and database constraints lessons to implementation lessons
+  * Updated next steps with additional timezone handling task
+  * Documented timezone comparison best practices in active_context.md
+
 ## [0.5.11] - 2025-03-21
 
 ### Fixed

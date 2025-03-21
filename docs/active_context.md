@@ -5,40 +5,40 @@ Implementing Service Layer Refactoring (ADR-014)
 
 ### Recent Changes
 
-1. **Fixed Repository Integration Tests** ✓
+1. **Fixed Credit Limit History Repository Tests** ✓
+   - Updated CreditLimitHistoryUpdate schema to require effective_date field
+   - Fixed datetime comparison issue in date range test with timezone-aware handling
+   - Aligned schema validation with database NOT NULL constraints
+   - Properly handled timezone-aware vs. naive datetime comparison
+   - Applied ADR-011 principles for UTC datetime standardization
+
+2. **Fixed Repository Integration Tests** ✓
    - Fixed transaction_history_repository tests with naive vs. UTC datetime handling
    - Added timezone-aware datetime handling for database operations
    - Fixed model updates with proper SQLAlchemy ORM update pattern
    - Ensured proper transaction_date validation in schema updates
    - Resolved transaction_type null constraint issues
 
-2. **Improved BaseRepository Update Method** ✓
+3. **Improved BaseRepository Update Method** ✓
    - Refactored update method to use proper ORM pattern instead of SQL expressions
    - Enhanced SQLAlchemy session handling for better change tracking 
    - Implemented proper ORM instance retrieval and attribute updates
    - Added explicit session add() to ensure SQLAlchemy tracks changes
    - Fixed issue with onupdate hooks not being triggered
 
-3. **Implemented Repository Pattern in Transaction History** ✓
+4. **Implemented Repository Pattern in Transaction History** ✓
    - Fixed transaction date handling with proper UTC timezone enforcement
    - Added proper conversion between naive and timezone-aware datetimes
    - Ensured SQLAlchemy ORM properly tracks field changes
    - Added comprehensive date range test with naive/aware datetime conversion
    - Fixed validation issues with transaction date and type
 
-4. **Fixed Transaction History Schema Validation** ✓
+5. **Fixed Transaction History Schema Validation** ✓
    - Enhanced schema validation to enforce UTC timezone requirements
    - Added proper UTC timezone validation for transaction_date fields
    - Fixed tests to handle timezone-aware datetimes appropriately
    - Added explicit timezone conversion in tests 
    - Added test cases for naive vs. UTC timezone handling
-
-5. **Fixed Transaction Type Handling** ✓
-   - Fixed transaction_type NULL constraint issues
-   - Ensured transaction_type is explicitly included in update operations
-   - Resolved validation errors in schema creation and updates
-   - Fixed transaction_type handling in update test
-   - Added explicit transaction_type in schema creation and validation
 
 ## Next Steps
 
@@ -48,6 +48,7 @@ Implementing Service Layer Refactoring (ADR-014)
    - Complete remaining transaction history repository tests
    - Fix SQLAlchemy ORM identity map issues
    - Enhance testing strategies for timezone handling
+   - Resolve additional timezone comparison issues in repository tests
 
 2. **Refactor Remaining Core Services**
    - Apply the repository pattern to BillService and PaymentService
@@ -68,14 +69,21 @@ Implementing Service Layer Refactoring (ADR-014)
    - Use timezone-aware datetime objects at the schema validation layer
    - When retrieving from DB, add timezone info before passing to schema
    - When comparing datetimes with different timezone info, convert appropriately
+   - Always treat database datetime values as semantically UTC
 
-2. **SQLAlchemy ORM Update Patterns**
+2. **Schema Validation and Database Constraints**
+   - Align Pydantic schema requirements with database constraints
+   - Required fields in the database should be required in all schemas
+   - Field optionality should be consistent between create and update schemas
+   - Maintain consistent validation rules across the application
+
+3. **SQLAlchemy ORM Update Patterns**
    - Use ORM instance updates rather than direct SQL update statements
    - Explicitly add changed objects back to the session
    - Ensure flush operations are called to persist changes
    - Let SQLAlchemy handle onupdate hooks rather than manual updates
 
-3. **Database Repository Best Practices**
+4. **Database Repository Best Practices**
    - Services should own business logic and validation
    - Repositories focus solely on data access patterns
    - Clear separation improves testability and maintainability
