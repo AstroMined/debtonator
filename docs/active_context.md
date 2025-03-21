@@ -5,35 +5,36 @@ Implementing Service Layer Refactoring (ADR-014)
 
 ### Recent Changes
 
-1. **Completed AccountService Refactoring** ✓
+1. **Implemented StatementHistory Pydantic Schemas** ✓
+   - Created comprehensive schema set for StatementHistory model
+   - Added proper validation for monetary fields with MoneyDecimal
+   - Implemented UTC datetime handling for statement and due dates
+   - Created specialized schemas for statement trends and upcoming due dates
+   - Added comprehensive unit tests for all schemas
+
+2. **Completed AccountService Refactoring** ✓
    - Refactored AccountService to use repositories instead of direct database access
    - Updated service to inject repositories through constructor
    - Maintained existing functionality while improving architecture
    - Implemented proper schema validation flow throughout the service
 
-2. **Added Required Repository Methods** ✓
+3. **Added Required Repository Methods** ✓
    - Added `get_by_account_ordered` to StatementHistoryRepository
    - Added `get_by_account_ordered` to CreditLimitHistoryRepository
    - Added `get_debit_sum_for_account` and `get_credit_sum_for_account` to TransactionHistoryRepository
    - Ensured backward compatibility with existing code
 
-3. **Implemented Unit Tests for BaseRepository** ✓
+4. **Implemented Unit Tests for BaseRepository** ✓
    - Created dedicated unit tests for BaseRepository
    - Tested all CRUD operations with real database fixtures
    - Implemented tests for filtering, pagination, and relationship loading
    - Added tests for transaction boundaries and error handling
 
-4. **Updated Service Tests** ✓
+5. **Updated Service Tests** ✓
    - Updated AccountService tests to work with repository pattern
    - Used real database fixtures instead of mocks
    - Added tests for new functionality like retrieving history
    - Followed the Arrange-Schema-Act-Assert pattern consistently
-
-5. **Created Service-Repository Integration Documentation** ✓
-   - Documented patterns for integrating services with repositories
-   - Included examples of dependency injection and transaction management
-   - Defined clear validation flow and error handling patterns
-   - Established testing approach with real fixtures
 
 ## Next Steps
 

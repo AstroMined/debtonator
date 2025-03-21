@@ -7,8 +7,10 @@
    - Comprehensive test coverage in place
 
 2. **Schema Layer**: COMPLETED (100%) ✓
-   - All 21 schema files fully compliant with ADR-011 and ADR-012
+   - All 22 schema files fully compliant with ADR-011 and ADR-012
    - Pydantic V2 compatibility with Annotated types approach
+   - StatementHistory schema implementation completed with specialized types
+   - Comprehensive unit tests for all schema validation
 
 3. **Service Layer**: IN PROGRESS (90%)
    - Repository pattern foundation complete (ADR-014)

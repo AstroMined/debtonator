@@ -4,6 +4,8 @@ Base schema validator with UTC timezone enforcement and decimal precision handli
 This module provides the foundation for all schema classes in the application,
 ensuring consistent datetime handling and decimal precision validation across
 all API boundaries.
+
+Exports specialized decimal types and schema classes for use across the application.
 """
 
 from datetime import datetime, timezone

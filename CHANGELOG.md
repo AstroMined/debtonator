@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.10] - 2025-03-20
+
+### Added
+- Created Pydantic schemas for StatementHistory models:
+  * Added StatementHistoryBase with account_id, statement_date, statement_balance, minimum_payment, and due_date fields
+  * Added StatementHistoryCreate for creating new statement history records
+  * Added StatementHistoryUpdate for partial updates with optional fields
+  * Added StatementHistory schema with database-specific fields
+  * Added StatementHistoryWithAccount schema that includes related account information
+  * Added specialized schemas for statement trends and upcoming due dates
+- Implemented comprehensive unit tests for all statement history schemas:
+  * Added validation tests for date fields with UTC timezone enforcement
+  * Added monetary field validation with proper decimal precision
+  * Added field constraint validation for required fields and value ranges
+  * Added tests for relationship handling with account information
+  * Added tests for specialized trend and due date schemas
+
+### Changed
+- Enhanced schemas/__init__.py with improved documentation:
+  * Updated module docstring to better describe exported types and schemas
+
 ## [0.5.9] - 2025-03-20
 
 ### Added
