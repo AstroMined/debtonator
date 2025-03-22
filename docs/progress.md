@@ -63,6 +63,7 @@
    - API response formatting with proper precision
    - Version management for semantic versioning
    - Repository-service integration pattern established
+   - Schema factories for efficient test data creation
 
 ## What's Left to Build
 
@@ -87,6 +88,12 @@
      - Impact Analysis
      - Income Trends
      - Realtime Cashflow
+   - ✓ Added missing schema factories for:
+     - Liabilities (DB, Response, DateRange, AutoPay)
+     - Bill Splits (DB, Response, Validation, Analytics)
+     - Categories (WithChildren, WithParent, WithBills)
+     - Credit Limit History (Response types)
+     - Recommendations (complete implementation)
    - Update existing tests to use direct imports from domain modules
 
 2. **Repository Integration Tests (98%)**

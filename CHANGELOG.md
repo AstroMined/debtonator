@@ -6,6 +6,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.20] - 2025-03-22
+
+### Added
+
+- Implemented missing schema factories for comprehensive test coverage:
+  - Added `recommendations.py` factory with support for all recommendation types:
+    - Created `ImpactMetrics` schema factory for recommendation impact analysis
+    - Implemented `BillPaymentTimingRecommendation` factory for payment timing
+    - Created `RecommendationResponse` factory for API response testing
+  - Enhanced `liabilities.py` factory with comprehensive schema types:
+    - Added `AutoPaySettings` factory for auto-pay configuration
+    - Added `AutoPayUpdate` factory for auto-pay enabling/disabling
+    - Implemented `LiabilityInDB` and `LiabilityResponse` factories
+    - Created `LiabilityDateRange` factory for date filtering
+  - Enhanced `bill_splits.py` factory with analytics features:
+    - Added `BillSplitInDB` and `BillSplitResponse` factories
+    - Implemented `BillSplitValidation` factory for split validation
+    - Created factories for analytics schemas (patterns, metrics, impact)
+    - Added factories for bulk operations and results
+  - Enhanced hierarchical category support in `categories.py`:
+    - Implemented `CategoryWithChildren` factory for nested categories
+    - Created `CategoryWithParent` factory for parent-child relationships
+    - Added `CategoryWithBills` factory for bill-category relationships
+  - Added missing credit limit response type factories:
+    - Implemented `AccountCreditLimitHistoryResponse` factory
+    - Created `CreditLimitHistoryInDB` factory for database responses
+
+### Improved
+
+- Enhanced schema factory system with improved patterns:
+  - Added support for nested schema creation with dependency injection
+  - Improved handling of parent-child relationships in category factories
+  - Enhanced UTC timezone handling for all datetime fields
+  - Implemented proper validation for complex schema relationships
+  - Added robust default values for simplified test creation
+  - Created comprehensive factory docstrings with parameter descriptions
+- Enhanced schema factory architecture with best practices:
+  - Applied consistent parameter ordering (ID first, then key fields)
+  - Maintained consistent factory function naming
+  - Improved support for nested schema creation
+  - Added flexible parameter handling with kwargs pattern
+  - Enhanced code reuse through helper factories
+
 ## [0.5.19] - 2025-03-22
 
 ### Added

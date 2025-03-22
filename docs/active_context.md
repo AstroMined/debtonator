@@ -5,7 +5,19 @@ Implementing Service Layer Refactoring (ADR-014)
 
 ### Recent Changes
 
-1. **Completed All Missing Schema Factories** ✓
+1. **Completed Schema Factory Improvements** ✓
+   - Fixed missing schema factories for comprehensive coverage:
+     - liabilities.py: Added factories for `LiabilityInDB`, `LiabilityResponse`, `LiabilityDateRange`, `AutoPaySettings`, and `AutoPayUpdate`
+     - bill_splits.py: Added factories for `BillSplitInDB`, `BillSplitResponse`, and analytics schemas
+     - categories.py: Added factories for hierarchical categories (`CategoryWithChildren`, `CategoryWithParent`)
+     - credit_limit_history.py: Added factories for history response types
+     - recommendations.py: Created complete factory implementation
+   - Implemented proper validation for complex schemas
+   - Added robust default values for simpler testing
+   - Enhanced support for nested schemas and relationships
+   - Improved UTC timezone handling across all factories
+
+2. **Completed All Missing Schema Factories** ✓
    - Implemented factories for all remaining schema types:
      - categories.py: Added factory for category creation and updates
      - payment_patterns.py: Created comprehensive factory functions for pattern analysis
@@ -24,7 +36,7 @@ Implementing Service Layer Refactoring (ADR-014)
    - Maintained consistent hierarchical structure for module organization
    - Provided rich default values for simpler test setup
 
-2. **Created New Schema Factories for Additional Entities**
+3. **Created New Schema Factories for Additional Entities**
    - Added 6 new schema factories for previously unsupported entities:
      - balance_history.py: Created factory for balance tracking 
      - income.py: Implemented factories for income and recurring income
@@ -37,7 +49,7 @@ Implementing Service Layer Refactoring (ADR-014)
    - Included proper timezone-aware handling for datetime fields
    - Added appropriate field validations and default values
 
-3. **Removed Schema Factories Backward Compatibility**
+4. **Removed Schema Factories Backward Compatibility**
    - Eliminated façade pattern from schema_factories for cleaner imports
    - Updated all factory files to use the decorator pattern consistently
    - Enhanced base utilities with improved typing and constants
@@ -47,7 +59,7 @@ Implementing Service Layer Refactoring (ADR-014)
    - Updated all factories to match current schema requirements
    - Maintained clear "_schema" suffix naming convention for clarity
 
-4. **Implemented Repository Test Pattern Refactoring**
+5. **Implemented Repository Test Pattern Refactoring**
    - Created modular schema factories directory structure to prevent code bloat
    - Added domain-specific factory files organized by entity type
    - Updated ADR014 implementation checklist with detailed testing guidelines
@@ -55,13 +67,6 @@ Implementing Service Layer Refactoring (ADR-014)
    - Created base utility functions for schema factory creation
    - Provided clear migration path for existing tests
    - Established BalanceReconciliationRepository as the reference implementation
-
-5. **Fixed Credit Limit History Repository Tests** ✓
-   - Updated CreditLimitHistoryUpdate schema to require effective_date field
-   - Fixed datetime comparison issue in date range test with timezone-aware handling
-   - Aligned schema validation with database NOT NULL constraints
-   - Properly handled timezone-aware vs. naive datetime comparison
-   - Applied ADR-011 principles for UTC datetime standardization
 
 ## Next Steps
 
@@ -92,6 +97,8 @@ Implementing Service Layer Refactoring (ADR-014)
    - Good default values make tests more concise
    - UTC time handling must be consistent across all date-related factories
    - Factory docstrings should explain all parameters and default behaviors
+   - Parent-child relationships require careful handling with circular references
+   - Nested schema factories need proper dependency management
 
 2. **Technical Debt Avoidance**
    - Backward compatibility layers often become technical debt
@@ -105,9 +112,11 @@ Implementing Service Layer Refactoring (ADR-014)
    - Provide sensible defaults for common test cases
    - Allow flexibility with kwargs pattern for edge cases
    - Use consistent naming conventions for better code readability
+   - Handle nested schema creation with dependency injection
 
 4. **Schema Validation and Database Constraints**
    - Align Pydantic schema requirements with database constraints
    - Required fields in the database should be required in all schemas
    - Field optionality should be consistent between create and update schemas
    - Maintain consistent validation rules across the application
+   - Properly handle datetime fields with UTC timezone
