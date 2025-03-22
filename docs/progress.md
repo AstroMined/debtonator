@@ -102,28 +102,37 @@
 
 ## Known Issues
 
-1. **Dictionary Validation Complexity**
+1. **Repository Test Pattern Issues** ⚠️
+   - Systemic issues discovered with NOT NULL constraint handling in repository tests
+   - Missing required foreign key fields in test fixtures causing test failures
+   - Need comprehensive fixture strategy for entity relationships
+   - Need consistent approach to eager loading and collection handling
+   - Planned major refactoring of repository test infrastructure
+   - Interim fixes implemented for CategoryRepository (unique collections, UTC datetimes)
+   - Related to datetime handling issues but more fundamental to test structure
+
+2. **Dictionary Validation Complexity**
    - Dictionary fields with decimal values need special validation handling
    - Nested dictionaries require custom validation strategies
    - Current implementation addresses these challenges, but requires careful testing
 
-2. **Service Layer Architecture**
+3. **Service Layer Architecture**
    - In progress: Refactoring services to use repository pattern
    - AccountService refactored as proof of concept
    - Remaining services will follow the established pattern
    - Dependency injection framework in place
 
-3. **Repository Error Handling**
+4. **Repository Error Handling**
    - Need to implement custom repository exceptions
    - Error translation in services needs to be standardized
    - Exception hierarchy should be consistent across the application
 
-4. **SQLAlchemy ORM Update Patterns**
+5. **SQLAlchemy ORM Update Patterns**
    - Identified and fixed issues with updated_at timestamps not updating properly
    - Need to ensure proper ORM update pattern usage across all repositories
    - Improved documentation needed for SQLAlchemy best practices
 
-5. **Timezone Handling in Repository Tests**
+6. **Timezone Handling in Repository Tests**
    - Inconsistent datetime comparison between timezone-aware and naive datetimes
    - Need standardized approach for comparing database return values
    - Apply ADR-011 principles consistently across all repositories

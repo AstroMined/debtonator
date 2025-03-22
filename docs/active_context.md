@@ -5,7 +5,16 @@ Implementing Service Layer Refactoring (ADR-014)
 
 ### Recent Changes
 
-1. **Enhanced BaseRepository Transaction Handling** ✓
+1. **Identified Repository Test Pattern Issues** 
+   - Fixed several initial issues in CategoryRepository tests
+   - Added unique() method for collections to prevent duplicate object errors
+   - Fixed SQLite datetime handling by using proper datetime objects with UTC timezone
+   - Identified systemic issue with missing NOT NULL foreign key constraints
+   - Found primary_account_id constraint violations requiring fixture-based solution
+   - Planned comprehensive repository test pattern refactoring
+   - Documented issues for broader test infrastructure improvements
+
+2. **Enhanced BaseRepository Transaction Handling** ✓
    - Implemented nested transaction support with savepoints
    - Added session.in_transaction() check to detect existing transactions
    - Used session.begin_nested() for active transactions to create savepoints

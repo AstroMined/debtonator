@@ -6,6 +6,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.15] - 2025-03-21
+
+### Fixed
+
+- Fixed CategoryRepository integration tests:
+  - Added `.unique()` method to query results with selectinload for collections to prevent duplicate objects
+  - Fixed SQLite DateTime type errors by using proper datetime objects with UTC timezone
+  - Identified systemic issue with repository test patterns and missing NOT NULL constraints
+  - Added comprehensive documentation for repository test pattern issues
+  - Planned repository test infrastructure refactoring to address foreign key constraints
+
+### Changed
+
+- Enhanced datetime handling in tests:
+  - Standardized the use of datetime objects with timezone.utc for SQLite compatibility
+  - Improved test robustness by properly handling UTC timezone information
+  - Fixed string dates in test fixtures to use proper datetime objects
+
 ## [0.5.14] - 2025-03-21
 
 ### Fixed

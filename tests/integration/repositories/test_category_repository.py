@@ -5,6 +5,7 @@ This module contains tests that validate the behavior of the CategoryRepository
 against a real database.
 """
 
+from datetime import datetime, timezone
 from decimal import Decimal
 
 import pytest
@@ -180,7 +181,7 @@ async def test_get_with_bills(db_session: AsyncSession):
         {
             "name": "Bill 1",
             "amount": Decimal("100.00"),
-            "due_date": "2025-04-15",
+            "due_date": datetime(2025, 4, 15, tzinfo=timezone.utc),
             "category_id": category.id,
         }
     )
@@ -189,7 +190,7 @@ async def test_get_with_bills(db_session: AsyncSession):
         {
             "name": "Bill 2",
             "amount": Decimal("200.00"),
-            "due_date": "2025-04-30",
+            "due_date": datetime(2025, 4, 30, tzinfo=timezone.utc),
             "category_id": category.id,
         }
     )
@@ -231,7 +232,7 @@ async def test_get_with_relationships(db_session: AsyncSession):
         {
             "name": "Relationship Bill",
             "amount": Decimal("150.00"),
-            "due_date": "2025-05-15",
+            "due_date": datetime(2025, 5, 15, tzinfo=timezone.utc),
             "category_id": child.id,
         }
     )
@@ -566,7 +567,7 @@ async def test_get_category_with_bill_count(db_session: AsyncSession):
         {
             "name": "Bill Count Bill 1",
             "amount": Decimal("100.00"),
-            "due_date": "2025-06-15",
+            "due_date": datetime(2025, 6, 15, tzinfo=timezone.utc),
             "category_id": category.id,
         }
     )
@@ -575,7 +576,7 @@ async def test_get_category_with_bill_count(db_session: AsyncSession):
         {
             "name": "Bill Count Bill 2",
             "amount": Decimal("200.00"),
-            "due_date": "2025-06-30",
+            "due_date": datetime(2025, 6, 30, tzinfo=timezone.utc),
             "category_id": category.id,
         }
     )
@@ -625,7 +626,7 @@ async def test_get_categories_with_bill_counts(db_session: AsyncSession):
         {
             "name": "Bill Counts Bill 1",
             "amount": Decimal("100.00"),
-            "due_date": "2025-07-15",
+            "due_date": datetime(2025, 7, 15, tzinfo=timezone.utc),
             "category_id": category1.id,
         }
     )
@@ -634,7 +635,7 @@ async def test_get_categories_with_bill_counts(db_session: AsyncSession):
         {
             "name": "Bill Counts Bill 2",
             "amount": Decimal("200.00"),
-            "due_date": "2025-07-30",
+            "due_date": datetime(2025, 7, 30, tzinfo=timezone.utc),
             "category_id": category1.id,
         }
     )
@@ -643,7 +644,7 @@ async def test_get_categories_with_bill_counts(db_session: AsyncSession):
         {
             "name": "Bill Counts Bill 3",
             "amount": Decimal("300.00"),
-            "due_date": "2025-08-15",
+            "due_date": datetime(2025, 8, 15, tzinfo=timezone.utc),
             "category_id": category2.id,
         }
     )
@@ -710,7 +711,7 @@ async def test_delete_if_unused(db_session: AsyncSession):
         {
             "name": "Delete Bill",
             "amount": Decimal("100.00"),
-            "due_date": "2025-08-15",
+            "due_date": datetime(2025, 8, 15, tzinfo=timezone.utc),
             "category_id": with_bill.id,
         }
     )

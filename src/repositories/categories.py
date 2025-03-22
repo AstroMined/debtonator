@@ -60,7 +60,7 @@ class CategoryRepository(BaseRepository[Category, int]):
         result = await self.session.execute(
             select(Category).where(Category.parent_id.is_(None)).order_by(Category.name)
         )
-        return result.scalars().all()
+        return result.scalars().unique().all()
 
     async def get_with_children(self, category_id: int) -> Optional[Category]:
         """
@@ -77,7 +77,7 @@ class CategoryRepository(BaseRepository[Category, int]):
             .options(selectinload(Category.children))
             .where(Category.id == category_id)
         )
-        return result.scalars().first()
+        return result.scalars().unique().first()
 
     async def get_with_parent(self, category_id: int) -> Optional[Category]:
         """
@@ -111,7 +111,7 @@ class CategoryRepository(BaseRepository[Category, int]):
             .options(selectinload(Category.bills))
             .where(Category.id == category_id)
         )
-        return result.scalars().first()
+        return result.scalars().unique().first()
 
     async def get_with_relationships(
         self,
@@ -144,7 +144,7 @@ class CategoryRepository(BaseRepository[Category, int]):
             query = query.options(selectinload(Category.bills))
 
         result = await self.session.execute(query)
-        return result.scalars().first()
+        return result.scalars().unique().first()
 
     async def get_children(self, parent_id: int) -> List[Category]:
         """
@@ -161,7 +161,7 @@ class CategoryRepository(BaseRepository[Category, int]):
             .where(Category.parent_id == parent_id)
             .order_by(Category.name)
         )
-        return result.scalars().all()
+        return result.scalars().unique().all()
 
     async def get_ancestors(self, category_id: int) -> List[Category]:
         """
@@ -295,7 +295,7 @@ class CategoryRepository(BaseRepository[Category, int]):
             .where(Category.name.ilike(f"{prefix}%"))
             .order_by(Category.name)
         )
-        return result.scalars().all()
+        return result.scalars().unique().all()
 
     async def get_category_with_bill_count(
         self, category_id: int
@@ -310,7 +310,8 @@ class CategoryRepository(BaseRepository[Category, int]):
             Tuple[Category, int]: (category, bill_count) tuple
         """
         result = await self.session.execute(
-            select(Category, func.count(Liability.id).label("bill_count"))
+            select(Category, func.count().label("bill_count"))
+            .select_from(Category)
             .outerjoin(Liability, Liability.category_id == Category.id)
             .where(Category.id == category_id)
             .group_by(Category.id)
@@ -330,7 +331,8 @@ class CategoryRepository(BaseRepository[Category, int]):
             List[Tuple[Category, int]]: List of (category, bill_count) tuples
         """
         result = await self.session.execute(
-            select(Category, func.count(Liability.id).label("bill_count"))
+            select(Category, func.count().label("bill_count"))
+            .select_from(Category)
             .outerjoin(Liability, Liability.category_id == Category.id)
             .group_by(Category.id)
             .order_by(Category.name)
