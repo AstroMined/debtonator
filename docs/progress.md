@@ -66,7 +66,16 @@
 
 ## What's Left to Build
 
-1. **Repository Integration Tests (98%)**
+1. **Schema Factory Pattern (98%)**
+   - ✓ Removed schema factories backward compatibility
+   - ✓ Enhanced base utilities with improved decorators and constants
+   - ✓ Standardized factory function implementation with decorator pattern
+   - ✓ Fixed CreditLimitHistoryUpdate to include required effective_date
+   - ✓ Added comprehensive documentation and migration guide
+   - Update existing tests to use direct imports from domain modules
+   - Create additional factories for remaining schema types
+
+2. **Repository Integration Tests (98%)**
    - ✓ Fixed UTC datetime handling in transaction_history_repository
    - ✓ Resolved SQLAlchemy ORM update pattern issues
    - ✓ Fixed transaction_type constraint issues
@@ -76,12 +85,6 @@
    - ✓ Fixed BaseRepository transaction handling with nested transaction support
    - Implement comprehensive timezone handling in repository tests
    - Fix date_trunc function missing in SQLite for monthly totals
-
-2. **Repository Layer Completion (100%)** ✓
-   - ✓ Implemented all required repositories
-   - ✓ Added transaction boundary support
-   - ✓ Implemented bulk_create and bulk_update methods
-   - ✓ Enhanced repositories with specialized query methods
 
 3. **Service Layer Refactoring (90%)**
    - ✓ AccountService refactored to use repository pattern
@@ -102,15 +105,12 @@
 
 ## Known Issues
 
-1. **Repository Test Pattern Implementation** ✓
-   - Created modular schema factories directory structure to prevent code bloat
-   - Implemented façade pattern to maintain backward compatibility 
-   - Added domain-specific factory files for each entity type
-   - Established standard Arrange-Schema-Act-Assert pattern for all tests
-   - Documented implementation guidelines in ADR014 checklist
-   - Added detailed testing checklist for repository test refactoring
-   - Created reference implementation with BalanceReconciliationRepository
-   - Provided clear migration path for existing tests
+1. **Schema Factory Backward Compatibility**
+   - ✓ Removed backward compatibility for cleaner architecture
+   - ✓ Created migration guide in README.md
+   - All existing tests will need to update import patterns
+   - Factory functions now use decorator pattern consistently
+   - Need to update tests to use direct imports
 
 2. **Dictionary Validation Complexity**
    - Dictionary fields with decimal values need special validation handling

@@ -7,12 +7,50 @@ These utilities help standardize factory creation and reduce duplication.
 
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Any, Callable, Dict, Type, TypeVar
+from typing import Any, Callable, Dict, Type, TypeVar, cast
 
 from pydantic import BaseModel
 
 # Generic type for Pydantic schemas
 SchemaType = TypeVar("SchemaType", bound=BaseModel)
+FactoryFunc = TypeVar("FactoryFunc", bound=Callable[..., Dict[str, Any]])
+
+
+def factory_function(schema_cls: Type[SchemaType]) -> Callable[[FactoryFunc], Callable[..., SchemaType]]:
+    """
+    Decorator to simplify creating factory functions.
+    
+    This decorator transforms a function that returns a dictionary into one that
+    returns a validated schema instance.
+    
+    Args:
+        schema_cls: The schema class that the factory creates
+        
+    Returns:
+        Callable: Decorator function
+    """
+    def decorator(func: FactoryFunc) -> Callable[..., SchemaType]:
+        def wrapper(*args: Any, **kwargs: Any) -> SchemaType:
+            data = func(*args, **kwargs)
+            return schema_cls(**data)
+        
+        # Preserve function metadata for better IDE integration
+        wrapper.__name__ = func.__name__
+        wrapper.__doc__ = func.__doc__
+        wrapper.__annotations__ = func.__annotations__
+        
+        return cast(Callable[..., SchemaType], wrapper)
+    return decorator
+
+
+def utc_now() -> datetime:
+    """
+    Get current datetime with UTC timezone.
+    
+    Returns:
+        datetime: Current time with UTC timezone
+    """
+    return datetime.now(timezone.utc)
 
 
 def merge_kwargs(base_data: Dict[str, Any], kwargs: Dict[str, Any]) -> Dict[str, Any]:
@@ -34,16 +72,6 @@ def merge_kwargs(base_data: Dict[str, Any], kwargs: Dict[str, Any]) -> Dict[str,
     return result
 
 
-def utc_now() -> datetime:
-    """
-    Get current datetime with UTC timezone.
-    
-    Returns:
-        datetime: Current time with UTC timezone
-    """
-    return datetime.now(timezone.utc)
-
-
 def default_if_none(value: Any, default: Any) -> Any:
     """
     Return default value if provided value is None.
@@ -58,67 +86,18 @@ def default_if_none(value: Any, default: Any) -> Any:
     return default if value is None else value
 
 
-def create_validated_schema(
-    schema_cls: Type[SchemaType], **data: Any
-) -> SchemaType:
-    """
-    Create and validate a schema instance.
-    
-    This is a generic function that creates a schema instance of the specified
-    type and validates it according to the schema's validation rules.
-    
-    Args:
-        schema_cls: The schema class to instantiate
-        **data: Data to initialize the schema with
-        
-    Returns:
-        SchemaType: Validated schema instance
-    """
-    return schema_cls(**data)
+# Common testing amounts as constants
+TINY_AMOUNT = Decimal("1.00")
+SMALL_AMOUNT = Decimal("10.00")
+MEDIUM_AMOUNT = Decimal("100.00")
+LARGE_AMOUNT = Decimal("1000.00")
+HUGE_AMOUNT = Decimal("10000.00")
 
-
-def factory_function(schema_cls: Type[SchemaType]) -> Callable:
-    """
-    Decorator to simplify creating factory functions.
-    
-    This decorator can be used to create factory functions with less boilerplate.
-    It takes care of instantiating and validating the schema.
-    
-    Args:
-        schema_cls: The schema class that the factory creates
-        
-    Returns:
-        Callable: Decorated factory function
-    """
-    def decorator(func: Callable) -> Callable:
-        def wrapper(*args: Any, **kwargs: Any) -> SchemaType:
-            data = func(*args, **kwargs)
-            return schema_cls(**data)
-        return wrapper
-    return decorator
-
-
-def decimal_default(value: Any, default: str = "100.00") -> Decimal:
-    """
-    Helper for handling Decimal defaults in factory functions.
-    
-    Args:
-        value: Value to check if None
-        default: Default decimal string value
-        
-    Returns:
-        Decimal: Either the value or default as Decimal
-    """
-    if value is None:
-        return Decimal(default)
-    return value
-
-
-# Common testing amounts
+# Dictionary of common amounts for flexible usage
 COMMON_AMOUNTS = {
-    "tiny": Decimal("1.00"),
-    "small": Decimal("10.00"),
-    "medium": Decimal("100.00"),
-    "large": Decimal("1000.00"),
-    "huge": Decimal("10000.00"),
+    "tiny": TINY_AMOUNT,
+    "small": SMALL_AMOUNT,
+    "medium": MEDIUM_AMOUNT,
+    "large": LARGE_AMOUNT,
+    "huge": HUGE_AMOUNT,
 }

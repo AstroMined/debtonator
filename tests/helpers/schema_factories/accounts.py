@@ -6,18 +6,20 @@ Pydantic schema instances for use in tests.
 """
 
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from src.schemas.accounts import AccountCreate, AccountUpdate
+from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function
 
 
+@factory_function(AccountCreate)
 def create_account_schema(
     name: str = "Test Account",
     account_type: str = "checking",
     available_balance: Optional[Decimal] = None,
     total_limit: Optional[Decimal] = None,
     **kwargs: Any,
-) -> AccountCreate:
+) -> Dict[str, Any]:
     """
     Create a valid AccountCreate schema instance.
 
@@ -29,7 +31,7 @@ def create_account_schema(
         **kwargs: Additional fields to override
 
     Returns:
-        AccountCreate: Validated schema instance
+        Dict[str, Any]: Data to create AccountCreate schema
     """
     if available_balance is None:
         if account_type == "credit":
@@ -50,15 +52,16 @@ def create_account_schema(
             total_limit = Decimal("5000.00")
         data["total_limit"] = total_limit
 
-    return AccountCreate(**data)
+    return data
 
 
+@factory_function(AccountUpdate)
 def create_account_update_schema(
     id: int,
     name: Optional[str] = None,
     available_balance: Optional[Decimal] = None,
     **kwargs: Any,
-) -> AccountUpdate:
+) -> Dict[str, Any]:
     """
     Create a valid AccountUpdate schema instance.
 
@@ -69,7 +72,7 @@ def create_account_update_schema(
         **kwargs: Additional fields to override
 
     Returns:
-        AccountUpdate: Validated schema instance
+        Dict[str, Any]: Data to create AccountUpdate schema
     """
     data = {"id": id, **kwargs}
 
@@ -79,4 +82,4 @@ def create_account_update_schema(
     if available_balance is not None:
         data["available_balance"] = available_balance
 
-    return AccountUpdate(**data)
+    return data

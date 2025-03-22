@@ -6,6 +6,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.17] - 2025-03-22
+
+### Changed
+
+- Removed schema factories backward compatibility:
+  - Eliminated façade pattern in schema factories to reduce technical debt
+  - Updated all schema factories to use decorator pattern consistently
+  - Enhanced base utilities with improved typing and constants
+  - Fixed CreditLimitHistoryUpdate schema to include required effective_date
+  - Added comprehensive migration guide in factory README.md
+  - Standardized factory docstrings and return type annotations
+  - Maintained "_schema" suffix in function names for clarity
+  - Updated all factories to match current schema requirements
+
+### Improved
+
+- Enhanced base utility functions:
+  - Improved factory_function decorator with better typing support
+  - Added standardized constants for common monetary amounts
+  - Enhanced utility functions with proper type annotations
+  - Added clear documentation for all utility functions
+  - Improved decorator metadata preservation for better IDE integration
+
 ## [0.5.16] - 2025-03-22
 
 ### Added

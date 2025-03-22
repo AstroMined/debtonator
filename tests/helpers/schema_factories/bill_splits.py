@@ -6,14 +6,19 @@ Pydantic schema instances for use in tests.
 """
 
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from src.schemas.bill_splits import BillSplitCreate, BillSplitUpdate
+from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function
 
 
+@factory_function(BillSplitCreate)
 def create_bill_split_schema(
-    liability_id: int, account_id: int, amount: Optional[Decimal] = None, **kwargs: Any
-) -> BillSplitCreate:
+    liability_id: int, 
+    account_id: int, 
+    amount: Optional[Decimal] = None, 
+    **kwargs: Any
+) -> Dict[str, Any]:
     """
     Create a valid BillSplitCreate schema instance.
 
@@ -24,10 +29,10 @@ def create_bill_split_schema(
         **kwargs: Additional fields to override
 
     Returns:
-        BillSplitCreate: Validated schema instance
+        Dict[str, Any]: Data to create BillSplitCreate schema
     """
     if amount is None:
-        amount = Decimal("100.00")
+        amount = MEDIUM_AMOUNT
 
     data = {
         "liability_id": liability_id,
@@ -36,12 +41,15 @@ def create_bill_split_schema(
         **kwargs,
     }
 
-    return BillSplitCreate(**data)
+    return data
 
 
+@factory_function(BillSplitUpdate)
 def create_bill_split_update_schema(
-    id: int, amount: Optional[Decimal] = None, **kwargs: Any
-) -> BillSplitUpdate:
+    id: int, 
+    amount: Optional[Decimal] = None, 
+    **kwargs: Any
+) -> Dict[str, Any]:
     """
     Create a valid BillSplitUpdate schema instance.
 
@@ -51,11 +59,11 @@ def create_bill_split_update_schema(
         **kwargs: Additional fields to override
 
     Returns:
-        BillSplitUpdate: Validated schema instance
+        Dict[str, Any]: Data to create BillSplitUpdate schema
     """
     if amount is None:
         amount = Decimal("150.00")
 
     data = {"id": id, "amount": amount, **kwargs}
 
-    return BillSplitUpdate(**data)
+    return data

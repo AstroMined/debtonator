@@ -4,32 +4,49 @@
 
 This directory contains factory functions for creating Pydantic schema instances for testing purposes. These factories ensure that all repository tests follow the proper validation flow by passing data through Pydantic schemas before using repositories.
 
+## Important: Breaking Changes
+
+**All backward compatibility has been removed.** This is a clean break to reduce technical debt.
+
+### Migration Guide
+
+If your tests previously used:
+```python
+from tests.helpers.schema_factories import create_account_schema
+```
+
+Update to:
+```python
+from tests.helpers.schema_factories.accounts import create_account_schema
+```
+
 ## Structure
 
 - Each domain model has its own factory file (e.g., `accounts.py`, `liabilities.py`)
-- The `__init__.py` file re-exports all factory functions to maintain backward compatibility
-- All factory functions follow consistent naming conventions and patterns
+- All factory functions follow consistent naming with "_schema" suffix (e.g., `create_account_schema`)
+- Factory functions use the `@factory_function` decorator from `base.py` where appropriate
 
 ## Adding New Factory Functions
 
 When adding new factory functions:
 
 1. Place them in the appropriate domain-specific file (create one if needed)
-2. Follow the established naming pattern: `create_<entity>_schema()`
-3. Add default values for common fields
-4. Add parameters for fields that typically need customization
-5. Add proper docstrings with parameter descriptions
-6. Re-export the function in `__init__.py`
+2. Use the `@factory_function` decorator
+3. Follow the established naming pattern: `create_<entity>_schema` and `create_<entity>_update_schema`
+4. Add default values for common fields
+5. Add parameters for fields that typically need customization
+6. Add proper docstrings with parameter descriptions
 
 ## Factory Function Template
 
 ```python
+@factory_function(ExampleCreate)
 def create_example_schema(
     required_id: int,
     name: str = "Default Name",
     amount: Optional[Decimal] = None,
     **kwargs: Any,
-) -> ExampleCreate:
+) -> Dict[str, Any]:
     """
     Create a valid ExampleCreate schema instance.
 
@@ -40,10 +57,10 @@ def create_example_schema(
         **kwargs: Additional fields to override
 
     Returns:
-        ExampleCreate: Validated schema instance
+        Dict[str, Any]: Data to create ExampleCreate schema
     """
     if amount is None:
-        amount = Decimal("100.00")
+        amount = MEDIUM_AMOUNT  # Using constant from base
 
     data = {
         "required_id": required_id,
@@ -52,7 +69,7 @@ def create_example_schema(
         **kwargs,
     }
 
-    return ExampleCreate(**data)
+    return data
 ```
 
 ## Best Practices
@@ -61,5 +78,5 @@ def create_example_schema(
 2. **Use Type Hints**: Include proper type hints for all parameters and return values
 3. **Add Docstrings**: Document parameters, default values, and return types
 4. **Allow Overriding**: Use `**kwargs` to allow any field to be overridden
-5. **Validate Early**: Return a validated schema, not just a data dictionary
+5. **Use Base Constants**: Use predefined constants from base.py instead of magic values
 6. **Keep Focused**: Each factory module should focus on a single domain model

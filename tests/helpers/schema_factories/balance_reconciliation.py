@@ -7,14 +7,16 @@ Pydantic schema instances for use in tests.
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from src.schemas.balance_reconciliation import (
     BalanceReconciliationCreate,
     BalanceReconciliationUpdate,
 )
+from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function, utc_now
 
 
+@factory_function(BalanceReconciliationCreate)
 def create_balance_reconciliation_schema(
     account_id: int,
     previous_balance: Optional[Decimal] = None,
@@ -22,7 +24,7 @@ def create_balance_reconciliation_schema(
     reason: str = "Balance correction",
     reconciliation_date: Optional[datetime] = None,
     **kwargs: Any,
-) -> BalanceReconciliationCreate:
+) -> Dict[str, Any]:
     """
     Create a valid BalanceReconciliationCreate schema instance.
 
@@ -35,7 +37,7 @@ def create_balance_reconciliation_schema(
         **kwargs: Additional fields to override
 
     Returns:
-        BalanceReconciliationCreate: Validated schema instance
+        Dict[str, Any]: Data to create BalanceReconciliationCreate schema
     """
     if previous_balance is None:
         previous_balance = Decimal("1000.00")
@@ -44,7 +46,7 @@ def create_balance_reconciliation_schema(
         new_balance = Decimal("1100.00")
 
     if reconciliation_date is None:
-        reconciliation_date = datetime.utcnow()
+        reconciliation_date = utc_now()
 
     # Calculate adjustment amount
     adjustment_amount = new_balance - previous_balance
@@ -59,15 +61,17 @@ def create_balance_reconciliation_schema(
         **kwargs,
     }
 
-    return BalanceReconciliationCreate(**data)
+    return data
 
 
+@factory_function(BalanceReconciliationUpdate)
 def create_balance_reconciliation_update_schema(
     id: int,
     new_balance: Optional[Decimal] = None,
     reason: Optional[str] = None,
+    adjustment_amount: Optional[Decimal] = None,
     **kwargs: Any,
-) -> BalanceReconciliationUpdate:
+) -> Dict[str, Any]:
     """
     Create a valid BalanceReconciliationUpdate schema instance.
 
@@ -75,10 +79,11 @@ def create_balance_reconciliation_update_schema(
         id: ID of the reconciliation entry to update
         new_balance: Updated new balance (optional)
         reason: Updated reason (optional)
+        adjustment_amount: Updated adjustment amount (optional)
         **kwargs: Additional fields to override
 
     Returns:
-        BalanceReconciliationUpdate: Validated schema instance
+        Dict[str, Any]: Data to create BalanceReconciliationUpdate schema
     """
     data = {"id": id, **kwargs}
 
@@ -87,5 +92,8 @@ def create_balance_reconciliation_update_schema(
 
     if reason is not None:
         data["reason"] = reason
+        
+    if adjustment_amount is not None:
+        data["adjustment_amount"] = adjustment_amount
 
-    return BalanceReconciliationUpdate(**data)
+    return data
