@@ -72,6 +72,7 @@
    - ✓ Fixed transaction_type constraint issues
    - ✓ Fixed credit_limit_history_repository schema validation
    - ✓ Aligned schema requirements with database constraints
+   - ✓ Fixed BalanceReconciliation schema to match database NOT NULL constraints
    - Implement comprehensive timezone handling in repository tests
    - Resolve remaining updated_at timestamp issues
    - Fix date_trunc function missing in SQLite for monthly totals

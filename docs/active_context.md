@@ -5,14 +5,21 @@ Implementing Service Layer Refactoring (ADR-014)
 
 ### Recent Changes
 
-1. **Fixed Credit Limit History Repository Tests** ✓
+1. **Fixed Balance Reconciliation Schema Validation** ✓
+   - Added adjustment_amount as required field in BalanceReconciliationCreate schema
+   - Ensured schema validation correctly enforces NOT NULL constraint from database model
+   - Added field validator to verify adjustment_amount equals new_balance - previous_balance
+   - Updated BalanceReconciliationUpdate to include new_balance and adjustment_amount fields
+   - Documented special handling for repository testing patterns in schema
+
+2. **Fixed Credit Limit History Repository Tests** ✓
    - Updated CreditLimitHistoryUpdate schema to require effective_date field
    - Fixed datetime comparison issue in date range test with timezone-aware handling
    - Aligned schema validation with database NOT NULL constraints
    - Properly handled timezone-aware vs. naive datetime comparison
    - Applied ADR-011 principles for UTC datetime standardization
 
-2. **Fixed Repository Integration Tests** ✓
+3. **Fixed Repository Integration Tests** ✓
    - Fixed transaction_history_repository tests with naive vs. UTC datetime handling
    - Added timezone-aware datetime handling for database operations
    - Fixed model updates with proper SQLAlchemy ORM update pattern

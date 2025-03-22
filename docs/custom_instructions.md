@@ -107,6 +107,7 @@ flowchart TD
    - Follow the commit message structure below
    - Include all significant changes
    - Reference related ADRs or issues
+   - Present the commit message in a code block for convenience
 
 ## Commit Message Structure
 
@@ -140,7 +141,7 @@ Before completing a coding session, I MUST verify:
 1. ✓ Memory Bank files updated with recent changes
 2. ✓ Version information updated in all required locations
 3. ✓ CHANGELOG.md updated with appropriate entries
-4. ✓ Commit message prepared with all required elements
+4. ✓ Commit message prepared with all required elements and presented in a code block
 
 ## Project Intelligence (.clinerules)
 
