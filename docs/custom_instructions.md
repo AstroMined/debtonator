@@ -102,6 +102,26 @@ flowchart TD
    - Add new version entry at the top (format: `## [x.y.z] - YYYY-MM-DD`)
    - Document changes under appropriate categories (Added, Changed, Fixed, etc.)
    - Use clear, user-focused language
+   - When adding new entries to CHANGELOG.md:
+     - Use edit_file instead of write_file
+       - edit_file only modifies specific parts of the file
+       - This preserves all existing content
+     - Make a targeted edit at the version heading
+       - Find the first version entry (e.g., "## [0.5.17]")
+       - Replace it with new version + original text
+     - Example edit_file structure:
+       - path: path to CHANGELOG.md
+       - edits: array with a single edit object containing:
+         - oldText: "## [0.5.17]" (the text to find)
+         - newText: "## [0.5.18] - 2025-03-22\n\nAdded content...\n\n## [0.5.17]" (new + old)
+     - This approach:
+       - Inserts new content near the top, after the format and semantic versioning documentation
+       - Preserves all existing content
+       - Is much safer than rewriting the entire file
+       - Dramatically reduces risk of losing historical data
+       - The key is that oldText finds the specific version marker
+       - newText replaces it with your new content PLUS the original text you're replacing
+       - This effectively inserts your new content while keeping everything else.
 
 4. **Prepare Commit Message (REQUIRED)**
    - Follow the commit message structure below
