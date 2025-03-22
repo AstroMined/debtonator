@@ -66,12 +66,19 @@
 
 ## What's Left to Build
 
-1. **Schema Factory Pattern (98%)**
+1. **Schema Factory Pattern (85%)**
    - ✓ Removed schema factories backward compatibility
    - ✓ Enhanced base utilities with improved decorators and constants
    - ✓ Standardized factory function implementation with decorator pattern
    - ✓ Fixed CreditLimitHistoryUpdate to include required effective_date
    - ✓ Added comprehensive documentation and migration guide
+   - ✓ Added new factories for 6 additional schema types:
+     - Balance History
+     - Income (regular and recurring)
+     - Statement History
+     - Recurring Bills
+     - Deposit Schedules
+     - Income Categories
    - Update existing tests to use direct imports from domain modules
    - Create additional factories for remaining schema types
 
@@ -105,17 +112,16 @@
 
 ## Known Issues
 
-1. **Schema Factory Backward Compatibility**
-   - ✓ Removed backward compatibility for cleaner architecture
-   - ✓ Created migration guide in README.md
-   - All existing tests will need to update import patterns
-   - Factory functions now use decorator pattern consistently
-   - Need to update tests to use direct imports
+1. **Schema Factory Missing Coverage**
+   - Added 6 new factory files but 10 schema types still need factories
+   - Newly added factories need tests to ensure proper validation
+   - More complex schema types like cashflow models still need factories
+   - Categories and payment pattern factories are next priority
 
-2. **Dictionary Validation Complexity**
-   - Dictionary fields with decimal values need special validation handling
-   - Nested dictionaries require custom validation strategies
-   - Current implementation addresses these challenges, but requires careful testing
+2. **Schema Factory Test Migration**
+   - All existing tests will need to update import patterns
+   - Need to update tests to use direct imports from specific domain modules
+   - Factory functions now use decorator pattern consistently
 
 3. **Service Layer Architecture**
    - In progress: Refactoring services to use repository pattern

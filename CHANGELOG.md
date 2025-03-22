@@ -6,6 +6,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.18] - 2025-03-22
+
+### Added
+
+- Created 6 new schema factories for previously unsupported entities:
+  - Added balance_history.py schema factory with account-specific defaults
+  - Added income.py with factories for both regular and recurring income
+  - Added statement_history.py with proper due date calculation
+  - Added recurring_bills.py factory with consistent naming pattern
+  - Added deposit_schedules.py for income deposit scheduling
+  - Added income_categories.py with simple category creation
+- All new factories follow established schema factory patterns:
+  - Consistent use of @factory_function decorator 
+  - Well-documented parameters and return values
+  - Properly handled defaults for required fields
+  - Support for optional fields with proper defaults
+  - **kwargs pattern for flexible field overrides
+  - UTC datetime handling consistent with ADR-011
+
+### Improved
+
+- Enhanced schema factory ecosystem:
+  - Fixed timezone-handling with consistent utc_now usage
+  - Improved docstrings with comprehensive parameter descriptions
+  - Maintained decorator pattern for validated schema returns
+  - Ensured consistency with schema validation rules
+  - Added validation for field constraints to match schema rules
+
 ## [0.5.17] - 2025-03-22
 
 ### Changed
