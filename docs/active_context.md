@@ -5,17 +5,17 @@ Implementing Repository Layer (ADR-014)
 
 ### Recent Changes
 
-1. **Completed Schema Factory Improvements** ✓
-   - Fixed missing schema factories for comprehensive coverage:
-     - liabilities.py: Added factories for `LiabilityInDB`, `LiabilityResponse`, `LiabilityDateRange`, `AutoPaySettings`, and `AutoPayUpdate`
-     - bill_splits.py: Added factories for `BillSplitInDB`, `BillSplitResponse`, and analytics schemas
-     - categories.py: Added factories for hierarchical categories (`CategoryWithChildren`, `CategoryWithParent`)
-     - credit_limit_history.py: Added factories for history response types
-     - recommendations.py: Created complete factory implementation
-   - Implemented proper validation for complex schemas
-   - Added robust default values for simpler testing
-   - Enhanced support for nested schemas and relationships
-   - Improved UTC timezone handling across all factories
+1. **Implemented RecurringIncomeRepository** ✓
+   - Created comprehensive repository with CRUD operations
+   - Added relationship loading with account, category, and income entries
+   - Implemented specialized query methods for source, account, and day-of-month
+   - Added toggle methods for active status and auto-deposit settings
+   - Created financial calculation methods including monthly totals
+   - Implemented forecast functionality with upcoming deposits projection
+   - Created schema factory for RecurringIncome model with comprehensive coverage
+   - Added factory functions for all schema types (Create, Update, InDB, Response)
+   - Followed established patterns for consistent repository implementation
+   - Added proper Arrange-Schema-Act-Assert pattern preparation
 
 2. **Completed All Missing Schema Factories** ✓
    - Implemented factories for all remaining schema types:

@@ -6,6 +6,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.22] - 2025-03-22
+
+### Added
+- Implemented RecurringIncomeRepository with comprehensive method coverage:
+  - Created standard methods for source, account and day-of-month querying
+  - Added specialized methods for recurring income management
+  - Implemented relationship loading with account, category and income entries
+  - Added toggle methods for active status and auto-deposit settings
+  - Implemented financial calculation methods including monthly totals
+  - Added forecast functionality with upcoming deposits projection
+- Created schema factories for RecurringIncome model:
+  - Implemented factories for all schema types (Create, Update, InDB, Response)
+  - Added proper validation for all required and optional fields
+  - Created proper relationship handling for nested schemas
+  - Added comprehensive documentation for all factory functions
+- Updated ADR-014 implementation checklist with progress tracking
+
 ## [0.5.21] - 2025-03-22
 
 ### Added

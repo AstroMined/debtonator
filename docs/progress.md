@@ -15,7 +15,7 @@
 3. **Service Layer**: IN PROGRESS (92%)
    - Repository pattern foundation complete (ADR-014)
    - 13 of 13 core repositories implemented (100%)
-   - 2 of 5 additional repositories implemented (40%)
+   - 3 of 5 additional repositories implemented (60%)
    - Integration tests for repositories (96%)
    - Repository test standardization (100%)
    - Service refactoring to use repositories (10%)
@@ -76,7 +76,7 @@
    - ✓ Updated dependency injection system to include new repositories
    - ✓ Created comprehensive implementation checklist with detailed tracking
    - Implement remaining repositories:
-     - RecurringIncomeRepository
+     - RecurringIncomeRepository ✓
      - IncomeCategoryRepository
      - CashflowForecastRepository
    - Create tests for new repositories
@@ -115,12 +115,11 @@
 ## Known Issues
 
 1. **Repository Implementation Gaps**
-   - Three repositories still missing implementation:
-     - RecurringIncomeRepository
+   - Two repositories still missing implementation:
      - IncomeCategoryRepository
      - CashflowForecastRepository
    - Need to create tests for new repositories
-   - Schema factories needed for new model types
+   - Schema factory needed for new model types
    - Implementation parity needed with existing repositories
 
 2. **Repository Tests**

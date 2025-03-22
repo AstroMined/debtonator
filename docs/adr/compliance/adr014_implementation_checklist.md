@@ -14,14 +14,14 @@ Follow this template for all repository tests:
 ```python
 @pytest.mark.asyncio
 async def test_repository_operation(repo_fixture, other_fixtures):
-    """Test description that explains the purpose of the test."""
+    \"\"\"Test description that explains the purpose of the test.\"\"\"
     # 1. ARRANGE: Setup any test dependencies
     # ... setup code
     
     # 2. SCHEMA: Create and validate through Pydantic schema
     entity_schema = create_entity_schema(
-        key1="value1",
-        key2="value2"
+        key1=\"value1\",
+        key2=\"value2\"
     )
     
     # Convert validated schema to dict for repository
@@ -32,8 +32,8 @@ async def test_repository_operation(repo_fixture, other_fixtures):
     
     # 4. ASSERT: Verify the operation results
     assert result is not None
-    assert result.key1 == "value1"
-    assert result.key2 == "value2"
+    assert result.key1 == \"value1\"
+    assert result.key2 == \"value2\"
 ```
 
 Refer to `tests/integration/repositories/test_balance_reconciliation_repository.py` for a complete reference implementation of this pattern.
@@ -53,7 +53,7 @@ Instead of creating separate implementations for each repository test, use schem
    ```python
    from tests.helpers.schema_factories import create_entity_schema
    
-   entity_schema = create_entity_schema(name="Test", value=100)
+   entity_schema = create_entity_schema(name=\"Test\", value=100)
    ```
 
 4. **Follow Factory Function Guidelines**:
@@ -358,7 +358,7 @@ When implementing a new repository:
 
 ## Required New Repositories
 
-1. **Missing Repository: DepositScheduleRepository**
+1. **Repository: DepositScheduleRepository**
    - [x] Create `src/repositories/deposit_schedules.py`
    - [x] Implement `DepositScheduleRepository` class
    - [x] Add deposit schedule-specific methods:
@@ -373,26 +373,29 @@ When implementing a new repository:
      - [x] `get_schedules_with_relationships()`
      - [x] Additional methods: `get_upcoming_schedules()`, `find_overdue_schedules()`, `get_recurring_schedules()`, `get_total_scheduled_deposits()`, `cancel_schedule()`, `update_status()`
 
-2. **Missing Repository: RecurringIncomeRepository**
-   - [ ] Create `src/repositories/recurring_income.py`
-   - [ ] Implement `RecurringIncomeRepository` class
-   - [ ] Add recurring income-specific methods:
-     - [ ] `get_by_source()`
-     - [ ] `get_by_account()`
-     - [ ] `get_active_income()`
-     - [ ] `get_by_day_of_month()`
-     - [ ] `get_with_income_entries()`
-     - [ ] `get_with_account()`
-     - [ ] `get_with_category()`
-     - [ ] `get_with_relationships()`
-     - [ ] `toggle_active()`
-     - [ ] `toggle_auto_deposit()`
-     - [ ] `update_day_of_month()`
-     - [ ] `get_monthly_total()`
+2. **Repository: RecurringIncomeRepository**
+   - [x] Create `src/repositories/recurring_income.py`
+   - [x] Implement `RecurringIncomeRepository` class 
+   - [x] Create `tests/helpers/schema_factories/recurring_income.py` schema factory
+   - [x] Add recurring income-specific methods:
+     - [x] `get_by_source()`
+     - [x] `get_by_account()`
+     - [x] `get_active_income()`
+     - [x] `get_by_day_of_month()`
+     - [x] `get_with_income_entries()`
+     - [x] `get_with_account()`
+     - [x] `get_with_category()`
+     - [x] `get_with_relationships()`
+     - [x] `toggle_active()`
+     - [x] `toggle_auto_deposit()`
+     - [x] `update_day_of_month()`
+     - [x] `get_monthly_total()`
+     - [x] Additional methods: `get_upcoming_deposits()`, `find_by_pattern()`, `get_total_by_source()`
 
-3. **Missing Repository: IncomeCategoryRepository**
+3. **Repository: IncomeCategoryRepository**
    - [ ] Create `src/repositories/income_categories.py`
    - [ ] Implement `IncomeCategoryRepository` class
+   - [x] Ensure schema factory exists for income categories
    - [ ] Add income category-specific methods:
      - [ ] `get_by_name()`
      - [ ] `get_with_income()`
@@ -400,8 +403,9 @@ When implementing a new repository:
      - [ ] `get_categories_with_income_counts()`
      - [ ] `find_categories_by_prefix()`
      - [ ] `delete_if_unused()`
+     - [ ] Additional methods: `get_active_categories()`, `get_categories_with_stats()`
 
-4. **Missing Repository: PaymentScheduleRepository**
+4. **Repository: PaymentScheduleRepository**
    - [x] Create `src/repositories/payment_schedules.py`
    - [x] Implement `PaymentScheduleRepository` class
    - [x] Add payment schedule-specific methods:
@@ -416,9 +420,10 @@ When implementing a new repository:
      - [x] `get_schedules_with_relationships()`
      - [x] Additional methods: `get_upcoming_schedules()`, `find_overdue_schedules()`, `get_auto_process_schedules()`, `get_total_scheduled_payments()`, `cancel_schedule()`
 
-5. **Missing Repository: CashflowForecastRepository**
+5. **Repository: CashflowForecastRepository**
    - [ ] Create `src/repositories/cashflow.py`
    - [ ] Implement `CashflowForecastRepository` class
+   - [x] Ensure schema factory exists in `tests/helpers/schema_factories/cashflow/forecasting.py`
    - [ ] Add cashflow forecast-specific methods:
      - [ ] `get_by_date()`
      - [ ] `get_by_date_range()`
@@ -427,6 +432,7 @@ When implementing a new repository:
      - [ ] `get_deficit_trend()`
      - [ ] `get_required_income_trend()`
      - [ ] `get_min_forecast()`
+     - [ ] Additional methods: `get_forecast_with_metrics()`, `get_forecast_summary()`, `get_forecast_by_account()`
 
 ## Phase 3: Advanced Repository Features
 
@@ -493,13 +499,13 @@ When implementing a new repository:
    - [ ] Create/Update test file for BalanceHistoryRepository
    - [ ] Create/Update test file for CategoryRepository
    - [ ] Create/Update test file for CreditLimitHistoryRepository
-   - [ ] Create/Update test file for BalanceReconciliationRepository
+   - [x] Create/Update test file for BalanceReconciliationRepository
    - [ ] Create/Update test file for TransactionHistoryRepository
-   - [ ] Create/Update test file for DepositScheduleRepository (Implemented)
-   - [ ] Create/Update test file for RecurringIncomeRepository (New)
-   - [ ] Create/Update test file for IncomeCategoryRepository (New)
-   - [ ] Create/Update test file for PaymentScheduleRepository (Implemented)
-   - [ ] Create/Update test file for CashflowForecastRepository (New)
+   - [ ] Create/Update test file for DepositScheduleRepository
+   - [ ] Create test file for RecurringIncomeRepository (New)
+   - [ ] Create test file for IncomeCategoryRepository (New)
+   - [ ] Create/Update test file for PaymentScheduleRepository
+   - [ ] Create test file for CashflowForecastRepository (New)
    - [ ] Implement comprehensive tests for model-specific methods
    - [ ] Test advanced querying features
 
@@ -613,3 +619,119 @@ When implementing a new repository:
    - ○ Update each service individually
    - ○ Maintain thorough test coverage during refactoring
    - ○ Implement service integration for newly created repositories
+
+## Implementation Priorities
+
+Based on the current state of the repositories and ADR-014 implementation progress, the following priorities are recommended:
+
+### High Priority Tasks (Required for ADR-014 Compliance)
+
+1. **Complete Missing Repository Implementations**
+   - [x] Implement `RecurringIncomeRepository` with standard methods
+   - [ ] Implement `IncomeCategoryRepository` with standard methods
+   - [ ] Implement `CashflowForecastRepository` with standard methods
+   - [x] Create schema factory for `RecurringIncome` model
+
+2. **Create Tests for New Repositories**
+   - [ ] Create integration tests for `RecurringIncomeRepository`
+   - [ ] Create integration tests for `IncomeCategoryRepository`
+   - [ ] Create integration tests for `CashflowForecastRepository`
+   - [ ] Create integration tests for recently implemented `DepositScheduleRepository`
+   - [ ] Create integration tests for recently implemented `PaymentScheduleRepository`
+
+3. **Service Layer Integration**
+   - [ ] Create services to use the new repositories
+   - [ ] Update API endpoints to use the new repositories via services
+   - [ ] Ensure all services follow proper validation flow with Pydantic schemas
+
+### Medium Priority Tasks (Recommended for Quality)
+
+1. **Repository Tests Improvement**
+   - [ ] Apply Arrange-Schema-Act-Assert pattern to all repository tests
+   - [ ] Ensure all tests use schema factories
+   - [ ] Add tests for transaction boundaries
+   - [ ] Add tests for error handling
+
+2. **Documentation**
+   - [ ] Complete documentation for all repository methods
+   - [ ] Document recommended patterns for repository usage
+   - [ ] Update service documentation to reflect repository usage
+
+### Lower Priority Tasks (Quality of Life)
+
+1. **Performance Optimization**
+   - [ ] Review query performance in complex repositories
+   - [ ] Optimize relationship loading
+   - [ ] Add caching where appropriate
+
+2. **Extended Repository Features**
+   - [ ] Add bulk operation methods to specialized repositories
+   - [ ] Implement analytical queries for reporting functions
+   - [ ] Add caching strategies for frequently used data
+   - [ ] Support for complex filtering with multiple conditions
+
+3. **Code Quality Improvements**
+   - [ ] Add detailed docstrings to all repository methods
+   - [ ] Standardize error handling across repositories
+   - [ ] Implement logging for performance monitoring
+   - [ ] Add code coverage metrics for repository tests
+
+## Findings and Recommendations
+
+Based on the comprehensive review of repositories against SQLAlchemy models, the following findings and recommendations are provided:
+
+### Overall Findings
+
+1. **Repository Implementation Status**
+   - 15 of 18 required repositories are fully implemented
+   - 3 repositories are still missing: 
+     - RecurringIncomeRepository
+     - IncomeCategoryRepository
+     - CashflowForecastRepository
+
+2. **Schema Factory Status**
+   - Schema factories exist for most repository models
+   - Missing schema factory for RecurringIncome model
+   - Schema factories for CashflowForecast and IncomeCategory are in place
+
+3. **Test Coverage Status**
+   - Integration test coverage varies across repositories
+   - New repositories (PaymentScheduleRepository, DepositScheduleRepository) lack test coverage
+   - Not all existing tests follow the Arrange-Schema-Act-Assert pattern
+
+4. **Service Integration Status**
+   - AccountService successfully refactored to use repositories
+   - Remaining services need refactoring to use the repository pattern
+   - New services needed for PaymentSchedule and DepositSchedule
+
+### Specific Recommendations
+
+1. **Priority Implementation Tasks**
+   - Implement the three missing repositories (RecurringIncome, IncomeCategory, CashflowForecast)
+   - Create the missing schema factory for RecurringIncome
+   - Develop integration tests for all new repositories
+   - Create comprehensive docstrings for all repository methods
+
+2. **Testing Improvements**
+   - Apply the Arrange-Schema-Act-Assert pattern to all repository tests
+   - Add test cases for transaction boundaries and error handling
+   - Ensure all tests use schema factories for validation
+   - Test relationship loading extensively
+
+3. **Service Layer Enhancements**
+   - Develop a consistent approach for service-repository integration
+   - Update existing services to use repositories following AccountService pattern
+   - Create new services for PaymentSchedule and DepositSchedule functionality
+   - Ensure proper validation flow between schemas and repositories
+
+4. **Documentation Updates**
+   - Document common repository patterns and usage guidelines
+   - Update service documentation to reflect repository usage
+   - Create examples for common repository operations
+   - Add detailed API documentation for repository-based endpoints
+
+## Conclusion
+
+The repository layer implementation has made significant progress with 15 of 18 required repositories fully implemented. To complete ADR-014 compliance, focus should be on implementing the three missing repositories, creating the necessary schema factories, and developing comprehensive tests. The successful refactoring of AccountService provides a clear template for the remaining service refactoring work.
+
+Following the recommended priorities will ensure a systematic approach to completing the repository layer refactoring and maintaining high code quality standards throughout the implementation.
