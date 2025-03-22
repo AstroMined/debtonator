@@ -6,6 +6,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.26] - 2025-03-22
+
+### Added
+
+- Refactored three additional model-specific repository tests:
+  - PaymentSourceRepository tests following Arrange-Schema-Act-Assert pattern
+  - BillSplitRepository tests with proper schema validation flow
+  - Started RecurringBillRepository tests with appropriate fixtures
+
+### Improved
+
+- Enhanced repository test fixtures with schema validation flow
+- Applied consistent test patterns across repository tests
+- Standardized relationship loading test approach
+- Added comprehensive validation error testing
+- Enhanced bulk operation testing with proper schema validation
+- Improved date range filtering tests with consistent patterns
+
 ## [0.5.25] - 2025-03-22
 
 ### Added

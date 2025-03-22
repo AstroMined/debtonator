@@ -492,9 +492,9 @@ When implementing a new repository:
    - [x] Create/Update test file for AccountRepository
    - [x] Create/Update test file for LiabilityRepository
    - [x] Create/Update test file for PaymentRepository
-   - [ ] Create/Update test file for PaymentSourceRepository
-   - [ ] Create/Update test file for BillSplitRepository
-   - [ ] Create/Update test file for RecurringBillRepository
+   - [x] Create/Update test file for PaymentSourceRepository
+   - [x] Create/Update test file for BillSplitRepository
+   - [ ] Create/Update test file for RecurringBillRepository (Started)
    - [ ] Create/Update test file for StatementHistoryRepository
    - [ ] Create/Update test file for BalanceHistoryRepository
    - [ ] Create/Update test file for CategoryRepository
