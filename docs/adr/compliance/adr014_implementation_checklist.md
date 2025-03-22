@@ -154,6 +154,8 @@ When implementing a new repository:
    - [x] Add dependency for CreditLimitHistoryRepository
    - [x] Add dependency for BalanceReconciliationRepository
    - [x] Add dependency for TransactionHistoryRepository
+   - [x] Add dependency for PaymentScheduleRepository
+   - [x] Add dependency for DepositScheduleRepository
 
 ## Phase 2: Core Repositories
 
@@ -354,6 +356,78 @@ When implementing a new repository:
       - [x] `get_transaction_patterns()`
       - [x] `bulk_create_transactions()`
 
+## Required New Repositories
+
+1. **Missing Repository: DepositScheduleRepository**
+   - [x] Create `src/repositories/deposit_schedules.py`
+   - [x] Implement `DepositScheduleRepository` class
+   - [x] Add deposit schedule-specific methods:
+     - [x] `get_by_account()`
+     - [x] `get_by_income()`
+     - [x] `get_with_account()`
+     - [x] `get_with_income()`
+     - [x] `get_by_date_range()`
+     - [x] `get_pending_schedules()`
+     - [x] `get_processed_schedules()`
+     - [x] `mark_as_processed()`
+     - [x] `get_schedules_with_relationships()`
+     - [x] Additional methods: `get_upcoming_schedules()`, `find_overdue_schedules()`, `get_recurring_schedules()`, `get_total_scheduled_deposits()`, `cancel_schedule()`, `update_status()`
+
+2. **Missing Repository: RecurringIncomeRepository**
+   - [ ] Create `src/repositories/recurring_income.py`
+   - [ ] Implement `RecurringIncomeRepository` class
+   - [ ] Add recurring income-specific methods:
+     - [ ] `get_by_source()`
+     - [ ] `get_by_account()`
+     - [ ] `get_active_income()`
+     - [ ] `get_by_day_of_month()`
+     - [ ] `get_with_income_entries()`
+     - [ ] `get_with_account()`
+     - [ ] `get_with_category()`
+     - [ ] `get_with_relationships()`
+     - [ ] `toggle_active()`
+     - [ ] `toggle_auto_deposit()`
+     - [ ] `update_day_of_month()`
+     - [ ] `get_monthly_total()`
+
+3. **Missing Repository: IncomeCategoryRepository**
+   - [ ] Create `src/repositories/income_categories.py`
+   - [ ] Implement `IncomeCategoryRepository` class
+   - [ ] Add income category-specific methods:
+     - [ ] `get_by_name()`
+     - [ ] `get_with_income()`
+     - [ ] `get_total_by_category()`
+     - [ ] `get_categories_with_income_counts()`
+     - [ ] `find_categories_by_prefix()`
+     - [ ] `delete_if_unused()`
+
+4. **Missing Repository: PaymentScheduleRepository**
+   - [x] Create `src/repositories/payment_schedules.py`
+   - [x] Implement `PaymentScheduleRepository` class
+   - [x] Add payment schedule-specific methods:
+     - [x] `get_by_account()`
+     - [x] `get_by_liability()`
+     - [x] `get_with_account()`
+     - [x] `get_with_liability()`
+     - [x] `get_by_date_range()`
+     - [x] `get_pending_schedules()`
+     - [x] `get_processed_schedules()`
+     - [x] `mark_as_processed()`
+     - [x] `get_schedules_with_relationships()`
+     - [x] Additional methods: `get_upcoming_schedules()`, `find_overdue_schedules()`, `get_auto_process_schedules()`, `get_total_scheduled_payments()`, `cancel_schedule()`
+
+5. **Missing Repository: CashflowForecastRepository**
+   - [ ] Create `src/repositories/cashflow.py`
+   - [ ] Implement `CashflowForecastRepository` class
+   - [ ] Add cashflow forecast-specific methods:
+     - [ ] `get_by_date()`
+     - [ ] `get_by_date_range()`
+     - [ ] `get_latest_forecast()`
+     - [ ] `get_forecast_trend()`
+     - [ ] `get_deficit_trend()`
+     - [ ] `get_required_income_trend()`
+     - [ ] `get_min_forecast()`
+
 ## Phase 3: Advanced Repository Features
 
 1. **Pagination Support**
@@ -392,18 +466,23 @@ When implementing a new repository:
 3. **Repository Test Pattern Implementation**
    - [x] Document the Arrange-Schema-Act-Assert pattern in `docs/guides/repository_test_pattern.md`
    - [x] Set up modular directory structure for schema factories
-   - [ ] Implement BalanceReconciliationRepository tests as the reference implementation
+   - [x] Implement BalanceReconciliationRepository tests as the reference implementation
    - [ ] Review and refactor existing repository tests to follow the pattern
    - [ ] Ensure tests use schema factories to validate data before repository operations
 
 4. **Schema Factory Implementation**
    - [x] Create modular directory structure for schema factories
-   - [x] Implement façade pattern to maintain backward compatibility
-   - [ ] Create domain-specific factory files for each schema type
-   - [ ] Document factory creation guidelines in README
-   - [ ] Implement reusable factory functions with sensible defaults
+   - [x] Create domain-specific factory files for each schema type
+   - [x] Document factory creation guidelines in README
+   - [x] Implement reusable factory functions with sensible defaults
 
-5. **Model-Specific Repository Tests**
+5. **Integration Tests**
+   - [ ] Ensure all integration tests follow the Arrange-Schema-Act-Assert pattern
+   - [ ] Test transaction boundaries
+   - [ ] Test complex query scenarios
+   - [ ] Test error handling
+
+6. **Model-Specific Repository Integration Tests**
    - [ ] Create/Update test file for AccountRepository
    - [ ] Create/Update test file for LiabilityRepository
    - [ ] Create/Update test file for PaymentRepository
@@ -414,23 +493,22 @@ When implementing a new repository:
    - [ ] Create/Update test file for BalanceHistoryRepository
    - [ ] Create/Update test file for CategoryRepository
    - [ ] Create/Update test file for CreditLimitHistoryRepository
-   - [x] Create/Update test file for BalanceReconciliationRepository
+   - [ ] Create/Update test file for BalanceReconciliationRepository
    - [ ] Create/Update test file for TransactionHistoryRepository
+   - [ ] Create/Update test file for DepositScheduleRepository (Implemented)
+   - [ ] Create/Update test file for RecurringIncomeRepository (New)
+   - [ ] Create/Update test file for IncomeCategoryRepository (New)
+   - [ ] Create/Update test file for PaymentScheduleRepository (Implemented)
+   - [ ] Create/Update test file for CashflowForecastRepository (New)
    - [ ] Implement comprehensive tests for model-specific methods
    - [ ] Test advanced querying features
-
-6. **Integration Tests**
-   - [ ] Ensure all integration tests follow the Arrange-Schema-Act-Assert pattern
-   - [ ] Test transaction boundaries
-   - [ ] Test complex query scenarios
-   - [ ] Test error handling
 
 ## Phase 5: Service Refactoring
 
 1. **Account Service Refactoring**
-   - [ ] Update `src/services/accounts.py` to use repositories
-   - [ ] Update service tests
-   - [ ] Validate refactored approach
+   - [x] Update `src/services/accounts.py` to use repositories
+   - [x] Update service tests
+   - [x] Validate refactored approach
 
 2. **Bill Service Refactoring**
    - [ ] Update `src/services/bills.py` to use repositories
@@ -451,6 +529,33 @@ When implementing a new repository:
    - [ ] Update `src/services/income.py` to use repositories
    - [ ] Update service tests
    - [ ] Validate refactored approach
+
+6. **Recurring Bill Service Refactoring**
+   - [ ] Update `src/services/recurring_bills.py` to use repositories
+   - [ ] Update service tests
+   - [ ] Validate refactored approach
+
+7. **Payment Schedule Service Refactoring**
+   - [x] Implement PaymentScheduleRepository (completed)
+   - [ ] Create/Update `src/services/payment_schedules.py` to use repositories
+   - [ ] Create/Update service tests
+   - [ ] Validate approach
+
+8. **Deposit Schedule Service Refactoring**
+   - [x] Implement DepositScheduleRepository (completed)
+   - [ ] Create/Update `src/services/deposit_schedules.py` to use repositories
+   - [ ] Create/Update service tests
+   - [ ] Validate approach
+
+9. **Recurring Income Service Refactoring**
+   - [ ] Create/Update `src/services/recurring_income.py` to use repositories
+   - [ ] Create/Update service tests
+   - [ ] Validate approach
+
+10. **Cashflow Service Refactoring**
+    - [ ] Create/Update `src/services/cashflow.py` to use repositories
+    - [ ] Create/Update service tests
+    - [ ] Validate approach
 
 ## Phase 6: Documentation and Finalization
 
@@ -476,31 +581,35 @@ When implementing a new repository:
 
 ## Implementation Strategy
 
-1. **Create the Foundation First**
-   - Implement the base repository layer
-   - Create repository factory
-   - Set up dependency injection
-   - Write thorough tests for the base repository
+1. **Create the Foundation First (COMPLETED)**
+   - ✓ Implement the base repository layer
+   - ✓ Create repository factory
+   - ✓ Set up dependency injection
+   - ✓ Write thorough tests for the base repository
 
-2. **Build Key Repositories Incrementally**
-   - Start with Account repository as it's fundamental
-   - Implement Bill repository next (related to core functionality)
-   - Add Payment and BillSplit repositories (core financial operations)
-   - Implement remaining repositories
+2. **Build Key Repositories Incrementally (IN PROGRESS)**
+   - ✓ Start with Account repository as it's fundamental
+   - ✓ Implement Bill repository next (related to core functionality)
+   - ✓ Add Payment and BillSplit repositories (core financial operations)
+   - ✓ Implement remaining core repositories
+   - ✓ Implement PaymentScheduleRepository and DepositScheduleRepository
+   - ○ Implement remaining repositories (RecurringIncomeRepository, IncomeCategoryRepository, CashflowForecastRepository)
 
-3. **Test Each Repository Thoroughly**
-   - Create unit tests for specific repository features
-   - Develop integration tests with real database fixtures
-   - Test transaction boundaries and error handling
-   - Verify advanced querying capabilities
+3. **Test Each Repository Thoroughly (IN PROGRESS)**
+   - ✓ Create unit tests for specific repository features
+   - ✓ Develop integration tests with real database fixtures
+   - ○ Test transaction boundaries and error handling
+   - ○ Verify advanced querying capabilities
+   - ○ Create tests for newly implemented repositories
 
-4. **Refactor One Service as Proof-of-Concept**
-   - Choose a single service (Account service is recommended)
-   - Refactor to use repositories
-   - Validate approach with comprehensive tests
-   - Document lessons learned for other service refactorings
+4. **Refactor One Service as Proof-of-Concept (COMPLETED)**
+   - ✓ Choose a single service (Account service is recommended)
+   - ✓ Refactor to use repositories
+   - ✓ Validate approach with comprehensive tests
+   - ✓ Document lessons learned for other service refactorings
 
-5. **Gradually Refactor Remaining Services**
-   - Use a consistent pattern based on the proof-of-concept
-   - Update each service individually
-   - Maintain thorough test coverage during refactoring
+5. **Gradually Refactor Remaining Services (IN PROGRESS)**
+   - ✓ Use a consistent pattern based on the proof-of-concept
+   - ○ Update each service individually
+   - ○ Maintain thorough test coverage during refactoring
+   - ○ Implement service integration for newly created repositories

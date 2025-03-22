@@ -6,6 +6,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.21] - 2025-03-22
+
+### Added
+
+- Implemented two key repositories for ADR-014 repository layer:
+  - Created PaymentScheduleRepository with 14 specialized methods for payment schedule management:
+    - Added comprehensive relationship loading with account and liability data
+    - Implemented scheduling and date range filtering methods
+    - Added payment processing status management functionality
+    - Created methods for finding upcoming and overdue scheduled payments
+    - Added auto-process schedule filtering for automation
+    - Implemented total calculation for scheduled payments
+  - Created DepositScheduleRepository with 15 specialized methods for deposit tracking:
+    - Added comprehensive relationship loading with account and income data
+    - Implemented scheduling and status management functionality
+    - Created methods for tracking recurring and one-time deposits
+    - Added filtering capabilities by account, income source, and date range
+    - Implemented financial calculation methods for scheduled deposits
+    - Added status management with validation for payment processing
+- Enhanced dependency injection system for repository layer:
+  - Added get_payment_schedule_repository() provider
+  - Added get_deposit_schedule_repository() provider
+  - Updated imports with proper organization
+  - Added comprehensive documentation for providers
+
+### Improved
+
+- Enhanced repository implementation documentation:
+  - Updated ADR-014 implementation checklist with detailed progress tracking
+  - Added implementation notes for repository patterns and best practices
+  - Documented repository test requirements for new implementations
+  - Enhanced testing strategy documentation for SQLAlchemy relationship loading
+  - Improved technical documentation for repository implementation patterns
+
 ## [0.5.20] - 2025-03-22
 
 ### Added

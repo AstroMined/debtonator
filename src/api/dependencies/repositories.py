@@ -15,9 +15,11 @@ from src.repositories.balance_reconciliation import BalanceReconciliationReposit
 from src.repositories.bill_splits import BillSplitRepository
 from src.repositories.categories import CategoryRepository
 from src.repositories.credit_limit_history import CreditLimitHistoryRepository
+from src.repositories.deposit_schedules import DepositScheduleRepository
 from src.repositories.factory import RepositoryFactory
 from src.repositories.income import IncomeRepository
 from src.repositories.liabilities import LiabilityRepository
+from src.repositories.payment_schedules import PaymentScheduleRepository
 from src.repositories.payment_sources import PaymentSourceRepository
 from src.repositories.payments import PaymentRepository
 from src.repositories.recurring_bills import RecurringBillRepository
@@ -221,3 +223,33 @@ def get_transaction_history_repository(
         TransactionHistoryRepository: Transaction history repository instance
     """
     return TransactionHistoryRepository(db)
+
+
+def get_payment_schedule_repository(
+    db: AsyncSession = Depends(get_db),
+) -> PaymentScheduleRepository:
+    """
+    Dependency provider for payment schedule repository.
+
+    Args:
+        db (AsyncSession): Database session from dependency injection
+
+    Returns:
+        PaymentScheduleRepository: Payment schedule repository instance
+    """
+    return PaymentScheduleRepository(db)
+
+
+def get_deposit_schedule_repository(
+    db: AsyncSession = Depends(get_db),
+) -> DepositScheduleRepository:
+    """
+    Dependency provider for deposit schedule repository.
+
+    Args:
+        db (AsyncSession): Database session from dependency injection
+
+    Returns:
+        DepositScheduleRepository: Deposit schedule repository instance
+    """
+    return DepositScheduleRepository(db)

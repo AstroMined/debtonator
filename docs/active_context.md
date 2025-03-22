@@ -1,7 +1,7 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Implementing Service Layer Refactoring (ADR-014)
+Implementing Repository Layer (ADR-014)
 
 ### Recent Changes
 
@@ -59,64 +59,69 @@ Implementing Service Layer Refactoring (ADR-014)
    - Updated all factories to match current schema requirements
    - Maintained clear "_schema" suffix naming convention for clarity
 
-5. **Implemented Repository Test Pattern Refactoring**
-   - Created modular schema factories directory structure to prevent code bloat
-   - Added domain-specific factory files organized by entity type
-   - Updated ADR014 implementation checklist with detailed testing guidelines
-   - Documented the Arrange-Schema-Act-Assert pattern for all repository tests
-   - Created base utility functions for schema factory creation
-   - Provided clear migration path for existing tests
-   - Established BalanceReconciliationRepository as the reference implementation
+5. **Implemented Missing Repositories for ADR-014**
+   - Created PaymentScheduleRepository with 14 specialized methods
+   - Implemented DepositScheduleRepository with 15 specialized methods
+   - Added dependency injection for both repositories in API layer
+   - Updated ADR-014 implementation checklist with detailed progress tracking
+   - Followed established repository patterns for consistent implementation
+   - Added comprehensive relationship loading with joinedload/selectinload
+   - Implemented detailed docstrings with parameter and return type documentation
+   - Ensured proper error handling for invalid inputs
 
 ## Next Steps
 
-1. **Fix Schema Factory Tests**
-   - Update all existing tests to use direct imports from domain modules
-   - Ensure all test cases pass with new factory structure
-   - Create robust testing examples using the new factory pattern
-   - Add tests for schema validation edge cases
-   - Create tests for all the newly implemented factory functions
+1. **Implement Remaining Repositories**
+   - Create RecurringIncomeRepository following established patterns
+   - Implement IncomeCategoryRepository for income categorization
+   - Develop CashflowForecastRepository for financial projections
+   - Update dependency injection for new repositories
+   - Ensure consistency with existing repository implementations
 
-2. **Improve Backward Compatibility Transition**
-   - Remove deprecated compatibility files after all tests are updated
-   - Document the migration process in the schema factory README
-   - Create additional examples showing the new import patterns
+2. **Create Tests for New Repositories**
+   - Implement schema factories for PaymentSchedule and DepositSchedule models
+   - Create test files following Arrange-Schema-Act-Assert pattern
+   - Test all specialized repository methods
+   - Validate error handling and edge cases
+   - Ensure proper transaction handling in tests
 
-3. **Fix Remaining Test Issues**
-   - Address updated_at timestamp issues in ORM updates
-   - Fix date_trunc function missing in SQLite for monthly totals tests
-   - Complete remaining transaction history repository tests
-   - Fix SQLAlchemy ORM identity map issues
-   - Enhance testing strategies for timezone handling
-   - Resolve additional timezone comparison issues in repository tests
+3. **Service Layer Integration**
+   - Create/update services to use the new repositories
+   - Implement proper validation flow with Pydantic schemas
+   - Develop integration tests for service-repository interaction
+   - Ensure transaction boundaries are respected
+   - Add service-level error handling for repository operations
 
 ## Implementation Lessons
 
-1. **Schema Factory Standardization**
-   - Consistent parameter ordering improves readability (entity ID first, then key fields)
-   - Good default values make tests more concise
-   - UTC time handling must be consistent across all date-related factories
-   - Factory docstrings should explain all parameters and default behaviors
-   - Parent-child relationships require careful handling with circular references
-   - Nested schema factories need proper dependency management
+1. **Repository Implementation Patterns**
+   - Follow consistent method naming conventions across repositories
+   - Group related functionality (e.g., getters with relationship loading)
+   - Use type annotations consistently for better code readability
+   - Implement proper error handling for edge cases
+   - Include comprehensive docstrings for all methods
+   - Follow SQLAlchemy best practices for relationship loading
 
-2. **Technical Debt Avoidance**
-   - Backward compatibility layers often become technical debt
-   - Clean breaks with clear migration paths are preferable to maintaining compatibility layers
-   - Document breaking changes thoroughly to ease transition
-   - Prioritize long-term maintainability over short-term convenience
+2. **Repository Method Design**
+   - Keep primary query methods simple and focused
+   - Use optional parameters to enhance flexibility
+   - Support filtering by key attributes (date, account, status)
+   - Include relationship loading options where appropriate
+   - Return consistent types for similar methods across repositories
+   - Provide total calculation methods for financial summaries
 
-3. **Schema Factory Design Patterns**
-   - Use decorators to standardize factory functions
-   - Return validated schema instances to catch errors early
-   - Provide sensible defaults for common test cases
-   - Allow flexibility with kwargs pattern for edge cases
-   - Use consistent naming conventions for better code readability
-   - Handle nested schema creation with dependency injection
+3. **SQLAlchemy Query Optimization**
+   - Use selectinload for one-to-many relationships
+   - Use joinedload for many-to-one relationships
+   - Build queries incrementally for better readability
+   - Add appropriate ordering for predictable results
+   - Use aliased classes for complex joins when needed
+   - Optimize relationship loading to prevent N+1 query issues
 
-4. **Schema Validation and Database Constraints**
-   - Align Pydantic schema requirements with database constraints
-   - Required fields in the database should be required in all schemas
-   - Field optionality should be consistent between create and update schemas
-   - Maintain consistent validation rules across the application
-   - Properly handle datetime fields with UTC timezone
+4. **Repository Testing Considerations**
+   - Create specific test cases for each method
+   - Test both positive and negative scenarios
+   - Validate relationship loading behavior
+   - Ensure proper transaction handling
+   - Test data retrieval and manipulation methods separately
+   - Use schema factories to create valid test data

@@ -12,9 +12,10 @@
    - StatementHistory schema implementation completed with specialized types
    - Comprehensive unit tests for all schema validation
 
-3. **Service Layer**: IN PROGRESS (90%)
+3. **Service Layer**: IN PROGRESS (92%)
    - Repository pattern foundation complete (ADR-014)
    - 13 of 13 core repositories implemented (100%)
+   - 2 of 5 additional repositories implemented (40%)
    - Integration tests for repositories (96%)
    - Repository test standardization (100%)
    - Service refactoring to use repositories (10%)
@@ -67,34 +68,21 @@
 
 ## What's Left to Build
 
-1. **Schema Factory Pattern (100%)** ✓
-   - ✓ Removed schema factories backward compatibility
-   - ✓ Enhanced base utilities with improved decorators and constants
-   - ✓ Standardized factory function implementation with decorator pattern
-   - ✓ Fixed CreditLimitHistoryUpdate to include required effective_date
-   - ✓ Added comprehensive documentation and migration guide
-   - ✓ Added new factories for 6 additional schema types:
-     - Balance History
-     - Income (regular and recurring)
-     - Statement History
-     - Recurring Bills
-     - Deposit Schedules
-     - Income Categories
-   - ✓ Implemented factories for all remaining schema types:
-     - Categories
-     - Payment Patterns
-     - Payment Schedules
-     - Cashflow (complete directory structure)
-     - Impact Analysis
-     - Income Trends
-     - Realtime Cashflow
-   - ✓ Added missing schema factories for:
-     - Liabilities (DB, Response, DateRange, AutoPay)
-     - Bill Splits (DB, Response, Validation, Analytics)
-     - Categories (WithChildren, WithParent, WithBills)
-     - Credit Limit History (Response types)
-     - Recommendations (complete implementation)
-   - Update existing tests to use direct imports from domain modules
+1. **Repository Layer Implementation (80%)** 
+   - ✓ Implemented BaseRepository with generic CRUD operations
+   - ✓ Implemented 13 core repositories with specialized methods
+   - ✓ Implemented PaymentScheduleRepository (new)
+   - ✓ Implemented DepositScheduleRepository (new)
+   - ✓ Updated dependency injection system to include new repositories
+   - ✓ Created comprehensive implementation checklist with detailed tracking
+   - Implement remaining repositories:
+     - RecurringIncomeRepository
+     - IncomeCategoryRepository
+     - CashflowForecastRepository
+   - Create tests for new repositories
+   - Ensure all repositories follow established patterns
+   - Create schema factories for new model types
+   - Update service layer to use new repositories
 
 2. **Repository Integration Tests (98%)**
    - ✓ Fixed UTC datetime handling in transaction_history_repository
@@ -126,17 +114,20 @@
 
 ## Known Issues
 
-1. **Schema Factory Test Updates**
-   - All schema factories have been implemented and documented
-   - Existing tests need to be updated to use direct domain imports
-   - Newly added factories need tests to ensure proper validation
-   - Comprehensive test examples needed for nested factory patterns
-   - Document proper usage of complex schema factories
+1. **Repository Implementation Gaps**
+   - Three repositories still missing implementation:
+     - RecurringIncomeRepository
+     - IncomeCategoryRepository
+     - CashflowForecastRepository
+   - Need to create tests for new repositories
+   - Schema factories needed for new model types
+   - Implementation parity needed with existing repositories
 
-2. **Schema Factory Test Migration**
-   - All existing tests will need to update import patterns
-   - Need to update tests to use direct imports from specific domain modules
-   - Factory functions now use decorator pattern consistently
+2. **Repository Tests**
+   - Need tests for newly implemented repositories
+   - Ensure Arrange-Schema-Act-Assert pattern is followed
+   - Create schema factories for PaymentSchedule and DepositSchedule
+   - Test relationship loading behavior with nested resources
 
 3. **Service Layer Architecture**
    - In progress: Refactoring services to use repository pattern
