@@ -6,6 +6,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.16] - 2025-03-22
+
+### Added
+
+- Implemented modular schema factories structure for better organization
+  - Created directory structure with domain-specific factory files
+  - Implemented façade pattern to maintain backward compatibility
+  - Added base utility functions for schema factory creation
+  - Created comprehensive documentation and guidelines
+  - Added support for incremental factory creation
+
+### Changed
+
+- Updated ADR014 implementation checklist with repository test pattern
+  - Reset the status of all repository tests to follow the new pattern
+  - Added detailed implementation guide for Arrange-Schema-Act-Assert pattern
+  - Documented schema factory implementation guidelines
+  - Created clear migration path for existing tests
+  - Established BalanceReconciliationRepository as the reference implementation
+
+### Improved
+
+- Enhanced developer workflow for repository testing
+  - Added README with factory creation guidelines
+  - Improved schema factory organization to prevent code bloat
+  - Standardized error handling and validation flow
+  - Implemented consistent naming conventions across factories
+  - Provided reusable base utilities for common factory operations
+
 ## [0.5.15] - 2025-03-21
 
 ### Fixed

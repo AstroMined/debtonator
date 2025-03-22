@@ -1,3 +1,91 @@
+## Implementation Guide: Repository Test Pattern
+
+### The Arrange-Schema-Act-Assert Pattern
+
+All repository tests must follow the Arrange-Schema-Act-Assert pattern to properly simulate the validation flow in our application:
+
+1. **Arrange**: Set up any test fixtures and dependencies needed for the test.
+2. **Schema**: Create and validate data through appropriate Pydantic schemas.
+3. **Act**: Convert validated schemas to dictionaries and pass to repository methods.
+4. **Assert**: Verify that the repository operation produced the expected results.
+
+Follow this template for all repository tests:
+
+```python
+@pytest.mark.asyncio
+async def test_repository_operation(repo_fixture, other_fixtures):
+    """Test description that explains the purpose of the test."""
+    # 1. ARRANGE: Setup any test dependencies
+    # ... setup code
+    
+    # 2. SCHEMA: Create and validate through Pydantic schema
+    entity_schema = create_entity_schema(
+        key1="value1",
+        key2="value2"
+    )
+    
+    # Convert validated schema to dict for repository
+    validated_data = entity_schema.model_dump()
+    
+    # 3. ACT: Pass validated data to repository
+    result = await repository.method(validated_data)
+    
+    # 4. ASSERT: Verify the operation results
+    assert result is not None
+    assert result.key1 == "value1"
+    assert result.key2 == "value2"
+```
+
+Refer to `tests/integration/repositories/test_balance_reconciliation_repository.py` for a complete reference implementation of this pattern.
+
+### Schema Factory Implementation
+
+Instead of creating separate implementations for each repository test, use schema factories to create valid schema instances:
+
+1. **Consult the Schema Factories Directory**: See `tests/helpers/schema_factories/` for existing factories.
+
+2. **Add New Factory Functions When Needed**: When testing a repository that needs a new schema factory:
+   - Create or update the appropriate domain file in `schema_factories/`
+   - Add the factory function following the established pattern
+   - Export the function in `__init__.py`
+
+3. **Use Factories in Tests**: Import and use factory functions in your tests:
+   ```python
+   from tests.helpers.schema_factories import create_entity_schema
+   
+   entity_schema = create_entity_schema(name="Test", value=100)
+   ```
+
+4. **Follow Factory Function Guidelines**:
+   - Provide reasonable defaults for all non-required fields
+   - Use type hints for parameters and return values
+   - Document parameters, defaults, and return types
+   - Allow overriding any field with `**kwargs`
+   - Return validated schema instances, not dictionaries
+
+Check the README.md in the schema_factories directory for detailed guidelines.
+
+## Testing Checklist
+
+For each repository test file:
+
+- [ ] Review existing tests against the Arrange-Schema-Act-Assert pattern
+- [ ] Identify missing schema factories required for tests
+- [ ] Create or update schema factories as needed
+- [ ] Refactor tests to use schema factories
+- [ ] Ensure all CRUD operations include schema validation
+- [ ] Add tests for validation error scenarios
+- [ ] Add tests for repository-specific methods
+
+## Implementing New Repositories
+
+When implementing a new repository:
+
+1. Create schema factories for associated model schemas
+2. Write tests following the Arrange-Schema-Act-Assert pattern
+3. Implement repository methods using TDD approach
+4. Document any new patterns or optimizations
+
 # ADR-014 Repository Layer Implementation Checklist
 
 ## Testing Strategy
@@ -301,26 +389,41 @@
    - [ ] Test all CRUD operations
    - [ ] Test filtering and pagination
 
-3. **Model-Specific Repository Tests**
-   - [x] Create test file for LiabilityRepository
-   - [x] Create test file for PaymentRepository
-   - [x] Create test file for PaymentSourceRepository
-   - [x] Create test file for BillSplitRepository
-   - [x] Create test file for RecurringBillRepository
-   - [x] Create test file for StatementHistoryRepository
-   - [x] Create test file for BalanceHistoryRepository
-   - [x] Create test file for CategoryRepository
-   - [x] Create test file for CreditLimitHistoryRepository
-   - [x] Create test file for BalanceReconciliationRepository
-   - [x] Create test file for TransactionHistoryRepository
-   - [x] Implement comprehensive tests for model-specific methods
-   - [x] Test advanced querying features
+3. **Repository Test Pattern Implementation**
+   - [x] Document the Arrange-Schema-Act-Assert pattern in `docs/guides/repository_test_pattern.md`
+   - [x] Set up modular directory structure for schema factories
+   - [ ] Implement BalanceReconciliationRepository tests as the reference implementation
+   - [ ] Review and refactor existing repository tests to follow the pattern
+   - [ ] Ensure tests use schema factories to validate data before repository operations
 
-4. **Integration Tests**
-   - [x] Create integration tests with real database
-   - [x] Test transaction boundaries
-   - [x] Test complex query scenarios
-   - [x] Test error handling
+4. **Schema Factory Implementation**
+   - [x] Create modular directory structure for schema factories
+   - [x] Implement façade pattern to maintain backward compatibility
+   - [ ] Create domain-specific factory files for each schema type
+   - [ ] Document factory creation guidelines in README
+   - [ ] Implement reusable factory functions with sensible defaults
+
+5. **Model-Specific Repository Tests**
+   - [ ] Create/Update test file for AccountRepository
+   - [ ] Create/Update test file for LiabilityRepository
+   - [ ] Create/Update test file for PaymentRepository
+   - [ ] Create/Update test file for PaymentSourceRepository
+   - [ ] Create/Update test file for BillSplitRepository
+   - [ ] Create/Update test file for RecurringBillRepository
+   - [ ] Create/Update test file for StatementHistoryRepository
+   - [ ] Create/Update test file for BalanceHistoryRepository
+   - [ ] Create/Update test file for CategoryRepository
+   - [ ] Create/Update test file for CreditLimitHistoryRepository
+   - [x] Create/Update test file for BalanceReconciliationRepository
+   - [ ] Create/Update test file for TransactionHistoryRepository
+   - [ ] Implement comprehensive tests for model-specific methods
+   - [ ] Test advanced querying features
+
+6. **Integration Tests**
+   - [ ] Ensure all integration tests follow the Arrange-Schema-Act-Assert pattern
+   - [ ] Test transaction boundaries
+   - [ ] Test complex query scenarios
+   - [ ] Test error handling
 
 ## Phase 5: Service Refactoring
 

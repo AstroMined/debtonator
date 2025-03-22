@@ -102,14 +102,15 @@
 
 ## Known Issues
 
-1. **Repository Test Pattern Issues** ⚠️
-   - Systemic issues discovered with NOT NULL constraint handling in repository tests
-   - Missing required foreign key fields in test fixtures causing test failures
-   - Need comprehensive fixture strategy for entity relationships
-   - Need consistent approach to eager loading and collection handling
-   - Planned major refactoring of repository test infrastructure
-   - Interim fixes implemented for CategoryRepository (unique collections, UTC datetimes)
-   - Related to datetime handling issues but more fundamental to test structure
+1. **Repository Test Pattern Implementation** ✓
+   - Created modular schema factories directory structure to prevent code bloat
+   - Implemented façade pattern to maintain backward compatibility 
+   - Added domain-specific factory files for each entity type
+   - Established standard Arrange-Schema-Act-Assert pattern for all tests
+   - Documented implementation guidelines in ADR014 checklist
+   - Added detailed testing checklist for repository test refactoring
+   - Created reference implementation with BalanceReconciliationRepository
+   - Provided clear migration path for existing tests
 
 2. **Dictionary Validation Complexity**
    - Dictionary fields with decimal values need special validation handling

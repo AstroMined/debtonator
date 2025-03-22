@@ -5,14 +5,15 @@ Implementing Service Layer Refactoring (ADR-014)
 
 ### Recent Changes
 
-1. **Identified Repository Test Pattern Issues** 
-   - Fixed several initial issues in CategoryRepository tests
-   - Added unique() method for collections to prevent duplicate object errors
-   - Fixed SQLite datetime handling by using proper datetime objects with UTC timezone
-   - Identified systemic issue with missing NOT NULL foreign key constraints
-   - Found primary_account_id constraint violations requiring fixture-based solution
-   - Planned comprehensive repository test pattern refactoring
-   - Documented issues for broader test infrastructure improvements
+1. **Implemented Repository Test Pattern Refactoring**
+   - Created modular schema factories directory structure to prevent code bloat
+   - Implemented façade pattern in schema_factories to maintain backward compatibility
+   - Added domain-specific factory files organized by entity type
+   - Updated ADR014 implementation checklist with detailed testing guidelines
+   - Documented the Arrange-Schema-Act-Assert pattern for all repository tests
+   - Created base utility functions for schema factory creation
+   - Provided clear migration path for existing tests
+   - Established BalanceReconciliationRepository as the reference implementation
 
 2. **Enhanced BaseRepository Transaction Handling** ✓
    - Implemented nested transaction support with savepoints
