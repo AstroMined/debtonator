@@ -1,21 +1,21 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Implementing Repository Layer (ADR-014)
+Completing Repository Layer and Starting Service Layer Integration (ADR-014)
 
 ### Recent Changes
 
-1. **Implemented RecurringIncomeRepository** ✓
-   - Created comprehensive repository with CRUD operations
-   - Added relationship loading with account, category, and income entries
-   - Implemented specialized query methods for source, account, and day-of-month
-   - Added toggle methods for active status and auto-deposit settings
-   - Created financial calculation methods including monthly totals
-   - Implemented forecast functionality with upcoming deposits projection
-   - Created schema factory for RecurringIncome model with comprehensive coverage
-   - Added factory functions for all schema types (Create, Update, InDB, Response)
+1. **Implemented Final Missing Repositories** ✓
+   - Implemented IncomeCategoryRepository with 9 specialized methods
+   - Created CashflowForecastRepository with 10 specialized methods
+   - Added dependency injection for both repositories in API layer
+   - Updated ADR-014 implementation checklist to reflect 100% repository completion
+   - Implemented proper relationship loading (joinedload/selectinload)
+   - Added comprehensive docstrings with parameter and return type documentation
    - Followed established patterns for consistent repository implementation
-   - Added proper Arrange-Schema-Act-Assert pattern preparation
+   - Provided specialized methods for advanced income category analysis
+   - Implemented trend analysis and metrics calculation in CashflowForecastRepository
+   - Ensured account-specific forecast functionality for future enhancements
 
 2. **Completed All Missing Schema Factories** ✓
    - Implemented factories for all remaining schema types:
@@ -71,26 +71,25 @@ Implementing Repository Layer (ADR-014)
 
 ## Next Steps
 
-1. **Implement Remaining Repositories**
-   - Create RecurringIncomeRepository following established patterns
-   - Implement IncomeCategoryRepository for income categorization
-   - Develop CashflowForecastRepository for financial projections
-   - Update dependency injection for new repositories
-   - Ensure consistency with existing repository implementations
+1. **Create Repository Tests**
+   - Create integration tests for all new repositories
+   - Follow Arrange-Schema-Act-Assert pattern
+   - Ensure test coverage for specialized methods
+   - Validate relationship loading behavior
+   - Test error handling for edge cases
 
-2. **Create Tests for New Repositories**
-   - Implement schema factories for PaymentSchedule and DepositSchedule models
-   - Create test files following Arrange-Schema-Act-Assert pattern
-   - Test all specialized repository methods
-   - Validate error handling and edge cases
-   - Ensure proper transaction handling in tests
-
-3. **Service Layer Integration**
-   - Create/update services to use the new repositories
-   - Implement proper validation flow with Pydantic schemas
-   - Develop integration tests for service-repository interaction
+2. **Service Layer Integration**
+   - Refactor services to use repositories
+   - Update API endpoints to use refactored services
+   - Implement proper validation flow
    - Ensure transaction boundaries are respected
-   - Add service-level error handling for repository operations
+   - Add service-level error handling
+
+3. **Documentation Updates**
+   - Create comprehensive documentation for all repositories
+   - Update API documentation to reflect repository usage
+   - Document common repository usage patterns
+   - Create examples of service-repository integration
 
 ## Implementation Lessons
 

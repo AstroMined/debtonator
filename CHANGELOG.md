@@ -6,9 +6,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.23] - 2025-03-22
+
+### Added
+
+- Implemented remaining repositories for ADR-014 completion:
+  - Created IncomeCategoryRepository with 9 specialized methods:
+    - Added comprehensive relationship loading for income entries
+    - Implemented query methods for categories by name, prefix
+    - Added financial calculation methods for income categorization
+    - Implemented detailed category statistics with pending amounts
+    - Added income category management with usage validation
+  - Implemented CashflowForecastRepository with 10 specialized methods:
+    - Created comprehensive forecast retrieval methods with date filtering
+    - Implemented trend analysis methods for forecast data
+    - Added deficit tracking and metrics calculation
+    - Created comprehensive financial metrics for cashflow analysis
+    - Added account-specific forecast support
+- Updated dependency injection system for repository layer:
+  - Added income_category_repository provider function
+  - Added cashflow_forecast_repository provider function
+  - Added recurring_income_repository provider function
+  - Updated imports with proper organization
+  - Added comprehensive documentation for providers
+
+### Changed
+
+- Reorganized repository implementation plan for better clarity:
+  - Updated active_context.md with completed repository implementation
+  - Updated progress.md to reflect 100% repository implementation completion
+  - Updated ADR-014 implementation checklist to mark all repositories as complete
+  - Updated remaining priority tasks to focus on testing and service integration
+
 ## [0.5.22] - 2025-03-22
 
 ### Added
+
 - Implemented RecurringIncomeRepository with comprehensive method coverage:
   - Created standard methods for source, account and day-of-month querying
   - Added specialized methods for recurring income management

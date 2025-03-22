@@ -18,13 +18,16 @@ from src.repositories.credit_limit_history import CreditLimitHistoryRepository
 from src.repositories.deposit_schedules import DepositScheduleRepository
 from src.repositories.factory import RepositoryFactory
 from src.repositories.income import IncomeRepository
+from src.repositories.income_categories import IncomeCategoryRepository
 from src.repositories.liabilities import LiabilityRepository
 from src.repositories.payment_schedules import PaymentScheduleRepository
 from src.repositories.payment_sources import PaymentSourceRepository
 from src.repositories.payments import PaymentRepository
 from src.repositories.recurring_bills import RecurringBillRepository
+from src.repositories.recurring_income import RecurringIncomeRepository
 from src.repositories.statement_history import StatementHistoryRepository
 from src.repositories.transaction_history import TransactionHistoryRepository
+from src.repositories.cashflow import CashflowForecastRepository
 
 
 def get_repository_factory(db: AsyncSession = Depends(get_db)) -> RepositoryFactory:
@@ -253,3 +256,48 @@ def get_deposit_schedule_repository(
         DepositScheduleRepository: Deposit schedule repository instance
     """
     return DepositScheduleRepository(db)
+
+
+def get_income_category_repository(
+    db: AsyncSession = Depends(get_db),
+) -> IncomeCategoryRepository:
+    """
+    Dependency provider for income category repository.
+
+    Args:
+        db (AsyncSession): Database session from dependency injection
+
+    Returns:
+        IncomeCategoryRepository: Income category repository instance
+    """
+    return IncomeCategoryRepository(db)
+
+
+def get_recurring_income_repository(
+    db: AsyncSession = Depends(get_db),
+) -> RecurringIncomeRepository:
+    """
+    Dependency provider for recurring income repository.
+
+    Args:
+        db (AsyncSession): Database session from dependency injection
+
+    Returns:
+        RecurringIncomeRepository: Recurring income repository instance
+    """
+    return RecurringIncomeRepository(db)
+
+
+def get_cashflow_forecast_repository(
+    db: AsyncSession = Depends(get_db),
+) -> CashflowForecastRepository:
+    """
+    Dependency provider for cashflow forecast repository.
+
+    Args:
+        db (AsyncSession): Database session from dependency injection
+
+    Returns:
+        CashflowForecastRepository: Cashflow forecast repository instance
+    """
+    return CashflowForecastRepository(db)

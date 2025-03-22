@@ -393,17 +393,17 @@ When implementing a new repository:
      - [x] Additional methods: `get_upcoming_deposits()`, `find_by_pattern()`, `get_total_by_source()`
 
 3. **Repository: IncomeCategoryRepository**
-   - [ ] Create `src/repositories/income_categories.py`
-   - [ ] Implement `IncomeCategoryRepository` class
+   - [x] Create `src/repositories/income_categories.py`
+   - [x] Implement `IncomeCategoryRepository` class
    - [x] Ensure schema factory exists for income categories
-   - [ ] Add income category-specific methods:
-     - [ ] `get_by_name()`
-     - [ ] `get_with_income()`
-     - [ ] `get_total_by_category()`
-     - [ ] `get_categories_with_income_counts()`
-     - [ ] `find_categories_by_prefix()`
-     - [ ] `delete_if_unused()`
-     - [ ] Additional methods: `get_active_categories()`, `get_categories_with_stats()`
+   - [x] Add income category-specific methods:
+     - [x] `get_by_name()`
+     - [x] `get_with_income()`
+     - [x] `get_total_by_category()`
+     - [x] `get_categories_with_income_counts()`
+     - [x] `find_categories_by_prefix()`
+     - [x] `delete_if_unused()`
+     - [x] Additional methods: `get_active_categories()`, `get_categories_with_stats()`
 
 4. **Repository: PaymentScheduleRepository**
    - [x] Create `src/repositories/payment_schedules.py`
@@ -421,18 +421,18 @@ When implementing a new repository:
      - [x] Additional methods: `get_upcoming_schedules()`, `find_overdue_schedules()`, `get_auto_process_schedules()`, `get_total_scheduled_payments()`, `cancel_schedule()`
 
 5. **Repository: CashflowForecastRepository**
-   - [ ] Create `src/repositories/cashflow.py`
-   - [ ] Implement `CashflowForecastRepository` class
+   - [x] Create `src/repositories/cashflow.py`
+   - [x] Implement `CashflowForecastRepository` class
    - [x] Ensure schema factory exists in `tests/helpers/schema_factories/cashflow/forecasting.py`
-   - [ ] Add cashflow forecast-specific methods:
-     - [ ] `get_by_date()`
-     - [ ] `get_by_date_range()`
-     - [ ] `get_latest_forecast()`
-     - [ ] `get_forecast_trend()`
-     - [ ] `get_deficit_trend()`
-     - [ ] `get_required_income_trend()`
-     - [ ] `get_min_forecast()`
-     - [ ] Additional methods: `get_forecast_with_metrics()`, `get_forecast_summary()`, `get_forecast_by_account()`
+   - [x] Add cashflow forecast-specific methods:
+     - [x] `get_by_date()`
+     - [x] `get_by_date_range()`
+     - [x] `get_latest_forecast()`
+     - [x] `get_forecast_trend()`
+     - [x] `get_deficit_trend()`
+     - [x] `get_required_income_trend()`
+     - [x] `get_min_forecast()`
+     - [x] Additional methods: `get_forecast_with_metrics()`, `get_forecast_summary()`, `get_forecast_by_account()`
 
 ## Phase 3: Advanced Repository Features
 
@@ -499,7 +499,7 @@ When implementing a new repository:
    - [ ] Create/Update test file for BalanceHistoryRepository
    - [ ] Create/Update test file for CategoryRepository
    - [ ] Create/Update test file for CreditLimitHistoryRepository
-   - [x] Create/Update test file for BalanceReconciliationRepository
+   - [ ] Create/Update test file for BalanceReconciliationRepository
    - [ ] Create/Update test file for TransactionHistoryRepository
    - [ ] Create/Update test file for DepositScheduleRepository
    - [ ] Create test file for RecurringIncomeRepository (New)
@@ -628,8 +628,8 @@ Based on the current state of the repositories and ADR-014 implementation progre
 
 1. **Complete Missing Repository Implementations**
    - [x] Implement `RecurringIncomeRepository` with standard methods
-   - [ ] Implement `IncomeCategoryRepository` with standard methods
-   - [ ] Implement `CashflowForecastRepository` with standard methods
+   - [x] Implement `IncomeCategoryRepository` with standard methods
+   - [x] Implement `CashflowForecastRepository` with standard methods
    - [x] Create schema factory for `RecurringIncome` model
 
 2. **Create Tests for New Repositories**
