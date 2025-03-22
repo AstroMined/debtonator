@@ -5,7 +5,17 @@ Implementing and Validating Repository Layer Integration Tests (ADR-014)
 
 ### Recent Changes
 
-1. **Refactored Additional Model-Specific Repository Tests** ✓
+1. **Schema Reorganization for Better Layering** ✓
+   - Separated recurring income schemas from regular income schemas
+   - Created dedicated `src/schemas/recurring_income.py` module
+   - Migrated all recurring income schemas to the new module
+   - Updated API router and service imports to use the new module
+   - Created separate unit tests for recurring income schemas
+   - Fixed import errors in integration tests and API endpoints
+   - Ensured consistent schema layering across the application
+   - Maintained feature parity throughout the reorganization
+
+2. **Refactored Additional Model-Specific Repository Tests** ✓
    - Refactored BalanceHistoryRepository tests to implement proper Arrange-Schema-Act-Assert pattern
    - Converted direct dictionary operations to schema-validated workflows
    - Added explicit test fixtures using balance history schema factories
@@ -16,7 +26,7 @@ Implementing and Validating Repository Layer Integration Tests (ADR-014)
    - Fixed timezone handling in datetime test assertions for consistency 
    - Improved test organization with logical grouping of related functionality
 
-2. **Repository Integration Test Patterns** ✓
+3. **Repository Integration Test Patterns** ✓
    - Standardized fixture creation with schema validation flow
    - Implemented consistent test-naming patterns across repositories
    - Created separate fixtures for entities with relationships
@@ -28,7 +38,7 @@ Implementing and Validating Repository Layer Integration Tests (ADR-014)
    - Tested transaction boundaries across repositories
    - Added date range and filtering test patterns
 
-3. **Implementation Checklist Progress** ✓
+4. **Implementation Checklist Progress** ✓
    - Completed refactoring of BalanceHistoryRepository tests
    - Added to the growing list of repository tests using Arrange-Schema-Act-Assert pattern
    - Updated ADR-014 implementation checklist to reflect progress

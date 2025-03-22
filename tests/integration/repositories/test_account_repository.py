@@ -20,10 +20,8 @@ from src.repositories.accounts import AccountRepository
 from src.repositories.statement_history import StatementHistoryRepository
 from src.schemas.accounts import AccountCreate, AccountUpdate
 from src.schemas.statement_history import StatementHistoryCreate
-from tests.helpers.schema_factories import (
-    create_account_schema,
-    create_statement_history_schema,
-)
+from tests.helpers.schema_factories.accounts import create_account_schema
+from tests.helpers.schema_factories.statement_history import create_statement_history_schema
 
 
 @pytest_asyncio.fixture

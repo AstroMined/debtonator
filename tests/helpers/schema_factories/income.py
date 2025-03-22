@@ -9,7 +9,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from src.schemas.income import IncomeCreate, RecurringIncomeCreate
+from src.schemas.income import IncomeCreate
 from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function, utc_now
 
 
@@ -50,53 +50,6 @@ def create_income_schema(
         "source": source,
         "amount": amount,
         "deposited": deposited,
-        **kwargs,
-    }
-
-    if category_id is not None:
-        data["category_id"] = category_id
-
-    return data
-
-
-@factory_function(RecurringIncomeCreate)
-def create_recurring_income_schema(
-    account_id: int,
-    source: str = "Monthly Salary",
-    amount: Optional[Decimal] = None,
-    day_of_month: int = 15,
-    category_id: Optional[int] = None,
-    auto_deposit: bool = False,
-    **kwargs: Any,
-) -> Dict[str, Any]:
-    """
-    Create a valid RecurringIncomeCreate schema instance.
-
-    Args:
-        account_id: ID of the account this income belongs to
-        source: Source of the recurring income
-        amount: Income amount (defaults to 5000.00)
-        day_of_month: Day of the month when income occurs (1-30)
-        category_id: ID of the income category (optional)
-        auto_deposit: Whether to automatically mark as deposited
-        **kwargs: Additional fields to override
-
-    Returns:
-        Dict[str, Any]: Data to create RecurringIncomeCreate schema
-    """
-    if amount is None:
-        amount = Decimal("5000.00")
-
-    # Ensure day_of_month is valid
-    if day_of_month > 30:
-        day_of_month = 30  # Adjusted to comply with schema validator
-
-    data = {
-        "account_id": account_id,
-        "source": source,
-        "amount": amount,
-        "day_of_month": day_of_month,
-        "auto_deposit": auto_deposit,
         **kwargs,
     }
 

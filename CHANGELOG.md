@@ -6,6 +6,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.28] - 2025-03-22
+
+### Changed
+
+- Reorganized schema files to improve layering consistency:
+  - Separated recurring income schemas from regular income schemas
+  - Created dedicated `src/schemas/recurring_income.py` module
+  - Updated imports across API routers and services
+  - Created separate unit tests for recurring income schemas
+
+### Fixed
+
+- Fixed import errors in repository tests:
+  - Added missing `BalanceHistoryUpdate` schema to `balance_history.py`
+  - Added missing `PaymentSourceUpdate` schema to `payments.py`
+  - Fixed imports in `test_recurring_income_repository.py`
+  - Updated API router and service imports to use new schema locations
+
+### Improved
+
+- Enhanced schema organization for better maintainability:
+  - Improved separation of concerns between distinct schema types
+  - Maintained consistent file structure across schema layer
+  - Created dedicated unit tests for each schema module
+  - Ensured consistent model-to-schema mapping across layers
+
 ## [0.5.27] - 2025-03-22
 
 ### Changed

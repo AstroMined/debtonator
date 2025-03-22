@@ -26,13 +26,11 @@ from src.schemas.payments import (
     PaymentSourceCreate,
     PaymentUpdate,
 )
-from tests.helpers.schema_factories import (
-    create_account_schema,
-    create_liability_schema,
-    create_payment_date_range_schema,
-    create_payment_schema,
-    create_payment_source_schema,
-)
+from tests.helpers.schema_factories.accounts import create_account_schema
+from tests.helpers.schema_factories.liabilities import create_liability_schema
+from tests.helpers.schema_factories.payments import create_payment_date_range_schema
+from tests.helpers.schema_factories.payments import create_payment_schema
+from tests.helpers.schema_factories.payment_sources import create_payment_source_schema
 
 
 @pytest_asyncio.fixture

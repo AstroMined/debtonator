@@ -24,7 +24,7 @@ from src.repositories.accounts import AccountRepository
 from src.repositories.recurring_income import RecurringIncomeRepository
 
 # Import schema and schema factories - essential part of the validation pattern
-from src.schemas.income import RecurringIncomeCreate, RecurringIncomeUpdate
+from src.schemas.recurring_income import RecurringIncomeCreate, RecurringIncomeUpdate
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.recurring_income import (
     create_recurring_income_schema,

@@ -7,7 +7,8 @@
    - Comprehensive test coverage in place
 
 2. **Schema Layer**: COMPLETED (100%) ✓
-   - All 22 schema files fully compliant with ADR-011 and ADR-012
+   - All 23 schema files fully compliant with ADR-011 and ADR-012
+   - Separated recurring_income schema from income schema for better layering
    - Pydantic V2 compatibility with Annotated types approach
    - StatementHistory schema implementation completed with specialized types
    - Comprehensive unit tests for all schema validation

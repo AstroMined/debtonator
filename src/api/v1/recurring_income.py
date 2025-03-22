@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.database import get_db
-from src.schemas.income import (
+from src.schemas.income import IncomeResponse
+from src.schemas.recurring_income import (
     GenerateIncomeRequest,
-    IncomeResponse,
     RecurringIncomeCreate,
     RecurringIncomeResponse,
     RecurringIncomeUpdate,

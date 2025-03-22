@@ -82,6 +82,20 @@ class PaymentSourceCreate(PaymentSourceBase):
     pass
 
 
+class PaymentSourceUpdate(PaymentSourceBase):
+    """
+    Schema for updating an existing payment source.
+
+    Extends the base payment source schema and makes all fields optional
+    to support partial updates.
+    """
+
+    account_id: Optional[int] = Field(None, gt=0, description="ID of the account used for payment")
+    amount: Optional[MoneyDecimal] = Field(
+        None, gt=Decimal("0"), description="Amount paid from this account"
+    )
+
+
 class PaymentSourceInDB(PaymentSourceBase):
     """
     Schema for payment source data as stored in the database.

@@ -9,8 +9,6 @@ from src.schemas.income import (
     IncomeCreate,
     IncomeFilters,
     IncomeUpdate,
-    RecurringIncomeCreate,
-    RecurringIncomeUpdate,
 )
 
 
@@ -95,43 +93,6 @@ class TestIncomeCreate:
             )
         assert "String should have at most 255 characters" in str(exc_info.value)
 
-
-class TestRecurringIncome:
-    """Test cases for RecurringIncome schemas"""
-
-    def test_valid_recurring_income(self):
-        """Test creating a valid recurring income"""
-        income = RecurringIncomeCreate(
-            source="Monthly Salary",
-            amount=Decimal("5000.00"),
-            day_of_month=15,
-            account_id=1,
-        )
-        assert income.day_of_month == 15
-        assert income.amount == Decimal("5000.00")
-        assert income.auto_deposit is False
-
-    def test_rejects_day_31(self):
-        """Test that day 31 is rejected"""
-        with pytest.raises(ValidationError) as exc_info:
-            RecurringIncomeCreate(
-                source="Monthly Salary",
-                amount=Decimal("5000.00"),
-                day_of_month=31,
-                account_id=1,
-            )
-        assert "Day 31 is not supported" in str(exc_info.value)
-
-    def test_amount_precision(self):
-        """Test amount precision validation"""
-        with pytest.raises(ValidationError) as exc_info:
-            RecurringIncomeCreate(
-                source="Monthly Salary",
-                amount=Decimal("5000.001"),  # Three decimal places
-                day_of_month=15,
-                account_id=1,
-            )
-        assert "Input should be a multiple of 0.01" in str(exc_info.value)
 
 
 class TestIncomeFilters:

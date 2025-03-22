@@ -22,10 +22,8 @@ from src.schemas.balance_reconciliation import (
     BalanceReconciliationCreate,
     BalanceReconciliationUpdate,
 )
-from tests.helpers.schema_factories import (
-    create_account_schema,
-    create_balance_reconciliation_schema,
-)
+from tests.helpers.schema_factories.accounts import create_account_schema
+from tests.helpers.schema_factories.balance_reconciliation import create_balance_reconciliation_schema
 
 
 @pytest_asyncio.fixture

@@ -41,6 +41,30 @@ class BalanceHistoryCreate(BalanceHistoryBase):
     pass
 
 
+class BalanceHistoryUpdate(BalanceHistoryBase):
+    """
+    Schema for updating an existing balance history record.
+
+    Extends the base schema and makes all fields optional for partial updates.
+    """
+
+    account_id: int | None = Field(
+        None, gt=0, description="ID of the account this balance history is for"
+    )
+    balance: MoneyDecimal | None = Field(None, description="Current balance of the account")
+    available_credit: MoneyDecimal | None = Field(
+        default=None,
+        description="Available credit for credit accounts (null for non-credit accounts)",
+    )
+    is_reconciled: bool | None = Field(
+        None,
+        description="Whether this balance has been reconciled with external records",
+    )
+    notes: str | None = Field(
+        None, max_length=500, description="Optional notes about this balance entry"
+    )
+
+
 class BalanceHistory(BalanceHistoryBase):
     """
     Schema for a complete balance history record.

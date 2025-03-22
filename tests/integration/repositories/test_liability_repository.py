@@ -24,11 +24,9 @@ from src.schemas.liabilities import (
     LiabilityCreate,
     LiabilityUpdate,
 )
-from tests.helpers.schema_factories import (
-    create_account_schema,
-    create_category_schema,
-    create_liability_schema,
-)
+from tests.helpers.schema_factories.accounts import create_account_schema
+from tests.helpers.schema_factories.categories import create_category_schema
+from tests.helpers.schema_factories.liabilities import create_liability_schema
 
 
 @pytest_asyncio.fixture

@@ -10,6 +10,7 @@ from decimal import Decimal
 from typing import Any, Dict, Optional
 
 from src.schemas.recurring_income import (
+    RecurringIncomeBase,
     RecurringIncomeCreate,
     RecurringIncomeUpdate,
     RecurringIncomeInDB,

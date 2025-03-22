@@ -23,10 +23,8 @@ from src.schemas.transaction_history import (
     TransactionHistoryCreate,
     TransactionHistoryUpdate,
 )
-from tests.helpers.schema_factories import (
-    create_account_schema,
-    create_transaction_history_schema,
-)
+from tests.helpers.schema_factories.accounts import create_account_schema
+from tests.helpers.schema_factories.transaction_history import create_transaction_history_schema
 
 
 @pytest_asyncio.fixture
