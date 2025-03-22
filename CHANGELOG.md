@@ -6,6 +6,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.14] - 2025-03-21
+
+### Fixed
+
+- Fixed transaction handling in BaseRepository:
+  - Implemented support for nested transactions using SQLAlchemy savepoints
+  - Added session.in_transaction() check to detect active transactions
+  - Used session.begin_nested() for transactions within existing transactions
+  - Used session.begin() for standalone transactions
+  - Fixed transaction_commit and transaction_rollback tests
+  - Added detailed documentation for transaction context manager
+  - Enhanced repository transaction pattern to work both in testing and production
+
+### Changed
+
+- Enhanced repository transaction handling to support PostgreSQL and MySQL/MariaDB:
+  - Standardized savepoint usage across all supported databases
+  - Ensured compatibility with SQLite for development and testing
+  - Provided robust error handling for transaction operations
+  - Added detailed documentation about transaction behavior
+
+### Added
+
+- Added comprehensive documentation for repository transaction usage
+
 ## [0.5.13] - 2025-03-21
 
 ### Fixed
@@ -883,7 +908,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - test_balance_history_schemas.py with full validation coverage
   - test_payment_schedules_schemas.py with comprehensive test cases
   - test_deposit_schedules_schemas.py with detailed field validation
-  - test_recurring_bills_schemas.py with proper recurrence pattern testing 
+  - test_recurring_bills_schemas.py with proper recurrence pattern testing
   - All Phase 2 test files passing with 42 successful test cases
 
 ### Fixed
@@ -912,7 +937,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - test_bill_splits_schemas.py with field constraint validation
   - test_categories_schemas.py with hierarchical relationship testing
 
-### Fixed 
+### Fixed
 
 - Identified and documented critical timezone compliance issue:
   - Tests were using `ZoneInfo("UTC")` instead of `timezone.utc` as mandated by ADR-011
@@ -1065,7 +1090,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Enhanced Categories model and service layer separation:
-  - Removed business logic methods (full_path, is_ancestor_of, _get_parent) from Category model
+  - Removed business logic methods (`full_path`, `is_ancestor_of`, `_get_parent`) from Category model
   - Added corresponding methods to CategoryService (get_full_path, is_ancestor_of)
   - Updated model documentation to clarify pure data structure focus
   - Fixed SQLAlchemy query handling for eager-loaded relationships
@@ -1798,7 +1823,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Next bill identification
     - Deficit scenarios
     - All tests passing
-
 
 ## [0.3.40] - 2025-02-14
 

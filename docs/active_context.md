@@ -5,47 +5,42 @@ Implementing Service Layer Refactoring (ADR-014)
 
 ### Recent Changes
 
-1. **Fixed Balance Reconciliation Schema Validation** ✓
+1. **Enhanced BaseRepository Transaction Handling** ✓
+   - Implemented nested transaction support with savepoints
+   - Added session.in_transaction() check to detect existing transactions
+   - Used session.begin_nested() for active transactions to create savepoints
+   - Used session.begin() for standard transactions
+   - Fixed transaction tests by properly handling nesting
+   - Improved documentation for transaction context manager
+   - Added detailed comments explaining the transaction behavior
+
+2. **Fixed Balance Reconciliation Schema Validation** ✓
    - Added adjustment_amount as required field in BalanceReconciliationCreate schema
    - Ensured schema validation correctly enforces NOT NULL constraint from database model
    - Added field validator to verify adjustment_amount equals new_balance - previous_balance
    - Updated BalanceReconciliationUpdate to include new_balance and adjustment_amount fields
    - Documented special handling for repository testing patterns in schema
 
-2. **Fixed Credit Limit History Repository Tests** ✓
+3. **Fixed Credit Limit History Repository Tests** ✓
    - Updated CreditLimitHistoryUpdate schema to require effective_date field
    - Fixed datetime comparison issue in date range test with timezone-aware handling
    - Aligned schema validation with database NOT NULL constraints
    - Properly handled timezone-aware vs. naive datetime comparison
    - Applied ADR-011 principles for UTC datetime standardization
 
-3. **Fixed Repository Integration Tests** ✓
+4. **Fixed Repository Integration Tests** ✓
    - Fixed transaction_history_repository tests with naive vs. UTC datetime handling
    - Added timezone-aware datetime handling for database operations
    - Fixed model updates with proper SQLAlchemy ORM update pattern
    - Ensured proper transaction_date validation in schema updates
    - Resolved transaction_type null constraint issues
 
-3. **Improved BaseRepository Update Method** ✓
+5. **Improved BaseRepository Update Method** ✓
    - Refactored update method to use proper ORM pattern instead of SQL expressions
    - Enhanced SQLAlchemy session handling for better change tracking 
    - Implemented proper ORM instance retrieval and attribute updates
    - Added explicit session add() to ensure SQLAlchemy tracks changes
    - Fixed issue with onupdate hooks not being triggered
-
-4. **Implemented Repository Pattern in Transaction History** ✓
-   - Fixed transaction date handling with proper UTC timezone enforcement
-   - Added proper conversion between naive and timezone-aware datetimes
-   - Ensured SQLAlchemy ORM properly tracks field changes
-   - Added comprehensive date range test with naive/aware datetime conversion
-   - Fixed validation issues with transaction date and type
-
-5. **Fixed Transaction History Schema Validation** ✓
-   - Enhanced schema validation to enforce UTC timezone requirements
-   - Added proper UTC timezone validation for transaction_date fields
-   - Fixed tests to handle timezone-aware datetimes appropriately
-   - Added explicit timezone conversion in tests 
-   - Added test cases for naive vs. UTC timezone handling
 
 ## Next Steps
 

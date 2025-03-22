@@ -66,15 +66,15 @@
 
 ## What's Left to Build
 
-1. **Repository Integration Tests (96%)**
+1. **Repository Integration Tests (98%)**
    - ✓ Fixed UTC datetime handling in transaction_history_repository
    - ✓ Resolved SQLAlchemy ORM update pattern issues
    - ✓ Fixed transaction_type constraint issues
    - ✓ Fixed credit_limit_history_repository schema validation
    - ✓ Aligned schema requirements with database constraints
    - ✓ Fixed BalanceReconciliation schema to match database NOT NULL constraints
+   - ✓ Fixed BaseRepository transaction handling with nested transaction support
    - Implement comprehensive timezone handling in repository tests
-   - Resolve remaining updated_at timestamp issues
    - Fix date_trunc function missing in SQLite for monthly totals
 
 2. **Repository Layer Completion (100%)** ✓

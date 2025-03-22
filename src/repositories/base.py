@@ -270,6 +270,8 @@ class BaseRepository(Generic[ModelType, PKType]):
     ) -> AsyncContextManager["BaseRepository[ModelType, PKType]"]:
         """
         Begin a transaction and return a repository instance with the same session.
+        
+        If a transaction is already in progress, creates a savepoint (nested transaction).
 
         Usage:
             async with repo.transaction() as tx_repo:
@@ -280,13 +282,26 @@ class BaseRepository(Generic[ModelType, PKType]):
         Returns:
             BaseRepository: A repository instance with the transaction-bound session
         """
-        async with self.session.begin():
-            # Create a new repository instance with the same session
-            # This allows for method chaining within the transaction context
-            repo = self.__class__(self.session, self.model_class)
-            try:
-                yield repo
-                # Transaction auto-commits unless an exception occurs
-            except Exception as e:
-                # Transaction auto-rollbacks on exception
-                raise e
+        # Check if a transaction is already active on this session
+        if self.session.in_transaction():
+            # Use nested transaction (savepoint) if a transaction is already in progress
+            async with self.session.begin_nested():
+                # Create a new repository instance with the same session
+                repo = self.__class__(self.session, self.model_class)
+                try:
+                    yield repo
+                    # Savepoint auto-commits unless an exception occurs
+                except Exception as e:
+                    # Savepoint auto-rollbacks on exception
+                    raise e
+        else:
+            # No active transaction, start a new one
+            async with self.session.begin():
+                # Create a new repository instance with the same session
+                repo = self.__class__(self.session, self.model_class)
+                try:
+                    yield repo
+                    # Transaction auto-commits unless an exception occurs
+                except Exception as e:
+                    # Transaction auto-rollbacks on exception
+                    raise e
