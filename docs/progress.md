@@ -115,6 +115,9 @@
    - Arrange-Schema-Act-Assert pattern implemented across all tests ✓
    - Schema factories created and utilized for all repository tests ✓
    - Relationship loading behavior tested with nested resources ✓
+   - Model-specific repository tests refactored (3/23) ✓
+   - Comprehensive validation error tests implemented ✓
+   - Payment schema factories enhanced for better test support ✓
 
 3. **Service Layer Architecture**
    - In progress: Refactoring services to use repository pattern

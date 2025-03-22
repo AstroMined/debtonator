@@ -6,6 +6,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.25] - 2025-03-22
+
+### Added
+
+- Implemented comprehensive model-specific repository integration tests
+- Created new PaymentSource schema factory for test support
+- Enhanced Payment schema factory with better split payment support
+
+### Improved
+
+- Refactored three repository test files with Arrange-Schema-Act-Assert pattern:
+  - LiabilityRepository tests with proper schema validation flow
+  - AccountRepository tests with comprehensive validation handling
+  - PaymentRepository tests with full schema validation
+- Added validation error tests to each repository test suite
+- Implemented proper relationship loading validations
+- Added comprehensive test coverage for repository-specific methods
+- Enhanced schema factory usage consistency across tests
+
 ## [0.5.24] - 2025-03-22
 
 ### Added

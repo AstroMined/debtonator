@@ -5,19 +5,31 @@ Implementing and Validating Repository Layer Integration Tests (ADR-014)
 
 ### Recent Changes
 
-1. **Implemented Repository Integration Tests** ✓
-   - Created comprehensive test file for PaymentScheduleRepository
-   - Implemented tests for RecurringIncomeRepository following Arrange-Schema-Act-Assert pattern
-   - Developed IncomeCategoryRepository tests with proper schema validation flow
-   - Created CashflowForecastRepository tests with complete method coverage
-   - Enhanced CreditLimitHistoryRepository tests with missing method tests
-   - Standardized test structure with four-step pattern across all implementations
-   - Ensured consistent use of schema factories for validation
-   - Added proper transaction boundary and error handling tests
-   - Implemented relationship loading validation in all repository tests
-   - Used timezone-aware handling for all datetime comparisons
+1. **Completed Model-Specific Repository Integration Tests** ✓
+   - Refactored LiabilityRepository tests to follow Arrange-Schema-Act-Assert pattern
+   - Created comprehensive AccountRepository tests with proper validation flow
+   - Implemented PaymentRepository tests with full schema validation
+   - Created new PaymentSource schema factory for test support
+   - Enhanced Payment schema factory with better split payment support
+   - Added validation error tests to each repository test suite
+   - Implemented proper relationship loading validations
+   - Ensured comprehensive test coverage for all repository methods
+   - Followed schema validation flow in all tests
+   - Verified proper handling of transaction boundaries
 
-2. **Updated Implementation Checklist** ✓
+2. **Standardized Repository Test Pattern** ✓
+   - Applied the four-step Arrange-Schema-Act-Assert pattern consistently
+   - Created test fixtures that follow schema validation flow
+   - Implemented proper assertion methods for all test cases
+   - Used schema factories consistently throughout all tests
+   - Added specialized test cases for repository-specific methods
+   - Implemented consistent approach to testing relationship loading
+   - Made all tests consistent with the implementation guide
+   - Added test cases for validation errors
+   - Improved test readability with clear structure
+   - Ensured proper error handling in test implementations
+
+3. **Updated Implementation Checklist** ✓
    - Marked all repository implementation tasks as complete (18/18)
    - Updated test implementation status to reflect completed tests
    - Documented schema factory implementation completeness
@@ -40,7 +52,7 @@ Implementing and Validating Repository Layer Integration Tests (ADR-014)
    - Ensure transaction boundaries are respected
 
 2. **Test Additional Repositories**
-   - Create/Update tests for remaining repositories
+   - Continue refactoring remaining repository tests
    - Apply Arrange-Schema-Act-Assert pattern to all tests
    - Focus on high-traffic repositories first
    - Ensure consistent error handling patterns
@@ -55,21 +67,24 @@ Implementing and Validating Repository Layer Integration Tests (ADR-014)
 
 ## Implementation Lessons
 
-1. **Repository Implementation Patterns**
-   - Follow consistent method naming conventions across repositories
-   - Group related functionality (e.g., getters with relationship loading)
-   - Use type annotations consistently for better code readability
-   - Implement proper error handling for edge cases
-   - Include comprehensive docstrings for all methods
-   - Follow SQLAlchemy best practices for relationship loading
+1. **Repository Test Pattern**
+   - Four-step pattern is essential for proper testing:
+     1. Arrange: Set up test dependencies
+     2. Schema: Create and validate through Pydantic schemas
+     3. Act: Convert validated data to dict and pass to repository
+     4. Assert: Verify operation results
+   - Create factory functions for all schema types
+   - Never create raw dictionaries for repository methods
+   - Always validate data through schemas before passing to repositories
+   - Include test cases for validation errors
 
-2. **Repository Method Design**
-   - Keep primary query methods simple and focused
-   - Use optional parameters to enhance flexibility
-   - Support filtering by key attributes (date, account, status)
-   - Include relationship loading options where appropriate
-   - Return consistent types for similar methods across repositories
-   - Provide total calculation methods for financial summaries
+2. **Schema Factory Design**
+   - Provide reasonable defaults for all non-required fields
+   - Use type hints for parameters and return values
+   - Document parameters, defaults, and return types
+   - Allow overriding any field with **kwargs
+   - Return validated schema instances, not dictionaries
+   - Implement factories for all primary and related schemas
 
 3. **SQLAlchemy Query Optimization**
    - Use selectinload for one-to-many relationships

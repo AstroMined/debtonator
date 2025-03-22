@@ -489,9 +489,9 @@ When implementing a new repository:
    - [ ] Test error handling
 
 6. **Model-Specific Repository Integration Tests**
-   - [ ] Create/Update test file for AccountRepository
-   - [ ] Create/Update test file for LiabilityRepository
-   - [ ] Create/Update test file for PaymentRepository
+   - [x] Create/Update test file for AccountRepository
+   - [x] Create/Update test file for LiabilityRepository
+   - [x] Create/Update test file for PaymentRepository
    - [ ] Create/Update test file for PaymentSourceRepository
    - [ ] Create/Update test file for BillSplitRepository
    - [ ] Create/Update test file for RecurringBillRepository
