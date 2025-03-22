@@ -494,9 +494,9 @@ When implementing a new repository:
    - [x] Create/Update test file for PaymentRepository
    - [x] Create/Update test file for PaymentSourceRepository
    - [x] Create/Update test file for BillSplitRepository
-   - [ ] Create/Update test file for RecurringBillRepository (Started)
-   - [ ] Create/Update test file for StatementHistoryRepository
-   - [ ] Create/Update test file for BalanceHistoryRepository
+   - [x] Create/Update test file for RecurringBillRepository
+   - [x] Create/Update test file for StatementHistoryRepository
+   - [x] Create/Update test file for BalanceHistoryRepository
    - [ ] Create/Update test file for CategoryRepository
    - [x] Create/Update test file for CreditLimitHistoryRepository
    - [ ] Create/Update test file for BalanceReconciliationRepository

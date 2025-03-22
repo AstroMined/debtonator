@@ -6,6 +6,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.27] - 2025-03-22
+
+### Changed
+
+- Refactored model-specific repository integration tests:
+  - Updated test_balance_history_repository.py to implement the Arrange-Schema-Act-Assert pattern
+  - Converted direct dictionary use to proper schema validation through Pydantic
+  - Added explicit test fixtures using schema factories
+  - Added validation error testing
+  - Improved test organization with proper comments indicating test steps
+  - Implemented comprehensive testing for all repository methods
+  - Enhanced tests for specialized methods like get_available_credit_trend
+
+### Improved
+
+- Enhanced repository test infrastructure:
+  - Implemented clear step-by-step Arrange-Schema-Act-Assert pattern with explicit comments
+  - Applied the schema validation flow consistently across tests
+  - Added proper error handling tests for schema validation failures
+  - Improved fixture organization to separate concerns
+
+### Fixed
+
+- Updated ADR-014 implementation checklist to mark BalanceHistoryRepository tests as completed
+
 ## [0.5.26] - 2025-03-22
 
 ### Added
