@@ -22,9 +22,10 @@ from src.schemas.credit_limit_history import (
     CreditLimitHistoryCreate,
     CreditLimitHistoryUpdate,
 )
-from tests.helpers.schema_factories import (
-    create_account_schema,
+from tests.helpers.schema_factories.accounts import create_account_schema
+from tests.helpers.schema_factories.credit_limit_history import (
     create_credit_limit_history_schema,
+    create_credit_limit_history_update_schema,
 )
 
 
@@ -199,7 +200,7 @@ class TestCreditLimitHistoryRepository:
         # 1. ARRANGE: Setup is already done with fixtures
 
         # 2. SCHEMA: Create and validate update data through Pydantic schema
-        update_schema = CreditLimitHistoryUpdate(
+        update_schema = create_credit_limit_history_update_schema(
             id=test_credit_limit_history.id,
             credit_limit=Decimal("12000.00"),
             reason="Updated credit limit increase",
@@ -397,10 +398,81 @@ class TestCreditLimitHistoryRepository:
         assert "change_percent" in results[1]
 
     @pytest.mark.asyncio
+    @pytest.mark.asyncio
+    async def test_calculate_average_credit_limit(
+        self,
+        credit_limit_history_repository: CreditLimitHistoryRepository,
+        test_credit_account: Account,
+        test_credit_limit_changes: List[CreditLimitHistory],
+    ):
+        """Test calculating the average credit limit over a period."""
+        # 1. ARRANGE: Setup date range
+        now = datetime.now(timezone.utc)
+        start_date = now - timedelta(days=100)
+        end_date = now
+        
+        # 2. SCHEMA: Not needed for this calculation operation
+        
+        # 3. ACT: Calculate average limit
+        result = await credit_limit_history_repository.calculate_average_credit_limit(
+            test_credit_account.id, start_date, end_date
+        )
+        
+        # 4. ASSERT: Verify the operation results
+        assert result is not None
+        # Check that the average is a reasonable value based on our test data
+        assert result > Decimal("5000.00")
+        assert result < Decimal("8000.00")
+        
+        # Calculate expected average manually
+        limits = [Decimal("5000.00"), Decimal("7500.00"), Decimal("6500.00"), Decimal("8000.00")]
+        expected_avg = sum(limits) / len(limits)
+        assert result == pytest.approx(expected_avg)
+    
+    @pytest.mark.asyncio
+    async def test_get_by_account_ordered(
+        self,
+        credit_limit_history_repository: CreditLimitHistoryRepository,
+        test_credit_account: Account,
+        test_credit_limit_changes: List[CreditLimitHistory],
+    ):
+        """Test getting credit limit history entries with ordering options."""
+        # 1. ARRANGE: Setup is already done with fixtures
+        
+        # 2. SCHEMA: Not needed for this query-only operation
+        
+        # 3. ACT: Get history entries in ascending order
+        asc_results = await credit_limit_history_repository.get_by_account_ordered(
+            test_credit_account.id, order_by_desc=False, limit=10
+        )
+        
+        # Get history entries in descending order
+        desc_results = await credit_limit_history_repository.get_by_account_ordered(
+            test_credit_account.id, order_by_desc=True, limit=10
+        )
+        
+        # 4. ASSERT: Verify the operation results
+        assert len(asc_results) >= 4
+        assert len(desc_results) >= 4
+        
+        # Check ascending order
+        for i in range(1, len(asc_results)):
+            assert asc_results[i-1].effective_date <= asc_results[i].effective_date
+        
+        # Check descending order
+        for i in range(1, len(desc_results)):
+            assert desc_results[i-1].effective_date >= desc_results[i].effective_date
+        
+        # First entry in descending should match latest limit
+        latest_limit = await credit_limit_history_repository.get_latest_limit(test_credit_account.id)
+        assert desc_results[0].id == latest_limit.id
+    
+    @pytest.mark.asyncio
     async def test_validation_error_handling(self, test_credit_account: Account):
         """Test handling of validation errors that would be caught by the Pydantic schema."""
         # Try creating a schema with invalid data
         try:
+            # Use direct schema construction to test validation error
             invalid_schema = CreditLimitHistoryCreate(
                 account_id=test_credit_account.id,
                 credit_limit=Decimal("-5000.00"),  # Invalid negative credit limit

@@ -6,6 +6,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.24] - 2025-03-22
+
+### Added
+
+- Implemented comprehensive integration tests for PaymentScheduleRepository
+- Created new integration tests for RecurringIncomeRepository
+- Added integration tests for IncomeCategoryRepository
+- Implemented test suite for CashflowForecastRepository
+- Created thorough tests for DepositScheduleRepository
+- Enhanced CreditLimitHistoryRepository tests with missing test methods
+
+### Improved
+
+- Applied Arrange-Schema-Act-Assert pattern consistently across all new tests
+- Updated ADR-014 implementation checklist to reflect completion of repository tests
+- Enhanced schema validation in repository tests
+- Added comprehensive test coverage for relationship loading
+- Implemented error handling tests for all repositories
+
+### Changed
+
+- Updated repository test strategy to use schema factories consistently
+- Completed the repository layer implementation for ADR-014
+
 ## [0.5.23] - 2025-03-22
 
 ### Added
