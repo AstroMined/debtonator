@@ -6,6 +6,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.30] - 2025-03-23
+
+### Changed
+
+- Improved historical data validation in schemas:
+  - Removed overzealous validation that prevented past due dates in liability schemas
+  - Fixed test failures in integration tests caused by due date validation
+  - Aligned validation with ADR-002 requirements for historical data entry
+  - Ensured consistency with other schemas that already allowed past dates
+
+### Added
+
+- Added tests to verify historical data entry compliance:
+  - Created tests to verify past due dates are now accepted
+  - Enhanced tests to use existing datetime utility functions
+  - Refactored test_liabilities_schemas.py to use datetime_utils.py helpers
+  - Improved code reuse and maintainability by leveraging established utility functions
+
+### Fixed
+
+- Fixed potential issues with date comparison and validation:
+  - Enhanced datetime handling in liability tests
+  - Fixed validation of past due dates in test fixtures
+  - Standardized UTC datetime usage in tests using helper functions
+
 ## [0.5.29] - 2025-03-22
 
 ### Added

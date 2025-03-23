@@ -8,21 +8,12 @@ from pydantic import ValidationError
 from src.schemas.liabilities import (AutoPaySettings, AutoPayUpdate,
                                      LiabilityCreate, LiabilityDateRange,
                                      LiabilityUpdate)
-
-
-def create_future_datetime(days: int = 1) -> datetime:
-    """Helper to create future UTC datetime"""
-    return datetime.now(timezone.utc) + timedelta(days=days)
-
-
-def create_past_datetime(days: int = 1) -> datetime:
-    """Helper to create past UTC datetime"""
-    return datetime.now(timezone.utc) - timedelta(days=days)
+from tests.helpers.datetime_utils import days_from_now, days_ago, utc_now
 
 
 def test_liability_create_valid():
     """Test creating a valid liability"""
-    due_date = create_future_datetime()
+    due_date = days_from_now(1)
     liability = LiabilityCreate(
         name="Test Bill",
         amount=Decimal("100.00"),
@@ -50,7 +41,7 @@ def test_liability_create_valid():
 
 def test_liability_create_validates_name_length():
     """Test name length validation"""
-    due_date = create_future_datetime()
+    due_date = days_from_now(1)
 
     # Test empty name
     with pytest.raises(ValidationError) as exc_info:
@@ -77,7 +68,7 @@ def test_liability_create_validates_name_length():
 
 def test_liability_create_validates_amount():
     """Test amount validation"""
-    due_date = create_future_datetime()
+    due_date = days_from_now(1)
 
     # Test zero amount
     with pytest.raises(ValidationError) as exc_info:
@@ -113,23 +104,25 @@ def test_liability_create_validates_amount():
     assert "Input should be a multiple of 0.01" in str(exc_info.value)
 
 
-def test_liability_create_validates_due_date():
-    """Test due date validation"""
-    # Test past due date
-    with pytest.raises(ValidationError) as exc_info:
-        LiabilityCreate(
-            name="Test Bill",
-            amount=Decimal("100.00"),
-            due_date=create_past_datetime(),
-            category_id=1,
-            primary_account_id=1,
-        )
-    assert "Due date cannot be in the past" in str(exc_info.value)
+def test_liability_create_accepts_past_due_date():
+    """Test that past due dates are now accepted"""
+    # Create a liability with a past due date
+    past_date = days_ago(30)  # 30 days in the past
+    liability = LiabilityCreate(
+        name="Historical Bill",
+        amount=Decimal("100.00"),
+        due_date=past_date,
+        category_id=1,
+        primary_account_id=1,
+    )
+    # Verify it was created successfully with the past due date
+    assert liability.due_date == past_date
+    assert liability.due_date < datetime.now(timezone.utc)
 
 
 def test_liability_create_validates_description():
     """Test description validation"""
-    due_date = create_future_datetime()
+    due_date = days_from_now(1)
 
     # Test empty description
     with pytest.raises(ValidationError) as exc_info:
@@ -186,7 +179,7 @@ def test_liability_create_rejects_non_utc_datetime():
 
 def test_liability_update_valid():
     """Test valid liability update"""
-    due_date = datetime.now(timezone.utc) + timedelta(days=30)  # Always future date
+    due_date = days_from_now(30)  # 30 days in the future
     update = LiabilityUpdate(due_date=due_date, amount=Decimal("150.00"))
     assert update.model_dump() == {
         "name": None,
@@ -200,6 +193,18 @@ def test_liability_update_valid():
         "auto_pay_settings": None,
         "auto_pay_enabled": None,
     }
+
+
+def test_liability_update_accepts_past_due_date():
+    """Test that a liability update with a past due date is accepted"""
+    past_date = days_ago(45)  # 45 days in the past
+    update = LiabilityUpdate(
+        name="Past Due Bill", 
+        due_date=past_date,
+        amount=Decimal("75.50")
+    )
+    assert update.due_date == past_date
+    assert update.due_date < datetime.now(timezone.utc)
 
 
 def test_liability_update_optional_fields():
@@ -288,7 +293,7 @@ def test_auto_pay_update_validation():
 
 def test_liability_date_range_validation():
     """Test date range validation"""
-    now = datetime.now(timezone.utc)
+    now = utc_now()
     # Test valid date range
     start_date = now
     end_date = now + timedelta(days=30)

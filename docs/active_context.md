@@ -1,11 +1,22 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Implementing and Validating Repository Layer Integration Tests (ADR-014) and Ensuring UTC Datetime Compliance (ADR-011)
+Implementing and Validating Repository Layer Integration Tests (ADR-014), Ensuring UTC Datetime Compliance (ADR-011), and Improving Validation for Historical Data Entry (ADR-002)
 
 ### Recent Changes
 
-1. **UTC Datetime Compliance Tools Implementation** ✓
+1. **Improved Historical Data Validation in Liabilities** ✓
+   - Removed overzealous validation that prevented past due dates in liability schemas
+   - Fixed test failures in integration tests caused by due date validation
+   - Added tests to verify past due dates are now accepted (per ADR-002)
+   - Enhanced tests to use existing datetime utility functions
+   - Refactored test_liabilities_schemas.py to use datetime_utils.py helpers
+   - Improved code reuse and maintainability by leveraging established utility functions
+   - Fixed potential issues with date comparison and validation
+   - Aligned validation with ADR-002 requirements for historical data entry
+   - Ensured consistency with other schemas that already allowed past dates
+
+2. **UTC Datetime Compliance Tools Implementation** ✓
    - Created comprehensive helper utilities in `tests/helpers/datetime_utils.py` 
    - Implemented scanner script in `tools/scan_naive_datetimes.py` to detect naive datetime usage
    - Added simplified pytest hook in `conftest.py` to warn about naive datetime usage during test runs

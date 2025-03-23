@@ -33,12 +33,13 @@
    - API response formatting with proper precision
    - Comprehensive testing across all components
 
-6. **UTC Datetime Compliance**: IN PROGRESS (95%)
+6. **UTC Datetime Compliance**: IN PROGRESS (97%)
    - Helper utilities created for consistent datetime handling ✓
    - Naive datetime detection tools implemented ✓
    - Test hooks added for automated detection during test runs ✓
    - Most incorrect datetime usage in tests fixed ✓
-   - Some naive datetime usage remains to be fixed
+   - Improved test helpers usage across test files ✓
+   - Still some naive datetime usage remains to be fixed
 
 ## What Works
 
@@ -54,6 +55,7 @@
    - Split payment support across multiple accounts
    - Payment tracking with source allocation
    - Auto-pay management
+   - Past due date support for historical data entry ✓
 
 3. **Financial Analysis**
    - Cross-account balance tracking
@@ -66,6 +68,7 @@
    - Proper UTC timezone handling for all datetime fields
    - Decimal precision validation for monetary values
    - Cross-field validation for data consistency
+   - Historical data support with ADR-002 compliance ✓
 
 5. **Core Architecture**
    - Repository pattern for data access
@@ -78,12 +81,13 @@
 
 ## What's Left to Build
 
-1. **UTC Datetime Compliance (95%)**
+1. **UTC Datetime Compliance (97%)**
    - ✓ Created helper utilities in tests/helpers/datetime_utils.py
    - ✓ Implemented scanner script in tools/scan_naive_datetimes.py
    - ✓ Added pytest hook for warning about naive datetime usage
    - ✓ Created comprehensive documentation for datetime compliance
    - ✓ Fixed most incorrect datetime usage in repository tests
+   - ✓ Improved test helper utilization in schema tests
    - Fix remaining naive datetime usage in tests
    - Add scanner to CI pipeline
    - Consider expanding helper utilities to production code
@@ -105,19 +109,26 @@
    - ✓ Implemented comprehensive timezone handling in repository tests
    - ✓ Implemented tests for all model-specific repositories (23/23)
 
-4. **Service Layer Refactoring (90%)**
+4. **Historical Data Entry (ADR-002) (100%)**
+   - ✓ Removed restrictive date validation in liability schemas
+   - ✓ Added tests to verify past due dates are accepted
+   - ✓ Fixed integration test failures related to date validation
+   - ✓ Enhanced test suite to use datetime utility functions
+   - ✓ Ensured consistency with other schemas that already allowed past dates
+
+5. **Service Layer Refactoring (90%)**
    - ✓ AccountService refactored to use repository pattern
    - Refactor remaining services (BillService, PaymentService, etc.)
    - Update API endpoints to use refactored services
    - Ensure proper schema validation in service-to-repository flow
 
-5. **API Enhancement Project - Phase 6 (100%)**
+6. **API Enhancement Project - Phase 6 (100%)**
    - Implement recommendations API
    - Develop trend reporting features
    - Create frontend components
    - Build comprehensive API documentation
 
-6. **Mobile Access Features (100%)**
+7. **Mobile Access Features (100%)**
    - Create mobile-responsive UI components
    - Implement offline capabilities
    - Add notification system

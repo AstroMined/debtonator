@@ -119,25 +119,6 @@ class LiabilityBase(BaseSchemaValidator):
         default=False, description="Whether this liability has been paid"
     )
 
-    @field_validator("due_date")
-    @classmethod
-    def validate_due_date_not_past(cls, value: datetime) -> datetime:
-        """
-        Validates that due date is not in the past.
-
-        Args:
-            value: The datetime value to validate
-
-        Returns:
-            datetime: The validated value
-
-        Raises:
-            ValueError: If due date is in the past
-        """
-        if value < datetime.now(value.tzinfo):
-            raise ValueError("Due date cannot be in the past")
-        return value
-
 
 class LiabilityCreate(LiabilityBase):
     """
@@ -193,27 +174,6 @@ class LiabilityUpdate(BaseSchemaValidator):
     auto_pay_enabled: Optional[bool] = Field(
         None, description="Whether auto-pay is currently enabled for this liability"
     )
-
-    @field_validator("due_date")
-    @classmethod
-    def validate_due_date_not_past(
-        cls, value: Optional[datetime]
-    ) -> Optional[datetime]:
-        """
-        Validates that due date is not in the past.
-
-        Args:
-            value: The optional datetime value to validate
-
-        Returns:
-            Optional[datetime]: The validated value
-
-        Raises:
-            ValueError: If due date is in the past
-        """
-        if value is not None and value < datetime.now(value.tzinfo):
-            raise ValueError("Due date cannot be in the past")
-        return value
 
 
 class AutoPayUpdate(BaseSchemaValidator):
