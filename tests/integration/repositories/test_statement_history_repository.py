@@ -18,14 +18,19 @@ from src.models.accounts import Account
 from src.models.statement_history import StatementHistory
 from src.repositories.accounts import AccountRepository
 from src.repositories.statement_history import StatementHistoryRepository
-from src.schemas.statement_history import StatementHistoryCreate, StatementHistoryUpdate
+from src.schemas.statement_history import (StatementHistoryCreate,
+                                           StatementHistoryUpdate)
+from tests.helpers.datetime_utils import utc_now
 # Import schema factory functions directly
 from tests.helpers.schema_factories.accounts import create_account_schema
-from tests.helpers.schema_factories.statement_history import create_statement_history_schema
+from tests.helpers.schema_factories.statement_history import \
+    create_statement_history_schema
 
 
 @pytest_asyncio.fixture
-async def statement_history_repository(db_session: AsyncSession) -> StatementHistoryRepository:
+async def statement_history_repository(
+    db_session: AsyncSession,
+) -> StatementHistoryRepository:
     """Fixture for StatementHistoryRepository with test database session."""
     return StatementHistoryRepository(db_session)
 
@@ -40,7 +45,7 @@ async def account_repository(db_session: AsyncSession) -> AccountRepository:
 async def test_credit_account(account_repository: AccountRepository) -> Account:
     """Create a test credit account for use in tests."""
     # 1. ARRANGE: No setup needed for this fixture
-    
+
     # 2. SCHEMA: Create and validate through Pydantic schema
     account_schema = create_account_schema(
         name="Test Credit Account",
@@ -49,10 +54,10 @@ async def test_credit_account(account_repository: AccountRepository) -> Account:
         total_limit=Decimal("2000.00"),
         available_credit=Decimal("1500.00"),
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = account_schema.model_dump()
-    
+
     # 3. ACT: Pass validated data to repository
     return await account_repository.create(validated_data)
 
@@ -64,11 +69,11 @@ async def test_statement_history(
 ) -> StatementHistory:
     """Create a test statement history record for use in tests."""
     # 1. ARRANGE: No setup needed for this fixture
-    
+
     # 2. SCHEMA: Create and validate through Pydantic schema
-    statement_date = datetime.utcnow().replace(day=1)  # First of current month
+    statement_date = utc_now().replace(day=1)  # First of current month
     due_date = statement_date + timedelta(days=21)
-    
+
     statement_schema = create_statement_history_schema(
         account_id=test_credit_account.id,
         statement_date=statement_date,
@@ -76,10 +81,10 @@ async def test_statement_history(
         minimum_payment=Decimal("25.00"),
         due_date=due_date,
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = statement_schema.model_dump()
-    
+
     # 3. ACT: Pass validated data to repository
     return await statement_history_repository.create(validated_data)
 
@@ -91,13 +96,23 @@ async def test_multiple_statements(
 ) -> List[StatementHistory]:
     """Create multiple statement history records for use in tests."""
     # 1. ARRANGE: Setup statement configurations
-    now = datetime.utcnow()
+    now = utc_now()
     statement_configs = [
-        (now - timedelta(days=60), Decimal("400.00"), Decimal("20.00"), now - timedelta(days=39)),
-        (now - timedelta(days=30), Decimal("600.00"), Decimal("30.00"), now - timedelta(days=9)),
+        (
+            now - timedelta(days=60),
+            Decimal("400.00"),
+            Decimal("20.00"),
+            now - timedelta(days=39),
+        ),
+        (
+            now - timedelta(days=30),
+            Decimal("600.00"),
+            Decimal("30.00"),
+            now - timedelta(days=9),
+        ),
         (now, Decimal("800.00"), Decimal("40.00"), now + timedelta(days=21)),
     ]
-    
+
     statements = []
     for stmt_date, balance, min_payment, due_date in statement_configs:
         # 2. SCHEMA: Create and validate through Pydantic schema
@@ -108,14 +123,14 @@ async def test_multiple_statements(
             minimum_payment=min_payment,
             due_date=due_date,
         )
-        
+
         # Convert validated schema to dict for repository
         validated_data = statement_schema.model_dump()
-        
+
         # 3. ACT: Pass validated data to repository
         statement = await statement_history_repository.create(validated_data)
         statements.append(statement)
-    
+
     return statements
 
 
@@ -128,8 +143,8 @@ async def test_multiple_accounts_with_statements(
     # 1. ARRANGE: Setup account configurations
     accounts = []
     statements = []
-    now = datetime.utcnow()
-    
+    now = utc_now()
+
     # Create two credit accounts
     for i in range(2):
         # 2. SCHEMA: Create and validate account through Pydantic schema
@@ -140,33 +155,34 @@ async def test_multiple_accounts_with_statements(
             total_limit=Decimal(f"{(i+1)*1000}.00"),
             available_credit=Decimal(f"{(i+1)*1000 - (i+5)*100}.00"),
         )
-        
+
         # Convert validated schema to dict for repository
         validated_data = account_schema.model_dump()
-        
+
         # 3. ACT: Pass validated data to repository
         account = await account_repository.create(validated_data)
         accounts.append(account)
-        
+
         # Create statements for each account
         for j in range(3):
-            days_offset = (3-j) * 30  # 90, 60, 30 days ago
+            days_offset = (3 - j) * 30  # 90, 60, 30 days ago
             # Create statement schema
             statement_schema = create_statement_history_schema(
                 account_id=account.id,
                 statement_date=now - timedelta(days=days_offset),
                 statement_balance=Decimal(f"{(i+j+1)*200}.00"),
                 minimum_payment=Decimal(f"{(i+j+1)*10}.00"),
-                due_date=now - timedelta(days=days_offset-21),  # Due 21 days after statement
+                due_date=now
+                - timedelta(days=days_offset - 21),  # Due 21 days after statement
             )
-            
+
             # Convert validated schema to dict for repository
             validated_data = statement_schema.model_dump()
-            
+
             # Pass validated data to repository
             statement = await statement_history_repository.create(validated_data)
             statements.append(statement)
-    
+
     return accounts, statements
 
 
@@ -186,9 +202,9 @@ class TestStatementHistoryRepository:
     ):
         """Test creating a statement history record with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
-        statement_date = datetime.utcnow().replace(day=1)  # First of current month
+        statement_date = utc_now().replace(day=1)  # First of current month
         due_date = statement_date + timedelta(days=21)
-        
+
         # 2. SCHEMA: Create and validate through Pydantic schema
         statement_schema = create_statement_history_schema(
             account_id=test_credit_account.id,
@@ -197,13 +213,13 @@ class TestStatementHistoryRepository:
             minimum_payment=Decimal("25.00"),
             due_date=due_date,
         )
-        
+
         # Convert validated schema to dict for repository
         validated_data = statement_schema.model_dump()
-        
+
         # 3. ACT: Pass validated data to repository
         result = await statement_history_repository.create(validated_data)
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id is not None
@@ -223,10 +239,10 @@ class TestStatementHistoryRepository:
     ):
         """Test retrieving a statement history record by ID."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get the statement history by ID
         result = await statement_history_repository.get(test_statement_history.id)
-        
+
         # 3. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_statement_history.id
@@ -244,21 +260,21 @@ class TestStatementHistoryRepository:
     ):
         """Test updating a statement history record with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. SCHEMA: Create and validate update data through Pydantic schema
         update_schema = StatementHistoryUpdate(
             statement_balance=Decimal("550.00"),
             minimum_payment=Decimal("30.00"),
         )
-        
+
         # Convert validated schema to dict for repository
         update_data = update_schema.model_dump(exclude_unset=True)
-        
+
         # 3. ACT: Pass validated data to repository
         result = await statement_history_repository.update(
             test_statement_history.id, update_data
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_statement_history.id
@@ -278,15 +294,17 @@ class TestStatementHistoryRepository:
     ):
         """Test deleting a statement history record."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Delete the statement history
         result = await statement_history_repository.delete(test_statement_history.id)
-        
+
         # 3. ASSERT: Verify the operation results
         assert result is True
-        
+
         # Verify the statement history is actually deleted
-        deleted_check = await statement_history_repository.get(test_statement_history.id)
+        deleted_check = await statement_history_repository.get(
+            test_statement_history.id
+        )
         assert deleted_check is None
 
     @pytest.mark.asyncio
@@ -298,15 +316,17 @@ class TestStatementHistoryRepository:
     ):
         """Test retrieving statement history records for an account."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get statements by account ID
-        results = await statement_history_repository.get_by_account(test_credit_account.id)
-        
+        results = await statement_history_repository.get_by_account(
+            test_credit_account.id
+        )
+
         # 3. ASSERT: Verify the operation results
         assert len(results) >= 3  # At least the 3 statements we created
         for statement in results:
             assert statement.account_id == test_credit_account.id
-        
+
         # Test with limit
         limited_results = await statement_history_repository.get_by_account(
             test_credit_account.id, limit=2
@@ -323,10 +343,12 @@ class TestStatementHistoryRepository:
         """Test retrieving the latest statement for an account."""
         # 1. ARRANGE: Setup is already done with fixtures
         latest_statement = test_multiple_statements[-1]  # Last in list (most recent)
-        
+
         # 2. ACT: Get latest statement
-        result = await statement_history_repository.get_latest_statement(test_credit_account.id)
-        
+        result = await statement_history_repository.get_latest_statement(
+            test_credit_account.id
+        )
+
         # 3. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == latest_statement.id
@@ -344,10 +366,12 @@ class TestStatementHistoryRepository:
     ):
         """Test retrieving a statement with its associated account."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get statement with account
-        result = await statement_history_repository.get_with_account(test_statement_history.id)
-        
+        result = await statement_history_repository.get_with_account(
+            test_statement_history.id
+        )
+
         # 3. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_statement_history.id
@@ -365,18 +389,18 @@ class TestStatementHistoryRepository:
     ):
         """Test retrieving statements within a date range."""
         # 1. ARRANGE: Setup date range parameters
-        now = datetime.utcnow()
+        now = utc_now()
         start_date = now - timedelta(days=70)
         end_date = now - timedelta(days=20)
-        
+
         # 2. ACT: Get statements within date range
         results = await statement_history_repository.get_by_date_range(
             test_credit_account.id, start_date, end_date
         )
-        
+
         # 3. ASSERT: Verify the operation results
         assert len(results) >= 1  # Should include at least the 60-day-old statement
-        
+
         # Check that statements are within range
         for statement in results:
             assert statement.account_id == test_credit_account.id
@@ -387,22 +411,24 @@ class TestStatementHistoryRepository:
     async def test_get_statements_with_due_dates(
         self,
         statement_history_repository: StatementHistoryRepository,
-        test_multiple_accounts_with_statements: Tuple[List[Account], List[StatementHistory]],
+        test_multiple_accounts_with_statements: Tuple[
+            List[Account], List[StatementHistory]
+        ],
     ):
         """Test retrieving statements with due dates in a specified range."""
         # 1. ARRANGE: Setup date range for due dates
-        now = datetime.utcnow()
+        now = utc_now()
         start_date = now
         end_date = now + timedelta(days=30)
-        
+
         # 2. ACT: Get statements with due dates in range
         results = await statement_history_repository.get_statements_with_due_dates(
             start_date, end_date
         )
-        
+
         # 3. ASSERT: Verify the operation results
         assert len(results) > 0  # Should find at least one statement
-        
+
         # Check that due dates are within range
         for statement in results:
             assert statement.due_date is not None
@@ -413,30 +439,36 @@ class TestStatementHistoryRepository:
     async def test_get_upcoming_statements_with_accounts(
         self,
         statement_history_repository: StatementHistoryRepository,
-        test_multiple_accounts_with_statements: Tuple[List[Account], List[StatementHistory]],
+        test_multiple_accounts_with_statements: Tuple[
+            List[Account], List[StatementHistory]
+        ],
     ):
         """Test retrieving upcoming statements with their accounts."""
         # 1. ARRANGE: Setup is already done with fixtures
-        now = datetime.utcnow()
-        
+        now = utc_now()
+
         # 2. ACT: Get upcoming statements with accounts (default 30 days)
-        results = await statement_history_repository.get_upcoming_statements_with_accounts()
-        
-        # Test with custom days parameter
-        results_custom = await statement_history_repository.get_upcoming_statements_with_accounts(
-            days=10
+        results = (
+            await statement_history_repository.get_upcoming_statements_with_accounts()
         )
-        
+
+        # Test with custom days parameter
+        results_custom = (
+            await statement_history_repository.get_upcoming_statements_with_accounts(
+                days=10
+            )
+        )
+
         # 3. ASSERT: Verify the operation results
         assert len(results) > 0  # Should find at least one statement
-        
+
         # Check that results contain both statements and accounts
         for statement, account in results:
             assert statement.account_id == account.id
             assert statement.due_date is not None
             assert statement.due_date >= now
             assert statement.due_date <= (now + timedelta(days=30))
-        
+
         # Check custom days parameter
         for statement, account in results_custom:
             assert statement.due_date <= (now + timedelta(days=10))
@@ -449,8 +481,8 @@ class TestStatementHistoryRepository:
     ):
         """Test retrieving statements with minimum payment information."""
         # 1. ARRANGE: Create statements with and without minimum payments
-        now = datetime.utcnow()
-        
+        now = utc_now()
+
         # Create statement with minimum payment
         with_payment_schema = create_statement_history_schema(
             account_id=test_credit_account.id,
@@ -461,7 +493,7 @@ class TestStatementHistoryRepository:
         with_payment = await statement_history_repository.create(
             with_payment_schema.model_dump()
         )
-        
+
         # Create statement without minimum payment
         without_payment_schema = create_statement_history_schema(
             account_id=test_credit_account.id,
@@ -472,17 +504,19 @@ class TestStatementHistoryRepository:
         without_payment = await statement_history_repository.create(
             without_payment_schema.model_dump()
         )
-        
+
         # 2. ACT: Get statements with minimum payment
-        results = await statement_history_repository.get_statements_with_minimum_payment(
-            test_credit_account.id
+        results = (
+            await statement_history_repository.get_statements_with_minimum_payment(
+                test_credit_account.id
+            )
         )
-        
+
         # 3. ASSERT: Verify the operation results
         assert len(results) >= 1  # At least the one we created
         assert any(stmt.id == with_payment.id for stmt in results)
         assert not any(stmt.id == without_payment.id for stmt in results)
-        
+
         # Check that all results have minimum payment
         for statement in results:
             assert statement.minimum_payment is not None
@@ -498,18 +532,20 @@ class TestStatementHistoryRepository:
         # 1. ARRANGE: Setup is already done with fixtures
         # Our test_multiple_statements has three statements with balances: 400, 600, 800
         expected_average = Decimal("600.00")  # (400 + 600 + 800) / 3
-        
+
         # 2. ACT: Get average statement balance
         result = await statement_history_repository.get_average_statement_balance(
             test_credit_account.id
         )
-        
+
         # 3. ASSERT: Verify the operation results
         assert result == expected_average
-        
+
         # Test with custom months parameter (last 1 month)
-        result_1month = await statement_history_repository.get_average_statement_balance(
-            test_credit_account.id, months=1
+        result_1month = (
+            await statement_history_repository.get_average_statement_balance(
+                test_credit_account.id, months=1
+            )
         )
         assert result_1month == Decimal("800.00")  # Only the most recent statement
 
@@ -522,17 +558,19 @@ class TestStatementHistoryRepository:
     ):
         """Test retrieving statement balance trend."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get statement trend
-        trend = await statement_history_repository.get_statement_trend(test_credit_account.id)
-        
+        trend = await statement_history_repository.get_statement_trend(
+            test_credit_account.id
+        )
+
         # 3. ASSERT: Verify the operation results
         assert len(trend) >= 3  # At least our 3 statements
-        
+
         # Check that trend contains date and balance pairs
         dates = [date for date, _ in trend]
         balances = [balance for _, balance in trend]
-        
+
         # Verify our statement dates and balances are in the trend
         for statement in test_multiple_statements:
             assert statement.statement_date in dates
@@ -542,18 +580,20 @@ class TestStatementHistoryRepository:
     async def test_get_total_minimum_payments_due(
         self,
         statement_history_repository: StatementHistoryRepository,
-        test_multiple_accounts_with_statements: Tuple[List[Account], List[StatementHistory]],
+        test_multiple_accounts_with_statements: Tuple[
+            List[Account], List[StatementHistory]
+        ],
     ):
         """Test calculating total minimum payments due."""
         # 1. ARRANGE: Setup date range for due dates
-        now = datetime.utcnow()
+        now = utc_now()
         start_date = now
         end_date = now + timedelta(days=30)
-        
+
         # Create fresh statements with due dates in the target range
         accounts, _ = test_multiple_accounts_with_statements
         statements_in_range = []
-        
+
         # Create statements for each account with due dates in range
         for i, account in enumerate(accounts):
             stmt_schema = create_statement_history_schema(
@@ -565,15 +605,15 @@ class TestStatementHistoryRepository:
             )
             stmt = await statement_history_repository.create(stmt_schema.model_dump())
             statements_in_range.append(stmt)
-        
+
         # Expected total (25 + 50) = 75
         expected_total = sum(stmt.minimum_payment for stmt in statements_in_range)
-        
+
         # 2. ACT: Get total minimum payments due
         result = await statement_history_repository.get_total_minimum_payments_due(
             start_date, end_date
         )
-        
+
         # 3. ASSERT: Verify the operation results
         assert result >= expected_total  # May include other statements
 
@@ -584,8 +624,10 @@ class TestStatementHistoryRepository:
         try:
             invalid_schema = StatementHistoryCreate(
                 account_id=-1,  # Invalid negative ID
-                statement_date=datetime.utcnow(),
-                statement_balance=Decimal("-100.00"),  # May or may not be valid depending on schema
+                statement_date=utc_now(),
+                statement_balance=Decimal(
+                    "-100.00"
+                ),  # May or may not be valid depending on schema
                 minimum_payment=Decimal("-10.00"),  # Invalid negative payment
             )
             assert False, "Schema should have raised a validation error"

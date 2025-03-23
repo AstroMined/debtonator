@@ -9,19 +9,11 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from src.schemas.impact_analysis import (
-    AccountImpact,
-    CashflowImpact,
-    RiskFactor,
-    SplitImpactAnalysis,
-    SplitImpactRequest,
-)
-from tests.helpers.schema_factories.base import (
-    MEDIUM_AMOUNT,
-    SMALL_AMOUNT,
-    factory_function,
-    utc_now,
-)
+from src.schemas.impact_analysis import (AccountImpact, CashflowImpact,
+                                         RiskFactor, SplitImpactAnalysis,
+                                         SplitImpactRequest)
+from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT, SMALL_AMOUNT,
+                                                 factory_function, utc_now)
 
 
 @factory_function(AccountImpact)

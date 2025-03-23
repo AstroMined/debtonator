@@ -24,19 +24,19 @@ from src.models.payment_schedules import PaymentSchedule
 from src.repositories.accounts import AccountRepository
 from src.repositories.liabilities import LiabilityRepository
 from src.repositories.payment_schedules import PaymentScheduleRepository
-
 # Import schemas and schema factories - essential part of the validation pattern
-from src.schemas.payment_schedules import PaymentScheduleCreate, PaymentScheduleUpdate
+from src.schemas.payment_schedules import (PaymentScheduleCreate,
+                                           PaymentScheduleUpdate)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.liabilities import create_liability_schema
 from tests.helpers.schema_factories.payment_schedules import (
-    create_payment_schedule_schema,
-    create_payment_schedule_update_schema,
-)
+    create_payment_schedule_schema, create_payment_schedule_update_schema)
 
 
 @pytest_asyncio.fixture
-async def payment_schedule_repository(db_session: AsyncSession) -> PaymentScheduleRepository:
+async def payment_schedule_repository(
+    db_session: AsyncSession,
+) -> PaymentScheduleRepository:
     """Fixture for PaymentScheduleRepository with test database session."""
     return PaymentScheduleRepository(db_session)
 
@@ -62,10 +62,10 @@ async def test_account(account_repository: AccountRepository) -> Account:
         account_type="checking",
         available_balance=Decimal("1000.00"),
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = account_schema.model_dump()
-    
+
     # Create account through repository
     return await account_repository.create(validated_data)
 
@@ -79,10 +79,10 @@ async def test_secondary_account(account_repository: AccountRepository) -> Accou
         account_type="savings",
         available_balance=Decimal("500.00"),
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = account_schema.model_dump()
-    
+
     # Create account through repository
     return await account_repository.create(validated_data)
 
@@ -99,10 +99,10 @@ async def test_liability(
         primary_account_id=test_account.id,
         category_id=1,  # Using a default category ID
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = liability_schema.model_dump()
-    
+
     # Create liability through repository
     return await liability_repository.create(validated_data)
 
@@ -122,10 +122,10 @@ async def test_payment_schedule(
         scheduled_date=datetime.now(timezone.utc) + timedelta(days=7),
         description="Test payment schedule",
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = schedule_schema.model_dump()
-    
+
     # Create payment schedule through repository
     return await payment_schedule_repository.create(validated_data)
 
@@ -139,7 +139,7 @@ async def test_multiple_schedules(
 ) -> List[PaymentSchedule]:
     """Fixture to create multiple payment schedules for testing."""
     now = datetime.now(timezone.utc)
-    
+
     # Create multiple payment schedules with various attributes
     schedule_data = [
         {
@@ -175,31 +175,31 @@ async def test_multiple_schedules(
             "auto_process": False,
         },
     ]
-    
+
     # Create the payment schedules using the repository
     created_schedules = []
     for data in schedule_data:
         # Create and validate through Pydantic schema
         schedule_schema = create_payment_schedule_schema(**data)
-        
+
         # Convert validated schema to dict for repository
         validated_data = schedule_schema.model_dump()
-        
+
         # Create payment schedule through repository
         schedule = await payment_schedule_repository.create(validated_data)
         created_schedules.append(schedule)
-        
+
     return created_schedules
 
 
 class TestPaymentScheduleRepository:
     """
     Tests for the PaymentScheduleRepository.
-    
+
     These tests follow the standard Arrange-Schema-Act-Assert pattern for
     repository testing, simulating proper service-to-repository validation flow.
     """
-    
+
     @pytest.mark.asyncio
     async def test_create_payment_schedule(
         self,
@@ -209,7 +209,7 @@ class TestPaymentScheduleRepository:
     ):
         """Test creating a payment schedule with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. SCHEMA: Create and validate through Pydantic schema
         scheduled_date = datetime.now(timezone.utc) + timedelta(days=10)
         schedule_schema = create_payment_schedule_schema(
@@ -220,13 +220,13 @@ class TestPaymentScheduleRepository:
             description="Test payment creation",
             auto_process=True,
         )
-        
+
         # Convert validated schema to dict for repository
         validated_data = schedule_schema.model_dump()
-        
+
         # 3. ACT: Pass validated data to repository
         result = await payment_schedule_repository.create(validated_data)
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id is not None
@@ -248,10 +248,10 @@ class TestPaymentScheduleRepository:
     ):
         """Test retrieving a payment schedule by ID."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get the payment schedule
         result = await payment_schedule_repository.get(test_payment_schedule.id)
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_payment_schedule.id
@@ -269,7 +269,7 @@ class TestPaymentScheduleRepository:
     ):
         """Test updating a payment schedule with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. SCHEMA: Create and validate update data through Pydantic schema
         new_scheduled_date = datetime.now(timezone.utc) + timedelta(days=15)
         update_schema = create_payment_schedule_update_schema(
@@ -277,26 +277,26 @@ class TestPaymentScheduleRepository:
             amount=Decimal("225.00"),
             description="Updated payment description",
         )
-        
+
         # Convert validated schema to dict for repository
         update_data = update_schema.model_dump()
-        
+
         # 3. ACT: Pass validated data to repository
         result = await payment_schedule_repository.update(
             test_payment_schedule.id, update_data
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_payment_schedule.id
         assert result.amount == Decimal("225.00")
         assert result.description == "Updated payment description"
-        
+
         # Convert the timezone-aware date to naive for comparison with database result
         db_date = result.scheduled_date.replace(tzinfo=None)
         expected_date = new_scheduled_date.replace(tzinfo=None)
         assert abs((db_date - expected_date).total_seconds()) < 60  # Within a minute
-        
+
         assert result.updated_at > test_payment_schedule.updated_at
 
     @pytest.mark.asyncio
@@ -307,15 +307,17 @@ class TestPaymentScheduleRepository:
     ):
         """Test deleting a payment schedule."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Delete the payment schedule
         result = await payment_schedule_repository.delete(test_payment_schedule.id)
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is True
-        
+
         # Verify it's actually deleted
-        deleted_schedule = await payment_schedule_repository.get(test_payment_schedule.id)
+        deleted_schedule = await payment_schedule_repository.get(
+            test_payment_schedule.id
+        )
         assert deleted_schedule is None
 
     @pytest.mark.asyncio
@@ -327,10 +329,10 @@ class TestPaymentScheduleRepository:
     ):
         """Test getting payment schedules for a specific account."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get payment schedules for the account
         results = await payment_schedule_repository.get_by_account(test_account.id)
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 3  # Should get at least 3 schedules for this account
         for schedule in results:
@@ -345,10 +347,10 @@ class TestPaymentScheduleRepository:
     ):
         """Test getting payment schedules for a specific liability."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get payment schedules for the liability
         results = await payment_schedule_repository.get_by_liability(test_liability.id)
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 4  # Should get at least 4 schedules for this liability
         for schedule in results:
@@ -362,12 +364,12 @@ class TestPaymentScheduleRepository:
     ):
         """Test getting a payment schedule with account relationship loaded."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get the payment schedule with account
         result = await payment_schedule_repository.get_with_account(
             test_payment_schedule.id
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_payment_schedule.id
@@ -383,12 +385,12 @@ class TestPaymentScheduleRepository:
     ):
         """Test getting a payment schedule with liability relationship loaded."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get the payment schedule with liability
         result = await payment_schedule_repository.get_with_liability(
             test_payment_schedule.id
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_payment_schedule.id
@@ -407,14 +409,14 @@ class TestPaymentScheduleRepository:
         now = datetime.now(timezone.utc)
         start_date = now - timedelta(days=1)
         end_date = now + timedelta(days=10)
-        
+
         # 2. SCHEMA: Not needed for this query-only operation
-        
+
         # 3. ACT: Get payment schedules within date range
         results = await payment_schedule_repository.get_by_date_range(
             start_date, end_date
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 2  # Should get at least 2 schedules in this range
         for schedule in results:
@@ -422,7 +424,7 @@ class TestPaymentScheduleRepository:
             naive_start_date = start_date.replace(tzinfo=None)
             naive_end_date = end_date.replace(tzinfo=None)
             naive_schedule_date = schedule.scheduled_date
-            
+
             assert naive_schedule_date >= naive_start_date
             assert naive_schedule_date <= naive_end_date
 
@@ -434,10 +436,10 @@ class TestPaymentScheduleRepository:
     ):
         """Test getting pending payment schedules."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get pending payment schedules
         results = await payment_schedule_repository.get_pending_schedules()
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 4  # Should get at least 4 pending schedules
         for schedule in results:
@@ -454,20 +456,20 @@ class TestPaymentScheduleRepository:
         # 1. ARRANGE: Mark one schedule as processed
         test_schedule = test_multiple_schedules[0]
         process_time = datetime.now(timezone.utc)
-        
+
         # Use the repository method to mark as processed
         update_schema = create_payment_schedule_update_schema(
             processed=True,
             # Note: processed_date will be set by the mark_as_processed method
         )
-        
+
         await payment_schedule_repository.mark_as_processed(
             test_schedule.id, process_time
         )
-        
+
         # 3. ACT: Get processed payment schedules
         results = await payment_schedule_repository.get_processed_schedules()
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 1  # Should get at least 1 processed schedule
         assert any(s.id == test_schedule.id for s in results)
@@ -484,20 +486,20 @@ class TestPaymentScheduleRepository:
         """Test marking a payment schedule as processed."""
         # 1. ARRANGE: Set up processing date
         process_time = datetime.now(timezone.utc)
-        
+
         # 2. SCHEMA: Not needed for this method as it uses ID and optional datetime
-        
+
         # 3. ACT: Mark the payment schedule as processed
         result = await payment_schedule_repository.mark_as_processed(
             test_payment_schedule.id, process_time
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_payment_schedule.id
         assert result.processed is True
         assert result.processed_date is not None
-        
+
         # Convert to naive datetime for comparison
         db_processed_date = result.processed_date.replace(tzinfo=None)
         expected_processed_date = process_time.replace(tzinfo=None)
@@ -513,14 +515,14 @@ class TestPaymentScheduleRepository:
         # 1. ARRANGE: Set up date range
         now = datetime.now(timezone.utc)
         date_range = (now - timedelta(days=10), now + timedelta(days=20))
-        
+
         # 2. SCHEMA: Not needed for this query-only operation
-        
+
         # 3. ACT: Get payment schedules with relationships
         results = await payment_schedule_repository.get_schedules_with_relationships(
             date_range
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 3  # Should get at least 3 schedules in this range
         for schedule in results:
@@ -538,23 +540,23 @@ class TestPaymentScheduleRepository:
     ):
         """Test getting upcoming payment schedules."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get upcoming payment schedules for next 7 days
         results = await payment_schedule_repository.get_upcoming_schedules(
             days=7, account_id=test_account.id
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 1  # Should get at least 1 upcoming schedule
         for schedule in results:
             assert schedule.account_id == test_account.id
             assert schedule.processed is False
-            
+
             # Schedule date should be in the future and within 7 days
             now = datetime.now(timezone.utc).replace(tzinfo=None)
             assert schedule.scheduled_date >= now
             assert schedule.scheduled_date <= (now + timedelta(days=7))
-            
+
             # Relationships should be loaded
             assert schedule.account is not None
             assert schedule.liability is not None
@@ -567,17 +569,17 @@ class TestPaymentScheduleRepository:
     ):
         """Test finding overdue payment schedules."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Find overdue payment schedules
         results = await payment_schedule_repository.find_overdue_schedules()
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 1  # Should get at least 1 overdue schedule
         now = datetime.now(timezone.utc).replace(tzinfo=None)
         for schedule in results:
             assert schedule.processed is False
             assert schedule.scheduled_date < now
-            
+
             # Relationships should be loaded
             assert schedule.account is not None
             assert schedule.liability is not None
@@ -592,20 +594,20 @@ class TestPaymentScheduleRepository:
         # 1. ARRANGE: Set up date range
         now = datetime.now(timezone.utc)
         date_range = (now - timedelta(days=1), now + timedelta(days=30))
-        
+
         # 2. SCHEMA: Not needed for this query-only operation
-        
+
         # 3. ACT: Get auto-process payment schedules
         results = await payment_schedule_repository.get_auto_process_schedules(
             date_range
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 2  # Should get at least 2 auto-process schedules
         for schedule in results:
             assert schedule.auto_process is True
             assert schedule.processed is False
-            
+
             # Relationships should be loaded
             assert schedule.account is not None
             assert schedule.liability is not None
@@ -622,17 +624,17 @@ class TestPaymentScheduleRepository:
         now = datetime.now(timezone.utc)
         start_date = now - timedelta(days=10)
         end_date = now + timedelta(days=20)
-        
+
         # 2. SCHEMA: Not needed for this calculation operation
-        
+
         # 3. ACT: Get total scheduled payments for account
         total = await payment_schedule_repository.get_total_scheduled_payments(
             start_date, end_date, test_account.id
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert total > 0  # Should have at least some scheduled payments
-        
+
         # Calculate expected total manually for verification
         expected_total = sum(
             float(s.amount)
@@ -653,17 +655,19 @@ class TestPaymentScheduleRepository:
     ):
         """Test cancelling a payment schedule."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Cancel the payment schedule
         result = await payment_schedule_repository.cancel_schedule(
             test_payment_schedule.id
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is True
-        
+
         # Verify it's actually deleted
-        cancelled_schedule = await payment_schedule_repository.get(test_payment_schedule.id)
+        cancelled_schedule = await payment_schedule_repository.get(
+            test_payment_schedule.id
+        )
         assert cancelled_schedule is None
 
     @pytest.mark.asyncio

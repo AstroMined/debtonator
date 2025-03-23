@@ -10,11 +10,8 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
 from src.schemas.credit_limit_history import (
-    AccountCreditLimitHistoryResponse,
-    CreditLimitHistoryCreate,
-    CreditLimitHistoryInDB,
-    CreditLimitHistoryUpdate,
-)
+    AccountCreditLimitHistoryResponse, CreditLimitHistoryCreate,
+    CreditLimitHistoryInDB, CreditLimitHistoryUpdate)
 from tests.helpers.schema_factories.base import factory_function, utc_now
 
 
@@ -192,12 +189,8 @@ def create_credit_limit_history_update_schema(
     # Default effective_date to now if not provided
     if effective_date is None:
         effective_date = utc_now()
-        
-    data = {
-        "id": id, 
-        "effective_date": effective_date,
-        **kwargs
-    }
+
+    data = {"id": id, "effective_date": effective_date, **kwargs}
 
     if credit_limit is not None:
         data["credit_limit"] = credit_limit

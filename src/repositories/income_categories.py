@@ -12,8 +12,8 @@ from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from src.models.income_categories import IncomeCategory
 from src.models.income import Income
+from src.models.income_categories import IncomeCategory
 from src.repositories.base import BaseRepository
 
 
@@ -74,17 +74,16 @@ class IncomeCategoryRepository(BaseRepository[IncomeCategory, int]):
             List[Tuple[IncomeCategory, Decimal]]: List of (category, total_amount) tuples
         """
         result = await self.session.execute(
-            select(
-                IncomeCategory,
-                func.sum(Income.amount).label("total_amount")
-            )
+            select(IncomeCategory, func.sum(Income.amount).label("total_amount"))
             .join(Income, Income.category_id == IncomeCategory.id)
             .group_by(IncomeCategory.id)
             .order_by(func.sum(Income.amount).desc())
         )
         return [(row.IncomeCategory, row.total_amount) for row in result.all()]
 
-    async def get_categories_with_income_counts(self) -> List[Tuple[IncomeCategory, int]]:
+    async def get_categories_with_income_counts(
+        self,
+    ) -> List[Tuple[IncomeCategory, int]]:
         """
         Get all income categories with income entry counts.
 
@@ -92,10 +91,7 @@ class IncomeCategoryRepository(BaseRepository[IncomeCategory, int]):
             List[Tuple[IncomeCategory, int]]: List of (category, income_count) tuples
         """
         result = await self.session.execute(
-            select(
-                IncomeCategory,
-                func.count().label("income_count")
-            )
+            select(IncomeCategory, func.count().label("income_count"))
             .outerjoin(Income, Income.category_id == IncomeCategory.id)
             .group_by(IncomeCategory.id)
             .order_by(IncomeCategory.name)
@@ -184,9 +180,9 @@ class IncomeCategoryRepository(BaseRepository[IncomeCategory, int]):
                 func.sum(Income.amount).label("total_amount"),
                 func.count().label("entry_count"),
                 func.avg(Income.amount).label("avg_amount"),
-                func.sum(
-                    func.case((Income.is_deposited == False, 1), else_=0)
-                ).label("pending_count"),
+                func.sum(func.case((Income.is_deposited == False, 1), else_=0)).label(
+                    "pending_count"
+                ),
                 func.sum(
                     func.case((Income.is_deposited == False, Income.amount), else_=0)
                 ).label("pending_amount"),
@@ -198,13 +194,15 @@ class IncomeCategoryRepository(BaseRepository[IncomeCategory, int]):
 
         stats = []
         for row in result.all():
-            stats.append({
-                "category": row.IncomeCategory,
-                "total_amount": row.total_amount or Decimal("0.00"),
-                "entry_count": row.entry_count or 0,
-                "avg_amount": row.avg_amount or Decimal("0.00"),
-                "pending_count": row.pending_count or 0,
-                "pending_amount": row.pending_amount or Decimal("0.00"),
-            })
+            stats.append(
+                {
+                    "category": row.IncomeCategory,
+                    "total_amount": row.total_amount or Decimal("0.00"),
+                    "entry_count": row.entry_count or 0,
+                    "avg_amount": row.avg_amount or Decimal("0.00"),
+                    "pending_count": row.pending_count or 0,
+                    "pending_amount": row.pending_amount or Decimal("0.00"),
+                }
+            )
 
         return stats

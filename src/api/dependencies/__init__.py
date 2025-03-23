@@ -6,7 +6,5 @@ simplifying dependency injection and ensuring consistent service and
 repository usage across the API.
 """
 
-from src.api.dependencies.repositories import (
-    get_account_repository,
-    get_repository_factory,
-)
+from src.api.dependencies.repositories import (get_account_repository,
+                                               get_repository_factory)

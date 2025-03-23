@@ -5,14 +5,9 @@ from typing import Dict, List
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.payments import (
-    PaymentBase,
-    PaymentCreate,
-    PaymentDateRange,
-    PaymentSourceBase,
-    PaymentSourceCreate,
-    PaymentUpdate,
-)
+from src.schemas.payments import (PaymentBase, PaymentCreate, PaymentDateRange,
+                                  PaymentSourceBase, PaymentSourceCreate,
+                                  PaymentUpdate)
 
 
 def test_payment_source_base_validation():

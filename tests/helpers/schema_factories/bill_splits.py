@@ -9,30 +9,20 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Union
 
-from src.schemas.bill_splits import (
-    BillSplitCreate,
-    BillSplitInDB,
-    BillSplitResponse,
-    BillSplitUpdate,
-    BillSplitValidation,
-    BulkOperationResult,
-    BulkSplitOperation,
-    HistoricalAnalysis,
-    ImpactAnalysis,
-    OptimizationMetrics,
-    PatternMetrics,
-    SplitPattern,
-    SplitSuggestion,
-)
-from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function, utc_now
+from src.schemas.bill_splits import (BillSplitCreate, BillSplitInDB,
+                                     BillSplitResponse, BillSplitUpdate,
+                                     BillSplitValidation, BulkOperationResult,
+                                     BulkSplitOperation, HistoricalAnalysis,
+                                     ImpactAnalysis, OptimizationMetrics,
+                                     PatternMetrics, SplitPattern,
+                                     SplitSuggestion)
+from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT,
+                                                 factory_function, utc_now)
 
 
 @factory_function(BillSplitCreate)
 def create_bill_split_schema(
-    liability_id: int, 
-    account_id: int, 
-    amount: Optional[Decimal] = None, 
-    **kwargs: Any
+    liability_id: int, account_id: int, amount: Optional[Decimal] = None, **kwargs: Any
 ) -> Dict[str, Any]:
     """
     Create a valid BillSplitCreate schema instance.
@@ -61,9 +51,7 @@ def create_bill_split_schema(
 
 @factory_function(BillSplitUpdate)
 def create_bill_split_update_schema(
-    id: int, 
-    amount: Optional[Decimal] = None, 
-    **kwargs: Any
+    id: int, amount: Optional[Decimal] = None, **kwargs: Any
 ) -> Dict[str, Any]:
     """
     Create a valid BillSplitUpdate schema instance.
@@ -87,8 +75,8 @@ def create_bill_split_update_schema(
 @factory_function(BillSplitInDB)
 def create_bill_split_in_db_schema(
     id: int,
-    liability_id: int, 
-    account_id: int, 
+    liability_id: int,
+    account_id: int,
     amount: Optional[Decimal] = None,
     created_at: Optional[datetime] = None,
     updated_at: Optional[datetime] = None,
@@ -134,8 +122,8 @@ def create_bill_split_in_db_schema(
 @factory_function(BillSplitResponse)
 def create_bill_split_response_schema(
     id: int,
-    liability_id: int, 
-    account_id: int, 
+    liability_id: int,
+    account_id: int,
     amount: Optional[Decimal] = None,
     created_at: Optional[datetime] = None,
     updated_at: Optional[datetime] = None,
@@ -195,11 +183,17 @@ def create_bill_split_validation_schema(
         split_1_amount = MEDIUM_AMOUNT
         split_2_amount = MEDIUM_AMOUNT
         split_3_amount = total_amount - split_1_amount - split_2_amount
-        
+
         splits = [
-            create_bill_split_schema(liability_id=liability_id, account_id=1, amount=split_1_amount),
-            create_bill_split_schema(liability_id=liability_id, account_id=2, amount=split_2_amount),
-            create_bill_split_schema(liability_id=liability_id, account_id=3, amount=split_3_amount),
+            create_bill_split_schema(
+                liability_id=liability_id, account_id=1, amount=split_1_amount
+            ),
+            create_bill_split_schema(
+                liability_id=liability_id, account_id=2, amount=split_2_amount
+            ),
+            create_bill_split_schema(
+                liability_id=liability_id, account_id=3, amount=split_3_amount
+            ),
         ]
 
     data = {
@@ -281,9 +275,9 @@ def create_split_pattern_schema(
 
     if account_splits is None:
         account_splits = {
-            1: Decimal("0.5"),   # 50%
-            2: Decimal("0.3"),   # 30%
-            3: Decimal("0.2"),   # 20%
+            1: Decimal("0.5"),  # 50%
+            2: Decimal("0.3"),  # 30%
+            3: Decimal("0.2"),  # 20%
         }
 
     if first_seen is None:
@@ -388,7 +382,7 @@ def create_optimization_metrics_schema(
     """
     if credit_utilization is None:
         credit_utilization = {
-            1: Decimal("0.4"),   # 40% utilization for account 1
+            1: Decimal("0.4"),  # 40% utilization for account 1
             2: Decimal("0.25"),  # 25% utilization for account 2
         }
 
@@ -396,7 +390,7 @@ def create_optimization_metrics_schema(
         balance_impact = {
             1: Decimal("-150.00"),  # $150 negative impact on account 1
             2: Decimal("-100.00"),  # $100 negative impact on account 2
-            3: Decimal("-50.00"),   # $50 negative impact on account 3
+            3: Decimal("-50.00"),  # $50 negative impact on account 3
         }
 
     if risk_score is None:
@@ -445,9 +439,15 @@ def create_impact_analysis_schema(
 
     if split_configuration is None:
         split_configuration = [
-            create_bill_split_schema(liability_id=liability_id, account_id=1, amount=Decimal("150.00")),
-            create_bill_split_schema(liability_id=liability_id, account_id=2, amount=Decimal("100.00")),
-            create_bill_split_schema(liability_id=liability_id, account_id=3, amount=Decimal("50.00")),
+            create_bill_split_schema(
+                liability_id=liability_id, account_id=1, amount=Decimal("150.00")
+            ),
+            create_bill_split_schema(
+                liability_id=liability_id, account_id=2, amount=Decimal("100.00")
+            ),
+            create_bill_split_schema(
+                liability_id=liability_id, account_id=3, amount=Decimal("50.00")
+            ),
         ]
 
     if metrics is None:
@@ -457,7 +457,7 @@ def create_impact_analysis_schema(
         short_term_impact = {
             1: Decimal("-150.00"),  # $150 negative impact on account 1
             2: Decimal("-100.00"),  # $100 negative impact on account 2
-            3: Decimal("-50.00"),   # $50 negative impact on account 3
+            3: Decimal("-50.00"),  # $50 negative impact on account 3
         }
 
     if long_term_impact is None:
@@ -592,9 +592,15 @@ def create_bulk_split_operation_schema(
         if operation_type == "create":
             # Create sample BillSplitCreate instances
             splits = [
-                create_bill_split_schema(liability_id=1, account_id=1, amount=Decimal("150.00")),
-                create_bill_split_schema(liability_id=1, account_id=2, amount=Decimal("100.00")),
-                create_bill_split_schema(liability_id=1, account_id=3, amount=Decimal("50.00")),
+                create_bill_split_schema(
+                    liability_id=1, account_id=1, amount=Decimal("150.00")
+                ),
+                create_bill_split_schema(
+                    liability_id=1, account_id=2, amount=Decimal("100.00")
+                ),
+                create_bill_split_schema(
+                    liability_id=1, account_id=3, amount=Decimal("50.00")
+                ),
             ]
         else:  # update
             # Create sample BillSplitUpdate instances
@@ -641,8 +647,12 @@ def create_bulk_operation_result_schema(
     """
     if successful_splits is None:
         successful_splits = [
-            create_bill_split_response_schema(id=1, liability_id=1, account_id=1, amount=Decimal("150.00")),
-            create_bill_split_response_schema(id=2, liability_id=1, account_id=2, amount=Decimal("100.00")),
+            create_bill_split_response_schema(
+                id=1, liability_id=1, account_id=1, amount=Decimal("150.00")
+            ),
+            create_bill_split_response_schema(
+                id=2, liability_id=1, account_id=2, amount=Decimal("100.00")
+            ),
         ]
 
     if errors is None:

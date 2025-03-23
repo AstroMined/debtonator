@@ -37,10 +37,10 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
     async def get_debit_sum_for_account(self, account_id: int) -> Decimal:
         """
         Get sum of debit transactions for an account.
-        
+
         Args:
             account_id (int): Account ID to get sum for
-            
+
         Returns:
             Decimal: Sum of debit transactions
         """
@@ -49,10 +49,10 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
     async def get_credit_sum_for_account(self, account_id: int) -> Decimal:
         """
         Get sum of credit transactions for an account.
-        
+
         Args:
             account_id (int): Account ID to get sum for
-            
+
         Returns:
             Decimal: Sum of credit transactions
         """
@@ -467,7 +467,7 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
 
         # Use bulk_create method from BaseRepository
         return await self.bulk_create(transactions)
-        
+
     async def get_by_account_ordered(
         self, account_id: int, order_by_desc: bool = False, limit: int = 100
     ) -> List[TransactionHistory]:
@@ -485,13 +485,13 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
         query = select(TransactionHistory).where(
             TransactionHistory.account_id == account_id
         )
-        
+
         if order_by_desc:
             query = query.order_by(TransactionHistory.transaction_date.desc())
         else:
             query = query.order_by(TransactionHistory.transaction_date)
-            
+
         query = query.limit(limit)
-        
+
         result = await self.session.execute(query)
         return result.scalars().all()

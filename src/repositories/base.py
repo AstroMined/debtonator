@@ -7,18 +7,8 @@ their unique requirements.
 """
 
 from contextlib import asynccontextmanager
-from typing import (
-    Any,
-    AsyncContextManager,
-    Dict,
-    Generic,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import (Any, AsyncContextManager, Dict, Generic, List, Optional,
+                    Tuple, Type, TypeVar, Union)
 
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -159,7 +149,9 @@ class BaseRepository(Generic[ModelType, PKType]):
         skip = (page - 1) * items_per_page
 
         # Get total count
-        count_query = select(func.count()).select_from(self.model_class)  # This is correct SQLAlchemy usage, ignore Pylint
+        count_query = select(func.count()).select_from(
+            self.model_class
+        )  # This is correct SQLAlchemy usage, ignore Pylint
         if filters:
             for field, value in filters.items():
                 if hasattr(self.model_class, field):
@@ -196,10 +188,10 @@ class BaseRepository(Generic[ModelType, PKType]):
         # Update fields; the ORM will trigger the onupdate for updated_at
         for key, value in obj_in.items():
             setattr(db_obj, key, value)
-        
+
         # Explicitly mark as modified to ensure SQLAlchemy tracks changes
         self.session.add(db_obj)
-        
+
         # Flush changes so that onupdate is applied
         await self.session.flush()
         await self.session.refresh(db_obj)
@@ -270,7 +262,7 @@ class BaseRepository(Generic[ModelType, PKType]):
     ) -> AsyncContextManager["BaseRepository[ModelType, PKType]"]:
         """
         Begin a transaction and return a repository instance with the same session.
-        
+
         If a transaction is already in progress, creates a savepoint (nested transaction).
 
         Usage:

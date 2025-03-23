@@ -1,7 +1,7 @@
 """
 Schema factory functions for tests.
 
-This module provides domain-organized factory functions that generate valid 
+This module provides domain-organized factory functions that generate valid
 Pydantic schema instances for use in tests.
 
 IMPORTANT: This module no longer re-exports factory functions for backward compatibility.

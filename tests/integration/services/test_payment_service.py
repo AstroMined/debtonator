@@ -8,7 +8,8 @@ from src.models.accounts import Account
 from src.models.income import Income
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
-from src.schemas.payments import PaymentCreate, PaymentSourceCreate, PaymentUpdate
+from src.schemas.payments import (PaymentCreate, PaymentSourceCreate,
+                                  PaymentUpdate)
 from src.services.payments import PaymentService
 
 

@@ -10,22 +10,14 @@ from src.core.decimal_precision import DecimalPrecision
 from src.models.accounts import Account
 from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability
-from src.schemas.bill_splits import (
-    BillSplitCreate,
-    BillSplitSuggestionResponse,
-    BillSplitUpdate,
-    BillSplitValidation,
-    BulkOperationError,
-    BulkOperationResult,
-    BulkSplitOperation,
-    HistoricalAnalysis,
-    ImpactAnalysis,
-    OptimizationMetrics,
-    OptimizationSuggestion,
-    PatternMetrics,
-    SplitPattern,
-    SplitSuggestion,
-)
+from src.schemas.bill_splits import (BillSplitCreate,
+                                     BillSplitSuggestionResponse,
+                                     BillSplitUpdate, BillSplitValidation,
+                                     BulkOperationError, BulkOperationResult,
+                                     BulkSplitOperation, HistoricalAnalysis,
+                                     ImpactAnalysis, OptimizationMetrics,
+                                     OptimizationSuggestion, PatternMetrics,
+                                     SplitPattern, SplitSuggestion)
 
 
 class BillSplitValidationError(Exception):

@@ -5,16 +5,17 @@ from zoneinfo import ZoneInfo
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.transaction_history import TransactionHistoryBase as TransactionBase
-from src.schemas.transaction_history import (
-    TransactionHistoryCreate as TransactionCreate,
-)
+from src.schemas.transaction_history import \
+    TransactionHistoryBase as TransactionBase
+from src.schemas.transaction_history import \
+    TransactionHistoryCreate as TransactionCreate
 from src.schemas.transaction_history import TransactionHistoryInDB
-from src.schemas.transaction_history import TransactionHistoryInDB as Transaction
-from src.schemas.transaction_history import TransactionHistoryList as TransactionList
-from src.schemas.transaction_history import (
-    TransactionHistoryUpdate as TransactionUpdate,
-)
+from src.schemas.transaction_history import \
+    TransactionHistoryInDB as Transaction
+from src.schemas.transaction_history import \
+    TransactionHistoryList as TransactionList
+from src.schemas.transaction_history import \
+    TransactionHistoryUpdate as TransactionUpdate
 from src.schemas.transaction_history import TransactionType
 
 

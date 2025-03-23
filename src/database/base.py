@@ -36,19 +36,9 @@ class Base(DeclarativeBase):
 
 
 # Import all models at the bottom to avoid circular imports
-from ..models import (
-    accounts,
-    bill_splits,
-    cashflow,
-    categories,
-    deposit_schedules,
-    income,
-    income_categories,
-    liabilities,
-    payments,
-    recurring_bills,
-    recurring_income,
-)
+from ..models import (accounts, bill_splits, cashflow, categories,
+                      deposit_schedules, income, income_categories,
+                      liabilities, payments, recurring_bills, recurring_income)
 
 __all__ = [
     "Base",

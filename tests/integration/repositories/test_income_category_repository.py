@@ -16,20 +16,23 @@ import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.income_categories import IncomeCategory
 from src.models.income import Income
-from src.repositories.income_categories import IncomeCategoryRepository
+from src.models.income_categories import IncomeCategory
 from src.repositories.income import IncomeRepository
-
-# Import schemas and schema factories - essential part of the validation pattern
-from src.schemas.income_categories import IncomeCategoryCreate, IncomeCategoryUpdate
+from src.repositories.income_categories import IncomeCategoryRepository
 from src.schemas.income import IncomeCreate
-from tests.helpers.schema_factories.income_categories import create_income_category_schema
+# Import schemas and schema factories - essential part of the validation pattern
+from src.schemas.income_categories import (IncomeCategoryCreate,
+                                           IncomeCategoryUpdate)
 from tests.helpers.schema_factories.income import create_income_schema
+from tests.helpers.schema_factories.income_categories import \
+    create_income_category_schema
 
 
 @pytest_asyncio.fixture
-async def income_category_repository(db_session: AsyncSession) -> IncomeCategoryRepository:
+async def income_category_repository(
+    db_session: AsyncSession,
+) -> IncomeCategoryRepository:
     """Fixture for IncomeCategoryRepository with test database session."""
     return IncomeCategoryRepository(db_session)
 
@@ -41,17 +44,19 @@ async def income_repository(db_session: AsyncSession) -> IncomeRepository:
 
 
 @pytest_asyncio.fixture
-async def test_income_category(income_category_repository: IncomeCategoryRepository) -> IncomeCategory:
+async def test_income_category(
+    income_category_repository: IncomeCategoryRepository,
+) -> IncomeCategory:
     """Fixture to create a test income category."""
     # Create and validate through Pydantic schema
     category_schema = create_income_category_schema(
         name="Test Income Category",
         description="A test category for income",
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = category_schema.model_dump()
-    
+
     # Create category through repository
     return await income_category_repository.create(validated_data)
 
@@ -80,20 +85,20 @@ async def test_multiple_categories(
             "description": "Income from rental properties",
         },
     ]
-    
+
     # Create the categories using the repository
     created_categories = []
     for data in category_data:
         # Create and validate through Pydantic schema
         category_schema = create_income_category_schema(**data)
-        
+
         # Convert validated schema to dict for repository
         validated_data = category_schema.model_dump()
-        
+
         # Create category through repository
         category = await income_category_repository.create(validated_data)
         created_categories.append(category)
-        
+
     return created_categories
 
 
@@ -107,7 +112,7 @@ async def test_income_entries(
     salary_category_id = test_multiple_categories[0].id
     freelance_category_id = test_multiple_categories[1].id
     investments_category_id = test_multiple_categories[2].id
-    
+
     # Create income data with various attributes
     income_data = [
         {
@@ -146,31 +151,31 @@ async def test_income_entries(
             "deposited": False,
         },
     ]
-    
+
     # Create the income entries using the repository
     created_incomes = []
     for data in income_data:
         # Create and validate through Pydantic schema
         income_schema = create_income_schema(**data)
-        
+
         # Convert validated schema to dict for repository
         validated_data = income_schema.model_dump()
-        
+
         # Create income through repository
         income = await income_repository.create(validated_data)
         created_incomes.append(income)
-        
+
     return created_incomes
 
 
 class TestIncomeCategoryRepository:
     """
     Tests for the IncomeCategoryRepository.
-    
+
     These tests follow the standard Arrange-Schema-Act-Assert pattern for
     repository testing, simulating proper service-to-repository validation flow.
     """
-    
+
     @pytest.mark.asyncio
     async def test_create_income_category(
         self,
@@ -178,19 +183,19 @@ class TestIncomeCategoryRepository:
     ):
         """Test creating an income category with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. SCHEMA: Create and validate through Pydantic schema
         category_schema = create_income_category_schema(
             name="New Test Category",
             description="A newly created test category",
         )
-        
+
         # Convert validated schema to dict for repository
         validated_data = category_schema.model_dump()
-        
+
         # 3. ACT: Pass validated data to repository
         result = await income_category_repository.create(validated_data)
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id is not None
@@ -198,7 +203,7 @@ class TestIncomeCategoryRepository:
         assert result.description == "A newly created test category"
         assert result.created_at is not None
         assert result.updated_at is not None
-    
+
     @pytest.mark.asyncio
     async def test_get_income_category(
         self,
@@ -207,16 +212,16 @@ class TestIncomeCategoryRepository:
     ):
         """Test retrieving an income category by ID."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get the income category
         result = await income_category_repository.get(test_income_category.id)
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_income_category.id
         assert result.name == test_income_category.name
         assert result.description == test_income_category.description
-    
+
     @pytest.mark.asyncio
     async def test_update_income_category(
         self,
@@ -225,28 +230,28 @@ class TestIncomeCategoryRepository:
     ):
         """Test updating an income category with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. SCHEMA: Create and validate update data through Pydantic schema
         update_schema = IncomeCategoryUpdate(
             name="Updated Category Name",
             description="Updated category description",
         )
-        
+
         # Convert validated schema to dict for repository
         update_data = update_schema.model_dump()
-        
+
         # 3. ACT: Pass validated data to repository
         result = await income_category_repository.update(
             test_income_category.id, update_data
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_income_category.id
         assert result.name == "Updated Category Name"
         assert result.description == "Updated category description"
         assert result.updated_at > test_income_category.updated_at
-    
+
     @pytest.mark.asyncio
     async def test_delete_income_category(
         self,
@@ -255,17 +260,17 @@ class TestIncomeCategoryRepository:
     ):
         """Test deleting an income category."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Delete the income category
         result = await income_category_repository.delete(test_income_category.id)
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is True
-        
+
         # Verify it's actually deleted
         deleted_category = await income_category_repository.get(test_income_category.id)
         assert deleted_category is None
-    
+
     @pytest.mark.asyncio
     async def test_get_by_name(
         self,
@@ -275,14 +280,14 @@ class TestIncomeCategoryRepository:
         """Test getting an income category by name."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
         test_name = "Salary"
-        
+
         # 3. ACT: Get category by name
         result = await income_category_repository.get_by_name(test_name)
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.name == test_name
-    
+
     @pytest.mark.asyncio
     async def test_get_with_income(
         self,
@@ -293,10 +298,10 @@ class TestIncomeCategoryRepository:
         """Test getting an income category with its related income entries."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
         category_id = test_multiple_categories[0].id  # Salary category
-        
+
         # 3. ACT: Get category with income entries
         result = await income_category_repository.get_with_income(category_id)
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == category_id
@@ -304,7 +309,7 @@ class TestIncomeCategoryRepository:
         assert len(result.income_entries) >= 2  # Should have at least 2 income entries
         for income in result.income_entries:
             assert income.category_id == category_id
-    
+
     @pytest.mark.asyncio
     async def test_get_total_by_category(
         self,
@@ -314,18 +319,18 @@ class TestIncomeCategoryRepository:
     ):
         """Test getting total amount of income by category."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get income totals by category
         results = await income_category_repository.get_total_by_category()
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 3  # Should have at least 3 categories with income
-        
+
         # Results should be a list of (category, total) tuples
         for category, total in results:
             assert isinstance(category, IncomeCategory)
             assert isinstance(total, Decimal)
-            
+
             # Verify totals are correct
             if category.name == "Salary":
                 assert total == Decimal("4000.00")  # 3000 + 1000
@@ -333,7 +338,7 @@ class TestIncomeCategoryRepository:
                 assert total == Decimal("1150.00")  # 800 + 350
             elif category.name == "Investments":
                 assert total == Decimal("420.00")
-    
+
     @pytest.mark.asyncio
     async def test_get_categories_with_income_counts(
         self,
@@ -343,18 +348,18 @@ class TestIncomeCategoryRepository:
     ):
         """Test getting income categories with income entry counts."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get categories with income counts
         results = await income_category_repository.get_categories_with_income_counts()
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 4  # Should get all categories (4+)
-        
+
         # Results should be a list of (category, count) tuples
         for category, count in results:
             assert isinstance(category, IncomeCategory)
             assert isinstance(count, int)
-            
+
             # Verify counts are correct
             if category.name == "Salary":
                 assert count == 2  # 2 salary entries
@@ -364,7 +369,7 @@ class TestIncomeCategoryRepository:
                 assert count == 1  # 1 investment entry
             elif category.name == "Rental Income":
                 assert count == 0  # No rental income entries
-    
+
     @pytest.mark.asyncio
     async def test_find_categories_by_prefix(
         self,
@@ -373,19 +378,19 @@ class TestIncomeCategoryRepository:
     ):
         """Test finding income categories by name prefix."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Find categories by prefix
         results = await income_category_repository.find_categories_by_prefix("Invest")
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) == 1  # Should find only "Investments"
         assert results[0].name == "Investments"
-        
+
         # Test with another prefix
         results = await income_category_repository.find_categories_by_prefix("S")
         assert len(results) == 1  # Should find "Salary"
         assert results[0].name == "Salary"
-    
+
     @pytest.mark.asyncio
     async def test_delete_if_unused(
         self,
@@ -395,31 +400,35 @@ class TestIncomeCategoryRepository:
     ):
         """Test deleting an income category only if it has no associated income entries."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # Get a category with income entries (should not delete)
         used_category_id = test_multiple_categories[0].id  # Salary category
-        
+
         # Get a category without income entries (should delete)
         unused_category_id = test_multiple_categories[3].id  # Rental Income category
-        
+
         # 3. ACT: Try to delete used category
-        result_used = await income_category_repository.delete_if_unused(used_category_id)
-        
+        result_used = await income_category_repository.delete_if_unused(
+            used_category_id
+        )
+
         # Try to delete unused category
-        result_unused = await income_category_repository.delete_if_unused(unused_category_id)
-        
+        result_unused = await income_category_repository.delete_if_unused(
+            unused_category_id
+        )
+
         # 4. ASSERT: Verify the operation results
         assert result_used is False  # Should not delete used category
         assert result_unused is True  # Should delete unused category
-        
+
         # Verify used category still exists
         used_category = await income_category_repository.get(used_category_id)
         assert used_category is not None
-        
+
         # Verify unused category was deleted
         unused_category = await income_category_repository.get(unused_category_id)
         assert unused_category is None
-    
+
     @pytest.mark.asyncio
     async def test_get_active_categories(
         self,
@@ -429,19 +438,19 @@ class TestIncomeCategoryRepository:
     ):
         """Test getting income categories that have active associated income."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get active categories
         results = await income_category_repository.get_active_categories()
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 2  # Should get at least 2 active categories
-        
+
         # Verify that each category is associated with at least one non-deposited income
         active_category_names = [category.name for category in results]
         assert "Freelance" in active_category_names  # Has non-deposited income
         assert "Investments" in active_category_names  # Has non-deposited income
         assert "Salary" not in active_category_names  # All income is deposited
-    
+
     @pytest.mark.asyncio
     async def test_get_categories_with_stats(
         self,
@@ -451,13 +460,13 @@ class TestIncomeCategoryRepository:
     ):
         """Test getting income categories with detailed statistics."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get categories with stats
         results = await income_category_repository.get_categories_with_stats()
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 4  # Should get stats for all categories
-        
+
         # Check structure of results
         for result in results:
             assert "category" in result
@@ -466,7 +475,7 @@ class TestIncomeCategoryRepository:
             assert "avg_amount" in result
             assert "pending_count" in result
             assert "pending_amount" in result
-            
+
         # Find salary stats
         salary_stats = next(
             (r for r in results if r["category"].name == "Salary"), None
@@ -477,7 +486,7 @@ class TestIncomeCategoryRepository:
         assert salary_stats["avg_amount"] == Decimal("2000.00")
         assert salary_stats["pending_count"] == 0
         assert salary_stats["pending_amount"] == Decimal("0.00")
-        
+
         # Find freelance stats
         freelance_stats = next(
             (r for r in results if r["category"].name == "Freelance"), None
@@ -488,7 +497,7 @@ class TestIncomeCategoryRepository:
         assert freelance_stats["avg_amount"] == Decimal("575.00")
         assert freelance_stats["pending_count"] == 1
         assert freelance_stats["pending_amount"] == Decimal("800.00")
-        
+
         # Find investments stats
         investments_stats = next(
             (r for r in results if r["category"].name == "Investments"), None
@@ -499,7 +508,7 @@ class TestIncomeCategoryRepository:
         assert investments_stats["avg_amount"] == Decimal("420.00")
         assert investments_stats["pending_count"] == 1
         assert investments_stats["pending_amount"] == Decimal("420.00")
-    
+
     @pytest.mark.asyncio
     async def test_validation_error_handling(self):
         """Test handling invalid data that would normally be caught by schema validation."""
@@ -513,7 +522,7 @@ class TestIncomeCategoryRepository:
         except ValueError as e:
             # This is expected - schema validation should catch the error
             assert "name" in str(e).lower()
-        
+
         # Try with too long name
         try:
             invalid_schema = IncomeCategoryCreate(

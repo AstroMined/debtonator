@@ -90,7 +90,9 @@ class PaymentSourceUpdate(PaymentSourceBase):
     to support partial updates.
     """
 
-    account_id: Optional[int] = Field(None, gt=0, description="ID of the account used for payment")
+    account_id: Optional[int] = Field(
+        None, gt=0, description="ID of the account used for payment"
+    )
     amount: Optional[MoneyDecimal] = Field(
         None, gt=Decimal("0"), description="Amount paid from this account"
     )

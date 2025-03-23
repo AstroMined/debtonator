@@ -6,15 +6,12 @@ from typing import Dict, List, Optional, Tuple, cast
 from sqlalchemy import select
 
 from src.models.accounts import Account
-from src.schemas.cashflow import (
-    AccountForecastMetrics,
-    AccountForecastRequest,
-    AccountForecastResponse,
-    AccountForecastResult,
-    CustomForecastParameters,
-    CustomForecastResponse,
-    CustomForecastResult,
-)
+from src.schemas.cashflow import (AccountForecastMetrics,
+                                  AccountForecastRequest,
+                                  AccountForecastResponse,
+                                  AccountForecastResult,
+                                  CustomForecastParameters,
+                                  CustomForecastResponse, CustomForecastResult)
 
 from .base import BaseService
 from .transaction_service import TransactionService

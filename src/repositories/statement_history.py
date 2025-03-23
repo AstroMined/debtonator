@@ -66,15 +66,17 @@ class StatementHistoryRepository(BaseRepository[StatementHistory, int]):
         Returns:
             List[StatementHistory]: List of statement history records
         """
-        query = select(StatementHistory).where(StatementHistory.account_id == account_id)
-        
+        query = select(StatementHistory).where(
+            StatementHistory.account_id == account_id
+        )
+
         if order_by_desc:
             query = query.order_by(desc(StatementHistory.statement_date))
         else:
             query = query.order_by(StatementHistory.statement_date)
-        
+
         query = query.limit(limit)
-        
+
         result = await self.session.execute(query)
         return result.scalars().all()
 

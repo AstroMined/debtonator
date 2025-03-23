@@ -4,13 +4,8 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from pydantic import Field
 
-from src.schemas import (
-    BaseSchemaValidator,
-    MoneyDecimal,
-    MoneyDict,
-    PercentageDecimal,
-    PercentageDict,
-)
+from src.schemas import (BaseSchemaValidator, MoneyDecimal, MoneyDict,
+                         PercentageDecimal, PercentageDict)
 
 
 class CustomForecastParameters(BaseSchemaValidator):

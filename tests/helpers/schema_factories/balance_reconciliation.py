@@ -9,11 +9,10 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from src.schemas.balance_reconciliation import (
-    BalanceReconciliationCreate,
-    BalanceReconciliationUpdate,
-)
-from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function, utc_now
+from src.schemas.balance_reconciliation import (BalanceReconciliationCreate,
+                                                BalanceReconciliationUpdate)
+from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT,
+                                                 factory_function, utc_now)
 
 
 @factory_function(BalanceReconciliationCreate)
@@ -92,7 +91,7 @@ def create_balance_reconciliation_update_schema(
 
     if reason is not None:
         data["reason"] = reason
-        
+
     if adjustment_amount is not None:
         data["adjustment_amount"] = adjustment_amount
 

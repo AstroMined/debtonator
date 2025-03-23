@@ -26,11 +26,19 @@
    - All ADRs up-to-date
    - Implementation guidelines documented
    - Service-repository integration patterns documented
+   - UTC datetime compliance guide created
 
 5. **Decimal Precision Handling**: COMPLETED (100%) ✓
    - Two-tier precision model implemented (2 decimal UI, 4 decimal DB)
    - API response formatting with proper precision
    - Comprehensive testing across all components
+
+6. **UTC Datetime Compliance**: IN PROGRESS (95%)
+   - Helper utilities created for consistent datetime handling ✓
+   - Naive datetime detection tools implemented ✓
+   - Test hooks added for automated detection during test runs ✓
+   - Most incorrect datetime usage in tests fixed ✓
+   - Some naive datetime usage remains to be fixed
 
 ## What Works
 
@@ -66,16 +74,27 @@
    - Version management for semantic versioning
    - Repository-service integration pattern established
    - Schema factories for efficient test data creation
+   - UTC datetime helper utilities for consistent datetime handling
 
 ## What's Left to Build
 
-1. **Repository Layer Implementation**: COMPLETED (100%) ✓
+1. **UTC Datetime Compliance (95%)**
+   - ✓ Created helper utilities in tests/helpers/datetime_utils.py
+   - ✓ Implemented scanner script in tools/scan_naive_datetimes.py
+   - ✓ Added pytest hook for warning about naive datetime usage
+   - ✓ Created comprehensive documentation for datetime compliance
+   - ✓ Fixed most incorrect datetime usage in repository tests
+   - Fix remaining naive datetime usage in tests
+   - Add scanner to CI pipeline
+   - Consider expanding helper utilities to production code
+
+2. **Repository Layer Implementation**: COMPLETED (100%) ✓
    - All 18 core repositories implemented
    - All 5 additional repositories implemented
    - All dependency injection functions in place
    - Next steps: Create tests and integrate with service layer
 
-2. **Repository Integration Tests (100%)**
+3. **Repository Integration Tests (100%)**
    - ✓ Fixed UTC datetime handling in transaction_history_repository
    - ✓ Resolved SQLAlchemy ORM update pattern issues
    - ✓ Fixed transaction_type constraint issues
@@ -86,32 +105,38 @@
    - ✓ Implemented comprehensive timezone handling in repository tests
    - ✓ Implemented tests for all model-specific repositories (23/23)
 
-3. **Service Layer Refactoring (90%)**
+4. **Service Layer Refactoring (90%)**
    - ✓ AccountService refactored to use repository pattern
    - Refactor remaining services (BillService, PaymentService, etc.)
    - Update API endpoints to use refactored services
    - Ensure proper schema validation in service-to-repository flow
 
-4. **API Enhancement Project - Phase 6 (100%)**
+5. **API Enhancement Project - Phase 6 (100%)**
    - Implement recommendations API
    - Develop trend reporting features
    - Create frontend components
    - Build comprehensive API documentation
 
-5. **Mobile Access Features (100%)**
+6. **Mobile Access Features (100%)**
    - Create mobile-responsive UI components
    - Implement offline capabilities
    - Add notification system
 
 ## Known Issues
 
-1. **Repository Implementation Completion**
+1. **UTC Datetime Handling**
+   - Some naive datetime usage still exists in repository tests
+   - Need to implement datetime helper utilities in production code
+   - Need standardized approach for comparing database return values
+   - Current scanner implementation still produces some false positives
+
+2. **Repository Implementation Completion**
    - All repositories are now implemented (18/18 core, 5/5 additional) ✓
    - Integration tests implemented for all new repositories ✓
    - Schema factories created for all model types ✓
    - Implementation parity achieved across all repositories ✓
 
-2. **Repository Tests**
+3. **Repository Tests**
    - Tests implemented for all repositories (23/23) ✓
    - Arrange-Schema-Act-Assert pattern implemented across all tests ✓
    - Schema factories created and utilized for all repository tests ✓
@@ -122,24 +147,18 @@
    - Bulk operation testing patterns standardized ✓
    - Transaction boundary testing implemented ✓
 
-3. **Service Layer Architecture**
+4. **Service Layer Architecture**
    - In progress: Refactoring services to use repository pattern
    - AccountService refactored as proof of concept
    - Remaining services will follow the established pattern
    - Dependency injection framework in place
 
-4. **Repository Error Handling**
+5. **Repository Error Handling**
    - Need to implement custom repository exceptions
    - Error translation in services needs to be standardized
    - Exception hierarchy should be consistent across the application
 
-5. **SQLAlchemy ORM Update Patterns**
+6. **SQLAlchemy ORM Update Patterns**
    - Identified and fixed issues with updated_at timestamps not updating properly
    - Need to ensure proper ORM update pattern usage across all repositories
    - Improved documentation needed for SQLAlchemy best practices
-
-6. **Timezone Handling in Repository Tests**
-   - Inconsistent datetime comparison between timezone-aware and naive datetimes
-   - Need standardized approach for comparing database return values
-   - Apply ADR-011 principles consistently across all repositories
-   - Repository test cases need updates for proper datetime handling

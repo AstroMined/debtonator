@@ -4,11 +4,8 @@ from typing import Dict, List, Optional
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.cashflow.metrics import (
-    DeficitCalculation,
-    HourlyRates,
-    MinimumRequired,
-)
+from src.schemas.cashflow.metrics import (DeficitCalculation, HourlyRates,
+                                          MinimumRequired)
 
 
 def test_minimum_required_valid():

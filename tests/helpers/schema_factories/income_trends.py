@@ -9,21 +9,12 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from src.schemas.income_trends import (
-    FrequencyType,
-    IncomePattern,
-    IncomeTrendsAnalysis,
-    IncomeTrendsRequest,
-    PeriodType,
-    SeasonalityMetrics,
-    SourceStatistics,
-)
-from tests.helpers.schema_factories.base import (
-    MEDIUM_AMOUNT,
-    SMALL_AMOUNT,
-    factory_function,
-    utc_now,
-)
+from src.schemas.income_trends import (FrequencyType, IncomePattern,
+                                       IncomeTrendsAnalysis,
+                                       IncomeTrendsRequest, PeriodType,
+                                       SeasonalityMetrics, SourceStatistics)
+from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT, SMALL_AMOUNT,
+                                                 factory_function, utc_now)
 
 
 @factory_function(IncomePattern)
@@ -278,6 +269,7 @@ def create_income_trends_analysis_schema(
     else:
         # Add seasonality in about 50% of cases for better test coverage
         import random
+
         if random.random() > 0.5:
             data["seasonality"] = create_seasonality_metrics_schema().model_dump()
 

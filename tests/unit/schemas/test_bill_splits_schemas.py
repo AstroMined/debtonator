@@ -6,25 +6,15 @@ from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.bill_splits import (
-    BillSplitBase,
-    BillSplitCreate,
-    BillSplitInDB,
-    BillSplitResponse,
-    BillSplitSuggestionResponse,
-    BillSplitUpdate,
-    BillSplitValidation,
-    BulkOperationError,
-    BulkOperationResult,
-    BulkSplitOperation,
-    HistoricalAnalysis,
-    ImpactAnalysis,
-    OptimizationMetrics,
-    OptimizationSuggestion,
-    PatternMetrics,
-    SplitPattern,
-    SplitSuggestion,
-)
+from src.schemas.bill_splits import (BillSplitBase, BillSplitCreate,
+                                     BillSplitInDB, BillSplitResponse,
+                                     BillSplitSuggestionResponse,
+                                     BillSplitUpdate, BillSplitValidation,
+                                     BulkOperationError, BulkOperationResult,
+                                     BulkSplitOperation, HistoricalAnalysis,
+                                     ImpactAnalysis, OptimizationMetrics,
+                                     OptimizationSuggestion, PatternMetrics,
+                                     SplitPattern, SplitSuggestion)
 
 
 # Test valid object creation

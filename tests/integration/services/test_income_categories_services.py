@@ -3,7 +3,8 @@ from decimal import Decimal
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.schemas.income_categories import IncomeCategoryCreate, IncomeCategoryUpdate
+from src.schemas.income_categories import (IncomeCategoryCreate,
+                                           IncomeCategoryUpdate)
 from src.services.income_categories import IncomeCategoryService
 
 

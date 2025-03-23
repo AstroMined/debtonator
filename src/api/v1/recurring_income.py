@@ -5,12 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.database import get_db
 from src.schemas.income import IncomeResponse
-from src.schemas.recurring_income import (
-    GenerateIncomeRequest,
-    RecurringIncomeCreate,
-    RecurringIncomeResponse,
-    RecurringIncomeUpdate,
-)
+from src.schemas.recurring_income import (GenerateIncomeRequest,
+                                          RecurringIncomeCreate,
+                                          RecurringIncomeResponse,
+                                          RecurringIncomeUpdate)
 from src.services.recurring_income import RecurringIncomeService
 
 router = APIRouter(prefix="/recurring-income", tags=["recurring-income"])

@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import ConfigDict, Field, field_validator, ValidationInfo
+from pydantic import ConfigDict, Field, ValidationInfo, field_validator
 
 from src.schemas import BaseSchemaValidator, MoneyDecimal
 
@@ -33,18 +33,17 @@ class BalanceReconciliationCreate(BalanceReconciliationBase):
     """
 
     adjustment_amount: MoneyDecimal = Field(
-        ..., 
-        description="Amount of adjustment (new_balance - previous_balance)"
+        ..., description="Amount of adjustment (new_balance - previous_balance)"
     )
-    
-    @field_validator('adjustment_amount')
+
+    @field_validator("adjustment_amount")
     @classmethod
     def validate_adjustment_amount(cls, v: Decimal, info: ValidationInfo) -> Decimal:
         """Validate that adjustment_amount equals new_balance - previous_balance."""
         values = info.data
-        new_balance = values.get('new_balance')
-        previous_balance = values.get('previous_balance')
-        
+        new_balance = values.get("new_balance")
+        previous_balance = values.get("previous_balance")
+
         if new_balance is not None and previous_balance is not None:
             expected = new_balance - previous_balance
             if v != expected:
@@ -52,7 +51,7 @@ class BalanceReconciliationCreate(BalanceReconciliationBase):
                     f"adjustment_amount must equal new_balance - previous_balance "
                     f"(got {v}, expected {expected})"
                 )
-        
+
         return v
 
 

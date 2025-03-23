@@ -8,12 +8,10 @@ from sqlalchemy.orm import selectinload
 
 from src.models.accounts import Account
 from src.models.transaction_history import TransactionHistory, TransactionType
-from src.schemas.transaction_history import (
-    TransactionHistoryCreate as TransactionCreate,
-)
-from src.schemas.transaction_history import (
-    TransactionHistoryUpdate as TransactionUpdate,
-)
+from src.schemas.transaction_history import \
+    TransactionHistoryCreate as TransactionCreate
+from src.schemas.transaction_history import \
+    TransactionHistoryUpdate as TransactionUpdate
 
 
 class TransactionService:

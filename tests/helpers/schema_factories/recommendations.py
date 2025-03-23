@@ -9,19 +9,12 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from src.schemas.recommendations import (
-    BillPaymentTimingRecommendation,
-    ConfidenceLevel,
-    ImpactMetrics,
-    RecommendationResponse,
-    RecommendationType,
-)
-from tests.helpers.schema_factories.base import (
-    MEDIUM_AMOUNT,
-    SMALL_AMOUNT,
-    factory_function,
-    utc_now,
-)
+from src.schemas.recommendations import (BillPaymentTimingRecommendation,
+                                         ConfidenceLevel, ImpactMetrics,
+                                         RecommendationResponse,
+                                         RecommendationType)
+from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT, SMALL_AMOUNT,
+                                                 factory_function, utc_now)
 
 
 @factory_function(ImpactMetrics)
@@ -191,7 +184,7 @@ def create_recommendation_response_schema(
             ConfidenceLevel.MEDIUM: Decimal("0.6"),
             ConfidenceLevel.HIGH: Decimal("0.9"),
         }
-        
+
         # Calculate average confidence
         if recommendations:
             confidence_sum = sum(

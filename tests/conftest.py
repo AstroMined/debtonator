@@ -1,5 +1,9 @@
 import asyncio
+import inspect
+import os
+import re
 import uuid
+import warnings
 from datetime import datetime
 from decimal import Decimal
 from typing import AsyncGenerator, Generator
@@ -21,6 +25,36 @@ from src.models.income import Income
 from src.models.income_categories import IncomeCategory
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
+
+# ADR-011 Datetime validation hooks
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_runtest_teardown(item):
+    """Warn about naive datetime usage in tests that run successfully."""
+    if not hasattr(item, "function"):
+        return
+
+    try:
+        source = inspect.getsource(item.function)
+    except (OSError, IOError):
+        return
+
+    naive_patterns = [
+        r"datetime\.now\(\)",
+        r"datetime\.utcnow\(\)",
+        r"datetime\([^)]*\)\s*(?!.*tzinfo=)",
+    ]
+
+    for pattern in naive_patterns:
+        if re.search(pattern, source):
+            warnings.warn(
+                f"\n⚠️ ADR-011 Warning: {item.name} contains naive datetime usage.\n"
+                f"Use tests/helpers/datetime_utils.py functions instead.\n",
+                category=UserWarning,
+            )
+            break
+
 
 # Test database URL - use in-memory database
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///:memory:"

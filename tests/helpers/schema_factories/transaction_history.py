@@ -9,13 +9,12 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from src.schemas.transaction_history import (
-    TransactionHistoryCreate,
-    TransactionHistoryInDB,
-    TransactionHistoryList,
-    TransactionHistoryUpdate,
-)
-from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function, utc_now
+from src.schemas.transaction_history import (TransactionHistoryCreate,
+                                             TransactionHistoryInDB,
+                                             TransactionHistoryList,
+                                             TransactionHistoryUpdate)
+from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT,
+                                                 factory_function, utc_now)
 
 
 @factory_function(TransactionHistoryCreate)

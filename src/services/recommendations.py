@@ -10,12 +10,9 @@ from src.models.accounts import Account
 from src.models.liabilities import Liability
 from src.models.payments import Payment
 from src.schemas.payment_patterns import PatternType, PaymentPatternAnalysis
-from src.schemas.recommendations import (
-    BillPaymentTimingRecommendation,
-    ConfidenceLevel,
-    ImpactMetrics,
-    RecommendationResponse,
-)
+from src.schemas.recommendations import (BillPaymentTimingRecommendation,
+                                         ConfidenceLevel, ImpactMetrics,
+                                         RecommendationResponse)
 from src.services.cashflow import CashflowService
 from src.services.payment_patterns import BillPaymentPatternService
 

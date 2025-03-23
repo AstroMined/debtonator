@@ -4,11 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...database.database import get_db
-from ...schemas.income_categories import (
-    IncomeCategory,
-    IncomeCategoryCreate,
-    IncomeCategoryUpdate,
-)
+from ...schemas.income_categories import (IncomeCategory, IncomeCategoryCreate,
+                                          IncomeCategoryUpdate)
 from ...services.income_categories import IncomeCategoryService
 
 router = APIRouter(tags=["income categories"])

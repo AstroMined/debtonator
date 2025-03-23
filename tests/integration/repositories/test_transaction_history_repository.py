@@ -19,12 +19,11 @@ from src.models.accounts import Account
 from src.models.transaction_history import TransactionHistory, TransactionType
 from src.repositories.accounts import AccountRepository
 from src.repositories.transaction_history import TransactionHistoryRepository
-from src.schemas.transaction_history import (
-    TransactionHistoryCreate,
-    TransactionHistoryUpdate,
-)
+from src.schemas.transaction_history import (TransactionHistoryCreate,
+                                             TransactionHistoryUpdate)
 from tests.helpers.schema_factories.accounts import create_account_schema
-from tests.helpers.schema_factories.transaction_history import create_transaction_history_schema
+from tests.helpers.schema_factories.transaction_history import \
+    create_transaction_history_schema
 
 
 @pytest_asyncio.fixture
@@ -219,11 +218,13 @@ class TestTransactionHistoryRepository:
 
         # Add a small delay to ensure updated_at will be different
         await asyncio.sleep(1)
-        
+
         # 2. SCHEMA: Create and validate update data through Pydantic schema
         # Make the naive transaction_date timezone-aware by adding UTC timezone info
-        utc_transaction_date = datetime.replace(test_transaction_history.transaction_date, tzinfo=timezone.utc)
-        
+        utc_transaction_date = datetime.replace(
+            test_transaction_history.transaction_date, tzinfo=timezone.utc
+        )
+
         update_schema = TransactionHistoryUpdate(
             id=test_transaction_history.id,
             amount=Decimal("125.00"),

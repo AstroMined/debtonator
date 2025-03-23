@@ -5,12 +5,10 @@ from typing import Any, Dict
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.deposit_schedules import (
-    DepositSchedule,
-    DepositScheduleBase,
-    DepositScheduleCreate,
-    DepositScheduleUpdate,
-)
+from src.schemas.deposit_schedules import (DepositSchedule,
+                                           DepositScheduleBase,
+                                           DepositScheduleCreate,
+                                           DepositScheduleUpdate)
 
 
 # Test valid object creation

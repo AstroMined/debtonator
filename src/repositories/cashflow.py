@@ -83,18 +83,14 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
             List[CashflowForecast]: List of forecasts within the date range
         """
         # Extract date parts only for comparison
-        start_of_day = datetime(
-            start_date.year, start_date.month, start_date.day
-        )
-        end_of_day = datetime(
-            end_date.year, end_date.month, end_date.day
-        )
+        start_of_day = datetime(start_date.year, start_date.month, start_date.day)
+        end_of_day = datetime(end_date.year, end_date.month, end_date.day)
 
         # Get the distinct dates in the range
         date_subquery = (
             select(
                 func.date(CashflowForecast.forecast_date).label("forecast_day"),
-                func.max(CashflowForecast.created_at).label("latest_created")
+                func.max(CashflowForecast.created_at).label("latest_created"),
             )
             .where(
                 and_(
@@ -112,9 +108,10 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
             .join(
                 date_subquery,
                 and_(
-                    func.date(CashflowForecast.forecast_date) == date_subquery.c.forecast_day,
-                    CashflowForecast.created_at == date_subquery.c.latest_created
-                )
+                    func.date(CashflowForecast.forecast_date)
+                    == date_subquery.c.forecast_day,
+                    CashflowForecast.created_at == date_subquery.c.latest_created,
+                ),
             )
             .order_by(CashflowForecast.forecast_date)
         )
@@ -167,9 +164,9 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
         # Get the latest forecast for each day in the specified range
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(days=days)
-        
+
         forecasts = await self.get_by_date_range(start_date, end_date)
-        
+
         trend_data = []
         for forecast in forecasts:
             data_point = {
@@ -179,17 +176,19 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
                 "total_bills": forecast.total_bills,
                 "total_income": forecast.total_income,
             }
-            
+
             if include_min_values:
-                data_point.update({
-                    "min_14_day": forecast.min_14_day,
-                    "min_30_day": forecast.min_30_day,
-                    "min_60_day": forecast.min_60_day,
-                    "min_90_day": forecast.min_90_day,
-                })
-                
+                data_point.update(
+                    {
+                        "min_14_day": forecast.min_14_day,
+                        "min_30_day": forecast.min_30_day,
+                        "min_60_day": forecast.min_60_day,
+                        "min_90_day": forecast.min_90_day,
+                    }
+                )
+
             trend_data.append(data_point)
-            
+
         return trend_data
 
     async def get_deficit_trend(self, days: int = 90) -> List[Dict[str, Any]]:
@@ -207,18 +206,20 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
         # Get the latest forecast for each day in the specified range
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(days=days)
-        
+
         forecasts = await self.get_by_date_range(start_date, end_date)
-        
+
         trend_data = []
         for forecast in forecasts:
-            trend_data.append({
-                "date": forecast.forecast_date,
-                "daily_deficit": forecast.daily_deficit,
-                "yearly_deficit": forecast.yearly_deficit,
-                "required_income": forecast.required_income,
-            })
-            
+            trend_data.append(
+                {
+                    "date": forecast.forecast_date,
+                    "daily_deficit": forecast.daily_deficit,
+                    "yearly_deficit": forecast.yearly_deficit,
+                    "required_income": forecast.required_income,
+                }
+            )
+
         return trend_data
 
     async def get_required_income_trend(self, days: int = 90) -> List[Dict[str, Any]]:
@@ -236,19 +237,21 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
         # Get the latest forecast for each day in the specified range
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(days=days)
-        
+
         forecasts = await self.get_by_date_range(start_date, end_date)
-        
+
         trend_data = []
         for forecast in forecasts:
-            trend_data.append({
-                "date": forecast.forecast_date,
-                "required_income": forecast.required_income,
-                "hourly_rate_40": forecast.hourly_rate_40,
-                "hourly_rate_30": forecast.hourly_rate_30,
-                "hourly_rate_20": forecast.hourly_rate_20,
-            })
-            
+            trend_data.append(
+                {
+                    "date": forecast.forecast_date,
+                    "required_income": forecast.required_income,
+                    "hourly_rate_40": forecast.hourly_rate_40,
+                    "hourly_rate_30": forecast.hourly_rate_30,
+                    "hourly_rate_20": forecast.hourly_rate_20,
+                }
+            )
+
         return trend_data
 
     async def get_min_forecast(self, days: int = 90) -> Dict[str, Decimal]:
@@ -263,22 +266,21 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
         """
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(days=days)
-        
+
         result = await self.session.execute(
             select(
                 func.min(CashflowForecast.min_14_day).label("min_14_day"),
                 func.min(CashflowForecast.min_30_day).label("min_30_day"),
                 func.min(CashflowForecast.min_60_day).label("min_60_day"),
                 func.min(CashflowForecast.min_90_day).label("min_90_day"),
-            )
-            .where(
+            ).where(
                 and_(
                     CashflowForecast.forecast_date >= start_date,
                     CashflowForecast.forecast_date <= end_date,
                 )
             )
         )
-        
+
         row = result.one()
         return {
             "min_14_day": row.min_14_day or Decimal("0.00"),
@@ -307,21 +309,27 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
             forecast = await self.get_by_date(forecast_date)
         else:
             forecast = await self.get_latest_forecast()
-            
+
         if not forecast:
             return {}
-            
+
         # Calculate additional metrics
         income_to_bills_ratio = Decimal("0.00")
         if forecast.total_bills and forecast.total_bills > 0:
-            income_to_bills_ratio = (forecast.total_income / forecast.total_bills).quantize(Decimal("0.01"))
-            
+            income_to_bills_ratio = (
+                forecast.total_income / forecast.total_bills
+            ).quantize(Decimal("0.01"))
+
         deficit_percentage = Decimal("0.00")
         if forecast.total_bills > 0:
-            deficit_percentage = ((forecast.total_bills - forecast.total_income) / forecast.total_bills * 100).quantize(Decimal("0.01"))
+            deficit_percentage = (
+                (forecast.total_bills - forecast.total_income)
+                / forecast.total_bills
+                * 100
+            ).quantize(Decimal("0.01"))
             if deficit_percentage < 0:
                 deficit_percentage = Decimal("0.00")
-                
+
         # Return comprehensive metrics
         return {
             "forecast": forecast,
@@ -329,9 +337,19 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
             "metrics": {
                 "income_to_bills_ratio": income_to_bills_ratio,
                 "deficit_percentage": deficit_percentage,
-                "balance_to_min_ratio": (forecast.balance / forecast.min_30_day).quantize(Decimal("0.01")) if forecast.min_30_day > 0 else Decimal("0.00"),
-                "daily_deficit_to_income_ratio": (forecast.daily_deficit / forecast.total_income * 100).quantize(Decimal("0.01")) if forecast.total_income > 0 else Decimal("0.00"),
-            }
+                "balance_to_min_ratio": (
+                    (forecast.balance / forecast.min_30_day).quantize(Decimal("0.01"))
+                    if forecast.min_30_day > 0
+                    else Decimal("0.00")
+                ),
+                "daily_deficit_to_income_ratio": (
+                    (forecast.daily_deficit / forecast.total_income * 100).quantize(
+                        Decimal("0.01")
+                    )
+                    if forecast.total_income > 0
+                    else Decimal("0.00")
+                ),
+            },
         }
 
     async def get_forecast_summary(
@@ -351,28 +369,28 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
             end_date = datetime.utcnow()
         if not start_date:
             start_date = end_date - timedelta(days=90)
-            
+
         # Get forecasts in the date range
         forecasts = await self.get_by_date_range(start_date, end_date)
-        
+
         if not forecasts:
             return {}
-            
+
         # Calculate summary metrics
         total_bills = sum(f.total_bills for f in forecasts)
         total_income = sum(f.total_income for f in forecasts)
         avg_daily_deficit = sum(f.daily_deficit for f in forecasts) / len(forecasts)
         avg_required_income = sum(f.required_income for f in forecasts) / len(forecasts)
-        
+
         min_balance = min(f.balance for f in forecasts)
         min_forecast = min(f.forecast for f in forecasts)
         max_daily_deficit = max(f.daily_deficit for f in forecasts)
-        
+
         min_14 = min(f.min_14_day for f in forecasts)
         min_30 = min(f.min_30_day for f in forecasts)
         min_60 = min(f.min_60_day for f in forecasts)
         min_90 = min(f.min_90_day for f in forecasts)
-        
+
         return {
             "period": {
                 "start_date": start_date,
@@ -382,7 +400,11 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
             "totals": {
                 "total_bills": total_bills,
                 "total_income": total_income,
-                "deficit": total_bills - total_income if total_bills > total_income else Decimal("0.00"),
+                "deficit": (
+                    total_bills - total_income
+                    if total_bills > total_income
+                    else Decimal("0.00")
+                ),
             },
             "averages": {
                 "avg_daily_deficit": avg_daily_deficit,
@@ -407,8 +429,8 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
         """
         Get account-specific forecast data.
 
-        Note: This is a placeholder implementation as the current CashflowForecast model 
-        doesn't store account-specific data. In a future enhancement, this would query 
+        Note: This is a placeholder implementation as the current CashflowForecast model
+        doesn't store account-specific data. In a future enhancement, this would query
         a related table with account-specific forecast data.
 
         Args:
@@ -418,19 +440,19 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
         Returns:
             List[Dict[str, Any]]: List of dictionaries with account-specific forecast data
         """
-        # This is a placeholder implementation. 
+        # This is a placeholder implementation.
         # In the current model, we don't have account-specific forecast data,
         # so we're returning a generic forecast with a note.
         #
         # In a real implementation, this would query a related table with
         # account-specific forecast data.
-        
+
         # Get the basic forecast data
         forecasts = await self.get_forecast_trend(days=days)
-        
+
         # Add a note about this being a placeholder
         for forecast in forecasts:
             forecast["account_id"] = account_id
             forecast["note"] = "Account-specific forecast data not implemented"
-            
+
         return forecasts

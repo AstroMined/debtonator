@@ -5,11 +5,7 @@ from zoneinfo import ZoneInfo
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.income import (
-    IncomeCreate,
-    IncomeFilters,
-    IncomeUpdate,
-)
+from src.schemas.income import IncomeCreate, IncomeFilters, IncomeUpdate
 
 
 class TestIncomeCreate:
@@ -92,7 +88,6 @@ class TestIncomeCreate:
                 account_id=1,
             )
         assert "String should have at most 255 characters" in str(exc_info.value)
-
 
 
 class TestIncomeFilters:

@@ -51,7 +51,9 @@ class BalanceHistoryUpdate(BalanceHistoryBase):
     account_id: int | None = Field(
         None, gt=0, description="ID of the account this balance history is for"
     )
-    balance: MoneyDecimal | None = Field(None, description="Current balance of the account")
+    balance: MoneyDecimal | None = Field(
+        None, description="Current balance of the account"
+    )
     available_credit: MoneyDecimal | None = Field(
         default=None,
         description="Available credit for credit accounts (null for non-credit accounts)",

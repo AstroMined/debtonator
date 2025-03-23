@@ -28,6 +28,7 @@ from src.repositories.liabilities import LiabilityRepository
 from src.schemas.accounts import AccountCreate
 from src.schemas.bill_splits import BillSplitCreate, BillSplitUpdate
 from src.schemas.liabilities import LiabilityCreate
+from tests.helpers.datetime_utils import utc_now
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.bill_splits import create_bill_split_schema
 from tests.helpers.schema_factories.liabilities import create_liability_schema
@@ -55,7 +56,7 @@ async def bill_split_repository(db_session: AsyncSession) -> BillSplitRepository
 async def test_account(account_repository: AccountRepository) -> Account:
     """Create a test account for bill splits using schema validation."""
     # 1. ARRANGE: No setup needed for this fixture
-    
+
     # 2. SCHEMA: Create and validate through Pydantic schema
     account_schema = create_account_schema(
         name="Test Credit Account",
@@ -64,12 +65,12 @@ async def test_account(account_repository: AccountRepository) -> Account:
         total_limit=Decimal("5000.00"),
         available_credit=Decimal("4900.00"),
         last_statement_balance=Decimal("100.00"),
-        last_statement_date=datetime.utcnow(),
+        last_statement_date=utc_now(),
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = account_schema.model_dump()
-    
+
     # 3. ACT: Pass validated data to repository
     return await account_repository.create(validated_data)
 
@@ -78,17 +79,17 @@ async def test_account(account_repository: AccountRepository) -> Account:
 async def test_second_account(account_repository: AccountRepository) -> Account:
     """Create a second test account for bill splits using schema validation."""
     # 1. ARRANGE: No setup needed for this fixture
-    
+
     # 2. SCHEMA: Create and validate through Pydantic schema
     account_schema = create_account_schema(
         name="Test Checking Account",
         account_type="checking",
         available_balance=Decimal("1000.00"),
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = account_schema.model_dump()
-    
+
     # 3. ACT: Pass validated data to repository
     return await account_repository.create(validated_data)
 
@@ -100,22 +101,22 @@ async def test_liability(
 ) -> Liability:
     """Create a test liability for bill splits using schema validation."""
     # 1. ARRANGE: No setup needed for this fixture
-    
+
     # 2. SCHEMA: Create and validate through Pydantic schema
     liability_schema = create_liability_schema(
         name="Test Bill",
         amount=Decimal("300.00"),
-        due_date=datetime.utcnow() + timedelta(days=15),
+        due_date=utc_now() + timedelta(days=15),
         primary_account_id=test_account.id,
         status="pending",
         recurring=False,
         paid=False,
         active=True,
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = liability_schema.model_dump()
-    
+
     # 3. ACT: Pass validated data to repository
     return await liability_repository.create(validated_data)
 
@@ -128,35 +129,35 @@ async def test_bill_splits(
 ) -> List[BillSplit]:
     """Create test bill splits using schema validation."""
     # 1. ARRANGE: No setup needed for this fixture
-    
+
     # 2. SCHEMA: Create and validate through Pydantic schema
     split_schemas = [
         create_bill_split_schema(
             liability_id=test_liability.id,
             account_id=test_account.id,
-            amount=Decimal("100.00")
+            amount=Decimal("100.00"),
         ),
         create_bill_split_schema(
             liability_id=test_liability.id,
             account_id=test_account.id,
-            amount=Decimal("100.00")
+            amount=Decimal("100.00"),
         ),
         create_bill_split_schema(
             liability_id=test_liability.id,
             account_id=test_account.id,
-            amount=Decimal("100.00")
+            amount=Decimal("100.00"),
         ),
     ]
-    
+
     # Convert validated schemas to dicts for repository
     splits_data = [schema.model_dump() for schema in split_schemas]
-    
+
     # 3. ACT: Pass validated data to repository
     splits = []
     for split_data in splits_data:
         split = await bill_split_repository.create(split_data)
         splits.append(split)
-    
+
     return splits
 
 
@@ -177,7 +178,7 @@ class TestBillSplitRepository:
     ):
         """Test creating a bill split with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. SCHEMA: Create and validate through Pydantic schema
         bill_split_schema = create_bill_split_schema(
             liability_id=test_liability.id,
@@ -208,7 +209,7 @@ class TestBillSplitRepository:
     ):
         """Test retrieving a bill split by ID."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get the bill split by ID
         result = await bill_split_repository.get(test_bill_splits[0].id)
 
@@ -227,7 +228,7 @@ class TestBillSplitRepository:
     ):
         """Test updating a bill split with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. SCHEMA: Create and validate through Pydantic schema
         bill_split_id = test_bill_splits[0].id
         new_amount = Decimal("175.00")
@@ -254,7 +255,7 @@ class TestBillSplitRepository:
     ):
         """Test deleting a bill split."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Delete the bill split
         result = await bill_split_repository.delete(test_bill_splits[0].id)
 
@@ -273,7 +274,7 @@ class TestBillSplitRepository:
     ):
         """Test getting a bill split with relationships loaded."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get the bill split with relationships
         result = await bill_split_repository.get_with_relationships(
             test_bill_splits[0].id
@@ -282,12 +283,12 @@ class TestBillSplitRepository:
         # 3. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_bill_splits[0].id
-        
+
         # Check that relationships are properly loaded
         assert hasattr(result, "liability")
         assert result.liability is not None
         assert result.liability.id == test_bill_splits[0].liability_id
-        
+
         assert hasattr(result, "account")
         assert result.account is not None
         assert result.account.id == test_bill_splits[0].account_id
@@ -301,7 +302,7 @@ class TestBillSplitRepository:
     ):
         """Test getting all splits for a specific bill."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get splits for the liability
         results = await bill_split_repository.get_splits_for_bill(test_liability.id)
 
@@ -323,7 +324,7 @@ class TestBillSplitRepository:
     ):
         """Test getting all splits for a specific account."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get splits for the account
         results = await bill_split_repository.get_splits_for_account(test_account.id)
 
@@ -346,9 +347,9 @@ class TestBillSplitRepository:
     ):
         """Test getting splits for an account within a date range."""
         # 1. ARRANGE: Setup is already done with fixtures
-        start_date = datetime.utcnow() - timedelta(days=30)
-        end_date = datetime.utcnow() + timedelta(days=30)
-        
+        start_date = utc_now() - timedelta(days=30)
+        end_date = utc_now() + timedelta(days=30)
+
         # 2. ACT: Get splits in date range
         results = await bill_split_repository.get_splits_in_date_range(
             test_account.id, start_date, end_date
@@ -371,7 +372,7 @@ class TestBillSplitRepository:
         # 1. ARRANGE: Setup is already done with fixtures
         min_amount = Decimal("50.00")
         max_amount = Decimal("150.00")
-        
+
         # 2. ACT: Get splits in amount range
         results = await bill_split_repository.get_splits_by_amount_range(
             min_amount, max_amount
@@ -441,7 +442,7 @@ class TestBillSplitRepository:
     ):
         """Test deleting all splits for a liability."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Delete all splits for the liability
         count = await bill_split_repository.delete_splits_for_liability(
             test_liability.id
@@ -465,7 +466,7 @@ class TestBillSplitRepository:
     ):
         """Test calculating the total amount of all splits for a liability."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Calculate split totals
         total = await bill_split_repository.calculate_split_totals(test_liability.id)
 
@@ -482,7 +483,7 @@ class TestBillSplitRepository:
     ):
         """Test calculating total splits for an account."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Calculate account split totals
         total = await bill_split_repository.get_account_split_totals(test_account.id)
 
@@ -499,9 +500,9 @@ class TestBillSplitRepository:
     ):
         """Test calculating total splits for an account within a date range."""
         # 1. ARRANGE: Setup is already done with fixtures
-        start_date = datetime.utcnow() - timedelta(days=30)
-        end_date = datetime.utcnow() + timedelta(days=30)
-        
+        start_date = utc_now() - timedelta(days=30)
+        end_date = utc_now() + timedelta(days=30)
+
         # 2. ACT: Calculate account split totals within date range
         total = await bill_split_repository.get_account_split_totals(
             test_account.id, start_date, end_date
@@ -521,7 +522,7 @@ class TestBillSplitRepository:
     ):
         """Test getting the distribution of splits across accounts."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get split distribution
         distribution = await bill_split_repository.get_split_distribution(
             test_liability.id
@@ -541,7 +542,7 @@ class TestBillSplitRepository:
     ):
         """Test getting splits with liability details."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get splits with liability details
         results = await bill_split_repository.get_splits_with_liability_details(
             test_account.id
@@ -565,10 +566,8 @@ class TestBillSplitRepository:
     ):
         """Test getting splits with liability details, filtered to paid only."""
         # 1. ARRANGE: Mark the liability as paid
-        await liability_repository.update(
-            test_liability.id, {"paid": True}
-        )
-        
+        await liability_repository.update(test_liability.id, {"paid": True})
+
         # 2. ACT: Get paid splits with liability details
         results = await bill_split_repository.get_splits_with_liability_details(
             test_account.id, paid_only=True
@@ -590,7 +589,7 @@ class TestBillSplitRepository:
     ):
         """Test analyzing recent split patterns."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get recent split patterns
         patterns = await bill_split_repository.get_recent_split_patterns(days=30)
 
@@ -610,11 +609,15 @@ class TestBillSplitRepository:
                 account_id=1,
                 amount=Decimal("-50.00"),  # Invalid negative amount
             )
-            assert False, "Schema should have raised a validation error for negative amount"
+            assert (
+                False
+            ), "Schema should have raised a validation error for negative amount"
         except ValueError as e:
             # This is the expected path - schema validation should catch the error
             error_str = str(e).lower()
-            assert "greater than 0" in error_str or "must be greater than 0" in error_str
+            assert (
+                "greater than 0" in error_str or "must be greater than 0" in error_str
+            )
 
         # This illustrates why schema validation in tests is important - it prevents invalid
         # data from ever reaching the repository

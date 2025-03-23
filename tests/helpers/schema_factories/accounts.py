@@ -9,16 +9,12 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from src.schemas.accounts import (
-    AccountCreate,
-    AccountInDB,
-    AccountResponse,
-    AccountStatementHistoryResponse,
-    AccountUpdate,
-    AvailableCreditResponse,
-    StatementBalanceHistory,
-)
-from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function, utc_now
+from src.schemas.accounts import (AccountCreate, AccountInDB, AccountResponse,
+                                  AccountStatementHistoryResponse,
+                                  AccountUpdate, AvailableCreditResponse,
+                                  StatementBalanceHistory)
+from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT,
+                                                 factory_function, utc_now)
 
 
 @factory_function(AccountCreate)
@@ -122,10 +118,12 @@ def create_account_in_db_schema(
         if total_limit is None:
             total_limit = Decimal("5000.00")
         data["total_limit"] = total_limit
-        
+
         # Calculate available credit if not provided
         if "available_credit" not in data and "available_credit" not in kwargs:
-            available_credit = total_limit + available_balance  # Balance is negative for credit
+            available_credit = (
+                total_limit + available_balance
+            )  # Balance is negative for credit
             data["available_credit"] = available_credit
 
     # Add statement related fields if provided
@@ -206,28 +204,28 @@ def create_statement_balance_history_schema(
         Dict[str, Any]: Data to create StatementBalanceHistory schema
     """
     now = utc_now()
-    
+
     # Default to first of current month for statement date
     if statement_date is None:
         statement_date = datetime(now.year, now.month, 1, tzinfo=now.tzinfo)
-    
+
     if statement_balance is None:
         statement_balance = Decimal("500.00")
-    
+
     if minimum_payment is None:
         # Default minimum payment to 10% of balance or $25, whichever is greater
         minimum_payment = max(statement_balance * Decimal("0.1"), Decimal("25.00"))
-    
+
     if due_date is None:
         # Default due date to 25 days after statement date
         due_date_day = min(statement_date.day + 25, 28)  # Avoid invalid day in month
         due_date = datetime(
-            statement_date.year, 
-            statement_date.month, 
-            due_date_day, 
-            tzinfo=statement_date.tzinfo
+            statement_date.year,
+            statement_date.month,
+            due_date_day,
+            tzinfo=statement_date.tzinfo,
         )
-    
+
     data = {
         "statement_date": statement_date,
         "statement_balance": statement_balance,
@@ -235,7 +233,7 @@ def create_statement_balance_history_schema(
         "due_date": due_date,
         **kwargs,
     }
-    
+
     return data
 
 
@@ -259,7 +257,7 @@ def create_account_statement_history_response_schema(
         Dict[str, Any]: Data to create AccountStatementHistoryResponse schema
     """
     now = utc_now()
-    
+
     if statement_history is None:
         # Create 3 months of statement history
         statement_history = [
@@ -268,22 +266,22 @@ def create_account_statement_history_response_schema(
                 statement_balance=Decimal("500.00"),
             ),
             create_statement_balance_history_schema(
-                statement_date=datetime(now.year, now.month-1, 1, tzinfo=now.tzinfo),
+                statement_date=datetime(now.year, now.month - 1, 1, tzinfo=now.tzinfo),
                 statement_balance=Decimal("450.00"),
             ),
             create_statement_balance_history_schema(
-                statement_date=datetime(now.year, now.month-2, 1, tzinfo=now.tzinfo),
+                statement_date=datetime(now.year, now.month - 2, 1, tzinfo=now.tzinfo),
                 statement_balance=Decimal("400.00"),
             ),
         ]
-    
+
     data = {
         "account_id": account_id,
         "account_name": account_name,
         "statement_history": statement_history,
         **kwargs,
     }
-    
+
     return data
 
 
@@ -316,21 +314,21 @@ def create_available_credit_response_schema(
     """
     if total_limit is None:
         total_limit = Decimal("5000.00")
-    
+
     if current_balance is None:
         current_balance = Decimal("-1500.00")  # Negative for credit accounts
-    
+
     if pending_transactions is None:
         pending_transactions = Decimal("200.00")
-    
+
     if adjusted_balance is None:
         # Calculate adjusted balance based on current balance and pending transactions
         adjusted_balance = current_balance - pending_transactions
-    
+
     if available_credit is None:
         # Calculate available credit based on total limit and adjusted balance
         available_credit = total_limit + adjusted_balance  # Balance is negative
-    
+
     data = {
         "account_id": account_id,
         "account_name": account_name,
@@ -341,7 +339,7 @@ def create_available_credit_response_schema(
         "available_credit": available_credit,
         **kwargs,
     }
-    
+
     return data
 
 

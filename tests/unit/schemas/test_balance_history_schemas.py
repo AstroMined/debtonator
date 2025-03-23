@@ -5,12 +5,8 @@ from typing import Dict, Optional
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.balance_history import (
-    BalanceHistory,
-    BalanceHistoryBase,
-    BalanceHistoryCreate,
-    BalanceTrend,
-)
+from src.schemas.balance_history import (BalanceHistory, BalanceHistoryBase,
+                                         BalanceHistoryCreate, BalanceTrend)
 
 
 # Test valid object creation

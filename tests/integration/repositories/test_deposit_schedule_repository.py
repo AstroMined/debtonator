@@ -18,21 +18,24 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
-from src.models.income import Income
 from src.models.deposit_schedules import DepositSchedule
+from src.models.income import Income
 from src.repositories.accounts import AccountRepository
-from src.repositories.income import IncomeRepository
 from src.repositories.deposit_schedules import DepositScheduleRepository
-
+from src.repositories.income import IncomeRepository
 # Import schemas and schema factories - essential part of the validation pattern
-from src.schemas.deposit_schedules import DepositScheduleCreate, DepositScheduleUpdate
+from src.schemas.deposit_schedules import (DepositScheduleCreate,
+                                           DepositScheduleUpdate)
 from tests.helpers.schema_factories.accounts import create_account_schema
+from tests.helpers.schema_factories.deposit_schedules import \
+    create_deposit_schedule_schema
 from tests.helpers.schema_factories.income import create_income_schema
-from tests.helpers.schema_factories.deposit_schedules import create_deposit_schedule_schema
 
 
 @pytest_asyncio.fixture
-async def deposit_schedule_repository(db_session: AsyncSession) -> DepositScheduleRepository:
+async def deposit_schedule_repository(
+    db_session: AsyncSession,
+) -> DepositScheduleRepository:
     """Fixture for DepositScheduleRepository with test database session."""
     return DepositScheduleRepository(db_session)
 
@@ -58,10 +61,10 @@ async def test_account(account_repository: AccountRepository) -> Account:
         account_type="checking",
         available_balance=Decimal("1000.00"),
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = account_schema.model_dump()
-    
+
     # Create account through repository
     return await account_repository.create(validated_data)
 
@@ -75,10 +78,10 @@ async def test_secondary_account(account_repository: AccountRepository) -> Accou
         account_type="savings",
         available_balance=Decimal("500.00"),
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = account_schema.model_dump()
-    
+
     # Create account through repository
     return await account_repository.create(validated_data)
 
@@ -97,10 +100,10 @@ async def test_income(
         date=datetime.now(timezone.utc),
         deposited=False,
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = income_schema.model_dump()
-    
+
     # Create income through repository
     return await income_repository.create(validated_data)
 
@@ -119,10 +122,10 @@ async def test_additional_income(
         date=datetime.now(timezone.utc),
         deposited=False,
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = income_schema.model_dump()
-    
+
     # Create income through repository
     return await income_repository.create(validated_data)
 
@@ -143,10 +146,10 @@ async def test_deposit_schedule(
         recurring=False,
         status="pending",
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = schedule_schema.model_dump()
-    
+
     # Create deposit schedule through repository
     return await deposit_schedule_repository.create(validated_data)
 
@@ -161,7 +164,7 @@ async def test_multiple_schedules(
 ) -> List[DepositSchedule]:
     """Fixture to create multiple deposit schedules for testing."""
     now = datetime.now(timezone.utc)
-    
+
     # Create multiple deposit schedules with various attributes
     schedule_data = [
         {
@@ -198,31 +201,31 @@ async def test_multiple_schedules(
             "status": "processed",  # Already processed
         },
     ]
-    
+
     # Create the deposit schedules using the repository
     created_schedules = []
     for data in schedule_data:
         # Create and validate through Pydantic schema
         schedule_schema = create_deposit_schedule_schema(**data)
-        
+
         # Convert validated schema to dict for repository
         validated_data = schedule_schema.model_dump()
-        
+
         # Create deposit schedule through repository
         schedule = await deposit_schedule_repository.create(validated_data)
         created_schedules.append(schedule)
-        
+
     return created_schedules
 
 
 class TestDepositScheduleRepository:
     """
     Tests for the DepositScheduleRepository.
-    
+
     These tests follow the standard Arrange-Schema-Act-Assert pattern for
     repository testing, simulating proper service-to-repository validation flow.
     """
-    
+
     @pytest.mark.asyncio
     async def test_create_deposit_schedule(
         self,
@@ -232,7 +235,7 @@ class TestDepositScheduleRepository:
     ):
         """Test creating a deposit schedule with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. SCHEMA: Create and validate through Pydantic schema
         schedule_date = datetime.now(timezone.utc) + timedelta(days=5)
         schedule_schema = create_deposit_schedule_schema(
@@ -244,13 +247,13 @@ class TestDepositScheduleRepository:
             recurrence_pattern={"frequency": "weekly", "day": "friday"},
             status="pending",
         )
-        
+
         # Convert validated schema to dict for repository
         validated_data = schedule_schema.model_dump()
-        
+
         # 3. ACT: Pass validated data to repository
         result = await deposit_schedule_repository.create(validated_data)
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id is not None
@@ -262,12 +265,14 @@ class TestDepositScheduleRepository:
         assert result.status == "pending"
         assert result.created_at is not None
         assert result.updated_at is not None
-        
+
         # Verify date is correct (accounting for potential timezone issues)
         result_date = result.schedule_date.replace(tzinfo=None)
         expected_date = schedule_date.replace(tzinfo=None)
-        assert abs((result_date - expected_date).total_seconds()) < 60  # Within a minute
-    
+        assert (
+            abs((result_date - expected_date).total_seconds()) < 60
+        )  # Within a minute
+
     @pytest.mark.asyncio
     async def test_get_deposit_schedule(
         self,
@@ -276,10 +281,10 @@ class TestDepositScheduleRepository:
     ):
         """Test retrieving a deposit schedule by ID."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get the deposit schedule
         result = await deposit_schedule_repository.get(test_deposit_schedule.id)
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_deposit_schedule.id
@@ -287,7 +292,7 @@ class TestDepositScheduleRepository:
         assert result.account_id == test_deposit_schedule.account_id
         assert result.amount == test_deposit_schedule.amount
         assert result.status == test_deposit_schedule.status
-    
+
     @pytest.mark.asyncio
     async def test_update_deposit_schedule(
         self,
@@ -296,7 +301,7 @@ class TestDepositScheduleRepository:
     ):
         """Test updating a deposit schedule with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. SCHEMA: Create and validate update data through Pydantic schema
         new_schedule_date = datetime.now(timezone.utc) + timedelta(days=10)
         update_schema = DepositScheduleUpdate(
@@ -305,29 +310,31 @@ class TestDepositScheduleRepository:
             recurring=True,
             recurrence_pattern={"frequency": "monthly", "day": 1},
         )
-        
+
         # Convert validated schema to dict for repository
         update_data = update_schema.model_dump()
-        
+
         # 3. ACT: Pass validated data to repository
         result = await deposit_schedule_repository.update(
             test_deposit_schedule.id, update_data
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_deposit_schedule.id
         assert result.amount == Decimal("3500.00")
         assert result.recurring is True
         assert result.recurrence_pattern == {"frequency": "monthly", "day": 1}
-        
+
         # Verify date is updated correctly
         result_date = result.schedule_date.replace(tzinfo=None)
         expected_date = new_schedule_date.replace(tzinfo=None)
-        assert abs((result_date - expected_date).total_seconds()) < 60  # Within a minute
-        
+        assert (
+            abs((result_date - expected_date).total_seconds()) < 60
+        )  # Within a minute
+
         assert result.updated_at > test_deposit_schedule.updated_at
-    
+
     @pytest.mark.asyncio
     async def test_delete_deposit_schedule(
         self,
@@ -336,17 +343,19 @@ class TestDepositScheduleRepository:
     ):
         """Test deleting a deposit schedule."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Delete the deposit schedule
         result = await deposit_schedule_repository.delete(test_deposit_schedule.id)
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is True
-        
+
         # Verify it's actually deleted
-        deleted_schedule = await deposit_schedule_repository.get(test_deposit_schedule.id)
+        deleted_schedule = await deposit_schedule_repository.get(
+            test_deposit_schedule.id
+        )
         assert deleted_schedule is None
-    
+
     @pytest.mark.asyncio
     async def test_get_by_account(
         self,
@@ -356,15 +365,15 @@ class TestDepositScheduleRepository:
     ):
         """Test getting deposit schedules for a specific account."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get deposit schedules for the account
         results = await deposit_schedule_repository.get_by_account(test_account.id)
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 2  # Should get at least 2 schedules for this account
         for schedule in results:
             assert schedule.account_id == test_account.id
-    
+
     @pytest.mark.asyncio
     async def test_get_by_income(
         self,
@@ -374,15 +383,15 @@ class TestDepositScheduleRepository:
     ):
         """Test getting deposit schedules for a specific income."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get deposit schedules for the income
         results = await deposit_schedule_repository.get_by_income(test_income.id)
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 2  # Should get at least 2 schedules for this income
         for schedule in results:
             assert schedule.income_id == test_income.id
-    
+
     @pytest.mark.asyncio
     async def test_get_with_account(
         self,
@@ -391,19 +400,19 @@ class TestDepositScheduleRepository:
     ):
         """Test getting a deposit schedule with account relationship loaded."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get the deposit schedule with account
         result = await deposit_schedule_repository.get_with_account(
             test_deposit_schedule.id
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_deposit_schedule.id
         assert result.account is not None
         assert result.account.id == test_deposit_schedule.account_id
         assert result.account.name is not None
-    
+
     @pytest.mark.asyncio
     async def test_get_with_income(
         self,
@@ -412,19 +421,19 @@ class TestDepositScheduleRepository:
     ):
         """Test getting a deposit schedule with income relationship loaded."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get the deposit schedule with income
         result = await deposit_schedule_repository.get_with_income(
             test_deposit_schedule.id
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_deposit_schedule.id
         assert result.income is not None
         assert result.income.id == test_deposit_schedule.income_id
         assert result.income.source is not None
-    
+
     @pytest.mark.asyncio
     async def test_get_by_date_range(
         self,
@@ -436,27 +445,27 @@ class TestDepositScheduleRepository:
         now = datetime.now(timezone.utc)
         start_date = now - timedelta(days=14)
         end_date = now + timedelta(days=7)
-        
+
         # 2. SCHEMA: Not needed for this query-only operation
-        
+
         # 3. ACT: Get deposit schedules within date range
         results = await deposit_schedule_repository.get_by_date_range(
             start_date, end_date
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 3  # Should get at least 3 schedules in this range
-        
+
         # Verify dates are within the range
         for schedule in results:
             # Make naive comparison for dates
             schedule_date = schedule.schedule_date.replace(tzinfo=None)
             naive_start = start_date.replace(tzinfo=None)
             naive_end = end_date.replace(tzinfo=None)
-            
+
             assert schedule_date >= naive_start
             assert schedule_date <= naive_end
-    
+
     @pytest.mark.asyncio
     async def test_get_pending_schedules(
         self,
@@ -465,15 +474,15 @@ class TestDepositScheduleRepository:
     ):
         """Test getting pending deposit schedules."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get pending deposit schedules
         results = await deposit_schedule_repository.get_pending_schedules()
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 3  # Should get at least 3 pending schedules
         for schedule in results:
             assert schedule.status == "pending"
-    
+
     @pytest.mark.asyncio
     async def test_get_processed_schedules(
         self,
@@ -482,15 +491,15 @@ class TestDepositScheduleRepository:
     ):
         """Test getting processed deposit schedules."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get processed deposit schedules
         results = await deposit_schedule_repository.get_processed_schedules()
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 1  # Should get at least 1 processed schedule
         for schedule in results:
             assert schedule.status == "processed"
-    
+
     @pytest.mark.asyncio
     async def test_mark_as_processed(
         self,
@@ -499,17 +508,17 @@ class TestDepositScheduleRepository:
     ):
         """Test marking a deposit schedule as processed."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Mark the deposit schedule as processed
         result = await deposit_schedule_repository.mark_as_processed(
             test_deposit_schedule.id
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_deposit_schedule.id
         assert result.status == "processed"
-    
+
     @pytest.mark.asyncio
     async def test_get_schedules_with_relationships(
         self,
@@ -520,14 +529,14 @@ class TestDepositScheduleRepository:
         # 1. ARRANGE: Setup date range
         now = datetime.now(timezone.utc)
         date_range = (now - timedelta(days=14), now + timedelta(days=14))
-        
+
         # 2. SCHEMA: Not needed for this query-only operation
-        
+
         # 3. ACT: Get deposit schedules with relationships
         results = await deposit_schedule_repository.get_schedules_with_relationships(
             date_range
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 3  # Should get at least 3 schedules in this range
         for schedule in results:
@@ -535,7 +544,7 @@ class TestDepositScheduleRepository:
             assert schedule.income is not None
             assert schedule.account.id == schedule.account_id
             assert schedule.income.id == schedule.income_id
-    
+
     @pytest.mark.asyncio
     async def test_get_upcoming_schedules(
         self,
@@ -545,28 +554,28 @@ class TestDepositScheduleRepository:
     ):
         """Test getting upcoming deposit schedules."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get upcoming deposit schedules for next 7 days
         results = await deposit_schedule_repository.get_upcoming_schedules(
             days=7, account_id=test_account.id
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 1  # Should get at least 1 upcoming schedule
         for schedule in results:
             assert schedule.account_id == test_account.id
             assert schedule.status == "pending"
-            
+
             # Schedule date should be in the future and within 7 days
             now = datetime.now(timezone.utc).replace(tzinfo=None)
             schedule_date = schedule.schedule_date.replace(tzinfo=None)
             assert schedule_date >= now
             assert schedule_date <= (now + timedelta(days=7))
-            
+
             # Relationships should be loaded
             assert schedule.account is not None
             assert schedule.income is not None
-    
+
     @pytest.mark.asyncio
     async def test_find_overdue_schedules(
         self,
@@ -575,10 +584,10 @@ class TestDepositScheduleRepository:
     ):
         """Test finding overdue deposit schedules."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Find overdue deposit schedules
         results = await deposit_schedule_repository.find_overdue_schedules()
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 1  # Should get at least 1 overdue schedule
         now = datetime.now(timezone.utc).replace(tzinfo=None)
@@ -586,11 +595,11 @@ class TestDepositScheduleRepository:
             assert schedule.status == "pending"
             schedule_date = schedule.schedule_date.replace(tzinfo=None)
             assert schedule_date < now
-            
+
             # Relationships should be loaded
             assert schedule.account is not None
             assert schedule.income is not None
-    
+
     @pytest.mark.asyncio
     async def test_get_recurring_schedules(
         self,
@@ -599,15 +608,15 @@ class TestDepositScheduleRepository:
     ):
         """Test getting recurring deposit schedules."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Get recurring deposit schedules
         results = await deposit_schedule_repository.get_recurring_schedules()
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 1  # Should get at least 1 recurring schedule
         for schedule in results:
             assert schedule.recurring is True
-    
+
     @pytest.mark.asyncio
     async def test_get_total_scheduled_deposits(
         self,
@@ -620,17 +629,17 @@ class TestDepositScheduleRepository:
         now = datetime.now(timezone.utc)
         start_date = now - timedelta(days=14)
         end_date = now + timedelta(days=14)
-        
+
         # 2. SCHEMA: Not needed for this calculation operation
-        
+
         # 3. ACT: Get total scheduled deposits for account
         total = await deposit_schedule_repository.get_total_scheduled_deposits(
             start_date, end_date, test_account.id
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert total > 0  # Should have at least some scheduled deposits
-        
+
         # Calculate expected total manually for verification
         expected_total = 0.0
         for schedule in test_multiple_schedules:
@@ -641,9 +650,9 @@ class TestDepositScheduleRepository:
                 and schedule.schedule_date <= end_date.replace(tzinfo=None)
             ):
                 expected_total += float(schedule.amount)
-        
+
         assert total == pytest.approx(expected_total, abs=0.01)
-    
+
     @pytest.mark.asyncio
     async def test_cancel_schedule(
         self,
@@ -652,19 +661,21 @@ class TestDepositScheduleRepository:
     ):
         """Test cancelling a deposit schedule."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Cancel the deposit schedule
         result = await deposit_schedule_repository.cancel_schedule(
             test_deposit_schedule.id
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is True
-        
+
         # Verify it's actually deleted
-        cancelled_schedule = await deposit_schedule_repository.get(test_deposit_schedule.id)
+        cancelled_schedule = await deposit_schedule_repository.get(
+            test_deposit_schedule.id
+        )
         assert cancelled_schedule is None
-    
+
     @pytest.mark.asyncio
     async def test_update_status(
         self,
@@ -673,23 +684,23 @@ class TestDepositScheduleRepository:
     ):
         """Test updating the status of a deposit schedule."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
-        
+
         # 3. ACT: Update status to cancelled
         result = await deposit_schedule_repository.update_status(
             test_deposit_schedule.id, "cancelled"
         )
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_deposit_schedule.id
         assert result.status == "cancelled"
-        
+
         # Test with invalid status should raise ValueError
         with pytest.raises(ValueError):
             await deposit_schedule_repository.update_status(
                 test_deposit_schedule.id, "invalid_status"
             )
-    
+
     @pytest.mark.asyncio
     async def test_validation_error_handling(
         self,
@@ -707,11 +718,13 @@ class TestDepositScheduleRepository:
                 recurring=False,
                 status="pending",
             )
-            assert False, "Schema should have raised a validation error for negative amount"
+            assert (
+                False
+            ), "Schema should have raised a validation error for negative amount"
         except ValueError as e:
             # This is expected - schema validation should catch the error
             assert "amount" in str(e).lower() and "greater than" in str(e).lower()
-        
+
         # Try with invalid status
         try:
             invalid_schema = DepositScheduleCreate(
@@ -722,7 +735,9 @@ class TestDepositScheduleRepository:
                 recurring=False,
                 status="invalid_status",  # Invalid status
             )
-            assert False, "Schema should have raised a validation error for invalid status"
+            assert (
+                False
+            ), "Schema should have raised a validation error for invalid status"
         except ValueError as e:
             # This is expected - schema validation should catch the error
             assert "status" in str(e).lower()

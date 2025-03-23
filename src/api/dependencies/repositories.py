@@ -11,8 +11,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.session import get_db
 from src.repositories.accounts import AccountRepository
 from src.repositories.balance_history import BalanceHistoryRepository
-from src.repositories.balance_reconciliation import BalanceReconciliationRepository
+from src.repositories.balance_reconciliation import \
+    BalanceReconciliationRepository
 from src.repositories.bill_splits import BillSplitRepository
+from src.repositories.cashflow import CashflowForecastRepository
 from src.repositories.categories import CategoryRepository
 from src.repositories.credit_limit_history import CreditLimitHistoryRepository
 from src.repositories.deposit_schedules import DepositScheduleRepository
@@ -27,7 +29,6 @@ from src.repositories.recurring_bills import RecurringBillRepository
 from src.repositories.recurring_income import RecurringIncomeRepository
 from src.repositories.statement_history import StatementHistoryRepository
 from src.repositories.transaction_history import TransactionHistoryRepository
-from src.repositories.cashflow import CashflowForecastRepository
 
 
 def get_repository_factory(db: AsyncSession = Depends(get_db)) -> RepositoryFactory:

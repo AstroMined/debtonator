@@ -12,22 +12,16 @@ from typing import Any, Dict, List, Optional, Tuple
 from src.core.decimal_precision import DecimalPrecision
 from src.models.accounts import Account as AccountModel
 from src.repositories.accounts import AccountRepository
-from src.repositories.statement_history import StatementHistoryRepository
 from src.repositories.credit_limit_history import CreditLimitHistoryRepository
+from src.repositories.statement_history import StatementHistoryRepository
 from src.repositories.transaction_history import TransactionHistoryRepository
-from src.schemas.accounts import (
-    AccountCreate,
-    AccountInDB,
-    AccountStatementHistoryResponse,
-    AccountUpdate,
-    AvailableCreditResponse,
-    StatementBalanceHistory,
-)
+from src.schemas.accounts import (AccountCreate, AccountInDB,
+                                  AccountStatementHistoryResponse,
+                                  AccountUpdate, AvailableCreditResponse,
+                                  StatementBalanceHistory)
 from src.schemas.credit_limit_history import (
-    AccountCreditLimitHistoryResponse,
-    CreditLimitHistoryCreate,
-    CreditLimitHistoryUpdate,
-)
+    AccountCreditLimitHistoryResponse, CreditLimitHistoryCreate,
+    CreditLimitHistoryUpdate)
 from src.schemas.statement_history import StatementHistoryCreate
 
 
@@ -256,7 +250,7 @@ class AccountService:
         # Initialize available_credit for credit accounts
         account_dict = account_data.model_dump()
         account_obj = AccountModel(**account_dict)
-        
+
         # Calculate available_credit before database insertion
         if account_obj.type == "credit" and account_obj.total_limit is not None:
             self._update_available_credit(account_obj)
@@ -495,7 +489,7 @@ class AccountService:
         # Update current statement info using the account repository
         account_update = {
             "last_statement_balance": statement_balance,
-            "last_statement_date": statement_date
+            "last_statement_date": statement_date,
         }
         updated_account = await self.account_repo.update(account_id, account_update)
 
@@ -505,7 +499,7 @@ class AccountService:
             statement_date=statement_date,
             statement_balance=statement_balance,
             minimum_payment=minimum_payment,
-            due_date=due_date
+            due_date=due_date,
         )
         await self.statement_repo.create(statement_data.model_dump())
 
@@ -550,7 +544,7 @@ class AccountService:
         # Use account repository to update the account
         account_update = {
             "total_limit": credit_limit_data.credit_limit,
-            "available_credit": db_account.available_credit
+            "available_credit": db_account.available_credit,
         }
         updated_account = await self.account_repo.update(account_id, account_update)
 
@@ -559,7 +553,7 @@ class AccountService:
             account_id=account_id,
             credit_limit=credit_limit_data.credit_limit,
             effective_date=credit_limit_data.effective_date,
-            reason=credit_limit_data.reason
+            reason=credit_limit_data.reason,
         )
         await self.credit_limit_repo.create(history_data.model_dump())
 
@@ -570,13 +564,13 @@ class AccountService:
     ) -> Optional[AccountCreditLimitHistoryResponse]:
         """
         Get credit limit history for an account
-        
+
         Args:
             account_id: ID of the account to get history for
-            
+
         Returns:
             Credit limit history or None if account not found
-            
+
         Raises:
             ValueError: If account is not a credit account
         """
@@ -604,13 +598,13 @@ class AccountService:
     ) -> Optional[AvailableCreditResponse]:
         """
         Calculate real-time available credit for a credit account
-        
+
         Args:
             account_id: ID of the account to calculate credit for
-            
+
         Returns:
             Available credit information or None if account not found
-            
+
         Raises:
             ValueError: If account is not a credit account
         """
@@ -670,10 +664,10 @@ class AccountService:
     async def _get_pending_transactions(self, account_id: int) -> Decimal:
         """
         Get sum of pending debit transactions
-        
+
         Args:
             account_id: ID of the account to get transactions for
-            
+
         Returns:
             Sum of pending debit transactions
         """
@@ -683,10 +677,10 @@ class AccountService:
     async def _get_pending_payments(self, account_id: int) -> Decimal:
         """
         Get sum of pending credit transactions
-        
+
         Args:
             account_id: ID of the account to get transactions for
-            
+
         Returns:
             Sum of pending credit transactions
         """
@@ -698,10 +692,10 @@ class AccountService:
     ) -> Optional[AccountStatementHistoryResponse]:
         """
         Get statement balance history for an account
-        
+
         Args:
             account_id: ID of the account to get history for
-            
+
         Returns:
             Statement history or None if account not found
         """

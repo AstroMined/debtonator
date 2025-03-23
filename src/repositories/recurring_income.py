@@ -13,8 +13,8 @@ from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from src.models.recurring_income import RecurringIncome
 from src.models.income import Income
+from src.models.recurring_income import RecurringIncome
 from src.repositories.base import BaseRepository
 
 
@@ -49,7 +49,9 @@ class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):
         Returns:
             List[RecurringIncome]: List of matching recurring income records
         """
-        query = select(RecurringIncome).where(RecurringIncome.source.ilike(f"%{source}%"))
+        query = select(RecurringIncome).where(
+            RecurringIncome.source.ilike(f"%{source}%")
+        )
         result = await self.session.execute(query)
         return result.scalars().all()
 
@@ -107,7 +109,9 @@ class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):
         result = await self.session.execute(query)
         return result.unique().scalars().all()
 
-    async def get_with_income_entries(self, recurring_id: int) -> Optional[RecurringIncome]:
+    async def get_with_income_entries(
+        self, recurring_id: int
+    ) -> Optional[RecurringIncome]:
         """
         Get a recurring income record with its associated income entries.
 
@@ -164,7 +168,9 @@ class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):
         result = await self.session.execute(query)
         return result.unique().scalar_one_or_none()
 
-    async def get_with_relationships(self, recurring_id: int) -> Optional[RecurringIncome]:
+    async def get_with_relationships(
+        self, recurring_id: int
+    ) -> Optional[RecurringIncome]:
         """
         Get a recurring income record with all relevant relationships loaded.
 
@@ -179,7 +185,7 @@ class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):
             .options(
                 joinedload(RecurringIncome.account),
                 joinedload(RecurringIncome.category),
-                selectinload(RecurringIncome.income_entries)
+                selectinload(RecurringIncome.income_entries),
             )
             .where(RecurringIncome.id == recurring_id)
         )
@@ -203,9 +209,7 @@ class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):
             return None
 
         # Toggle the active status
-        update_data = {
-            "active": not recurring.active
-        }
+        update_data = {"active": not recurring.active}
 
         # Update the record
         return await self.update(recurring_id, update_data)
@@ -226,14 +230,14 @@ class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):
             return None
 
         # Toggle the auto_deposit status
-        update_data = {
-            "auto_deposit": not recurring.auto_deposit
-        }
+        update_data = {"auto_deposit": not recurring.auto_deposit}
 
         # Update the record
         return await self.update(recurring_id, update_data)
 
-    async def update_day_of_month(self, recurring_id: int, day: int) -> Optional[RecurringIncome]:
+    async def update_day_of_month(
+        self, recurring_id: int, day: int
+    ) -> Optional[RecurringIncome]:
         """
         Update the day_of_month for a recurring income record.
 
@@ -249,9 +253,7 @@ class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):
             raise ValueError("Day of month must be between 1 and 31")
 
         # Update the record
-        update_data = {
-            "day_of_month": day
-        }
+        update_data = {"day_of_month": day}
 
         return await self.update(recurring_id, update_data)
 
@@ -265,7 +267,9 @@ class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):
         Returns:
             Decimal: Total monthly amount
         """
-        query = select(func.sum(RecurringIncome.amount)).where(RecurringIncome.active == True)
+        query = select(func.sum(RecurringIncome.amount)).where(
+            RecurringIncome.active == True
+        )
 
         if account_id is not None:
             query = query.where(RecurringIncome.account_id == account_id)
@@ -307,9 +311,9 @@ class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):
         current_month = today.month
         current_year = today.year
         current_day = today.day
-        
+
         upcoming_deposits = []
-        
+
         for income in recurring_incomes:
             # Determine if the day has already passed this month
             if income.day_of_month < current_day:
@@ -323,15 +327,19 @@ class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):
                 # If not passed, schedule for current month
                 deposit_month = current_month
                 deposit_year = current_year
-            
+
             # Create deposit date (handle edge cases like Feb 30)
             try:
-                deposit_date = datetime(deposit_year, deposit_month, income.day_of_month)
+                deposit_date = datetime(
+                    deposit_year, deposit_month, income.day_of_month
+                )
             except ValueError:
                 # Handle invalid dates (e.g., Feb 30) by using the last day of the month
                 if deposit_month == 2:
                     # Check for leap year
-                    if (deposit_year % 4 == 0 and deposit_year % 100 != 0) or deposit_year % 400 == 0:
+                    if (
+                        deposit_year % 4 == 0 and deposit_year % 100 != 0
+                    ) or deposit_year % 400 == 0:
                         deposit_date = datetime(deposit_year, deposit_month, 29)
                     else:
                         deposit_date = datetime(deposit_year, deposit_month, 28)
@@ -339,21 +347,23 @@ class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):
                     deposit_date = datetime(deposit_year, deposit_month, 30)
                 else:
                     deposit_date = datetime(deposit_year, deposit_month, 31)
-            
+
             # Check if it's within the specified days range
             delta = (deposit_date - today).days
             if 0 <= delta <= days:
-                upcoming_deposits.append({
-                    "source": income.source,
-                    "amount": income.amount,
-                    "projected_date": deposit_date,
-                    "account_id": income.account_id,
-                    "recurring_id": income.id
-                })
-        
+                upcoming_deposits.append(
+                    {
+                        "source": income.source,
+                        "amount": income.amount,
+                        "projected_date": deposit_date,
+                        "account_id": income.account_id,
+                        "recurring_id": income.id,
+                    }
+                )
+
         # Sort by date
         upcoming_deposits.sort(key=lambda x: x["projected_date"])
-        
+
         return upcoming_deposits
 
     async def find_by_pattern(self, pattern: str) -> List[RecurringIncome]:
@@ -388,7 +398,7 @@ class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):
         query = select(func.sum(RecurringIncome.amount)).where(
             and_(
                 RecurringIncome.active == True,
-                RecurringIncome.source.ilike(f"%{source_pattern}%")
+                RecurringIncome.source.ilike(f"%{source_pattern}%"),
             )
         )
 

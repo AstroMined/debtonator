@@ -8,17 +8,17 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .balance_history import BalanceHistory
 from .balance_reconciliation import BalanceReconciliation
 from .base_model import BaseDBModel
-from .credit_limit_history import CreditLimitHistory
-from .payment_schedules import PaymentSchedule
-from .statement_history import StatementHistory
-from .transaction_history import TransactionHistory
-from .liabilities import Liability
-from .payments import PaymentSource
 from .bill_splits import BillSplit
+from .credit_limit_history import CreditLimitHistory
+from .deposit_schedules import DepositSchedule
 from .income import Income
+from .liabilities import Liability
+from .payment_schedules import PaymentSchedule
+from .payments import PaymentSource
 from .recurring_bills import RecurringBill
 from .recurring_income import RecurringIncome
-from .deposit_schedules import DepositSchedule
+from .statement_history import StatementHistory
+from .transaction_history import TransactionHistory
 
 
 class Account(BaseDBModel):

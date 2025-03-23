@@ -5,12 +5,10 @@ from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.balance_reconciliation import (
-    BalanceReconciliation,
-    BalanceReconciliationBase,
-    BalanceReconciliationCreate,
-    BalanceReconciliationUpdate,
-)
+from src.schemas.balance_reconciliation import (BalanceReconciliation,
+                                                BalanceReconciliationBase,
+                                                BalanceReconciliationCreate,
+                                                BalanceReconciliationUpdate)
 
 
 # Test valid object creation
@@ -49,12 +47,14 @@ def test_balance_reconciliation_create_valid():
         account_id=1,
         previous_balance=Decimal("1000.00"),
         new_balance=Decimal("1200.00"),
+        adjustment_amount=Decimal("200.00"),  # Add required field
         reason="Monthly reconciliation",
     )
 
     assert data.account_id == 1
     assert data.previous_balance == Decimal("1000.00")
     assert data.new_balance == Decimal("1200.00")
+    assert data.adjustment_amount == Decimal("200.00")  # Verify adjustment_amount
     assert data.reason == "Monthly reconciliation"
 
 

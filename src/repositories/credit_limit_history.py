@@ -65,15 +65,17 @@ class CreditLimitHistoryRepository(BaseRepository[CreditLimitHistory, int]):
         Returns:
             List[CreditLimitHistory]: List of credit limit history entries
         """
-        query = select(CreditLimitHistory).where(CreditLimitHistory.account_id == account_id)
-        
+        query = select(CreditLimitHistory).where(
+            CreditLimitHistory.account_id == account_id
+        )
+
         if order_by_desc:
             query = query.order_by(CreditLimitHistory.effective_date.desc())
         else:
             query = query.order_by(CreditLimitHistory.effective_date)
-            
+
         query = query.limit(limit)
-        
+
         result = await self.session.execute(query)
         return result.scalars().all()
 

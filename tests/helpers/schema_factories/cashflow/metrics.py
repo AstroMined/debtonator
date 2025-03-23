@@ -8,16 +8,10 @@ Pydantic schema instances for use in tests.
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from src.schemas.cashflow.metrics import (
-    DeficitCalculation,
-    HourlyRates,
-    MinimumRequired,
-)
-from tests.helpers.schema_factories.base import (
-    MEDIUM_AMOUNT,
-    SMALL_AMOUNT,
-    factory_function,
-)
+from src.schemas.cashflow.metrics import (DeficitCalculation, HourlyRates,
+                                          MinimumRequired)
+from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT, SMALL_AMOUNT,
+                                                 factory_function)
 
 
 @factory_function(MinimumRequired)

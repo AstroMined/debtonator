@@ -6,6 +6,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.29] - 2025-03-22
+
+### Added
+
+- Created UTC datetime compliance tools to implement ADR-011 requirements:
+  - Implemented comprehensive helper utilities in tests/helpers/datetime_utils.py
+  - Created scanner script in tools/scan_naive_datetimes.py for detecting naive datetime usage
+  - Added simplified pytest hook in tests/conftest.py to warn about naive datetime usage
+  - Documented datetime compliance best practices in docs/guides/utc_datetime_compliance.md
+  - Added helper functions (utc_now, utc_datetime, days_from_now) for consistent datetime handling
+  - Implemented common replacements for naive datetime usage patterns
+  - Created comprehensive naive datetime report generation functionality
+
+### Fixed
+
+- Improved naive datetime detection and reporting:
+  - Fixed naive datetime detection to eliminate false positives
+  - Enhanced regex patterns for more accurate datetime usage detection
+  - Implemented post-processing for better matching context
+  - Fixed scanner to properly handle helper function usage
+  - Improved documentation context handling in scanner
+  - Fixed most incorrect UTC datetime usage in repository tests
+  - Added better filtering for common patterns in imported code
+
+### Changed
+
+- Enhanced testing infrastructure:
+  - Simplified pytest hook to focus on warning about naive datetime usage in tests that run
+  - Replaced complex report generation with standalone scanner tool
+  - Improved documentation with clear migration strategies
+  - Updated test patterns for better UTC datetime handling
+
 ## [0.5.28] - 2025-03-22
 
 ### Changed
@@ -293,7 +325,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added deposit_schedules.py for income deposit scheduling
   - Added income_categories.py with simple category creation
 - All new factories follow established schema factory patterns:
-  - Consistent use of @factory_function decorator 
+  - Consistent use of @factory_function decorator
   - Well-documented parameters and return values
   - Properly handled defaults for required fields
   - Support for optional fields with proper defaults

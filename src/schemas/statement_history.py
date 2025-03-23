@@ -8,11 +8,12 @@ specialized response formats for different statement-related operations.
 
 from datetime import datetime
 from decimal import Decimal
-from typing import List, Optional, Any
+from typing import Any, List, Optional
 
-from pydantic import Field, ConfigDict
+from pydantic import ConfigDict, Field
 
 from src.schemas.accounts import AccountResponse
+
 from . import BaseSchemaValidator, MoneyDecimal
 
 
@@ -22,7 +23,7 @@ class StatementHistoryBase(BaseSchemaValidator):
 
     Contains the common attributes and validation logic for statement history data.
     """
-    
+
     account_id: int = Field(..., gt=0, description="ID of the associated account")
     statement_date: datetime = Field(
         ..., description="Date of the statement (UTC timezone)"
@@ -44,6 +45,7 @@ class StatementHistoryCreate(StatementHistoryBase):
 
     Extends the base statement history schema without adding additional fields.
     """
+
     pass
 
 
@@ -53,7 +55,7 @@ class StatementHistoryUpdate(BaseSchemaValidator):
 
     Contains all fields from StatementHistoryBase but makes them optional for partial updates.
     """
-    
+
     account_id: Optional[int] = Field(
         default=None, gt=0, description="ID of the associated account"
     )
@@ -77,9 +79,9 @@ class StatementHistory(StatementHistoryBase):
 
     Extends the base statement history schema with database-specific fields.
     """
-    
+
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: int = Field(..., gt=0, description="Statement history ID (unique identifier)")
 
 
@@ -89,7 +91,7 @@ class StatementHistoryWithAccount(StatementHistory):
 
     Used for returning statement history with account information.
     """
-    
+
     account: AccountResponse = Field(..., description="Associated account details")
 
 
@@ -99,6 +101,7 @@ class StatementHistoryResponse(StatementHistory):
 
     Extends the database statement history schema for API response formatting.
     """
+
     pass
 
 
@@ -108,7 +111,7 @@ class StatementHistoryTrend(BaseSchemaValidator):
 
     Provides a view of statement balances and minimum payments over time.
     """
-    
+
     account_id: int = Field(..., gt=0, description="Account ID")
     statement_dates: List[datetime] = Field(
         ..., description="List of statement dates (UTC timezone)"
@@ -127,12 +130,14 @@ class UpcomingStatementDue(BaseSchemaValidator):
 
     Used for returning information about statements with upcoming due dates.
     """
-    
+
     statement_id: int = Field(..., gt=0, description="Statement history ID")
     account_id: int = Field(..., gt=0, description="Account ID")
     account_name: str = Field(..., description="Account name")
     due_date: datetime = Field(..., description="Payment due date (UTC timezone)")
-    statement_balance: MoneyDecimal = Field(..., description="Balance on statement date")
+    statement_balance: MoneyDecimal = Field(
+        ..., description="Balance on statement date"
+    )
     minimum_payment: Optional[MoneyDecimal] = Field(
         default=None, description="Minimum payment due", ge=0
     )

@@ -16,37 +16,41 @@ SchemaType = TypeVar("SchemaType", bound=BaseModel)
 FactoryFunc = TypeVar("FactoryFunc", bound=Callable[..., Dict[str, Any]])
 
 
-def factory_function(schema_cls: Type[SchemaType]) -> Callable[[FactoryFunc], Callable[..., SchemaType]]:
+def factory_function(
+    schema_cls: Type[SchemaType],
+) -> Callable[[FactoryFunc], Callable[..., SchemaType]]:
     """
     Decorator to simplify creating factory functions.
-    
+
     This decorator transforms a function that returns a dictionary into one that
     returns a validated schema instance.
-    
+
     Args:
         schema_cls: The schema class that the factory creates
-        
+
     Returns:
         Callable: Decorator function
     """
+
     def decorator(func: FactoryFunc) -> Callable[..., SchemaType]:
         def wrapper(*args: Any, **kwargs: Any) -> SchemaType:
             data = func(*args, **kwargs)
             return schema_cls(**data)
-        
+
         # Preserve function metadata for better IDE integration
         wrapper.__name__ = func.__name__
         wrapper.__doc__ = func.__doc__
         wrapper.__annotations__ = func.__annotations__
-        
+
         return cast(Callable[..., SchemaType], wrapper)
+
     return decorator
 
 
 def utc_now() -> datetime:
     """
     Get current datetime with UTC timezone.
-    
+
     Returns:
         datetime: Current time with UTC timezone
     """
@@ -56,14 +60,14 @@ def utc_now() -> datetime:
 def merge_kwargs(base_data: Dict[str, Any], kwargs: Dict[str, Any]) -> Dict[str, Any]:
     """
     Merge base data with overrides from kwargs.
-    
+
     This function allows factory functions to have default values that
     can be overridden by kwargs, while also supporting nested updates.
-    
+
     Args:
         base_data: Base data dictionary with default values
         kwargs: Override values from factory function call
-        
+
     Returns:
         Dict[str, Any]: Merged data dictionary
     """
@@ -75,11 +79,11 @@ def merge_kwargs(base_data: Dict[str, Any], kwargs: Dict[str, Any]) -> Dict[str,
 def default_if_none(value: Any, default: Any) -> Any:
     """
     Return default value if provided value is None.
-    
+
     Args:
         value: The value to check
         default: Default value to use if value is None
-        
+
     Returns:
         Any: Either the original value or the default
     """

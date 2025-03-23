@@ -6,12 +6,10 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 
-from src.schemas.cashflow import (
-    HistoricalPeriodAnalysis,
-    HistoricalTrendMetrics,
-    HistoricalTrendsResponse,
-    SeasonalityAnalysis,
-)
+from src.schemas.cashflow import (HistoricalPeriodAnalysis,
+                                  HistoricalTrendMetrics,
+                                  HistoricalTrendsResponse,
+                                  SeasonalityAnalysis)
 
 from .base import BaseService
 from .transaction_service import TransactionService

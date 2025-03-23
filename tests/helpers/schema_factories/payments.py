@@ -5,18 +5,16 @@ This module provides factory functions for creating valid Payment-related
 Pydantic schema instances for use in tests.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Union
 
-from src.schemas.payments import (
-    PaymentCreate,
-    PaymentDateRange,
-    PaymentSourceCreate,
-    PaymentUpdate,
-)
-from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function, utc_now
-from tests.helpers.schema_factories.payment_sources import create_payment_source_schema
+from src.schemas.payments import (PaymentCreate, PaymentDateRange,
+                                  PaymentSourceCreate, PaymentUpdate)
+from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT,
+                                                 factory_function, utc_now)
+from tests.helpers.schema_factories.payment_sources import \
+    create_payment_source_schema
 
 
 @factory_function(PaymentCreate)
@@ -155,7 +153,9 @@ def create_payment_date_range_schema(
 
     if start_date is None:
         # Default to 30 days ago
-        start_date = now.replace(day=1)  # First day of current month
+        start_date = datetime(
+            now.year, now.month, 1, tzinfo=timezone.utc
+        )  # First day of current month
 
     if end_date is None:
         # Default to now

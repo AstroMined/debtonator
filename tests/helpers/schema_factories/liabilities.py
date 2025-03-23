@@ -5,20 +5,16 @@ This module provides factory functions for creating valid Liability-related
 Pydantic schema instances for use in tests.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from src.schemas.liabilities import (
-    AutoPaySettings,
-    AutoPayUpdate,
-    LiabilityCreate,
-    LiabilityDateRange,
-    LiabilityInDB,
-    LiabilityResponse,
-    LiabilityUpdate,
-)
-from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function, utc_now
+from src.schemas.liabilities import (AutoPaySettings, AutoPayUpdate,
+                                     LiabilityCreate, LiabilityDateRange,
+                                     LiabilityInDB, LiabilityResponse,
+                                     LiabilityUpdate)
+from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT,
+                                                 factory_function, utc_now)
 
 
 @factory_function(LiabilityCreate)
@@ -50,12 +46,12 @@ def create_liability_schema(
     # Default due date to 15 days from now
     if due_date is None:
         now = utc_now()
-        due_date = datetime(now.year, now.month, 15, tzinfo=now.tzinfo)
+        due_date = datetime(now.year, now.month, 15, tzinfo=timezone.utc)
         if now.day > 15:
             if now.month == 12:
-                due_date = datetime(now.year + 1, 1, 15, tzinfo=now.tzinfo)
+                due_date = datetime(now.year + 1, 1, 15, tzinfo=timezone.utc)
             else:
-                due_date = datetime(now.year, now.month + 1, 15, tzinfo=now.tzinfo)
+                due_date = datetime(now.year, now.month + 1, 15, tzinfo=timezone.utc)
 
     data = {
         "name": name,
@@ -199,12 +195,12 @@ def create_liability_in_db_schema(
     # Default due date to 15 days from now
     if due_date is None:
         now = utc_now()
-        due_date = datetime(now.year, now.month, 15, tzinfo=now.tzinfo)
+        due_date = datetime(now.year, now.month, 15, tzinfo=timezone.utc)
         if now.day > 15:
             if now.month == 12:
-                due_date = datetime(now.year + 1, 1, 15, tzinfo=now.tzinfo)
+                due_date = datetime(now.year + 1, 1, 15, tzinfo=timezone.utc)
             else:
-                due_date = datetime(now.year, now.month + 1, 15, tzinfo=now.tzinfo)
+                due_date = datetime(now.year, now.month + 1, 15, tzinfo=timezone.utc)
 
     if created_at is None:
         created_at = utc_now()
@@ -327,15 +323,15 @@ def create_liability_date_range_schema(
 
     if start_date is None:
         # Default to first day of current month
-        start_date = datetime(now.year, now.month, 1, tzinfo=now.tzinfo)
+        start_date = datetime(now.year, now.month, 1, tzinfo=timezone.utc)
 
     if end_date is None:
         # Default to last day of next month
         if now.month == 12:
-            end_date = datetime(now.year + 1, 1, 28, 23, 59, 59, tzinfo=now.tzinfo)
+            end_date = datetime(now.year + 1, 1, 28, 23, 59, 59, tzinfo=timezone.utc)
         else:
             end_date = datetime(
-                now.year, now.month + 1, 28, 23, 59, 59, tzinfo=now.tzinfo
+                now.year, now.month + 1, 28, 23, 59, 59, tzinfo=timezone.utc
             )
 
     data = {

@@ -5,7 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.database import get_db
-from src.schemas.payment_schedules import PaymentSchedule, PaymentScheduleCreate
+from src.schemas.payment_schedules import (PaymentSchedule,
+                                           PaymentScheduleCreate)
 from src.services.payment_schedules import PaymentScheduleService
 
 router = APIRouter(prefix="/payment-schedules", tags=["payment_schedules"])

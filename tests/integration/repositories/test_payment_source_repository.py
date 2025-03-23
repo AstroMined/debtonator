@@ -20,10 +20,13 @@ from src.repositories.accounts import AccountRepository
 from src.repositories.payment_sources import PaymentSourceRepository
 from src.repositories.payments import PaymentRepository
 from src.schemas.accounts import AccountCreate
-from src.schemas.payments import PaymentCreate, PaymentSourceCreate, PaymentSourceUpdate
+from src.schemas.payments import (PaymentCreate, PaymentSourceCreate,
+                                  PaymentSourceUpdate)
+from tests.helpers.datetime_utils import utc_now
 from tests.helpers.schema_factories.accounts import create_account_schema
+from tests.helpers.schema_factories.payment_sources import \
+    create_payment_source_schema
 from tests.helpers.schema_factories.payments import create_payment_schema
-from tests.helpers.schema_factories.payment_sources import create_payment_source_schema
 
 
 @pytest_asyncio.fixture
@@ -50,17 +53,17 @@ async def payment_source_repository(
 async def test_account(account_repository: AccountRepository) -> Account:
     """Create a test checking account for use in tests."""
     # 1. ARRANGE: No setup needed for this fixture
-    
+
     # 2. SCHEMA: Create and validate through Pydantic schema
     account_schema = create_account_schema(
         name="Test Checking Account",
         account_type="checking",
         available_balance=Decimal("1000.00"),
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = account_schema.model_dump()
-    
+
     # 3. ACT: Pass validated data to repository
     return await account_repository.create(validated_data)
 
@@ -69,17 +72,17 @@ async def test_account(account_repository: AccountRepository) -> Account:
 async def test_second_account(account_repository: AccountRepository) -> Account:
     """Create a second test checking account for use in tests."""
     # 1. ARRANGE: No setup needed for this fixture
-    
+
     # 2. SCHEMA: Create and validate through Pydantic schema
     account_schema = create_account_schema(
         name="Second Checking Account",
         account_type="checking",
         available_balance=Decimal("2000.00"),
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = account_schema.model_dump()
-    
+
     # 3. ACT: Pass validated data to repository
     return await account_repository.create(validated_data)
 
@@ -91,24 +94,23 @@ async def test_payment(
 ) -> Payment:
     """Create a test payment for use in tests."""
     # 1. ARRANGE: No setup needed for this fixture
-    
+
     # 2. SCHEMA: Create and validate through Pydantic schema
     payment_schema = create_payment_schema(
         amount=Decimal("100.00"),
-        payment_date=datetime.utcnow(),
+        payment_date=utc_now(),
         category="Bill Payment",
         description="Test payment",
         sources=[
             create_payment_source_schema(
-                account_id=test_account.id,
-                amount=Decimal("100.00")
+                account_id=test_account.id, amount=Decimal("100.00")
             )
-        ]
+        ],
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = payment_schema.model_dump()
-    
+
     # 3. ACT: Pass validated data to repository
     return await payment_repository.create(validated_data)
 
@@ -121,28 +123,26 @@ async def test_payment_with_multiple_sources(
 ) -> Payment:
     """Create a test payment with multiple payment sources."""
     # 1. ARRANGE: No setup needed for this fixture
-    
+
     # 2. SCHEMA: Create and validate through Pydantic schema
     payment_schema = create_payment_schema(
         amount=Decimal("150.00"),
-        payment_date=datetime.utcnow(),
+        payment_date=utc_now(),
         category="Bill Payment",
         description="Test payment with multiple sources",
         sources=[
             create_payment_source_schema(
-                account_id=test_account.id,
-                amount=Decimal("100.00")
+                account_id=test_account.id, amount=Decimal("100.00")
             ),
             create_payment_source_schema(
-                account_id=test_second_account.id,
-                amount=Decimal("50.00")
-            )
-        ]
+                account_id=test_second_account.id, amount=Decimal("50.00")
+            ),
+        ],
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = payment_schema.model_dump()
-    
+
     # 3. ACT: Pass validated data to repository
     return await payment_repository.create(validated_data)
 
@@ -155,22 +155,20 @@ async def test_payment_source(
 ) -> PaymentSource:
     """
     Create a test payment source.
-    
-    Note: This fixture creates a separate payment source, not directly 
+
+    Note: This fixture creates a separate payment source, not directly
     associated with the test_payment fixture which already has its own source.
     """
     # 1. ARRANGE: No setup needed for this fixture
-    
+
     # 2. SCHEMA: Create and validate through Pydantic schema
     source_schema = create_payment_source_schema(
-        account_id=test_account.id,
-        amount=Decimal("75.00"),
-        payment_id=test_payment.id
+        account_id=test_account.id, amount=Decimal("75.00"), payment_id=test_payment.id
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = source_schema.model_dump()
-    
+
     # 3. ACT: Pass validated data to repository
     return await payment_source_repository.create(validated_data)
 
@@ -192,20 +190,20 @@ class TestPaymentSourceRepository:
     ):
         """Test creating a payment source with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. SCHEMA: Create and validate through Pydantic schema
         source_schema = create_payment_source_schema(
             account_id=test_account.id,
             amount=Decimal("50.00"),
-            payment_id=test_payment.id
+            payment_id=test_payment.id,
         )
-        
+
         # Convert validated schema to dict for repository
         validated_data = source_schema.model_dump()
-        
+
         # 3. ACT: Pass validated data to repository
         result = await payment_source_repository.create(validated_data)
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id is not None
@@ -223,10 +221,10 @@ class TestPaymentSourceRepository:
     ):
         """Test retrieving a payment source by ID with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get the payment source by ID
         result = await payment_source_repository.get(test_payment_source.id)
-        
+
         # 3. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_payment_source.id
@@ -242,17 +240,17 @@ class TestPaymentSourceRepository:
     ):
         """Test updating a payment source with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. SCHEMA: Create and validate through Pydantic schema
         # Note: PaymentSourceUpdate isn't defined in the schema, so we'll use PaymentSourceCreate
         # In a real scenario, we would use the proper update schema
-        update_data = {
-            "amount": Decimal("125.00")
-        }
-        
+        update_data = {"amount": Decimal("125.00")}
+
         # 3. ACT: Pass validated data to repository
-        result = await payment_source_repository.update(test_payment_source.id, update_data)
-        
+        result = await payment_source_repository.update(
+            test_payment_source.id, update_data
+        )
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_payment_source.id
@@ -270,13 +268,13 @@ class TestPaymentSourceRepository:
     ):
         """Test deleting a payment source."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Delete the payment source
         result = await payment_source_repository.delete(test_payment_source.id)
-        
+
         # 3. ASSERT: Verify the operation results
         assert result is True
-        
+
         # Verify the payment source is actually deleted
         deleted_check = await payment_source_repository.get(test_payment_source.id)
         assert deleted_check is None
@@ -289,23 +287,21 @@ class TestPaymentSourceRepository:
     ):
         """Test getting a payment source with relationships loaded."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get the payment source with relationships
         result = await payment_source_repository.get_with_relationships(
-            test_payment_source.id,
-            include_payment=True,
-            include_account=True
+            test_payment_source.id, include_payment=True, include_account=True
         )
-        
+
         # 3. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_payment_source.id
-        
+
         # Check that relationships are properly loaded
         assert hasattr(result, "payment")
         assert result.payment is not None
         assert result.payment.id == test_payment_source.payment_id
-        
+
         assert hasattr(result, "account")
         assert result.account is not None
         assert result.account.id == test_payment_source.account_id
@@ -318,16 +314,16 @@ class TestPaymentSourceRepository:
     ):
         """Test getting sources for a specific payment."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get sources for the payment
         results = await payment_source_repository.get_sources_for_payment(
             test_payment_with_multiple_sources.id
         )
-        
+
         # 3. ASSERT: Verify the operation results
         assert results is not None
         assert len(results) == 2  # The test payment has 2 sources
-        
+
         # Check that all sources belong to the correct payment
         for source in results:
             assert source.payment_id == test_payment_with_multiple_sources.id
@@ -342,16 +338,16 @@ class TestPaymentSourceRepository:
     ):
         """Test getting sources for a specific account."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get sources for the account
         results = await payment_source_repository.get_sources_for_account(
             test_account.id
         )
-        
+
         # 3. ASSERT: Verify the operation results
         assert results is not None
         assert len(results) >= 2  # At least 2 sources use this account
-        
+
         # Check that all sources belong to the correct account
         for source in results:
             assert source.account_id == test_account.id
@@ -366,38 +362,35 @@ class TestPaymentSourceRepository:
     ):
         """Test creating multiple sources at once with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. SCHEMA: Create and validate through Pydantic schema
         source_schema1 = create_payment_source_schema(
             account_id=test_account.id,
             amount=Decimal("30.00"),
-            payment_id=test_payment.id
+            payment_id=test_payment.id,
         )
-        
+
         source_schema2 = create_payment_source_schema(
             account_id=test_second_account.id,
             amount=Decimal("40.00"),
-            payment_id=test_payment.id
+            payment_id=test_payment.id,
         )
-        
+
         # Convert validated schemas to dicts for repository
-        sources_data = [
-            source_schema1.model_dump(),
-            source_schema2.model_dump()
-        ]
-        
+        sources_data = [source_schema1.model_dump(), source_schema2.model_dump()]
+
         # 3. ACT: Pass validated data to repository
         results = await payment_source_repository.bulk_create_sources(sources_data)
-        
+
         # 4. ASSERT: Verify the operation results
         assert results is not None
         assert len(results) == 2
-        
+
         # Check that both sources were created correctly
         assert results[0].payment_id == test_payment.id
         assert results[0].account_id == test_account.id
         assert results[0].amount == Decimal("30.00")
-        
+
         assert results[1].payment_id == test_payment.id
         assert results[1].account_id == test_second_account.id
         assert results[1].amount == Decimal("40.00")
@@ -413,12 +406,12 @@ class TestPaymentSourceRepository:
     ):
         """Test getting total payment amount from a specific account."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get total amount for the account
         total = await payment_source_repository.get_total_amount_by_account(
             test_account.id
         )
-        
+
         # 3. ASSERT: Verify the operation results
         # We have 3 sources using this account:
         # - One from test_payment (100.00)
@@ -435,21 +428,21 @@ class TestPaymentSourceRepository:
     ):
         """Test deleting all sources for a specific payment."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # First verify we have the expected sources
         initial_sources = await payment_source_repository.get_sources_for_payment(
             test_payment_with_multiple_sources.id
         )
         assert len(initial_sources) == 2
-        
+
         # 2. ACT: Delete all sources for the payment
         count = await payment_source_repository.delete_sources_for_payment(
             test_payment_with_multiple_sources.id
         )
-        
+
         # 3. ASSERT: Verify the operation results
         assert count == 2  # Should have deleted 2 sources
-        
+
         # Verify the sources are actually deleted
         remaining_sources = await payment_source_repository.get_sources_for_payment(
             test_payment_with_multiple_sources.id

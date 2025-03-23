@@ -5,16 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...database.database import get_db
-from ...schemas.cashflow import (
-    CashflowCreate,
-    CashflowFilters,
-    CashflowList,
-    CashflowResponse,
-    CashflowUpdate,
-    DeficitCalculation,
-    HourlyRates,
-    MinimumRequired,
-)
+from ...schemas.cashflow import (CashflowCreate, CashflowFilters, CashflowList,
+                                 CashflowResponse, CashflowUpdate,
+                                 DeficitCalculation, HourlyRates,
+                                 MinimumRequired)
 from ...services.cashflow import CashflowService
 
 router = APIRouter(prefix="/cashflow", tags=["cashflow"])

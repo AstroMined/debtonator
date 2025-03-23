@@ -20,14 +20,18 @@ from src.models.recurring_bills import RecurringBill
 from src.repositories.accounts import AccountRepository
 from src.repositories.categories import CategoryRepository
 from src.repositories.recurring_bills import RecurringBillRepository
-from src.schemas.recurring_bills import RecurringBillCreate, RecurringBillUpdate
+from src.schemas.recurring_bills import (RecurringBillCreate,
+                                         RecurringBillUpdate)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.categories import create_category_schema
-from tests.helpers.schema_factories.recurring_bills import create_recurring_bill_schema
+from tests.helpers.schema_factories.recurring_bills import \
+    create_recurring_bill_schema
 
 
 @pytest_asyncio.fixture
-async def recurring_bill_repository(db_session: AsyncSession) -> RecurringBillRepository:
+async def recurring_bill_repository(
+    db_session: AsyncSession,
+) -> RecurringBillRepository:
     """Fixture for RecurringBillRepository with test database session."""
     return RecurringBillRepository(db_session)
 
@@ -48,17 +52,17 @@ async def category_repository(db_session: AsyncSession) -> CategoryRepository:
 async def test_account(account_repository: AccountRepository) -> Account:
     """Create a test account for use in tests."""
     # 1. ARRANGE: No setup needed for this fixture
-    
+
     # 2. SCHEMA: Create and validate through Pydantic schema
     account_schema = create_account_schema(
         name="Test Checking Account",
         account_type="checking",
         available_balance=Decimal("1000.00"),
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = account_schema.model_dump()
-    
+
     # 3. ACT: Pass validated data to repository
     return await account_repository.create(validated_data)
 
@@ -67,15 +71,15 @@ async def test_account(account_repository: AccountRepository) -> Account:
 async def test_category(category_repository: CategoryRepository) -> Category:
     """Create a test category for use in tests."""
     # 1. ARRANGE: No setup needed for this fixture
-    
+
     # 2. SCHEMA: Create and validate through Pydantic schema
     category_schema = create_category_schema(
         name="Test Category",
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = category_schema.model_dump()
-    
+
     # 3. ACT: Pass validated data to repository
     return await category_repository.create(validated_data)
 
@@ -88,7 +92,7 @@ async def test_recurring_bill(
 ) -> RecurringBill:
     """Create a test recurring bill for use in tests."""
     # 1. ARRANGE: No setup needed for this fixture
-    
+
     # 2. SCHEMA: Create and validate through Pydantic schema
     bill_schema = create_recurring_bill_schema(
         bill_name="Test Recurring Bill",
@@ -98,10 +102,10 @@ async def test_recurring_bill(
         category_id=test_category.id,
         auto_pay=True,
     )
-    
+
     # Convert validated schema to dict for repository
     validated_data = bill_schema.model_dump()
-    
+
     # 3. ACT: Pass validated data to repository
     return await recurring_bill_repository.create(validated_data)
 
@@ -122,7 +126,7 @@ async def test_multiple_recurring_bills(
         ("Day 10 Bill 2", 10, True, False),
         ("Day 15 Bill", 15, True, False),
     ]
-    
+
     bills = []
     for name, day, active, auto_pay in bills_config:
         # 2. SCHEMA: Create and validate through Pydantic schema
@@ -134,10 +138,10 @@ async def test_multiple_recurring_bills(
             category_id=test_category.id,
             auto_pay=auto_pay,
         )
-        
+
         # Convert validated schema to dict for repository
         validated_data = bill_schema.model_dump()
-        
+
         # Add active status which isn't in the create schema
         if not active:
             # 3. ACT: Create bill and then update to set active=False
@@ -148,9 +152,9 @@ async def test_multiple_recurring_bills(
         else:
             # 3. ACT: Create bill (active by default)
             bill = await recurring_bill_repository.create(validated_data)
-            
+
         bills.append(bill)
-    
+
     return bills
 
 
@@ -171,7 +175,7 @@ class TestRecurringBillRepository:
     ):
         """Test creating a recurring bill with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. SCHEMA: Create and validate through Pydantic schema
         bill_schema = create_recurring_bill_schema(
             bill_name="New Test Bill",
@@ -181,13 +185,13 @@ class TestRecurringBillRepository:
             category_id=test_category.id,
             auto_pay=True,
         )
-        
+
         # Convert validated schema to dict for repository
         validated_data = bill_schema.model_dump()
-        
+
         # 3. ACT: Pass validated data to repository
         result = await recurring_bill_repository.create(validated_data)
-        
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id is not None
@@ -209,10 +213,10 @@ class TestRecurringBillRepository:
     ):
         """Test retrieving a recurring bill by ID."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get the recurring bill by ID
         result = await recurring_bill_repository.get(test_recurring_bill.id)
-        
+
         # 3. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_recurring_bill.id
@@ -232,20 +236,22 @@ class TestRecurringBillRepository:
     ):
         """Test updating a recurring bill with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. SCHEMA: Create and validate update data through Pydantic schema
         update_schema = RecurringBillUpdate(
             bill_name="Updated Bill Name",
             amount=Decimal("125.00"),
             day_of_month=20,
         )
-        
+
         # Convert validated schema to dict for repository
         update_data = update_schema.model_dump(exclude_unset=True)
-        
+
         # 3. ACT: Pass validated data to repository
-        result = await recurring_bill_repository.update(test_recurring_bill.id, update_data)
-        
+        result = await recurring_bill_repository.update(
+            test_recurring_bill.id, update_data
+        )
+
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_recurring_bill.id
@@ -267,13 +273,13 @@ class TestRecurringBillRepository:
     ):
         """Test deleting a recurring bill."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Delete the recurring bill
         result = await recurring_bill_repository.delete(test_recurring_bill.id)
-        
+
         # 3. ASSERT: Verify the operation results
         assert result is True
-        
+
         # Verify the bill is actually deleted
         deleted_check = await recurring_bill_repository.get(test_recurring_bill.id)
         assert deleted_check is None
@@ -286,15 +292,17 @@ class TestRecurringBillRepository:
     ):
         """Test getting a recurring bill by name."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get recurring bill by name
-        result = await recurring_bill_repository.get_by_name(test_recurring_bill.bill_name)
-        
+        result = await recurring_bill_repository.get_by_name(
+            test_recurring_bill.bill_name
+        )
+
         # 3. ASSERT: Verify the operation results
         assert result is not None
         assert result.id == test_recurring_bill.id
         assert result.bill_name == test_recurring_bill.bill_name
-        
+
         # Test non-existent bill
         non_existent = await recurring_bill_repository.get_by_name("Non Existent Bill")
         assert non_existent is None
@@ -308,24 +316,22 @@ class TestRecurringBillRepository:
         """Test retrieving all active recurring bills."""
         # 1. ARRANGE: Setup is already done with fixtures
         active_bill_ids = [
-            bill.id for bill in test_multiple_recurring_bills 
-            if bill.active
+            bill.id for bill in test_multiple_recurring_bills if bill.active
         ]
         inactive_bill_ids = [
-            bill.id for bill in test_multiple_recurring_bills 
-            if not bill.active
+            bill.id for bill in test_multiple_recurring_bills if not bill.active
         ]
-        
+
         # 2. ACT: Get active bills
         active_bills = await recurring_bill_repository.get_active_bills()
-        
+
         # 3. ASSERT: Verify the operation results
         assert len(active_bills) >= len(active_bill_ids)
-        
+
         # Check that all active bills are returned
         for bill_id in active_bill_ids:
             assert any(bill.id == bill_id for bill in active_bills)
-        
+
         # Check that no inactive bills are returned
         for bill_id in inactive_bill_ids:
             assert not any(bill.id == bill_id for bill in active_bills)
@@ -339,31 +345,29 @@ class TestRecurringBillRepository:
         """Test retrieving recurring bills by day of month."""
         # 1. ARRANGE: Setup is already done with fixtures
         day_10_bill_ids = [
-            bill.id for bill in test_multiple_recurring_bills 
-            if bill.day_of_month == 10
+            bill.id for bill in test_multiple_recurring_bills if bill.day_of_month == 10
         ]
         day_15_bill_ids = [
-            bill.id for bill in test_multiple_recurring_bills 
-            if bill.day_of_month == 15
+            bill.id for bill in test_multiple_recurring_bills if bill.day_of_month == 15
         ]
-        
+
         # 2. ACT: Get bills by day of month
         day_10_bills = await recurring_bill_repository.get_by_day_of_month(10)
         day_15_bills = await recurring_bill_repository.get_by_day_of_month(15)
         day_5_bills = await recurring_bill_repository.get_by_day_of_month(5)
-        
+
         # 3. ASSERT: Verify the operation results
         assert len(day_10_bills) >= len(day_10_bill_ids)
         assert len(day_15_bills) >= len(day_15_bill_ids)
-        
+
         # Check that all day 10 bills are returned
         for bill_id in day_10_bill_ids:
             assert any(bill.id == bill_id for bill in day_10_bills)
-        
+
         # Check that all day 15 bills are returned
         for bill_id in day_15_bill_ids:
             assert any(bill.id == bill_id for bill in day_15_bills)
-        
+
         # We didn't create any day 5 bills in our fixtures
         # There might be some from other tests, but none of ours
         for bill in day_5_bills:
@@ -379,36 +383,42 @@ class TestRecurringBillRepository:
     ):
         """Test retrieving a recurring bill with relationships."""
         # 1. ARRANGE: Setup is already done with fixtures
-        
+
         # 2. ACT: Get recurring bill with different relationship combinations
         bill_with_account = await recurring_bill_repository.get_with_relationships(
             test_recurring_bill.id, include_account=True
         )
-        
+
         bill_with_category = await recurring_bill_repository.get_with_relationships(
             test_recurring_bill.id, include_category=True
         )
-        
+
         bill_with_all = await recurring_bill_repository.get_with_relationships(
-            test_recurring_bill.id, 
-            include_account=True, 
+            test_recurring_bill.id,
+            include_account=True,
             include_category=True,
             include_liabilities=True,
         )
-        
+
         # 3. ASSERT: Verify the operation results
         # Check bill with account relationship
         assert bill_with_account.account is not None
         assert bill_with_account.account.id == test_account.id
         assert bill_with_account.account.name == test_account.name
-        assert not hasattr(bill_with_account, "category") or bill_with_account.category is None
-        
+        assert (
+            not hasattr(bill_with_account, "category")
+            or bill_with_account.category is None
+        )
+
         # Check bill with category relationship
         assert bill_with_category.category is not None
         assert bill_with_category.category.id == test_category.id
         assert bill_with_category.category.name == test_category.name
-        assert not hasattr(bill_with_category, "account") or bill_with_category.account is None
-        
+        assert (
+            not hasattr(bill_with_category, "account")
+            or bill_with_category.account is None
+        )
+
         # Check bill with all relationships
         assert bill_with_all.account is not None
         assert bill_with_all.account.id == test_account.id
@@ -425,24 +435,24 @@ class TestRecurringBillRepository:
     ):
         """Test retrieving recurring bills by account ID."""
         # 1. ARRANGE: Create two accounts and bills for each
-        
+
         # 2. SCHEMA: Create accounts through schema validation
         account1_schema = create_account_schema(
             name="Account A for Bill Test",
             account_type="checking",
             available_balance=Decimal("1000.00"),
         )
-        
+
         account2_schema = create_account_schema(
             name="Account B for Bill Test",
             account_type="savings",
             available_balance=Decimal("2000.00"),
         )
-        
+
         # Convert and create accounts
         account1 = await account_repository.create(account1_schema.model_dump())
         account2 = await account_repository.create(account2_schema.model_dump())
-        
+
         # Create bills for account 1
         bill1_schema = create_recurring_bill_schema(
             bill_name="Account 1 Bill 1",
@@ -451,7 +461,7 @@ class TestRecurringBillRepository:
             account_id=account1.id,
             category_id=test_category.id,
         )
-        
+
         bill2_schema = create_recurring_bill_schema(
             bill_name="Account 1 Bill 2",
             amount=Decimal("75.00"),
@@ -459,7 +469,7 @@ class TestRecurringBillRepository:
             account_id=account1.id,
             category_id=test_category.id,
         )
-        
+
         # Create bill for account 2
         bill3_schema = create_recurring_bill_schema(
             bill_name="Account 2 Bill",
@@ -468,22 +478,22 @@ class TestRecurringBillRepository:
             account_id=account2.id,
             category_id=test_category.id,
         )
-        
+
         # Convert and create bills
         bill1 = await recurring_bill_repository.create(bill1_schema.model_dump())
         bill2 = await recurring_bill_repository.create(bill2_schema.model_dump())
         bill3 = await recurring_bill_repository.create(bill3_schema.model_dump())
-        
+
         # 3. ACT: Get bills by account ID
         account1_bills = await recurring_bill_repository.get_by_account_id(account1.id)
         account2_bills = await recurring_bill_repository.get_by_account_id(account2.id)
-        
+
         # 4. ASSERT: Verify the operation results
         assert len(account1_bills) >= 2
         assert any(bill.id == bill1.id for bill in account1_bills)
         assert any(bill.id == bill2.id for bill in account1_bills)
         assert not any(bill.id == bill3.id for bill in account1_bills)
-        
+
         assert len(account2_bills) >= 1
         assert any(bill.id == bill3.id for bill in account2_bills)
         assert not any(bill.id == bill1.id for bill in account2_bills)
@@ -498,16 +508,20 @@ class TestRecurringBillRepository:
         """Test toggling the active status of a recurring bill."""
         # 1. ARRANGE: Setup is already done with fixtures
         initial_active_status = test_recurring_bill.active
-        
+
         # 2. ACT: Toggle active status
-        toggled_bill = await recurring_bill_repository.toggle_active(test_recurring_bill.id)
-        
+        toggled_bill = await recurring_bill_repository.toggle_active(
+            test_recurring_bill.id
+        )
+
         # 3. ASSERT: Verify the operation results
         assert toggled_bill.active is not initial_active_status
-        
+
         # 4. ACT: Toggle again
-        toggled_again = await recurring_bill_repository.toggle_active(test_recurring_bill.id)
-        
+        toggled_again = await recurring_bill_repository.toggle_active(
+            test_recurring_bill.id
+        )
+
         # 5. ASSERT: Verify the operation results
         assert toggled_again.active is initial_active_status
 
@@ -520,16 +534,20 @@ class TestRecurringBillRepository:
         """Test toggling the auto-pay status of a recurring bill."""
         # 1. ARRANGE: Setup is already done with fixtures
         initial_auto_pay_status = test_recurring_bill.auto_pay
-        
+
         # 2. ACT: Toggle auto-pay status
-        toggled_bill = await recurring_bill_repository.toggle_auto_pay(test_recurring_bill.id)
-        
+        toggled_bill = await recurring_bill_repository.toggle_auto_pay(
+            test_recurring_bill.id
+        )
+
         # 3. ASSERT: Verify the operation results
         assert toggled_bill.auto_pay is not initial_auto_pay_status
-        
+
         # 4. ACT: Toggle again
-        toggled_again = await recurring_bill_repository.toggle_auto_pay(test_recurring_bill.id)
-        
+        toggled_again = await recurring_bill_repository.toggle_auto_pay(
+            test_recurring_bill.id
+        )
+
         # 5. ASSERT: Verify the operation results
         assert toggled_again.auto_pay is initial_auto_pay_status
 
@@ -543,21 +561,23 @@ class TestRecurringBillRepository:
         # 1. ARRANGE: Calculate expected total from active bills in fixtures
         active_bills = [bill for bill in test_multiple_recurring_bills if bill.active]
         expected_active_total = sum(bill.amount for bill in active_bills)
-        
+
         # 2. ACT: Get monthly total
         total = await recurring_bill_repository.get_monthly_total()
-        
+
         # 3. ASSERT: Verify the operation results
         assert total >= expected_active_total
-        
+
         # 4. ARRANGE: Deactivate one bill
-        first_active_bill = next(bill for bill in test_multiple_recurring_bills if bill.active)
+        first_active_bill = next(
+            bill for bill in test_multiple_recurring_bills if bill.active
+        )
         await recurring_bill_repository.toggle_active(first_active_bill.id)
         new_expected_total = expected_active_total - first_active_bill.amount
-        
+
         # 5. ACT: Get updated monthly total
         new_total = await recurring_bill_repository.get_monthly_total()
-        
+
         # 6. ASSERT: Verify the operation results
         assert new_total >= new_expected_total
         assert new_total < total
@@ -573,17 +593,19 @@ class TestRecurringBillRepository:
         today = date.today()
         start_date = today
         end_date = today + timedelta(days=45)  # Cover at least one full month
-        
+
         # 2. ACT: Get upcoming bills in date range
-        upcoming_bills = await recurring_bill_repository.get_upcoming_bills(start_date, end_date)
-        
+        upcoming_bills = await recurring_bill_repository.get_upcoming_bills(
+            start_date, end_date
+        )
+
         # 3. ASSERT: Verify the operation results
         assert len(upcoming_bills) >= len(test_multiple_recurring_bills)
-        
+
         # Verify dates are within range
         for bill, due_date in upcoming_bills:
             assert start_date <= due_date <= end_date
-        
+
         # Check that all our test bills are included at least once
         for test_bill in test_multiple_recurring_bills:
             if test_bill.active:  # Only active bills are returned
@@ -610,4 +632,8 @@ class TestRecurringBillRepository:
         except ValueError as e:
             # This is expected - schema validation should catch the error
             error_str = str(e).lower()
-            assert "bill_name" in error_str or "amount" in error_str or "day_of_month" in error_str
+            assert (
+                "bill_name" in error_str
+                or "amount" in error_str
+                or "day_of_month" in error_str
+            )

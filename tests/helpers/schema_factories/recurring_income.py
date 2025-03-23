@@ -9,14 +9,12 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from src.schemas.recurring_income import (
-    RecurringIncomeBase,
-    RecurringIncomeCreate,
-    RecurringIncomeUpdate,
-    RecurringIncomeInDB,
-    RecurringIncomeResponse
-)
-from tests.helpers.schema_factories.base import factory_function, MEDIUM_AMOUNT
+from src.schemas.recurring_income import (RecurringIncomeBase,
+                                          RecurringIncomeCreate,
+                                          RecurringIncomeInDB,
+                                          RecurringIncomeResponse,
+                                          RecurringIncomeUpdate)
+from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function
 
 
 @factory_function(RecurringIncomeCreate)
@@ -230,14 +228,11 @@ def create_recurring_income_response_schema(
             "id": account_id,
             "name": f"Account {account_id}",
             "account_type": "checking",
-            "active": True
+            "active": True,
         }
 
     if category is None and category_id is not None:
-        category = {
-            "id": category_id,
-            "name": f"Category {category_id}"
-        }
+        category = {"id": category_id, "name": f"Category {category_id}"}
 
     data = {
         "id": id,

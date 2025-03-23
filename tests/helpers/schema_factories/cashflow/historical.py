@@ -9,18 +9,12 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from src.schemas.cashflow.historical import (
-    HistoricalPeriodAnalysis,
-    HistoricalTrendMetrics,
-    HistoricalTrendsResponse,
-    SeasonalityAnalysis,
-)
-from tests.helpers.schema_factories.base import (
-    MEDIUM_AMOUNT,
-    SMALL_AMOUNT,
-    factory_function,
-    utc_now,
-)
+from src.schemas.cashflow.historical import (HistoricalPeriodAnalysis,
+                                             HistoricalTrendMetrics,
+                                             HistoricalTrendsResponse,
+                                             SeasonalityAnalysis)
+from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT, SMALL_AMOUNT,
+                                                 factory_function, utc_now)
 
 
 @factory_function(HistoricalTrendMetrics)
@@ -137,7 +131,10 @@ def create_historical_period_analysis_schema(
 
     if significant_events is None:
         significant_events = [
-            {"date": (period_start + timedelta(days=15)).isoformat(), "event": "Large deposit"},
+            {
+                "date": (period_start + timedelta(days=15)).isoformat(),
+                "event": "Large deposit",
+            },
             {
                 "date": (period_start + timedelta(days=45)).isoformat(),
                 "event": "Major expense",
@@ -272,20 +269,19 @@ def create_historical_trends_response_schema(
     if period_analysis is None:
         # Create two period analyses - last quarter and last month
         now = utc_now()
-        
+
         last_quarter = create_historical_period_analysis_schema(
-            period_start=now - timedelta(days=90),
-            period_end=now
+            period_start=now - timedelta(days=90), period_end=now
         ).model_dump()
-        
+
         last_month = create_historical_period_analysis_schema(
             period_start=now - timedelta(days=30),
             period_end=now,
             average_balance=MEDIUM_AMOUNT * Decimal("16"),  # 1600.00
-            peak_balance=MEDIUM_AMOUNT * Decimal("23"),     # 2300.00
-            lowest_balance=MEDIUM_AMOUNT * Decimal("10"),    # 1000.00
+            peak_balance=MEDIUM_AMOUNT * Decimal("23"),  # 2300.00
+            lowest_balance=MEDIUM_AMOUNT * Decimal("10"),  # 1000.00
         ).model_dump()
-        
+
         period_analysis = [last_quarter, last_month]
 
     if seasonality is None:

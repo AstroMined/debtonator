@@ -109,11 +109,11 @@ class RecurringIncomeUpdate(BaseSchemaValidator):
 class RecurringIncomeInDB(RecurringIncomeBase):
     """
     Schema for recurring income in database.
-    
+
     Extends RecurringIncomeBase with database fields.
     All datetime fields are validated to ensure they have UTC timezone.
     """
-    
+
     id: int = Field(..., description="Unique identifier for the recurring income")
     active: bool = Field(True, description="Whether this recurring income is active")
     created_at: datetime = Field(

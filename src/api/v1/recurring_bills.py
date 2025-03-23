@@ -5,12 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...database.database import get_db
 from ...schemas.liabilities import LiabilityResponse
-from ...schemas.recurring_bills import (
-    GenerateBillsRequest,
-    RecurringBillCreate,
-    RecurringBillResponse,
-    RecurringBillUpdate,
-)
+from ...schemas.recurring_bills import (GenerateBillsRequest,
+                                        RecurringBillCreate,
+                                        RecurringBillResponse,
+                                        RecurringBillUpdate)
 from ...services.recurring_bills import RecurringBillService
 
 router = APIRouter()

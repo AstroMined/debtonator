@@ -6,8 +6,8 @@ import pytest
 
 from src.models.accounts import Account as AccountModel
 from src.repositories.accounts import AccountRepository
-from src.repositories.statement_history import StatementHistoryRepository
 from src.repositories.credit_limit_history import CreditLimitHistoryRepository
+from src.repositories.statement_history import StatementHistoryRepository
 from src.repositories.transaction_history import TransactionHistoryRepository
 from src.schemas.accounts import AccountCreate, AccountUpdate
 from src.schemas.credit_limit_history import CreditLimitHistoryUpdate
@@ -22,14 +22,14 @@ class TestAccountService:
         statement_repo = StatementHistoryRepository(db_session)
         credit_limit_repo = CreditLimitHistoryRepository(db_session)
         transaction_repo = TransactionHistoryRepository(db_session)
-        
+
         return AccountService(
             account_repo=account_repo,
             statement_repo=statement_repo,
             credit_limit_repo=credit_limit_repo,
-            transaction_repo=transaction_repo
+            transaction_repo=transaction_repo,
         )
-    
+
     async def test_create_account_checking(self, db_session):
         service = self.setup_service(db_session)
         account_data = AccountCreate(
@@ -322,7 +322,7 @@ class TestAccountService:
         # Create credit account
         account_data = AccountCreate(
             name="Test Credit",
-            type="credit", 
+            type="credit",
             available_balance=Decimal("0.00"),
             total_limit=Decimal("5000.00"),
         )
@@ -345,14 +345,14 @@ class TestAccountService:
 
         # Get credit limit history
         history = await service.get_credit_limit_history(account.id)
-        
+
         # Verify history
         assert history is not None
         assert history.account_id == account.id
         assert history.account_name == "Test Credit"
         assert history.current_credit_limit == Decimal("10000.00")
         assert len(history.credit_limit_history) == 2
-        
+
         # The most recent entry should be first (we sort by date descending)
         assert history.credit_limit_history[0].credit_limit == Decimal("10000.00")
         assert history.credit_limit_history[1].credit_limit == Decimal("7000.00")
@@ -389,13 +389,13 @@ class TestAccountService:
 
         # Get statement history
         history = await service.get_statement_history(account.id)
-        
+
         # Verify history
         assert history is not None
         assert history.account_id == account.id
         assert history.account_name == "Test Credit"
         assert len(history.statement_history) == 2
-        
+
         # The most recent statement should be first (we sort by date descending)
         assert history.statement_history[0].statement_balance == Decimal("1500.00")
         assert history.statement_history[1].statement_balance == Decimal("1000.00")
@@ -403,7 +403,7 @@ class TestAccountService:
     async def test_calculate_available_credit(self, db_session):
         """Test calculating available credit"""
         service = self.setup_service(db_session)
-        
+
         # Create credit account
         account_data = AccountCreate(
             name="Test Credit",
@@ -412,10 +412,10 @@ class TestAccountService:
             total_limit=Decimal("5000.00"),
         )
         account = await service.create_account(account_data)
-        
+
         # Calculate available credit
         available_credit = await service.calculate_available_credit(account.id)
-        
+
         # Verify calculation
         assert available_credit is not None
         assert available_credit.account_id == account.id

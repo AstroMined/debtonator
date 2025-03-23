@@ -4,13 +4,11 @@ from decimal import Decimal
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.recurring_bills import (
-    GenerateBillsRequest,
-    RecurringBillBase,
-    RecurringBillCreate,
-    RecurringBillResponse,
-    RecurringBillUpdate,
-)
+from src.schemas.recurring_bills import (GenerateBillsRequest,
+                                         RecurringBillBase,
+                                         RecurringBillCreate,
+                                         RecurringBillResponse,
+                                         RecurringBillUpdate)
 
 
 # Test valid object creation

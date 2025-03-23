@@ -8,14 +8,9 @@ Pydantic schema instances for use in tests.
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from src.schemas.categories import (
-    Category,
-    CategoryCreate,
-    CategoryUpdate,
-    CategoryWithBills,
-    CategoryWithChildren,
-    CategoryWithParent,
-)
+from src.schemas.categories import (Category, CategoryCreate, CategoryUpdate,
+                                    CategoryWithBills, CategoryWithChildren,
+                                    CategoryWithParent)
 from tests.helpers.schema_factories.base import factory_function, utc_now
 
 
@@ -183,13 +178,17 @@ def create_category_with_children_schema(
                 id=id + 1,
                 name=f"{name} - Child 1",
                 parent_id=id,
-                full_path=f"{full_path}/{name}/Child 1" if full_path else f"{name}/Child 1",
+                full_path=(
+                    f"{full_path}/{name}/Child 1" if full_path else f"{name}/Child 1"
+                ),
             ),
             create_category_in_db_schema(
                 id=id + 2,
                 name=f"{name} - Child 2",
                 parent_id=id,
-                full_path=f"{full_path}/{name}/Child 2" if full_path else f"{name}/Child 2",
+                full_path=(
+                    f"{full_path}/{name}/Child 2" if full_path else f"{name}/Child 2"
+                ),
             ),
         ]
 

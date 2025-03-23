@@ -12,9 +12,9 @@ from sqlalchemy import and_, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
+from src.models.accounts import Account
 from src.models.deposit_schedules import DepositSchedule
 from src.models.income import Income
-from src.models.accounts import Account
 from src.repositories.base import BaseRepository
 
 
@@ -156,9 +156,7 @@ class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
         )
         return result.scalars().all()
 
-    async def mark_as_processed(
-        self, schedule_id: int
-    ) -> Optional[DepositSchedule]:
+    async def mark_as_processed(self, schedule_id: int) -> Optional[DepositSchedule]:
         """
         Mark a deposit schedule as processed.
 

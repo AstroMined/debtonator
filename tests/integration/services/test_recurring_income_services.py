@@ -9,11 +9,8 @@ from src.models.base_model import naive_utc_from_date, naive_utc_now
 from src.models.income import Income
 from src.models.income_categories import IncomeCategory
 from src.models.recurring_income import RecurringIncome
-from src.schemas.income import (
-    GenerateIncomeRequest,
-    RecurringIncomeCreate,
-    RecurringIncomeUpdate,
-)
+from src.schemas.income import (GenerateIncomeRequest, RecurringIncomeCreate,
+                                RecurringIncomeUpdate)
 from src.services.recurring_income import RecurringIncomeService
 
 pytestmark = pytest.mark.asyncio

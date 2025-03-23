@@ -5,13 +5,9 @@ from zoneinfo import ZoneInfo
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.liabilities import (
-    AutoPaySettings,
-    AutoPayUpdate,
-    LiabilityCreate,
-    LiabilityDateRange,
-    LiabilityUpdate,
-)
+from src.schemas.liabilities import (AutoPaySettings, AutoPayUpdate,
+                                     LiabilityCreate, LiabilityDateRange,
+                                     LiabilityUpdate)
 
 
 def create_future_datetime(days: int = 1) -> datetime:

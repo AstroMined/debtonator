@@ -17,13 +17,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.accounts import Account
 from src.models.balance_reconciliation import BalanceReconciliation
 from src.repositories.accounts import AccountRepository
-from src.repositories.balance_reconciliation import BalanceReconciliationRepository
-from src.schemas.balance_reconciliation import (
-    BalanceReconciliationCreate,
-    BalanceReconciliationUpdate,
-)
+from src.repositories.balance_reconciliation import \
+    BalanceReconciliationRepository
+from src.schemas.balance_reconciliation import (BalanceReconciliationCreate,
+                                                BalanceReconciliationUpdate)
+from tests.helpers.datetime_utils import utc_now
 from tests.helpers.schema_factories.accounts import create_account_schema
-from tests.helpers.schema_factories.balance_reconciliation import create_balance_reconciliation_schema
+from tests.helpers.schema_factories.balance_reconciliation import \
+    create_balance_reconciliation_schema
 
 
 @pytest_asyncio.fixture
@@ -84,7 +85,7 @@ async def test_multiple_reconciliations(
     test_account: Account,
 ) -> List[BalanceReconciliation]:
     """Create multiple balance reconciliation entries for testing."""
-    now = datetime.utcnow()
+    now = utc_now()
 
     # Create multiple reconciliation entries with different dates
     entries = []
@@ -255,7 +256,7 @@ class TestBalanceReconciliationRepository:
     ):
         """Test getting balance reconciliation entries within a date range."""
         # 1. ARRANGE: Setup is already done with fixtures
-        now = datetime.utcnow()
+        now = utc_now()
         start_date = now - timedelta(days=70)
         end_date = now - timedelta(days=10)
 
@@ -291,7 +292,7 @@ class TestBalanceReconciliationRepository:
         assert result.account_id == test_account.id
 
         # Should be the most recent one (5 days ago)
-        now = datetime.utcnow()
+        now = utc_now()
         five_days_ago = now - timedelta(days=5)
         seven_days_ago = now - timedelta(days=7)
         assert result.reconciliation_date >= seven_days_ago
@@ -419,7 +420,7 @@ class TestBalanceReconciliationRepository:
                     "100.00"
                 ),  # Inconsistent with balance difference
                 reason="",  # Empty reason
-                reconciliation_date=datetime.utcnow(),
+                reconciliation_date=utc_now(),
             )
             assert False, "Schema should have raised a validation error"
         except ValueError as e:

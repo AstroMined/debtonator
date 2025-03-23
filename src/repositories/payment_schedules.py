@@ -12,9 +12,9 @@ from sqlalchemy import and_, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from src.models.payment_schedules import PaymentSchedule
-from src.models.liabilities import Liability
 from src.models.accounts import Account
+from src.models.liabilities import Liability
+from src.models.payment_schedules import PaymentSchedule
 from src.repositories.base import BaseRepository
 
 

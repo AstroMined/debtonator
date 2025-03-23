@@ -5,12 +5,9 @@ from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.realtime_cashflow import (
-    AccountBalance,
-    AccountType,
-    RealtimeCashflow,
-    RealtimeCashflowResponse,
-)
+from src.schemas.realtime_cashflow import (AccountBalance, AccountType,
+                                           RealtimeCashflow,
+                                           RealtimeCashflowResponse)
 
 
 # Test valid object creation

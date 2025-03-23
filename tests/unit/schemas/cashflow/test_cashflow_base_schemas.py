@@ -6,15 +6,10 @@ from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.cashflow.base import (
-    CashflowBase,
-    CashflowCreate,
-    CashflowFilters,
-    CashflowInDB,
-    CashflowList,
-    CashflowResponse,
-    CashflowUpdate,
-)
+from src.schemas.cashflow.base import (CashflowBase, CashflowCreate,
+                                       CashflowFilters, CashflowInDB,
+                                       CashflowList, CashflowResponse,
+                                       CashflowUpdate)
 
 
 def test_cashflow_base_valid():

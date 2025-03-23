@@ -5,13 +5,11 @@ from typing import Dict, List, Optional, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
-from src.schemas.cashflow import (
-    AccountForecastRequest,
-    AccountForecastResponse,
-    CustomForecastParameters,
-    CustomForecastResponse,
-    HistoricalTrendsResponse,
-)
+from src.schemas.cashflow import (AccountForecastRequest,
+                                  AccountForecastResponse,
+                                  CustomForecastParameters,
+                                  CustomForecastResponse,
+                                  HistoricalTrendsResponse)
 
 from .base import BaseService
 from .forecast_service import ForecastService

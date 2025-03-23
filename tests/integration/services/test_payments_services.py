@@ -7,7 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.accounts import Account
 from src.models.liabilities import Liability
 from src.models.payments import Payment
-from src.schemas.payments import PaymentCreate, PaymentSourceCreate, PaymentUpdate
+from src.schemas.payments import (PaymentCreate, PaymentSourceCreate,
+                                  PaymentUpdate)
 from src.services.payments import PaymentService
 
 
