@@ -1,9 +1,18 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Implementing Default Category Management (ADR-015), Continuing Repository Layer Integration Tests (ADR-014), Ensuring UTC Datetime Compliance (ADR-011)
+Implementing Default Category Management (ADR-015), Continuing Repository Layer Integration Tests (ADR-014), Ensuring UTC Datetime Compliance (ADR-011), Account Type Expansion Preparation (ADR-016)
 
 ### Recent Changes
+
+1. **Account Type Expansion Preparation** ✓
+   - Added description field to Account model for better account identification
+   - Updated account schemas to include description field
+   - Fixed schema factory usage in account repository tests
+   - Documented technical debt related to account type handling in ADR-016
+   - Identified parameter mapping issues between schema factories and schemas
+   - Fixed inconsistent schema creation in tests
+   - Prepared groundwork for future account type expansion
 
 1. **Default "Uncategorized" Category Implementation** ✓
    - Created constants for default category configuration in `src/constants.py`

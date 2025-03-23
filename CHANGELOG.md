@@ -6,6 +6,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.32] - 2025-03-23
+
+### Added
+
+- Added description field to Account model and schemas:
+  - Added nullable description field to Account model
+  - Updated AccountBase schema with description field
+  - Updated AccountUpdate schema with description field
+  - Added tests for description field
+
+### Changed
+
+- Enhanced schema factory usage in tests:
+  - Updated account repository tests to use schema factories consistently
+  - Fixed parameter mapping issues in test_update_account
+  - Fixed parameter naming in test_validation_error_handling
+
+### Documentation
+
+- Updated ADR-016 with technical debt documentation:
+  - Documented field naming issues (`type` vs `account_type`)
+  - Documented parameter mapping inconsistencies in schema factories
+  - Documented inconsistent schema creation in tests
+
 ## [0.5.31] - 2025-03-23
 
 ### Added

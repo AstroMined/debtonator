@@ -43,6 +43,11 @@ class Account(BaseDBModel):
         nullable=False,
         comment="Type of account (credit, checking, savings)",
     )
+    description: Mapped[Optional[str]] = mapped_column(
+        String(255),
+        nullable=True,
+        comment="Optional description for the account",
+    )
 
     # Balance and credit fields
     available_balance: Mapped[Decimal] = mapped_column(

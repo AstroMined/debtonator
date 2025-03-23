@@ -185,3 +185,9 @@
    - Identified and fixed issues with updated_at timestamps not updating properly
    - Need to ensure proper ORM update pattern usage across all repositories
    - Improved documentation needed for SQLAlchemy best practices
+
+7. **Account Type Handling**
+   - Field naming inconsistency (`type` vs `account_type`)
+   - Parameter mapping in schema factories creates confusion
+   - Inconsistent schema creation in tests
+   - These issues will be addressed in the upcoming account type expansion (ADR-016)

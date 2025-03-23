@@ -21,7 +21,8 @@ from src.repositories.statement_history import StatementHistoryRepository
 from src.schemas.accounts import AccountCreate, AccountUpdate
 from src.schemas.statement_history import StatementHistoryCreate
 from tests.helpers.datetime_utils import utc_now
-from tests.helpers.schema_factories.accounts import create_account_schema
+from tests.helpers.schema_factories.accounts import (create_account_schema,
+                                                    create_account_update_schema)
 from tests.helpers.schema_factories.statement_history import \
     create_statement_history_schema
 
@@ -116,7 +117,7 @@ async def test_multiple_accounts(
         ("Checking A", "checking", Decimal("1200.00")),
         ("Savings B", "savings", Decimal("5000.00")),
         ("Credit Card C", "credit", Decimal("-700.00")),
-        ("Investment D", "investment", Decimal("10000.00")),
+        ("Investment D", "savings", Decimal("10000.00")),  # Changed from "investment" to "savings"
     ]
 
     accounts = []
@@ -202,7 +203,7 @@ class TestAccountRepository:
         # 1. ARRANGE: Setup is already done with fixtures
 
         # 2. SCHEMA: Create and validate update data through Pydantic schema
-        update_schema = AccountUpdate(
+        update_schema = create_account_update_schema(
             id=test_account.id,
             name="Updated Account Name",
             description="Updated account description",
@@ -500,7 +501,7 @@ class TestAccountRepository:
         """Test handling of validation errors that would be caught by the Pydantic schema."""
         # Try creating a schema with invalid data
         try:
-            invalid_schema = AccountCreate(
+            invalid_schema = create_account_schema(
                 name="",  # Invalid empty name
                 account_type="invalid_type",  # Invalid account type
                 available_balance=None,  # Missing required field
@@ -511,6 +512,6 @@ class TestAccountRepository:
             error_str = str(e).lower()
             assert (
                 "name" in error_str
-                or "account_type" in error_str
+                or "type" in error_str
                 or "available_balance" in error_str
             )

@@ -98,6 +98,9 @@ class AccountBase(BaseSchemaValidator):
 
     name: str = account_name_field(required=True)
     type: AccountType = account_type_field(required=True)
+    description: Optional[str] = Field(
+        default=None, max_length=255, description="Optional description for the account"
+    )
     available_balance: MoneyDecimal = Field(
         default=Decimal("0"), description="Current available balance"
     )
@@ -174,6 +177,9 @@ class AccountUpdate(BaseSchemaValidator):
 
     name: Optional[str] = account_name_field(required=False)
     type: Optional[AccountType] = account_type_field(required=False)
+    description: Optional[str] = Field(
+        default=None, max_length=255, description="Optional description for the account"
+    )
     available_balance: Optional[MoneyDecimal] = Field(
         default=None, description="Current available balance"
     )

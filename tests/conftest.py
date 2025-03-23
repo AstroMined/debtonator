@@ -257,9 +257,6 @@ async def base_income(db_session: AsyncSession, base_account: Account) -> Income
     return income
 
 
-# Fixtures moved from tests/models/conftest.py for wider availability
-
-
 @pytest.fixture(scope="function")
 async def test_checking_account(db_session: AsyncSession) -> Account:
     """Test checking account for use in various tests"""
