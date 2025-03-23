@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
+from src.constants import DEFAULT_CATEGORY_ID
+
 from src.schemas.liabilities import (AutoPaySettings, AutoPayUpdate,
                                      LiabilityCreate, LiabilityDateRange,
                                      LiabilityInDB, LiabilityResponse,
@@ -23,7 +25,7 @@ def create_liability_schema(
     amount: Optional[Decimal] = None,
     due_date: Optional[datetime] = None,
     paid: bool = False,
-    category_id: Optional[int] = None,
+    category_id: Optional[int] = DEFAULT_CATEGORY_ID,
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """
@@ -58,11 +60,9 @@ def create_liability_schema(
         "amount": amount,
         "due_date": due_date,
         "paid": paid,
+        "category_id": category_id,
         **kwargs,
     }
-
-    if category_id is not None:
-        data["category_id"] = category_id
 
     return data
 

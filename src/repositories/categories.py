@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased, joinedload, selectinload
 from sqlalchemy.sql.expression import union_all
 
+from src.constants import DEFAULT_CATEGORY_DESCRIPTION, DEFAULT_CATEGORY_ID, DEFAULT_CATEGORY_NAME
 from src.models.categories import Category
 from src.models.liabilities import Liability
 from src.repositories.base import BaseRepository
@@ -49,6 +50,73 @@ class CategoryRepository(BaseRepository[Category, int]):
             select(Category).where(Category.name == name)
         )
         return result.scalars().first()
+
+    async def get_default_category_id(self) -> int:
+        """
+        Get the default category ID, creating it if needed.
+
+        Returns:
+            int: Default category ID
+        """
+        # Try to get the default category
+        default_category = await self.get(DEFAULT_CATEGORY_ID)
+        
+        # If it doesn't exist, create it
+        if not default_category:
+            default_category = await self.create({
+                "id": DEFAULT_CATEGORY_ID,
+                "name": DEFAULT_CATEGORY_NAME,
+                "description": DEFAULT_CATEGORY_DESCRIPTION,
+                "system": True
+            })
+        elif not default_category.system:
+            # Ensure the default category is marked as a system category
+            await self.update(DEFAULT_CATEGORY_ID, {"system": True})
+        
+        return default_category.id
+
+    async def update(self, id: int, values: Dict[str, Any]) -> Optional[Category]:
+        """
+        Update a category with protection for system categories.
+
+        Args:
+            id (int): Category ID
+            values (Dict[str, Any]): Values to update
+
+        Returns:
+            Optional[Category]: Updated category or None if not found
+
+        Raises:
+            ValueError: If attempting to modify a system category
+        """
+        # Get the category to check if it's a system category
+        category = await self.get(id)
+        if category and (category.system or id == DEFAULT_CATEGORY_ID):
+            raise ValueError(f"Cannot modify system category: {category.name}")
+        
+        # Proceed with normal update for non-system categories
+        return await super().update(id, values)
+
+    async def delete(self, id: int) -> bool:
+        """
+        Delete a category with protection for system categories.
+
+        Args:
+            id (int): Category ID
+
+        Returns:
+            bool: True if successfully deleted, False otherwise
+
+        Raises:
+            ValueError: If attempting to delete a system category
+        """
+        # Get the category to check if it's a system category
+        category = await self.get(id)
+        if category and (category.system or id == DEFAULT_CATEGORY_ID):
+            raise ValueError(f"Cannot delete system category: {category.name}")
+        
+        # Proceed with normal delete for non-system categories
+        return await super().delete(id)
 
     async def get_root_categories(self) -> List[Category]:
         """
@@ -255,6 +323,11 @@ class CategoryRepository(BaseRepository[Category, int]):
             if await self.is_ancestor_of(category_id, new_parent_id):
                 return None
 
+        # Prevent moving system categories
+        category = await self.get(category_id)
+        if category and category.system:
+            raise ValueError(f"Cannot move system category: {category.name}")
+
         # Update the category's parent_id
         return await self.update(category_id, {"parent_id": new_parent_id})
 
@@ -364,6 +437,11 @@ class CategoryRepository(BaseRepository[Category, int]):
         Returns:
             bool: True if deleted, False if not deleted (has children or bills)
         """
+        # Check if it's a system category
+        category = await self.get(category_id)
+        if category and category.system:
+            return False
+
         category, bill_count = await self.get_category_with_bill_count(category_id)
 
         if not category:

@@ -5,6 +5,7 @@
 1. **Model Layer**: COMPLETED (100%) ✓
    - All 18 models fully compliant with ADR-011 and ADR-012
    - Comprehensive test coverage in place
+   - System category support with protection mechanisms
 
 2. **Schema Layer**: COMPLETED (100%) ✓
    - All 23 schema files fully compliant with ADR-011 and ADR-012
@@ -12,6 +13,7 @@
    - Pydantic V2 compatibility with Annotated types approach
    - StatementHistory schema implementation completed with specialized types
    - Comprehensive unit tests for all schema validation
+   - Default category handling in liability schemas
 
 3. **Service Layer**: IN PROGRESS (97%)
    - Repository pattern foundation complete (ADR-014) ✓
@@ -33,7 +35,14 @@
    - API response formatting with proper precision
    - Comprehensive testing across all components
 
-6. **UTC Datetime Compliance**: IN PROGRESS (97%)
+6. **Category Management System**: COMPLETED (100%) ✓
+   - Hierarchical category management ✓
+   - Parent-child relationships with full path tracking ✓
+   - System categories with protection mechanisms ✓
+   - Default "Uncategorized" category (ADR-015) ✓
+   - Comprehensive test coverage in place ✓
+
+7. **UTC Datetime Compliance**: IN PROGRESS (97%)
    - Helper utilities created for consistent datetime handling ✓
    - Naive datetime detection tools implemented ✓
    - Test hooks added for automated detection during test runs ✓
@@ -49,6 +58,7 @@
    - Transaction history with proper decimal precision
    - Statement balance history tracking
    - Repository-based account service with improved architecture
+   - System category support with protected categories
 
 2. **Bill Management**
    - Bill tracking with due dates and payment status
@@ -56,6 +66,7 @@
    - Payment tracking with source allocation
    - Auto-pay management
    - Past due date support for historical data entry ✓
+   - Default categorization with "Uncategorized" category ✓
 
 3. **Financial Analysis**
    - Cross-account balance tracking
@@ -78,6 +89,7 @@
    - Repository-service integration pattern established
    - Schema factories for efficient test data creation
    - UTC datetime helper utilities for consistent datetime handling
+   - System entity protection mechanisms
 
 ## What's Left to Build
 

@@ -15,6 +15,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
+from src.constants import DEFAULT_CATEGORY_ID
 from src.database.base import Base
 from src.database.database import get_db
 from src.main import app
@@ -138,6 +139,7 @@ async def base_account(db_session: AsyncSession) -> Account:
     await db_session.flush()
     await db_session.refresh(account)  # Ensure we have latest data
     return account
+
 
 
 @pytest.fixture(scope="function")

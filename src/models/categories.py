@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import Boolean, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base_model import BaseDBModel
@@ -23,6 +23,11 @@ class Category(BaseDBModel):
     description: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     parent_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("categories.id", ondelete="CASCADE"), nullable=True
+    )
+    system: Mapped[bool] = mapped_column(
+        Boolean, 
+        default=False, 
+        doc="System flag for protected categories that cannot be modified or deleted"
     )
 
     # Relationship with liabilities (bills)

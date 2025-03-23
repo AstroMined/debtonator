@@ -3,6 +3,7 @@ from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 import pytest
+from src.constants import DEFAULT_CATEGORY_ID
 from pydantic import ValidationError
 
 from src.schemas.liabilities import (AutoPaySettings, AutoPayUpdate,
@@ -222,6 +223,33 @@ def test_liability_update_optional_fields():
         "auto_pay_settings": None,
         "auto_pay_enabled": None,
     }
+
+
+def test_liability_create_uses_default_category():
+    """Test that LiabilityCreate uses the default category when none is specified."""
+    # Create a liability schema without specifying category_id
+    liability = LiabilityCreate(
+        name="Test Liability",
+        amount=Decimal("100.00"),
+        due_date=datetime.now(timezone.utc),
+        primary_account_id=1
+    )
+    
+    # Verify the default category ID is used
+    assert liability.category_id == DEFAULT_CATEGORY_ID
+    
+    # Create another liability with explicit category_id
+    custom_category_id = 5
+    liability_with_category = LiabilityCreate(
+        name="Test Liability with Category",
+        amount=Decimal("100.00"),
+        due_date=datetime.now(timezone.utc),
+        category_id=custom_category_id,
+        primary_account_id=1
+    )
+    
+    # Verify the specified category ID is used
+    assert liability_with_category.category_id == custom_category_id
 
 
 def test_auto_pay_settings_validation():

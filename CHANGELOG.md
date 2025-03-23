@@ -6,6 +6,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.31] - 2025-03-23
+
+### Added
+
+- Implemented default "Uncategorized" category feature:
+  - Created constants for default category configuration in `src/constants.py`
+  - Added system flag to categories to prevent modification of system categories
+  - Enhanced CategoryRepository with protection for system categories
+  - Created default category during database initialization
+  - Added tests for system category protection and behavior
+
+### Changed
+
+- Enhanced liability schema with default category support:
+  - Modified LiabilityCreate schema to use default category when none is specified
+  - Updated schema test to verify default category behavior
+  - Documentation of default category in field descriptions
+
+### Fixed
+
+- Fixed bill split repository integration tests:
+  - Resolved validation errors related to missing category_id field
+  - Updated test fixtures to use the default category
+
+### Documentation
+
+- Created ADR-015 documenting the Default "Uncategorized" Category implementation:
+  - Detailed design decisions for default category management
+  - Documented protection mechanisms for system categories
+  - Explained service and repository layer responsibilities
+  - Outlined positive and negative consequences of the approach
+
 ## [0.5.30] - 2025-03-23
 
 ### Changed

@@ -1,9 +1,21 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Implementing and Validating Repository Layer Integration Tests (ADR-014), Ensuring UTC Datetime Compliance (ADR-011), and Improving Validation for Historical Data Entry (ADR-002)
+Implementing Default Category Management (ADR-015), Continuing Repository Layer Integration Tests (ADR-014), Ensuring UTC Datetime Compliance (ADR-011)
 
 ### Recent Changes
+
+1. **Default "Uncategorized" Category Implementation** ✓
+   - Created constants for default category configuration in `src/constants.py`
+   - Added system flag to categories to prevent modification of system categories
+   - Enhanced CategoryRepository with protection for system categories
+   - Created default category during database initialization
+   - Modified LiabilityCreate schema to use default category when none is specified
+   - Added comprehensive test coverage for system category protection
+   - Created ADR-015 documenting the Default "Uncategorized" Category implementation
+   - Fixed bill split repository integration tests with default category support
+   - Implemented repository-level protection for system categories
+   - Added schema-level validation for default category
 
 1. **Improved Historical Data Validation in Liabilities** ✓
    - Removed overzealous validation that prevented past due dates in liability schemas

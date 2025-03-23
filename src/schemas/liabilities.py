@@ -4,6 +4,7 @@ from typing import Annotated, Any, Dict, List, Optional, Union
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
 
+from src.constants import DEFAULT_CATEGORY_ID
 from src.core.decimal_precision import DecimalPrecision
 
 from . import BaseSchemaValidator, MoneyDecimal
@@ -124,11 +125,14 @@ class LiabilityCreate(LiabilityBase):
     """
     Schema for creating a new liability.
 
-    Extends the base liability schema without adding additional fields,
-    used specifically for creation operations.
+    Extends the base liability schema with default category ID
+    when none is provided, used specifically for creation operations.
     """
-
-    pass
+    
+    category_id: int = Field(
+        default=DEFAULT_CATEGORY_ID, 
+        description="ID of the category for this liability, defaults to 'Uncategorized'"
+    )
 
 
 class LiabilityUpdate(BaseSchemaValidator):
