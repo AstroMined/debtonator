@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.35] - 2025-03-24
+
+### Changed
+- Moved fixtures from individual test files to central conftest.py for better test organization
+  - Moved credit limit history fixtures from test_credit_limit_history_repository_crud.py
+  - Moved income category fixtures from test_income_category_repository_crud.py
+  - Moved payment source fixtures from test_payment_source_repository_crud.py
+  - Moved statement history fixtures from test_statement_history_repository_crud.py
+
 ## [0.5.34] - 2025-03-24
 
 ### Changed
