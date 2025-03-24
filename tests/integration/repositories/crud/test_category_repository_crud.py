@@ -12,8 +12,11 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.constants import DEFAULT_CATEGORY_DESCRIPTION, DEFAULT_CATEGORY_ID, DEFAULT_CATEGORY_NAME
-
+from src.constants import (
+    DEFAULT_CATEGORY_DESCRIPTION,
+    DEFAULT_CATEGORY_ID,
+    DEFAULT_CATEGORY_NAME,
+)
 from src.models.categories import Category
 from src.models.liabilities import Liability
 from src.repositories.categories import CategoryRepository
@@ -745,13 +748,13 @@ async def test_get_default_category_id(db_session: AsyncSession):
     """Test retrieving the default 'Uncategorized' category ID."""
     # Create repository
     repo = CategoryRepository(db_session)
-    
+
     # Get default category ID
     default_id = await repo.get_default_category_id()
-    
+
     # Assert
     assert default_id == DEFAULT_CATEGORY_ID
-    
+
     # Verify the category exists and has the correct attributes
     default_category = await repo.get(default_id)
     assert default_category is not None
@@ -765,20 +768,20 @@ async def test_system_category_protection(db_session: AsyncSession):
     """Test that system categories are protected from modification and deletion."""
     # Create repository
     repo = CategoryRepository(db_session)
-    
+
     # Get default category ID
     default_id = await repo.get_default_category_id()
-    
+
     # Attempt to modify the default category
     with pytest.raises(ValueError) as excinfo:
         await repo.update(default_id, {"name": "Modified Name"})
     assert "Cannot modify system category" in str(excinfo.value)
-    
+
     # Attempt to delete the default category
     with pytest.raises(ValueError) as excinfo:
         await repo.delete(default_id)
     assert "Cannot delete system category" in str(excinfo.value)
-    
+
     # Test delete_if_unused on system category
     can_delete = await repo.delete_if_unused(default_id)
     assert can_delete is False
@@ -789,21 +792,23 @@ async def test_create_system_category(db_session: AsyncSession):
     """Test creating a custom system category and verifying its protection."""
     # Create repository
     repo = CategoryRepository(db_session)
-    
+
     # Create a system category
-    system_category = await repo.create({
-        "name": "Test System Category",
-        "description": "A test system category",
-        "system": True
-    })
-    
+    system_category = await repo.create(
+        {
+            "name": "Test System Category",
+            "description": "A test system category",
+            "system": True,
+        }
+    )
+
     # Verify it was created correctly
     assert system_category.system is True
-    
+
     # Attempt to modify
     with pytest.raises(ValueError):
         await repo.update(system_category.id, {"name": "Modified System Category"})
-    
+
     # Attempt to delete
     with pytest.raises(ValueError):
         await repo.delete(system_category.id)
@@ -814,16 +819,18 @@ async def test_move_system_category(db_session: AsyncSession):
     """Test that system categories cannot be moved."""
     # Create repository
     repo = CategoryRepository(db_session)
-    
+
     # Get default category ID
     default_id = await repo.get_default_category_id()
-    
+
     # Create another category
-    other_category = await repo.create({
-        "name": "Other Category for Move",
-        "description": "Another category",
-    })
-    
+    other_category = await repo.create(
+        {
+            "name": "Other Category for Move",
+            "description": "Another category",
+        }
+    )
+
     # Attempt to move the default category
     with pytest.raises(ValueError) as excinfo:
         await repo.move_category(default_id, other_category.id)

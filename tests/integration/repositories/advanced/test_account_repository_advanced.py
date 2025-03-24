@@ -20,9 +20,12 @@ from src.repositories.accounts import AccountRepository
 from src.repositories.statement_history import StatementHistoryRepository
 from tests.helpers.datetime_utils import utc_now
 from tests.helpers.schema_factories.accounts import (
-    create_account_schema, create_account_update_schema)
-from tests.helpers.schema_factories.statement_history import \
-    create_statement_history_schema
+    create_account_schema,
+    create_account_update_schema,
+)
+from tests.helpers.schema_factories.statement_history import (
+    create_statement_history_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 
@@ -40,7 +43,6 @@ async def test_get_by_name(
     assert result is not None
     assert result.id == test_checking_account.id
     assert result.name == test_checking_account.name
-
 
 
 async def test_get_with_statement_history(
@@ -63,7 +65,6 @@ async def test_get_with_statement_history(
     # Check that statement history is loaded correctly
     statement = result.statement_history[0]
     assert statement.account_id == test_credit_account.id
-
 
 
 async def test_get_with_relationships(
@@ -95,7 +96,6 @@ async def test_get_with_relationships(
     assert statement.account_id == test_credit_account.id
 
 
-
 async def test_get_accounts_with_statements(
     account_repository: AccountRepository,
     test_credit_account: Account,
@@ -122,7 +122,6 @@ async def test_get_accounts_with_statements(
     assert found_account, "Test credit account not found in results"
 
 
-
 async def test_get_active_accounts(
     account_repository: AccountRepository,
     test_multiple_accounts: List[Account],
@@ -140,7 +139,6 @@ async def test_get_active_accounts(
     test_account_ids = {account.id for account in test_multiple_accounts}
     result_account_ids = {account.id for account in results}
     assert test_account_ids.issubset(result_account_ids)
-
 
 
 async def test_get_by_type(
@@ -165,7 +163,6 @@ async def test_get_by_type(
         assert account.type == "credit"
 
 
-
 async def test_update_balance(
     account_repository: AccountRepository, test_checking_account: Account
 ):
@@ -183,7 +180,6 @@ async def test_update_balance(
     assert result is not None
     assert result.id == test_checking_account.id
     assert result.available_balance == original_balance + amount_change
-
 
 
 async def test_update_balance_credit_account(
@@ -208,7 +204,6 @@ async def test_update_balance_credit_account(
     assert result.available_credit == original_credit - abs(amount_change)
 
 
-
 async def test_update_statement_balance(
     account_repository: AccountRepository, test_credit_account: Account
 ):
@@ -231,7 +226,6 @@ async def test_update_statement_balance(
     assert date_diff < 2  # Less than 2 seconds difference
 
 
-
 async def test_find_accounts_with_low_balance(
     account_repository: AccountRepository,
     test_multiple_accounts: List[Account],
@@ -247,7 +241,6 @@ async def test_find_accounts_with_low_balance(
     assert len(results) >= 2  # Should find checking and credit accounts
     for account in results:
         assert account.available_balance < threshold
-
 
 
 async def test_find_credit_accounts_near_limit(
@@ -281,7 +274,6 @@ async def test_find_credit_accounts_near_limit(
             break
 
     assert found_account, "Test credit account not found in near-limit accounts"
-
 
 
 async def test_validation_error_handling():

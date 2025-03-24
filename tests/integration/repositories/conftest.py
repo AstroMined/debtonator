@@ -10,15 +10,15 @@ from src.models import Account, StatementHistory
 from src.models.balance_history import BalanceHistory
 from src.models.categories import Category
 from src.models.liabilities import Liability, LiabilityStatus
-from src.models.payments import Payment, PaymentSource
 from src.models.payment_schedules import PaymentSchedule
+from src.models.payments import Payment, PaymentSource
 from src.models.recurring_bills import RecurringBill
 from src.repositories.accounts import AccountRepository
 from src.repositories.balance_history import BalanceHistoryRepository
 from src.repositories.categories import CategoryRepository
 from src.repositories.liabilities import LiabilityRepository
-from src.repositories.payment_repository import PaymentRepository
 from src.repositories.payment_schedules import PaymentScheduleRepository
+from src.repositories.payments import PaymentRepository
 from src.repositories.recurring_bills import RecurringBillRepository
 from src.repositories.statement_history import StatementHistoryRepository
 from tests.helpers.datetime_utils import utc_now
@@ -26,11 +26,15 @@ from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.balance_history import create_balance_history_schema
 from tests.helpers.schema_factories.categories import create_category_schema
 from tests.helpers.schema_factories.liabilities import create_liability_schema
+from tests.helpers.schema_factories.payment_schedules import (
+    create_payment_schedule_schema,
+)
 from tests.helpers.schema_factories.payment_sources import create_payment_source_schema
 from tests.helpers.schema_factories.payments import create_payment_schema
-from tests.helpers.schema_factories.payment_schedules import create_payment_schedule_schema
 from tests.helpers.schema_factories.recurring_bills import create_recurring_bill_schema
-from tests.helpers.schema_factories.statement_history import create_statement_history_schema
+from tests.helpers.schema_factories.statement_history import (
+    create_statement_history_schema,
+)
 
 
 # Repository fixtures
@@ -91,6 +95,23 @@ async def payment_schedule_repository(
 
 
 # Test account fixtures
+@pytest_asyncio.fixture
+async def test_savings_account(account_repository: AccountRepository) -> Account:
+    """Fixture to create a second test account for recurring income."""
+    # Create and validate through Pydantic schema
+    account_schema = create_account_schema(
+        name="Test Savings Account",
+        account_type="savings",
+        available_balance=Decimal("500.00"),
+    )
+
+    # Convert validated schema to dict for repository
+    validated_data = account_schema.model_dump()
+
+    # Create account through repository
+    return await account_repository.create(validated_data)
+
+
 @pytest_asyncio.fixture
 async def test_second_account(account_repository: AccountRepository) -> Account:
     """Create a second test account for use in split payment tests."""
@@ -346,14 +367,18 @@ async def test_multiple_payments(
             "payment_date": now - timedelta(days=5),
             "category": "Utilities",
             "liability_id": test_liability.id,
-            "sources": [{"account_id": test_checking_account.id, "amount": Decimal("75.00")}],
+            "sources": [
+                {"account_id": test_checking_account.id, "amount": Decimal("75.00")}
+            ],
         },
         # Older rent payment
         {
             "amount": Decimal("800.00"),
             "payment_date": now - timedelta(days=25),
             "category": "Rent",
-            "sources": [{"account_id": test_checking_account.id, "amount": Decimal("800.00")}],
+            "sources": [
+                {"account_id": test_checking_account.id, "amount": Decimal("800.00")}
+            ],
         },
         # Split payment for insurance
         {
@@ -370,7 +395,9 @@ async def test_multiple_payments(
             "amount": Decimal("45.00"),
             "payment_date": now + timedelta(days=5),
             "category": "Subscription",
-            "sources": [{"account_id": test_checking_account.id, "amount": Decimal("45.00")}],
+            "sources": [
+                {"account_id": test_checking_account.id, "amount": Decimal("45.00")}
+            ],
         },
     ]
 
@@ -518,7 +545,7 @@ async def test_multiple_schedules(
     payment_schedule_repository: PaymentScheduleRepository,
     test_liability: Liability,
     test_checking_account: Account,
-    test_secondary_account: Account,
+    test_second_account: Account,
 ) -> List[PaymentSchedule]:
     """Fixture to create multiple payment schedules for testing."""
     now = utc_now()
@@ -543,7 +570,7 @@ async def test_multiple_schedules(
         },
         {
             "liability_id": test_liability.id,
-            "account_id": test_secondary_account.id,
+            "account_id": test_second_account.id,
             "amount": Decimal("50.00"),
             "scheduled_date": now + timedelta(days=30),
             "description": "End of month payment",
