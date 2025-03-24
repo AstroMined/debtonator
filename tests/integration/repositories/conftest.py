@@ -1,62 +1,4 @@
-# Payment Source fixtures
-@pytest_asyncio.fixture
-async def test_payment_source(
-    payment_source_repository: PaymentSourceRepository,
-    test_payment: Payment,
-    test_checking_account: Account,
-) -> PaymentSource:
-    """
-    Create a test payment source.
-
-    Note: This fixture creates a separate payment source, not directly
-    associated with the test_payment fixture which already has its own source.
-    """
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    source_schema = create_payment_source_schema(
-        account_id=test_checking_account.id,
-        amount=Decimal("75.00"),
-        payment_id=test_payment.id,
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = source_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await payment_source_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
-async def test_payment_with_multiple_sources(
-    payment_repository: PaymentRepository,
-    test_checking_account: Account,
-    test_second_account: Account,
-) -> Payment:
-    """Create a test payment with multiple payment sources."""
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    payment_schema = create_payment_schema(
-        amount=Decimal("150.00"),
-        payment_date=utc_now(),
-        category="Bill Payment",
-        description="Test payment with multiple sources",
-        sources=[
-            create_payment_source_schema(
-                account_id=test_checking_account.id, amount=Decimal("100.00")
-            ),
-            create_payment_source_schema(
-                account_id=test_second_account.id, amount=Decimal("50.00")
-            ),
-        ],
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = payment_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await payment_repository.create(validated_data)from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -82,11 +24,11 @@ from src.models.payments import Payment, PaymentSource
 from src.models.recurring_bills import RecurringBill
 from src.models.recurring_income import RecurringIncome
 from src.models.transaction_history import TransactionHistory, TransactionType
-
 # Import all repositories
 from src.repositories.accounts import AccountRepository
 from src.repositories.balance_history import BalanceHistoryRepository
-from src.repositories.balance_reconciliation import BalanceReconciliationRepository
+from src.repositories.balance_reconciliation import \
+    BalanceReconciliationRepository
 from src.repositories.bill_splits import BillSplitRepository
 from src.repositories.cashflow import CashflowForecastRepository
 from src.repositories.categories import CategoryRepository
@@ -103,26 +45,37 @@ from src.repositories.recurring_income import RecurringIncomeRepository
 from src.repositories.statement_history import StatementHistoryRepository
 from src.repositories.transaction_history import TransactionHistoryRepository
 from tests.helpers.datetime_utils import utc_now
-
 # Import all schema factories
 from tests.helpers.schema_factories.accounts import create_account_schema
-from tests.helpers.schema_factories.balance_history import create_balance_history_schema
-from tests.helpers.schema_factories.balance_reconciliation import create_balance_reconciliation_schema
+from tests.helpers.schema_factories.balance_history import \
+    create_balance_history_schema
+from tests.helpers.schema_factories.balance_reconciliation import \
+    create_balance_reconciliation_schema
 from tests.helpers.schema_factories.bill_splits import create_bill_split_schema
-from tests.helpers.schema_factories.cashflow.base import create_cashflow_schema, create_cashflow_update_schema
+from tests.helpers.schema_factories.cashflow.base import (
+    create_cashflow_schema, create_cashflow_update_schema)
 from tests.helpers.schema_factories.categories import create_category_schema
-from tests.helpers.schema_factories.credit_limit_history import create_credit_limit_history_schema
-from tests.helpers.schema_factories.deposit_schedules import create_deposit_schedule_schema
+from tests.helpers.schema_factories.credit_limit_history import \
+    create_credit_limit_history_schema
+from tests.helpers.schema_factories.deposit_schedules import \
+    create_deposit_schedule_schema
 from tests.helpers.schema_factories.income import create_income_schema
-from tests.helpers.schema_factories.income_categories import create_income_category_schema
+from tests.helpers.schema_factories.income_categories import \
+    create_income_category_schema
 from tests.helpers.schema_factories.liabilities import create_liability_schema
-from tests.helpers.schema_factories.payment_schedules import create_payment_schedule_schema
-from tests.helpers.schema_factories.payment_sources import create_payment_source_schema
+from tests.helpers.schema_factories.payment_schedules import \
+    create_payment_schedule_schema
+from tests.helpers.schema_factories.payment_sources import (
+    create_payment_source_nested_schema, create_payment_source_schema)
 from tests.helpers.schema_factories.payments import create_payment_schema
-from tests.helpers.schema_factories.recurring_bills import create_recurring_bill_schema
-from tests.helpers.schema_factories.recurring_income import create_recurring_income_schema
-from tests.helpers.schema_factories.statement_history import create_statement_history_schema
-from tests.helpers.schema_factories.transaction_history import create_transaction_history_schema
+from tests.helpers.schema_factories.recurring_bills import \
+    create_recurring_bill_schema
+from tests.helpers.schema_factories.recurring_income import \
+    create_recurring_income_schema
+from tests.helpers.schema_factories.statement_history import \
+    create_statement_history_schema
+from tests.helpers.schema_factories.transaction_history import \
+    create_transaction_history_schema
 
 
 # Repository fixtures
@@ -580,6 +533,67 @@ async def test_multiple_payments(
     return payments
 
 
+# Payment Source fixtures
+@pytest_asyncio.fixture
+async def test_payment_source(
+    payment_source_repository: PaymentSourceRepository,
+    test_payment: Payment,
+    test_checking_account: Account,
+) -> PaymentSource:
+    """
+    Create a test payment source.
+
+    Note: This fixture creates a separate payment source, not directly
+    associated with the test_payment fixture which already has its own source.
+    """
+    # 1. ARRANGE: No setup needed for this fixture
+
+    # 2. SCHEMA: Create and validate through Pydantic schema
+    source_schema = create_payment_source_schema(
+        account_id=test_checking_account.id,
+        amount=Decimal("75.00"),
+        payment_id=test_payment.id,
+    )
+
+    # Convert validated schema to dict for repository
+    validated_data = source_schema.model_dump()
+
+    # 3. ACT: Pass validated data to repository
+    return await payment_source_repository.create(validated_data)
+
+
+@pytest_asyncio.fixture
+async def test_payment_with_multiple_sources(
+    payment_repository: PaymentRepository,
+    test_checking_account: Account,
+    test_second_account: Account,
+) -> Payment:
+    """Create a test payment with multiple payment sources."""
+    # 1. ARRANGE: No setup needed for this fixture
+
+    # 2. SCHEMA: Create and validate through Pydantic schema
+    payment_schema = create_payment_schema(
+        amount=Decimal("150.00"),
+        payment_date=utc_now(),
+        category="Bill Payment",
+        description="Test payment with multiple sources",
+        sources=[
+            create_payment_source_schema(
+                account_id=test_checking_account.id, amount=Decimal("100.00")
+            ),
+            create_payment_source_schema(
+                account_id=test_second_account.id, amount=Decimal("50.00")
+            ),
+        ],
+    )
+
+    # Convert validated schema to dict for repository
+    validated_data = payment_schema.model_dump()
+
+    # 3. ACT: Pass validated data to repository
+    return await payment_repository.create(validated_data)
+
+
 # Balance Reconciliation fixtures
 @pytest_asyncio.fixture
 async def test_balance_reconciliation(
@@ -622,7 +636,10 @@ async def test_multiple_reconciliations(
             reconciliation_date=now - timedelta(days=days_ago),
         )
 
-        entry = await balance_reconciliation_repository.create(schema.model_dump())
+        # Convert validated schema to dict for repository
+        validated_data = schema.model_dump()
+
+        entry = await balance_reconciliation_repository.create(validated_data)
         entries.append(entry)
 
     return entries
@@ -1159,7 +1176,7 @@ async def test_multiple_transactions(
 ) -> List[TransactionHistory]:
     """Create multiple test transactions for use in tests."""
     now = utc_now()
-    
+
     # Transaction configs for different scenarios
     transaction_configs = [
         # Recent debit transaction on checking account
@@ -1203,7 +1220,7 @@ async def test_multiple_transactions(
             "category": "Shopping",
         },
     ]
-    
+
     transactions = []
     for config in transaction_configs:
         # Create and validate through Pydantic schema
@@ -1215,7 +1232,7 @@ async def test_multiple_transactions(
         # Create transaction through repository
         transaction = await transaction_history_repository.create(validated_data)
         transactions.append(transaction)
-    
+
     return transactions
 
 
@@ -1287,7 +1304,7 @@ async def test_multiple_recurring_incomes(
             "active": False,  # Inactive income
         },
     ]
-    
+
     incomes = []
     for config in income_configs:
         # Create and validate through Pydantic schema
@@ -1299,7 +1316,7 @@ async def test_multiple_recurring_incomes(
         # Create recurring income through repository
         income = await recurring_income_repository.create(validated_data)
         incomes.append(income)
-    
+
     return incomes
 
 
@@ -1584,321 +1601,3 @@ async def test_multiple_schedules(
         created_schedules.append(schedule)
 
     return created_schedules
-
-# Credit Limit History fixtures
-@pytest_asyncio.fixture
-async def test_credit_limit_changes(
-    credit_limit_history_repository: CreditLimitHistoryRepository,
-    test_credit_account: Account,
-) -> List[CreditLimitHistory]:
-    """Create multiple credit limit history entries for testing."""
-    now = datetime.now(timezone.utc)
-
-    # Create base entry (already created in test_credit_limit_history)
-    base_schema = create_credit_limit_history_schema(
-        account_id=test_credit_account.id,
-        credit_limit=Decimal("5000.00"),
-        effective_date=now - timedelta(days=90),
-        reason="Initial credit limit",
-    )
-    await credit_limit_history_repository.create(base_schema.model_dump())
-
-    # Create increase entry
-    increase_schema = create_credit_limit_history_schema(
-        account_id=test_credit_account.id,
-        credit_limit=Decimal("7500.00"),
-        effective_date=now - timedelta(days=60),
-        reason="Credit increase due to good payment history",
-    )
-    increase = await credit_limit_history_repository.create(
-        increase_schema.model_dump()
-    )
-
-    # Create decrease entry
-    decrease_schema = create_credit_limit_history_schema(
-        account_id=test_credit_account.id,
-        credit_limit=Decimal("6500.00"),
-        effective_date=now - timedelta(days=30),
-        reason="Credit adjustment due to risk assessment",
-    )
-    decrease = await credit_limit_history_repository.create(
-        decrease_schema.model_dump()
-    )
-
-    # Create recent increase entry
-    latest_schema = create_credit_limit_history_schema(
-        account_id=test_credit_account.id,
-        credit_limit=Decimal("8000.00"),
-        effective_date=now - timedelta(days=5),
-        reason="Credit increase request approved",
-    )
-    latest = await credit_limit_history_repository.create(latest_schema.model_dump())
-
-    return [increase, decrease, latest]
-
-
-# Income Category fixtures
-@pytest_asyncio.fixture
-async def test_multiple_categories(
-    income_category_repository: IncomeCategoryRepository,
-) -> List[IncomeCategory]:
-    """Fixture to create multiple income categories for testing."""
-    # Create multiple income categories with various attributes
-    category_data = [
-        {
-            "name": "Salary",
-            "description": "Regular employment income",
-        },
-        {
-            "name": "Freelance",
-            "description": "Income from freelance work",
-        },
-        {
-            "name": "Investments",
-            "description": "Income from investments",
-        },
-        {
-            "name": "Rental Income",
-            "description": "Income from rental properties",
-        },
-    ]
-
-    # Create the categories using the repository
-    created_categories = []
-    for data in category_data:
-        # Create and validate through Pydantic schema
-        category_schema = create_income_category_schema(**data)
-
-        # Convert validated schema to dict for repository
-        validated_data = category_schema.model_dump()
-
-        # Create category through repository
-        category = await income_category_repository.create(validated_data)
-        created_categories.append(category)
-
-    return created_categories
-
-
-@pytest_asyncio.fixture
-async def test_income_entries(
-    income_repository: IncomeRepository,
-    test_multiple_categories: List[IncomeCategory],
-) -> List[Income]:
-    """Fixture to create test income entries associated with categories."""
-    # Get category IDs for reference
-    salary_category_id = test_multiple_categories[0].id
-    freelance_category_id = test_multiple_categories[1].id
-    investments_category_id = test_multiple_categories[2].id
-
-    # Create income data with various attributes
-    income_data = [
-        {
-            "source": "Monthly Salary",
-            "amount": Decimal("3000.00"),
-            "account_id": 1,  # Using a default account ID
-            "category_id": salary_category_id,
-            "deposited": True,
-        },
-        {
-            "source": "Bonus",
-            "amount": Decimal("1000.00"),
-            "account_id": 1,
-            "category_id": salary_category_id,
-            "deposited": True,
-        },
-        {
-            "source": "Website Project",
-            "amount": Decimal("800.00"),
-            "account_id": 1,
-            "category_id": freelance_category_id,
-            "deposited": False,
-        },
-        {
-            "source": "Logo Design",
-            "amount": Decimal("350.00"),
-            "account_id": 1,
-            "category_id": freelance_category_id,
-            "deposited": True,
-        },
-        {
-            "source": "Stock Dividends",
-            "amount": Decimal("420.00"),
-            "account_id": 1,
-            "category_id": investments_category_id,
-            "deposited": False,
-        },
-    ]
-
-    # Create the income entries using the repository
-    created_incomes = []
-    for data in income_data:
-        # Create and validate through Pydantic schema
-        income_schema = create_income_schema(**data)
-
-        # Convert validated schema to dict for repository
-        validated_data = income_schema.model_dump()
-
-        # Create income through repository
-        income = await income_repository.create(validated_data)
-        created_incomes.append(income)
-
-    return created_incomes
-
-
-# Payment Source fixtures
-@pytest_asyncio.fixture
-async def test_payment_source(
-    payment_source_repository: PaymentSourceRepository,
-    test_payment: Payment,
-    test_checking_account: Account,
-) -> PaymentSource:
-    """
-    Create a test payment source.
-
-    Note: This fixture creates a separate payment source, not directly
-    associated with the test_payment fixture which already has its own source.
-    """
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    source_schema = create_payment_source_schema(
-        account_id=test_checking_account.id,
-        amount=Decimal("75.00"),
-        payment_id=test_payment.id,
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = source_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await payment_source_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
-async def test_payment_with_multiple_sources(
-    payment_repository: PaymentRepository,
-    test_checking_account: Account,
-    test_second_account: Account,
-) -> Payment:
-    """Create a test payment with multiple payment sources."""
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    payment_schema = create_payment_schema(
-        amount=Decimal("150.00"),
-        payment_date=utc_now(),
-        category="Bill Payment",
-        description="Test payment with multiple sources",
-        sources=[
-            create_payment_source_schema(
-                account_id=test_checking_account.id, amount=Decimal("100.00")
-            ),
-            create_payment_source_schema(
-                account_id=test_second_account.id, amount=Decimal("50.00")
-            ),
-        ],
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = payment_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await payment_repository.create(validated_data)
-
-
-# Statement History fixtures
-@pytest_asyncio.fixture
-async def test_multiple_statements(
-    statement_history_repository: StatementHistoryRepository,
-    test_credit_account: Account,
-) -> List[StatementHistory]:
-    """Create multiple statement history records for use in tests."""
-    # 1. ARRANGE: Setup statement configurations
-    now = utc_now()
-    statement_configs = [
-        (
-            now - timedelta(days=60),
-            Decimal("400.00"),
-            Decimal("20.00"),
-            now - timedelta(days=39),
-        ),
-        (
-            now - timedelta(days=30),
-            Decimal("600.00"),
-            Decimal("30.00"),
-            now - timedelta(days=9),
-        ),
-        (now, Decimal("800.00"), Decimal("40.00"), now + timedelta(days=21)),
-    ]
-
-    statements = []
-    for stmt_date, balance, min_payment, due_date in statement_configs:
-        # 2. SCHEMA: Create and validate through Pydantic schema
-        statement_schema = create_statement_history_schema(
-            account_id=test_credit_account.id,
-            statement_date=stmt_date,
-            statement_balance=balance,
-            minimum_payment=min_payment,
-            due_date=due_date,
-        )
-
-        # Convert validated schema to dict for repository
-        validated_data = statement_schema.model_dump()
-
-        # 3. ACT: Pass validated data to repository
-        statement = await statement_history_repository.create(validated_data)
-        statements.append(statement)
-
-    return statements
-
-
-@pytest_asyncio.fixture
-async def test_multiple_accounts_with_statements(
-    account_repository: AccountRepository,
-    statement_history_repository: StatementHistoryRepository,
-) -> Tuple[List[Account], List[StatementHistory]]:
-    """Create multiple accounts with statements for testing."""
-    # 1. ARRANGE: Setup account configurations
-    accounts = []
-    statements = []
-    now = utc_now()
-
-    # Create two credit accounts
-    for i in range(2):
-        # 2. SCHEMA: Create and validate account through Pydantic schema
-        account_schema = create_account_schema(
-            name=f"Credit Account {i+1}",
-            account_type="credit",
-            available_balance=Decimal(f"-{(i+5)*100}.00"),
-            total_limit=Decimal(f"{(i+1)*1000}.00"),
-            available_credit=Decimal(f"{(i+1)*1000 - (i+5)*100}.00"),
-        )
-
-        # Convert validated schema to dict for repository
-        validated_data = account_schema.model_dump()
-
-        # 3. ACT: Pass validated data to repository
-        account = await account_repository.create(validated_data)
-        accounts.append(account)
-
-        # Create statements for each account
-        for j in range(3):
-            days_offset = (3 - j) * 30  # 90, 60, 30 days ago
-            # Create statement schema
-            statement_schema = create_statement_history_schema(
-                account_id=account.id,
-                statement_date=now - timedelta(days=days_offset),
-                statement_balance=Decimal(f"{(i+j+1)*200}.00"),
-                minimum_payment=Decimal(f"{(i+j+1)*10}.00"),
-                due_date=now
-                - timedelta(days=days_offset - 21),  # Due 21 days after statement
-            )
-
-            # Convert validated schema to dict for repository
-            validated_data = statement_schema.model_dump()
-
-            # Pass validated data to repository
-            statement = await statement_history_repository.create(validated_data)
-            statements.append(statement)
-
-    return accounts, statements

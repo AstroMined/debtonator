@@ -32,6 +32,33 @@ class PaymentSourceRepository(BaseRepository[PaymentSource, int]):
             session (AsyncSession): SQLAlchemy async session
         """
         super().__init__(session, PaymentSource)
+        
+    async def create(self, obj_in: Dict[str, Any]) -> PaymentSource:
+        """
+        Create a new payment source ensuring all required fields are present.
+        
+        This overrides the base create method to properly validate the presence
+        of required payment_id and account_id before creating the source.
+
+        Args:
+            obj_in (Dict[str, Any]): Dictionary containing payment source attributes
+
+        Returns:
+            PaymentSource: Created payment source object
+            
+        Raises:
+            ValueError: If payment_id is missing
+        """
+        # Ensure payment_id is present - this is a required field
+        if "payment_id" not in obj_in or obj_in["payment_id"] is None:
+            raise ValueError("payment_id is required for creating PaymentSource objects")
+            
+        # Create the payment source as a proper model instance
+        source = PaymentSource(**obj_in)
+        self.session.add(source)
+        await self.session.flush()
+        await self.session.refresh(source)
+        return source
 
     async def get_with_relationships(
         self,

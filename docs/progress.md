@@ -3,14 +3,18 @@
 ## March 24, 2025
 
 ### Completed Tasks
-- Refactored integration test fixtures by moving them from individual test files to shared conftest.py
-- Organized fixtures by category (repository fixtures, account fixtures, liability fixtures, etc.)
-- Removed duplicate fixture definitions to avoid conflicts
-- Updated imports in conftest.py to support all fixture types
+- Fixed circular dependency between Payment and PaymentSource schemas
+- Enhanced BaseRepository.update() to safely handle relationships and required fields
+- Added eager loading of sources in PaymentRepository.create
+- Updated test fixtures to maintain required field constraints
+- Fixed '_sa_instance_state' errors in repository tests
+- Improved null constraint handling in repository operations
 
 ### Next Steps
-- Consider further optimizing test execution by using scope parameters in fixtures
-- Improve documentation in conftest.py to explain fixture dependencies
+- Continue implementing UTC datetime compliance
+- Add naive datetime scanner to CI pipeline
+- Fix remaining repository tests to follow the Arrange-Schema-Act-Assert pattern
+- Further optimize BaseRepository for relationship handling
 
 ## Previous Updates
 

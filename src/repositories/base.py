@@ -185,8 +185,18 @@ class BaseRepository(Generic[ModelType, PKType]):
         if not db_obj:
             return None
 
-        # Update fields; the ORM will trigger the onupdate for updated_at
+        # Filter out None values for relationships and required columns
+        filtered_obj_in = {}
         for key, value in obj_in.items():
+            # Skip None values for relationship fields or non-nullable columns
+            if key in db_obj.__mapper__.relationships:
+                if value is not None:
+                    filtered_obj_in[key] = value
+            elif value is not None or key not in db_obj.__table__.columns or db_obj.__table__.columns[key].nullable:
+                filtered_obj_in[key] = value
+
+        # Update fields; the ORM will trigger the onupdate for updated_at
+        for key, value in filtered_obj_in.items():
             setattr(db_obj, key, value)
 
         # Explicitly mark as modified to ensure SQLAlchemy tracks changes

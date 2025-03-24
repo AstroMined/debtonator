@@ -20,12 +20,9 @@ from src.repositories.accounts import AccountRepository
 from src.repositories.statement_history import StatementHistoryRepository
 from tests.helpers.datetime_utils import utc_now
 from tests.helpers.schema_factories.accounts import (
-    create_account_schema,
-    create_account_update_schema,
-)
-from tests.helpers.schema_factories.statement_history import (
-    create_statement_history_schema,
-)
+    create_account_schema, create_account_update_schema)
+from tests.helpers.schema_factories.statement_history import \
+    create_statement_history_schema
 
 pytestmark = pytest.mark.asyncio
 

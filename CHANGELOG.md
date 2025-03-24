@@ -6,6 +6,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.36] - 2025-03-24
+
+### Fixed
+- Fixed circular dependency between Payment and PaymentSource schemas
+  - Created PaymentSourceCreateNested schema for nested source creation
+  - Updated schemas to eliminate cyclic imports
+  - Maintained schema validation with improved parent-child relationships
+- Enhanced BaseRepository.update() to safely handle relationships and required fields
+  - Improved handling of NULL constraints for required fields
+  - Added special handling for relationship fields
+  - Fixed error when passing None to relationship fields
+- Fixed repository integration tests
+  - Added proper test fixture lifecycle management
+  - Fixed SQLAlchemy lazy loading issues in tests
+  - Added eager loading in PaymentRepository.create
+
 ## [0.5.35] - 2025-03-24
 
 ### Changed

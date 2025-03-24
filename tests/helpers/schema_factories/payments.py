@@ -10,11 +10,12 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional, Union
 
 from src.schemas.payments import (PaymentCreate, PaymentDateRange,
-                                  PaymentSourceCreate, PaymentUpdate)
+                                  PaymentSourceCreate, PaymentSourceCreateNested, 
+                                  PaymentUpdate)
 from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT,
                                                  factory_function, utc_now)
 from tests.helpers.schema_factories.payment_sources import \
-    create_payment_source_schema
+    create_payment_source_nested_schema, create_payment_source_schema
 
 
 @factory_function(PaymentCreate)
@@ -25,7 +26,7 @@ def create_payment_schema(
     description: Optional[str] = "Test payment description",
     liability_id: Optional[int] = None,
     income_id: Optional[int] = None,
-    sources: Optional[List[Union[PaymentSourceCreate, Dict[str, Any]]]] = None,
+    sources: Optional[List[Union[PaymentSourceCreateNested, Dict[str, Any]]]] = None,
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """
@@ -66,13 +67,13 @@ def create_payment_schema(
 
     # If no sources provided, create a single source with the full amount
     if sources is None:
-        data["sources"] = [create_payment_source_schema(amount=amount)]
+        data["sources"] = [create_payment_source_nested_schema(amount=amount)]
     else:
         # Convert any dict sources to schemas if needed
         source_schemas = []
         for source in sources:
             if isinstance(source, dict):
-                source_schemas.append(create_payment_source_schema(**source))
+                source_schemas.append(create_payment_source_nested_schema(**source))
             else:
                 source_schemas.append(source)
         data["sources"] = source_schemas

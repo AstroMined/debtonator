@@ -13,7 +13,7 @@ from sqlalchemy import and_, between, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from src.models.payments import Payment
+from src.models.payments import Payment, PaymentSource
 from src.repositories.base import BaseRepository
 
 
@@ -33,6 +33,45 @@ class PaymentRepository(BaseRepository[Payment, int]):
             session (AsyncSession): SQLAlchemy async session
         """
         super().__init__(session, Payment)
+        
+    async def create(self, obj_in: Dict[str, Any]) -> Payment:
+        """
+        Create a new payment with nested payment sources using ORM relationships.
+
+        This method uses SQLAlchemy's relationship handling to automatically
+        manage the foreign key relationships between Payment and PaymentSource.
+        It creates the payment and its sources in a single transaction using
+        the relationship cascade.
+
+        Args:
+            obj_in (Dict[str, Any]): Dictionary containing payment attributes
+                and optionally a 'sources' key with a list of payment source data
+
+        Returns:
+            Payment: Created payment with sources attached
+        """
+        # Extract sources from the input if present
+        sources_data = obj_in.pop("sources", [])
+        
+        # Create the payment instance
+        payment = Payment(**obj_in)
+        
+        # Create and associate source instances directly via the relationship
+        for source_data in sources_data:
+            # Create the source and associate with payment using the ORM relationship
+            # No need to set payment_id manually - SQLAlchemy handles it
+            source = PaymentSource(**source_data)
+            # Associate with payment through the relationship
+            payment.sources.append(source)
+            
+        # Add the parent to the session - cascade takes care of children
+        self.session.add(payment)
+        await self.session.flush()
+        
+        # Refresh and eagerly load sources
+        await self.session.refresh(payment, ["sources"])
+        
+        return payment
 
     async def get_with_sources(self, payment_id: int) -> Optional[Payment]:
         """

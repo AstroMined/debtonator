@@ -1,19 +1,20 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Implementing Default Category Management (ADR-015), Continuing Repository Layer Integration Tests (ADR-014), Ensuring UTC Datetime Compliance (ADR-011), Account Type Expansion Preparation (ADR-016)
+Repository Layer Integration Tests (ADR-014), Ensuring UTC Datetime Compliance (ADR-011), Fixing Circular Dependencies in Schemas, Account Type Expansion Preparation (ADR-016)
 
 ### Recent Changes
 
-1. **Repository Test Fixture Centralization** ✓
-   - Moved all repository test fixtures to a central conftest.py file
-   - Organized fixtures by type (repositories, accounts, liabilities, etc.)
-   - Standardized fixture naming and implementation patterns
-   - Eliminated duplicate fixture definitions across test files
-   - Updated test files to use shared fixtures instead of local ones
-   - Added comprehensive fixture imports in conftest.py
-   - Documented fixture dependency relationships
-   - Maintained the 4-step pattern (Arrange-Schema-Act-Assert) in all tests
+1. **Fixed Payment Source Circular Dependency** ✓
+   - Created PaymentSourceCreateNested schema for nested source creation without payment_id
+   - Updated PaymentCreate schema to use the new nested schema
+   - Fixed validation flow to properly handle the parent-child relationship
+   - Enhanced schema factories to support nested source creation
+   - Fixed model_dump usage in payment creation
+   - Implemented relationship-based ORM approach instead of ID-based references
+   - Eliminated circular dependency between Payment and PaymentSource
+   - Maintained schema validation while supporting proper parent-child relationships
+   - Prevented NULL constraint violations on required fields
 
 
 1. **Default "Uncategorized" Category Implementation** ✓

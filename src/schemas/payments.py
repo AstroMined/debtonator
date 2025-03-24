@@ -53,6 +53,39 @@ class PaymentSourceBase(BaseSchemaValidator):
     amount: MoneyDecimal = Field(
         ..., gt=Decimal("0"), description="Amount paid from this account"
     )
+    payment_id: int = Field(..., gt=0, description="ID of the parent payment")
+
+    @field_validator("amount", mode="before")
+    @classmethod
+    def validate_amount_precision(cls, value: Decimal) -> Decimal:
+        """
+        Validates that amount has at most 2 decimal places.
+
+        Args:
+            value: The Decimal value to validate
+
+        Returns:
+            Decimal: The validated value
+
+        Raises:
+            ValueError: If value has more than 2 decimal places
+        """
+        return validate_decimal_precision(value)
+
+
+class PaymentSourceCreateNested(BaseSchemaValidator):
+    """
+    Schema for creating a payment source nested within a payment creation.
+    
+    Used when creating a payment source as part of a new payment, before
+    the payment ID exists. This avoids circular dependency with payment_id.
+    """
+    model_config = ConfigDict(from_attributes=True)
+
+    account_id: int = Field(..., gt=0, description="ID of the account used for payment")
+    amount: MoneyDecimal = Field(
+        ..., gt=Decimal("0"), description="Amount paid from this account"
+    )
 
     @field_validator("amount", mode="before")
     @classmethod
@@ -74,9 +107,9 @@ class PaymentSourceBase(BaseSchemaValidator):
 
 class PaymentSourceCreate(PaymentSourceBase):
     """
-    Schema for creating a new payment source.
+    Schema for creating a standalone payment source.
 
-    Used when creating a payment source as part of a new payment.
+    Used when creating a payment source directly, not as part of a payment creation.
     """
 
     pass
@@ -95,6 +128,9 @@ class PaymentSourceUpdate(PaymentSourceBase):
     )
     amount: Optional[MoneyDecimal] = Field(
         None, gt=Decimal("0"), description="Amount paid from this account"
+    )
+    payment_id: Optional[int] = Field(
+        None, gt=0, description="ID of the parent payment"
     )
 
 
@@ -221,15 +257,15 @@ class PaymentCreate(PaymentBase):
         None,
         description="ID of the associated income, if this payment is from an income source",
     )
-    sources: List[PaymentSourceCreate] = Field(
+    sources: List[PaymentSourceCreateNested] = Field(
         ..., description="Payment sources (accounts from which the payment is drawn)"
     )
 
     @field_validator("sources")
     @classmethod
     def validate_sources(
-        cls, sources: List[PaymentSourceCreate], info: Any
-    ) -> List[PaymentSourceCreate]:
+        cls, sources: List[PaymentSourceCreateNested], info: Any
+    ) -> List[PaymentSourceCreateNested]:
         """
         Validate that payment sources total matches payment amount and no duplicate accounts.
 
@@ -238,12 +274,27 @@ class PaymentCreate(PaymentBase):
             info: Validation context with all data
 
         Returns:
-            List[PaymentSourceCreate]: The validated sources
+            List[PaymentSourceCreateNested]: The validated sources
 
         Raises:
             ValueError: If validation fails for any reason
         """
-        return validate_payment_sources(sources, info.data.get("amount"))
+        if not sources:
+            raise ValueError("At least one payment source is required")
+
+        if info.data.get("amount") is not None:
+            total_sources = sum(source.amount for source in sources)
+            if abs(total_sources - info.data.get("amount")) > Decimal("0.01"):
+                raise ValueError(
+                    f"Sum of payment sources ({total_sources}) must equal payment amount ({info.data.get('amount')})"
+                )
+
+        # Check for duplicate accounts
+        account_ids = [source.account_id for source in sources]
+        if len(account_ids) != len(set(account_ids)):
+            raise ValueError("Duplicate account IDs in payment sources")
+
+        return sources
 
 
 class PaymentUpdate(BaseSchemaValidator):
