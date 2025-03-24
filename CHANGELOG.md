@@ -6,6 +6,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.34] - 2025-03-24
+
+### Changed
+- Centralized repository integration test fixtures by moving them from individual test files to shared conftest.py
+- Organized fixtures by type (repositories, accounts, liabilities, etc.) for improved maintainability
+- Eliminated duplicate fixture definitions across test files
+- Added comprehensive imports in conftest.py to support all fixture types
+
+### Added
+- Documentation for fixture dependency relationships in test infrastructure
+- Consistent implementation patterns for all repository fixtures
+
+### Fixed
+- Potential inconsistencies from duplicate fixture definitions
+- Import organization in test files
+
 ## [0.5.33] - 2025-03-23
 
 ### Changed

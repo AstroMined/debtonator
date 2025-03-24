@@ -36,77 +36,7 @@ from tests.helpers.schema_factories.liabilities import create_liability_schema
 pytestmark = pytest.mark.asyncio
 
 
-@pytest_asyncio.fixture
-async def bill_split_repository(db_session: AsyncSession) -> BillSplitRepository:
-    """Fixture for BillSplitRepository with test database session."""
-    return BillSplitRepository(db_session)
-
-
-@pytest_asyncio.fixture
-async def test_liability(
-    liability_repository: LiabilityRepository,
-    test_checking_account: Account,
-) -> Liability:
-    """Create a test liability for bill splits using schema validation."""
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    liability_schema = create_liability_schema(
-        name="Test Bill",
-        amount=Decimal("300.00"),
-        due_date=utc_now() + timedelta(days=15),
-        primary_account_id=test_checking_account.id,
-        status="pending",
-        recurring=False,
-        paid=False,
-        active=True,
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = liability_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await liability_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
-async def test_bill_splits(
-    bill_split_repository: BillSplitRepository,
-    test_liability: Liability,
-    test_checking_account: Account,
-) -> List[BillSplit]:
-    """Create test bill splits using schema validation."""
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    split_schemas = [
-        create_bill_split_schema(
-            liability_id=test_liability.id,
-            account_id=test_checking_account.id,
-            amount=Decimal("100.00"),
-        ),
-        create_bill_split_schema(
-            liability_id=test_liability.id,
-            account_id=test_checking_account.id,
-            amount=Decimal("100.00"),
-        ),
-        create_bill_split_schema(
-            liability_id=test_liability.id,
-            account_id=test_checking_account.id,
-            amount=Decimal("100.00"),
-        ),
-    ]
-
-    # Convert validated schemas to dicts for repository
-    splits_data = [schema.model_dump() for schema in split_schemas]
-
-    # 3. ACT: Pass validated data to repository
-    splits = []
-    for split_data in splits_data:
-        split = await bill_split_repository.create(split_data)
-        splits.append(split)
-
-    return splits
+# All fixtures are now imported from conftest.py
 
 
 async def test_create_bill_split(

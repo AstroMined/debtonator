@@ -5,14 +5,16 @@ Implementing Default Category Management (ADR-015), Continuing Repository Layer 
 
 ### Recent Changes
 
-1. **Account Type Expansion Preparation** ✓
-   - Added description field to Account model for better account identification
-   - Updated account schemas to include description field
-   - Fixed schema factory usage in account repository tests
-   - Documented technical debt related to account type handling in ADR-016
-   - Identified parameter mapping issues between schema factories and schemas
-   - Fixed inconsistent schema creation in tests
-   - Prepared groundwork for future account type expansion
+1. **Repository Test Fixture Centralization** ✓
+   - Moved all repository test fixtures to a central conftest.py file
+   - Organized fixtures by type (repositories, accounts, liabilities, etc.)
+   - Standardized fixture naming and implementation patterns
+   - Eliminated duplicate fixture definitions across test files
+   - Updated test files to use shared fixtures instead of local ones
+   - Added comprehensive fixture imports in conftest.py
+   - Documented fixture dependency relationships
+   - Maintained the 4-step pattern (Arrange-Schema-Act-Assert) in all tests
+
 
 1. **Default "Uncategorized" Category Implementation** ✓
    - Created constants for default category configuration in `src/constants.py`

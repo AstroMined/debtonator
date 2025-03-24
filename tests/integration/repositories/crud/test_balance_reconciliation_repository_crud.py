@@ -31,76 +31,7 @@ from tests.helpers.schema_factories.balance_reconciliation import (
 pytestmark = pytest.mark.asyncio
 
 
-@pytest_asyncio.fixture
-async def balance_reconciliation_repository(
-    db_session: AsyncSession,
-) -> BalanceReconciliationRepository:
-    """Fixture for BalanceReconciliationRepository with test database session."""
-    return BalanceReconciliationRepository(db_session)
-
-
-@pytest_asyncio.fixture
-async def test_checking_account(account_repository: AccountRepository) -> Account:
-    """Create a test account for use in tests."""
-    # Create and validate through Pydantic schema
-    account_schema = create_account_schema(
-        name="Test Checking Account",
-        account_type="checking",
-        available_balance=Decimal("1000.00"),
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = account_schema.model_dump()
-
-    # Create account through repository
-    return await account_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
-async def test_balance_reconciliation(
-    balance_reconciliation_repository: BalanceReconciliationRepository,
-    test_checking_account: Account,
-) -> BalanceReconciliation:
-    """Create a test balance reconciliation entry for use in tests."""
-    # Create and validate through Pydantic schema
-    reconciliation_schema = create_balance_reconciliation_schema(
-        account_id=test_checking_account.id,
-        previous_balance=Decimal("1000.00"),
-        new_balance=Decimal("1025.50"),
-        reason="Initial reconciliation after transaction verification",
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = reconciliation_schema.model_dump()
-
-    # Create reconciliation entry through repository
-    return await balance_reconciliation_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
-async def test_multiple_reconciliations(
-    balance_reconciliation_repository: BalanceReconciliationRepository,
-    test_checking_account: Account,
-) -> List[BalanceReconciliation]:
-    """Create multiple balance reconciliation entries for testing."""
-    now = utc_now()
-
-    # Create multiple reconciliation entries with different dates
-    entries = []
-
-    for i, days_ago in enumerate([90, 60, 30, 15, 5]):
-        schema = create_balance_reconciliation_schema(
-            account_id=test_checking_account.id,
-            previous_balance=Decimal(f"{1000 + (i * 50)}.00"),
-            new_balance=Decimal(f"{1000 + ((i + 1) * 50)}.00"),
-            reason=f"Reconciliation #{i + 1}",
-            reconciliation_date=now - timedelta(days=days_ago),
-        )
-
-        entry = await balance_reconciliation_repository.create(schema.model_dump())
-        entries.append(entry)
-
-    return entries
+# All fixtures are now imported from conftest.py
 
 
 async def test_create_balance_reconciliation(
