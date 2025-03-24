@@ -53,23 +53,6 @@ async def income_repository(db_session: AsyncSession) -> IncomeRepository:
 
 
 @pytest_asyncio.fixture
-async def test_account(account_repository: AccountRepository) -> Account:
-    """Fixture to create a test account for deposit schedules."""
-    # Create and validate through Pydantic schema
-    account_schema = create_account_schema(
-        name="Test Checking Account",
-        account_type="checking",
-        available_balance=Decimal("1000.00"),
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = account_schema.model_dump()
-
-    # Create account through repository
-    return await account_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
 async def test_secondary_account(account_repository: AccountRepository) -> Account:
     """Fixture to create a second test account for deposit schedules."""
     # Create and validate through Pydantic schema
@@ -89,14 +72,14 @@ async def test_secondary_account(account_repository: AccountRepository) -> Accou
 @pytest_asyncio.fixture
 async def test_income(
     income_repository: IncomeRepository,
-    test_account: Account,
+    test_checking_account: Account,
 ) -> Income:
     """Fixture to create a test income entry."""
     # Create and validate through Pydantic schema
     income_schema = create_income_schema(
         source="Monthly Salary",
         amount=Decimal("3000.00"),
-        account_id=test_account.id,
+        account_id=test_checking_account.id,
         date=datetime.now(timezone.utc),
         deposited=False,
     )
@@ -134,13 +117,13 @@ async def test_additional_income(
 async def test_deposit_schedule(
     deposit_schedule_repository: DepositScheduleRepository,
     test_income: Income,
-    test_account: Account,
+    test_checking_account: Account,
 ) -> DepositSchedule:
     """Fixture to create a test deposit schedule."""
     # Create and validate through Pydantic schema
     schedule_schema = create_deposit_schedule_schema(
         income_id=test_income.id,
-        account_id=test_account.id,
+        account_id=test_checking_account.id,
         schedule_date=datetime.now(timezone.utc) + timedelta(days=7),
         amount=Decimal("3000.00"),
         recurring=False,
@@ -159,7 +142,7 @@ async def test_multiple_schedules(
     deposit_schedule_repository: DepositScheduleRepository,
     test_income: Income,
     test_additional_income: Income,
-    test_account: Account,
+    test_checking_account: Account,
     test_secondary_account: Account,
 ) -> List[DepositSchedule]:
     """Fixture to create multiple deposit schedules for testing."""
@@ -169,7 +152,7 @@ async def test_multiple_schedules(
     schedule_data = [
         {
             "income_id": test_income.id,
-            "account_id": test_account.id,
+            "account_id": test_checking_account.id,
             "schedule_date": now + timedelta(days=3),
             "amount": Decimal("3000.00"),
             "recurring": False,
@@ -186,7 +169,7 @@ async def test_multiple_schedules(
         },
         {
             "income_id": test_income.id,
-            "account_id": test_account.id,
+            "account_id": test_checking_account.id,
             "schedule_date": now - timedelta(days=5),  # Past date
             "amount": Decimal("1000.00"),
             "recurring": False,
@@ -231,7 +214,7 @@ class TestDepositScheduleRepository:
         self,
         deposit_schedule_repository: DepositScheduleRepository,
         test_income: Income,
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test creating a deposit schedule with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
@@ -240,7 +223,7 @@ class TestDepositScheduleRepository:
         schedule_date = datetime.now(timezone.utc) + timedelta(days=5)
         schedule_schema = create_deposit_schedule_schema(
             income_id=test_income.id,
-            account_id=test_account.id,
+            account_id=test_checking_account.id,
             schedule_date=schedule_date,
             amount=Decimal("2500.00"),
             recurring=True,
@@ -258,7 +241,7 @@ class TestDepositScheduleRepository:
         assert result is not None
         assert result.id is not None
         assert result.income_id == test_income.id
-        assert result.account_id == test_account.id
+        assert result.account_id == test_checking_account.id
         assert result.amount == Decimal("2500.00")
         assert result.recurring is True
         assert result.recurrence_pattern == {"frequency": "weekly", "day": "friday"}
@@ -360,19 +343,19 @@ class TestDepositScheduleRepository:
     async def test_get_by_account(
         self,
         deposit_schedule_repository: DepositScheduleRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_multiple_schedules: List[DepositSchedule],
     ):
         """Test getting deposit schedules for a specific account."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
 
         # 3. ACT: Get deposit schedules for the account
-        results = await deposit_schedule_repository.get_by_account(test_account.id)
+        results = await deposit_schedule_repository.get_by_account(test_checking_account.id)
 
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 2  # Should get at least 2 schedules for this account
         for schedule in results:
-            assert schedule.account_id == test_account.id
+            assert schedule.account_id == test_checking_account.id
 
     @pytest.mark.asyncio
     async def test_get_by_income(
@@ -550,20 +533,20 @@ class TestDepositScheduleRepository:
         self,
         deposit_schedule_repository: DepositScheduleRepository,
         test_multiple_schedules: List[DepositSchedule],
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test getting upcoming deposit schedules."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
 
         # 3. ACT: Get upcoming deposit schedules for next 7 days
         results = await deposit_schedule_repository.get_upcoming_schedules(
-            days=7, account_id=test_account.id
+            days=7, account_id=test_checking_account.id
         )
 
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 1  # Should get at least 1 upcoming schedule
         for schedule in results:
-            assert schedule.account_id == test_account.id
+            assert schedule.account_id == test_checking_account.id
             assert schedule.status == "pending"
 
             # Schedule date should be in the future and within 7 days
@@ -622,7 +605,7 @@ class TestDepositScheduleRepository:
         self,
         deposit_schedule_repository: DepositScheduleRepository,
         test_multiple_schedules: List[DepositSchedule],
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test calculating total amount of scheduled deposits."""
         # 1. ARRANGE: Setup date range
@@ -634,7 +617,7 @@ class TestDepositScheduleRepository:
 
         # 3. ACT: Get total scheduled deposits for account
         total = await deposit_schedule_repository.get_total_scheduled_deposits(
-            start_date, end_date, test_account.id
+            start_date, end_date, test_checking_account.id
         )
 
         # 4. ASSERT: Verify the operation results
@@ -644,7 +627,7 @@ class TestDepositScheduleRepository:
         expected_total = 0.0
         for schedule in test_multiple_schedules:
             if (
-                schedule.account_id == test_account.id
+                schedule.account_id == test_checking_account.id
                 and schedule.status == "pending"
                 and schedule.schedule_date >= start_date.replace(tzinfo=None)
                 and schedule.schedule_date <= end_date.replace(tzinfo=None)
@@ -705,14 +688,14 @@ class TestDepositScheduleRepository:
     async def test_validation_error_handling(
         self,
         test_income: Income,
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test handling invalid data that would normally be caught by schema validation."""
         # Try creating a schema with invalid data and expect it to fail validation
         try:
             invalid_schema = DepositScheduleCreate(
                 income_id=test_income.id,
-                account_id=test_account.id,
+                account_id=test_checking_account.id,
                 schedule_date=datetime.now(timezone.utc),
                 amount=Decimal("-50.00"),  # Invalid negative amount
                 recurring=False,
@@ -729,7 +712,7 @@ class TestDepositScheduleRepository:
         try:
             invalid_schema = DepositScheduleCreate(
                 income_id=test_income.id,
-                account_id=test_account.id,
+                account_id=test_checking_account.id,
                 schedule_date=datetime.now(timezone.utc),
                 amount=Decimal("50.00"),
                 recurring=False,

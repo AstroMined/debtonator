@@ -42,27 +42,6 @@ async def account_repository(db_session: AsyncSession) -> AccountRepository:
 
 
 @pytest_asyncio.fixture
-async def test_credit_account(account_repository: AccountRepository) -> Account:
-    """Create a test credit account for use in tests."""
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    account_schema = create_account_schema(
-        name="Test Credit Account",
-        account_type="credit",
-        available_balance=Decimal("-500.00"),
-        total_limit=Decimal("2000.00"),
-        available_credit=Decimal("1500.00"),
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = account_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await account_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
 async def test_statement_history(
     statement_history_repository: StatementHistoryRepository,
     test_credit_account: Account,

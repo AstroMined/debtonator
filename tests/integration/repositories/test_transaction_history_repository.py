@@ -41,30 +41,13 @@ async def account_repository(db_session: AsyncSession) -> AccountRepository:
 
 
 @pytest_asyncio.fixture
-async def test_account(account_repository: AccountRepository) -> Account:
-    """Create a test account for use in tests."""
-    # Create and validate through Pydantic schema
-    account_schema = create_account_schema(
-        name="Test Checking Account",
-        account_type="checking",
-        available_balance=Decimal("1000.00"),
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = account_schema.model_dump()
-
-    # Create account through repository
-    return await account_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
 async def test_transaction_history(
-    transaction_history_repository: TransactionHistoryRepository, test_account: Account
+    transaction_history_repository: TransactionHistoryRepository, test_checking_account: Account
 ) -> TransactionHistory:
     """Create a test transaction history entry for use in tests."""
     # Create and validate through Pydantic schema
     transaction_schema = create_transaction_history_schema(
-        account_id=test_account.id,
+        account_id=test_checking_account.id,
         amount=Decimal("100.00"),
         transaction_type=TransactionType.CREDIT,
         description="Initial deposit",
@@ -79,7 +62,7 @@ async def test_transaction_history(
 
 @pytest_asyncio.fixture
 async def test_multiple_transactions(
-    transaction_history_repository: TransactionHistoryRepository, test_account: Account
+    transaction_history_repository: TransactionHistoryRepository, test_checking_account: Account
 ) -> List[TransactionHistory]:
     """Create multiple transaction history entries for testing."""
     now = datetime.now(timezone.utc)
@@ -134,7 +117,7 @@ async def test_multiple_transactions(
     created_transactions = []
     for data in transaction_data:
         schema = create_transaction_history_schema(
-            account_id=test_account.id,
+            account_id=test_checking_account.id,
             amount=data["amount"],
             transaction_type=data["transaction_type"],
             description=data["description"],
@@ -159,14 +142,14 @@ class TestTransactionHistoryRepository:
     async def test_create_transaction_history(
         self,
         transaction_history_repository: TransactionHistoryRepository,
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test creating a transaction history entry with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
 
         # 2. SCHEMA: Create and validate through Pydantic schema
         transaction_schema = create_transaction_history_schema(
-            account_id=test_account.id,
+            account_id=test_checking_account.id,
             amount=Decimal("150.00"),
             transaction_type=TransactionType.DEBIT,
             description="Test purchase",
@@ -181,7 +164,7 @@ class TestTransactionHistoryRepository:
         # 4. ASSERT: Verify the operation results
         assert result is not None
         assert result.id is not None
-        assert result.account_id == test_account.id
+        assert result.account_id == test_checking_account.id
         assert result.amount == Decimal("150.00")
         assert result.transaction_type == TransactionType.DEBIT
         assert result.description == "Test purchase"
@@ -255,19 +238,19 @@ class TestTransactionHistoryRepository:
     async def test_get_by_account(
         self,
         transaction_history_repository: TransactionHistoryRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_multiple_transactions: List[TransactionHistory],
     ):
         """Test getting transaction history entries for an account."""
         # 1. ARRANGE: Setup is already done with fixtures
 
         # 2. ACT: Get transaction entries for the account
-        results = await transaction_history_repository.get_by_account(test_account.id)
+        results = await transaction_history_repository.get_by_account(test_checking_account.id)
 
         # 3. ASSERT: Verify the operation results
         assert len(results) >= 7  # At least 7 entries from fixture
         for entry in results:
-            assert entry.account_id == test_account.id
+            assert entry.account_id == test_checking_account.id
 
     @pytest.mark.asyncio
     async def test_get_with_account(
@@ -293,7 +276,7 @@ class TestTransactionHistoryRepository:
     async def test_get_by_date_range(
         self,
         transaction_history_repository: TransactionHistoryRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_multiple_transactions: List[TransactionHistory],
     ):
         """Test getting transaction history entries within a date range."""
@@ -304,13 +287,13 @@ class TestTransactionHistoryRepository:
 
         # 2. ACT: Get transaction entries within date range
         results = await transaction_history_repository.get_by_date_range(
-            test_account.id, start_date, end_date
+            test_checking_account.id, start_date, end_date
         )
 
         # 3. ASSERT: Verify the operation results
         assert len(results) >= 3  # Should get at least 3 entries in this range
         for entry in results:
-            assert entry.account_id == test_account.id
+            assert entry.account_id == test_checking_account.id
             # Convert the timezone-aware dates to naive for comparison with database values
             naive_start_date = start_date.replace(tzinfo=None)
             naive_end_date = end_date.replace(tzinfo=None)
@@ -322,7 +305,7 @@ class TestTransactionHistoryRepository:
     async def test_get_by_type(
         self,
         transaction_history_repository: TransactionHistoryRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_multiple_transactions: List[TransactionHistory],
     ):
         """Test getting transaction history entries by type."""
@@ -330,30 +313,30 @@ class TestTransactionHistoryRepository:
 
         # 2. ACT: Get credit transactions
         credit_results = await transaction_history_repository.get_by_type(
-            test_account.id, TransactionType.CREDIT
+            test_checking_account.id, TransactionType.CREDIT
         )
 
         # Get debit transactions
         debit_results = await transaction_history_repository.get_by_type(
-            test_account.id, TransactionType.DEBIT
+            test_checking_account.id, TransactionType.DEBIT
         )
 
         # 3. ASSERT: Verify the operation results
         assert len(credit_results) >= 3  # At least 3 credit transactions in fixture
         for entry in credit_results:
-            assert entry.account_id == test_account.id
+            assert entry.account_id == test_checking_account.id
             assert entry.transaction_type == TransactionType.CREDIT
 
         assert len(debit_results) >= 4  # At least 4 debit transactions in fixture
         for entry in debit_results:
-            assert entry.account_id == test_account.id
+            assert entry.account_id == test_checking_account.id
             assert entry.transaction_type == TransactionType.DEBIT
 
     @pytest.mark.asyncio
     async def test_search_by_description(
         self,
         transaction_history_repository: TransactionHistoryRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_multiple_transactions: List[TransactionHistory],
     ):
         """Test searching transaction history entries by description."""
@@ -361,20 +344,20 @@ class TestTransactionHistoryRepository:
 
         # 2. ACT: Search for transactions with 'deposit' in description
         results = await transaction_history_repository.search_by_description(
-            test_account.id, "deposit"
+            test_checking_account.id, "deposit"
         )
 
         # 3. ASSERT: Verify the operation results
         assert len(results) >= 1  # At least 1 transaction has 'deposit' in description
         for entry in results:
-            assert entry.account_id == test_account.id
+            assert entry.account_id == test_checking_account.id
             assert "deposit" in entry.description.lower()
 
     @pytest.mark.asyncio
     async def test_get_total_by_type(
         self,
         transaction_history_repository: TransactionHistoryRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_multiple_transactions: List[TransactionHistory],
     ):
         """Test calculating total amount for transactions of a specific type."""
@@ -382,12 +365,12 @@ class TestTransactionHistoryRepository:
 
         # 2. ACT: Get total credit amount
         credit_total = await transaction_history_repository.get_total_by_type(
-            test_account.id, TransactionType.CREDIT
+            test_checking_account.id, TransactionType.CREDIT
         )
 
         # Get total debit amount
         debit_total = await transaction_history_repository.get_total_by_type(
-            test_account.id, TransactionType.DEBIT
+            test_checking_account.id, TransactionType.DEBIT
         )
 
         # 3. ASSERT: Verify the operation results
@@ -400,7 +383,7 @@ class TestTransactionHistoryRepository:
     async def test_get_transaction_count(
         self,
         transaction_history_repository: TransactionHistoryRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_multiple_transactions: List[TransactionHistory],
     ):
         """Test counting transactions by type."""
@@ -408,7 +391,7 @@ class TestTransactionHistoryRepository:
 
         # 2. ACT: Get transaction counts by type
         counts = await transaction_history_repository.get_transaction_count(
-            test_account.id
+            test_checking_account.id
         )
 
         # 3. ASSERT: Verify the operation results
@@ -425,7 +408,7 @@ class TestTransactionHistoryRepository:
     async def test_get_net_change(
         self,
         transaction_history_repository: TransactionHistoryRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_multiple_transactions: List[TransactionHistory],
     ):
         """Test calculating net change in account balance from transactions."""
@@ -433,7 +416,7 @@ class TestTransactionHistoryRepository:
 
         # 2. ACT: Get net change
         net_change = await transaction_history_repository.get_net_change(
-            test_account.id
+            test_checking_account.id
         )
 
         # 3. ASSERT: Verify the operation results
@@ -444,7 +427,7 @@ class TestTransactionHistoryRepository:
     async def test_get_monthly_totals(
         self,
         transaction_history_repository: TransactionHistoryRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_multiple_transactions: List[TransactionHistory],
     ):
         """Test getting monthly transaction totals."""
@@ -452,7 +435,7 @@ class TestTransactionHistoryRepository:
 
         # 2. ACT: Get monthly totals
         monthly_totals = await transaction_history_repository.get_monthly_totals(
-            test_account.id, months=2
+            test_checking_account.id, months=2
         )
 
         # 3. ASSERT: Verify the operation results
@@ -469,7 +452,7 @@ class TestTransactionHistoryRepository:
     async def test_get_transaction_patterns(
         self,
         transaction_history_repository: TransactionHistoryRepository,
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test identifying recurring transaction patterns."""
         # 1. ARRANGE: Create recurring transactions with same description
@@ -478,7 +461,7 @@ class TestTransactionHistoryRepository:
         # Create several grocery transactions weekly
         for week in range(1, 5):
             schema = create_transaction_history_schema(
-                account_id=test_account.id,
+                account_id=test_checking_account.id,
                 amount=Decimal("75.00"),
                 transaction_type=TransactionType.DEBIT,
                 description="Weekly Grocery Shopping",
@@ -489,7 +472,7 @@ class TestTransactionHistoryRepository:
         # Create monthly bill payments
         for month in range(1, 3):
             schema = create_transaction_history_schema(
-                account_id=test_account.id,
+                account_id=test_checking_account.id,
                 amount=Decimal("120.00"),
                 transaction_type=TransactionType.DEBIT,
                 description="Monthly Internet Bill",
@@ -499,7 +482,7 @@ class TestTransactionHistoryRepository:
 
         # 2. ACT: Analyze transaction patterns
         patterns = await transaction_history_repository.get_transaction_patterns(
-            test_account.id
+            test_checking_account.id
         )
 
         # 3. ASSERT: Verify the operation results
@@ -528,7 +511,7 @@ class TestTransactionHistoryRepository:
     async def test_bulk_create_transactions(
         self,
         transaction_history_repository: TransactionHistoryRepository,
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test creating multiple transactions in bulk."""
         # 1. ARRANGE: Prepare multiple transaction schemas
@@ -536,21 +519,21 @@ class TestTransactionHistoryRepository:
 
         transaction_schemas = [
             create_transaction_history_schema(
-                account_id=test_account.id,
+                account_id=test_checking_account.id,
                 amount=Decimal("25.00"),
                 transaction_type=TransactionType.DEBIT,
                 description="Coffee shop",
                 transaction_date=now - timedelta(days=1),
             ),
             create_transaction_history_schema(
-                account_id=test_account.id,
+                account_id=test_checking_account.id,
                 amount=Decimal("45.00"),
                 transaction_type=TransactionType.DEBIT,
                 description="Restaurant",
                 transaction_date=now - timedelta(days=2),
             ),
             create_transaction_history_schema(
-                account_id=test_account.id,
+                account_id=test_checking_account.id,
                 amount=Decimal("60.00"),
                 transaction_type=TransactionType.DEBIT,
                 description="Gas station",
@@ -563,12 +546,12 @@ class TestTransactionHistoryRepository:
 
         # 2. ACT: Bulk create transactions
         results = await transaction_history_repository.bulk_create_transactions(
-            test_account.id, transaction_data
+            test_checking_account.id, transaction_data
         )
 
         # 3. ASSERT: Verify the operation results
         assert len(results) == 3
-        assert all(tx.account_id == test_account.id for tx in results)
+        assert all(tx.account_id == test_checking_account.id for tx in results)
         assert any(tx.description == "Coffee shop" for tx in results)
         assert any(tx.description == "Restaurant" for tx in results)
         assert any(tx.description == "Gas station" for tx in results)

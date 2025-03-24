@@ -50,25 +50,6 @@ async def payment_source_repository(
 
 
 @pytest_asyncio.fixture
-async def test_account(account_repository: AccountRepository) -> Account:
-    """Create a test checking account for use in tests."""
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    account_schema = create_account_schema(
-        name="Test Checking Account",
-        account_type="checking",
-        available_balance=Decimal("1000.00"),
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = account_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await account_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
 async def test_second_account(account_repository: AccountRepository) -> Account:
     """Create a second test checking account for use in tests."""
     # 1. ARRANGE: No setup needed for this fixture
@@ -90,7 +71,7 @@ async def test_second_account(account_repository: AccountRepository) -> Account:
 @pytest_asyncio.fixture
 async def test_payment(
     payment_repository: PaymentRepository,
-    test_account: Account,
+    test_checking_account: Account,
 ) -> Payment:
     """Create a test payment for use in tests."""
     # 1. ARRANGE: No setup needed for this fixture
@@ -103,7 +84,7 @@ async def test_payment(
         description="Test payment",
         sources=[
             create_payment_source_schema(
-                account_id=test_account.id, amount=Decimal("100.00")
+                account_id=test_checking_account.id, amount=Decimal("100.00")
             )
         ],
     )
@@ -118,7 +99,7 @@ async def test_payment(
 @pytest_asyncio.fixture
 async def test_payment_with_multiple_sources(
     payment_repository: PaymentRepository,
-    test_account: Account,
+    test_checking_account: Account,
     test_second_account: Account,
 ) -> Payment:
     """Create a test payment with multiple payment sources."""
@@ -132,7 +113,7 @@ async def test_payment_with_multiple_sources(
         description="Test payment with multiple sources",
         sources=[
             create_payment_source_schema(
-                account_id=test_account.id, amount=Decimal("100.00")
+                account_id=test_checking_account.id, amount=Decimal("100.00")
             ),
             create_payment_source_schema(
                 account_id=test_second_account.id, amount=Decimal("50.00")
@@ -151,7 +132,7 @@ async def test_payment_with_multiple_sources(
 async def test_payment_source(
     payment_source_repository: PaymentSourceRepository,
     test_payment: Payment,
-    test_account: Account,
+    test_checking_account: Account,
 ) -> PaymentSource:
     """
     Create a test payment source.
@@ -163,7 +144,7 @@ async def test_payment_source(
 
     # 2. SCHEMA: Create and validate through Pydantic schema
     source_schema = create_payment_source_schema(
-        account_id=test_account.id, amount=Decimal("75.00"), payment_id=test_payment.id
+        account_id=test_checking_account.id, amount=Decimal("75.00"), payment_id=test_payment.id
     )
 
     # Convert validated schema to dict for repository
@@ -186,14 +167,14 @@ class TestPaymentSourceRepository:
         self,
         payment_source_repository: PaymentSourceRepository,
         test_payment: Payment,
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test creating a payment source with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
 
         # 2. SCHEMA: Create and validate through Pydantic schema
         source_schema = create_payment_source_schema(
-            account_id=test_account.id,
+            account_id=test_checking_account.id,
             amount=Decimal("50.00"),
             payment_id=test_payment.id,
         )
@@ -208,7 +189,7 @@ class TestPaymentSourceRepository:
         assert result is not None
         assert result.id is not None
         assert result.payment_id == test_payment.id
-        assert result.account_id == test_account.id
+        assert result.account_id == test_checking_account.id
         assert result.amount == Decimal("50.00")
         assert result.created_at is not None
         assert result.updated_at is not None
@@ -332,7 +313,7 @@ class TestPaymentSourceRepository:
     async def test_get_sources_for_account(
         self,
         payment_source_repository: PaymentSourceRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_payment: Payment,
         test_payment_with_multiple_sources: Payment,
     ):
@@ -341,7 +322,7 @@ class TestPaymentSourceRepository:
 
         # 2. ACT: Get sources for the account
         results = await payment_source_repository.get_sources_for_account(
-            test_account.id
+            test_checking_account.id
         )
 
         # 3. ASSERT: Verify the operation results
@@ -350,14 +331,14 @@ class TestPaymentSourceRepository:
 
         # Check that all sources belong to the correct account
         for source in results:
-            assert source.account_id == test_account.id
+            assert source.account_id == test_checking_account.id
 
     @pytest.mark.asyncio
     async def test_bulk_create_sources(
         self,
         payment_source_repository: PaymentSourceRepository,
         test_payment: Payment,
-        test_account: Account,
+        test_checking_account: Account,
         test_second_account: Account,
     ):
         """Test creating multiple sources at once with proper validation flow."""
@@ -365,7 +346,7 @@ class TestPaymentSourceRepository:
 
         # 2. SCHEMA: Create and validate through Pydantic schema
         source_schema1 = create_payment_source_schema(
-            account_id=test_account.id,
+            account_id=test_checking_account.id,
             amount=Decimal("30.00"),
             payment_id=test_payment.id,
         )
@@ -388,7 +369,7 @@ class TestPaymentSourceRepository:
 
         # Check that both sources were created correctly
         assert results[0].payment_id == test_payment.id
-        assert results[0].account_id == test_account.id
+        assert results[0].account_id == test_checking_account.id
         assert results[0].amount == Decimal("30.00")
 
         assert results[1].payment_id == test_payment.id
@@ -399,7 +380,7 @@ class TestPaymentSourceRepository:
     async def test_get_total_amount_by_account(
         self,
         payment_source_repository: PaymentSourceRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_payment: Payment,
         test_payment_with_multiple_sources: Payment,
         test_payment_source: PaymentSource,
@@ -409,7 +390,7 @@ class TestPaymentSourceRepository:
 
         # 2. ACT: Get total amount for the account
         total = await payment_source_repository.get_total_amount_by_account(
-            test_account.id
+            test_checking_account.id
         )
 
         # 3. ASSERT: Verify the operation results

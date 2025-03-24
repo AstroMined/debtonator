@@ -111,15 +111,15 @@ async def test_get_accounts_with_statements(
     assert len(results) >= 1
 
     # Find our test credit account
-    test_account_found = False
+    found_account = False
     for account in results:
         if account.id == test_credit_account.id:
-            test_account_found = True
+            found_account = True
             assert hasattr(account, "statement_history")
             assert len(account.statement_history) >= 1
             break
 
-    assert test_account_found, "Test credit account not found in results"
+    assert found_account, "Test credit account not found in results"
 
 
 
@@ -269,10 +269,10 @@ async def test_find_credit_accounts_near_limit(
     assert len(results) >= 1
 
     # Verify our test account is in the results
-    test_account_found = False
+    found_account = False
     for account in results:
         if account.id == test_credit_account.id:
-            test_account_found = True
+            found_account = True
             # Verify it's actually near limit
             assert account.type == "credit"
             assert account.total_limit is not None
@@ -280,7 +280,7 @@ async def test_find_credit_accounts_near_limit(
             assert account.available_credit < (account.total_limit * Decimal("0.1"))
             break
 
-    assert test_account_found, "Test credit account not found in near-limit accounts"
+    assert found_account, "Test credit account not found in near-limit accounts"
 
 
 

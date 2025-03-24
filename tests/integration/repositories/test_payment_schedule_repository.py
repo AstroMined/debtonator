@@ -33,163 +33,28 @@ from tests.helpers.schema_factories.payment_schedules import (
     create_payment_schedule_schema, create_payment_schedule_update_schema)
 
 
-@pytest_asyncio.fixture
-async def payment_schedule_repository(
-    db_session: AsyncSession,
-) -> PaymentScheduleRepository:
-    """Fixture for PaymentScheduleRepository with test database session."""
-    return PaymentScheduleRepository(db_session)
+# Repository fixture moved to conftest.py
 
 
-@pytest_asyncio.fixture
-async def account_repository(db_session: AsyncSession) -> AccountRepository:
-    """Fixture for AccountRepository with test database session."""
-    return AccountRepository(db_session)
+# Account repository fixture moved to conftest.py
 
 
-@pytest_asyncio.fixture
-async def liability_repository(db_session: AsyncSession) -> LiabilityRepository:
-    """Fixture for LiabilityRepository with test database session."""
-    return LiabilityRepository(db_session)
+# Liability repository fixture moved to conftest.py
 
 
-@pytest_asyncio.fixture
-async def test_account(account_repository: AccountRepository) -> Account:
-    """Fixture to create a test account for payment schedules."""
-    # Create and validate through Pydantic schema
-    account_schema = create_account_schema(
-        name="Test Checking Account",
-        account_type="checking",
-        available_balance=Decimal("1000.00"),
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = account_schema.model_dump()
-
-    # Create account through repository
-    return await account_repository.create(validated_data)
+# Test account fixture moved to conftest.py
 
 
-@pytest_asyncio.fixture
-async def test_secondary_account(account_repository: AccountRepository) -> Account:
-    """Fixture to create a second test account for payment schedules."""
-    # Create and validate through Pydantic schema
-    account_schema = create_account_schema(
-        name="Secondary Account",
-        account_type="savings",
-        available_balance=Decimal("500.00"),
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = account_schema.model_dump()
-
-    # Create account through repository
-    return await account_repository.create(validated_data)
+# Test secondary account fixture moved to conftest.py
 
 
-@pytest_asyncio.fixture
-async def test_liability(
-    liability_repository: LiabilityRepository, test_account: Account
-) -> Liability:
-    """Fixture to create a test liability for payment schedules."""
-    # Create and validate through Pydantic schema
-    liability_schema = create_liability_schema(
-        name="Test Bill",
-        amount=Decimal("200.00"),
-        primary_account_id=test_account.id,
-        category_id=1,  # Using a default category ID
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = liability_schema.model_dump()
-
-    # Create liability through repository
-    return await liability_repository.create(validated_data)
+# Test liability fixture moved to conftest.py
 
 
-@pytest_asyncio.fixture
-async def test_payment_schedule(
-    payment_schedule_repository: PaymentScheduleRepository,
-    test_liability: Liability,
-    test_account: Account,
-) -> PaymentSchedule:
-    """Fixture to create a test payment schedule."""
-    # Create and validate through Pydantic schema
-    schedule_schema = create_payment_schedule_schema(
-        liability_id=test_liability.id,
-        account_id=test_account.id,
-        amount=Decimal("200.00"),
-        scheduled_date=datetime.now(timezone.utc) + timedelta(days=7),
-        description="Test payment schedule",
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = schedule_schema.model_dump()
-
-    # Create payment schedule through repository
-    return await payment_schedule_repository.create(validated_data)
+# Test payment schedule fixture moved to conftest.py
 
 
-@pytest_asyncio.fixture
-async def test_multiple_schedules(
-    payment_schedule_repository: PaymentScheduleRepository,
-    test_liability: Liability,
-    test_account: Account,
-    test_secondary_account: Account,
-) -> List[PaymentSchedule]:
-    """Fixture to create multiple payment schedules for testing."""
-    now = datetime.now(timezone.utc)
-
-    # Create multiple payment schedules with various attributes
-    schedule_data = [
-        {
-            "liability_id": test_liability.id,
-            "account_id": test_account.id,
-            "amount": Decimal("100.00"),
-            "scheduled_date": now + timedelta(days=3),
-            "description": "Upcoming payment",
-            "auto_process": True,
-        },
-        {
-            "liability_id": test_liability.id,
-            "account_id": test_account.id,
-            "amount": Decimal("150.00"),
-            "scheduled_date": now + timedelta(days=14),
-            "description": "Future payment",
-            "auto_process": False,
-        },
-        {
-            "liability_id": test_liability.id,
-            "account_id": test_secondary_account.id,
-            "amount": Decimal("50.00"),
-            "scheduled_date": now + timedelta(days=30),
-            "description": "End of month payment",
-            "auto_process": True,
-        },
-        {
-            "liability_id": test_liability.id,
-            "account_id": test_account.id,
-            "amount": Decimal("75.00"),
-            "scheduled_date": now - timedelta(days=5),  # Past date
-            "description": "Overdue payment",
-            "auto_process": False,
-        },
-    ]
-
-    # Create the payment schedules using the repository
-    created_schedules = []
-    for data in schedule_data:
-        # Create and validate through Pydantic schema
-        schedule_schema = create_payment_schedule_schema(**data)
-
-        # Convert validated schema to dict for repository
-        validated_data = schedule_schema.model_dump()
-
-        # Create payment schedule through repository
-        schedule = await payment_schedule_repository.create(validated_data)
-        created_schedules.append(schedule)
-
-    return created_schedules
+# Test multiple schedules fixture moved to conftest.py
 
 
 class TestPaymentScheduleRepository:
@@ -205,7 +70,7 @@ class TestPaymentScheduleRepository:
         self,
         payment_schedule_repository: PaymentScheduleRepository,
         test_liability: Liability,
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test creating a payment schedule with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
@@ -214,7 +79,7 @@ class TestPaymentScheduleRepository:
         scheduled_date = datetime.now(timezone.utc) + timedelta(days=10)
         schedule_schema = create_payment_schedule_schema(
             liability_id=test_liability.id,
-            account_id=test_account.id,
+            account_id=test_checking_account.id,
             amount=Decimal("250.00"),
             scheduled_date=scheduled_date,
             description="Test payment creation",
@@ -231,7 +96,7 @@ class TestPaymentScheduleRepository:
         assert result is not None
         assert result.id is not None
         assert result.liability_id == test_liability.id
-        assert result.account_id == test_account.id
+        assert result.account_id == test_checking_account.id
         assert result.amount == Decimal("250.00")
         assert result.description == "Test payment creation"
         assert result.auto_process is True
@@ -324,19 +189,19 @@ class TestPaymentScheduleRepository:
     async def test_get_by_account(
         self,
         payment_schedule_repository: PaymentScheduleRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_multiple_schedules: List[PaymentSchedule],
     ):
         """Test getting payment schedules for a specific account."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
 
         # 3. ACT: Get payment schedules for the account
-        results = await payment_schedule_repository.get_by_account(test_account.id)
+        results = await payment_schedule_repository.get_by_account(test_checking_account.id)
 
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 3  # Should get at least 3 schedules for this account
         for schedule in results:
-            assert schedule.account_id == test_account.id
+            assert schedule.account_id == test_checking_account.id
 
     @pytest.mark.asyncio
     async def test_get_by_liability(
@@ -536,20 +401,20 @@ class TestPaymentScheduleRepository:
         self,
         payment_schedule_repository: PaymentScheduleRepository,
         test_multiple_schedules: List[PaymentSchedule],
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test getting upcoming payment schedules."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
 
         # 3. ACT: Get upcoming payment schedules for next 7 days
         results = await payment_schedule_repository.get_upcoming_schedules(
-            days=7, account_id=test_account.id
+            days=7, account_id=test_checking_account.id
         )
 
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 1  # Should get at least 1 upcoming schedule
         for schedule in results:
-            assert schedule.account_id == test_account.id
+            assert schedule.account_id == test_checking_account.id
             assert schedule.processed is False
 
             # Schedule date should be in the future and within 7 days
@@ -617,7 +482,7 @@ class TestPaymentScheduleRepository:
         self,
         payment_schedule_repository: PaymentScheduleRepository,
         test_multiple_schedules: List[PaymentSchedule],
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test calculating total amount of scheduled payments."""
         # 1. ARRANGE: Set up date range
@@ -629,7 +494,7 @@ class TestPaymentScheduleRepository:
 
         # 3. ACT: Get total scheduled payments for account
         total = await payment_schedule_repository.get_total_scheduled_payments(
-            start_date, end_date, test_account.id
+            start_date, end_date, test_checking_account.id
         )
 
         # 4. ASSERT: Verify the operation results
@@ -640,7 +505,7 @@ class TestPaymentScheduleRepository:
             float(s.amount)
             for s in test_multiple_schedules
             if (
-                s.account_id == test_account.id
+                s.account_id == test_checking_account.id
                 and s.scheduled_date >= start_date.replace(tzinfo=None)
                 and s.scheduled_date <= end_date.replace(tzinfo=None)
             )
@@ -675,14 +540,14 @@ class TestPaymentScheduleRepository:
         self,
         payment_schedule_repository: PaymentScheduleRepository,
         test_liability: Liability,
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test handling invalid data that would normally be caught by schema validation."""
         # Try creating a schema with invalid data and expect it to fail validation
         try:
             invalid_schema = PaymentScheduleCreate(
                 liability_id=test_liability.id,
-                account_id=test_account.id,
+                account_id=test_checking_account.id,
                 scheduled_date=datetime.now(timezone.utc),
                 amount=Decimal("-50.00"),  # Invalid negative amount
                 description="Test validation",

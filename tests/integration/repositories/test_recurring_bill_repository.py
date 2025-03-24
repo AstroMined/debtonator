@@ -28,134 +28,25 @@ from tests.helpers.schema_factories.recurring_bills import \
     create_recurring_bill_schema
 
 
-@pytest_asyncio.fixture
-async def recurring_bill_repository(
-    db_session: AsyncSession,
-) -> RecurringBillRepository:
-    """Fixture for RecurringBillRepository with test database session."""
-    return RecurringBillRepository(db_session)
+# Repository fixtures moved to conftest.py
 
 
-@pytest_asyncio.fixture
-async def account_repository(db_session: AsyncSession) -> AccountRepository:
-    """Fixture for AccountRepository with test database session."""
-    return AccountRepository(db_session)
+# Account repository fixture moved to conftest.py
 
 
-@pytest_asyncio.fixture
-async def category_repository(db_session: AsyncSession) -> CategoryRepository:
-    """Fixture for CategoryRepository with test database session."""
-    return CategoryRepository(db_session)
+# Category repository fixture moved to conftest.py
 
 
-@pytest_asyncio.fixture
-async def test_account(account_repository: AccountRepository) -> Account:
-    """Create a test account for use in tests."""
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    account_schema = create_account_schema(
-        name="Test Checking Account",
-        account_type="checking",
-        available_balance=Decimal("1000.00"),
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = account_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await account_repository.create(validated_data)
+# Test account fixture moved to conftest.py
 
 
-@pytest_asyncio.fixture
-async def test_category(category_repository: CategoryRepository) -> Category:
-    """Create a test category for use in tests."""
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    category_schema = create_category_schema(
-        name="Test Category",
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = category_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await category_repository.create(validated_data)
+# Test category fixture moved to conftest.py
 
 
-@pytest_asyncio.fixture
-async def test_recurring_bill(
-    recurring_bill_repository: RecurringBillRepository,
-    test_account: Account,
-    test_category: Category,
-) -> RecurringBill:
-    """Create a test recurring bill for use in tests."""
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    bill_schema = create_recurring_bill_schema(
-        bill_name="Test Recurring Bill",
-        amount=Decimal("50.00"),
-        day_of_month=15,
-        account_id=test_account.id,
-        category_id=test_category.id,
-        auto_pay=True,
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = bill_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await recurring_bill_repository.create(validated_data)
+# test_recurring_bill fixture moved to conftest.py
 
 
-@pytest_asyncio.fixture
-async def test_multiple_recurring_bills(
-    recurring_bill_repository: RecurringBillRepository,
-    test_account: Account,
-    test_category: Category,
-) -> List[RecurringBill]:
-    """Create multiple recurring bills for testing."""
-    # 1. ARRANGE: Setup bill configurations
-    bills_config = [
-        ("Active Bill 1", 1, True, True),
-        ("Active Bill 2", 15, True, True),
-        ("Inactive Bill", 20, False, True),
-        ("Day 10 Bill 1", 10, True, False),
-        ("Day 10 Bill 2", 10, True, False),
-        ("Day 15 Bill", 15, True, False),
-    ]
-
-    bills = []
-    for name, day, active, auto_pay in bills_config:
-        # 2. SCHEMA: Create and validate through Pydantic schema
-        bill_schema = create_recurring_bill_schema(
-            bill_name=name,
-            amount=Decimal("100.00"),
-            day_of_month=day,
-            account_id=test_account.id,
-            category_id=test_category.id,
-            auto_pay=auto_pay,
-        )
-
-        # Convert validated schema to dict for repository
-        validated_data = bill_schema.model_dump()
-
-        # Add active status which isn't in the create schema
-        if not active:
-            # 3. ACT: Create bill and then update to set active=False
-            bill = await recurring_bill_repository.create(validated_data)
-            await recurring_bill_repository.update(bill.id, {"active": False})
-            # Fetch again to get updated version
-            bill = await recurring_bill_repository.get(bill.id)
-        else:
-            # 3. ACT: Create bill (active by default)
-            bill = await recurring_bill_repository.create(validated_data)
-
-        bills.append(bill)
-
-    return bills
+# test_multiple_recurring_bills fixture moved to conftest.py
 
 
 class TestRecurringBillRepository:
@@ -170,7 +61,7 @@ class TestRecurringBillRepository:
     async def test_create_recurring_bill(
         self,
         recurring_bill_repository: RecurringBillRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_category: Category,
     ):
         """Test creating a recurring bill with proper validation flow."""
@@ -181,7 +72,7 @@ class TestRecurringBillRepository:
             bill_name="New Test Bill",
             amount=Decimal("75.00"),
             day_of_month=10,
-            account_id=test_account.id,
+            account_id=test_checking_account.id,
             category_id=test_category.id,
             auto_pay=True,
         )
@@ -198,7 +89,7 @@ class TestRecurringBillRepository:
         assert result.bill_name == "New Test Bill"
         assert result.amount == Decimal("75.00")
         assert result.day_of_month == 10
-        assert result.account_id == test_account.id
+        assert result.account_id == test_checking_account.id
         assert result.category_id == test_category.id
         assert result.auto_pay is True
         assert result.active is True  # Default when created
@@ -378,7 +269,7 @@ class TestRecurringBillRepository:
         self,
         recurring_bill_repository: RecurringBillRepository,
         test_recurring_bill: RecurringBill,
-        test_account: Account,
+        test_checking_account: Account,
         test_category: Category,
     ):
         """Test retrieving a recurring bill with relationships."""
@@ -403,8 +294,8 @@ class TestRecurringBillRepository:
         # 3. ASSERT: Verify the operation results
         # Check bill with account relationship
         assert bill_with_account.account is not None
-        assert bill_with_account.account.id == test_account.id
-        assert bill_with_account.account.name == test_account.name
+        assert bill_with_account.account.id == test_checking_account.id
+        assert bill_with_account.account.name == test_checking_account.name
         assert (
             not hasattr(bill_with_account, "category")
             or bill_with_account.category is None
@@ -421,7 +312,7 @@ class TestRecurringBillRepository:
 
         # Check bill with all relationships
         assert bill_with_all.account is not None
-        assert bill_with_all.account.id == test_account.id
+        assert bill_with_all.account.id == test_checking_account.id
         assert bill_with_all.category is not None
         assert bill_with_all.category.id == test_category.id
         assert hasattr(bill_with_all, "liabilities")

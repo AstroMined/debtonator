@@ -11,14 +11,13 @@ from decimal import Decimal
 from typing import List
 
 import pytest
-import pytest_asyncio
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.categories import Category
 from src.models.liabilities import Liability, LiabilityStatus
-from src.repositories.accounts import AccountRepository
-from src.repositories.categories import CategoryRepository
+
 from src.repositories.liabilities import LiabilityRepository
 from src.schemas.liabilities import LiabilityCreate, LiabilityUpdate
 from tests.helpers.datetime_utils import utc_now
@@ -27,125 +26,7 @@ from tests.helpers.schema_factories.categories import create_category_schema
 from tests.helpers.schema_factories.liabilities import create_liability_schema
 
 
-@pytest_asyncio.fixture
-async def liability_repository(db_session: AsyncSession) -> LiabilityRepository:
-    """Fixture for LiabilityRepository with test database session."""
-    return LiabilityRepository(db_session)
 
-
-@pytest_asyncio.fixture
-async def account_repository(db_session: AsyncSession) -> AccountRepository:
-    """Fixture for AccountRepository with test database session."""
-    return AccountRepository(db_session)
-
-
-@pytest_asyncio.fixture
-async def category_repository(db_session: AsyncSession) -> CategoryRepository:
-    """Fixture for CategoryRepository with test database session."""
-    return CategoryRepository(db_session)
-
-
-@pytest_asyncio.fixture
-async def test_account(account_repository: AccountRepository) -> Account:
-    """Create a test account for use in tests."""
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    account_schema = create_account_schema(
-        name="Test Checking Account",
-        account_type="checking",
-        available_balance=Decimal("1000.00"),
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = account_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await account_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
-async def test_category(category_repository: CategoryRepository) -> Category:
-    """Create a test category for use in tests."""
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    category_schema = create_category_schema(
-        name="Test Bill Category",
-        description="Test category for bill tests",
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = category_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await category_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
-async def test_liability(
-    liability_repository: LiabilityRepository,
-    test_account: Account,
-    test_category: Category,
-) -> Liability:
-    """Create a test liability for use in tests."""
-    # 1. ARRANGE: Setup is already done with fixtures
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    due_date = utc_now() + timedelta(days=30)
-    liability_schema = create_liability_schema(
-        name="Test Bill",
-        amount=Decimal("100.00"),
-        due_date=due_date,
-        category_id=test_category.id,
-        primary_account_id=test_account.id,
-        status=LiabilityStatus.PENDING,
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = liability_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await liability_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
-async def test_multiple_liabilities(
-    liability_repository: LiabilityRepository,
-    test_account: Account,
-    test_category: Category,
-) -> List[Liability]:
-    """Create multiple test liabilities with different due dates."""
-    # 1. ARRANGE: Setup dates for different liabilities
-    now = utc_now()
-    due_dates = [
-        now + timedelta(days=5),  # Soon due
-        now + timedelta(days=15),  # Medium term
-        now + timedelta(days=30),  # Long term
-        now - timedelta(days=5),  # Overdue
-    ]
-
-    liabilities = []
-    for i, due_date in enumerate(due_dates):
-        # 2. SCHEMA: Create and validate through Pydantic schema
-        liability_schema = create_liability_schema(
-            name=f"Test Bill {i+1}",
-            amount=Decimal(f"{(i+1) * 50}.00"),
-            due_date=due_date,
-            category_id=test_category.id,
-            primary_account_id=test_account.id,
-            paid=(i == 2),  # Make one of them paid
-            recurring=(i % 2 == 0),  # Make some recurring
-        )
-
-        # Convert validated schema to dict for repository
-        validated_data = liability_schema.model_dump()
-
-        # 3. ACT: Pass validated data to repository
-        liability = await liability_repository.create(validated_data)
-        liabilities.append(liability)
-
-    return liabilities
 
 
 class TestLiabilityRepository:
@@ -160,7 +41,7 @@ class TestLiabilityRepository:
     async def test_create_liability(
         self,
         liability_repository: LiabilityRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_category: Category,
     ):
         """Test creating a liability with proper validation flow."""
@@ -173,7 +54,7 @@ class TestLiabilityRepository:
             amount=Decimal("75.50"),
             due_date=due_date,
             category_id=test_category.id,
-            primary_account_id=test_account.id,
+            primary_account_id=test_checking_account.id,
             description="Monthly service bill",
         )
 
@@ -190,7 +71,7 @@ class TestLiabilityRepository:
         assert result.amount == Decimal("75.50")
         assert result.due_date == due_date
         assert result.category_id == test_category.id
-        assert result.primary_account_id == test_account.id
+        assert result.primary_account_id == test_checking_account.id
         assert result.description == "Monthly service bill"
         assert result.paid is False
         assert result.status == LiabilityStatus.PENDING
@@ -442,19 +323,19 @@ class TestLiabilityRepository:
     async def test_get_bills_for_account(
         self,
         liability_repository: LiabilityRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_multiple_liabilities: List[Liability],
     ):
         """Test getting bills associated with a specific account."""
         # 1. ARRANGE: Setup is already done with fixtures
 
         # 2. ACT: Get bills for account
-        results = await liability_repository.get_bills_for_account(test_account.id)
+        results = await liability_repository.get_bills_for_account(test_checking_account.id)
 
         # 3. ASSERT: Verify the operation results
         assert len(results) >= 3  # Should find at least 3 unpaid bills
         for liability in results:
-            assert liability.primary_account_id == test_account.id
+            assert liability.primary_account_id == test_checking_account.id
             assert liability.paid is False  # By default, include_paid is False
 
     @pytest.mark.asyncio

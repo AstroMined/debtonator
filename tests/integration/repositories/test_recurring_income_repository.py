@@ -45,23 +45,6 @@ async def account_repository(db_session: AsyncSession) -> AccountRepository:
 
 
 @pytest_asyncio.fixture
-async def test_account(account_repository: AccountRepository) -> Account:
-    """Fixture to create a test account for recurring income."""
-    # Create and validate through Pydantic schema
-    account_schema = create_account_schema(
-        name="Test Checking Account",
-        account_type="checking",
-        available_balance=Decimal("1000.00"),
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = account_schema.model_dump()
-
-    # Create account through repository
-    return await account_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
 async def test_secondary_account(account_repository: AccountRepository) -> Account:
     """Fixture to create a second test account for recurring income."""
     # Create and validate through Pydantic schema
@@ -80,7 +63,7 @@ async def test_secondary_account(account_repository: AccountRepository) -> Accou
 
 @pytest_asyncio.fixture
 async def test_recurring_income(
-    recurring_income_repository: RecurringIncomeRepository, test_account: Account
+    recurring_income_repository: RecurringIncomeRepository, test_checking_account: Account
 ) -> RecurringIncome:
     """Fixture to create a test recurring income."""
     # Create and validate through Pydantic schema
@@ -88,7 +71,7 @@ async def test_recurring_income(
         source="Monthly Salary",
         amount=Decimal("2000.00"),
         day_of_month=15,
-        account_id=test_account.id,
+        account_id=test_checking_account.id,
         auto_deposit=True,
     )
 
@@ -102,7 +85,7 @@ async def test_recurring_income(
 @pytest_asyncio.fixture
 async def test_multiple_recurring_incomes(
     recurring_income_repository: RecurringIncomeRepository,
-    test_account: Account,
+    test_checking_account: Account,
     test_secondary_account: Account,
 ) -> List[RecurringIncome]:
     """Fixture to create multiple recurring income entries for testing."""
@@ -112,7 +95,7 @@ async def test_multiple_recurring_incomes(
             "source": "Monthly Salary",
             "amount": Decimal("3000.00"),
             "day_of_month": 15,
-            "account_id": test_account.id,
+            "account_id": test_checking_account.id,
             "auto_deposit": True,
             "active": True,
         },
@@ -120,7 +103,7 @@ async def test_multiple_recurring_incomes(
             "source": "Freelance Work",
             "amount": Decimal("500.00"),
             "day_of_month": 1,
-            "account_id": test_account.id,
+            "account_id": test_checking_account.id,
             "auto_deposit": False,
             "active": True,
         },
@@ -170,7 +153,7 @@ class TestRecurringIncomeRepository:
     async def test_create_recurring_income(
         self,
         recurring_income_repository: RecurringIncomeRepository,
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test creating a recurring income with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
@@ -180,7 +163,7 @@ class TestRecurringIncomeRepository:
             source="Side Gig Income",
             amount=Decimal("750.00"),
             day_of_month=10,
-            account_id=test_account.id,
+            account_id=test_checking_account.id,
             auto_deposit=False,
         )
 
@@ -196,7 +179,7 @@ class TestRecurringIncomeRepository:
         assert result.source == "Side Gig Income"
         assert result.amount == Decimal("750.00")
         assert result.day_of_month == 10
-        assert result.account_id == test_account.id
+        assert result.account_id == test_checking_account.id
         assert result.auto_deposit is False
         assert result.active is True  # Default value
         assert result.created_at is not None
@@ -298,22 +281,22 @@ class TestRecurringIncomeRepository:
     async def test_get_by_account(
         self,
         recurring_income_repository: RecurringIncomeRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_multiple_recurring_incomes: List[RecurringIncome],
     ):
         """Test getting recurring income for a specific account."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
 
         # 3. ACT: Get recurring income for the account
-        results = await recurring_income_repository.get_by_account(test_account.id)
+        results = await recurring_income_repository.get_by_account(test_checking_account.id)
 
         # 4. ASSERT: Verify the operation results
         assert len(results) >= 2  # Should get at least 2 incomes for this account
         for income in results:
-            assert income.account_id == test_account.id
+            assert income.account_id == test_checking_account.id
             # Relationship should be loaded
             assert income.account is not None
-            assert income.account.id == test_account.id
+            assert income.account.id == test_checking_account.id
 
     @pytest.mark.asyncio
     async def test_get_active_income(
@@ -498,14 +481,14 @@ class TestRecurringIncomeRepository:
     async def test_get_monthly_total(
         self,
         recurring_income_repository: RecurringIncomeRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_multiple_recurring_incomes: List[RecurringIncome],
     ):
         """Test calculating the total monthly amount of recurring income."""
         # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
 
         # 3. ACT: Get monthly total for account
-        total = await recurring_income_repository.get_monthly_total(test_account.id)
+        total = await recurring_income_repository.get_monthly_total(test_checking_account.id)
 
         # 4. ASSERT: Verify the operation results
         assert total > 0
@@ -514,7 +497,7 @@ class TestRecurringIncomeRepository:
         expected_total = sum(
             income.amount
             for income in test_multiple_recurring_incomes
-            if income.account_id == test_account.id and income.active
+            if income.account_id == test_checking_account.id and income.active
         )
         assert total == expected_total
 
@@ -593,7 +576,7 @@ class TestRecurringIncomeRepository:
     @pytest.mark.asyncio
     async def test_validation_error_handling(
         self,
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test handling invalid data that would normally be caught by schema validation."""
         # Try creating a schema with invalid data and expect it to fail validation
@@ -602,7 +585,7 @@ class TestRecurringIncomeRepository:
                 source="Invalid Income",
                 amount=Decimal("-50.00"),  # Invalid negative amount
                 day_of_month=15,
-                account_id=test_account.id,
+                account_id=test_checking_account.id,
                 auto_deposit=False,
             )
             assert (
@@ -618,7 +601,7 @@ class TestRecurringIncomeRepository:
                 source="Invalid Income",
                 amount=Decimal("50.00"),
                 day_of_month=32,  # Invalid day
-                account_id=test_account.id,
+                account_id=test_checking_account.id,
                 auto_deposit=False,
             )
             assert False, "Schema should have raised a validation error for invalid day"

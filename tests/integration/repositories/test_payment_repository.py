@@ -11,195 +11,23 @@ from decimal import Decimal
 from typing import List, Optional
 
 import pytest
-import pytest_asyncio
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
-from src.repositories.accounts import AccountRepository
-from src.repositories.liabilities import LiabilityRepository
+
 from src.repositories.payments import PaymentRepository
 from src.schemas.payments import (PaymentCreate, PaymentDateRange,
                                   PaymentSourceCreate, PaymentUpdate)
 from tests.helpers.datetime_utils import utc_now
-from tests.helpers.schema_factories.accounts import create_account_schema
-from tests.helpers.schema_factories.liabilities import create_liability_schema
-from tests.helpers.schema_factories.payment_sources import \
-    create_payment_source_schema
+
 from tests.helpers.schema_factories.payments import (
     create_payment_date_range_schema, create_payment_schema)
 
 
-@pytest_asyncio.fixture
-async def payment_repository(db_session: AsyncSession) -> PaymentRepository:
-    """Fixture for PaymentRepository with test database session."""
-    return PaymentRepository(db_session)
 
-
-@pytest_asyncio.fixture
-async def account_repository(db_session: AsyncSession) -> AccountRepository:
-    """Fixture for AccountRepository with test database session."""
-    return AccountRepository(db_session)
-
-
-@pytest_asyncio.fixture
-async def liability_repository(db_session: AsyncSession) -> LiabilityRepository:
-    """Fixture for LiabilityRepository with test database session."""
-    return LiabilityRepository(db_session)
-
-
-@pytest_asyncio.fixture
-async def test_account(account_repository: AccountRepository) -> Account:
-    """Create a test account for use in tests."""
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    account_schema = create_account_schema(
-        name="Test Checking Account",
-        account_type="checking",
-        available_balance=Decimal("1000.00"),
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = account_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await account_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
-async def test_second_account(account_repository: AccountRepository) -> Account:
-    """Create a second test account for use in split payment tests."""
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    account_schema = create_account_schema(
-        name="Second Checking Account",
-        account_type="checking",
-        available_balance=Decimal("2000.00"),
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = account_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await account_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
-async def test_liability(
-    liability_repository: LiabilityRepository, test_account: Account
-) -> Liability:
-    """Create a test liability for use in tests."""
-    # 1. ARRANGE: Setup is already done with fixtures
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    due_date = utc_now() + timedelta(days=15)
-    liability_schema = create_liability_schema(
-        name="Test Bill",
-        amount=Decimal("150.00"),
-        due_date=due_date,
-        category_id=1,  # Assuming category ID 1 exists
-        primary_account_id=test_account.id,
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = liability_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await liability_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
-async def test_payment(
-    payment_repository: PaymentRepository,
-    test_account: Account,
-    test_liability: Liability,
-) -> Payment:
-    """Create a test payment for use in tests."""
-    # 1. ARRANGE: Setup is already done with fixtures
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    payment_schema = create_payment_schema(
-        amount=Decimal("50.00"),
-        payment_date=utc_now(),
-        category="Utilities",
-        description="Test payment for utilities",
-        liability_id=test_liability.id,
-        sources=[
-            {
-                "account_id": test_account.id,
-                "amount": Decimal("50.00"),
-            }
-        ],
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = payment_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await payment_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
-async def test_multiple_payments(
-    payment_repository: PaymentRepository,
-    test_account: Account,
-    test_second_account: Account,
-    test_liability: Liability,
-) -> List[Payment]:
-    """Create multiple test payments with different dates and categories."""
-    # 1. ARRANGE: Setup payment dates and categories
-    now = utc_now()
-    payment_data = [
-        # Recent utility payment
-        {
-            "amount": Decimal("75.00"),
-            "payment_date": now - timedelta(days=5),
-            "category": "Utilities",
-            "liability_id": test_liability.id,
-            "sources": [{"account_id": test_account.id, "amount": Decimal("75.00")}],
-        },
-        # Older rent payment
-        {
-            "amount": Decimal("800.00"),
-            "payment_date": now - timedelta(days=25),
-            "category": "Rent",
-            "sources": [{"account_id": test_account.id, "amount": Decimal("800.00")}],
-        },
-        # Split payment for insurance
-        {
-            "amount": Decimal("120.00"),
-            "payment_date": now - timedelta(days=10),
-            "category": "Insurance",
-            "sources": [
-                {"account_id": test_account.id, "amount": Decimal("60.00")},
-                {"account_id": test_second_account.id, "amount": Decimal("60.00")},
-            ],
-        },
-        # Future payment (scheduled)
-        {
-            "amount": Decimal("45.00"),
-            "payment_date": now + timedelta(days=5),
-            "category": "Subscription",
-            "sources": [{"account_id": test_account.id, "amount": Decimal("45.00")}],
-        },
-    ]
-
-    payments = []
-    for data in payment_data:
-        # 2. SCHEMA: Create and validate through Pydantic schema
-        payment_schema = create_payment_schema(**data)
-
-        # Convert validated schema to dict for repository
-        validated_data = payment_schema.model_dump()
-
-        # 3. ACT: Pass validated data to repository
-        payment = await payment_repository.create(validated_data)
-        payments.append(payment)
-
-    return payments
 
 
 class TestPaymentRepository:
@@ -214,7 +42,7 @@ class TestPaymentRepository:
     async def test_create_payment(
         self,
         payment_repository: PaymentRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_liability: Liability,
     ):
         """Test creating a payment with proper validation flow."""
@@ -229,7 +57,7 @@ class TestPaymentRepository:
             liability_id=test_liability.id,
             sources=[
                 {
-                    "account_id": test_account.id,
+                    "account_id": test_checking_account.id,
                     "amount": Decimal("100.00"),
                 }
             ],
@@ -252,14 +80,14 @@ class TestPaymentRepository:
         # Verify sources were created
         assert hasattr(result, "sources")
         assert len(result.sources) == 1
-        assert result.sources[0].account_id == test_account.id
+        assert result.sources[0].account_id == test_checking_account.id
         assert result.sources[0].amount == Decimal("100.00")
 
     @pytest.mark.asyncio
     async def test_create_split_payment(
         self,
         payment_repository: PaymentRepository,
-        test_account: Account,
+        test_checking_account: Account,
         test_second_account: Account,
     ):
         """Test creating a payment split across multiple accounts."""
@@ -273,7 +101,7 @@ class TestPaymentRepository:
             description="Insurance payment split across accounts",
             sources=[
                 {
-                    "account_id": test_account.id,
+                    "account_id": test_checking_account.id,
                     "amount": Decimal("100.00"),
                 },
                 {
@@ -299,7 +127,7 @@ class TestPaymentRepository:
         assert len(result.sources) == 2
 
         # Find sources by account
-        source1 = next(s for s in result.sources if s.account_id == test_account.id)
+        source1 = next(s for s in result.sources if s.account_id == test_checking_account.id)
         source2 = next(
             s for s in result.sources if s.account_id == test_second_account.id
         )
@@ -460,13 +288,13 @@ class TestPaymentRepository:
         self,
         payment_repository: PaymentRepository,
         test_payment: Payment,
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test getting payments for a specific account."""
         # 1. ARRANGE: Setup is already done with fixtures
 
         # 2. ACT: Get payments for account
-        results = await payment_repository.get_payments_for_account(test_account.id)
+        results = await payment_repository.get_payments_for_account(test_checking_account.id)
 
         # 3. ASSERT: Verify the operation results
         assert len(results) >= 1

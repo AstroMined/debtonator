@@ -42,46 +42,6 @@ async def statement_history_repository(
 
 
 @pytest_asyncio.fixture
-async def test_account(account_repository: AccountRepository) -> Account:
-    """Create a test checking account for use in tests."""
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    account_schema = create_account_schema(
-        name="Test Checking Account",
-        account_type="checking",
-        available_balance=Decimal("1000.00"),
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = account_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await account_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
-async def test_credit_account(account_repository: AccountRepository) -> Account:
-    """Create a test credit account for use in tests."""
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    account_schema = create_account_schema(
-        name="Test Credit Card",
-        account_type="credit",
-        available_balance=Decimal("-500.00"),
-        total_limit=Decimal("2000.00"),
-        available_credit=Decimal("1500.00"),
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = account_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await account_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
 async def test_statement_history(
     statement_history_repository: StatementHistoryRepository,
     test_credit_account: Account,
@@ -329,15 +289,15 @@ class TestAccountRepository:
         assert len(results) >= 1
 
         # Find our test credit account
-        test_account_found = False
+        found_account = False
         for account in results:
             if account.id == test_credit_account.id:
-                test_account_found = True
+                found_account = True
                 assert hasattr(account, "statement_history")
                 assert len(account.statement_history) >= 1
                 break
 
-        assert test_account_found, "Test credit account not found in results"
+        assert found_account, "Test credit account not found in results"
 
     @pytest.mark.asyncio
     async def test_get_active_accounts(
@@ -481,10 +441,10 @@ class TestAccountRepository:
         assert len(results) >= 1
 
         # Verify our test account is in the results
-        test_account_found = False
+        found_account = False
         for account in results:
             if account.id == test_credit_account.id:
-                test_account_found = True
+                found_account = True
                 # Verify it's actually near limit
                 assert account.type == "credit"
                 assert account.total_limit is not None
@@ -493,7 +453,7 @@ class TestAccountRepository:
                 break
 
         assert (
-            test_account_found
+            found_account
         ), "Test credit account not found in near-limit accounts"
 
     @pytest.mark.asyncio

@@ -53,29 +53,6 @@ async def bill_split_repository(db_session: AsyncSession) -> BillSplitRepository
 
 
 @pytest_asyncio.fixture
-async def test_account(account_repository: AccountRepository) -> Account:
-    """Create a test account for bill splits using schema validation."""
-    # 1. ARRANGE: No setup needed for this fixture
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    account_schema = create_account_schema(
-        name="Test Credit Account",
-        account_type="credit",
-        available_balance=Decimal("-100.00"),
-        total_limit=Decimal("5000.00"),
-        available_credit=Decimal("4900.00"),
-        last_statement_balance=Decimal("100.00"),
-        last_statement_date=utc_now(),
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = account_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    return await account_repository.create(validated_data)
-
-
-@pytest_asyncio.fixture
 async def test_second_account(account_repository: AccountRepository) -> Account:
     """Create a second test account for bill splits using schema validation."""
     # 1. ARRANGE: No setup needed for this fixture
@@ -97,7 +74,7 @@ async def test_second_account(account_repository: AccountRepository) -> Account:
 @pytest_asyncio.fixture
 async def test_liability(
     liability_repository: LiabilityRepository,
-    test_account: Account,
+    test_checking_account: Account,
 ) -> Liability:
     """Create a test liability for bill splits using schema validation."""
     # 1. ARRANGE: No setup needed for this fixture
@@ -107,7 +84,7 @@ async def test_liability(
         name="Test Bill",
         amount=Decimal("300.00"),
         due_date=utc_now() + timedelta(days=15),
-        primary_account_id=test_account.id,
+        primary_account_id=test_checking_account.id,
         status="pending",
         recurring=False,
         paid=False,
@@ -125,7 +102,7 @@ async def test_liability(
 async def test_bill_splits(
     bill_split_repository: BillSplitRepository,
     test_liability: Liability,
-    test_account: Account,
+    test_checking_account: Account,
 ) -> List[BillSplit]:
     """Create test bill splits using schema validation."""
     # 1. ARRANGE: No setup needed for this fixture
@@ -134,17 +111,17 @@ async def test_bill_splits(
     split_schemas = [
         create_bill_split_schema(
             liability_id=test_liability.id,
-            account_id=test_account.id,
+            account_id=test_checking_account.id,
             amount=Decimal("100.00"),
         ),
         create_bill_split_schema(
             liability_id=test_liability.id,
-            account_id=test_account.id,
+            account_id=test_checking_account.id,
             amount=Decimal("100.00"),
         ),
         create_bill_split_schema(
             liability_id=test_liability.id,
-            account_id=test_account.id,
+            account_id=test_checking_account.id,
             amount=Decimal("100.00"),
         ),
     ]
@@ -174,7 +151,7 @@ class TestBillSplitRepository:
         self,
         bill_split_repository: BillSplitRepository,
         test_liability: Liability,
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test creating a bill split with proper validation flow."""
         # 1. ARRANGE: Setup is already done with fixtures
@@ -182,7 +159,7 @@ class TestBillSplitRepository:
         # 2. SCHEMA: Create and validate through Pydantic schema
         bill_split_schema = create_bill_split_schema(
             liability_id=test_liability.id,
-            account_id=test_account.id,
+            account_id=test_checking_account.id,
             amount=Decimal("150.00"),
         )
 
@@ -196,7 +173,7 @@ class TestBillSplitRepository:
         assert result is not None
         assert result.id is not None
         assert result.liability_id == test_liability.id
-        assert result.account_id == test_account.id
+        assert result.account_id == test_checking_account.id
         assert result.amount == Decimal("150.00")
         assert result.created_at is not None
         assert result.updated_at is not None
@@ -320,18 +297,18 @@ class TestBillSplitRepository:
         self,
         bill_split_repository: BillSplitRepository,
         test_bill_splits: List[BillSplit],
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test getting all splits for a specific account."""
         # 1. ARRANGE: Setup is already done with fixtures
 
         # 2. ACT: Get splits for the account
-        results = await bill_split_repository.get_splits_for_account(test_account.id)
+        results = await bill_split_repository.get_splits_for_account(test_checking_account.id)
 
         # 3. ASSERT: Verify the operation results
         assert len(results) == 3
         for split in results:
-            assert split.account_id == test_account.id
+            assert split.account_id == test_checking_account.id
             assert hasattr(split, "liability")
             assert split.liability is not None
             assert hasattr(split, "account")
@@ -342,7 +319,7 @@ class TestBillSplitRepository:
         self,
         bill_split_repository: BillSplitRepository,
         test_bill_splits: List[BillSplit],
-        test_account: Account,
+        test_checking_account: Account,
         test_liability: Liability,
     ):
         """Test getting splits for an account within a date range."""
@@ -352,13 +329,13 @@ class TestBillSplitRepository:
 
         # 2. ACT: Get splits in date range
         results = await bill_split_repository.get_splits_in_date_range(
-            test_account.id, start_date, end_date
+            test_checking_account.id, start_date, end_date
         )
 
         # 3. ASSERT: Verify the operation results
         assert len(results) == 3  # All test splits should be in this range
         for split in results:
-            assert split.account_id == test_account.id
+            assert split.account_id == test_checking_account.id
             assert split.liability.due_date >= start_date
             assert split.liability.due_date <= end_date
 
@@ -389,7 +366,7 @@ class TestBillSplitRepository:
         self,
         bill_split_repository: BillSplitRepository,
         test_liability: Liability,
-        test_account: Account,
+        test_checking_account: Account,
         test_second_account: Account,
     ):
         """Test creating multiple bill splits in bulk with proper validation flow."""
@@ -400,7 +377,7 @@ class TestBillSplitRepository:
         split_schemas = [
             create_bill_split_schema(
                 liability_id=test_liability.id,  # Will be overridden in bulk_create_splits
-                account_id=test_account.id,
+                account_id=test_checking_account.id,
                 amount=Decimal("100.00"),
             ),
             create_bill_split_schema(
@@ -479,13 +456,13 @@ class TestBillSplitRepository:
         self,
         bill_split_repository: BillSplitRepository,
         test_bill_splits: List[BillSplit],
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test calculating total splits for an account."""
         # 1. ARRANGE: Setup is already done with fixtures
 
         # 2. ACT: Calculate account split totals
-        total = await bill_split_repository.get_account_split_totals(test_account.id)
+        total = await bill_split_repository.get_account_split_totals(test_checking_account.id)
 
         # 3. ASSERT: Verify the operation results
         expected_total = sum(split.amount for split in test_bill_splits)
@@ -496,7 +473,7 @@ class TestBillSplitRepository:
         self,
         bill_split_repository: BillSplitRepository,
         test_bill_splits: List[BillSplit],
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test calculating total splits for an account within a date range."""
         # 1. ARRANGE: Setup is already done with fixtures
@@ -505,7 +482,7 @@ class TestBillSplitRepository:
 
         # 2. ACT: Calculate account split totals within date range
         total = await bill_split_repository.get_account_split_totals(
-            test_account.id, start_date, end_date
+            test_checking_account.id, start_date, end_date
         )
 
         # 3. ASSERT: Verify the operation results
@@ -518,7 +495,7 @@ class TestBillSplitRepository:
         bill_split_repository: BillSplitRepository,
         test_bill_splits: List[BillSplit],
         test_liability: Liability,
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test getting the distribution of splits across accounts."""
         # 1. ARRANGE: Setup is already done with fixtures
@@ -529,29 +506,29 @@ class TestBillSplitRepository:
         )
 
         # 3. ASSERT: Verify the operation results
-        assert test_account.id in distribution
+        assert test_checking_account.id in distribution
         expected_total = sum(split.amount for split in test_bill_splits)
-        assert distribution[test_account.id] == expected_total
+        assert distribution[test_checking_account.id] == expected_total
 
     @pytest.mark.asyncio
     async def test_get_splits_with_liability_details(
         self,
         bill_split_repository: BillSplitRepository,
         test_bill_splits: List[BillSplit],
-        test_account: Account,
+        test_checking_account: Account,
     ):
         """Test getting splits with liability details."""
         # 1. ARRANGE: Setup is already done with fixtures
 
         # 2. ACT: Get splits with liability details
         results = await bill_split_repository.get_splits_with_liability_details(
-            test_account.id
+            test_checking_account.id
         )
 
         # 3. ASSERT: Verify the operation results
         assert len(results) == 3
         for split in results:
-            assert split.account_id == test_account.id
+            assert split.account_id == test_checking_account.id
             assert split.liability is not None
             assert split.account is not None
 
@@ -560,7 +537,7 @@ class TestBillSplitRepository:
         self,
         bill_split_repository: BillSplitRepository,
         test_bill_splits: List[BillSplit],
-        test_account: Account,
+        test_checking_account: Account,
         liability_repository: LiabilityRepository,
         test_liability: Liability,
     ):
@@ -570,13 +547,13 @@ class TestBillSplitRepository:
 
         # 2. ACT: Get paid splits with liability details
         results = await bill_split_repository.get_splits_with_liability_details(
-            test_account.id, paid_only=True
+            test_checking_account.id, paid_only=True
         )
 
         # 3. ASSERT: Verify the operation results
         assert len(results) == 3
         for split in results:
-            assert split.account_id == test_account.id
+            assert split.account_id == test_checking_account.id
             assert split.liability is not None
             assert split.liability.paid is True
             assert split.account is not None
