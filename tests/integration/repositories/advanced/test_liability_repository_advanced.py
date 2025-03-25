@@ -117,7 +117,7 @@ async def test_get_bills_due_in_range_with_paid(
     # 1. ARRANGE: Setup is already done with fixtures
     now = utc_now()
     start_date = now
-    end_date = now + timedelta(days=40)  # Include all future bills
+    end_date = days_from_now(40)  # Include all future bills
 
     # 2. ACT: Get bills due in range, including paid
     results = await liability_repository.get_bills_due_in_range(
@@ -211,10 +211,11 @@ async def test_get_upcoming_payments(
     # 3. ASSERT: Verify the operation results
     assert len(results) >= 1  # Should find at least 1 bill due in 10 days
     now = utc_now()
+    future_date = days_from_now(10)
     for liability in results:
-        # Verify each bill is due within the next 10 days
-        assert liability.due_date >= now
-        assert liability.due_date <= now + timedelta(days=10)
+        # Verify each bill is due within the next 10 days using proper timezone-aware comparison
+        assert datetime_greater_than(liability.due_date, now) or datetime_equals(liability.due_date, now)
+        assert datetime_greater_than(future_date, liability.due_date) or datetime_equals(future_date, liability.due_date)
         assert liability.paid is False
 
 
@@ -232,7 +233,8 @@ async def test_get_overdue_bills(
     assert len(results) >= 1  # Should find at least 1 overdue bill
     now = utc_now()
     for liability in results:
-        assert liability.due_date < now
+        # Use proper timezone-aware comparison
+        assert datetime_greater_than(now, liability.due_date)
         assert liability.paid is False
 
 
@@ -294,7 +296,7 @@ async def test_validation_error_handling():
         invalid_schema = LiabilityCreate(
             name="",  # Invalid empty name
             amount=Decimal("-10.00"),  # Invalid negative amount
-            due_date=utc_now() - timedelta(days=10),  # Invalid past date
+            due_date=days_ago(10),  # Past date is actually valid per ADR-002 for historical data
             category_id=1,
             primary_account_id=1,
         )
@@ -302,4 +304,4 @@ async def test_validation_error_handling():
     except ValueError as e:
         # This is expected - schema validation should catch the error
         error_str = str(e).lower()
-        assert "name" in error_str or "amount" in error_str or "due_date" in error_str
+        assert "name" in error_str or "amount" in error_str  # Note: due_date removed as past dates are valid

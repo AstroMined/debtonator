@@ -10,7 +10,7 @@ RecurringIncomeRepository, ensuring proper validation flow and relationship
 loading.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta, timezone
 from decimal import Decimal
 from typing import List, Optional
 
@@ -25,6 +25,9 @@ from src.repositories.recurring_income import RecurringIncomeRepository
 # Import schema and schema factories - essential part of the validation pattern
 from src.schemas.recurring_income import (RecurringIncomeCreate,
                                           RecurringIncomeUpdate)
+from tests.helpers.datetime_utils import (
+    utc_now, days_ago, days_from_now, datetime_equals, datetime_greater_than
+)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.recurring_income import (
     create_recurring_income_schema, create_recurring_income_update_schema)
@@ -281,10 +284,10 @@ async def test_get_upcoming_deposits(
     assert "account_id" in first_deposit
     assert "recurring_id" in first_deposit
 
-    # Verify projected dates are in the future
-    today = utc_now()
+    # Verify projected dates are in the future using proper timezone-aware comparison
+    now = utc_now()
     for deposit in results:
-        assert deposit["projected_date"] >= today
+        assert datetime_greater_than(deposit["projected_date"], now) or datetime_equals(deposit["projected_date"], now)
 
 
 async def test_find_by_pattern(

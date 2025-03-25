@@ -177,12 +177,13 @@ async def test_get_upcoming_statements_with_accounts(
     for statement, account in results:
         assert statement.account_id == account.id
         assert statement.due_date is not None
-        assert statement.due_date >= now
-        assert statement.due_date <= (now + timedelta(days=30))
+        # Use proper timezone-aware comparison
+        assert datetime_greater_than(statement.due_date, now) or datetime_equals(statement.due_date, now)
+        assert datetime_greater_than(days_from_now(30), statement.due_date) or datetime_equals(days_from_now(30), statement.due_date)
 
     # Check custom days parameter
     for statement, account in results_custom:
-        assert statement.due_date <= (now + timedelta(days=10))
+        assert datetime_greater_than(days_from_now(10), statement.due_date) or datetime_equals(days_from_now(10), statement.due_date)
 
 
 async def test_get_statements_with_minimum_payment(
@@ -196,7 +197,7 @@ async def test_get_statements_with_minimum_payment(
     # Create statement with minimum payment
     with_payment_schema = create_statement_history_schema(
         account_id=test_credit_account.id,
-        statement_date=now - timedelta(days=30),
+        statement_date=days_ago(30),
         statement_balance=Decimal("400.00"),
         minimum_payment=Decimal("20.00"),
     )
@@ -207,7 +208,7 @@ async def test_get_statements_with_minimum_payment(
     # Create statement without minimum payment
     without_payment_schema = create_statement_history_schema(
         account_id=test_credit_account.id,
-        statement_date=now - timedelta(days=15),
+        statement_date=days_ago(15),
         statement_balance=Decimal("350.00"),
         minimum_payment=None,  # Explicitly None
     )
@@ -291,7 +292,7 @@ async def test_get_total_minimum_payments_due(
     # 1. ARRANGE: Setup date range for due dates
     now = utc_now()
     start_date = now
-    end_date = now + timedelta(days=30)
+    end_date = days_from_now(30)
 
     # Create fresh statements with due dates in the target range
     accounts, _ = test_multiple_accounts_with_statements
@@ -301,10 +302,10 @@ async def test_get_total_minimum_payments_due(
     for i, account in enumerate(accounts):
         stmt_schema = create_statement_history_schema(
             account_id=account.id,
-            statement_date=now - timedelta(days=10),
+            statement_date=days_ago(10),
             statement_balance=Decimal(f"{(i+1)*300}.00"),
             minimum_payment=Decimal(f"{(i+1)*25}.00"),
-            due_date=now + timedelta(days=10),  # Within range
+            due_date=days_from_now(10),  # Within range
         )
         stmt = await statement_history_repository.create(stmt_schema.model_dump())
         statements_in_range.append(stmt)

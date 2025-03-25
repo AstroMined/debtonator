@@ -6,7 +6,7 @@ standard 4-step pattern (Arrange-Schema-Act-Assert) to properly simulate
 the validation flow from services to repositories.
 """
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from decimal import Decimal
 from typing import List
 
@@ -18,7 +18,9 @@ from src.models.accounts import Account
 from src.models.statement_history import StatementHistory
 from src.repositories.accounts import AccountRepository
 from src.repositories.statement_history import StatementHistoryRepository
-from tests.helpers.datetime_utils import utc_now
+from tests.helpers.datetime_utils import (
+    utc_now, days_ago, days_from_now, datetime_equals, datetime_greater_than
+)
 from tests.helpers.schema_factories.accounts import (
     create_account_schema, create_account_update_schema)
 from tests.helpers.schema_factories.statement_history import \
@@ -218,9 +220,9 @@ async def test_update_statement_balance(
     assert result is not None
     assert result.id == test_credit_account.id
     assert result.last_statement_balance == new_statement_balance
-    # Compare dates with some tolerance for datetime precision differences
-    date_diff = abs((result.last_statement_date - statement_date).total_seconds())
-    assert date_diff < 2  # Less than 2 seconds difference
+    
+    # Use proper timezone-aware comparison for dates
+    assert datetime_equals(result.last_statement_date, statement_date, ignore_microseconds=True)
 
 
 async def test_find_accounts_with_low_balance(

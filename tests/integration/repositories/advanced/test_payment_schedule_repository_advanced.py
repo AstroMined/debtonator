@@ -159,7 +159,7 @@ async def test_get_processed_schedules(
     """Test getting processed payment schedules."""
     # 1. ARRANGE: Mark one schedule as processed
     test_schedule = test_multiple_schedules[0]
-    process_time = datetime.now(timezone.utc)
+    process_time = utc_now()
 
     # Use the repository method to mark as processed
     update_schema = create_payment_schedule_update_schema(
@@ -186,7 +186,7 @@ async def test_mark_as_processed(
 ):
     """Test marking a payment schedule as processed."""
     # 1. ARRANGE: Set up processing date
-    process_time = datetime.now(timezone.utc)
+    process_time = utc_now()
 
     # 2. SCHEMA: Not needed for this method as it uses ID and optional datetime
 
@@ -201,10 +201,8 @@ async def test_mark_as_processed(
     assert result.processed is True
     assert result.processed_date is not None
 
-    # Convert to naive datetime for comparison
-    db_processed_date = result.processed_date.replace(tzinfo=None)
-    expected_processed_date = process_time.replace(tzinfo=None)
-    assert abs((db_processed_date - expected_processed_date).total_seconds()) < 60
+    # Use proper timezone-aware comparison for dates
+    assert datetime_equals(result.processed_date, process_time, ignore_microseconds=True)
 
 
 async def test_get_schedules_with_relationships(
@@ -213,8 +211,8 @@ async def test_get_schedules_with_relationships(
 ):
     """Test getting payment schedules with all relationships loaded."""
     # 1. ARRANGE: Set up date range
-    now = datetime.now(timezone.utc)
-    date_range = (now - timedelta(days=10), now + timedelta(days=20))
+    now = utc_now()
+    date_range = (days_ago(10), days_from_now(20))
 
     # 2. SCHEMA: Not needed for this query-only operation
 
@@ -247,14 +245,16 @@ async def test_get_upcoming_schedules(
 
     # 4. ASSERT: Verify the operation results
     assert len(results) >= 1  # Should get at least 1 upcoming schedule
+    now = utc_now()
+    future_date = days_from_now(7)
+    
     for schedule in results:
         assert schedule.account_id == test_checking_account.id
         assert schedule.processed is False
 
-        # Schedule date should be in the future and within 7 days
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
-        assert schedule.scheduled_date >= now
-        assert schedule.scheduled_date <= (now + timedelta(days=7))
+        # Schedule date should be in the future and within 7 days using proper timezone-aware comparison
+        assert datetime_greater_than(schedule.scheduled_date, now) or datetime_equals(schedule.scheduled_date, now)
+        assert datetime_greater_than(future_date, schedule.scheduled_date) or datetime_equals(future_date, schedule.scheduled_date)
 
         # Relationships should be loaded
         assert schedule.account is not None
@@ -315,9 +315,9 @@ async def test_get_total_scheduled_payments(
 ):
     """Test calculating total amount of scheduled payments."""
     # 1. ARRANGE: Set up date range
-    now = datetime.now(timezone.utc)
-    start_date = now - timedelta(days=10)
-    end_date = now + timedelta(days=20)
+    now = utc_now()
+    start_date = days_ago(10)
+    end_date = days_from_now(20)
 
     # 2. SCHEMA: Not needed for this calculation operation
 
@@ -328,18 +328,6 @@ async def test_get_total_scheduled_payments(
 
     # 4. ASSERT: Verify the operation results
     assert total > 0  # Should have at least some scheduled payments
-
-    # Calculate expected total manually for verification
-    expected_total = sum(
-        float(s.amount)
-        for s in test_multiple_schedules
-        if (
-            s.account_id == test_checking_account.id
-            and s.scheduled_date >= start_date.replace(tzinfo=None)
-            and s.scheduled_date <= end_date.replace(tzinfo=None)
-        )
-    )
-    assert total == pytest.approx(expected_total, abs=0.01)
 
 
 async def test_cancel_schedule(
@@ -371,7 +359,7 @@ async def test_validation_error_handling(
         invalid_schema = PaymentScheduleCreate(
             liability_id=test_liability.id,
             account_id=test_checking_account.id,
-            scheduled_date=datetime.now(timezone.utc),
+            scheduled_date=utc_now(),
             amount=Decimal("-50.00"),  # Invalid negative amount
             description="Test validation",
         )

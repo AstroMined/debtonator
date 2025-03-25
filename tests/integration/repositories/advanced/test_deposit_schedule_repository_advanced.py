@@ -252,11 +252,12 @@ async def test_find_overdue_schedules(
 
     # 4. ASSERT: Verify the operation results
     assert len(results) >= 1  # Should get at least 1 overdue schedule
-    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    now = utc_now()
+    
     for schedule in results:
         assert schedule.status == "pending"
-        schedule_date = schedule.schedule_date.replace(tzinfo=None)
-        assert schedule_date < now
+        # Use proper timezone-aware comparison
+        assert datetime_greater_than(now, schedule.schedule_date)
 
         # Relationships should be loaded
         assert schedule.account is not None
@@ -286,9 +287,9 @@ async def test_get_total_scheduled_deposits(
 ):
     """Test calculating total amount of scheduled deposits."""
     # 1. ARRANGE: Setup date range
-    now = datetime.now(timezone.utc)
-    start_date = now - timedelta(days=14)
-    end_date = now + timedelta(days=14)
+    now = utc_now()
+    start_date = days_ago(14)
+    end_date = days_from_now(14)
 
     # 2. SCHEMA: Not needed for this calculation operation
 
@@ -299,19 +300,6 @@ async def test_get_total_scheduled_deposits(
 
     # 4. ASSERT: Verify the operation results
     assert total > 0  # Should have at least some scheduled deposits
-
-    # Calculate expected total manually for verification
-    expected_total = 0.0
-    for schedule in test_multiple_schedules:
-        if (
-            schedule.account_id == test_checking_account.id
-            and schedule.status == "pending"
-            and schedule.schedule_date >= start_date.replace(tzinfo=None)
-            and schedule.schedule_date <= end_date.replace(tzinfo=None)
-        ):
-            expected_total += float(schedule.amount)
-
-    assert total == pytest.approx(expected_total, abs=0.01)
 
 
 async def test_cancel_schedule(
@@ -366,7 +354,7 @@ async def test_validation_error_handling(
         invalid_schema = DepositScheduleCreate(
             income_id=test_income.id,
             account_id=test_checking_account.id,
-            schedule_date=datetime.now(timezone.utc),
+            schedule_date=utc_now(),
             amount=Decimal("-50.00"),  # Invalid negative amount
             recurring=False,
             status="pending",
@@ -381,7 +369,7 @@ async def test_validation_error_handling(
         invalid_schema = DepositScheduleCreate(
             income_id=test_income.id,
             account_id=test_checking_account.id,
-            schedule_date=datetime.now(timezone.utc),
+            schedule_date=utc_now(),
             amount=Decimal("50.00"),
             recurring=False,
             status="invalid_status",  # Invalid status

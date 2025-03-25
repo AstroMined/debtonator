@@ -31,6 +31,7 @@ Each file has a specific purpose defined in `.clinerules`. Together, they provid
 I operate in two distinct modes that control my behavior:
 
 ### Plan Mode (DEFAULT)
+
 - **EVERY chat ALWAYS begins in Plan Mode**
 - I will NOT make any file changes in this mode
 - I will read Memory Bank files and analyze the current state
@@ -39,6 +40,7 @@ I operate in two distinct modes that control my behavior:
 - I remain in Plan Mode until explicitly instructed to switch to Act Mode
 
 ### Act Mode
+
 - I can only enter Act Mode when explicitly instructed
 - In Act Mode, I can write and edit files as needed
 - I will execute the approved plan from Plan Mode
@@ -96,32 +98,16 @@ flowchart TD
 
 2. **Update Version Information**
    - Use semantic versioning (MAJOR.MINOR.PATCH)
-   - Update both `version.py` and `pyproject.toml`
+   - Prepare version updates for both `version.py` and `pyproject.toml` to ensure they match
+   - Present the updates in a code block for convenience but do not write to file
 
 3. **Update CHANGELOG.md**
-   - Add new version entry at the top (format: `## [x.y.z] - YYYY-MM-DD`)
+   - Add new version entry (format: `## [x.y.z] - YYYY-MM-DD`)
    - Document changes under appropriate categories (Added, Changed, Fixed, etc.)
    - Use clear, user-focused language
-   - When adding new entries to CHANGELOG.md:
-     - Use edit_file instead of write_file
-       - edit_file only modifies specific parts of the file
-       - This preserves all existing content
-     - Make a targeted edit at the version heading
-       - Find the first version entry (e.g., "## [0.5.17]")
-       - Replace it with new version + original text
-     - Example edit_file structure:
-       - path: path to CHANGELOG.md
-       - edits: array with a single edit object containing:
-         - oldText: "## [0.5.17]" (the text to find)
-         - newText: "## [0.5.18] - 2025-03-22\n\nAdded content...\n\n## [0.5.17]" (new + old)
-     - This approach:
-       - Inserts new content near the top, after the format and semantic versioning documentation
-       - Preserves all existing content
-       - Is much safer than rewriting the entire file
-       - Dramatically reduces risk of losing historical data
-       - The key is that oldText finds the specific version marker
-       - newText replaces it with your new content PLUS the original text you're replacing
-       - This effectively inserts your new content while keeping everything else.
+   - Include all significant changes
+   - Reference related ADRs or issues
+   - Present the updates in a code block for convenience but do not write to file
 
 4. **Prepare Commit Message (REQUIRED)**
    - Follow the commit message structure below
@@ -131,7 +117,7 @@ flowchart TD
 
 ## Commit Message Structure
 
-```
+```markdown
 [Action] [Component/Area] (vX.Y.Z)
 
 - [Change 1]: [Description]
@@ -144,7 +130,8 @@ flowchart TD
 ```
 
 **Example:**
-```
+
+```markdown
 Fix repository file operations integration tests (v0.5.26)
 
 - Fix create_or_update_file() to distinguish between creating and updating files
@@ -159,8 +146,8 @@ principles for real API testing.
 Before completing a coding session, I MUST verify:
 
 1. ✓ Memory Bank files updated with recent changes
-2. ✓ Version information updated in all required locations
-3. ✓ CHANGELOG.md updated with appropriate entries
+2. ✓ Version information updated and presented in a code block
+3. ✓ CHANGELOG.md prepared with appropriate entries and presented in a code block
 4. ✓ Commit message prepared with all required elements and presented in a code block
 
 ## Project Intelligence (.clinerules)
@@ -177,13 +164,14 @@ I must read the `.clinerules` file at the start of each session and update it wh
 ## Self-Monitoring Reminders
 
 Throughout every task, I should periodically ask myself:
+
 - Am I following established workflows in Memory Bank?
 - Have I noted new patterns for `.clinerules`?
 - Am I tracking changes for the commit message?
 - Will this change affect version information?
 - Which mode am I in, and am I respecting its constraints?
 
-## REMEMBER 
+## REMEMBER
 
 1. ALWAYS start in Plan Mode and NEVER edit files without explicit permission to enter Act Mode
 2. NEVER execute the End Coding Session Protocol without explicit permission

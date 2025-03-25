@@ -11,7 +11,7 @@ It follows the standard pattern:
 4. Assert: Verify the repository operation results
 """
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from decimal import Decimal
 from typing import List
 
@@ -28,7 +28,7 @@ from src.repositories.liabilities import LiabilityRepository
 from src.schemas.accounts import AccountCreate
 from src.schemas.bill_splits import BillSplitCreate, BillSplitUpdate
 from src.schemas.liabilities import LiabilityCreate
-from tests.helpers.datetime_utils import utc_now
+from tests.helpers.datetime_utils import utc_now, days_ago, days_from_now, datetime_equals, datetime_greater_than
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.bill_splits import create_bill_split_schema
 from tests.helpers.schema_factories.liabilities import create_liability_schema
@@ -112,8 +112,8 @@ async def test_get_splits_in_date_range(
 ):
     """Test getting splits for an account within a date range."""
     # 1. ARRANGE: Setup is already done with fixtures
-    start_date = utc_now() - timedelta(days=30)
-    end_date = utc_now() + timedelta(days=30)
+    start_date = days_ago(30)  # Use the helper function
+    end_date = days_from_now(30)  # Use the helper function
 
     # 2. ACT: Get splits in date range
     results = await bill_split_repository.get_splits_in_date_range(
@@ -124,8 +124,9 @@ async def test_get_splits_in_date_range(
     assert len(results) == 3  # All test splits should be in this range
     for split in results:
         assert split.account_id == test_checking_account.id
-        assert split.liability.due_date >= start_date
-        assert split.liability.due_date <= end_date
+        # Use proper timezone-aware comparison
+        assert datetime_greater_than(split.liability.due_date, start_date) or datetime_equals(split.liability.due_date, start_date)
+        assert datetime_greater_than(end_date, split.liability.due_date) or datetime_equals(end_date, split.liability.due_date)
 
 
 async def test_get_splits_by_amount_range(

@@ -6,6 +6,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.27] - 2025-03-25
+
+### Fixed
+
+- Fixed Phase 1 DateTime Standardization issues in repository tests
+- Fixed "can't compare offset-naive and offset-aware datetimes" errors in multiple test files
+- Fixed "day is out of range for month" errors in schedule repository tests
+- Fixed timezone conversion issues in repository test assertions
+- Standardized datetime comparison approach using proper helper functions
+- Implemented consistent UTC-aware datetime handling in all Phase 1 test files
+- Fixed bill_split_repository date range tests with proper timezone handling
+- Fixed payment_schedule_repository and deposit_schedule_repository date calculations
+- Fixed recurring_income_repository upcoming deposits tests with proper datetime comparisons
+
+### Changed
+
+- Expanded datetime_utils.py helper functions with better comparison utilities
+- Improved test assertions to handle timezone edge cases correctly
+- Updated repository test pattern with better datetime management
+
+### Added
+
+- Added datetime_equals and datetime_greater_than helper functions
+- Added more descriptive comments explaining datetime comparison techniques
+
 ## [0.5.38] - 2025-03-25
 
 ### Fixed
