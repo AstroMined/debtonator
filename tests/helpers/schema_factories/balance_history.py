@@ -9,7 +9,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from src.schemas.balance_history import BalanceHistoryCreate
+from src.schemas.balance_history import BalanceHistoryCreate, BalanceHistoryUpdate
 from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT,
                                                  factory_function, utc_now)
 
@@ -49,6 +49,43 @@ def create_balance_history_schema(
 
     if available_credit is not None:
         data["available_credit"] = available_credit
+
+    if notes is not None:
+        data["notes"] = notes
+
+    return data
+
+@factory_function(BalanceHistoryUpdate)
+def create_balance_history_update_schema(
+    balance: Optional[Decimal] = None,
+    available_credit: Optional[Decimal] = None,
+    is_reconciled: Optional[bool] = None,
+    notes: Optional[str] = None,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """
+    Create a valid BalanceHistoryUpdate schema instance.
+
+    Args:
+        balance: Current balance (optional)
+        available_credit: Available credit for credit accounts (optional)
+        is_reconciled: Whether this balance is reconciled (optional)
+        notes: Optional notes about the balance entry
+        **kwargs: Additional fields to override
+
+    Returns:
+        Dict[str, Any]: Data to create BalanceHistoryUpdate schema
+    """
+    data = {}
+
+    if balance is not None:
+        data["balance"] = balance
+
+    if available_credit is not None:
+        data["available_credit"] = available_credit
+
+    if is_reconciled is not None:
+        data["is_reconciled"] = is_reconciled
 
     if notes is not None:
         data["notes"] = notes

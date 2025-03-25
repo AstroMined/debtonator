@@ -18,7 +18,8 @@ from src.models.categories import Category
 from src.models.liabilities import Liability, LiabilityStatus
 from src.repositories.liabilities import LiabilityRepository
 from src.schemas.liabilities import LiabilityCreate, LiabilityUpdate
-from tests.helpers.datetime_utils import utc_now
+from tests.helpers.datetime_utils import (datetime_equals,
+                                          datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.categories import create_category_schema
 from tests.helpers.schema_factories.liabilities import create_liability_schema
@@ -56,7 +57,7 @@ async def test_create_liability(
     assert result.id is not None
     assert result.name == "Test Monthly Bill"
     assert result.amount == Decimal("75.50")
-    assert result.due_date == due_date
+    assert datetime_equals(result.due_date, due_date, ignore_timezone=True)
     assert result.category_id == test_category.id
     assert result.primary_account_id == test_checking_account.id
     assert result.description == "Monthly service bill"
@@ -79,7 +80,9 @@ async def test_get_liability(
     assert result.id == test_liability.id
     assert result.name == test_liability.name
     assert result.amount == test_liability.amount
-    assert result.due_date == test_liability.due_date
+    assert datetime_equals(
+        result.due_date, test_liability.due_date, ignore_timezone=True
+    )
     assert result.category_id == test_liability.category_id
     assert result.primary_account_id == test_liability.primary_account_id
 
@@ -90,6 +93,9 @@ async def test_update_liability(
 ):
     """Test updating a liability with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
+
+    # Store original timestamp before update
+    original_updated_at = test_liability.updated_at
 
     # 2. SCHEMA: Create and validate update data through Pydantic schema
     update_schema = LiabilityUpdate(
@@ -112,10 +118,14 @@ async def test_update_liability(
     assert result.amount == Decimal("150.00")
     assert result.description == "Updated description"
     # Fields not in update_data should remain unchanged
-    assert result.due_date == test_liability.due_date
+    assert datetime_equals(
+        result.due_date, test_liability.due_date, ignore_timezone=True
+    )
     assert result.category_id == test_liability.category_id
     assert result.primary_account_id == test_liability.primary_account_id
-    assert result.updated_at > test_liability.updated_at
+    assert datetime_greater_than(
+        result.updated_at, original_updated_at, ignore_timezone=True
+    )
 
 
 async def test_delete_liability(

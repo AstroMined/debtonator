@@ -20,7 +20,8 @@ from src.repositories.accounts import AccountRepository
 from src.repositories.statement_history import StatementHistoryRepository
 from src.schemas.statement_history import (StatementHistoryCreate,
                                            StatementHistoryUpdate)
-from tests.helpers.datetime_utils import utc_now
+from tests.helpers.datetime_utils import (datetime_equals,
+                                          datetime_greater_than, utc_now)
 # Import schema factory functions directly
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.statement_history import \
@@ -57,10 +58,10 @@ async def test_create_statement_history(
     assert result is not None
     assert result.id is not None
     assert result.account_id == test_credit_account.id
-    assert result.statement_date == statement_date
+    assert datetime_equals(result.statement_date, statement_date, ignore_timezone=True)
     assert result.statement_balance == Decimal("500.00")
     assert result.minimum_payment == Decimal("25.00")
-    assert result.due_date == due_date
+    assert datetime_equals(result.due_date, due_date, ignore_timezone=True)
     assert result.created_at is not None
     assert result.updated_at is not None
 
@@ -79,18 +80,27 @@ async def test_get_statement_history(
     assert result is not None
     assert result.id == test_statement_history.id
     assert result.account_id == test_statement_history.account_id
-    assert result.statement_date == test_statement_history.statement_date
+    assert datetime_equals(
+        result.statement_date,
+        test_statement_history.statement_date,
+        ignore_timezone=True,
+    )
     assert result.statement_balance == test_statement_history.statement_balance
     assert result.minimum_payment == test_statement_history.minimum_payment
-    assert result.due_date == test_statement_history.due_date
+    assert datetime_equals(
+        result.due_date, test_statement_history.due_date, ignore_timezone=True
+    )
 
 
 async def test_update_statement_history(
     statement_history_repository: StatementHistoryRepository,
     test_statement_history: StatementHistory,
 ):
-    """Test updating a statement history record with proper validation flow."""
+    """Test updating a statement history entry with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
+
+    # Store original timestamp before update
+    original_updated_at = test_statement_history.updated_at
 
     # 2. SCHEMA: Create and validate update data through Pydantic schema
     update_schema = StatementHistoryUpdate(
@@ -113,9 +123,17 @@ async def test_update_statement_history(
     assert result.minimum_payment == Decimal("30.00")
     # Fields not in update_data should remain unchanged
     assert result.account_id == test_statement_history.account_id
-    assert result.statement_date == test_statement_history.statement_date
-    assert result.due_date == test_statement_history.due_date
-    assert result.updated_at > test_statement_history.updated_at
+    assert datetime_equals(
+        result.statement_date,
+        test_statement_history.statement_date,
+        ignore_timezone=True,
+    )
+    assert datetime_equals(
+        result.due_date, test_statement_history.due_date, ignore_timezone=True
+    )
+    assert datetime_greater_than(
+        result.updated_at, original_updated_at, ignore_timezone=True
+    )
 
 
 async def test_delete_statement_history(

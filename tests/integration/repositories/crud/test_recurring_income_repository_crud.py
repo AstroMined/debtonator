@@ -25,6 +25,8 @@ from src.repositories.recurring_income import RecurringIncomeRepository
 # Import schema and schema factories - essential part of the validation pattern
 from src.schemas.recurring_income import (RecurringIncomeCreate,
                                           RecurringIncomeUpdate)
+from tests.helpers.datetime_utils import (datetime_equals,
+                                          datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.recurring_income import (
     create_recurring_income_schema, create_recurring_income_update_schema)
@@ -95,6 +97,9 @@ async def test_update_recurring_income(
     """Test updating a recurring income with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
 
+    # Store original timestamp before update
+    original_updated_at = test_recurring_income.updated_at
+
     # 2. SCHEMA: Create and validate update data through Pydantic schema
     update_schema = create_recurring_income_update_schema(
         source="Updated Salary",
@@ -118,7 +123,9 @@ async def test_update_recurring_income(
     assert result.auto_deposit is False
     assert result.day_of_month == test_recurring_income.day_of_month  # Unchanged
     assert result.account_id == test_recurring_income.account_id  # Unchanged
-    assert result.updated_at > test_recurring_income.updated_at
+    assert datetime_greater_than(
+        result.updated_at, original_updated_at, ignore_timezone=True
+    )
 
 
 async def test_delete_recurring_income(

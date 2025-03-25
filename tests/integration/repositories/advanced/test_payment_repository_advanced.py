@@ -26,50 +26,6 @@ from tests.helpers.schema_factories.payments import (
 pytestmark = pytest.mark.asyncio
 
 
-async def test_create_payment(
-    payment_repository: PaymentRepository,
-    test_checking_account: Account,
-    test_liability: Liability,
-):
-    """Test creating a payment with proper validation flow."""
-    # 1. ARRANGE: Setup is already done with fixtures
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    payment_schema = create_payment_schema(
-        amount=Decimal("100.00"),
-        payment_date=utc_now(),
-        category="Utilities",
-        description="Monthly utility payment",
-        liability_id=test_liability.id,
-        sources=[
-            {
-                "account_id": test_checking_account.id,
-                "amount": Decimal("100.00"),
-            }
-        ],
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = payment_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    result = await payment_repository.create(validated_data)
-
-    # 4. ASSERT: Verify the operation results
-    assert result is not None
-    assert result.id is not None
-    assert result.amount == Decimal("100.00")
-    assert result.category == "Utilities"
-    assert result.description == "Monthly utility payment"
-    assert result.liability_id == test_liability.id
-
-    # Verify sources were created
-    assert hasattr(result, "sources")
-    assert len(result.sources) == 1
-    assert result.sources[0].account_id == test_checking_account.id
-    assert result.sources[0].amount == Decimal("100.00")
-
-
 async def test_create_split_payment(
     payment_repository: PaymentRepository,
     test_checking_account: Account,
@@ -119,77 +75,6 @@ async def test_create_split_payment(
 
     assert source1.amount == Decimal("100.00")
     assert source2.amount == Decimal("50.00")
-
-
-async def test_get_payment(
-    payment_repository: PaymentRepository,
-    test_payment: Payment,
-):
-    """Test retrieving a payment by ID."""
-    # 1. ARRANGE: Setup is already done with fixtures
-
-    # 2. ACT: Get the payment by ID
-    result = await payment_repository.get(test_payment.id)
-
-    # 3. ASSERT: Verify the operation results
-    assert result is not None
-    assert result.id == test_payment.id
-    assert result.amount == test_payment.amount
-    assert result.payment_date == test_payment.payment_date
-    assert result.category == test_payment.category
-    assert result.description == test_payment.description
-    assert result.liability_id == test_payment.liability_id
-
-
-async def test_update_payment(
-    payment_repository: PaymentRepository,
-    test_payment: Payment,
-):
-    """Test updating a payment with proper validation flow."""
-    # 1. ARRANGE: Setup is already done with fixtures
-
-    # 2. SCHEMA: Create and validate update data through Pydantic schema
-    update_schema = PaymentUpdate(
-        id=test_payment.id,
-        amount=Decimal("75.00"),
-        category="Updated Category",
-        description="Updated payment description",
-    )
-
-    # Convert validated schema to dict for repository
-    update_data = update_schema.model_dump(exclude={"id"})
-
-    # 3. ACT: Pass validated data to repository
-    result = await payment_repository.update(test_payment.id, update_data)
-
-    # 4. ASSERT: Verify the operation results
-    assert result is not None
-    assert result.id == test_payment.id
-    assert result.amount == Decimal("75.00")
-    assert result.category == "Updated Category"
-    assert result.description == "Updated payment description"
-    # Fields not in update_data should remain unchanged
-    assert result.payment_date == test_payment.payment_date
-    assert result.liability_id == test_payment.liability_id
-    assert result.updated_at > test_payment.updated_at
-
-
-async def test_delete_payment(
-    payment_repository: PaymentRepository,
-    test_payment: Payment,
-):
-    """Test deleting a payment."""
-    # 1. ARRANGE: Setup is already done with fixtures
-
-    # 2. ACT: Delete the payment
-    result = await payment_repository.delete(test_payment.id)
-
-    # 3. ASSERT: Verify the operation results
-    assert result is True
-
-    # Verify the payment is actually deleted
-    deleted_check = await payment_repository.get(test_payment.id)
-    assert deleted_check is None
 
 
 async def test_get_with_sources(

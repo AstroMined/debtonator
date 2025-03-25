@@ -5,6 +5,16 @@ Repository Layer Integration Tests (ADR-014), Ensuring UTC Datetime Compliance (
 
 ### Recent Changes
 
+1. **Fixed Repository Test Datetime Comparison Issues** ✓
+   - Fixed comparison issues between timestamps in update operations
+   - Added original_updated_at variable to store pre-update timestamp
+   - Updated test assertions to compare with stored original timestamp
+   - Improved repository test patterns across all model repositories
+   - Fixed datetime comparison issues in all "updated_at > test_x.updated_at" assertions
+   - Removed debug output from BaseRepository.update()
+   - Standardized datetime comparison approach in test files
+   - Removed duplicated CRUD tests from repositories/advanced tests
+
 1. **Fixed Payment Source Circular Dependency** ✓
    - Created PaymentSourceCreateNested schema for nested source creation without payment_id
    - Updated PaymentCreate schema to use the new nested schema
@@ -15,7 +25,6 @@ Repository Layer Integration Tests (ADR-014), Ensuring UTC Datetime Compliance (
    - Eliminated circular dependency between Payment and PaymentSource
    - Maintained schema validation while supporting proper parent-child relationships
    - Prevented NULL constraint violations on required fields
-
 
 1. **Default "Uncategorized" Category Implementation** ✓
    - Created constants for default category configuration in `src/constants.py`
@@ -29,7 +38,7 @@ Repository Layer Integration Tests (ADR-014), Ensuring UTC Datetime Compliance (
    - Implemented repository-level protection for system categories
    - Added schema-level validation for default category
 
-1. **Improved Historical Data Validation in Liabilities** ✓
+2. **Improved Historical Data Validation in Liabilities** ✓
    - Removed overzealous validation that prevented past due dates in liability schemas
    - Fixed test failures in integration tests caused by due date validation
    - Added tests to verify past due dates are now accepted (per ADR-002)
@@ -40,7 +49,7 @@ Repository Layer Integration Tests (ADR-014), Ensuring UTC Datetime Compliance (
    - Aligned validation with ADR-002 requirements for historical data entry
    - Ensured consistency with other schemas that already allowed past dates
 
-2. **UTC Datetime Compliance Tools Implementation** ✓
+3. **UTC Datetime Compliance Tools Implementation** ✓
    - Created comprehensive helper utilities in `tests/helpers/datetime_utils.py` 
    - Implemented scanner script in `tools/scan_naive_datetimes.py` to detect naive datetime usage
    - Added simplified pytest hook in `conftest.py` to warn about naive datetime usage during test runs
@@ -52,7 +61,7 @@ Repository Layer Integration Tests (ADR-014), Ensuring UTC Datetime Compliance (
    - Improved regex patterns to accurately detect problematic naive datetime usage
    - Fixed most incorrect datetime UTC usage in the repository tests
 
-2. **Schema Reorganization for Better Layering** ✓
+4. **Schema Reorganization for Better Layering** ✓
    - Separated recurring income schemas from regular income schemas
    - Created dedicated `src/schemas/recurring_income.py` module
    - Migrated all recurring income schemas to the new module
@@ -62,30 +71,6 @@ Repository Layer Integration Tests (ADR-014), Ensuring UTC Datetime Compliance (
    - Ensured consistent schema layering across the application
    - Maintained feature parity throughout the reorganization
 
-3. **Refactored Additional Model-Specific Repository Tests** ✓
-   - Refactored BalanceHistoryRepository tests to implement proper Arrange-Schema-Act-Assert pattern
-   - Converted direct dictionary operations to schema-validated workflows
-   - Added explicit test fixtures using balance history schema factories
-   - Created comprehensive tests for specialized repository methods (get_balance_trend, get_min_max_balance, etc.)
-   - Implemented validation error testing to ensure proper schema enforcement
-   - Added tests for credit-specific methods like get_available_credit_trend
-   - Ensured all test methods explicitly document the four testing phases with clear comments
-   - Fixed timezone handling in datetime test assertions for consistency 
-   - Improved test organization with logical grouping of related functionality
-
-4. **Repository Integration Test Patterns** ✓
-   - Standardized fixture creation with schema validation flow
-   - Implemented consistent test-naming patterns across repositories
-   - Created separate fixtures for entities with relationships
-   - Applied bulk operation testing patterns with validation
-   - Standardized method-specific test structures
-   - Added relationship loading test patterns
-   - Implemented validation error test patterns
-   - Ensured proper assertions for operation results
-   - Tested transaction boundaries across repositories
-   - Added date range and filtering test patterns
-
-
 ## Next Steps
 
 1. **Complete UTC Datetime Compliance**
@@ -94,23 +79,30 @@ Repository Layer Integration Tests (ADR-014), Ensuring UTC Datetime Compliance (
    - Consider adding utility functions to production code for consistent datetime handling
    - Add automated tests to verify timezone consistency across service boundaries
 
-2. **Continue Repository Test Refactoring**
-   - Refactor CategoryRepository tests to follow Arrange-Schema-Act-Assert pattern
-   - Apply schema validation workflow to BalanceReconciliationRepository tests
-   - Update TransactionHistoryRepository tests with proper schema factories
-   - Maintain consistency in test structure across all repository tests
-   - Verify all specialized methods are properly tested
-
-3. **Service Layer Integration**
+2. **Service Layer Integration**
    - Refactor remaining services to use repositories
    - Create services for new repository models (PaymentSchedule, DepositSchedule, etc.)
    - Implement proper validation flow in services
    - Update API endpoints to use refactored services
    - Ensure transaction boundaries are respected
 
+3. **Account Type Expansion Implementation (ADR-016)**
+   - Implement field naming consistency (`type` → `account_type`) 
+   - Fix parameter mapping inconsistencies in schema factories
+   - Create consistent schema creation patterns in tests
+   - Expand account type options with comprehensive validation
+   - Enhance API documentation for account types
+
 ## Implementation Lessons
 
-1. **UTC Datetime Handling**
+1. **Repository Test Datetime Handling**
+   - Store original timestamps before update operations for proper comparison
+   - Use explicit variable storage rather than object attribute references
+   - Avoid direct comparison of model attributes when dealing with timestamps
+   - Be mindful of microsecond precision in datetime objects
+   - Remember that SQLAlchemy may generate the same timestamp for very fast operations
+
+2. **UTC Datetime Handling**
    - Always use timezone-aware datetime objects in tests with explicitly set UTC timezone
    - Use helper utilities like `utc_now()` and `utc_datetime()` instead of raw datetime constructors
    - Be careful with naive datetime comparisons in tests that can lead to validation errors
@@ -118,7 +110,7 @@ Repository Layer Integration Tests (ADR-014), Ensuring UTC Datetime Compliance (
    - Standardize on using Python's `datetime.timezone.utc` for consistency
    - Use scanning tools periodically to identify naive datetime usage that might slip through
 
-2. **Repository Test Pattern**
+3. **Repository Test Pattern**
    - Four-step pattern is essential for proper testing:
      1. Arrange: Set up test dependencies
      2. Schema: Create and validate through Pydantic schemas
@@ -129,14 +121,6 @@ Repository Layer Integration Tests (ADR-014), Ensuring UTC Datetime Compliance (
    - Always validate data through schemas before passing to repositories
    - Include test cases for validation errors
    - Use clear comments to mark each step in test methods for readability
-
-3. **Schema Factory Design**
-   - Provide reasonable defaults for all non-required fields
-   - Use type hints for parameters and return values
-   - Document parameters, defaults, and return types
-   - Allow overriding any field with **kwargs
-   - Return validated schema instances, not dictionaries
-   - Implement factories for all primary and related schemas
 
 4. **SQLAlchemy Query Optimization**
    - Use selectinload for one-to-many relationships

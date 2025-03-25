@@ -21,6 +21,7 @@ from src.models.cashflow import CashflowForecast
 from src.repositories.cashflow import CashflowForecastRepository
 # Import schemas and schema factories - essential part of the validation pattern
 from src.schemas.cashflow.base import CashflowCreate, CashflowUpdate
+from tests.helpers.datetime_utils import datetime_equals, datetime_greater_than
 from tests.helpers.schema_factories.cashflow.base import (
     create_cashflow_schema, create_cashflow_update_schema)
 
@@ -108,6 +109,9 @@ async def test_update_cashflow_forecast(
     """Test updating a cashflow forecast with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
 
+    # Store original timestamp before update
+    original_updated_at = test_cashflow_forecast.updated_at
+
     # 2. SCHEMA: Create and validate update data through Pydantic schema
     update_schema = create_cashflow_update_schema(
         total_bills=Decimal("1200.00"),
@@ -134,7 +138,9 @@ async def test_update_cashflow_forecast(
     # These fields should remain unchanged
     assert result.min_14_day == test_cashflow_forecast.min_14_day
     assert result.min_30_day == test_cashflow_forecast.min_30_day
-    assert result.updated_at > test_cashflow_forecast.updated_at
+    assert datetime_greater_than(
+        result.updated_at, original_updated_at, ignore_timezone=True
+    )
 
 
 async def test_delete_cashflow_forecast(

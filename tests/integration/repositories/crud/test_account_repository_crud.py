@@ -18,7 +18,8 @@ from src.models.accounts import Account
 from src.models.statement_history import StatementHistory
 from src.repositories.accounts import AccountRepository
 from src.repositories.statement_history import StatementHistoryRepository
-from tests.helpers.datetime_utils import utc_now
+from tests.helpers.datetime_utils import (datetime_equals,
+                                          datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.accounts import (
     create_account_schema, create_account_update_schema)
 from tests.helpers.schema_factories.statement_history import \
@@ -79,6 +80,9 @@ async def test_update_account(
     """Test updating an account with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
 
+    # Store original timestamp before update
+    original_updated_at = test_checking_account.updated_at
+
     # 2. SCHEMA: Create and validate update data through Pydantic schema
     update_schema = create_account_update_schema(
         id=test_checking_account.id,
@@ -100,7 +104,10 @@ async def test_update_account(
     # Fields not in update_data should remain unchanged
     assert result.type == test_checking_account.type
     assert result.available_balance == test_checking_account.available_balance
-    assert result.updated_at > test_checking_account.updated_at
+    # Compare against stored original timestamp instead of test_checking_account.updated_at
+    assert datetime_greater_than(
+        result.updated_at, original_updated_at, ignore_timezone=True
+    )
 
 
 async def test_delete_account(

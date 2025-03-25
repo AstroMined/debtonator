@@ -19,7 +19,8 @@ from src.models.payments import Payment, PaymentSource
 from src.repositories.payments import PaymentRepository
 from src.schemas.payments import (PaymentCreate, PaymentDateRange,
                                   PaymentSourceCreate, PaymentUpdate)
-from tests.helpers.datetime_utils import utc_now
+from tests.helpers.datetime_utils import (datetime_equals,
+                                          datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.payments import (
     create_payment_date_range_schema, create_payment_schema,
     create_payment_update_schema)
@@ -87,7 +88,9 @@ async def test_get_payment(
     assert result is not None
     assert result.id == payment_id
     assert result.amount == test_payment.amount
-    assert result.payment_date == test_payment.payment_date
+    assert datetime_equals(
+        result.payment_date, test_payment.payment_date, ignore_timezone=True
+    )
     assert result.category == test_payment.category
     assert result.description == test_payment.description
     assert result.liability_id == test_payment.liability_id
@@ -102,7 +105,9 @@ async def test_update_payment(
     payment_id = test_payment.id
     initial_payment_date = test_payment.payment_date
     initial_liability_id = test_payment.liability_id
-    initial_updated_at = test_payment.updated_at
+
+    # Store original timestamp before update
+    original_updated_at = test_payment.updated_at
 
     # 2. SCHEMA: Create and validate update data through Pydantic schema
     # Note: We're not updating sources in this test, so we don't include it
@@ -127,9 +132,11 @@ async def test_update_payment(
     assert result.category == "Updated Category"
     assert result.description == "Updated payment description"
     # Fields not in update_data should remain unchanged
-    assert result.payment_date == initial_payment_date
+    assert datetime_equals(
+        result.payment_date, initial_payment_date, ignore_timezone=True
+    )
     assert result.liability_id == initial_liability_id
-    assert result.updated_at > initial_updated_at
+    assert result.updated_at > original_updated_at
 
 
 async def test_delete_payment(

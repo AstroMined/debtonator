@@ -22,6 +22,8 @@ from src.repositories.categories import CategoryRepository
 from src.repositories.recurring_bills import RecurringBillRepository
 from src.schemas.recurring_bills import (RecurringBillCreate,
                                          RecurringBillUpdate)
+from tests.helpers.datetime_utils import (datetime_equals,
+                                          datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.categories import create_category_schema
 from tests.helpers.schema_factories.recurring_bills import \
@@ -96,6 +98,8 @@ async def test_update_recurring_bill(
 ):
     """Test updating a recurring bill with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
+    # Store original timestamp before update
+    original_updated_at = test_recurring_bill.updated_at
 
     # 2. SCHEMA: Create and validate update data through Pydantic schema
     update_schema = RecurringBillUpdate(
@@ -121,7 +125,10 @@ async def test_update_recurring_bill(
     assert result.category_id == test_recurring_bill.category_id
     assert result.auto_pay == test_recurring_bill.auto_pay
     assert result.active == test_recurring_bill.active
-    assert result.updated_at > test_recurring_bill.updated_at
+
+    assert datetime_greater_than(
+        result.updated_at, original_updated_at, ignore_timezone=True
+    )
 
 
 async def test_delete_recurring_bill(

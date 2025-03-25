@@ -20,26 +20,9 @@ from src.repositories.categories import CategoryRepository
 from src.repositories.liabilities import LiabilityRepository
 from tests.helpers.datetime_utils import utc_datetime
 
-
-@pytest.mark.asyncio
-async def test_create_category(db_session: AsyncSession):
-    """Test creating a category."""
-    # Create repository
-    repo = CategoryRepository(db_session)
-
-    # Create category
-    category = await repo.create(
-        {"name": "Test Category", "description": "Test category description"}
-    )
-
-    # Assert created category
-    assert category.id is not None
-    assert category.name == "Test Category"
-    assert category.description == "Test category description"
-    assert category.parent_id is None
+pytestmark = pytest.mark.asyncio
 
 
-@pytest.mark.asyncio
 async def test_get_by_name(db_session: AsyncSession):
     """Test retrieving a category by name."""
     # Create repository
@@ -63,7 +46,6 @@ async def test_get_by_name(db_session: AsyncSession):
     assert non_existent is None
 
 
-@pytest.mark.asyncio
 async def test_get_root_categories(db_session: AsyncSession):
     """Test retrieving all root categories."""
     # Create repository
@@ -97,7 +79,6 @@ async def test_get_root_categories(db_session: AsyncSession):
     assert not any(cat.id == child.id for cat in root_categories)
 
 
-@pytest.mark.asyncio
 async def test_get_with_children(db_session: AsyncSession):
     """Test retrieving a category with its children."""
     # Create repository
@@ -137,7 +118,6 @@ async def test_get_with_children(db_session: AsyncSession):
     assert any(child.id == child2.id for child in category_with_children.children)
 
 
-@pytest.mark.asyncio
 async def test_get_with_parent(db_session: AsyncSession):
     """Test retrieving a category with its parent."""
     # Create repository
@@ -168,7 +148,6 @@ async def test_get_with_parent(db_session: AsyncSession):
     assert category_with_parent.parent.name == "Parent For Child"
 
 
-@pytest.mark.asyncio
 async def test_get_with_bills(db_session: AsyncSession):
     """Test retrieving a category with its bills."""
     # Create repositories
@@ -211,7 +190,6 @@ async def test_get_with_bills(db_session: AsyncSession):
     assert any(bill.id == bill2.id for bill in category_with_bills.bills)
 
 
-@pytest.mark.asyncio
 async def test_get_with_relationships(db_session: AsyncSession):
     """Test retrieving a category with specified relationships."""
     # Create repositories
@@ -271,7 +249,6 @@ async def test_get_with_relationships(db_session: AsyncSession):
     assert cat_with_all.bills[0].id == bill.id
 
 
-@pytest.mark.asyncio
 async def test_get_children(db_session: AsyncSession):
     """Test retrieving immediate children of a category."""
     # Create repository
@@ -318,7 +295,6 @@ async def test_get_children(db_session: AsyncSession):
     assert not any(child.id == grandchild.id for child in children)
 
 
-@pytest.mark.asyncio
 async def test_get_ancestors(db_session: AsyncSession):
     """Test retrieving all ancestors of a category."""
     # Create repository
@@ -354,7 +330,6 @@ async def test_get_ancestors(db_session: AsyncSession):
     assert ancestors[1].id == grandparent.id
 
 
-@pytest.mark.asyncio
 async def test_get_descendants(db_session: AsyncSession):
     """Test retrieving all descendants of a category."""
     # Create repository
@@ -408,7 +383,6 @@ async def test_get_descendants(db_session: AsyncSession):
     assert any(desc.id == child2.id for desc in descendants)
 
 
-@pytest.mark.asyncio
 async def test_is_ancestor_of(db_session: AsyncSession):
     """Test checking if a category is an ancestor of another category."""
     # Create repository
@@ -456,7 +430,6 @@ async def test_is_ancestor_of(db_session: AsyncSession):
     assert is_self_ancestor is False  # A category is not its own ancestor
 
 
-@pytest.mark.asyncio
 async def test_move_category(db_session: AsyncSession):
     """Test moving a category to a new parent."""
     # Create repository
@@ -495,7 +468,6 @@ async def test_move_category(db_session: AsyncSession):
     assert root_child.parent_id is None
 
 
-@pytest.mark.asyncio
 async def test_get_category_path(db_session: AsyncSession):
     """Test getting the full path of a category."""
     # Create repository
@@ -529,7 +501,6 @@ async def test_get_category_path(db_session: AsyncSession):
     assert grandparent_path == "Path Grandparent"
 
 
-@pytest.mark.asyncio
 async def test_find_categories_by_prefix(db_session: AsyncSession):
     """Test finding categories whose names start with a given prefix."""
     # Create repository
@@ -554,7 +525,6 @@ async def test_find_categories_by_prefix(db_session: AsyncSession):
     assert not any(cat.name == "Other Category" for cat in prefix_matches)
 
 
-@pytest.mark.asyncio
 async def test_get_category_with_bill_count(db_session: AsyncSession):
     """Test getting a category with the count of bills assigned to it."""
     # Create repositories
@@ -596,7 +566,6 @@ async def test_get_category_with_bill_count(db_session: AsyncSession):
     assert bill_count == 2
 
 
-@pytest.mark.asyncio
 async def test_get_categories_with_bill_counts(db_session: AsyncSession):
     """Test getting all categories with bill counts."""
     # Create repositories
@@ -682,7 +651,6 @@ async def test_get_categories_with_bill_counts(db_session: AsyncSession):
     assert category3_result[1] == 0
 
 
-@pytest.mark.asyncio
 async def test_delete_if_unused(db_session: AsyncSession):
     """Test deleting a category only if it has no children and no bills."""
     # Create repositories
@@ -740,7 +708,6 @@ async def test_delete_if_unused(db_session: AsyncSession):
     assert empty_check is None
 
 
-@pytest.mark.asyncio
 async def test_get_default_category_id(db_session: AsyncSession):
     """Test retrieving the default 'Uncategorized' category ID."""
     # Create repository
@@ -760,7 +727,6 @@ async def test_get_default_category_id(db_session: AsyncSession):
     assert default_category.system is True
 
 
-@pytest.mark.asyncio
 async def test_system_category_protection(db_session: AsyncSession):
     """Test that system categories are protected from modification and deletion."""
     # Create repository
@@ -784,7 +750,6 @@ async def test_system_category_protection(db_session: AsyncSession):
     assert can_delete is False
 
 
-@pytest.mark.asyncio
 async def test_create_system_category(db_session: AsyncSession):
     """Test creating a custom system category and verifying its protection."""
     # Create repository
@@ -811,7 +776,6 @@ async def test_create_system_category(db_session: AsyncSession):
         await repo.delete(system_category.id)
 
 
-@pytest.mark.asyncio
 async def test_move_system_category(db_session: AsyncSession):
     """Test that system categories cannot be moved."""
     # Create repository

@@ -16,6 +16,8 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from src.database.base import Base
 
+from src.models.base_model import naive_utc_now
+
 ModelType = TypeVar("ModelType", bound=Base)
 PKType = TypeVar("PKType")
 
@@ -198,6 +200,12 @@ class BaseRepository(Generic[ModelType, PKType]):
         # Update fields; the ORM will trigger the onupdate for updated_at
         for key, value in filtered_obj_in.items():
             setattr(db_obj, key, value)
+            
+        # Force updated_at to refresh with a new timestamp
+        # This ensures updated_at changes even if SQLAlchemy doesn't detect field changes
+        if hasattr(db_obj, 'updated_at'):
+            # Explicitly set to current time
+            setattr(db_obj, 'updated_at', naive_utc_now())
 
         # Explicitly mark as modified to ensure SQLAlchemy tracks changes
         self.session.add(db_obj)
@@ -205,6 +213,7 @@ class BaseRepository(Generic[ModelType, PKType]):
         # Flush changes so that onupdate is applied
         await self.session.flush()
         await self.session.refresh(db_obj)
+                
         return db_obj
 
     async def delete(self, id: PKType) -> bool:

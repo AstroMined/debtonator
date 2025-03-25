@@ -28,88 +28,6 @@ from tests.helpers.schema_factories.credit_limit_history import (
 pytestmark = pytest.mark.asyncio
 
 
-@pytest.mark.asyncio
-async def test_create_credit_limit_history(
-    credit_limit_history_repository: CreditLimitHistoryRepository,
-    test_credit_account: Account,
-):
-    """Test creating a credit limit history entry with proper validation flow."""
-    # 1. ARRANGE: Setup is already done with fixtures
-
-    # 2. SCHEMA: Create and validate through Pydantic schema
-    history_schema = create_credit_limit_history_schema(
-        account_id=test_credit_account.id,
-        credit_limit=Decimal("10000.00"),
-        reason="Credit limit increase due to excellent payment history",
-    )
-
-    # Convert validated schema to dict for repository
-    validated_data = history_schema.model_dump()
-
-    # 3. ACT: Pass validated data to repository
-    result = await credit_limit_history_repository.create(validated_data)
-
-    # 4. ASSERT: Verify the operation results
-    assert result is not None
-    assert result.id is not None
-    assert result.account_id == test_credit_account.id
-    assert result.credit_limit == Decimal("10000.00")
-    assert result.reason == "Credit limit increase due to excellent payment history"
-    assert result.effective_date is not None
-
-
-@pytest.mark.asyncio
-async def test_get_credit_limit_history(
-    credit_limit_history_repository: CreditLimitHistoryRepository,
-    test_credit_limit_history: CreditLimitHistory,
-):
-    """Test retrieving a credit limit history entry by ID."""
-    # 1. ARRANGE: Setup is already done with fixtures
-
-    # 2. ACT: Get the history entry
-    result = await credit_limit_history_repository.get(test_credit_limit_history.id)
-
-    # 3. ASSERT: Verify the operation results
-    assert result is not None
-    assert result.id == test_credit_limit_history.id
-    assert result.account_id == test_credit_limit_history.account_id
-    assert result.credit_limit == test_credit_limit_history.credit_limit
-    assert result.reason == test_credit_limit_history.reason
-
-
-@pytest.mark.asyncio
-async def test_update_credit_limit_history(
-    credit_limit_history_repository: CreditLimitHistoryRepository,
-    test_credit_limit_history: CreditLimitHistory,
-):
-    """Test updating a credit limit history entry with proper validation flow."""
-    # 1. ARRANGE: Setup is already done with fixtures
-
-    # 2. SCHEMA: Create and validate update data through Pydantic schema
-    update_schema = create_credit_limit_history_update_schema(
-        id=test_credit_limit_history.id,
-        credit_limit=Decimal("12000.00"),
-        reason="Updated credit limit increase",
-        effective_date=datetime.now(timezone.utc),  # Provide required effective_date
-    )
-
-    # Convert validated schema to dict for repository
-    update_data = update_schema.model_dump(exclude={"id"})
-
-    # 3. ACT: Pass validated data to repository
-    result = await credit_limit_history_repository.update(
-        test_credit_limit_history.id, update_data
-    )
-
-    # 4. ASSERT: Verify the operation results
-    assert result is not None
-    assert result.id == test_credit_limit_history.id
-    assert result.credit_limit == Decimal("12000.00")
-    assert result.reason == "Updated credit limit increase"
-    assert result.updated_at > test_credit_limit_history.updated_at
-
-
-@pytest.mark.asyncio
 async def test_get_by_account(
     credit_limit_history_repository: CreditLimitHistoryRepository,
     test_credit_account: Account,
@@ -129,7 +47,6 @@ async def test_get_by_account(
         assert entry.account_id == test_credit_account.id
 
 
-@pytest.mark.asyncio
 async def test_get_with_account(
     credit_limit_history_repository: CreditLimitHistoryRepository,
     test_credit_limit_history: CreditLimitHistory,
@@ -149,7 +66,6 @@ async def test_get_with_account(
     assert result.account.id == test_credit_limit_history.account_id
 
 
-@pytest.mark.asyncio
 async def test_get_by_date_range(
     credit_limit_history_repository: CreditLimitHistoryRepository,
     test_credit_account: Account,
@@ -176,7 +92,6 @@ async def test_get_by_date_range(
         assert effective_date_utc <= end_date
 
 
-@pytest.mark.asyncio
 async def test_get_latest_limit(
     credit_limit_history_repository: CreditLimitHistoryRepository,
     test_credit_account: Account,
@@ -196,7 +111,6 @@ async def test_get_latest_limit(
     assert result.credit_limit == Decimal("8000.00")  # Latest from fixture
 
 
-@pytest.mark.asyncio
 async def test_get_limit_at_date(
     credit_limit_history_repository: CreditLimitHistoryRepository,
     test_credit_account: Account,
@@ -219,7 +133,6 @@ async def test_get_limit_at_date(
     assert result.credit_limit == Decimal("7500.00")  # Should be the increase entry
 
 
-@pytest.mark.asyncio
 async def test_get_limit_increases(
     credit_limit_history_repository: CreditLimitHistoryRepository,
     test_credit_account: Account,
@@ -244,7 +157,6 @@ async def test_get_limit_increases(
         previous_limit = entry.credit_limit
 
 
-@pytest.mark.asyncio
 async def test_get_limit_decreases(
     credit_limit_history_repository: CreditLimitHistoryRepository,
     test_credit_account: Account,
@@ -262,7 +174,6 @@ async def test_get_limit_decreases(
     assert len(results) >= 1  # At least 1 decrease in fixtures
 
 
-@pytest.mark.asyncio
 async def test_get_limit_change_trend(
     credit_limit_history_repository: CreditLimitHistoryRepository,
     test_credit_account: Account,
@@ -282,8 +193,6 @@ async def test_get_limit_change_trend(
     assert "change_percent" in results[1]
 
 
-@pytest.mark.asyncio
-@pytest.mark.asyncio
 async def test_calculate_average_credit_limit(
     credit_limit_history_repository: CreditLimitHistoryRepository,
     test_credit_account: Account,
@@ -319,7 +228,6 @@ async def test_calculate_average_credit_limit(
     assert result == pytest.approx(expected_avg)
 
 
-@pytest.mark.asyncio
 async def test_get_by_account_ordered(
     credit_limit_history_repository: CreditLimitHistoryRepository,
     test_credit_account: Account,
@@ -359,7 +267,6 @@ async def test_get_by_account_ordered(
     assert desc_results[0].id == latest_limit.id
 
 
-@pytest.mark.asyncio
 async def test_validation_error_handling(test_credit_account: Account):
     """Test handling of validation errors that would be caught by the Pydantic schema."""
     # Try creating a schema with invalid data

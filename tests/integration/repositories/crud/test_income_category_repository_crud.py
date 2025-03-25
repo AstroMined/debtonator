@@ -24,6 +24,8 @@ from src.schemas.income import IncomeCreate
 # Import schemas and schema factories - essential part of the validation pattern
 from src.schemas.income_categories import (IncomeCategoryCreate,
                                            IncomeCategoryUpdate)
+from tests.helpers.datetime_utils import (datetime_equals,
+                                          datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.income import create_income_schema
 from tests.helpers.schema_factories.income_categories import \
     create_income_category_schema
@@ -82,6 +84,9 @@ async def test_update_income_category(
     """Test updating an income category with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
 
+    # Store original timestamp before update
+    original_updated_at = test_income_category.updated_at
+
     # 2. SCHEMA: Create and validate update data through Pydantic schema
     update_schema = IncomeCategoryUpdate(
         name="Updated Category Name",
@@ -101,7 +106,9 @@ async def test_update_income_category(
     assert result.id == test_income_category.id
     assert result.name == "Updated Category Name"
     assert result.description == "Updated category description"
-    assert result.updated_at > test_income_category.updated_at
+    assert datetime_greater_than(
+        result.updated_at, original_updated_at, ignore_timezone=True
+    )
 
 
 async def test_delete_income_category(

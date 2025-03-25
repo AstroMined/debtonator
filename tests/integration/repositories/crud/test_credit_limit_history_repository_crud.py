@@ -20,6 +20,8 @@ from src.repositories.accounts import AccountRepository
 from src.repositories.credit_limit_history import CreditLimitHistoryRepository
 from src.schemas.credit_limit_history import (CreditLimitHistoryCreate,
                                               CreditLimitHistoryUpdate)
+from tests.helpers.datetime_utils import (datetime_equals,
+                                          datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.credit_limit_history import (
     create_credit_limit_history_schema,
@@ -82,6 +84,9 @@ async def test_update_credit_limit_history(
     """Test updating a credit limit history entry with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
 
+    # Store original timestamp before update
+    original_updated_at = test_credit_limit_history.updated_at
+
     # 2. SCHEMA: Create and validate update data through Pydantic schema
     update_schema = create_credit_limit_history_update_schema(
         id=test_credit_limit_history.id,
@@ -103,4 +108,6 @@ async def test_update_credit_limit_history(
     assert result.id == test_credit_limit_history.id
     assert result.credit_limit == Decimal("12000.00")
     assert result.reason == "Updated credit limit increase"
-    assert result.updated_at > test_credit_limit_history.updated_at
+    assert datetime_greater_than(
+        result.updated_at, original_updated_at, ignore_timezone=True
+    )

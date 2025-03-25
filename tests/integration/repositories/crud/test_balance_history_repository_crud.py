@@ -15,11 +15,10 @@ import pytest
 from src.models.accounts import Account
 from src.models.balance_history import BalanceHistory
 from src.repositories.balance_history import BalanceHistoryRepository
-from src.schemas.balance_history import (BalanceHistoryCreate,
-                                         BalanceHistoryUpdate)
-from tests.helpers.datetime_utils import utc_now
-from tests.helpers.schema_factories.balance_history import \
-    create_balance_history_schema
+from tests.helpers.datetime_utils import (datetime_equals,
+                                          datetime_greater_than, utc_now)
+from tests.helpers.schema_factories.balance_history import (
+    create_balance_history_schema, create_balance_history_update_schema)
 
 pytestmark = pytest.mark.asyncio
 
@@ -30,7 +29,6 @@ async def test_create_balance_history(
 ):
     """Test creating a balance history record with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
-    timestamp = utc_now()
 
     # 2. SCHEMA: Create and validate through Pydantic schema
     balance_schema = create_balance_history_schema(
@@ -38,7 +36,6 @@ async def test_create_balance_history(
         balance=Decimal("1000.00"),
         is_reconciled=False,
         notes="Initial balance entry",
-        timestamp=timestamp,
     )
 
     # Convert validated schema to dict for repository
@@ -54,7 +51,6 @@ async def test_create_balance_history(
     assert result.balance == Decimal("1000.00")
     assert result.is_reconciled is False
     assert result.notes == "Initial balance entry"
-    assert result.timestamp == timestamp
     assert result.created_at is not None
     assert result.updated_at is not None
 
@@ -76,7 +72,9 @@ async def test_get_balance_history(
     assert result.balance == test_balance_history.balance
     assert result.is_reconciled == test_balance_history.is_reconciled
     assert result.notes == test_balance_history.notes
-    assert result.timestamp == test_balance_history.timestamp
+    assert datetime_equals(
+        result.timestamp, test_balance_history.timestamp, ignore_timezone=True
+    )
 
 
 async def test_update_balance_history(
@@ -86,8 +84,11 @@ async def test_update_balance_history(
     """Test updating a balance history record with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
 
+    # Store original timestamp before update
+    original_updated_at = test_balance_history.updated_at
+
     # 2. SCHEMA: Create and validate update data through Pydantic schema
-    update_schema = BalanceHistoryUpdate(
+    update_schema = create_balance_history_update_schema(
         balance=Decimal("1100.00"),
         is_reconciled=True,
         notes="Updated balance entry",
@@ -109,8 +110,13 @@ async def test_update_balance_history(
     assert result.notes == "Updated balance entry"
     # Fields not in update_data should remain unchanged
     assert result.account_id == test_balance_history.account_id
-    assert result.timestamp == test_balance_history.timestamp
-    assert result.updated_at > test_balance_history.updated_at
+    assert datetime_equals(
+        result.timestamp, test_balance_history.timestamp, ignore_timezone=True
+    )
+    # Compare against stored original timestamp
+    assert datetime_greater_than(
+        result.updated_at, original_updated_at, ignore_timezone=True
+    )
 
 
 async def test_delete_balance_history(

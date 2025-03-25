@@ -2,7 +2,8 @@
 DateTime utilities for tests.
 
 This module provides helper functions to create properly timezone-aware
-datetime objects that comply with ADR-011 requirements.
+datetime objects that comply with ADR-011 requirements, and utilities
+for safely comparing datetime objects with different timezone awareness.
 """
 
 from datetime import datetime, timedelta, timezone
@@ -131,3 +132,64 @@ def utc_datetime_from_str(datetime_str, format_str="%Y-%m-%d %H:%M:%S"):
     """
     dt = datetime.strptime(datetime_str, format_str)
     return dt.replace(tzinfo=timezone.utc)
+
+
+def datetime_equals(dt1, dt2, ignore_timezone=False, ignore_microseconds=False):
+    """
+    Safely compare two datetimes, handling timezone differences.
+    
+    Args:
+        dt1: First datetime
+        dt2: Second datetime
+        ignore_timezone: If True, only compare the time values, not timezone
+        ignore_microseconds: If True, ignore microsecond precision
+        
+    Returns:
+        bool: True if datetimes are equal considering the parameters
+    """
+    # Make copies to avoid modifying the originals
+    dt1_copy = dt1
+    dt2_copy = dt2
+    
+    # Normalize both to UTC-aware if either has timezone
+    if dt1_copy.tzinfo is not None or dt2_copy.tzinfo is not None:
+        dt1_copy = ensure_utc(dt1_copy)
+        dt2_copy = ensure_utc(dt2_copy)
+    
+    if ignore_microseconds:
+        dt1_copy = dt1_copy.replace(microsecond=0)
+        dt2_copy = dt2_copy.replace(microsecond=0)
+        
+    if ignore_timezone:
+        dt1_copy = dt1_copy.replace(tzinfo=None)
+        dt2_copy = dt2_copy.replace(tzinfo=None)
+        
+    return dt1_copy == dt2_copy
+
+
+def datetime_greater_than(dt1, dt2, ignore_timezone=False):
+    """
+    Safely compare if dt1 > dt2, handling timezone differences.
+    
+    Args:
+        dt1: First datetime
+        dt2: Second datetime
+        ignore_timezone: If True, only compare the time values, not timezone
+        
+    Returns:
+        bool: True if dt1 > dt2 considering the parameters
+    """
+    # Make copies to avoid modifying the originals
+    dt1_copy = dt1
+    dt2_copy = dt2
+    
+    # Normalize both to UTC-aware if either has timezone
+    if dt1_copy.tzinfo is not None or dt2_copy.tzinfo is not None:
+        dt1_copy = ensure_utc(dt1_copy)
+        dt2_copy = ensure_utc(dt2_copy)
+        
+    if ignore_timezone:
+        dt1_copy = dt1_copy.replace(tzinfo=None)
+        dt2_copy = dt2_copy.replace(tzinfo=None)
+        
+    return dt1_copy > dt2_copy

@@ -21,7 +21,8 @@ from src.repositories.balance_reconciliation import \
     BalanceReconciliationRepository
 from src.schemas.balance_reconciliation import (BalanceReconciliationCreate,
                                                 BalanceReconciliationUpdate)
-from tests.helpers.datetime_utils import utc_now
+from tests.helpers.datetime_utils import (datetime_equals,
+                                          datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.balance_reconciliation import \
     create_balance_reconciliation_schema
@@ -88,6 +89,9 @@ async def test_update_balance_reconciliation(
     """Test updating a balance reconciliation entry with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
 
+    # Store original timestamp before update
+    original_updated_at = test_balance_reconciliation.updated_at
+
     # 2. SCHEMA: Create and validate update data through Pydantic schema
     update_schema = BalanceReconciliationUpdate(
         id=test_balance_reconciliation.id,
@@ -115,4 +119,8 @@ async def test_update_balance_reconciliation(
     assert result.new_balance == Decimal("1075.25")
     assert result.adjustment_amount == adjustment_amount
     assert result.reason == "Updated reconciliation with corrected balance"
-    assert result.updated_at > test_balance_reconciliation.updated_at
+
+    # Compare against stored original timestamp
+    assert datetime_greater_than(
+        result.updated_at, original_updated_at, ignore_timezone=True
+    )

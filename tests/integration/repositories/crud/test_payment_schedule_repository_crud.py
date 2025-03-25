@@ -27,6 +27,8 @@ from src.repositories.payment_schedules import PaymentScheduleRepository
 # Import schemas and schema factories - essential part of the validation pattern
 from src.schemas.payment_schedules import (PaymentScheduleCreate,
                                            PaymentScheduleUpdate)
+from tests.helpers.datetime_utils import (datetime_equals,
+                                          datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.liabilities import create_liability_schema
 from tests.helpers.schema_factories.payment_schedules import (
@@ -101,6 +103,9 @@ async def test_update_payment_schedule(
     """Test updating a payment schedule with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
 
+    # Store original timestamp before update
+    original_updated_at = test_payment_schedule.updated_at
+
     # 2. SCHEMA: Create and validate update data through Pydantic schema
     new_scheduled_date = datetime.now(timezone.utc) + timedelta(days=15)
     update_schema = create_payment_schedule_update_schema(
@@ -128,7 +133,9 @@ async def test_update_payment_schedule(
     expected_date = new_scheduled_date.replace(tzinfo=None)
     assert abs((db_date - expected_date).total_seconds()) < 60  # Within a minute
 
-    assert result.updated_at > test_payment_schedule.updated_at
+    assert datetime_greater_than(
+        result.updated_at, original_updated_at, ignore_timezone=True
+    )
 
 
 async def test_delete_payment_schedule(

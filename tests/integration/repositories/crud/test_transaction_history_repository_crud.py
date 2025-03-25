@@ -21,6 +21,8 @@ from src.repositories.accounts import AccountRepository
 from src.repositories.transaction_history import TransactionHistoryRepository
 from src.schemas.transaction_history import (TransactionHistoryCreate,
                                              TransactionHistoryUpdate)
+from tests.helpers.datetime_utils import (datetime_equals,
+                                          datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.transaction_history import \
     create_transaction_history_schema
@@ -85,8 +87,8 @@ async def test_update_transaction_history(
     """Test updating a transaction history entry with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
 
-    # Add a small delay to ensure updated_at will be different
-    await asyncio.sleep(1)
+    # Store original timestamp before update
+    original_updated_at = test_transaction_history.updated_at
 
     # 2. SCHEMA: Create and validate update data through Pydantic schema
     # Make the naive transaction_date timezone-aware by adding UTC timezone info
@@ -118,4 +120,6 @@ async def test_update_transaction_history(
     assert (
         result.transaction_type == test_transaction_history.transaction_type
     )  # Unchanged
-    assert result.updated_at > test_transaction_history.updated_at
+    assert datetime_greater_than(
+        result.updated_at, original_updated_at, ignore_timezone=True
+    )

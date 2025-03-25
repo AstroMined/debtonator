@@ -6,9 +6,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.37] - 2025-03-24
+
+### Fixed
+
+- Fixed datetime handling in repository integration tests:
+  - Fixed comparison issues between timestamps in update operations
+  - Added original_updated_at variable to store pre-update timestamp
+  - Updated test assertions to compare with stored original timestamp
+  - Improved repository test patterns across all model repositories
+  - Fixed datetime comparison issues in all "updated_at > test_x.updated_at" assertions
+  - Removed debug output from BaseRepository.update()
+  - Standardized datetime comparison approach in test files
+  - Removed duplicated CRUD tests from repositories/advanced tests
+
 ## [0.5.36] - 2025-03-24
 
 ### Fixed
+
 - Fixed circular dependency between Payment and PaymentSource schemas
   - Created PaymentSourceCreateNested schema for nested source creation
   - Updated schemas to eliminate cyclic imports
@@ -25,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.35] - 2025-03-24
 
 ### Changed
+
 - Moved fixtures from individual test files to central conftest.py for better test organization
   - Moved credit limit history fixtures from test_credit_limit_history_repository_crud.py
   - Moved income category fixtures from test_income_category_repository_crud.py
@@ -34,16 +50,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.34] - 2025-03-24
 
 ### Changed
+
 - Centralized repository integration test fixtures by moving them from individual test files to shared conftest.py
 - Organized fixtures by type (repositories, accounts, liabilities, etc.) for improved maintainability
 - Eliminated duplicate fixture definitions across test files
 - Added comprehensive imports in conftest.py to support all fixture types
 
 ### Added
+
 - Documentation for fixture dependency relationships in test infrastructure
 - Consistent implementation patterns for all repository fixtures
 
 ### Fixed
+
 - Potential inconsistencies from duplicate fixture definitions
 - Import organization in test files
 
