@@ -6,6 +6,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.38] - 2025-03-25
+
+### Fixed
+
+- Fixed PaymentSource repository integration tests:
+  - Updated tests to use PaymentSourceCreateNested instead of PaymentSourceCreate
+  - Modified test fixtures to use the nested schema approach consistently
+  - Adjusted expected values in test assertions to match actual fixture values
+  - Fixed indentation issues in test files causing parsing errors
+
+### Added
+
+- Created ADR-017 (PaymentSource Schema Simplification):
+  - Documented current dual schema approach and its issues
+  - Outlined implementation plan to eliminate schema technical debt
+  - Defined step-by-step approach for refactoring with testing at each layer
+  - Provided comprehensive implementation checklist
+
 ## [0.5.37] - 2025-03-24
 
 ### Fixed

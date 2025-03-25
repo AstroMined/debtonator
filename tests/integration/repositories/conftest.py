@@ -549,14 +549,13 @@ async def test_payment_source(
     # 1. ARRANGE: No setup needed for this fixture
 
     # 2. SCHEMA: Create and validate through Pydantic schema
-    source_schema = create_payment_source_schema(
+    source_schema = create_payment_source_nested_schema(
         account_id=test_checking_account.id,
         amount=Decimal("75.00"),
-        payment_id=test_payment.id,
     )
 
-    # Convert validated schema to dict for repository
-    validated_data = source_schema.model_dump()
+    # Convert validated schema to dict for repository and add payment_id
+    validated_data = {**source_schema.model_dump(), "payment_id": test_payment.id}
 
     # 3. ACT: Pass validated data to repository
     return await payment_source_repository.create(validated_data)
@@ -578,10 +577,10 @@ async def test_payment_with_multiple_sources(
         category="Bill Payment",
         description="Test payment with multiple sources",
         sources=[
-            create_payment_source_schema(
+            create_payment_source_nested_schema(
                 account_id=test_checking_account.id, amount=Decimal("100.00")
             ),
-            create_payment_source_schema(
+            create_payment_source_nested_schema(
                 account_id=test_second_account.id, amount=Decimal("50.00")
             ),
         ],

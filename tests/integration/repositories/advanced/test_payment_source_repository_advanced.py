@@ -21,11 +21,11 @@ from src.repositories.payment_sources import PaymentSourceRepository
 from src.repositories.payments import PaymentRepository
 from src.schemas.accounts import AccountCreate
 from src.schemas.payments import (PaymentCreate, PaymentSourceCreate,
-                                  PaymentSourceUpdate)
+                                  PaymentSourceCreateNested, PaymentSourceUpdate)
 from tests.helpers.datetime_utils import utc_now
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.payment_sources import \
-    create_payment_source_schema
+    create_payment_source_schema, create_payment_source_nested_schema
 from tests.helpers.schema_factories.payments import create_payment_schema
 
 pytestmark = pytest.mark.asyncio
@@ -111,20 +111,21 @@ async def test_bulk_create_sources(
     # 1. ARRANGE: Setup is already done with fixtures
 
     # 2. SCHEMA: Create and validate through Pydantic schema
-    source_schema1 = create_payment_source_schema(
+    source_schema1 = create_payment_source_nested_schema(
         account_id=test_checking_account.id,
         amount=Decimal("30.00"),
-        payment_id=test_payment.id,
     )
 
-    source_schema2 = create_payment_source_schema(
+    source_schema2 = create_payment_source_nested_schema(
         account_id=test_second_account.id,
         amount=Decimal("40.00"),
-        payment_id=test_payment.id,
     )
 
-    # Convert validated schemas to dicts for repository
-    sources_data = [source_schema1.model_dump(), source_schema2.model_dump()]
+    # Convert validated schemas to dicts for repository and add payment_id
+    sources_data = [
+        {**source_schema1.model_dump(), "payment_id": test_payment.id},
+        {**source_schema2.model_dump(), "payment_id": test_payment.id}
+    ]
 
     # 3. ACT: Pass validated data to repository
     results = await payment_source_repository.bulk_create_sources(sources_data)
@@ -160,10 +161,10 @@ async def test_get_total_amount_by_account(
 
     # 3. ASSERT: Verify the operation results
     # We have 3 sources using this account:
-    # - One from test_payment (100.00)
+    # - One from test_payment (50.00)
     # - One from test_payment_with_multiple_sources (100.00)
     # - One from test_payment_source (75.00)
-    expected_total = Decimal("275.00")
+    expected_total = Decimal("225.00")
     assert total == expected_total
 
 
@@ -199,7 +200,8 @@ async def test_validation_error_handling():
     """Test that schema validation catches invalid data."""
     # Try creating a schema with invalid data
     try:
-        invalid_schema = PaymentSourceCreate(
+        # Using PaymentSourceCreateNested since it doesn't require payment_id
+        invalid_schema = PaymentSourceCreateNested(
             account_id=-1,  # Invalid negative ID
             amount=Decimal("-50.00"),  # Invalid negative amount
         )
