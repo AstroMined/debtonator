@@ -7,13 +7,13 @@ This document outlines the step-by-step plan to resolve the 52 test failures in 
 ## Progress Tracking
 
 - [ ] Phase 1: DateTime Standardization (12/13 fixed)
-- [ ] Phase 2: Database Integrity Issues (0/8 fixed)
+- [ ] Phase 2: Database Integrity Issues (1/8 fixed)
 - [ ] Phase 3: Nullability and Type Issues (1/8 fixed)
 - [ ] Phase 4: Count/Assert Failures (2/18 fixed)
 - [ ] Phase 4a: Fixture Mismatch Issues (1/9 fixed)
 - [ ] Phase 5: Validation Issues (0/4 fixed)
 
-**Total Progress: 16/52 tests fixed**
+**Total Progress: 17/52 tests fixed**
 
 ## Resolution Sequence
 
@@ -126,9 +126,12 @@ flowchart TD
 
 ### liability_repository_advanced.py
 
-- [ ] Fix test_get_bills_for_account: "'int' object has no attribute 'primary_account_id'"
-  - Fix relationship loading in repository method
-  - Ensure account objects are properly instantiated
+- [x] Fix test_get_bills_for_account: "'int' object has no attribute 'primary_account_id'"
+  - Fixed by rewriting the query construction to avoid SQLAlchemy union operation issues
+  - Implemented a two-step query approach:
+    1. Collect liability IDs from primary account and split queries separately
+    2. Use a final query with `Liability.id.in_(combined_ids)` to retrieve full entity objects
+  - This pattern preserves ORM mappings and returns complete Liability objects instead of just IDs
 
 ### recurring_bill_repository_advanced.py
 
@@ -373,6 +376,23 @@ flowchart TD
 - [ ] Fix test_validation_error_handling: validation string assertion
   - Update validation message check
   - Fix string comparison in assertion
+
+## Implementation Patterns
+
+### SQLAlchemy Union ORM Mapping Pattern
+
+When dealing with UNION operations in SQLAlchemy that combine queries across different relationships:
+
+1. **Avoid direct UNION with ORM mappings**: Direct union operations can lose ORM entity mapping
+2. **Use two-step ID collection approach**:
+   - First collect IDs from separate queries
+   - Then execute a single query with `.in_(ids_list)` to retrieve complete entities
+3. **Benefits**:
+   - Preserves complete ORM mapping
+   - Returns full entity objects with all attributes and relationships
+   - Maintains type consistency between repository return type and actual result
+
+This pattern can be applied to other repository methods that need to combine results from different query sources while maintaining full ORM functionality.
 
 ## Implementation Guidelines
 

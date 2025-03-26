@@ -234,34 +234,49 @@ class LiabilityRepository(BaseRepository[Liability, int]):
         Returns:
             List[Liability]: Bills associated with the account
         """
-        # Start with bills where this is the primary account
-        primary_query = select(Liability).where(
+        # First get IDs from primary account bills
+        primary_ids_query = select(Liability.id).where(
             and_(Liability.primary_account_id == account_id, Liability.active == True)
         )
-
         if not include_paid:
-            primary_query = primary_query.where(Liability.paid == False)
+            primary_ids_query = primary_ids_query.where(Liability.paid == False)
 
-        # If including splits, add bills that have splits for this account
+        # Then get IDs from split bills if needed
         if include_splits:
-            # Get bills via splits
-            split_query = (
-                select(Liability)
+            split_ids_query = (
+                select(Liability.id)
                 .join(BillSplit, BillSplit.liability_id == Liability.id)
-                .where(
-                    and_(BillSplit.account_id == account_id, Liability.active == True)
-                )
+                .where(and_(BillSplit.account_id == account_id, Liability.active == True))
             )
-
             if not include_paid:
-                split_query = split_query.where(Liability.paid == False)
-
-            # Union the queries
-            query = primary_query.union(split_query).order_by(Liability.due_date)
+                split_ids_query = split_ids_query.where(Liability.paid == False)
+            
+            # Get all IDs (primary and splits)
+            # Use union instead of union_all to ensure uniqueness
+            primary_ids = await self.session.execute(primary_ids_query)
+            primary_ids_list = [id for (id,) in primary_ids.all()]
+            
+            split_ids = await self.session.execute(split_ids_query)
+            split_ids_list = [id for (id,) in split_ids.all()]
+            
+            # Combine without duplicates
+            combined_ids = list(set(primary_ids_list + split_ids_list))
         else:
-            query = primary_query.order_by(Liability.due_date)
+            # Only use primary ids
+            primary_ids = await self.session.execute(primary_ids_query)
+            combined_ids = [id for (id,) in primary_ids.all()]
+        
+        if not combined_ids:
+            return []
+            
+        # Final query that selects full entities by ID
+        final_query = (
+            select(Liability)
+            .where(Liability.id.in_(combined_ids))
+            .order_by(Liability.due_date)
+        )
 
-        result = await self.session.execute(query)
+        result = await self.session.execute(final_query)
         return result.scalars().all()
 
     async def get_upcoming_payments(

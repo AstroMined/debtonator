@@ -6,6 +6,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.43] - 2025-03-26
+
+### Fixed
+
+- Fixed SQLAlchemy Union Query ORM Mapping Loss:
+  - Fixed 'int' object has no attribute 'primary_account_id' error in LiabilityRepository
+  - Implemented sustainable two-step query pattern to preserve entity mapping
+  - Fixed test_get_bills_for_account and test_get_bills_due_in_range in test_liability_repository_advanced.py
+  - Used Liability.id.in_(combined_ids) pattern instead of direct UNION operation
+  - Added defensive handling for empty result sets
+  - Enhanced documentation with SQLAlchemy Union ORM Mapping Pattern
+
+### Added
+
+- Added SQLAlchemy Union Query Pattern documentation:
+  - Created detailed implementation pattern for handling UNION operations
+  - Documented two-step query approach (collect IDs, then query by ID) for maintaining ORM mapping
+  - Added test pattern for verifying full entity relationships are preserved
+
 ## [0.5.42] - 2025-03-26
 
 ### Fixed

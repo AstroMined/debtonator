@@ -104,8 +104,8 @@ async def test_get_bills_due_in_range(
     # 3. ASSERT: Verify the operation results
     assert len(results) >= 2  # Should find at least 2 bills due within 20 days
     for liability in results:
-        assert liability.due_date >= start_date
-        assert liability.due_date <= end_date
+        assert datetime_greater_than(liability.due_date, start_date, ignore_timezone=True) or datetime_equals(liability.due_date, start_date, ignore_timezone=True)
+        assert datetime_greater_than(end_date, liability.due_date, ignore_timezone=True) or datetime_equals(end_date, liability.due_date, ignore_timezone=True)
         assert liability.paid is False  # By default, include_paid is False
 
 

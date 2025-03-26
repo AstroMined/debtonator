@@ -4,6 +4,19 @@
 
 ### Completed Tasks
 
+- Fixed SQLAlchemy Union Query ORM Mapping Loss:
+  - Fixed 'int' object has no attribute 'primary_account_id' error in LiabilityRepository
+  - Discovered and documented common issue with SQL UNION operations causing ORM mapping loss
+  - Implemented sustainable two-step query pattern to preserve entity mapping
+  - First: Collect IDs from separate queries for primary accounts and bill splits
+  - Second: Make a final query using ID list to retrieve full entity objects
+  - Used Liability.id.in_(combined_ids) pattern instead of direct UNION
+  - Documented pattern as a best practice for handling complex query combinations
+  - Added additional defensive handling for empty result sets
+  - Updated test failure resolution plan with this new pattern
+  - Made test_get_bills_for_account pass in test_liability_repository_advanced.py
+  - Fixed test_get_bills_due_in_range in test_liability_repository_advanced.py
+
 - Refactored test fixtures to eliminate circular dependencies:
   - Updated 6 fixture files (income, payments, recurring, schedules, statements, transactions)
   - Replaced repository-based fixture creation with direct SQLAlchemy model instantiation
@@ -17,7 +30,19 @@
 
 ### Next Steps
 
+- Apply Union Query Pattern to Similar Repository Methods:
+  - Check payment_repository methods for similar UNION issues
+  - Apply two-step query pattern to recurring_bill_repository where needed
+  - Fix any other repositories that might have ORM mapping loss with UNION queries
+  - Ensure all repository return types match actual returned data types
+  - Add defensive handling for empty result sets consistently
+
 - Continue Phase 2: Database Integrity Issues
+  - Fix NOT NULL constraint failures in category_repository_advanced tests
+  - Fix relationship loading issues in remaining repository tests
+  - Fix assertion issues in recurring_bill_repository_advanced
+  - Fix category-income relationships in income_category_repository_advanced
+
 - Fix remaining repository tests to work with the direct model instantiation approach
 - Create ADR documenting the test fixture architecture for future reference
 - Continue Phase 3-5 of test failure resolution
@@ -115,7 +140,9 @@
    - Repository test standardization (100%) ✓
    - Phase 1 test failure resolution (100%) ✓
    - Test fixtures refactored to use direct model instantiation (100%) ✓
-   - Phases 2-5 test failure resolution (0%)
+   - Phases 2-5
+   - Phase 2 test failure resolution (13%)
+   - Phases 3-5 test failure resolution (0%)
    - UTC datetime compliance in tests (80%)
 
 4. **Service Layer**: IN PROGRESS (12%)
@@ -180,9 +207,9 @@
 
 ## What's Left to Build
 
-1. **Complete Test Failure Resolution (69%)**
+1. **Complete Test Failure Resolution (70%)**
    - ✓ Phase 1: DateTime Standardization (14/14 fixed)
-   - Phase 2: Database Integrity Issues (0/8 fixed)
+   - Phase 2: Database Integrity Issues (1/8 fixed)
    - Phase 3: Nullability and Type Issues (0/8 fixed)
    - Phase 4: Count/Assert Failures (0/18 fixed)
    - Phase 5: Validation Issues (0/4 fixed)
@@ -222,6 +249,12 @@
    - Define clear test fixture responsibilities
 
 ## Known Issues
+
+1. **SQLAlchemy Union Query Mapping Loss**
+   - Union operations in complex ORM mappings can cause loss of entity mapping
+   - Need to check other repositories for similar issues
+   - Problem especially appears with UNION operations that join across relationships
+   - Two-step query pattern (collect IDs, then query by ID) is the proper solution
 
 1. **UTC Datetime Handling**
    - Some naive datetime usage still exists in repository tests outside Phase 1

@@ -1,7 +1,7 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Repository Test Failure Resolution, Timezone-aware Datetime Handling, Fixture Corrections
+Repository Test Failure Resolution, Timezone-aware Datetime Handling, Fixture Corrections, SQLAlchemy Query Patterns
 
 ### Recent Changes
 
@@ -45,8 +45,18 @@ Repository Test Failure Resolution, Timezone-aware Datetime Handling, Fixture Co
    - Ensured test fixtures use the correct field names matching actual model fields
    - Applied consistent pattern for timezone handling with naive datetimes for DB storage
 
-5. **Enhanced Test Failure Resolution Documentation** ✓
-   - Updated test_failure_resolution_plan.md with new progress tracking (16/52 tests fixed)
+5. **Fixed SQLAlchemy Union Query ORM Mapping Loss** ✓
+   - Fixed 'int' object has no attribute 'primary_account_id' error in LiabilityRepository
+   - Discovered SQL UNION operations could cause ORM mapping loss in SQLAlchemy
+   - Implemented sustainable two-step query pattern to preserve entity mapping
+   - First: Collect IDs from separate queries for primary accounts and bill splits
+   - Second: Make a final query using ID list to retrieve full entity objects
+   - Used Liability.id.in_(combined_ids) pattern instead of direct UNION
+   - Documented pattern as a best practice for handling complex query combinations
+   - Added additional defensive handling for empty result sets
+
+6. **Enhanced Test Failure Resolution Documentation** ✓
+   - Updated test_failure_resolution_plan.md with new progress tracking (17/52 tests fixed)
    - Added fixture mismatch pattern documentation to help resolve similar issues
    - Documented timezone comparison patterns for repository tests
    - Created comprehensive tracking for remaining test failures by category
@@ -54,10 +64,19 @@ Repository Test Failure Resolution, Timezone-aware Datetime Handling, Fixture Co
    - Added examples for proper timezone-aware comparison
    - Organized test failures by type for more systematic resolution
    - Created clear priorities for remaining test failures
+   - Added new "SQLAlchemy Union ORM Mapping Pattern" section
 
 ## Next Steps
 
-1. **Continue Phase 1: Complete DateTime Standardization**
+1. **Apply Union Query Pattern to Similar Repository Methods**
+   - Check payment_repository methods for similar UNION issues
+   - Apply two-step query pattern to recurring_bill_repository where needed
+   - Fix any other repositories that might have ORM mapping loss with UNION queries
+   - Ensure all repository return types match actual returned data types
+   - Add defensive handling for empty result sets consistently
+   - Check for similar pattern application in transaction_history_repository
+
+2. **Continue Phase 1: Complete DateTime Standardization**
    - Fix remaining test_get_upcoming_schedules issues in deposit_schedule_repository and payment_schedule_repository
    - Fix "day is out of range for month" errors with proper date calculations
    - Apply datetime_greater_than and datetime_equals helpers to remaining tests
@@ -82,7 +101,19 @@ Repository Test Failure Resolution, Timezone-aware Datetime Handling, Fixture Co
 
 ## Implementation Lessons
 
-1. **Timezone-aware Datetime Comparison Pattern**
+1. **SQLAlchemy Union Query Pattern**
+   - Avoid direct UNION operations with complex ORM mappings
+   - Use a two-step query approach for complex multi-source queries:
+     1. Collect IDs from separate queries
+     2. Use a final query with `entity.id.in_(combined_ids)` to maintain ORM mapping
+   - Process result sets separately before combining to prevent ORM mapping loss
+   - Add defensive empty list checks to handle edge cases gracefully
+   - Always test that returned objects have expected attributes and methods
+   - Use `.all()` before performing Python-side operations on database results
+   - Remember to handle duplicates with set operations when appropriate
+   - Clear queries return complete entity objects, not just scalar values
+
+2. **Timezone-aware Datetime Comparison Pattern**
    - Use `datetime_greater_than(date1, date2, ignore_timezone=True)` for date comparisons
    - Use `datetime_equals(date1, date2, ignore_timezone=True)` for date equality checks
    - Use helper functions from tests/helpers/datetime_utils.py consistently
