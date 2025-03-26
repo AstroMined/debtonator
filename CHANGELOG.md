@@ -6,6 +6,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.41] - 2025-03-26
+
+### Changed
+
+- Refactored test fixtures to use direct SQLAlchemy model instantiation:
+  - Eliminated circular dependencies between test fixtures and repositories
+  - Updated 6 fixture files (income, payments, recurring, schedules, statements, transactions)
+  - Fixed field name mismatches across all fixture files
+  - Improved architecture layer separation with proper responsibility boundaries
+  - Enhanced SQLAlchemy relationship handling with consistent flush-refresh pattern
+  - Standardized datetime handling with naive datetime objects for database storage
+  - Applied consistent test fixture creation patterns across all model types
+  - Improved test isolation by removing dependencies on systems under test
+
+### Fixed
+
+- Fixed repository field name mismatches:
+  - Changed `old_limit`/`new_limit` to `credit_limit` in CreditLimitHistory fixtures
+  - Changed `account_type` to `type` in Account fixtures
+  - Removed `balance_after` from TransactionHistory fixtures
+  - Removed non-existent `category` field from TransactionHistory fixtures
+  - Fixed multiple test errors related to field name mismatches
+  - Revealed business logic leakage from repositories into data layer
+  - Improved test fixture architecture for better maintainability
+
 ## [0.5.40] - 2025-03-25
 
 ### Fixed

@@ -27,6 +27,22 @@ from src.models.income_categories import IncomeCategory
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
 
+# List of fixture modules to load
+pytest_plugins = [
+    "tests.fixtures.fixture_repositories",
+    "tests.fixtures.models.fixture_accounts",
+    "tests.fixtures.models.fixture_categories",
+    "tests.fixtures.models.fixture_liabilities",
+    "tests.fixtures.models.fixture_payments",
+    "tests.fixtures.models.fixture_balance",
+    "tests.fixtures.models.fixture_cashflow",
+    "tests.fixtures.models.fixture_income",
+    "tests.fixtures.models.fixture_statements",
+    "tests.fixtures.models.fixture_transactions",
+    "tests.fixtures.models.fixture_recurring",
+    "tests.fixtures.models.fixture_schedules",
+]
+
 # ADR-011 Datetime validation hooks
 
 

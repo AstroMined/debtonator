@@ -1,5 +1,27 @@
 # Progress
 
+## March 26, 2025
+
+### Completed Tasks
+
+- Refactored test fixtures to eliminate circular dependencies:
+  - Updated 6 fixture files (income, payments, recurring, schedules, statements, transactions)
+  - Replaced repository-based fixture creation with direct SQLAlchemy model instantiation
+  - Fixed field name mismatches across all fixture files (`old_limit`/`new_limit` → `credit_limit`, `account_type` → `type`, etc.)
+  - Removed `balance_after` and other non-existent fields from TransactionHistory
+  - Improved SQLAlchemy relationship handling with proper flush-refresh patterns
+  - Fixed datetime handling to consistently use naive datetime objects for database storage
+  - Enhanced architecture layer separation by removing business logic from repositories
+  - Improved test isolation by removing dependencies on the systems they test
+  - Fixed several test errors related to field mismatches and type issues
+
+### Next Steps
+
+- Continue Phase 2: Database Integrity Issues
+- Fix remaining repository tests to work with the direct model instantiation approach
+- Create ADR documenting the test fixture architecture for future reference
+- Continue Phase 3-5 of test failure resolution
+
 ## March 25, 2025
 
 ### Completed Tasks
@@ -92,8 +114,9 @@
    - Integration tests for repositories (100%) ✓
    - Repository test standardization (100%) ✓
    - Phase 1 test failure resolution (100%) ✓
+   - Test fixtures refactored to use direct model instantiation (100%) ✓
    - Phases 2-5 test failure resolution (0%)
-   - UTC datetime compliance in tests (75%)
+   - UTC datetime compliance in tests (80%)
 
 4. **Service Layer**: IN PROGRESS (12%)
    - Service refactoring to use repositories (12%)
@@ -137,6 +160,7 @@
    - Consistent repository test patterns ✓
    - Default category support with system protection ✓
    - Transaction boundary management ✓
+   - Test fixtures using direct model instantiation ✓
 
 2. **Schema Layer**
    - Complete validation for all model types ✓
@@ -151,6 +175,8 @@
    - System entity protection mechanisms ✓
    - Schema validation flow ✓
    - Default entity handling ✓
+   - Clear separation of architecture layers ✓
+   - Direct model instantiation pattern for testing ✓
 
 ## What's Left to Build
 
@@ -189,6 +215,12 @@
    - Create consistent schema creation patterns in tests
    - Expand account type options with comprehensive validation
 
+6. **Test Fixture Architecture Documentation (0%)**
+   - Create comprehensive ADR for test fixture best practices
+   - Document direct model instantiation pattern
+   - Provide examples for proper relationship handling
+   - Define clear test fixture responsibilities
+
 ## Known Issues
 
 1. **UTC Datetime Handling**
@@ -210,3 +242,8 @@
 4. **PaymentSource Schema Architecture**
    - Dual schema approach creates confusion and technical debt
    - Circular dependency potential between Payment and PaymentSource
+
+5. **Repository Test Updates**
+   - Some tests may still expect repository-based fixture creation
+   - Field name mismatches in assertions need to be fixed
+   - Some tests may reference fields that no longer exist in fixtures
