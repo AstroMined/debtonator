@@ -18,7 +18,7 @@ from src.models.accounts import Account
 from src.models.statement_history import StatementHistory
 from src.repositories.accounts import AccountRepository
 from src.repositories.statement_history import StatementHistoryRepository
-from tests.helpers.datetime_utils import (datetime_equals,
+from src.utils.datetime_utils import (datetime_equals,
                                           datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.accounts import (
     create_account_schema, create_account_update_schema)

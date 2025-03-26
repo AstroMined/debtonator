@@ -20,7 +20,7 @@ from src.repositories.accounts import AccountRepository
 from src.repositories.credit_limit_history import CreditLimitHistoryRepository
 from src.schemas.credit_limit_history import (CreditLimitHistoryCreate,
                                               CreditLimitHistoryUpdate)
-from tests.helpers.datetime_utils import (datetime_equals,
+from src.utils.datetime_utils import (datetime_equals,
                                           datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.credit_limit_history import (

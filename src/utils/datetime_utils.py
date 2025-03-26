@@ -1,5 +1,5 @@
 """
-DateTime utilities for tests.
+DateTime utilities.
 
 This module provides helper functions to create properly timezone-aware
 datetime objects that comply with ADR-011 requirements, and utilities

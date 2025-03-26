@@ -21,7 +21,7 @@ from src.repositories.accounts import AccountRepository
 from src.repositories.transaction_history import TransactionHistoryRepository
 from src.schemas.transaction_history import (TransactionHistoryCreate,
                                              TransactionHistoryUpdate)
-from tests.helpers.datetime_utils import (datetime_equals,
+from src.utils.datetime_utils import (datetime_equals,
                                           datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.transaction_history import \

@@ -22,7 +22,7 @@ from src.repositories.categories import CategoryRepository
 from src.repositories.recurring_bills import RecurringBillRepository
 from src.schemas.recurring_bills import (RecurringBillCreate,
                                          RecurringBillUpdate)
-from tests.helpers.datetime_utils import (datetime_equals,
+from src.utils.datetime_utils import (datetime_equals,
                                           datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.categories import create_category_schema

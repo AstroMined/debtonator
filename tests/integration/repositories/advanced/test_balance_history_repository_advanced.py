@@ -17,7 +17,7 @@ from src.models.balance_history import BalanceHistory
 from src.repositories.balance_history import BalanceHistoryRepository
 from src.schemas.balance_history import (BalanceHistoryCreate,
                                          BalanceHistoryUpdate)
-from tests.helpers.datetime_utils import utc_now
+from src.utils.datetime_utils import utc_now
 from tests.helpers.schema_factories.balance_history import \
     create_balance_history_schema
 

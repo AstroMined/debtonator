@@ -15,7 +15,7 @@ import pytest
 from src.models.accounts import Account
 from src.models.balance_history import BalanceHistory
 from src.repositories.balance_history import BalanceHistoryRepository
-from tests.helpers.datetime_utils import (datetime_equals,
+from src.utils.datetime_utils import (datetime_equals,
                                           datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.balance_history import (
     create_balance_history_schema, create_balance_history_update_schema)

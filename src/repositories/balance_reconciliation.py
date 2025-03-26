@@ -15,6 +15,7 @@ from sqlalchemy.orm import joinedload
 
 from src.models.balance_reconciliation import BalanceReconciliation
 from src.repositories.base import BaseRepository
+from src.utils.datetime_utils import days_ago, utc_now
 
 
 class BalanceReconciliationRepository(BaseRepository[BalanceReconciliation, int]):
@@ -206,10 +207,10 @@ class BalanceReconciliationRepository(BaseRepository[BalanceReconciliation, int]
         Returns:
             float: Average days between reconciliations or 0 if insufficient data
         """
-        start_date = datetime.utcnow() - timedelta(days=lookback_days)
+        start_date = days_ago(days=lookback_days)
 
         reconciliations = await self.get_by_date_range(
-            account_id, start_date, datetime.utcnow()
+            account_id, start_date, utc_now()
         )
 
         if len(reconciliations) < 2:

@@ -25,7 +25,7 @@ from src.repositories.recurring_income import RecurringIncomeRepository
 # Import schema and schema factories - essential part of the validation pattern
 from src.schemas.recurring_income import (RecurringIncomeCreate,
                                           RecurringIncomeUpdate)
-from tests.helpers.datetime_utils import (datetime_equals,
+from src.utils.datetime_utils import (datetime_equals,
                                           datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.recurring_income import (

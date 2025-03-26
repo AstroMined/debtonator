@@ -44,7 +44,7 @@ from src.repositories.recurring_bills import RecurringBillRepository
 from src.repositories.recurring_income import RecurringIncomeRepository
 from src.repositories.statement_history import StatementHistoryRepository
 from src.repositories.transaction_history import TransactionHistoryRepository
-from tests.helpers.datetime_utils import utc_now
+from src.utils.datetime_utils import utc_now, days_ago
 # Import all schema factories
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.balance_history import \
@@ -617,29 +617,37 @@ async def test_balance_reconciliation(
 
 @pytest_asyncio.fixture
 async def test_multiple_reconciliations(
-    balance_reconciliation_repository: BalanceReconciliationRepository,
+    db_session: AsyncSession,
     test_checking_account: Account,
 ) -> List[BalanceReconciliation]:
     """Create multiple balance reconciliation entries for testing."""
-    now = utc_now()
-
     # Create multiple reconciliation entries with different dates
     entries = []
 
-    for i, days_ago in enumerate([90, 60, 30, 15, 5]):
-        schema = create_balance_reconciliation_schema(
+    for i, x_days_ago in enumerate([90, 60, 30, 15, 5]):
+        # Calculate dates as naive datetimes (without timezone info)
+        naive_date = days_ago(x_days_ago).replace(tzinfo=None)
+        
+        # Create model instance directly
+        entry = BalanceReconciliation(
             account_id=test_checking_account.id,
             previous_balance=Decimal(f"{1000 + (i * 50)}.00"),
             new_balance=Decimal(f"{1000 + ((i + 1) * 50)}.00"),
+            adjustment_amount=Decimal("50.00"),  # Explicitly set the calculated amount
             reason=f"Reconciliation #{i + 1}",
-            reconciliation_date=now - timedelta(days=days_ago),
+            reconciliation_date=naive_date,  # Directly use naive datetime
         )
-
-        # Convert validated schema to dict for repository
-        validated_data = schema.model_dump()
-
-        entry = await balance_reconciliation_repository.create(validated_data)
+        
+        # Add to session manually
+        db_session.add(entry)
         entries.append(entry)
+    
+    # Flush to get IDs and establish database rows
+    await db_session.flush()
+    
+    # Refresh all entries to make sure they reflect what's in the database
+    for entry in entries:
+        await db_session.refresh(entry)
 
     return entries
 

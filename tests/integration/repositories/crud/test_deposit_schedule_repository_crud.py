@@ -26,7 +26,7 @@ from src.repositories.income import IncomeRepository
 # Import schemas and schema factories - essential part of the validation pattern
 from src.schemas.deposit_schedules import (DepositScheduleCreate,
                                            DepositScheduleUpdate)
-from tests.helpers.datetime_utils import (datetime_equals,
+from src.utils.datetime_utils import (datetime_equals,
                                           datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.deposit_schedules import \

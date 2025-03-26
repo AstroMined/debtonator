@@ -9,7 +9,7 @@ from pydantic import ValidationError
 from src.schemas.liabilities import (AutoPaySettings, AutoPayUpdate,
                                      LiabilityCreate, LiabilityDateRange,
                                      LiabilityUpdate)
-from tests.helpers.datetime_utils import days_from_now, days_ago, utc_now
+from src.utils.datetime_utils import days_from_now, days_ago, utc_now
 
 
 def test_liability_create_valid():

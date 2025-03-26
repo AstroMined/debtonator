@@ -6,7 +6,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.27] - 2025-03-25
+## [0.5.40] - 2025-03-25
+
+### Fixed
+
+- Fixed test fixture datetime issues in balance_reconciliation_repository_advanced:
+  - Fixed test_multiple_reconciliations fixture to correctly set reconciliation dates at 90, 60, 30, 15, and 5 days ago
+  - Implemented direct SQLAlchemy model creation in fixture to bypass schema validation issues
+  - Added proper timezone handling with naive datetimes for SQLAlchemy model creation
+  - Fixed datetime comparison in test assertions using datetime helper functions with ignore_timezone=True
+  - Updated test_failure_resolution_plan.md with accurate progress tracking (9/13 tests passing)
+  - Added key findings about SQLAlchemy model creation and datetime timezone handling
+  - Documented the pattern for fixing similar issues in other repository tests
+
+### Changed
+
+- Enhanced repository test debugging approach:
+  - Added comprehensive debug information to identify test fixture datetime issues
+  - Identified root cause of timezone handling problems in repository tests
+  - Updated repository test pattern documentation with direct model creation technique
+  - Removed debug statements after successful test debugging
+
+## [0.5.39] - 2025-03-25
 
 ### Fixed
 

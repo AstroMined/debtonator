@@ -18,6 +18,7 @@ from src.models.accounts import Account
 from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability
 from src.repositories.base import BaseRepository
+from src.utils.datetime_utils import days_ago
 
 
 class BillSplitRepository(BaseRepository[BillSplit, int]):
@@ -309,7 +310,7 @@ class BillSplitRepository(BaseRepository[BillSplit, int]):
             List[Tuple[int, Dict[int, Decimal]]]: List of (liability_id, account_distribution) pairs
         """
         # Calculate the cutoff date
-        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        cutoff_date = days_ago(days)
 
         # Get all recent liabilities with their splits
         query = (

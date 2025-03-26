@@ -21,7 +21,7 @@ from src.repositories.balance_reconciliation import \
     BalanceReconciliationRepository
 from src.schemas.balance_reconciliation import (BalanceReconciliationCreate,
                                                 BalanceReconciliationUpdate)
-from tests.helpers.datetime_utils import (
+from src.utils.datetime_utils import (
     utc_now, days_ago, days_from_now, datetime_equals, datetime_greater_than
 )
 from tests.helpers.schema_factories.accounts import create_account_schema
@@ -77,8 +77,8 @@ async def test_get_by_date_range(
     """Test getting balance reconciliation entries within a date range."""
     # 1. ARRANGE: Setup is already done with fixtures
     now = utc_now()
-    start_date = now - timedelta(days=70)
-    end_date = now - timedelta(days=10)
+    start_date = days_ago(95)  # Ensure we cover the oldest reconciliation (90 days ago)
+    end_date = days_ago(3)     # Ensure we cover the most recent reconciliation (5 days ago)
 
     # 2. ACT: Get reconciliation entries within date range
     results = await balance_reconciliation_repository.get_by_date_range(
@@ -89,8 +89,9 @@ async def test_get_by_date_range(
     assert len(results) >= 3  # Should get at least 3 entries in this range
     for entry in results:
         assert entry.account_id == test_checking_account.id
-        assert entry.reconciliation_date >= start_date
-        assert entry.reconciliation_date <= end_date
+        # Use datetime helpers with ignore_timezone=True for proper comparison
+        assert datetime_greater_than(entry.reconciliation_date, start_date, ignore_timezone=True) or datetime_equals(entry.reconciliation_date, start_date, ignore_timezone=True)
+        assert datetime_greater_than(end_date, entry.reconciliation_date, ignore_timezone=True) or datetime_equals(end_date, entry.reconciliation_date, ignore_timezone=True)
 
 
 async def test_get_most_recent(
@@ -114,8 +115,9 @@ async def test_get_most_recent(
     now = utc_now()
     five_days_ago = now - timedelta(days=5)
     seven_days_ago = now - timedelta(days=7)
-    assert result.reconciliation_date >= seven_days_ago
-    assert result.reconciliation_date <= now
+    # Use datetime helpers for timezone-aware comparison with ignore_timezone=True
+    assert datetime_greater_than(result.reconciliation_date, seven_days_ago, ignore_timezone=True) or datetime_equals(result.reconciliation_date, seven_days_ago, ignore_timezone=True)
+    assert datetime_greater_than(now, result.reconciliation_date, ignore_timezone=True) or datetime_equals(now, result.reconciliation_date, ignore_timezone=True)
 
 
 async def test_get_largest_adjustments(

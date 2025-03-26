@@ -20,7 +20,7 @@ from src.repositories.accounts import AccountRepository
 from src.repositories.statement_history import StatementHistoryRepository
 from src.schemas.statement_history import (StatementHistoryCreate,
                                            StatementHistoryUpdate)
-from tests.helpers.datetime_utils import (datetime_equals,
+from src.utils.datetime_utils import (datetime_equals,
                                           datetime_greater_than, utc_now)
 # Import schema factory functions directly
 from tests.helpers.schema_factories.accounts import create_account_schema

@@ -18,7 +18,7 @@ from src.models.categories import Category
 from src.models.liabilities import Liability
 from src.repositories.categories import CategoryRepository
 from src.repositories.liabilities import LiabilityRepository
-from tests.helpers.datetime_utils import utc_datetime
+from src.utils.datetime_utils import utc_datetime
 
 pytestmark = pytest.mark.asyncio
 

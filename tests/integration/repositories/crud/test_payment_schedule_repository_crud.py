@@ -27,7 +27,7 @@ from src.repositories.payment_schedules import PaymentScheduleRepository
 # Import schemas and schema factories - essential part of the validation pattern
 from src.schemas.payment_schedules import (PaymentScheduleCreate,
                                            PaymentScheduleUpdate)
-from tests.helpers.datetime_utils import (datetime_equals,
+from src.utils.datetime_utils import (datetime_equals,
                                           datetime_greater_than, utc_now)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.liabilities import create_liability_schema

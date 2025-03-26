@@ -23,13 +23,13 @@ from src.models.income import Income
 from src.repositories.accounts import AccountRepository
 from src.repositories.deposit_schedules import DepositScheduleRepository
 from src.repositories.income import IncomeRepository
-# Import schemas and schema factories - essential part of the validation pattern
 from src.schemas.deposit_schedules import (DepositScheduleCreate,
                                            DepositScheduleUpdate)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.deposit_schedules import \
     create_deposit_schedule_schema
 from tests.helpers.schema_factories.income import create_income_schema
+from src.utils.datetime_utils import utc_now, days_from_now, days_ago, datetime_greater_than
 
 pytestmark = pytest.mark.asyncio
 

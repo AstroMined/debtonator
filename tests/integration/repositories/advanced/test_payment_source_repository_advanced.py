@@ -22,7 +22,7 @@ from src.repositories.payments import PaymentRepository
 from src.schemas.accounts import AccountCreate
 from src.schemas.payments import (PaymentCreate, PaymentSourceCreate,
                                   PaymentSourceCreateNested, PaymentSourceUpdate)
-from tests.helpers.datetime_utils import utc_now
+from src.utils.datetime_utils import utc_now
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.payment_sources import \
     create_payment_source_schema, create_payment_source_nested_schema

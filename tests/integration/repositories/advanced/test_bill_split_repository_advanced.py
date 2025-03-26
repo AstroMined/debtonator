@@ -11,7 +11,6 @@ It follows the standard pattern:
 4. Assert: Verify the repository operation results
 """
 
-from datetime import timedelta
 from decimal import Decimal
 from typing import List
 
@@ -28,7 +27,7 @@ from src.repositories.liabilities import LiabilityRepository
 from src.schemas.accounts import AccountCreate
 from src.schemas.bill_splits import BillSplitCreate, BillSplitUpdate
 from src.schemas.liabilities import LiabilityCreate
-from tests.helpers.datetime_utils import utc_now, days_ago, days_from_now, datetime_equals, datetime_greater_than
+from src.utils.datetime_utils import utc_now, days_ago, days_from_now, datetime_equals, datetime_greater_than
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.bill_splits import create_bill_split_schema
 from tests.helpers.schema_factories.liabilities import create_liability_schema
@@ -260,8 +259,8 @@ async def test_get_account_split_totals_with_date_range(
 ):
     """Test calculating total splits for an account within a date range."""
     # 1. ARRANGE: Setup is already done with fixtures
-    start_date = utc_now() - timedelta(days=30)
-    end_date = utc_now() + timedelta(days=30)
+    start_date = days_ago(30)
+    end_date = days_from_now(30)
 
     # 2. ACT: Calculate account split totals within date range
     total = await bill_split_repository.get_account_split_totals(
