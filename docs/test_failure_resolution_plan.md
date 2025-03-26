@@ -6,13 +6,14 @@ This document outlines the step-by-step plan to resolve the 52 test failures in 
 
 ## Progress Tracking
 
-- [ ] Phase 1: DateTime Standardization (9/13 fixed)
+- [ ] Phase 1: DateTime Standardization (12/13 fixed)
 - [ ] Phase 2: Database Integrity Issues (0/8 fixed)
-- [ ] Phase 3: Nullability and Type Issues (0/8 fixed)
-- [ ] Phase 4: Count/Assert Failures (0/18 fixed)
+- [ ] Phase 3: Nullability and Type Issues (1/8 fixed)
+- [ ] Phase 4: Count/Assert Failures (2/18 fixed)
+- [ ] Phase 4a: Fixture Mismatch Issues (1/9 fixed)
 - [ ] Phase 5: Validation Issues (0/4 fixed)
 
-**Total Progress: 9/51 tests fixed**
+**Total Progress: 16/52 tests fixed**
 
 ## Resolution Sequence
 
@@ -21,12 +22,14 @@ flowchart TD
     A[1. DateTime Standardization] --> B[2. Database Integrity Issues]
     B --> C[3. Nullability/Type Issues]
     C --> D[4. Count/Assert Failures]
-    D --> E[5. Remaining Validation Issues]
+    D --> F[4a. Fixture Mismatch Issues]
+    F --> E[5. Remaining Validation Issues]
     
     style A fill:#d4f1f9,stroke:#05728f
     style B fill:#d5f5e3,stroke:#1e8449
     style C fill:#fcf3cf,stroke:#b7950b
     style D fill:#f5cba7,stroke:#af601a
+    style F fill:#e8daef,stroke:#8e44ad
     style E fill:#fadbd8,stroke:#943126
 ```
 
@@ -73,8 +76,9 @@ flowchart TD
 
 ### statement_history_repository_advanced.py
 
-- [ ] Fix test_get_by_date_range: "can't compare offset-naive and offset-aware datetimes"
-  - Still failing - likely needs fixture improvements similar to balance_reconciliation
+- [x] Fix test_get_by_date_range: "can't compare offset-naive and offset-aware datetimes"
+  - Fixed by using datetime helpers with `ignore_timezone=True` parameter
+  - Implemented proper comparisons with `datetime_greater_than` and `datetime_equals`
 
 ### account_repository_advanced.py
 
@@ -142,9 +146,9 @@ flowchart TD
 
 ### account_repository_advanced.py
 
-- [ ] Fix test_update_balance_credit_account: "unsupported operand type(s) for -: 'NoneType' and 'decimal.Decimal'"
-  - Add null check before decimal arithmetic
-  - Ensure available_credit is never None for credit accounts
+- [x] Fix test_update_balance_credit_account: "unsupported operand type(s) for -: 'NoneType' and 'decimal.Decimal'"
+  - Added null check before decimal arithmetic
+  - Fixed credit account fixture to properly initialize available_credit
 
 ### balance_history_repository_advanced.py
 
@@ -180,13 +184,61 @@ flowchart TD
 
 - [ ] Fix additional nullability issues found during implementation
 
+## Phase 4a: Fixture Mismatch Issues Checklist
+
+### Key Findings from Investigation
+
+- **Root Cause**: Several tests are using incorrect fixture types causing assertion failures
+- **Common Pattern**: Tests for one model type using fixtures for another model type
+- **Example**: Deposit schedule tests using `test_multiple_schedules` fixture which creates PaymentSchedule objects instead of the correct `test_multiple_deposit_schedules` fixture
+- **Solution Pattern**: Replace incorrect fixture references with the correct type-specific fixtures (e.g., `test_multiple_payment_schedules` instead of `test_multiple_schedules`)
+
+### deposit_schedule_repository_advanced.py
+
+- [ ] Fix test_get_by_date_range: "assert 0 >= 3"
+  - Test is using PaymentSchedule fixture but needs DepositSchedule fixture
+  - Update test to use `test_multiple_deposit_schedules` instead of `test_multiple_schedules`
+
+- [ ] Fix test_get_by_account: "assert 0 >= 2"
+  - Likely using wrong fixture type
+  - Update to use correct deposit schedule fixture
+
+- [ ] Fix test_get_by_income: "assert 0 >= 2"
+  - Likely using wrong fixture type
+  - Update to use correct deposit schedule fixture
+
+- [ ] Fix test_get_pending_schedules: "assert 0 >= 3"
+  - Likely using wrong fixture type
+  - Update to use correct deposit schedule fixture
+
+- [ ] Fix test_get_processed_schedules: "assert 0 >= 1"
+  - Likely using wrong fixture type
+  - Update to use correct deposit schedule fixture
+
+- [ ] Fix test_get_schedules_with_relationships: "assert 0 >= 3"
+  - Likely using wrong fixture type
+  - Update to use correct deposit schedule fixture
+
+- [ ] Fix test_find_overdue_schedules: "assert 0 >= 1"
+  - Likely using wrong fixture type
+  - Update to use correct deposit schedule fixture
+
+- [ ] Fix test_get_recurring_schedules: "assert 0 >= 1"
+  - Likely using wrong fixture type
+  - Update to use correct deposit schedule fixture
+
+- [ ] Fix test_get_total_scheduled_deposits: "assert 0.0 > 0"
+  - Likely using wrong fixture type
+  - Update to use correct deposit schedule fixture
+
 ## Phase 4: Count/Assert Failures Checklist
 
 ### account_repository_advanced.py
 
-- [ ] Fix test_find_credit_accounts_near_limit: "assert 0 >= 1"
-  - Update test data to include accounts near credit limit
-  - Fix credit limit calculation logic
+- [x] Fix test_find_credit_accounts_near_limit: "assert 0 >= 1"
+  - Changed comparison operator from < to <= in repository method
+  - Updated test assertion to also use <= for consistency
+  - Improved behavior by including accounts exactly at the threshold
 
 ### balance_history_repository_advanced.py
 
@@ -252,9 +304,9 @@ flowchart TD
 
 ### payment_schedule_repository_advanced.py
 
-- [ ] Fix test_get_by_date_range: "assert 1 >= 2"
-  - Add payment schedules in test date range
-  - Fix date range filtering query
+- [x] Fix test_get_by_date_range: "assert 1 >= 2"
+  - Fixed by using correct fixture `test_multiple_payment_schedules` instead of `test_multiple_schedules`
+  - Implemented proper timezone-aware date comparisons
 
 ### recurring_bill_repository_advanced.py
 

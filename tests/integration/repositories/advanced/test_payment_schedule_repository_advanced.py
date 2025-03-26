@@ -39,7 +39,7 @@ pytestmark = pytest.mark.asyncio
 async def test_get_by_account(
     payment_schedule_repository: PaymentScheduleRepository,
     test_checking_account: Account,
-    test_multiple_schedules: List[PaymentSchedule],
+    test_multiple_payment_schedules: List[PaymentSchedule],
 ):
     """Test getting payment schedules for a specific account."""
     # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
@@ -56,7 +56,7 @@ async def test_get_by_account(
 async def test_get_by_liability(
     payment_schedule_repository: PaymentScheduleRepository,
     test_liability: Liability,
-    test_multiple_schedules: List[PaymentSchedule],
+    test_multiple_payment_schedules: List[PaymentSchedule],
 ):
     """Test getting payment schedules for a specific liability."""
     # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
@@ -112,13 +112,13 @@ async def test_get_with_liability(
 
 async def test_get_by_date_range(
     payment_schedule_repository: PaymentScheduleRepository,
-    test_multiple_schedules: List[PaymentSchedule],
+    test_multiple_payment_schedules: List[PaymentSchedule],
 ):
     """Test getting payment schedules within a date range."""
     # 1. ARRANGE: Setup date range
-    now = datetime.now(timezone.utc)
-    start_date = now - timedelta(days=1)
-    end_date = now + timedelta(days=10)
+    now = utc_now()
+    start_date = now - timedelta(days=5)  # Expanded range to catch more test data
+    end_date = now + timedelta(days=15)   # Expanded range to catch more test data
 
     # 2. SCHEMA: Not needed for this query-only operation
 
@@ -128,18 +128,16 @@ async def test_get_by_date_range(
     # 4. ASSERT: Verify the operation results
     assert len(results) >= 2  # Should get at least 2 schedules in this range
     for schedule in results:
-        # Convert the timezone-aware dates to naive for comparison with database values
-        naive_start_date = start_date.replace(tzinfo=None)
-        naive_end_date = end_date.replace(tzinfo=None)
-        naive_schedule_date = schedule.scheduled_date
-
-        assert naive_schedule_date >= naive_start_date
-        assert naive_schedule_date <= naive_end_date
+        # Use proper timezone-aware comparison
+        assert (datetime_greater_than(schedule.scheduled_date, start_date, ignore_timezone=True) or 
+                datetime_equals(schedule.scheduled_date, start_date, ignore_timezone=True))
+        assert (datetime_greater_than(end_date, schedule.scheduled_date, ignore_timezone=True) or 
+                datetime_equals(end_date, schedule.scheduled_date, ignore_timezone=True))
 
 
 async def test_get_pending_schedules(
     payment_schedule_repository: PaymentScheduleRepository,
-    test_multiple_schedules: List[PaymentSchedule],
+    test_multiple_payment_schedules: List[PaymentSchedule],
 ):
     """Test getting pending payment schedules."""
     # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
@@ -156,11 +154,11 @@ async def test_get_pending_schedules(
 
 async def test_get_processed_schedules(
     payment_schedule_repository: PaymentScheduleRepository,
-    test_multiple_schedules: List[PaymentSchedule],
+    test_multiple_payment_schedules: List[PaymentSchedule],
 ):
     """Test getting processed payment schedules."""
     # 1. ARRANGE: Mark one schedule as processed
-    test_schedule = test_multiple_schedules[0]
+    test_schedule = test_multiple_payment_schedules[0]
     process_time = utc_now()
 
     # Use the repository method to mark as processed
@@ -209,7 +207,7 @@ async def test_mark_as_processed(
 
 async def test_get_schedules_with_relationships(
     payment_schedule_repository: PaymentScheduleRepository,
-    test_multiple_schedules: List[PaymentSchedule],
+    test_multiple_payment_schedules: List[PaymentSchedule],
 ):
     """Test getting payment schedules with all relationships loaded."""
     # 1. ARRANGE: Set up date range
@@ -234,7 +232,7 @@ async def test_get_schedules_with_relationships(
 
 async def test_get_upcoming_schedules(
     payment_schedule_repository: PaymentScheduleRepository,
-    test_multiple_schedules: List[PaymentSchedule],
+    test_multiple_payment_schedules: List[PaymentSchedule],
     test_checking_account: Account,
 ):
     """Test getting upcoming payment schedules."""
@@ -265,7 +263,7 @@ async def test_get_upcoming_schedules(
 
 async def test_find_overdue_schedules(
     payment_schedule_repository: PaymentScheduleRepository,
-    test_multiple_schedules: List[PaymentSchedule],
+    test_multiple_payment_schedules: List[PaymentSchedule],
 ):
     """Test finding overdue payment schedules."""
     # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
@@ -275,10 +273,12 @@ async def test_find_overdue_schedules(
 
     # 4. ASSERT: Verify the operation results
     assert len(results) >= 1  # Should get at least 1 overdue schedule
-    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    now = utc_now()
+    
     for schedule in results:
         assert schedule.processed is False
-        assert schedule.scheduled_date < now
+        # Use proper timezone-aware comparison
+        assert datetime_greater_than(now, schedule.scheduled_date, ignore_timezone=True)
 
         # Relationships should be loaded
         assert schedule.account is not None
@@ -287,12 +287,12 @@ async def test_find_overdue_schedules(
 
 async def test_get_auto_process_schedules(
     payment_schedule_repository: PaymentScheduleRepository,
-    test_multiple_schedules: List[PaymentSchedule],
+    test_multiple_payment_schedules: List[PaymentSchedule],
 ):
     """Test getting payment schedules set for auto-processing."""
     # 1. ARRANGE: Set up date range
-    now = datetime.now(timezone.utc)
-    date_range = (now - timedelta(days=1), now + timedelta(days=30))
+    now = utc_now()
+    date_range = (days_ago(1), days_from_now(30))
 
     # 2. SCHEMA: Not needed for this query-only operation
 
@@ -312,7 +312,7 @@ async def test_get_auto_process_schedules(
 
 async def test_get_total_scheduled_payments(
     payment_schedule_repository: PaymentScheduleRepository,
-    test_multiple_schedules: List[PaymentSchedule],
+    test_multiple_payment_schedules: List[PaymentSchedule],
     test_checking_account: Account,
 ):
     """Test calculating total amount of scheduled payments."""

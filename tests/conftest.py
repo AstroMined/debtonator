@@ -307,6 +307,7 @@ async def test_credit_account(db_session: AsyncSession) -> Account:
         type="credit",
         available_balance=Decimal("-500.00"),
         total_limit=Decimal("2000.00"),
+        available_credit=Decimal("1500.00"),  # total_limit - abs(available_balance)
         created_at=naive_utc_now(),
         updated_at=naive_utc_now(),
     )

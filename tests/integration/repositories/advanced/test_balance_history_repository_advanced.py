@@ -17,7 +17,7 @@ from src.models.balance_history import BalanceHistory
 from src.repositories.balance_history import BalanceHistoryRepository
 from src.schemas.balance_history import (BalanceHistoryCreate,
                                          BalanceHistoryUpdate)
-from src.utils.datetime_utils import utc_now
+from src.utils.datetime_utils import utc_now, datetime_equals, datetime_greater_than
 from tests.helpers.schema_factories.balance_history import \
     create_balance_history_schema
 
@@ -114,8 +114,11 @@ async def test_get_by_date_range(
     # Check that balances are within range
     for balance in results:
         assert balance.account_id == test_checking_account.id
-        assert balance.timestamp >= start_date
-        assert balance.timestamp <= end_date
+        # Use proper timezone-aware comparison
+        assert datetime_greater_than(balance.timestamp, start_date, ignore_timezone=True) or \
+               datetime_equals(balance.timestamp, start_date, ignore_timezone=True)
+        assert datetime_greater_than(end_date, balance.timestamp, ignore_timezone=True) or \
+               datetime_equals(end_date, balance.timestamp, ignore_timezone=True)
 
 
 async def test_get_reconciled_balances(

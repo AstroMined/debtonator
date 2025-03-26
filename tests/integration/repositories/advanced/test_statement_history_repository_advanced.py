@@ -119,8 +119,11 @@ async def test_get_by_date_range(
     # Check that statements are within range
     for statement in results:
         assert statement.account_id == test_credit_account.id
-        assert statement.statement_date >= start_date
-        assert statement.statement_date <= end_date
+        # Use proper timezone-aware comparison
+        assert (datetime_greater_than(statement.statement_date, start_date, ignore_timezone=True) or 
+                datetime_equals(statement.statement_date, start_date, ignore_timezone=True))
+        assert (datetime_greater_than(end_date, statement.statement_date, ignore_timezone=True) or 
+                datetime_equals(end_date, statement.statement_date, ignore_timezone=True))
 
 
 async def test_get_statements_with_due_dates(

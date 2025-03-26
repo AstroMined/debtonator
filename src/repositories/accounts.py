@@ -175,6 +175,10 @@ class AccountRepository(BaseRepository[Account, int]):
 
         # For credit accounts, recalculate available credit
         if account.type == "credit" and account.total_limit is not None:
+            # Initialize available_credit to 0 if it's None
+            if account.available_credit is None:
+                account.available_credit = Decimal("0.0")
+            
             account.available_credit = account.total_limit - abs(
                 account.available_balance
             )
@@ -243,7 +247,7 @@ class AccountRepository(BaseRepository[Account, int]):
                     Account.type == "credit",
                     Account.total_limit.is_not(None),
                     Account.available_credit
-                    < (1 - threshold_percentage) * Account.total_limit,
+                    <= (1 - threshold_percentage) * Account.total_limit,
                 )
             )
             .order_by(desc(Account.available_credit))

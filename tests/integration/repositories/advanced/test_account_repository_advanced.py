@@ -269,7 +269,7 @@ async def test_find_credit_accounts_near_limit(
             assert account.type == "credit"
             assert account.total_limit is not None
             assert account.available_credit is not None
-            assert account.available_credit < (account.total_limit * Decimal("0.1"))
+            assert account.available_credit <= (account.total_limit * Decimal("0.1"))
             break
 
     assert found_account, "Test credit account not found in near-limit accounts"

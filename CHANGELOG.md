@@ -6,6 +6,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.42] - 2025-03-26
+
+### Fixed
+
+- Fixed datetime timezone comparison issues in repository tests:
+  - Fixed offset-naive vs offset-aware datetime comparisons in statement_history_repository
+  - Fixed payment_schedule_repository_advanced test with proper fixture references
+  - Implemented proper timezone-aware comparisons with datetime_greater_than and datetime_equals helpers
+  - Used ignore_timezone=True parameter for consistent behavior across timezone variants
+  - Standardized fixture naming for better consistency (test_multiple_payment_schedules instead of test_multiple_schedules)
+  - Fixed test_get_by_date_range assertions to properly check date ranges
+  - Updated test_find_overdue_schedules to use proper datetime comparisons
+  - Enhanced test_get_auto_process_schedules to use helper functions days_ago and days_from_now
+
+### Changed
+
+- Enhanced test failure resolution documentation:
+  - Updated test_failure_resolution_plan.md with new progress tracking (16/52 tests fixed)
+  - Added fixture mismatch pattern documentation to help resolve similar issues
+  - Documented timezone comparison patterns for repository tests
+  - Created comprehensive tracking for remaining test failures by category
+  - Improved implementation guidelines with detailed patterns for fixing similar issues
+
 ## [0.5.41] - 2025-03-26
 
 ### Changed

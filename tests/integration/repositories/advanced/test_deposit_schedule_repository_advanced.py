@@ -29,7 +29,7 @@ from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.deposit_schedules import \
     create_deposit_schedule_schema
 from tests.helpers.schema_factories.income import create_income_schema
-from src.utils.datetime_utils import utc_now, days_from_now, days_ago, datetime_greater_than
+from src.utils.datetime_utils import utc_now, days_from_now, days_ago, datetime_greater_than, datetime_equals
 
 pytestmark = pytest.mark.asyncio
 
@@ -37,7 +37,7 @@ pytestmark = pytest.mark.asyncio
 async def test_get_by_account(
     deposit_schedule_repository: DepositScheduleRepository,
     test_checking_account: Account,
-    test_multiple_schedules: List[DepositSchedule],
+    test_multiple_deposit_schedules: List[DepositSchedule],
 ):
     """Test getting deposit schedules for a specific account."""
     # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
@@ -54,7 +54,7 @@ async def test_get_by_account(
 async def test_get_by_income(
     deposit_schedule_repository: DepositScheduleRepository,
     test_income: Income,
-    test_multiple_schedules: List[DepositSchedule],
+    test_multiple_deposit_schedules: List[DepositSchedule],
 ):
     """Test getting deposit schedules for a specific income."""
     # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
@@ -108,11 +108,11 @@ async def test_get_with_income(
 
 async def test_get_by_date_range(
     deposit_schedule_repository: DepositScheduleRepository,
-    test_multiple_schedules: List[DepositSchedule],
+    test_multiple_deposit_schedules: List[DepositSchedule],
 ):
     """Test getting deposit schedules within a date range."""
     # 1. ARRANGE: Setup date range
-    now = datetime.now(timezone.utc)
+    now = utc_now()
     start_date = now - timedelta(days=14)
     end_date = now + timedelta(days=7)
 
@@ -126,18 +126,16 @@ async def test_get_by_date_range(
 
     # Verify dates are within the range
     for schedule in results:
-        # Make naive comparison for dates
-        schedule_date = schedule.schedule_date.replace(tzinfo=None)
-        naive_start = start_date.replace(tzinfo=None)
-        naive_end = end_date.replace(tzinfo=None)
-
-        assert schedule_date >= naive_start
-        assert schedule_date <= naive_end
+        # Use proper timezone-aware comparison
+        assert (datetime_greater_than(schedule.schedule_date, start_date, ignore_timezone=True) or 
+                datetime_equals(schedule.schedule_date, start_date, ignore_timezone=True))
+        assert (datetime_greater_than(end_date, schedule.schedule_date, ignore_timezone=True) or 
+                datetime_equals(end_date, schedule.schedule_date, ignore_timezone=True))
 
 
 async def test_get_pending_schedules(
     deposit_schedule_repository: DepositScheduleRepository,
-    test_multiple_schedules: List[DepositSchedule],
+    test_multiple_deposit_schedules: List[DepositSchedule],
 ):
     """Test getting pending deposit schedules."""
     # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
@@ -153,7 +151,7 @@ async def test_get_pending_schedules(
 
 async def test_get_processed_schedules(
     deposit_schedule_repository: DepositScheduleRepository,
-    test_multiple_schedules: List[DepositSchedule],
+    test_multiple_deposit_schedules: List[DepositSchedule],
 ):
     """Test getting processed deposit schedules."""
     # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
@@ -187,11 +185,11 @@ async def test_mark_as_processed(
 
 async def test_get_schedules_with_relationships(
     deposit_schedule_repository: DepositScheduleRepository,
-    test_multiple_schedules: List[DepositSchedule],
+    test_multiple_deposit_schedules: List[DepositSchedule],
 ):
     """Test getting deposit schedules with all relationships loaded."""
     # 1. ARRANGE: Setup date range
-    now = datetime.now(timezone.utc)
+    now = utc_now()
     date_range = (now - timedelta(days=14), now + timedelta(days=14))
 
     # 2. SCHEMA: Not needed for this query-only operation
@@ -212,7 +210,7 @@ async def test_get_schedules_with_relationships(
 
 async def test_get_upcoming_schedules(
     deposit_schedule_repository: DepositScheduleRepository,
-    test_multiple_schedules: List[DepositSchedule],
+    test_multiple_deposit_schedules: List[DepositSchedule],
     test_checking_account: Account,
 ):
     """Test getting upcoming deposit schedules."""
@@ -230,10 +228,15 @@ async def test_get_upcoming_schedules(
         assert schedule.status == "pending"
 
         # Schedule date should be in the future and within 7 days
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
-        schedule_date = schedule.schedule_date.replace(tzinfo=None)
-        assert schedule_date >= now
-        assert schedule_date <= (now + timedelta(days=7))
+        now = utc_now()
+        
+        # Use proper timezone-aware comparison
+        assert datetime_greater_than(schedule.schedule_date, now, ignore_timezone=True) or \
+               datetime_equals(schedule.schedule_date, now, ignore_timezone=True)
+        
+        future_limit = now + timedelta(days=7)
+        assert datetime_greater_than(future_limit, schedule.schedule_date, ignore_timezone=True) or \
+               datetime_equals(future_limit, schedule.schedule_date, ignore_timezone=True)
 
         # Relationships should be loaded
         assert schedule.account is not None
@@ -242,7 +245,7 @@ async def test_get_upcoming_schedules(
 
 async def test_find_overdue_schedules(
     deposit_schedule_repository: DepositScheduleRepository,
-    test_multiple_schedules: List[DepositSchedule],
+    test_multiple_deposit_schedules: List[DepositSchedule],
 ):
     """Test finding overdue deposit schedules."""
     # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
@@ -266,7 +269,7 @@ async def test_find_overdue_schedules(
 
 async def test_get_recurring_schedules(
     deposit_schedule_repository: DepositScheduleRepository,
-    test_multiple_schedules: List[DepositSchedule],
+    test_multiple_deposit_schedules: List[DepositSchedule],
 ):
     """Test getting recurring deposit schedules."""
     # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
@@ -282,7 +285,7 @@ async def test_get_recurring_schedules(
 
 async def test_get_total_scheduled_deposits(
     deposit_schedule_repository: DepositScheduleRepository,
-    test_multiple_schedules: List[DepositSchedule],
+    test_multiple_deposit_schedules: List[DepositSchedule],
     test_checking_account: Account,
 ):
     """Test calculating total amount of scheduled deposits."""

@@ -1,11 +1,41 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Repository Layer Integration Tests (ADR-014), Breaking Circular Test Dependencies, Direct Model Instantiation
+Repository Test Failure Resolution, Timezone-aware Datetime Handling, Fixture Corrections
 
 ### Recent Changes
 
-1. **Refactored Test Fixtures to Use Direct SQLAlchemy Model Instantiation** ✓
+1. **Fixed Repository Test Datetime Comparisons** ✓
+   - Fixed "can't compare offset-naive and offset-aware datetimes" errors in multiple repository tests
+   - Implemented proper timezone-aware comparisons with datetime_greater_than and datetime_equals helper functions
+   - Used ignore_timezone=True parameter for consistent behavior across timezone variants
+   - Standardized test assertions to properly check date ranges
+   - Updated handling of UTC datetime comparisons in test assertions
+   - Fixed statement_history_repository and payment_schedule_repository tests
+   - Added proper fixes for timezone handling in repository tests
+   - Created patterns for fixing similar timezone issues in other tests
+
+2. **Identified and Fixed Fixture Mismatch Pattern** ✓
+   - Discovered common issue with tests using incorrect fixture types
+   - Fixed payment_schedule_repository_advanced test with proper fixture references
+   - Changed test_multiple_schedules to test_multiple_payment_schedules for proper typing
+   - Standardized fixture naming for better consistency
+   - Documented pattern to help resolve similar fixture mismatch issues
+   - Created comprehensive plan for remaining fixture mismatches
+   - Enhanced test infrastructure with better fixture management
+   - Improved test reliability by using proper type-specific fixtures
+
+3. **Fixed Test Date Range Handling** ✓
+   - Enhanced test_get_by_date_range assertions to properly check date ranges
+   - Updated test_find_overdue_schedules to use proper datetime comparisons
+   - Used helper functions days_ago and days_from_now consistently
+   - Fixed date range boundary testing with proper timezone awareness
+   - Enhanced test_get_auto_process_schedules with proper date range handling
+   - Standardized date range comparison pattern across all repository tests
+   - Improved test readability with helper functions for date operations
+   - Enhanced test reliability with consistent date handling
+
+4. **Refactored Test Fixtures to Use Direct SQLAlchemy Model Instantiation** ✓
    - Replaced repository-based fixture data creation with direct SQLAlchemy model instantiation
    - Fixed circular dependency issues where repository tests were using fixtures that themselves used repositories
    - Updated fixtures in income, payments, recurring, schedules, statements, and transactions fixture files
@@ -14,68 +44,35 @@ Repository Layer Integration Tests (ADR-014), Breaking Circular Test Dependencie
    - Properly handled relationships with the flush-then-refresh pattern
    - Ensured test fixtures use the correct field names matching actual model fields
    - Applied consistent pattern for timezone handling with naive datetimes for DB storage
-# Active Context: Debtonator
 
-
-2. **Fixed Model Field Name Mismatches in Fixtures** ✓
-   - Corrected `old_limit`/`new_limit` to `credit_limit` in CreditLimitHistory fixtures
-   - Changed `account_type` to `type` in Account fixtures
-   - Removed `balance_after` from TransactionHistory fixtures
-   - Removed non-existent `category` field from TransactionHistory
-   - Fixed field names across all fixture files to match actual database model field names
-   - Identified business logic leakage from repositories into the data access layer
-   - Documented schema vs. repository responsibilities for better architecture
-   - Improved test isolation by removing repository dependencies
-
-3. **Enhanced SQLAlchemy Relationship Handling in Fixtures** ✓
-   - Implemented proper parent-child relationship handling in fixtures
-   - Used the flush-then-refresh pattern consistently for relationship establishment
-   - Added explicit db_session.refresh() after flush for all related objects
-   - Improved nested object creation with proper ID assignment
-   - Fixed relationship handling for complex objects like payment sources
-   - Used proper SQLAlchemy session management in all fixtures
-   - Ensured test data integrity with proper relationship loading
-   - Maintained same test functionality despite implementation change
-
-4. **Improved Datetime Handling in Test Fixtures** ✓
-   - Consistently used `.replace(tzinfo=None)` for all datetime objects in fixtures
-   - Ensured all datetime fields store naive datetimes as required by SQLAlchemy
-   - Fixed timezone handling with proper conversion to naive UTC datetimes
-   - Applied consistent pattern for datetime creation and storage
-   - Maintained compatibility with database requirements for datetime fields
-   - Fixed timezone issues in test fixtures for statements and transactions
-   - Added explicit comments about naive datetime usage for DB storage
-   - Applied consistent datetime pattern across all fixture files
-
-5. **Fixed Architecture Layer Separation** ✓
-   - Eliminated repository business logic leaking into test fixtures
-   - Properly separated data access layer from validation layer
-   - Fixed circular dependencies where repository tests depended on repositories
-   - Found and documented inappropriate field validation in repositories
-   - Improved test integrity by making test fixtures independent of the systems they test
-   - Identified areas where business logic was inappropriately placed in repositories
-   - Enhanced architecture layer separation with proper responsibility boundaries
-   - Removed schema factories from fixture creation for cleaner separation
+5. **Enhanced Test Failure Resolution Documentation** ✓
+   - Updated test_failure_resolution_plan.md with new progress tracking (16/52 tests fixed)
+   - Added fixture mismatch pattern documentation to help resolve similar issues
+   - Documented timezone comparison patterns for repository tests
+   - Created comprehensive tracking for remaining test failures by category
+   - Improved implementation guidelines with detailed patterns for fixing similar issues
+   - Added examples for proper timezone-aware comparison
+   - Organized test failures by type for more systematic resolution
+   - Created clear priorities for remaining test failures
 
 ## Next Steps
 
-1. **Continue Phase 2: Database Integrity Issues**
+1. **Continue Phase 1: Complete DateTime Standardization**
+   - Fix remaining test_get_upcoming_schedules issues in deposit_schedule_repository and payment_schedule_repository
+   - Fix "day is out of range for month" errors with proper date calculations
+   - Apply datetime_greater_than and datetime_equals helpers to remaining tests
+
+2. **Continue Phase 2: Database Integrity Issues**
    - Fix NOT NULL constraint failures in category_repository_advanced tests
    - Fix relationship loading issues in liability_repository_advanced
    - Fix assertion issues in recurring_bill_repository_advanced
    - Fix category-income relationships in income_category_repository_advanced
 
-2. **Continue Phase 3: Nullability and Type Issues**
-   - Fix decimal arithmetic with None values in account_repository_advanced
-   - Fix null handling in balance_history_repository_advanced
-   - Fix attribute references in income_category_repository_advanced
-   - Fix decimal precision issues in transaction_history_repository_advanced
-
-3. **Update Repository Tests to Support Direct Model Instantiation**
-   - Revise test assertions to match updated fixture behavior
-   - Fix any remaining field name mismatches in test assertions
-   - Update expected values to match the direct model approach
-   - Fix test setup that assumes repository-based fixture creation
+3. **Continue Phase 4a: Fixture Mismatch Issues**
+   - Fix deposit_schedule_repository_advanced tests using improper fixtures
+   - Systematically fix all tests using test_multiple_schedules instead of correct type-specific fixtures
+   - Apply fixture naming consistency pattern across all repository tests
+   - Ensure proper fixture relationships for all test cases
 
 4. **Create ADR Documenting the Test Fixture Architecture**
    - Document the direct SQLAlchemy model instantiation pattern
@@ -85,7 +82,27 @@ Repository Layer Integration Tests (ADR-014), Breaking Circular Test Dependencie
 
 ## Implementation Lessons
 
-1. **Test Fixture Architecture**
+1. **Timezone-aware Datetime Comparison Pattern**
+   - Use `datetime_greater_than(date1, date2, ignore_timezone=True)` for date comparisons
+   - Use `datetime_equals(date1, date2, ignore_timezone=True)` for date equality checks
+   - Use helper functions from tests/helpers/datetime_utils.py consistently
+   - Apply `days_ago()` and `days_from_now()` for consistent date range creation
+   - Use `utc_now()` instead of `datetime.now(timezone.utc)` for standardization
+   - Follow the pattern: `assert (datetime_greater_than(date1, date2, ignore_timezone=True) or datetime_equals(date1, date2, ignore_timezone=True))`
+   - Be consistent with timezone handling across all repository tests
+   - Remember to add proper imports: `from src.utils.datetime_utils import (utc_now, days_from_now, days_ago, datetime_equals, datetime_greater_than)`
+
+2. **Fixture Mismatch Resolution Pattern**
+   - Look for fixture parameter names like `test_multiple_schedules` in test function parameters
+   - Replace with proper type-specific fixtures like `test_multiple_payment_schedules`
+   - Verify fixture type matches the repository being tested
+   - Follow naming convention: `test_multiple_[model_name_plural]`
+   - Check fixture imports in conftest.py to ensure proper type availability
+   - For deposit schedules, use `test_multiple_deposit_schedules` instead of `test_multiple_schedules`
+   - For payment schedules, use `test_multiple_payment_schedules` instead of `test_multiple_schedules`
+   - Apply the pattern systematically to all tests in the file
+
+3. **Test Fixture Architecture**
    - Create test fixtures using direct SQLAlchemy model instantiation rather than repositories
    - Use db_session directly for model creation, flushing, and refreshing
    - Handle relationships using the flush-then-refresh pattern
@@ -93,21 +110,3 @@ Repository Layer Integration Tests (ADR-014), Breaking Circular Test Dependencie
    - Convert aware datetimes to naive with `.replace(tzinfo=None)` for SQLAlchemy storage
    - Implement standard refresh pattern to ensure all relationship data is loaded
    - Create independent fixtures that don't depend on the systems they're testing
-
-2. **SQLAlchemy Relationship Handling**
-   - For parent-child relationships, create parent first, flush to get ID, then create children
-   - Always refresh parent objects after creating children to load relationships
-   - Use separate flush operations for different hierarchy levels
-   - Maintain proper ordering when creating related objects
-   - Use session.flush() instead of commit() in fixtures for better transaction control
-   - Directly set foreign key fields with appropriate IDs after flushing parent objects
-   - Use single db_session object consistently throughout fixtures
-
-3. **Architecture Layer Separation**
-   - Repositories should contain minimal business logic
-   - Field validation belongs in the schema layer, not repositories
-   - Test fixtures should be independent of the systems they test
-   - Direct model instantiation avoids circular dependencies in testing
-   - Proper separation of concerns improves test reliability and maintainability
-   - Repository tests should test repositories, not schema validation
-   - Business logic should live in the service layer, not repositories

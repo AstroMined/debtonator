@@ -39,7 +39,7 @@ async def test_payment_schedule(
 
 
 @pytest_asyncio.fixture
-async def test_multiple_schedules(
+async def test_multiple_payment_schedules(
     db_session: AsyncSession,
     test_liability,
     test_checking_account,
