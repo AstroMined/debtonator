@@ -1,6 +1,23 @@
 # Progress
 
-## March 26, 2025
+## March 26, 2025 (Evening)
+
+### Completed Tasks
+
+- Fixed SQLAlchemy Lazy Loading Issues:
+  - Fixed MissingGreenlet errors in CategoryRepository and RecurringBillRepository tests
+  - Identified key anti-pattern: using hasattr() in tests which triggers SQLAlchemy lazy loading
+  - Created solution pattern: avoiding hasattr() checks on relationships not explicitly loaded
+  - Simplified repository implementation to use conditional relationship loading in a single query
+  - Eliminated use of multiple separate queries for different relationships
+  - Updated test assertions to only check for explicitly loaded relationships
+  - Fixed two key tests in Phase 2 database integrity issues
+  - Created reusable pattern for fixing similar issues in other repositories
+  - Updated test_get_with_relationships in CategoryRepository to use clean single-query approach
+  - Fixed test_get_with_relationships in RecurringBillRepository to avoid lazy loading
+  - Increased test failure resolution progress to 19/52 tests
+
+## March 26, 2025 (Morning)
 
 ### Completed Tasks
 

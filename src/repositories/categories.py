@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 from sqlalchemy import and_, column, desc, func, literal, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import aliased, joinedload, selectinload
+from sqlalchemy.orm import aliased, joinedload, noload, selectinload
 from sqlalchemy.sql.expression import union_all
 
 from src.constants import DEFAULT_CATEGORY_DESCRIPTION, DEFAULT_CATEGORY_ID, DEFAULT_CATEGORY_NAME
@@ -200,8 +200,10 @@ class CategoryRepository(BaseRepository[Category, int]):
         Returns:
             Optional[Category]: Category with loaded relationships or None
         """
+        # Create a query with conditional relationship loading
         query = select(Category).where(Category.id == category_id)
 
+        # Add relationship loading options based on parameters
         if include_parent:
             query = query.options(joinedload(Category.parent))
 
@@ -211,6 +213,7 @@ class CategoryRepository(BaseRepository[Category, int]):
         if include_bills:
             query = query.options(selectinload(Category.bills))
 
+        # Execute the query and return the result
         result = await self.session.execute(query)
         return result.scalars().unique().first()
 
@@ -383,7 +386,7 @@ class CategoryRepository(BaseRepository[Category, int]):
             Tuple[Category, int]: (category, bill_count) tuple
         """
         result = await self.session.execute(
-            select(Category, func.count().label("bill_count"))
+            select(Category, func.count(Liability.id).label("bill_count"))
             .select_from(Category)
             .outerjoin(Liability, Liability.category_id == Category.id)
             .where(Category.id == category_id)
@@ -404,13 +407,14 @@ class CategoryRepository(BaseRepository[Category, int]):
             List[Tuple[Category, int]]: List of (category, bill_count) tuples
         """
         result = await self.session.execute(
-            select(Category, func.count().label("bill_count"))
+            select(Category, func.count(Liability.id).label("bill_count"))
             .select_from(Category)
             .outerjoin(Liability, Liability.category_id == Category.id)
             .group_by(Category.id)
             .order_by(Category.name)
         )
-        return [(row.Category, row.bill_count) for row in result.all()]
+        # Use unique() to ensure we don't get duplicates due to the join
+        return [(row.Category, row.bill_count) for row in result.unique().all()]
 
     async def get_total_by_category(self) -> List[Tuple[Category, Decimal]]:
         """

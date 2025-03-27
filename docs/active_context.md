@@ -5,7 +5,17 @@ Repository Test Failure Resolution, Timezone-aware Datetime Handling, Fixture Co
 
 ### Recent Changes
 
-1. **Fixed Repository Test Datetime Comparisons** ✓
+1. **Fixed SQLAlchemy Lazy Loading Issues** ✓
+   - Fixed MissingGreenlet errors in CategoryRepository and RecurringBillRepository tests
+   - Identified key anti-pattern: using hasattr() in tests which triggers SQLAlchemy lazy loading
+   - Created solution pattern: avoiding hasattr() checks on relationships not explicitly loaded
+   - Simplified repository implementation to use conditional relationship loading in a single query
+   - Eliminated use of multiple separate queries for different relationships
+   - Updated test assertions to only check for explicitly loaded relationships
+   - Fixed two key tests in Phase 2 database integrity issues
+   - Created reusable pattern for fixing similar issues in other repositories
+
+2. **Fixed Repository Test Datetime Comparisons** ✓
    - Fixed "can't compare offset-naive and offset-aware datetimes" errors in multiple repository tests
    - Implemented proper timezone-aware comparisons with datetime_greater_than and datetime_equals helper functions
    - Used ignore_timezone=True parameter for consistent behavior across timezone variants

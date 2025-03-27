@@ -113,7 +113,7 @@ flowchart TD
    - Follow the commit message structure below
    - Include all significant changes
    - Reference related ADRs or issues
-   - Present the commit message in a code block for convenience
+   - Present the commit message in a code block for convenience but do not write to file
 
 ## Commit Message Structure
 
