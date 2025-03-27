@@ -6,6 +6,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.46] - 2025-03-27
+
+### Added
+
+- Database-agnostic date handling utilities for cross-database compatibility:
+  - `normalize_db_date()` utility to handle different date formats from various DB engines
+  - `date_equals()` and `date_in_collection()` utilities for reliable date comparisons
+  - Support for both SQLite (string dates) and PostgreSQL/MySQL (datetime objects)
+
+### Fixed
+
+- All Balance History Repository tests now pass consistently:
+  - Fixed test_get_min_max_balance with proper timezone handling
+  - Fixed test_get_balance_trend to include all expected data points
+  - Fixed test_get_average_balance with proper Decimal precision
+  - Fixed test_get_missing_days with robust date comparison
+  - Fixed test_get_available_credit_trend with correct date filtering
+- Improved date comparison with format-agnostic approach
+- Fixed database compatibility issues in datetime handling
+
+### Changed
+
+- Enhanced date utilities in `datetime_utils.py` with new cross-database functions
+- Updated test failure resolution documentation with database-agnostic patterns
+- Improved testing approach for repositories with better date handling
+
 ## [0.5.45] - 2025-03-27
 
 ### Fixed

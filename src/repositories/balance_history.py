@@ -16,6 +16,7 @@ from sqlalchemy.orm import joinedload, selectinload
 from src.models.accounts import Account
 from src.models.balance_history import BalanceHistory
 from src.repositories.base import BaseRepository
+from src.utils.datetime_utils import utc_now, date_in_collection, normalize_db_date
 
 
 class BalanceHistoryRepository(BaseRepository[BalanceHistory, int]):
@@ -158,7 +159,7 @@ class BalanceHistoryRepository(BaseRepository[BalanceHistory, int]):
             Tuple[Optional[BalanceHistory], Optional[BalanceHistory]]: (min_balance, max_balance)
         """
         # Get date range
-        end_date = datetime.now()
+        end_date = utc_now()
         start_date = end_date - timedelta(days=days)
 
         # Get all balances in the range
@@ -187,7 +188,7 @@ class BalanceHistoryRepository(BaseRepository[BalanceHistory, int]):
             List[Tuple[datetime, Decimal]]: List of (timestamp, balance) tuples
         """
         # Get date range
-        end_date = datetime.now()
+        end_date = utc_now()
         start_date = end_date - timedelta(days=days)
 
         balances = await self.get_by_date_range(account_id, start_date, end_date)
@@ -207,7 +208,7 @@ class BalanceHistoryRepository(BaseRepository[BalanceHistory, int]):
             Optional[Decimal]: Average balance or None
         """
         # Get date range
-        end_date = datetime.now()
+        end_date = utc_now()
         start_date = end_date - timedelta(days=days)
 
         # Query for average balance
@@ -290,10 +291,12 @@ class BalanceHistoryRepository(BaseRepository[BalanceHistory, int]):
         Returns:
             List[date]: List of dates with no balance records
         """
-        # Get date range
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=days)
 
+        # Normalize to start of day for consistent day counting
+        today = utc_now().replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = today
+        start_date = today - timedelta(days=days)
+        
         # Get all dates with balance records
         result = await self.session.execute(
             select(func.date(BalanceHistory.timestamp))
@@ -306,19 +309,25 @@ class BalanceHistoryRepository(BaseRepository[BalanceHistory, int]):
             )
             .group_by(func.date(BalanceHistory.timestamp))
         )
-
-        recorded_dates = set(date[0] for date in result.all())
-
+        
+        # Process results to normalize date format using our utility
+        recorded_dates = []
+        for row in result.all():
+            date_val = row[0]
+            # Use our utility to handle any date format from the database
+            normalized_date = normalize_db_date(date_val)
+            recorded_dates.append(normalized_date)
+        
         # Find missing dates
         missing_dates = []
         current_date = start_date.date()
         end = end_date.date()
-
+        
         while current_date <= end:
-            if current_date not in recorded_dates:
+            if not date_in_collection(current_date, recorded_dates):
                 missing_dates.append(current_date)
             current_date += timedelta(days=1)
-
+        
         return missing_dates
 
     async def get_available_credit_trend(
@@ -335,7 +344,7 @@ class BalanceHistoryRepository(BaseRepository[BalanceHistory, int]):
             List[Tuple[datetime, Optional[Decimal]]]: List of (timestamp, available_credit) tuples
         """
         # Get date range
-        end_date = datetime.now()
+        end_date = utc_now()
         start_date = end_date - timedelta(days=days)
 
         balances = await self.get_by_date_range(account_id, start_date, end_date)

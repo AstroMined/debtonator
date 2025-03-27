@@ -332,54 +332,53 @@ async def test_add_balance_note(
 
 async def test_get_missing_days(
     balance_history_repository: BalanceHistoryRepository,
+    test_balance_history_with_gaps: List[BalanceHistory],
     test_checking_account: Account,
 ):
-    """Test finding days with no balance records."""
-    # 1. ARRANGE: Create balance records with specific dates
-    now = utc_now()
-    today = now.replace(hour=0, minute=0, second=0, microsecond=0)
-
-    # Create schemas for specific days
-    day1_schema = create_balance_history_schema(
-        account_id=test_checking_account.id,
-        balance=Decimal("1000.00"),
-        timestamp=today - timedelta(days=10),
-    )
-
-    day2_schema = create_balance_history_schema(
-        account_id=test_checking_account.id,
-        balance=Decimal("1200.00"),
-        timestamp=today - timedelta(days=5),
-    )
-
-    day3_schema = create_balance_history_schema(
-        account_id=test_checking_account.id,
-        balance=Decimal("1400.00"),
-        timestamp=today,
-    )
-
-    # Convert and create balance records
-    await balance_history_repository.create(day1_schema.model_dump())
-    await balance_history_repository.create(day2_schema.model_dump())
-    await balance_history_repository.create(day3_schema.model_dump())
-
+    """Test finding days with no balance records using fixed test data."""
+    # 1. ARRANGE: Setup is done with fixture
+    # Get the actual dates from our test fixture
+    entry_dates = [entry.timestamp.date() for entry in test_balance_history_with_gaps]
+    print(f"Test fixture dates: {entry_dates}")
+    
+    # Get today's date from the most recent entry
+    most_recent = max(test_balance_history_with_gaps, key=lambda x: x.timestamp)
+    today = most_recent.timestamp.replace(hour=0, minute=0, second=0, microsecond=0)
+    print(f"Today's reference date: {today.date()}")
+    
     # 2. ACT: Get missing days
     missing_days = await balance_history_repository.get_missing_days(
         test_checking_account.id, days=10
     )
-
-    # 3. ASSERT: Verify the operation results
-    # We should have records for days 0, 5, and 10, so days 1-4 and 6-9 are missing
+    
+    # Print date ranges and missing days for debugging
+    date_range = [(today - timedelta(days=i)).date() for i in range(11)]
+    print(f"Date range being checked: {date_range}")
+    print(f"Entry dates in database: {entry_dates}")
+    print(f"Expected missing dates: {[d for d in date_range if d not in entry_dates]}")
+    print(f"Actual missing dates found: {missing_days}")
+    
+    # 3. ASSERT: Verify there are exactly 8 missing days
+    # Should find days 1-4 and 6-9 as missing (8 total)
     assert len(missing_days) == 8
-
-    # Check a few specific days
+    
+    # Check specific days that should be missing
     day_minus_1 = (today - timedelta(days=1)).date()
     day_minus_6 = (today - timedelta(days=6)).date()
     day_minus_9 = (today - timedelta(days=9)).date()
-
+    
     assert day_minus_1 in missing_days
     assert day_minus_6 in missing_days
     assert day_minus_9 in missing_days
+    
+    # Check days that should not be missing
+    day_minus_0 = today.date()
+    day_minus_5 = (today - timedelta(days=5)).date()
+    day_minus_10 = (today - timedelta(days=10)).date()
+    
+    assert day_minus_0 not in missing_days
+    assert day_minus_5 not in missing_days
+    assert day_minus_10 not in missing_days
 
 
 async def test_get_available_credit_trend(

@@ -6,7 +6,7 @@ datetime objects that comply with ADR-011 requirements, and utilities
 for safely comparing datetime objects with different timezone awareness.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, date
 import calendar
 
 
@@ -233,3 +233,95 @@ def safe_end_date(today, days):
     return datetime(target_date.year, target_date.month, target_date.day,
                   hour=23, minute=59, second=59, microsecond=999999,
                   tzinfo=tzinfo)
+
+
+def normalize_db_date(date_val):
+    """
+    Normalize date values returned from the database to Python date objects.
+    
+    Handles different database engines that may return:
+    - String dates (common in SQLite)
+    - Datetime objects (common in PostgreSQL)
+    - Custom date types
+    
+    Args:
+        date_val: Date value from database
+        
+    Returns:
+        date: Python date object or original value if conversion fails
+    """
+    # String case (common in SQLite)
+    if isinstance(date_val, str):
+        try:
+            return datetime.strptime(date_val, "%Y-%m-%d").date()
+        except ValueError:
+            # Try other common formats if the standard one fails
+            for fmt in ["%Y/%m/%d", "%d-%m-%Y", "%m/%d/%Y"]:
+                try:
+                    return datetime.strptime(date_val, fmt).date()
+                except ValueError:
+                    continue
+            # If all parsing attempts fail, return as is
+            return date_val
+    
+    # Datetime case (common in PostgreSQL, MySQL)
+    elif hasattr(date_val, 'date') and callable(getattr(date_val, 'date')):
+        return date_val.date()
+    
+    # Already a date
+    elif isinstance(date_val, date) and not isinstance(date_val, datetime):
+        return date_val
+    
+    # Other cases, just return as is
+    return date_val
+
+
+def date_equals(date1, date2):
+    """
+    Safely compare two date objects, handling potential type differences.
+    
+    This function handles comparison between date objects that might come
+    from different sources (e.g., database query results vs. Python date objects).
+    
+    Args:
+        date1: First date (can be date, datetime, or string)
+        date2: Second date (can be date, datetime, or string)
+        
+    Returns:
+        bool: True if dates are equal
+    """
+    # Normalize both dates
+    date1 = normalize_db_date(date1)
+    date2 = normalize_db_date(date2)
+    
+    # If both are dates now, do a direct comparison
+    if isinstance(date1, date) and isinstance(date2, date):
+        return date1 == date2
+    
+    # Fallback to string comparison for any values that couldn't be converted
+    str1 = date1 if isinstance(date1, str) else str(date1)
+    str2 = date2 if isinstance(date2, str) else str(date2)
+    
+    return str1 == str2
+
+
+def date_in_collection(target_date, date_collection):
+    """
+    Check if a date exists in a collection of dates.
+    
+    Handles type differences and ensures reliable comparison.
+    
+    Args:
+        target_date: Date to check for (can be date, datetime, or string)
+        date_collection: Collection of dates to check against
+        
+    Returns:
+        bool: True if the date exists in the collection
+    """
+    # Normalize target date
+    normalized_target = normalize_db_date(target_date)
+    
+    for d in date_collection:
+        if date_equals(normalized_target, d):
+            return True
+    return False

@@ -1,9 +1,21 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Repository Test Failure Resolution, Database-Agnostic Repository Implementation, Timezone-aware Datetime Handling, Fixture Corrections, SQLAlchemy Query Patterns
+Repository Test Failure Resolution, Database-Agnostic Date Handling, Balance History Repository Fixes, Timezone-aware Datetime Utilities, Cross-Database Compatibility
 
 ### Recent Changes
+
+1. **Fixed Balance History Repository Tests (Phase 5)** ✓
+   - Fixed all 5 Balance History Repository test failures
+   - Created database-agnostic date handling utilities for cross-database compatibility
+   - Implemented `normalize_db_date()` utility to handle different date formats from various database engines
+   - Created `date_equals()` and `date_in_collection()` utilities for reliable date comparisons
+   - Fixed SQLite string date vs PostgreSQL/MySQL datetime object inconsistencies
+   - Used consistent timezone-aware datetime handling with `utc_now()`
+   - Fixed precision issues in average balance calculation
+   - Improved missing days detection with proper date comparison
+   - Added pattern for handling different date formats across database engines
+   - Updated test_failure_resolution_plan.md to track progress (37/52 tests fixed)
 
 1. **Fixed DateTime Handling Issues in Repository Tests (Phase 3)** ✓
    - Fixed all 4 DateTime handling test failures: deposit_schedule, payment_schedule, and payment repositories

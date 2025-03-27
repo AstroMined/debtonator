@@ -143,3 +143,44 @@ async def test_multiple_reconciliations(
         await db_session.refresh(entry)
 
     return entries
+
+@pytest_asyncio.fixture
+async def test_balance_history_with_gaps(
+    db_session: AsyncSession,
+    test_checking_account,
+) -> List[BalanceHistory]:
+    """Create balance history records with specific gaps for missing days test."""
+    now = utc_now()
+    today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # Create exactly 3 balance entries with specific dates
+    # This should result in exactly 8 missing days
+    balance_dates = [
+        today,                     # Today (day 0)
+        today - timedelta(days=5), # 5 days ago
+        today - timedelta(days=10) # 10 days ago
+    ]
+    
+    balances = []
+    for i, timestamp in enumerate(balance_dates):
+        # Create model directly (not using repository)
+        balance = BalanceHistory(
+            account_id=test_checking_account.id,
+            balance=Decimal(f"{1000 + (i * 200)}.00"),
+            is_reconciled=False,
+            notes=f"Balance entry {i+1}",
+            timestamp=timestamp.replace(tzinfo=None)  # Make naive for DB
+        )
+        
+        db_session.add(balance)
+        balances.append(balance)
+    
+    await db_session.flush()
+    
+    # Refresh to ensure database state is reflected
+    for balance in balances:
+        await db_session.refresh(balance)
+        
+    # Print actual dates for debugging
+    print(f"Created balance entries for dates: {[b.timestamp.date() for b in balances]}")
+    return balances

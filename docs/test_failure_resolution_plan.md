@@ -10,10 +10,10 @@ This document outlines the strategic plan for resolving the 28 remaining test fa
 - [x] Phase 2: Database Function Issues (1/1 fixed)
 - [x] Phase 3: DateTime Handling (4/4 fixed)
 - [x] Phase 4: Model Attribute/Relationship Issues (3/3 fixed)
-- [ ] Phase 5: Data Count/Value Assertions (0/19 fixed)
+- [ ] Phase 5: Data Count/Value Assertions (5/19 fixed)
 - [ ] Phase 6: Validation Error Issues (0/1 fixed)
 
-**Total Progress: 32/52 tests fixed (20 remaining)**
+**Total Progress: 37/52 tests fixed (15 remaining)**
 
 ## Resolution Sequence
 
@@ -120,7 +120,7 @@ async def get_monthly_totals(self, account_id: int, months: int = 2):
 
 ### Day Out of Range Issues (2 failures)
 
-- [ ] Fix test_get_upcoming_schedules in deposit_schedule_repository_advanced.py:
+- [x] Fix test_get_upcoming_schedules in deposit_schedule_repository_advanced.py:
   - **Error**: `ValueError: day is out of range for month`
   - **Solution**: Fix date calculation in get_upcoming_schedules method:
     1. Use safe month-end handling with calendar module
@@ -162,21 +162,21 @@ def safe_end_date(today, days):
 # end_date = safe_end_date(today, days)
 ```
 
-- [ ] Fix test_get_upcoming_schedules in payment_schedule_repository_advanced.py:
+- [x] Fix test_get_upcoming_schedules in payment_schedule_repository_advanced.py:
   - **Error**: `ValueError: day is out of range for month`
   - **Solution**: Implement same safe_end_date function as above
   - **Note**: This is the same root cause - day arithmetic that doesn't handle month boundaries
 
 ### Timezone Comparison Issues (2 failures)
 
-- [ ] Fix test_get_payments_in_date_range in payment_repository_advanced.py:
+- [x] Fix test_get_payments_in_date_range in payment_repository_advanced.py:
   - **Error**: `TypeError: can't compare offset-naive and offset-aware datetimes`
   - **Solution**: Standardize datetime comparison:
     1. Ensure consistent timezone usage in test
     2. Use datetime helpers with ignore_timezone parameter
     3. Apply pattern: datetime_greater_than(date1, date2, ignore_timezone=True)
 
-- [ ] Fix test_get_recent_payments in payment_repository_advanced.py:
+- [x] Fix test_get_recent_payments in payment_repository_advanced.py:
   - **Error**: `TypeError: can't compare offset-naive and offset-aware datetimes`
   - **Solution**: Same approach as above
 
@@ -184,45 +184,57 @@ def safe_end_date(today, days):
 
 ### IncomeCategory Model Relationship (3 failures)
 
-- [ ] Fix test_get_with_income in income_category_repository_advanced.py:
+- [x] Fix test_get_with_income in income_category_repository_advanced.py:
   - **Error**: `AttributeError: type object 'IncomeCategory' has no attribute 'income_entries'`
   - **Solution**: Fix relationship definition:
     1. Update model relationship name (check if it should be 'income_entries' or 'incomes')
     2. Update repository method to use the correct relationship name
 
-- [ ] Fix test_get_active_categories in income_category_repository_advanced.py:
+- [x] Fix test_get_active_categories in income_category_repository_advanced.py:
   - **Error**: `AttributeError: type object 'Income' has no attribute 'is_deposited'. Did you mean: 'deposited'?`
   - **Solution**: Update attribute reference:
     1. Change 'is_deposited' to 'deposited' in query
     2. Review other boolean fields for similar naming consistency
 
-- [ ] Fix test_get_categories_with_stats in income_category_repository_advanced.py:
+- [x] Fix test_get_categories_with_stats in income_category_repository_advanced.py:
   - **Error**: `AttributeError: type object 'Income' has no attribute 'is_deposited'. Did you mean: 'deposited'?`
   - **Solution**: Same as above, update attribute reference
 
 ## Phase 5: Data Count/Value Assertions (19 failures)
 
-### Balance History Repository Issues (5 failures)
+### Balance History Repository Issues (5 failures - Fixed ✓)
 
-- [ ] Fix test_get_min_max_balance:
+- [x] Fix test_get_min_max_balance:
   - **Error**: `AssertionError: assert Decimal('1500.0000') == Decimal('2000.00')`
-  - **Solution**: Adjust test assertion or fixture data
+  - **Solution**: Fixed timezone issues causing incorrect date range filtering:
+    1. Replaced `datetime.now()` with `utc_now()` for timezone consistency
+    2. Consistent timezone handling to include all expected fixture data
 
-- [ ] Fix test_get_balance_trend:
+- [x] Fix test_get_balance_trend:
   - **Error**: `AssertionError: assert 2 >= 3`
-  - **Solution**: Fix trend calculation or adjust expected count
+  - **Solution**: Implemented proper timezone handling:
+    1. Used `utc_now()` instead of `datetime.now()`
+    2. Fixed date range filtering to include all appropriate records
 
-- [ ] Fix test_get_average_balance:
+- [x] Fix test_get_average_balance:
   - **Error**: `AssertionError: assert 1250.0 == Decimal('1500.00')`
-  - **Solution**: Fix calculation method or update expected value
+  - **Solution**: Improved precision and timezone handling:
+    1. Used timezone-aware datetime utilities
+    2. Fixed SQL average calculation to preserve Decimal precision
 
-- [ ] Fix test_get_missing_days:
+- [x] Fix test_get_missing_days:
   - **Error**: `AssertionError: assert 11 == 8`
-  - **Solution**: Update expected missing days count or fix calculation
+  - **Solution**: Implemented database-agnostic date comparison:
+    1. Created `normalize_db_date` utility to handle different DB formats
+    2. Created `date_equals` and `date_in_collection` utilities
+    3. Fixed date comparison logic for consistent handling of date formats
+    4. Ensured compatibility across SQLite (string dates) and PostgreSQL/MySQL
 
-- [ ] Fix test_get_available_credit_trend:
+- [x] Fix test_get_available_credit_trend:
   - **Error**: `AssertionError: assert 0 >= 3`
-  - **Solution**: Fix trend data generation or assertion
+  - **Solution**: Fixed timezone issues and filtering:
+    1. Used timezone-aware `utc_now()` function
+    2. Fixed date range queries to include all test data
 
 ### Cashflow Forecast Repository Issues (4 failures)
 
@@ -333,6 +345,56 @@ def safe_add_months(date, months):
     last_day = calendar.monthrange(new_year, new_month)[1]
     new_day = min(date.day, last_day)
     return date.replace(year=new_year, month=new_month, day=new_day)
+```
+
+### 1a. Database-Agnostic Date Handling Pattern
+
+For handling date values from different database engines (SQLite, MySQL, PostgreSQL):
+
+```python
+def normalize_db_date(date_val):
+    """
+    Normalize date values returned from the database to Python date objects.
+    
+    Handles different database engines that may return:
+    - String dates (common in SQLite)
+    - Datetime objects (common in PostgreSQL)
+    - Custom date types
+    """
+    # String case (common in SQLite)
+    if isinstance(date_val, str):
+        try:
+            return datetime.strptime(date_val, "%Y-%m-%d").date()
+        except ValueError:
+            # Try other common formats if the standard one fails
+            for fmt in ["%Y/%m/%d", "%d-%m-%Y", "%m/%d/%Y"]:
+                try:
+                    return datetime.strptime(date_val, fmt).date()
+                except ValueError:
+                    continue
+            return date_val
+    
+    # Datetime case (common in PostgreSQL, MySQL)
+    elif hasattr(date_val, 'date') and callable(getattr(date_val, 'date')):
+        return date_val.date()
+    
+    # Already a date object
+    return date_val
+
+def date_equals(date1, date2):
+    """Safely compare two date objects, handling type differences."""
+    # Normalize both dates first
+    date1 = normalize_db_date(date1)
+    date2 = normalize_db_date(date2)
+    
+    # If both are dates now, do direct comparison
+    if isinstance(date1, date) and isinstance(date2, date):
+        return date1 == date2
+    
+    # Fall back to string comparison for safety
+    str1 = date1 if isinstance(date1, str) else str(date1)
+    str2 = date2 if isinstance(date2, str) else str(date2)
+    return str1 == str2
 ```
 
 ### 2. SQLAlchemy Query Pattern
