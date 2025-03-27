@@ -6,6 +6,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.44] - 2025-03-27
+
+### Fixed
+
+- Fixed database-agnostic implementation in transaction history repository:
+  - Fixed `sqlite3.OperationalError: no such function: date_trunc` in monthly totals calculation
+  - Implemented Python-based aggregation strategy for maximum database compatibility
+  - Replaced database-specific SQL functions with application-layer processing
+  - Created a reusable pattern for handling database engine differences
+  - Successfully completed Phase 2 of test failure resolution plan
+  - Enhanced cross-database compatibility for all repository operations
+
+### Added
+
+- Created detailed Test Failure Resolution Plan:
+  - Organized remaining test failures into 6 logical phases
+  - Created comprehensive implementation patterns for each category
+  - Documented database-agnostic SQL query pattern
+  - Added DateTime handling patterns for consistent timezone management
+  - Added detailed examples for implementing test fixes
+
 ## [0.5.43] - 2025-03-26
 
 ### Fixed

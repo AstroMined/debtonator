@@ -1,11 +1,21 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Repository Test Failure Resolution, Timezone-aware Datetime Handling, Fixture Corrections, SQLAlchemy Query Patterns
+Repository Test Failure Resolution, Database-Agnostic Repository Implementation, Timezone-aware Datetime Handling, Fixture Corrections, SQLAlchemy Query Patterns
 
 ### Recent Changes
 
-1. **Fixed SQLAlchemy Lazy Loading Issues** ✓
+1. **Fixed Database-Agnostic Aggregation Implementation** ✓
+   - Fixed `sqlite3.OperationalError: no such function: date_trunc` error in transaction_history_repository
+   - Implemented Python-based aggregation strategy for maximum database compatibility
+   - Replaced database-specific SQL functions with application-layer processing
+   - Created a reusable pattern for handling database engine differences
+   - Successfully passed test_get_monthly_totals test with the new implementation
+   - Enhanced data processing with pure Python to ensure cross-database compatibility
+   - Used group-by-month logic in memory rather than depending on database functions
+   - Updated test_failure_resolution_plan.md to track progress (25/52 tests fixed)
+
+2. **Fixed SQLAlchemy Lazy Loading Issues** ✓
    - Fixed MissingGreenlet errors in CategoryRepository and RecurringBillRepository tests
    - Identified key anti-pattern: using hasattr() in tests which triggers SQLAlchemy lazy loading
    - Created solution pattern: avoiding hasattr() checks on relationships not explicitly loaded
