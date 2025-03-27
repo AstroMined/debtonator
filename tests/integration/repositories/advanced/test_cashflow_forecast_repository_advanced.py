@@ -21,6 +21,11 @@ from src.models.cashflow import CashflowForecast
 from src.repositories.cashflow import CashflowForecastRepository
 # Import schemas and schema factories - essential part of the validation pattern
 from src.schemas.cashflow.base import CashflowCreate, CashflowUpdate
+from src.utils.datetime_utils import (
+    utc_now, days_ago, days_from_now, start_of_day, end_of_day,
+    utc_datetime, datetime_equals, datetime_greater_than,
+    date_range, ensure_utc
+)
 from tests.helpers.schema_factories.cashflow.base import (
     create_cashflow_schema, create_cashflow_update_schema)
 
@@ -43,14 +48,12 @@ async def test_get_by_date(
     # 4. ASSERT: Verify the operation results
     assert result is not None
 
-    # Make naive comparison for dates
-    result_date = result.forecast_date.replace(tzinfo=None)
-    test_date_naive = test_date.replace(tzinfo=None) if test_date.tzinfo else test_date
-
-    # Compare date parts only (hours and minutes might differ)
-    assert result_date.year == test_date_naive.year
-    assert result_date.month == test_date_naive.month
-    assert result_date.day == test_date_naive.day
+    # Compare dates using the utility function, ignoring time components
+    assert datetime_equals(
+        start_of_day(result.forecast_date),
+        start_of_day(test_date),
+        ignore_timezone=True
+    )
 
     # Verify the correct forecast was retrieved
     assert result.total_bills == test_multiple_forecasts[2].total_bills
@@ -63,9 +66,9 @@ async def test_get_by_date_range(
 ):
     """Test getting forecasts within a date range."""
     # 1. ARRANGE: Setup date range
-    now = datetime.now(timezone.utc)
-    start_date = now - timedelta(days=8)
-    end_date = now + timedelta(days=1)
+    now = utc_now()
+    start_date = days_ago(8)
+    end_date = days_from_now(1)
 
     # 2. SCHEMA: Not needed for this query-only operation
 
@@ -77,13 +80,12 @@ async def test_get_by_date_range(
 
     # Verify dates are within the range
     for forecast in results:
-        # Make naive comparison
-        forecast_date = forecast.forecast_date.replace(tzinfo=None)
-        naive_start = start_date.replace(tzinfo=None)
-        naive_end = end_date.replace(tzinfo=None)
-
-        assert forecast_date >= naive_start
-        assert forecast_date <= naive_end
+        # Use datetime utility for consistent timezone handling
+        assert datetime_greater_than(forecast.forecast_date, start_date, ignore_timezone=True) or \
+               datetime_equals(forecast.forecast_date, start_date, ignore_timezone=True)
+               
+        assert datetime_greater_than(end_date, forecast.forecast_date, ignore_timezone=True) or \
+               datetime_equals(end_date, forecast.forecast_date, ignore_timezone=True)
 
 
 async def test_get_latest_forecast(
@@ -93,10 +95,10 @@ async def test_get_latest_forecast(
     """Test getting the most recent forecast."""
     # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
 
-    # Find the expected latest forecast from test data
+    # Find the expected latest forecast from test data using datetime utility for consistent comparison
     test_forecasts_sorted = sorted(
         test_multiple_forecasts,
-        key=lambda f: f.forecast_date.replace(tzinfo=None),
+        key=lambda f: ensure_utc(f.forecast_date),
         reverse=True,
     )
     expected_latest = test_forecasts_sorted[0]
@@ -252,9 +254,9 @@ async def test_get_forecast_summary(
 ):
     """Test getting a summary of forecasts over a period."""
     # 1. ARRANGE: Setup date range
-    now = datetime.now(timezone.utc)
-    start_date = now - timedelta(days=15)
-    end_date = now + timedelta(days=1)
+    now = utc_now()
+    start_date = days_ago(15)
+    end_date = days_from_now(1)
 
     # 2. SCHEMA: Not needed for this query-only operation
 
@@ -329,7 +331,7 @@ async def test_validation_error_handling():
     # Try creating a schema with invalid data and expect it to fail validation
     try:
         invalid_schema = CashflowCreate(
-            forecast_date=datetime.now(timezone.utc),
+            forecast_date=utc_now(),
             total_bills=Decimal("-100.00"),  # Invalid negative amount
             total_income=Decimal("1500.00"),
             balance=Decimal("2000.00"),

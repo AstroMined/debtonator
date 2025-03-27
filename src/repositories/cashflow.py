@@ -16,6 +16,10 @@ from sqlalchemy.orm import joinedload, selectinload
 from src.models.accounts import Account
 from src.models.cashflow import CashflowForecast
 from src.repositories.base import BaseRepository
+from src.utils.datetime_utils import (
+    utc_now, days_ago, days_from_now, start_of_day, end_of_day,
+    utc_datetime, ensure_utc, datetime_equals, datetime_greater_than
+)
 
 
 class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
@@ -37,7 +41,7 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
 
     # Core forecast retrieval methods
 
-    async def get_by_date(self, forecast_date: datetime) -> Optional[CashflowForecast]:
+    async def get_by_date(self, forecast_date) -> Optional[CashflowForecast]:
         """
         Get forecast for a specific date.
 
@@ -50,17 +54,15 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
             Optional[CashflowForecast]: Forecast for the specified date or None
         """
         # Extract date part only for comparison
-        start_of_day = datetime(
-            forecast_date.year, forecast_date.month, forecast_date.day
-        )
-        end_of_day = start_of_day + timedelta(days=1)
+        day_start = start_of_day(forecast_date)
+        day_end = start_of_day(forecast_date + timedelta(days=1))
 
         result = await self.session.execute(
             select(CashflowForecast)
             .where(
                 and_(
-                    CashflowForecast.forecast_date >= start_of_day,
-                    CashflowForecast.forecast_date < end_of_day,
+                    CashflowForecast.forecast_date >= day_start,
+                    CashflowForecast.forecast_date < day_end,
                 )
             )
             .order_by(desc(CashflowForecast.created_at))
@@ -77,14 +79,14 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
 
         Args:
             start_date (datetime): Start date (inclusive)
-            end_date (datetime): End date (exclusive)
+            end_date (datetime): End date (inclusive)
 
         Returns:
             List[CashflowForecast]: List of forecasts within the date range
         """
-        # Extract date parts only for comparison
-        start_of_day = datetime(start_date.year, start_date.month, start_date.day)
-        end_of_day = datetime(end_date.year, end_date.month, end_date.day)
+        # Extract date parts for comparison - use end of day for inclusive end date
+        range_start = start_of_day(start_date)
+        range_end = end_of_day(end_date)  # Make end date inclusive
 
         # Get the distinct dates in the range
         date_subquery = (
@@ -94,8 +96,8 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
             )
             .where(
                 and_(
-                    CashflowForecast.forecast_date >= start_of_day,
-                    CashflowForecast.forecast_date < end_of_day,
+                    CashflowForecast.forecast_date >= range_start,
+                    CashflowForecast.forecast_date <= range_end,  # Use <= for inclusive end date
                 )
             )
             .group_by(func.date(CashflowForecast.forecast_date))
@@ -162,8 +164,8 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
             List[Dict[str, Any]]: List of dictionaries with trend data
         """
         # Get the latest forecast for each day in the specified range
-        end_date = datetime.utcnow()
-        start_date = end_date - timedelta(days=days)
+        end_date = utc_now()
+        start_date = days_ago(days)
 
         forecasts = await self.get_by_date_range(start_date, end_date)
 
@@ -204,8 +206,8 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
             List[Dict[str, Any]]: List of dictionaries with deficit trend data
         """
         # Get the latest forecast for each day in the specified range
-        end_date = datetime.utcnow()
-        start_date = end_date - timedelta(days=days)
+        end_date = utc_now()
+        start_date = days_ago(days)
 
         forecasts = await self.get_by_date_range(start_date, end_date)
 
@@ -235,8 +237,8 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
             List[Dict[str, Any]]: List of dictionaries with required income trend data
         """
         # Get the latest forecast for each day in the specified range
-        end_date = datetime.utcnow()
-        start_date = end_date - timedelta(days=days)
+        end_date = utc_now()
+        start_date = days_ago(days)
 
         forecasts = await self.get_by_date_range(start_date, end_date)
 
@@ -264,8 +266,8 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
         Returns:
             Dict[str, Decimal]: Dictionary with minimum values for each lookout period
         """
-        end_date = datetime.utcnow()
-        start_date = end_date - timedelta(days=days)
+        end_date = utc_now()
+        start_date = days_ago(days)
 
         result = await self.session.execute(
             select(
@@ -366,9 +368,9 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
             Dict[str, Any]: Dictionary with summary metrics
         """
         if not end_date:
-            end_date = datetime.utcnow()
+            end_date = utc_now()
         if not start_date:
-            start_date = end_date - timedelta(days=90)
+            start_date = days_ago(90)
 
         # Get forecasts in the date range
         forecasts = await self.get_by_date_range(start_date, end_date)

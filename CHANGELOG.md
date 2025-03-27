@@ -6,6 +6,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.47] - 2025-03-27
+
+### Added
+- Enhanced database-agnostic date handling in ADR-011 documentation:
+  - Added detailed implementation guidelines for cross-database compatibility
+  - Documented real-world challenges and solutions for different database engines
+  - Expanded utility function documentation with clear usage examples
+
+### Fixed
+- Fixed remaining Balance History Repository tests (Phase 5):
+  - Fixed test_get_min_max_balance, test_get_balance_trend, test_get_average_balance
+  - Fixed test_get_missing_days with robust date normalization
+  - Fixed test_get_available_credit_trend with proper date filtering
+  - Implemented database-agnostic date handling for cross-engine compatibility
+
+### Changed
+- Enhanced DateTime utilities with database compatibility features:
+  - Added normalize_db_date() for consistent database date handling
+  - Added date_equals() and date_in_collection() for reliable date comparisons
+  - Improved repository test patterns with format-agnostic date handling
+
 ## [0.5.46] - 2025-03-27
 
 ### Added

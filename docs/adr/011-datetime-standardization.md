@@ -198,6 +198,186 @@ Local timestamps should be *converted* to UTC, not just labeled as UTC:
 
 This enhancement ensures full ADR-011 compliance for all datetime fields, including those set by default factories, and fixes a subtle but important timezone handling bug in schema validation.
 
+## Update (2025-03-27): Date Range Handling and Standardized Utilities
+
+We've enhanced our datetime handling approach with standardized utilities and consistent date range handling patterns:
+
+### Date Range Handling
+
+A key decision was made about date range handling:
+- **Date ranges are now INCLUSIVE of both start and end dates** to better match business expectations
+- Use `start_of_day(start_date)` for the beginning boundary
+- Use `end_of_day(end_date)` for the ending boundary
+- SQL queries should use `<=` instead of `<` when comparing with end dates
+
+This pattern better represents business understanding of date ranges, where phrases like "from January 1 to January 31" typically include all of January 31.
+
+```python
+# Example implementation pattern
+range_start = start_of_day(start_date)  # Set time to 00:00:00
+range_end = end_of_day(end_date)        # Set time to 23:59:59.999999
+
+# SQL filter pattern 
+query = select(Entity).where(
+    and_(
+        Entity.created_at >= range_start,
+        Entity.created_at <= range_end    # Note the <= instead of < for inclusivity
+    )
+)
+```
+
+### New Utility Functions
+
+We've added new standardized helpers to `datetime_utils.py`:
+
+```python
+def start_of_day(dt=None):
+    """Get start of day (00:00:00) for a given datetime."""
+    dt = dt or utc_now()
+    return utc_datetime(dt.year, dt.month, dt.day)
+
+def end_of_day(dt=None):
+    """Get end of day (23:59:59.999999) for a given datetime."""
+    dt = dt or utc_now()
+    return utc_datetime(dt.year, dt.month, dt.day, 23, 59, 59, 999999)
+
+def date_range(start_date, end_date):
+    """Generate a list of dates within a range."""
+    current = start_of_day(start_date)
+    end = start_of_day(end_date)
+    dates = []
+    while current <= end:
+        dates.append(current)
+        current += timedelta(days=1)
+    return dates
+```
+
+These functions provide semantic clarity and ensure consistent handling of date boundaries across the application.
+
+### Cross-Database Date Compatibility
+
+A critical challenge we encountered was handling date values across different database engines. Each engine represents and returns date values differently:
+
+- **SQLite** often returns dates as strings (e.g., "2025-03-27")
+- **PostgreSQL/MySQL** return proper datetime or date objects
+- **MariaDB** may return custom date types depending on the driver
+
+This inconsistency led to test failures when comparing date values from database results with Python date objects - particularly when running tests with SQLite but deploying with PostgreSQL or MariaDB.
+
+To solve this problem, we've developed a set of database-agnostic date utilities:
+
+```python
+def normalize_db_date(date_val):
+    """
+    Normalize date values returned from the database to Python date objects.
+    
+    Handles different database engines that may return:
+    - String dates (common in SQLite)
+    - Datetime objects (common in PostgreSQL)
+    - Custom date types
+    """
+    # String case (common in SQLite)
+    if isinstance(date_val, str):
+        try:
+            return datetime.strptime(date_val, "%Y-%m-%d").date()
+        except ValueError:
+            # Try other common formats if the standard one fails
+            for fmt in ["%Y/%m/%d", "%d-%m-%Y", "%m/%d/%Y"]:
+                try:
+                    return datetime.strptime(date_val, fmt).date()
+                except ValueError:
+                    continue
+            # If all parsing attempts fail, return as is
+            return date_val
+    
+    # Datetime case (common in PostgreSQL, MySQL)
+    elif hasattr(date_val, 'date') and callable(getattr(date_val, 'date')):
+        return date_val.date()
+    
+    # Already a date
+    elif isinstance(date_val, date) and not isinstance(date_val, datetime):
+        return date_val
+    
+    # Other cases, just return as is
+    return date_val
+
+def date_equals(date1, date2):
+    """
+    Safely compare two date objects, handling potential type differences.
+    """
+    # Normalize both dates
+    date1 = normalize_db_date(date1)
+    date2 = normalize_db_date(date2)
+    
+    # If both are dates now, do a direct comparison
+    if isinstance(date1, date) and isinstance(date2, date):
+        return date1 == date2
+    
+    # Fallback to string comparison for any values that couldn't be converted
+    str1 = date1 if isinstance(date1, str) else str(date1)
+    str2 = date2 if isinstance(date2, str) else str(date2)
+    return str1 == str2
+
+def date_in_collection(target_date, date_collection):
+    """
+    Check if a date exists in a collection of dates.
+    
+    Handles type differences and ensures reliable comparison.
+    """
+    # Normalize target date
+    normalized_target = normalize_db_date(target_date)
+    
+    for d in date_collection:
+        if date_equals(normalized_target, d):
+            return True
+    return False
+```
+
+These utilities enable several important capabilities:
+
+1. **Format Normalization**: Automatically detect and convert string dates from SQLite to Python date objects
+2. **Type-Safe Comparison**: Compare dates reliably regardless of their original representation
+3. **Collection Operations**: Check for date existence in collections with proper normalization
+4. **Defensive Programming**: Gracefully handle unexpected formats with fallback mechanisms
+5. **Database Portability**: Write code that works identically across all supported database engines
+
+The real-world benefit is significant: repository methods can now handle date values consistently regardless of the database backend, making our codebase truly database-agnostic.
+
+### Implementation Guidelines
+
+1. **For Date Filtering**:
+   - Use inclusive date ranges (`<=` for end date) by default
+   - Make the inclusivity clear in method documentation
+   - Use semantic helper functions (`start_of_day`, `end_of_day`) to clarify intent
+   - When querying for records within a date range, normalize date values from query results
+
+2. **For Date Ranges**:
+   - Update existing exclusive ranges to use inclusive patterns
+   - Document date range behavior in method signatures
+   - Use proper timezone-aware comparisons
+   - Use the `date_range()` utility to generate complete lists of dates
+
+3. **For Database Compatibility**:
+   - Always use database-agnostic utility functions when handling dates from query results
+   - Use `normalize_db_date()` before comparing dates from different sources
+   - Use `date_equals()` instead of direct `==` for comparing dates from database queries
+   - Avoid database-specific date functions (e.g., SQLite's `date()`, PostgreSQL's `DATE_TRUNC`)
+   - When working with date collections, use `date_in_collection()` for reliable membership testing
+   - Use Python-side date processing rather than database-specific functions when possible
+
+4. **For Repository Methods**:
+   - Process dates from query results using our utility functions
+   - Add clear docstrings explaining date handling expectations
+   - For methods returning date collections, consider pre-normalizing all dates
+   - In test code, use normalized comparisons when asserting date equality
+   - Log normalized date values in debug statements for easier troubleshooting
+
+5. **For Development/Testing**:
+   - Write tests with SQLite that will still pass in production with other database engines
+   - Use explicit date assertions that check semantic equality, not just type equality
+   - Test date range boundaries thoroughly, especially at month transitions
+   - Use utility functions consistently across all repository test files
+
 ## Consequences
 
 ### Positive

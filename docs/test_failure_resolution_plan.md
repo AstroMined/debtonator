@@ -10,10 +10,10 @@ This document outlines the strategic plan for resolving the 28 remaining test fa
 - [x] Phase 2: Database Function Issues (1/1 fixed)
 - [x] Phase 3: DateTime Handling (4/4 fixed)
 - [x] Phase 4: Model Attribute/Relationship Issues (3/3 fixed)
-- [ ] Phase 5: Data Count/Value Assertions (5/19 fixed)
+- [ ] Phase 5: Data Count/Value Assertions (9/19 fixed)
 - [ ] Phase 6: Validation Error Issues (0/1 fixed)
 
-**Total Progress: 37/52 tests fixed (15 remaining)**
+**Total Progress: 41/52 tests fixed (11 remaining)**
 
 ## Resolution Sequence
 
@@ -236,23 +236,26 @@ def safe_end_date(today, days):
     1. Used timezone-aware `utc_now()` function
     2. Fixed date range queries to include all test data
 
-### Cashflow Forecast Repository Issues (4 failures)
+### Cashflow Forecast Repository Issues (4 failures - Fixed ✓)
 
-- [ ] Fix test_get_forecast_trend:
+- [x] Fix test_get_forecast_trend:
   - **Error**: `AssertionError: assert 3 >= 4`
-  - **Solution**: Fix trend data generation or adjust expected count
+  - **Solution**: Fixed date range handling to be inclusive:
+    1. Modified `get_by_date_range` to use `end_of_day(end_date)` instead of `start_of_day(end_date)`
+    2. Changed comparison from `< range_end` to `<= range_end` to include the full end date
+    3. Updated method documentation to clearly indicate inclusive date ranges
 
-- [ ] Fix test_get_deficit_trend:
+- [x] Fix test_get_deficit_trend:
   - **Error**: `AssertionError: assert 3 >= 4`
-  - **Solution**: Same approach as above
+  - **Solution**: Implemented same inclusive date range pattern as above
 
-- [ ] Fix test_get_required_income_trend:
+- [x] Fix test_get_required_income_trend:
   - **Error**: `AssertionError: assert 3 >= 4`
-  - **Solution**: Same approach as above
+  - **Solution**: Implemented same inclusive date range pattern as above
 
-- [ ] Fix test_get_forecast_by_account:
+- [x] Fix test_get_forecast_by_account:
   - **Error**: `AssertionError: assert 3 >= 4`
-  - **Solution**: Same approach as above
+  - **Solution**: Fixed underlying `get_forecast_trend` method with inclusive date range
 
 ### Bill and Payment Repository Issues (3 failures)
 

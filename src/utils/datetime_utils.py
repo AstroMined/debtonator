@@ -325,3 +325,51 @@ def date_in_collection(target_date, date_collection):
         if date_equals(normalized_target, d):
             return True
     return False
+
+
+def start_of_day(dt=None):
+    """
+    Get start of day (00:00:00) for a given datetime.
+    
+    Args:
+        dt: Input datetime (defaults to now if None)
+        
+    Returns:
+        datetime: UTC-aware datetime for start of day (00:00:00)
+    """
+    dt = dt or utc_now()
+    return utc_datetime(dt.year, dt.month, dt.day)
+
+
+def end_of_day(dt=None):
+    """
+    Get end of day (23:59:59.999999) for a given datetime.
+    
+    Args:
+        dt: Input datetime (defaults to now if None)
+        
+    Returns:
+        datetime: UTC-aware datetime for end of day (23:59:59.999999)
+    """
+    dt = dt or utc_now()
+    return utc_datetime(dt.year, dt.month, dt.day, 23, 59, 59, 999999)
+
+
+def date_range(start_date, end_date):
+    """
+    Generate a list of dates within a range.
+    
+    Args:
+        start_date: Start date (inclusive)
+        end_date: End date (inclusive)
+        
+    Returns:
+        list: List of UTC-aware datetimes, one for each day in the range
+    """
+    current = start_of_day(start_date)
+    end = start_of_day(end_date)
+    dates = []
+    while current <= end:
+        dates.append(current)
+        current += timedelta(days=1)
+    return dates
