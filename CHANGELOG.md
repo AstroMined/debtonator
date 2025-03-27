@@ -6,6 +6,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.45] - 2025-03-27
+
+### Fixed
+
+- Fixed all DateTime handling issues in repository tests (Phase 3):
+  - Implemented safe_end_date utility function to handle month boundary cases
+  - Fixed timezone comparison issues using datetime_greater_than and datetime_equals helpers
+  - Updated payment repository date comparisons with proper timezone handling
+  - Fixed day-out-of-range errors with proper calendar month handling
+
+- Fixed all model attribute/relationship issues (Phase 4):
+  - Updated IncomeCategory model to use "incomes" relationship consistently
+  - Fixed attribute references (deposited vs is_deposited) in repository queries
+  - Corrected SQLAlchemy case syntax in income category stats aggregation queries
+  - Added proper imports for SQLAlchemy case expressions
+
+### Improved
+
+- Enhanced SQLAlchemy case expression handling in repository queries
+- Standardized model relationship naming conventions
+- Created patterns for safe date range calculation
+- Documented best practices for timezone-aware date comparisons
+
 ## [0.5.44] - 2025-03-27
 
 ### Fixed

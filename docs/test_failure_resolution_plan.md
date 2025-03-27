@@ -8,12 +8,12 @@ This document outlines the strategic plan for resolving the 28 remaining test fa
 
 - [x] Phase 1: Initial Fixes (24/52 tests fixed)
 - [x] Phase 2: Database Function Issues (1/1 fixed)
-- [ ] Phase 3: DateTime Handling (0/4 fixed)
-- [ ] Phase 4: Model Attribute/Relationship Issues (0/3 fixed)
+- [x] Phase 3: DateTime Handling (4/4 fixed)
+- [x] Phase 4: Model Attribute/Relationship Issues (3/3 fixed)
 - [ ] Phase 5: Data Count/Value Assertions (0/19 fixed)
 - [ ] Phase 6: Validation Error Issues (0/1 fixed)
 
-**Total Progress: 25/52 tests fixed (27 remaining)**
+**Total Progress: 32/52 tests fixed (20 remaining)**
 
 ## Resolution Sequence
 

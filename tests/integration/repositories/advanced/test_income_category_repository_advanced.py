@@ -61,9 +61,9 @@ async def test_get_with_income(
     # 4. ASSERT: Verify the operation results
     assert result is not None
     assert result.id == category_id
-    assert hasattr(result, "income_entries")
-    assert len(result.income_entries) >= 2  # Should have at least 2 income entries
-    for income in result.income_entries:
+    assert hasattr(result, "incomes")
+    assert len(result.incomes) >= 2  # Should have at least 2 income entries
+    for income in result.incomes:
         assert income.category_id == category_id
 
 

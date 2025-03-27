@@ -16,6 +16,7 @@ from src.models.accounts import Account
 from src.models.deposit_schedules import DepositSchedule
 from src.models.income import Income
 from src.repositories.base import BaseRepository
+from src.utils.datetime_utils import safe_end_date, utc_now
 
 
 class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
@@ -222,18 +223,10 @@ class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
         Returns:
             List[DepositSchedule]: List of upcoming deposit schedules
         """
-        today = datetime.utcnow()
-        end_date = datetime.utcnow().replace(
-            hour=23, minute=59, second=59, microsecond=999999
-        )
-        end_date = datetime(
-            end_date.year,
-            end_date.month,
-            end_date.day + days,
-            end_date.hour,
-            end_date.minute,
-            end_date.second,
-        )
+
+        
+        today = utc_now()
+        end_date = safe_end_date(today, days)
 
         query = (
             select(DepositSchedule)
@@ -269,7 +262,7 @@ class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
         Returns:
             List[DepositSchedule]: List of overdue deposit schedules
         """
-        today = datetime.utcnow()
+        today = utc_now()
 
         query = (
             select(DepositSchedule)

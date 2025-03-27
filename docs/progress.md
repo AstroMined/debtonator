@@ -4,6 +4,22 @@
 
 ### Completed Tasks
 
+- Fixed DateTime Handling and Model Relationship Issues:
+  - Implemented safe_end_date utility function to handle month boundary cases safely
+  - Fixed timezone comparison issues using datetime_equals and datetime_greater_than helpers
+  - Added proper import of case function from SQLAlchemy
+  - Updated IncomeCategory model to use "incomes" relationship consistently
+  - Fixed attribute references (deposited vs is_deposited) in repository queries
+  - Updated SQLAlchemy case expressions with correct syntax
+  - Updated test fixture naming for better consistency (incomes vs income_entries)
+  - Successfully completed Phase 3: DateTime Handling (4/4 tests fixed)
+  - Successfully completed Phase 4: Model Attribute/Relationship Issues (3/3 tests fixed)
+  - Increased overall test failure resolution progress to 32/52 tests fixed
+
+## March 27, 2025 (Morning)
+
+### Completed Tasks
+
 - Fixed Database-Agnostic Implementation in Transaction History Repository:
   - Fixed `sqlite3.OperationalError: no such function: date_trunc` error in `test_get_monthly_totals`
   - Implemented Python-based aggregation strategy for maximum database compatibility

@@ -5,7 +5,27 @@ Repository Test Failure Resolution, Database-Agnostic Repository Implementation,
 
 ### Recent Changes
 
-1. **Fixed Database-Agnostic Aggregation Implementation** ✓
+1. **Fixed DateTime Handling Issues in Repository Tests (Phase 3)** ✓
+   - Fixed all 4 DateTime handling test failures: deposit_schedule, payment_schedule, and payment repositories
+   - Implemented safe_end_date utility function to handle month boundary cases
+   - Fixed "day is out of range for month" errors with proper date calculations 
+   - Used datetime_greater_than and datetime_equals helpers with ignore_timezone=True parameter
+   - Fixed timezone comparison issues in payment repository tests
+   - Standardized datetime comparison approach across repository tests
+   - Created consistent pattern for timezone-aware datetime handling
+   - Updated test_failure_resolution_plan.md to track progress (29/52 tests fixed)
+
+2. **Fixed Model Attribute/Relationship Issues (Phase 4)** ✓
+   - Fixed all 3 Model Attribute/Relationship test failures in income_category_repository
+   - Updated IncomeCategory model to use "incomes" relationship consistently  
+   - Fixed attribute name mismatch between test and model (incomes vs income_entries)
+   - Updated repository to reference the correct field name (deposited vs is_deposited)
+   - Fixed SQLAlchemy case expression syntax in get_categories_with_stats method
+   - Added proper SQLAlchemy case import for query expressions
+   - Enhanced test fixtures to match model structure
+   - Updated test_failure_resolution_plan.md to track progress (32/52 tests fixed)
+
+3. **Fixed Database-Agnostic Aggregation Implementation** ✓
    - Fixed `sqlite3.OperationalError: no such function: date_trunc` error in transaction_history_repository
    - Implemented Python-based aggregation strategy for maximum database compatibility
    - Replaced database-specific SQL functions with application-layer processing
@@ -15,7 +35,7 @@ Repository Test Failure Resolution, Database-Agnostic Repository Implementation,
    - Used group-by-month logic in memory rather than depending on database functions
    - Updated test_failure_resolution_plan.md to track progress (25/52 tests fixed)
 
-2. **Fixed SQLAlchemy Lazy Loading Issues** ✓
+4. **Fixed SQLAlchemy Lazy Loading Issues** ✓
    - Fixed MissingGreenlet errors in CategoryRepository and RecurringBillRepository tests
    - Identified key anti-pattern: using hasattr() in tests which triggers SQLAlchemy lazy loading
    - Created solution pattern: avoiding hasattr() checks on relationships not explicitly loaded
@@ -25,7 +45,7 @@ Repository Test Failure Resolution, Database-Agnostic Repository Implementation,
    - Fixed two key tests in Phase 2 database integrity issues
    - Created reusable pattern for fixing similar issues in other repositories
 
-2. **Fixed Repository Test Datetime Comparisons** ✓
+5. **Fixed Repository Test Datetime Comparisons** ✓
    - Fixed "can't compare offset-naive and offset-aware datetimes" errors in multiple repository tests
    - Implemented proper timezone-aware comparisons with datetime_greater_than and datetime_equals helper functions
    - Used ignore_timezone=True parameter for consistent behavior across timezone variants
@@ -35,83 +55,25 @@ Repository Test Failure Resolution, Database-Agnostic Repository Implementation,
    - Added proper fixes for timezone handling in repository tests
    - Created patterns for fixing similar timezone issues in other tests
 
-2. **Identified and Fixed Fixture Mismatch Pattern** ✓
-   - Discovered common issue with tests using incorrect fixture types
-   - Fixed payment_schedule_repository_advanced test with proper fixture references
-   - Changed test_multiple_schedules to test_multiple_payment_schedules for proper typing
-   - Standardized fixture naming for better consistency
-   - Documented pattern to help resolve similar fixture mismatch issues
-   - Created comprehensive plan for remaining fixture mismatches
-   - Enhanced test infrastructure with better fixture management
-   - Improved test reliability by using proper type-specific fixtures
-
-3. **Fixed Test Date Range Handling** ✓
-   - Enhanced test_get_by_date_range assertions to properly check date ranges
-   - Updated test_find_overdue_schedules to use proper datetime comparisons
-   - Used helper functions days_ago and days_from_now consistently
-   - Fixed date range boundary testing with proper timezone awareness
-   - Enhanced test_get_auto_process_schedules with proper date range handling
-   - Standardized date range comparison pattern across all repository tests
-   - Improved test readability with helper functions for date operations
-   - Enhanced test reliability with consistent date handling
-
-4. **Refactored Test Fixtures to Use Direct SQLAlchemy Model Instantiation** ✓
-   - Replaced repository-based fixture data creation with direct SQLAlchemy model instantiation
-   - Fixed circular dependency issues where repository tests were using fixtures that themselves used repositories
-   - Updated fixtures in income, payments, recurring, schedules, statements, and transactions fixture files
-   - Removed repository dependencies from fixtures completely
-   - Used db_session directly in fixtures for model instantiation
-   - Properly handled relationships with the flush-then-refresh pattern
-   - Ensured test fixtures use the correct field names matching actual model fields
-   - Applied consistent pattern for timezone handling with naive datetimes for DB storage
-
-5. **Fixed SQLAlchemy Union Query ORM Mapping Loss** ✓
-   - Fixed 'int' object has no attribute 'primary_account_id' error in LiabilityRepository
-   - Discovered SQL UNION operations could cause ORM mapping loss in SQLAlchemy
-   - Implemented sustainable two-step query pattern to preserve entity mapping
-   - First: Collect IDs from separate queries for primary accounts and bill splits
-   - Second: Make a final query using ID list to retrieve full entity objects
-   - Used Liability.id.in_(combined_ids) pattern instead of direct UNION
-   - Documented pattern as a best practice for handling complex query combinations
-   - Added additional defensive handling for empty result sets
-
-6. **Enhanced Test Failure Resolution Documentation** ✓
-   - Updated test_failure_resolution_plan.md with new progress tracking (17/52 tests fixed)
-   - Added fixture mismatch pattern documentation to help resolve similar issues
-   - Documented timezone comparison patterns for repository tests
-   - Created comprehensive tracking for remaining test failures by category
-   - Improved implementation guidelines with detailed patterns for fixing similar issues
-   - Added examples for proper timezone-aware comparison
-   - Organized test failures by type for more systematic resolution
-   - Created clear priorities for remaining test failures
-   - Added new "SQLAlchemy Union ORM Mapping Pattern" section
-
 ## Next Steps
 
-1. **Apply Union Query Pattern to Similar Repository Methods**
-   - Check payment_repository methods for similar UNION issues
-   - Apply two-step query pattern to recurring_bill_repository where needed
-   - Fix any other repositories that might have ORM mapping loss with UNION queries
-   - Ensure all repository return types match actual returned data types
-   - Add defensive handling for empty result sets consistently
-   - Check for similar pattern application in transaction_history_repository
+1. **Continue with Phase 5: Data Count/Value Assertions**
+   - Fix Balance History Repository issues (5 failures)
+   - Fix Cashflow Forecast Repository issues (4 failures)
+   - Fix Bill and Payment Repository issues (3 failures)
+   - Fix Statement Repository issues (2 failures)
+   - Fix Transaction History Repository issues (5 failures)
+   - Use consistent assertion patterns across all repositories
 
-2. **Continue Phase 1: Complete DateTime Standardization**
-   - Fix remaining test_get_upcoming_schedules issues in deposit_schedule_repository and payment_schedule_repository
-   - Fix "day is out of range for month" errors with proper date calculations
-   - Apply datetime_greater_than and datetime_equals helpers to remaining tests
+2. **Complete Phase 6: Validation Error Issues**
+   - Fix validation error message test in income_category_repository
+   - Standardize Pydantic V2 error format handling across tests
+   - Create flexible error message testing pattern
 
-2. **Continue Phase 2: Database Integrity Issues**
-   - Fix NOT NULL constraint failures in category_repository_advanced tests
-   - Fix relationship loading issues in liability_repository_advanced
-   - Fix assertion issues in recurring_bill_repository_advanced
-   - Fix category-income relationships in income_category_repository_advanced
-
-3. **Continue Phase 4a: Fixture Mismatch Issues**
-   - Fix deposit_schedule_repository_advanced tests using improper fixtures
-   - Systematically fix all tests using test_multiple_schedules instead of correct type-specific fixtures
-   - Apply fixture naming consistency pattern across all repository tests
-   - Ensure proper fixture relationships for all test cases
+3. **Complete UTC Datetime Compliance**
+   - Add naive datetime scanner to CI pipeline
+   - Consider adding utility functions to production code
+   - Review existing test fixtures for timezone consistency
 
 4. **Create ADR Documenting the Test Fixture Architecture**
    - Document the direct SQLAlchemy model instantiation pattern
@@ -121,7 +83,50 @@ Repository Test Failure Resolution, Database-Agnostic Repository Implementation,
 
 ## Implementation Lessons
 
-1. **SQLAlchemy Union Query Pattern**
+1. **SQLAlchemy Case Expression Pattern**
+   - Use `from sqlalchemy import case` to properly import the case function
+   - Use proper syntax for case expressions in SQLAlchemy queries:
+   ```python
+   func.sum(
+       case(
+           (Income.deposited == False, 1),
+           else_=0
+       )
+   ).label("pending_count")
+   ```
+   - Handle boolean expressions in case statements with proper syntax
+   - Ensure column labels are properly defined for aggregated results
+   - Test complex SQL expressions thoroughly with different inputs
+
+2. **Month Boundary Safe Date Calculation**
+   - Use a safe_end_date utility function to handle month boundary issues:
+   ```python
+   def safe_end_date(today, days):
+       """Calculate end date safely handling month transitions."""
+       target_date = today + timedelta(days=days)
+       year, month = target_date.year, target_date.month
+       _, last_day = calendar.monthrange(year, month)
+       if target_date.day > last_day:
+           return datetime(year, month, last_day, 
+                          hour=23, minute=59, second=59, microsecond=999999)
+       return datetime(target_date.year, target_date.month, target_date.day,
+                     hour=23, minute=59, second=59, microsecond=999999)
+   ```
+   - Never directly manipulate day component in a datetime object
+   - Use calendar.monthrange() to determine the last day of a month
+   - Add days using timedelta and then adjust if the result is invalid
+   - Handle month transitions properly when calculating end dates
+
+3. **Model Relationship Consistency Pattern**
+   - Ensure relationship names are consistent between model definition and usage
+   - Update tests to reflect the actual model relationship names
+   - Prefer updating tests to match models rather than changing models
+   - Use standard SQLAlchemy relationship naming conventions
+   - Document relationship names and access patterns in model docstrings
+   - Test relationship access explicitly to catch naming inconsistencies
+   - When updating model relationships, scan the codebase for all usages
+
+4. **SQLAlchemy Union Query Pattern**
    - Avoid direct UNION operations with complex ORM mappings
    - Use a two-step query approach for complex multi-source queries:
      1. Collect IDs from separate queries
@@ -133,7 +138,7 @@ Repository Test Failure Resolution, Database-Agnostic Repository Implementation,
    - Remember to handle duplicates with set operations when appropriate
    - Clear queries return complete entity objects, not just scalar values
 
-2. **Timezone-aware Datetime Comparison Pattern**
+5. **Timezone-aware Datetime Comparison Pattern**
    - Use `datetime_greater_than(date1, date2, ignore_timezone=True)` for date comparisons
    - Use `datetime_equals(date1, date2, ignore_timezone=True)` for date equality checks
    - Use helper functions from tests/helpers/datetime_utils.py consistently
@@ -143,17 +148,7 @@ Repository Test Failure Resolution, Database-Agnostic Repository Implementation,
    - Be consistent with timezone handling across all repository tests
    - Remember to add proper imports: `from src.utils.datetime_utils import (utc_now, days_from_now, days_ago, datetime_equals, datetime_greater_than)`
 
-2. **Fixture Mismatch Resolution Pattern**
-   - Look for fixture parameter names like `test_multiple_schedules` in test function parameters
-   - Replace with proper type-specific fixtures like `test_multiple_payment_schedules`
-   - Verify fixture type matches the repository being tested
-   - Follow naming convention: `test_multiple_[model_name_plural]`
-   - Check fixture imports in conftest.py to ensure proper type availability
-   - For deposit schedules, use `test_multiple_deposit_schedules` instead of `test_multiple_schedules`
-   - For payment schedules, use `test_multiple_payment_schedules` instead of `test_multiple_schedules`
-   - Apply the pattern systematically to all tests in the file
-
-3. **Test Fixture Architecture**
+6. **Test Fixture Architecture**
    - Create test fixtures using direct SQLAlchemy model instantiation rather than repositories
    - Use db_session directly for model creation, flushing, and refreshing
    - Handle relationships using the flush-then-refresh pattern

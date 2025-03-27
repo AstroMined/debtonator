@@ -16,6 +16,7 @@ from src.models.accounts import Account
 from src.models.liabilities import Liability
 from src.models.payment_schedules import PaymentSchedule
 from src.repositories.base import BaseRepository
+from src.utils.datetime_utils import safe_end_date, utc_now
 
 
 class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
@@ -174,7 +175,7 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
             return None
 
         # Use provided processed_date or current UTC time
-        current_time = processed_date or datetime.utcnow()
+        current_time = processed_date or utc_now()
 
         update_data = {
             "processed": True,
@@ -229,18 +230,8 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
         Returns:
             List[PaymentSchedule]: List of upcoming payment schedules
         """
-        today = datetime.utcnow()
-        end_date = datetime.utcnow().replace(
-            hour=23, minute=59, second=59, microsecond=999999
-        )
-        end_date = datetime(
-            end_date.year,
-            end_date.month,
-            end_date.day + days,
-            end_date.hour,
-            end_date.minute,
-            end_date.second,
-        )
+        today = utc_now()
+        end_date = safe_end_date(today, days)
 
         query = (
             select(PaymentSchedule)
@@ -276,7 +267,7 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
         Returns:
             List[PaymentSchedule]: List of overdue payment schedules
         """
-        today = datetime.utcnow()
+        today = utc_now()
 
         query = (
             select(PaymentSchedule)

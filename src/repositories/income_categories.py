@@ -8,7 +8,7 @@ income category-related queries.
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, func, or_, select, case
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
@@ -61,7 +61,7 @@ class IncomeCategoryRepository(BaseRepository[IncomeCategory, int]):
         """
         result = await self.session.execute(
             select(IncomeCategory)
-            .options(selectinload(IncomeCategory.income_entries))
+            .options(selectinload(IncomeCategory.incomes))
             .where(IncomeCategory.id == category_id)
         )
         return result.scalars().unique().first()
@@ -152,7 +152,7 @@ class IncomeCategoryRepository(BaseRepository[IncomeCategory, int]):
         result = await self.session.execute(
             select(IncomeCategory)
             .join(Income, Income.category_id == IncomeCategory.id)
-            .where(Income.is_deposited == False)
+            .where(Income.deposited == False)
             .group_by(IncomeCategory.id)
             .order_by(IncomeCategory.name)
         )
@@ -180,11 +180,17 @@ class IncomeCategoryRepository(BaseRepository[IncomeCategory, int]):
                 func.sum(Income.amount).label("total_amount"),
                 func.count().label("entry_count"),
                 func.avg(Income.amount).label("avg_amount"),
-                func.sum(func.case((Income.is_deposited == False, 1), else_=0)).label(
-                    "pending_count"
-                ),
                 func.sum(
-                    func.case((Income.is_deposited == False, Income.amount), else_=0)
+                    case(
+                        (Income.deposited == False, 1),
+                        else_=0
+                    )
+                ).label("pending_count"),
+                func.sum(
+                    case(
+                        (Income.deposited == False, Income.amount),
+                        else_=0
+                    )
                 ).label("pending_amount"),
             )
             .outerjoin(Income, Income.category_id == IncomeCategory.id)

@@ -1,7 +1,7 @@
-from typing import Optional
+from typing import List, Optional
 
 from sqlalchemy import String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base_model import BaseDBModel
 
@@ -19,6 +19,14 @@ class IncomeCategory(BaseDBModel):
         String(100), unique=True, nullable=False, index=True
     )
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
+    # Relationship to Income model
+    incomes: Mapped[List["Income"]] = relationship(
+        "Income",
+        back_populates="category",
+        cascade="all, delete-orphan",
+        doc="Income entries in this category",
+    )
 
     def __repr__(self) -> str:
         return f"<IncomeCategory {self.name}>"

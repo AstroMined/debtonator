@@ -7,6 +7,7 @@ for safely comparing datetime objects with different timezone awareness.
 """
 
 from datetime import datetime, timedelta, timezone
+import calendar
 
 
 def utc_now():
@@ -193,3 +194,42 @@ def datetime_greater_than(dt1, dt2, ignore_timezone=False):
         dt2_copy = dt2_copy.replace(tzinfo=None)
         
     return dt1_copy > dt2_copy
+
+
+def safe_end_date(today, days):
+    """
+    Calculate end date safely handling month transitions.
+    
+    This prevents "day out of range" errors when adding days crosses
+    into months with fewer days.
+    
+    Args:
+        today (datetime): Starting date
+        days (int): Number of days to add
+        
+    Returns:
+        datetime: End date with time set to end of day (23:59:59.999999)
+    """
+    
+    # Get the timezone from the original date
+    tzinfo = today.tzinfo
+    
+    # Simple case - within same month
+    target_date = today + timedelta(days=days)
+    
+    # Check if the day would be invalid in the target month
+    # (e.g., trying to create Feb 30)
+    year, month = target_date.year, target_date.month
+    _, last_day = calendar.monthrange(year, month)
+    
+    # If the day exceeds the last day of the month, cap it
+    if target_date.day > last_day:
+        # Use the last day of the month instead
+        return datetime(year, month, last_day, 
+                       hour=23, minute=59, second=59, microsecond=999999,
+                       tzinfo=tzinfo)
+    
+    # Otherwise, use the end of the calculated day
+    return datetime(target_date.year, target_date.month, target_date.day,
+                  hour=23, minute=59, second=59, microsecond=999999,
+                  tzinfo=tzinfo)
