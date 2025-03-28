@@ -4,6 +4,8 @@ Integration tests for the TransactionHistoryRepository.
 This module contains tests for the TransactionHistoryRepository using the
 standard 4-step pattern (Arrange-Schema-Act-Assert) to properly simulate
 the validation flow from services to repositories.
+
+Implements ADR-011 compliant datetime handling with utilities from datetime_utils.
 """
 
 import asyncio
@@ -14,6 +16,11 @@ from typing import List
 import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.utils.datetime_utils import (
+    utc_now, days_ago, start_of_day, end_of_day, datetime_equals,
+    date_range, ensure_utc, normalize_db_date
+)
 
 from src.models.accounts import Account
 from src.models.transaction_history import TransactionHistory, TransactionType
@@ -69,13 +76,19 @@ async def test_get_with_account(
 async def test_get_by_date_range(
     transaction_history_repository: TransactionHistoryRepository,
     test_checking_account: Account,
-    test_multiple_transactions: List[TransactionHistory],
+    test_date_range_transactions: List[TransactionHistory],
 ):
-    """Test getting transaction history entries within a date range."""
-    # 1. ARRANGE: Setup is already done with fixtures
-    now = datetime.now(timezone.utc)
-    start_date = now - timedelta(days=22)
-    end_date = now - timedelta(days=8)
+    """Test getting transaction history entries within a date range.
+    
+    Uses ADR-011 compliant datetime handling with utilities.
+    Uses test_date_range_transactions fixture with known date patterns.
+    """
+    # 1. ARRANGE: Use specific date range with transactions at known dates
+    # Our fixture creates transactions at days 5, 10, 15, 20, 25, 30, 45, 60 ago
+    
+    # Use a date range that should capture 4 transactions (days 10-25 ago)
+    start_date = days_ago(25)
+    end_date = days_ago(10)
 
     # 2. ACT: Get transaction entries within date range
     results = await transaction_history_repository.get_by_date_range(
@@ -83,15 +96,20 @@ async def test_get_by_date_range(
     )
 
     # 3. ASSERT: Verify the operation results
-    assert len(results) >= 3  # Should get at least 3 entries in this range
+    # We expect exactly 4 transactions in this range (days 10, 15, 20, 25 ago)
+    assert len(results) == 4
+    
     for entry in results:
         assert entry.account_id == test_checking_account.id
-        # Convert the timezone-aware dates to naive for comparison with database values
-        naive_start_date = start_date.replace(tzinfo=None)
-        naive_end_date = end_date.replace(tzinfo=None)
-        # Compare using naive datetimes
-        assert entry.transaction_date >= naive_start_date
-        assert entry.transaction_date <= naive_end_date
+        
+        # Use ADR-011 compliant date comparison utilities
+        # These handle differences between database engines automatically
+        range_start = start_of_day(start_date)
+        range_end = end_of_day(end_date)
+        
+        # Database-agnostic date comparison
+        assert entry.transaction_date >= range_start or datetime_equals(entry.transaction_date, range_start)
+        assert entry.transaction_date <= range_end or datetime_equals(entry.transaction_date, range_end)
 
 
 async def test_get_by_type(
@@ -236,33 +254,17 @@ async def test_get_monthly_totals(
 async def test_get_transaction_patterns(
     transaction_history_repository: TransactionHistoryRepository,
     test_checking_account: Account,
+    test_recurring_transaction_patterns: List[TransactionHistory],
 ):
-    """Test identifying recurring transaction patterns."""
-    # 1. ARRANGE: Create recurring transactions with same description
-    now = datetime.now(timezone.utc)
-
-    # Create several grocery transactions weekly
-    for week in range(1, 5):
-        schema = create_transaction_history_schema(
-            account_id=test_checking_account.id,
-            amount=Decimal("75.00"),
-            transaction_type=TransactionType.DEBIT,
-            description="Weekly Grocery Shopping",
-            transaction_date=now - timedelta(days=week * 7),
-        )
-        await transaction_history_repository.create(schema.model_dump())
-
-    # Create monthly bill payments
-    for month in range(1, 3):
-        schema = create_transaction_history_schema(
-            account_id=test_checking_account.id,
-            amount=Decimal("120.00"),
-            transaction_type=TransactionType.DEBIT,
-            description="Monthly Internet Bill",
-            transaction_date=now - timedelta(days=month * 30),
-        )
-        await transaction_history_repository.create(schema.model_dump())
-
+    """Test identifying recurring transaction patterns.
+    
+    Uses ADR-011 compliant datetime handling with utilities.
+    Uses test_recurring_transaction_patterns fixture that creates:
+    - 4 weekly grocery transactions (Weekly Grocery Shopping)
+    - 2 monthly bill payments (Monthly Internet Bill)
+    """
+    # 1. ARRANGE: Setup is already done with the fixture
+    
     # 2. ACT: Analyze transaction patterns
     patterns = await transaction_history_repository.get_transaction_patterns(
         test_checking_account.id
@@ -295,31 +297,33 @@ async def test_bulk_create_transactions(
     transaction_history_repository: TransactionHistoryRepository,
     test_checking_account: Account,
 ):
-    """Test creating multiple transactions in bulk."""
-    # 1. ARRANGE: Prepare multiple transaction schemas
-    now = datetime.now(timezone.utc)
-
+    """Test creating multiple transactions in bulk.
+    
+    Uses ADR-011 compliant datetime handling with utilities.
+    """
+    # 1. ARRANGE: Prepare multiple transaction schemas using ADR-011 utilities
+    
     transaction_schemas = [
         create_transaction_history_schema(
             account_id=test_checking_account.id,
             amount=Decimal("25.00"),
             transaction_type=TransactionType.DEBIT,
             description="Coffee shop",
-            transaction_date=now - timedelta(days=1),
+            transaction_date=days_ago(1),
         ),
         create_transaction_history_schema(
             account_id=test_checking_account.id,
             amount=Decimal("45.00"),
             transaction_type=TransactionType.DEBIT,
             description="Restaurant",
-            transaction_date=now - timedelta(days=2),
+            transaction_date=days_ago(2),
         ),
         create_transaction_history_schema(
             account_id=test_checking_account.id,
             amount=Decimal("60.00"),
             transaction_type=TransactionType.DEBIT,
             description="Gas station",
-            transaction_date=now - timedelta(days=3),
+            transaction_date=days_ago(3),
         ),
     ]
 
@@ -340,14 +344,17 @@ async def test_bulk_create_transactions(
 
 
 async def test_validation_error_handling():
-    """Test handling of validation errors that would be caught by the Pydantic schema."""
+    """Test handling of validation errors that would be caught by the Pydantic schema.
+    
+    Uses ADR-011 compliant datetime handling with utilities.
+    """
     # Try creating a schema with invalid data
     try:
         invalid_schema = TransactionHistoryCreate(
             account_id=999,
             amount=Decimal("-10.00"),  # Negative amount
             transaction_type=TransactionType.CREDIT,
-            transaction_date=datetime.now(timezone.utc),
+            transaction_date=utc_now(),  # Use ADR-011 compliant utility
         )
         assert False, "Schema should have raised a validation error for negative amount"
     except ValueError as e:

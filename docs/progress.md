@@ -1,5 +1,29 @@
 # Progress
 
+## March 27, 2025 (Night)
+
+### Completed Tasks
+
+- Implemented Enhanced Test Fixture Architecture:
+  - Added dedicated model-based fixtures to avoid circular testing dependencies
+  - Created `test_recurring_transaction_patterns` fixture with weekly and monthly patterns
+  - Created `test_date_range_transactions` fixture with specific date offsets for range testing
+  - Updated transaction history repository tests to use the new fixtures
+  - Eliminated use of repository methods in test setup code
+  - Improved test clarity with explicitly documented fixture data
+  - Enhanced test assertions with predictable date patterns and counts
+  - Fixed ADR-011 compliance in transaction history repository tests
+
+- Enhanced ADR-011 Datetime Standardization Documentation:
+  - Updated Transaction History Repository with ADR-011 best practices
+  - Added Repository Method patterns section to ADR-011
+  - Added detailed test improvement patterns in ADR documentation
+  - Added comprehensive cross-database compatibility guidance
+  - Enhanced implementation guidelines with date comparison patterns
+  - Added examples of utility function usage in repositories
+  - Created patterns for safe date comparisons across database engines
+  - Updated documentation with test fixture patterns
+
 ## March 27, 2025 (Evening)
 
 ### Completed Tasks

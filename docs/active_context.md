@@ -1,11 +1,34 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Repository Test Failure Resolution, Database-Agnostic Date Handling, Balance History Repository Fixes, Timezone-aware Datetime Utilities, Cross-Database Compatibility
+Repository Test Failure Resolution, Database-Agnostic Date Handling, Transaction History Repository ADR-011 Compliance, Test Fixture Architecture Improvements, Test Isolation with Direct Model Creation
 
 ### Recent Changes
 
-1. **Fixed Balance History Repository Tests (Phase 5)** ✓
+1. **Improved Test Fixture Architecture with Dedicated Model Fixtures** ✓
+   - Created specialized test fixtures for recurring transaction patterns and date range testing
+   - Added `test_recurring_transaction_patterns` fixture with weekly groceries and monthly bills
+   - Added `test_date_range_transactions` fixture with transactions at precise day intervals
+   - Eliminated repository method usage in test setup to prevent circular dependencies
+   - Updated repository tests to use dedicated fixtures instead of inline data creation
+   - Improved test clarity with explicitly documented fixture data expectations
+   - Created pattern for direct model instantiation in fixtures to improve test isolation
+   - Enhanced test assertions with known fixture data structures
+   - Made tests more predictable with precise date patterns and explicit counts
+   - Fixed transaction history repository tests to be fully ADR-011 compliant
+
+2. **Enhanced ADR-011 Datetime Standardization** ✓
+   - Updated Transaction History Repository to follow ADR-011 best practices
+   - Added new Repository Method patterns section in ADR-011 documentation 
+   - Updated Tests section with standardized testing approaches
+   - Added comprehensive Cross-Database Compatibility guidance
+   - Enhanced Implementation Guidelines with detailed date comparison patterns
+   - Added utility functions usage examples for repository methods 
+   - Created patterns for safe date comparison across database engines
+   - Updated test fixtures to use datetime utilities consistently
+   - Added docstring enhancement patterns for ADR compliance notes
+
+3. **Fixed Balance History Repository Tests (Phase 5)** ✓
    - Fixed all 5 Balance History Repository test failures
    - Created database-agnostic date handling utilities for cross-database compatibility
    - Implemented `normalize_db_date()` utility to handle different date formats from various database engines

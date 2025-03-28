@@ -254,6 +254,84 @@ def date_range(start_date, end_date):
 
 These functions provide semantic clarity and ensure consistent handling of date boundaries across the application.
 
+## Update (2025-03-28): Repository Standardization and Test Improvements
+
+After reviewing numerous repository implementations, we've identified several patterns and best practices for handling datetime operations:
+
+### Repository Method Patterns
+
+For date range queries, we've standardized on consistent patterns:
+
+```python
+async def get_by_date_range(self, account_id: int, start_date, end_date) -> List[Entity]:
+    """
+    Get entities within a date range.
+    
+    Following ADR-011, uses inclusive date range with start_of_day and end_of_day
+    to ensure consistent date range handling across the application.
+    """
+    # Ensure proper date range bounds per ADR-011
+    range_start = start_of_day(ensure_utc(start_date))
+    range_end = end_of_day(ensure_utc(end_date))
+    
+    query = select(Entity).where(
+        and_(
+            Entity.account_id == account_id,
+            Entity.datetime_field >= range_start,
+            Entity.datetime_field <= range_end,
+        )
+    )
+    
+    result = await self.session.execute(query)
+    return result.scalars().all()
+```
+
+### Test Improvements
+
+We've also standardized testing patterns:
+
+1. **Using ADR-011 utilities in tests**:
+   ```python
+   # Instead of:
+   now = datetime.now(timezone.utc)
+   start_date = now - timedelta(days=22)
+   
+   # Use:
+   current = utc_now()
+   start_date = days_ago(22)
+   ```
+
+2. **Safe datetime comparisons**:
+   ```python
+   # Instead of:
+   assert entry.datetime_field >= start_date
+   
+   # Use database-agnostic comparison:
+   assert (entry.datetime_field >= range_start or 
+           datetime_equals(entry.datetime_field, range_start))
+   ```
+
+3. **Docstring Updates**:
+   ```python
+   """Test function.
+   
+   Uses ADR-011 compliant datetime handling with utilities.
+   """
+   ```
+
+### Validation of Datetime Values
+
+We've also enhanced our approach to validate datetime values from the database:
+
+```python
+# In repository methods
+for item in db_results:
+    # Normalize datetime values from the database
+    item.transaction_date = normalize_db_date(item.transaction_date)
+```
+
+This ensures consistent date handling regardless of database type, addressing cross-database compatibility issues.
+
 ### Cross-Database Date Compatibility
 
 A critical challenge we encountered was handling date values across different database engines. Each engine represents and returns date values differently:

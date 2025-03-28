@@ -3,6 +3,8 @@ Repository for transaction history operations.
 
 This module provides a repository for managing transaction history records,
 which track account transactions such as credits and debits.
+
+Implements ADR-011 compliant datetime handling with utilities from datetime_utils.
 """
 
 from datetime import datetime, timedelta
@@ -10,6 +12,10 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import and_, func, or_, select
+from src.utils.datetime_utils import (
+    utc_now, days_ago, start_of_day, end_of_day, datetime_equals,
+    date_range, ensure_utc, normalize_db_date
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -93,25 +99,32 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
         return await self.get_with_joins(id, relationships=["account"])
 
     async def get_by_date_range(
-        self, account_id: int, start_date: datetime, end_date: datetime
+        self, account_id: int, start_date, end_date
     ) -> List[TransactionHistory]:
         """
         Get transactions within a date range.
 
+        Following ADR-011, uses inclusive date range with start_of_day and end_of_day
+        to ensure consistent date range handling across the application.
+
         Args:
             account_id (int): Account ID to get transactions for
-            start_date (datetime): Start date for range (inclusive)
-            end_date (datetime): End date for range (inclusive)
+            start_date: Start date for range (inclusive, set to beginning of day)
+            end_date: End date for range (inclusive, set to end of day)
 
         Returns:
             List[TransactionHistory]: List of transactions
         """
+        # Ensure proper date range bounds per ADR-011
+        range_start = start_of_day(ensure_utc(start_date))
+        range_end = end_of_day(ensure_utc(end_date))
+        
         query = (
             select(TransactionHistory)
             .where(
                 TransactionHistory.account_id == account_id,
-                TransactionHistory.transaction_date >= start_date,
-                TransactionHistory.transaction_date <= end_date,
+                TransactionHistory.transaction_date >= range_start,
+                TransactionHistory.transaction_date <= range_end,
             )
             .order_by(TransactionHistory.transaction_date)
         )
@@ -282,6 +295,8 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
     ) -> List[Dict[str, Any]]:
         """
         Get monthly transaction totals.
+        
+        Using ADR-011 compliant datetime handling with utilities.
 
         Args:
             account_id (int): Account ID to get totals for
@@ -290,12 +305,9 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
         Returns:
             List[Dict[str, Any]]: Monthly totals with credits, debits, and net
         """
-        # Calculate date range
-        from datetime import datetime, timezone, timedelta
-        from decimal import Decimal
-        
-        end_date = datetime.now(timezone.utc)
-        start_date = end_date - timedelta(days=30 * months)
+        # Calculate date range using ADR-011 compliant utilities
+        end_date = utc_now()
+        start_date = days_ago(30 * months)
         
         # Get raw transaction data using database-agnostic query
         # instead of using date_trunc SQL function which varies by database engine
@@ -351,6 +363,8 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
     ) -> List[Dict[str, Any]]:
         """
         Identify recurring transaction patterns.
+        
+        Using ADR-011 compliant datetime handling with utilities.
 
         Args:
             account_id (int): Account ID to analyze
@@ -359,10 +373,11 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
         Returns:
             List[Dict[str, Any]]: Identified transaction patterns
         """
-        # Get transactions within lookback period
-        start_date = datetime.utcnow() - timedelta(days=lookback_days)
+        # Get transactions within lookback period using ADR-011 compliant utilities
+        current_date = utc_now()
+        start_date = days_ago(lookback_days)
         transactions = await self.get_by_date_range(
-            account_id, start_date, datetime.utcnow()
+            account_id, start_date, current_date
         )
 
         # Group transactions by description (simplified pattern detection)

@@ -6,7 +6,9 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.transaction_history import TransactionHistory, TransactionType
-from src.utils.datetime_utils import utc_now
+from src.utils.datetime_utils import (
+    utc_now, days_ago, start_of_day, end_of_day
+)
 
 
 @pytest_asyncio.fixture
@@ -111,6 +113,97 @@ async def test_multiple_transactions(
     await db_session.flush()
     
     # Refresh all entries to make sure they reflect what's in the database
+    for transaction in transactions:
+        await db_session.refresh(transaction)
+        
+    return transactions
+
+
+@pytest_asyncio.fixture
+async def test_recurring_transaction_patterns(
+    db_session: AsyncSession,
+    test_checking_account,
+) -> List[TransactionHistory]:
+    """
+    Create recurring transaction patterns for pattern detection testing.
+    
+    Creates:
+    - 4 weekly grocery transactions (Weekly Grocery Shopping)
+    - 2 monthly bill payments (Monthly Internet Bill)
+    
+    All created directly as models, bypassing repository methods.
+    """
+    transactions = []
+    
+    # Weekly grocery transactions
+    for week in range(1, 5):
+        transaction_date = days_ago(week * 7).replace(tzinfo=None)  # Make naive for DB
+        transaction = TransactionHistory(
+            account_id=test_checking_account.id,
+            amount=Decimal("75.00"),
+            transaction_type=TransactionType.DEBIT,
+            description="Weekly Grocery Shopping",
+            transaction_date=transaction_date,
+        )
+        db_session.add(transaction)
+        transactions.append(transaction)
+        
+    # Monthly bill payments
+    for month in range(1, 3):
+        transaction_date = days_ago(month * 30).replace(tzinfo=None)  # Make naive for DB
+        transaction = TransactionHistory(
+            account_id=test_checking_account.id,
+            amount=Decimal("120.00"), 
+            transaction_type=TransactionType.DEBIT,
+            description="Monthly Internet Bill",
+            transaction_date=transaction_date,
+        )
+        db_session.add(transaction)
+        transactions.append(transaction)
+        
+    await db_session.flush()
+    
+    # Refresh all transactions to ensure they have IDs
+    for transaction in transactions:
+        await db_session.refresh(transaction)
+        
+    return transactions
+
+
+@pytest_asyncio.fixture
+async def test_date_range_transactions(
+    db_session: AsyncSession,
+    test_checking_account,
+) -> List[TransactionHistory]:
+    """
+    Create transactions across specific date ranges for date range testing.
+    
+    Creates transactions at:
+    - 5, 10, 15, 20, 25 days ago (inside common test ranges)
+    - 30, 45, 60 days ago (outside common test ranges)
+    
+    Alternates between CREDIT and DEBIT types for variety.
+    """
+    transactions = []
+    
+    # Create transactions at specific intervals back from now
+    date_offsets = [5, 10, 15, 20, 25, 30, 45, 60]
+    
+    for offset in date_offsets:
+        transaction_date = days_ago(offset).replace(tzinfo=None)  # Make naive for DB
+        transaction = TransactionHistory(
+            account_id=test_checking_account.id,
+            amount=Decimal("50.00"),
+            transaction_type=TransactionType.DEBIT if offset % 2 == 0 else TransactionType.CREDIT,
+            description=f"Transaction {offset} days ago",
+            transaction_date=transaction_date,
+        )
+        db_session.add(transaction)
+        transactions.append(transaction)
+    
+    await db_session.flush()
+    
+    # Refresh all transactions
     for transaction in transactions:
         await db_session.refresh(transaction)
         

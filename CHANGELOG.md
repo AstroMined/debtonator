@@ -6,15 +6,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.48] - 2025-03-27
+
+### Added
+
+- Enhanced test fixture architecture for improved test isolation:
+  - Created specialized `test_recurring_transaction_patterns` fixture with weekly and monthly patterns
+  - Added `test_date_range_transactions` fixture with precise date intervals for range testing
+  - Added comprehensive docstrings to document fixture data structure and expectations
+  - Improved test clarity with explicit dataset documentation
+
+### Changed
+
+- Updated transaction history repository tests to use dedicated fixtures:
+  - Eliminated repository method usage in test setup to prevent circular dependencies
+  - Improved test predictability with known date patterns and explicit counts
+  - Enhanced assertions to match the exact expected data sets
+  - Made date range tests more robust with fixed date offsets
+
+### Fixed
+
+- Improved ADR-011 compliance in transaction history repository tests:
+  - Standardized datetime utility usage across all test assertions
+  - Used proper timezone-aware datetime comparisons with utility functions
+  - Fixed database-agnostic date range filtering with start_of_day/end_of_day
+  - Enhanced test documentation with ADR-011 compliance notes
+
 ## [0.5.47] - 2025-03-27
 
 ### Added
+
 - Enhanced database-agnostic date handling in ADR-011 documentation:
   - Added detailed implementation guidelines for cross-database compatibility
   - Documented real-world challenges and solutions for different database engines
   - Expanded utility function documentation with clear usage examples
 
 ### Fixed
+
 - Fixed remaining Balance History Repository tests (Phase 5):
   - Fixed test_get_min_max_balance, test_get_balance_trend, test_get_average_balance
   - Fixed test_get_missing_days with robust date normalization
@@ -22,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Implemented database-agnostic date handling for cross-engine compatibility
 
 ### Changed
+
 - Enhanced DateTime utilities with database compatibility features:
   - Added normalize_db_date() for consistent database date handling
   - Added date_equals() and date_in_collection() for reliable date comparisons
