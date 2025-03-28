@@ -151,7 +151,7 @@ async def test_multiple_deposit_schedules(
     test_second_account,
 ) -> List[DepositSchedule]:
     """Fixture to create multiple deposit schedules for testing."""
-    now = datetime.now(timezone.utc)
+    now = utc_now()
 
     # Create multiple deposit schedules with various attributes
     schedule_data = [

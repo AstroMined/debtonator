@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.utils.datetime_utils import (
     utc_now, days_ago, start_of_day, end_of_day, datetime_equals,
-    date_range, ensure_utc, normalize_db_date
+    date_range, ensure_utc, normalize_db_date, datetime_greater_than
 )
 
 from src.models.accounts import Account
@@ -87,8 +87,8 @@ async def test_get_by_date_range(
     # Our fixture creates transactions at days 5, 10, 15, 20, 25, 30, 45, 60 ago
     
     # Use a date range that should capture 4 transactions (days 10-25 ago)
-    start_date = days_ago(25)
-    end_date = days_ago(10)
+    start_date = start_of_day(days_ago(25))
+    end_date = end_of_day(days_ago(10))
 
     # 2. ACT: Get transaction entries within date range
     results = await transaction_history_repository.get_by_date_range(
@@ -103,13 +103,9 @@ async def test_get_by_date_range(
         assert entry.account_id == test_checking_account.id
         
         # Use ADR-011 compliant date comparison utilities
-        # These handle differences between database engines automatically
-        range_start = start_of_day(start_date)
-        range_end = end_of_day(end_date)
-        
         # Database-agnostic date comparison
-        assert entry.transaction_date >= range_start or datetime_equals(entry.transaction_date, range_start)
-        assert entry.transaction_date <= range_end or datetime_equals(entry.transaction_date, range_end)
+        assert datetime_greater_than(entry.transaction_date, start_date, ignore_timezone=True) or datetime_equals(entry.transaction_date, start_date, ignore_timezone=True)
+        assert datetime_greater_than(end_date, entry.transaction_date, ignore_timezone=True) or datetime_equals(entry.transaction_date, end_date, ignore_timezone=True)
 
 
 async def test_get_by_type(

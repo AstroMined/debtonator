@@ -6,6 +6,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.49] - 2025-03-27
+
+### Fixed
+
+- Fixed Transaction History Repository tests by enhancing test fixtures
+- Added proper timezone handling in date range comparisons using ADR-011 compliant utilities
+- Fixed data quantity issues by adding sufficient transactions to test fixtures
+- Resolved timezone comparison issues in get_by_date_range test
+- Implemented proper test patterns for transaction amounts and counts
+- Added comprehensive test fixture pattern for transaction history tests
+
 ## [0.5.48] - 2025-03-27
 
 ### Added

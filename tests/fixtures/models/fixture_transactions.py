@@ -88,6 +88,57 @@ async def test_multiple_transactions(
             "balance_after": Decimal("-750.00"),
             "category": "Shopping",
         },
+        # Additional transactions to satisfy test requirements
+        # Additional credit transaction 1
+        {
+            "account_id": test_checking_account.id,
+            "amount": Decimal("150.00"),
+            "description": "Bonus deposit",
+            "transaction_date": now - timedelta(days=5),
+            "transaction_type": TransactionType.CREDIT,
+            "balance_after": Decimal("1104.33"),
+            "category": "Income",
+        },
+        # Additional credit transaction 2
+        {
+            "account_id": test_checking_account.id,
+            "amount": Decimal("325.50"),
+            "description": "Tax refund deposit",
+            "transaction_date": now - timedelta(days=10),
+            "transaction_type": TransactionType.CREDIT,
+            "balance_after": Decimal("1429.83"),
+            "category": "Income",
+        },
+        # Additional debit transaction 1
+        {
+            "account_id": test_checking_account.id,
+            "amount": Decimal("75.80"),
+            "description": "Restaurant dinner",
+            "transaction_date": now - timedelta(days=4),
+            "transaction_type": TransactionType.DEBIT,
+            "balance_after": Decimal("1354.03"),
+            "category": "Dining",
+        },
+        # Additional debit transaction 2
+        {
+            "account_id": test_checking_account.id,
+            "amount": Decimal("95.50"),
+            "description": "Gas station fill-up",
+            "transaction_date": now - timedelta(days=6),
+            "transaction_type": TransactionType.DEBIT,
+            "balance_after": Decimal("1258.53"),
+            "category": "Transportation",
+        },
+        # Additional debit transaction 3 to meet the total debit amount requirement
+        {
+            "account_id": test_checking_account.id,
+            "amount": Decimal("120.00"),
+            "description": "Internet bill payment",
+            "transaction_date": now - timedelta(days=8),
+            "transaction_type": TransactionType.DEBIT,
+            "balance_after": Decimal("1138.53"),
+            "category": "Utilities",
+        },
     ]
 
     transactions = []
@@ -206,5 +257,5 @@ async def test_date_range_transactions(
     # Refresh all transactions
     for transaction in transactions:
         await db_session.refresh(transaction)
-        
+ 
     return transactions

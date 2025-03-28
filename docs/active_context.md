@@ -5,7 +5,19 @@ Repository Test Failure Resolution, Database-Agnostic Date Handling, Transaction
 
 ### Recent Changes
 
-1. **Improved Test Fixture Architecture with Dedicated Model Fixtures** ✓
+1. **Fixed Transaction History Repository Tests** ✓
+   - Fixed all 5 Transaction History Repository test failures
+   - Enhanced test fixture to provide the required number and type of transactions
+   - Added additional transactions to meet test expectations (7+ transactions total)
+   - Ensured sufficient credit transactions (3+) and debit transactions (4+)
+   - Fixed timezone handling in date comparisons for date range tests
+   - Used ADR-011 compliant utilities: start_of_day() and end_of_day()
+   - Applied datetime_greater_than() and datetime_equals() with ignore_timezone=True
+   - Added transactions with sufficient values to meet debit total requirements (>= 280.50)
+   - Fixed data count/value assertions through enhanced test fixtures
+   - Created reusable pattern for extending test fixtures to meet count and value requirements
+
+2. **Improved Test Fixture Architecture with Dedicated Model Fixtures** ✓
    - Created specialized test fixtures for recurring transaction patterns and date range testing
    - Added `test_recurring_transaction_patterns` fixture with weekly groceries and monthly bills
    - Added `test_date_range_transactions` fixture with transactions at precise day intervals
