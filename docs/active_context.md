@@ -1,11 +1,22 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Repository Test Failure Resolution, Database-Agnostic Date Handling, Transaction History Repository ADR-011 Compliance, Test Fixture Architecture Improvements, Test Isolation with Direct Model Creation
+Repository Test Suite Completion (52/52 Tests Passing), SQL Aggregation Patterns, Database-Agnostic Implementation, Test Fixture Architecture
 
 ### Recent Changes
 
-1. **Fixed Transaction History Repository Tests** ✓
+1. **Completed Repository Test Suite (52/52)** ✓
+   - Fixed all remaining repository test failures
+   - Fixed bill split distribution issue with proper SQL aggregation
+   - Implemented SQL COUNT(column) vs COUNT(*) pattern for accurate OUTER JOIN counts
+   - Created reusable database-agnostic SQL patterns
+   - Updated test_failure_resolution_plan.md with SQL aggregation patterns
+   - Documented best practices for database-agnostic implementation
+   - Enhanced repository documentation with lessons learned
+   - Fixed income category count assertions with proper LEFT JOIN behavior
+   - Created pattern for handling validation error message flexibility
+
+2. **Fixed Transaction History Repository Tests** ✓
    - Fixed all 5 Transaction History Repository test failures
    - Enhanced test fixture to provide the required number and type of transactions
    - Added additional transactions to meet test expectations (7+ transactions total)
@@ -17,7 +28,7 @@ Repository Test Failure Resolution, Database-Agnostic Date Handling, Transaction
    - Fixed data count/value assertions through enhanced test fixtures
    - Created reusable pattern for extending test fixtures to meet count and value requirements
 
-2. **Improved Test Fixture Architecture with Dedicated Model Fixtures** ✓
+3. **Improved Test Fixture Architecture with Dedicated Model Fixtures** ✓
    - Created specialized test fixtures for recurring transaction patterns and date range testing
    - Added `test_recurring_transaction_patterns` fixture with weekly groceries and monthly bills
    - Added `test_date_range_transactions` fixture with transactions at precise day intervals
@@ -29,7 +40,7 @@ Repository Test Failure Resolution, Database-Agnostic Date Handling, Transaction
    - Made tests more predictable with precise date patterns and explicit counts
    - Fixed transaction history repository tests to be fully ADR-011 compliant
 
-2. **Enhanced ADR-011 Datetime Standardization** ✓
+4. **Enhanced ADR-011 Datetime Standardization** ✓
    - Updated Transaction History Repository to follow ADR-011 best practices
    - Added new Repository Method patterns section in ADR-011 documentation 
    - Updated Tests section with standardized testing approaches
@@ -40,7 +51,7 @@ Repository Test Failure Resolution, Database-Agnostic Date Handling, Transaction
    - Updated test fixtures to use datetime utilities consistently
    - Added docstring enhancement patterns for ADR compliance notes
 
-3. **Fixed Balance History Repository Tests (Phase 5)** ✓
+5. **Fixed Balance History Repository Tests (Phase 5)** ✓
    - Fixed all 5 Balance History Repository test failures
    - Created database-agnostic date handling utilities for cross-database compatibility
    - Implemented `normalize_db_date()` utility to handle different date formats from various database engines
@@ -52,75 +63,25 @@ Repository Test Failure Resolution, Database-Agnostic Date Handling, Transaction
    - Added pattern for handling different date formats across database engines
    - Updated test_failure_resolution_plan.md to track progress (37/52 tests fixed)
 
-1. **Fixed DateTime Handling Issues in Repository Tests (Phase 3)** ✓
-   - Fixed all 4 DateTime handling test failures: deposit_schedule, payment_schedule, and payment repositories
-   - Implemented safe_end_date utility function to handle month boundary cases
-   - Fixed "day is out of range for month" errors with proper date calculations 
-   - Used datetime_greater_than and datetime_equals helpers with ignore_timezone=True parameter
-   - Fixed timezone comparison issues in payment repository tests
-   - Standardized datetime comparison approach across repository tests
-   - Created consistent pattern for timezone-aware datetime handling
-   - Updated test_failure_resolution_plan.md to track progress (29/52 tests fixed)
-
-2. **Fixed Model Attribute/Relationship Issues (Phase 4)** ✓
-   - Fixed all 3 Model Attribute/Relationship test failures in income_category_repository
-   - Updated IncomeCategory model to use "incomes" relationship consistently  
-   - Fixed attribute name mismatch between test and model (incomes vs income_entries)
-   - Updated repository to reference the correct field name (deposited vs is_deposited)
-   - Fixed SQLAlchemy case expression syntax in get_categories_with_stats method
-   - Added proper SQLAlchemy case import for query expressions
-   - Enhanced test fixtures to match model structure
-   - Updated test_failure_resolution_plan.md to track progress (32/52 tests fixed)
-
-3. **Fixed Database-Agnostic Aggregation Implementation** ✓
-   - Fixed `sqlite3.OperationalError: no such function: date_trunc` error in transaction_history_repository
-   - Implemented Python-based aggregation strategy for maximum database compatibility
-   - Replaced database-specific SQL functions with application-layer processing
-   - Created a reusable pattern for handling database engine differences
-   - Successfully passed test_get_monthly_totals test with the new implementation
-   - Enhanced data processing with pure Python to ensure cross-database compatibility
-   - Used group-by-month logic in memory rather than depending on database functions
-   - Updated test_failure_resolution_plan.md to track progress (25/52 tests fixed)
-
-4. **Fixed SQLAlchemy Lazy Loading Issues** ✓
-   - Fixed MissingGreenlet errors in CategoryRepository and RecurringBillRepository tests
-   - Identified key anti-pattern: using hasattr() in tests which triggers SQLAlchemy lazy loading
-   - Created solution pattern: avoiding hasattr() checks on relationships not explicitly loaded
-   - Simplified repository implementation to use conditional relationship loading in a single query
-   - Eliminated use of multiple separate queries for different relationships
-   - Updated test assertions to only check for explicitly loaded relationships
-   - Fixed two key tests in Phase 2 database integrity issues
-   - Created reusable pattern for fixing similar issues in other repositories
-
-5. **Fixed Repository Test Datetime Comparisons** ✓
-   - Fixed "can't compare offset-naive and offset-aware datetimes" errors in multiple repository tests
-   - Implemented proper timezone-aware comparisons with datetime_greater_than and datetime_equals helper functions
-   - Used ignore_timezone=True parameter for consistent behavior across timezone variants
-   - Standardized test assertions to properly check date ranges
-   - Updated handling of UTC datetime comparisons in test assertions
-   - Fixed statement_history_repository and payment_schedule_repository tests
-   - Added proper fixes for timezone handling in repository tests
-   - Created patterns for fixing similar timezone issues in other tests
-
 ## Next Steps
 
-1. **Continue with Phase 5: Data Count/Value Assertions**
-   - Fix Balance History Repository issues (5 failures)
-   - Fix Cashflow Forecast Repository issues (4 failures)
-   - Fix Bill and Payment Repository issues (3 failures)
-   - Fix Statement Repository issues (2 failures)
-   - Fix Transaction History Repository issues (5 failures)
-   - Use consistent assertion patterns across all repositories
+1. **Consolidate SQL Aggregation Patterns**
+   - Audit repository methods for proper COUNT() handling with JOINs
+   - Review SUM() operations for consistency with GROUP BY usage
+   - Standardize date range filtering for cross-database compatibility
+   - Create pattern library for common repository operations
 
-2. **Complete Phase 6: Validation Error Issues**
-   - Fix validation error message test in income_category_repository
-   - Standardize Pydantic V2 error format handling across tests
-   - Create flexible error message testing pattern
+2. **Enhance Repository Documentation**
+   - Document SQL aggregation patterns in repository guides
+   - Create examples for proper join handling
+   - Update existing method documentation with lessons learned
+   - Create guidance for cross-database compatibility
 
-3. **Complete UTC Datetime Compliance**
-   - Add naive datetime scanner to CI pipeline
-   - Consider adding utility functions to production code
-   - Review existing test fixtures for timezone consistency
+3. **Implement Validation Layer Standardization (ADR-012)**
+   - Begin implementation of validation layer aligned with fixed tests
+   - Standardize error message handling across validation layers
+   - Create consistent pattern for Pydantic validation
+   - Ensure compatibility with different Pydantic versions
 
 4. **Create ADR Documenting the Test Fixture Architecture**
    - Document the direct SQLAlchemy model instantiation pattern
@@ -130,7 +91,16 @@ Repository Test Failure Resolution, Database-Agnostic Date Handling, Transaction
 
 ## Implementation Lessons
 
-1. **SQLAlchemy Case Expression Pattern**
+1. **SQL Aggregation Patterns**
+   - Use `func.sum(column)` with `group_by()` for proper aggregation
+   - For counting with LEFT JOINs, use `func.count(right_table.id)` instead of `func.count()`
+   - COUNT(*) counts rows even when joined columns are NULL
+   - COUNT(column) only counts non-NULL values of that column
+   - This distinction is crucial for accurate counts with OUTER JOINs
+   - Always test with empty related tables to verify correct behavior
+   - Document SQL aggregation patterns in method docstrings
+
+2. **SQLAlchemy Case Expression Pattern**
    - Use `from sqlalchemy import case` to properly import the case function
    - Use proper syntax for case expressions in SQLAlchemy queries:
    ```python
@@ -145,7 +115,7 @@ Repository Test Failure Resolution, Database-Agnostic Date Handling, Transaction
    - Ensure column labels are properly defined for aggregated results
    - Test complex SQL expressions thoroughly with different inputs
 
-2. **Month Boundary Safe Date Calculation**
+3. **Month Boundary Safe Date Calculation**
    - Use a safe_end_date utility function to handle month boundary issues:
    ```python
    def safe_end_date(today, days):
@@ -164,7 +134,7 @@ Repository Test Failure Resolution, Database-Agnostic Date Handling, Transaction
    - Add days using timedelta and then adjust if the result is invalid
    - Handle month transitions properly when calculating end dates
 
-3. **Model Relationship Consistency Pattern**
+4. **Model Relationship Consistency Pattern**
    - Ensure relationship names are consistent between model definition and usage
    - Update tests to reflect the actual model relationship names
    - Prefer updating tests to match models rather than changing models
@@ -172,18 +142,6 @@ Repository Test Failure Resolution, Database-Agnostic Date Handling, Transaction
    - Document relationship names and access patterns in model docstrings
    - Test relationship access explicitly to catch naming inconsistencies
    - When updating model relationships, scan the codebase for all usages
-
-4. **SQLAlchemy Union Query Pattern**
-   - Avoid direct UNION operations with complex ORM mappings
-   - Use a two-step query approach for complex multi-source queries:
-     1. Collect IDs from separate queries
-     2. Use a final query with `entity.id.in_(combined_ids)` to maintain ORM mapping
-   - Process result sets separately before combining to prevent ORM mapping loss
-   - Add defensive empty list checks to handle edge cases gracefully
-   - Always test that returned objects have expected attributes and methods
-   - Use `.all()` before performing Python-side operations on database results
-   - Remember to handle duplicates with set operations when appropriate
-   - Clear queries return complete entity objects, not just scalar values
 
 5. **Timezone-aware Datetime Comparison Pattern**
    - Use `datetime_greater_than(date1, date2, ignore_timezone=True)` for date comparisons

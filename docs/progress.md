@@ -1,8 +1,44 @@
 # Progress
 
+## March 28, 2025 (12:00 AM)
+
+### Completed Tasks
+
+- Fixed Remaining Repository Tests (3/3 fixed):
+  - Fixed bill_split_repository test_get_split_distribution:
+    - Updated repository method to use GROUP BY with func.sum() to properly aggregate amounts
+    - Enhanced SQL query to sum split amounts by account_id
+    - Updated method documentation to clarify it returns total amounts per account
+  - Fixed income_category_repository test_get_categories_with_income_counts:
+    - Modified repository implementation to use COUNT(Income.id) instead of COUNT(*)
+    - Discovered crucial SQL pattern: COUNT(*) counts rows even for NULL values in LEFT JOINs
+    - COUNT(column) only counts non-NULL values, properly handling empty relationships
+  - Fixed all remaining test assertions with proper LEFT JOIN behavior
+  - Created database-agnostic SQL patterns for improved cross-database compatibility
+  - Updated test_failure_resolution_plan.md with SQL aggregation patterns
+  - Documented SQL COUNT and GROUP BY patterns for future reference
+  - **MILESTONE: All 52/52 repository tests now passing!**
+
 ## March 27, 2025 (Night)
 
 ### Completed Tasks
+
+- Fixed Recurring Bill Repository Test and Improved Test Architecture:
+  - Fixed failing `test_get_upcoming_bills` in recurring_bill_repository_advanced.py
+  - Created new `test_bills_by_account` fixture using direct model instantiation
+  - Removed circular dependency where repository tests were using repositories for setup
+  - Updated test to properly filter active bills to match repository behavior
+  - Replaced raw datetime operations with utility functions from src/utils/datetime_utils.py
+  - Improved consistency in test assertions and expectations
+  - Updated test_failure_resolution_plan.md to track progress (49/52 tests fixed, 3 remaining)
+
+- Fixed Statement History Repository Tests (2/2 tests fixed):
+  - Fixed `test_get_statements_with_due_dates` in statement_history_repository_advanced.py
+  - Fixed `test_get_upcoming_statements_with_accounts` in statement_history_repository_advanced.py
+  - Enhanced `test_multiple_accounts_with_statements` fixture to include statements with future due dates
+  - Added statements with due dates at 10, 20, and 30 days in the future
+  - Used consistent timezone-aware datetime utilities for assertions
+  - Improved test fixture architecture to better support date range tests
 
 - Implemented Enhanced Test Fixture Architecture:
   - Added dedicated model-based fixtures to avoid circular testing dependencies
@@ -71,140 +107,6 @@
   - Successfully completed Phase 2: Database Function Issues (1/1 tests fixed)
   - Increased overall test failure resolution progress to 25/52 tests fixed
 
-## March 26, 2025 (Evening)
-
-### Completed Tasks
-
-- Fixed SQLAlchemy Lazy Loading Issues:
-  - Fixed MissingGreenlet errors in CategoryRepository and RecurringBillRepository tests
-  - Identified key anti-pattern: using hasattr() in tests which triggers SQLAlchemy lazy loading
-  - Created solution pattern: avoiding hasattr() checks on relationships not explicitly loaded
-  - Simplified repository implementation to use conditional relationship loading in a single query
-  - Eliminated use of multiple separate queries for different relationships
-  - Updated test assertions to only check for explicitly loaded relationships
-  - Fixed two key tests in Phase 2 database integrity issues
-  - Created reusable pattern for fixing similar issues in other repositories
-  - Updated test_get_with_relationships in CategoryRepository to use clean single-query approach
-  - Fixed test_get_with_relationships in RecurringBillRepository to avoid lazy loading
-  - Increased test failure resolution progress to 19/52 tests
-
-## March 26, 2025 (Morning)
-
-### Completed Tasks
-
-- Fixed SQLAlchemy Union Query ORM Mapping Loss:
-  - Fixed 'int' object has no attribute 'primary_account_id' error in LiabilityRepository
-  - Discovered and documented common issue with SQL UNION operations causing ORM mapping loss
-  - Implemented sustainable two-step query pattern to preserve entity mapping
-  - First: Collect IDs from separate queries for primary accounts and bill splits
-  - Second: Make a final query using ID list to retrieve full entity objects
-  - Used Liability.id.in_(combined_ids) pattern instead of direct UNION
-  - Documented pattern as a best practice for handling complex query combinations
-  - Added additional defensive handling for empty result sets
-  - Updated test failure resolution plan with this new pattern
-  - Made test_get_bills_for_account pass in test_liability_repository_advanced.py
-  - Fixed test_get_bills_due_in_range in test_liability_repository_advanced.py
-
-- Refactored test fixtures to eliminate circular dependencies:
-  - Updated 6 fixture files (income, payments, recurring, schedules, statements, transactions)
-  - Replaced repository-based fixture creation with direct SQLAlchemy model instantiation
-  - Fixed field name mismatches across all fixture files (`old_limit`/`new_limit` → `credit_limit`, `account_type` → `type`, etc.)
-  - Removed `balance_after` and other non-existent fields from TransactionHistory
-  - Improved SQLAlchemy relationship handling with proper flush-refresh patterns
-  - Fixed datetime handling to consistently use naive datetime objects for database storage
-  - Enhanced architecture layer separation by removing business logic from repositories
-  - Improved test isolation by removing dependencies on the systems they test
-  - Fixed several test errors related to field mismatches and type issues
-
-### Next Steps
-
-- Apply Union Query Pattern to Similar Repository Methods:
-  - Check payment_repository methods for similar UNION issues
-  - Apply two-step query pattern to recurring_bill_repository where needed
-  - Fix any other repositories that might have ORM mapping loss with UNION queries
-  - Ensure all repository return types match actual returned data types
-  - Add defensive handling for empty result sets consistently
-
-- Continue Phase 2: Database Integrity Issues
-  - Fix NOT NULL constraint failures in category_repository_advanced tests
-  - Fix relationship loading issues in remaining repository tests
-  - Fix assertion issues in recurring_bill_repository_advanced
-  - Fix category-income relationships in income_category_repository_advanced
-
-- Fix remaining repository tests to work with the direct model instantiation approach
-- Create ADR documenting the test fixture architecture for future reference
-- Continue Phase 3-5 of test failure resolution
-
-## March 25, 2025
-
-### Completed Tasks
-
-- Made significant progress on Phase 1 DateTime Standardization Issues:
-  - Fixed test_get_by_date_range in balance_reconciliation_repository_advanced (previously failing)
-  - Fixed test_get_most_recent in balance_reconciliation_repository_advanced (previously failing)
-  - Fixed test_get_reconciliation_frequency in balance_reconciliation_repository_advanced (previously failing)
-  - Identified root cause: fixture data not using proper dates as intended
-  - Implemented direct SQLAlchemy model creation in fixture to bypass schema validation issues
-  - Added timezone-aware comparison helpers with ignore_timezone=True
-  - Found 9 of 13 tests in Phase 1 are now passing
-  - Documented findings and patterns in test_failure_resolution_plan.md
-
-### Next Steps
-
-- Implement Phase 2: Database Integrity Issues
-- Complete UTC Datetime Compliance with CI pipeline integration
-- Implement PaymentSource Schema Simplification (ADR-017)
-- Continue with Phase 3-5 of test failure resolution
-
-## March 24, 2025
-
-### Completed Tasks
-
-- Fixed Payment Source Test Failures and Schema Dependencies:
-  - Updated tests to use PaymentSourceCreateNested instead of PaymentSourceCreate
-  - Modified fixture creation to use the nested schema approach consistently
-  - Updated repositories to properly handle parent-child relationship validation
-  - Created ADR-017 for PaymentSource Schema Simplification
-  - Documented technical debt elimination strategy
-  - Modified test validation assertions to match actual fixture values
-  - Fixed indentation issues in test files causing parsing errors
-  - Eliminated circular dependencies in tests between Payment and PaymentSource
-
-### Next Steps
-
-- Continue implementing UTC datetime compliance
-- Add naive datetime scanner to CI pipeline
-- Refactor service layer to use repositories consistently
-- Complete Account Type Expansion implementation (ADR-016)
-- Fix remaining parameter mapping inconsistencies in schema factories
-
-## Previous Updates
-
-## March 23, 2025
-
-### Completed Tasks
-
-- Fixed Repository Test Datetime Comparison Issues:
-  - Added original_updated_at variable to store pre-update timestamps
-  - Updated test assertions to compare with stored original timestamps
-  - Fixed comparison issues in all "updated_at > test_x.updated_at" assertions
-  - Standardized datetime comparison approach across test files
-  - Removed duplicated CRUD tests from repositories/advanced tests
-- Fixed circular dependency between Payment and PaymentSource schemas
-- Enhanced BaseRepository.update() to safely handle relationships and required fields
-- Added eager loading of sources in PaymentRepository.create
-- Updated test fixtures to maintain required field constraints
-- Fixed '_sa_instance_state' errors in repository tests
-- Improved null constraint handling in repository operations
-
-### Next Steps
-
-- Continue implementing UTC datetime compliance
-- Add naive datetime scanner to CI pipeline
-- Refactor service layer to use repositories consistently
-- Complete Account Type Expansion implementation (ADR-016)
-- Fix remaining parameter mapping inconsistencies in schema factories
-
 ## Current Status Overview
 
 1. **Model Layer**: COMPLETED (100%) ✓
@@ -220,7 +122,7 @@
    - Comprehensive unit tests for all schema validation
    - Default category handling in liability schemas
 
-3. **Repository Layer**: IN PROGRESS (98%)
+3. **Repository Layer**: COMPLETED (100%) ✓
    - Repository pattern foundation complete (ADR-014) ✓
    - 18 of 18 core repositories implemented (100%) ✓
    - 5 of 5 additional repositories implemented (100%) ✓
@@ -228,12 +130,13 @@
    - Repository test standardization (100%) ✓
    - Phase 1 test failure resolution (100%) ✓
    - Phase 2 test failure resolution (100%) ✓
+   - Phase 3 datetime handling issues (100%) ✓
+   - Phase 4 model attribute/relationship issues (100%) ✓
+   - Phase 5 data count/value assertion issues (100%) ✓
+   - Phase 6 validation error issues (100%) ✓
    - Test fixtures refactored to use direct model instantiation (100%) ✓
-   - Phases 3-5
-   - Phase 3 datetime handling issues (0%)
-   - Phase 4 model attribute/relationship issues (0%)
-   - Phase 5 data count/value assertion issues (0%)
-   - UTC datetime compliance in tests (80%)
+   - UTC datetime compliance in tests (100%) ✓
+   - Database-agnostic SQL patterns documented (100%) ✓
 
 4. **Service Layer**: IN PROGRESS (12%)
    - Service refactoring to use repositories (12%)
@@ -258,13 +161,15 @@
    - Default "Uncategorized" category (ADR-015) ✓
    - Comprehensive test coverage in place ✓
 
-8. **UTC Datetime Compliance**: IN PROGRESS (83%)
+8. **UTC Datetime Compliance**: IN PROGRESS (90%)
    - Helper utilities created for consistent datetime handling ✓
    - Naive datetime detection tools implemented ✓
    - Test hooks added for automated detection during test runs ✓
    - Repository test datetime comparison issues fixed ✓
    - Improved test helpers usage across test files ✓
    - Phase 1 timezone standardization completed ✓
+   - Standardized date handling with safe comparison functions ✓
+   - Added patterns for handling different date formats across database engines ✓
    - Adding naive datetime scanner to CI pipeline (0%)
    - Adding utility functions to production code (0%)
 
@@ -273,11 +178,13 @@
 1. **Repository Layer**
    - Full CRUD operations for all model types ✓
    - Advanced repository queries with proper relationship loading ✓
-   - UTC-aware datetime handling in repository tests (Phase 1) ✓
+   - UTC-aware datetime handling in repository tests ✓
    - Consistent repository test patterns ✓
    - Default category support with system protection ✓
    - Transaction boundary management ✓
    - Test fixtures using direct model instantiation ✓
+   - Database-agnostic SQL patterns for cross-database compatibility ✓
+   - Proper SQL aggregation with GROUP BY and COUNT handling ✓
 
 2. **Schema Layer**
    - Complete validation for all model types ✓
@@ -294,26 +201,30 @@
    - Default entity handling ✓
    - Clear separation of architecture layers ✓
    - Direct model instantiation pattern for testing ✓
+   - Database-agnostic implementation patterns ✓
 
 ## What's Left to Build
 
-1. **Complete Test Failure Resolution (72%)**
+1. **Complete Test Failure Resolution (100%)** ✓
    - ✓ Phase 1: DateTime Standardization (14/14 fixed)
    - ✓ Phase 2: Database Function Issues (1/1 fixed)
-   - Phase 3: DateTime Handling Issues (0/4 fixed)
-   - Phase 4: Model Attribute/Relationship Issues (0/3 fixed)
-   - Phase 5: Data Count/Value Assertions (0/19 fixed)
-   - Phase 6: Validation Error Issues (0/1 fixed)
+   - ✓ Phase 3: DateTime Handling Issues (4/4 fixed)
+   - ✓ Phase 4: Model Attribute/Relationship Issues (3/3 fixed)
+   - ✓ Phase 5: Data Count/Value Assertions (19/19 fixed)
+   - ✓ Phase 6: Validation Error Issues (1/1 fixed)
 
-2. **UTC Datetime Compliance (83%)**
+2. **UTC Datetime Compliance (90%)** 
    - ✓ Created helper utilities in tests/helpers/datetime_utils.py
    - ✓ Implemented scanner script in tools/scan_naive_datetimes.py
    - ✓ Added pytest hook for warning about naive datetime usage
    - ✓ Created comprehensive documentation for datetime compliance
    - ✓ Fixed Phase 1 datetime standardization issues
    - ✓ Improved test helper utilization in schema tests
-   - Add scanner to CI pipeline
-   - Consider expanding helper utilities to production code
+   - ✓ Implemented database-agnostic date comparison utilities 
+   - ✓ Standardized date handling with safe comparison functions
+   - ✓ Added patterns for handling different date formats across database engines
+   - Add scanner to CI pipeline (remaining)
+   - Consider expanding helper utilities to production code (remaining)
 
 3. **PaymentSource Schema Simplification (ADR-017) (0%)**
    - Implement changes outlined in ADR-017
@@ -341,17 +252,11 @@
 
 ## Known Issues
 
-1. **SQLAlchemy Union Query Mapping Loss**
-   - Union operations in complex ORM mappings can cause loss of entity mapping
-   - Need to check other repositories for similar issues
-   - Problem especially appears with UNION operations that join across relationships
-   - Two-step query pattern (collect IDs, then query by ID) is the proper solution
-
-1. **UTC Datetime Handling**
-   - Some naive datetime usage still exists in repository tests outside Phase 1
-   - Need to implement datetime helper utilities in production code
-   - Need to add scanner to CI pipeline
-   - Current scanner implementation still produces some false positives
+1. **SQL Aggregation Patterns**
+   - Audit remaining repositories for proper COUNT/SUM handling
+   - Establish consistent aggregation patterns across repositories
+   - Consider standardizing GROUP BY usage in queries
+   - Improve documentation of SQL aggregation best practices
 
 2. **Repository Error Handling**
    - Need to implement custom repository exceptions
@@ -367,7 +272,8 @@
    - Dual schema approach creates confusion and technical debt
    - Circular dependency potential between Payment and PaymentSource
 
-5. **Repository Test Updates**
-   - Some tests may still expect repository-based fixture creation
-   - Field name mismatches in assertions need to be fixed
-   - Some tests may reference fields that no longer exist in fixtures
+5. **Repository Documentation**
+   - Document the SQL aggregation patterns more comprehensively
+   - Create examples for proper JOIN handling
+   - Update existing method documentation with lessons learned
+   - Create guidance for cross-database compatibility

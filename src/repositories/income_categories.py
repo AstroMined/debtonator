@@ -91,7 +91,7 @@ class IncomeCategoryRepository(BaseRepository[IncomeCategory, int]):
             List[Tuple[IncomeCategory, int]]: List of (category, income_count) tuples
         """
         result = await self.session.execute(
-            select(IncomeCategory, func.count().label("income_count"))
+            select(IncomeCategory, func.count(Income.id).label("income_count"))
             .outerjoin(Income, Income.category_id == IncomeCategory.id)
             .group_by(IncomeCategory.id)
             .order_by(IncomeCategory.name)

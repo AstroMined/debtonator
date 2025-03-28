@@ -149,8 +149,8 @@ async def test_get_statements_with_due_dates(
     # Check that due dates are within range
     for statement in results:
         assert statement.due_date is not None
-        assert statement.due_date >= start_date
-        assert statement.due_date <= end_date
+        assert datetime_greater_than(statement.due_date, start_date, ignore_timezone=True) or datetime_equals(statement.due_date, start_date, ignore_timezone=True)
+        assert datetime_greater_than(end_date, statement.due_date, ignore_timezone=True) or datetime_equals(end_date, statement.due_date, ignore_timezone=True)
 
 
 async def test_get_upcoming_statements_with_accounts(

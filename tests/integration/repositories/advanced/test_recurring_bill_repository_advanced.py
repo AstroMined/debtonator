@@ -6,26 +6,19 @@ standard 4-step pattern (Arrange-Schema-Act-Assert) to properly simulate
 the validation flow from services to repositories.
 """
 
-from datetime import date, datetime, timedelta
 from decimal import Decimal
 from typing import List
 
 import pytest
-import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.categories import Category
 from src.models.recurring_bills import RecurringBill
-from src.repositories.accounts import AccountRepository
-from src.repositories.categories import CategoryRepository
 from src.repositories.recurring_bills import RecurringBillRepository
 from src.schemas.recurring_bills import (RecurringBillCreate,
                                          RecurringBillUpdate)
-from tests.helpers.schema_factories.accounts import create_account_schema
-from tests.helpers.schema_factories.categories import create_category_schema
-from tests.helpers.schema_factories.recurring_bills import \
-    create_recurring_bill_schema
+from src.utils.datetime_utils import utc_now, days_from_now, start_of_day, end_of_day
 
 pytestmark = pytest.mark.asyncio
 
@@ -163,65 +156,18 @@ async def test_get_with_relationships(
 
 async def test_get_by_account_id(
     recurring_bill_repository: RecurringBillRepository,
-    account_repository: AccountRepository,
-    test_category: Category,
+    test_bills_by_account,
 ):
     """Test retrieving recurring bills by account ID."""
-    # 1. ARRANGE: Create two accounts and bills for each
-
-    # 2. SCHEMA: Create accounts through schema validation
-    account1_schema = create_account_schema(
-        name="Account A for Bill Test",
-        account_type="checking",
-        available_balance=Decimal("1000.00"),
-    )
-
-    account2_schema = create_account_schema(
-        name="Account B for Bill Test",
-        account_type="savings",
-        available_balance=Decimal("2000.00"),
-    )
-
-    # Convert and create accounts
-    account1 = await account_repository.create(account1_schema.model_dump())
-    account2 = await account_repository.create(account2_schema.model_dump())
-
-    # Create bills for account 1
-    bill1_schema = create_recurring_bill_schema(
-        bill_name="Account 1 Bill 1",
-        amount=Decimal("50.00"),
-        day_of_month=5,
-        account_id=account1.id,
-        category_id=test_category.id,
-    )
-
-    bill2_schema = create_recurring_bill_schema(
-        bill_name="Account 1 Bill 2",
-        amount=Decimal("75.00"),
-        day_of_month=10,
-        account_id=account1.id,
-        category_id=test_category.id,
-    )
-
-    # Create bill for account 2
-    bill3_schema = create_recurring_bill_schema(
-        bill_name="Account 2 Bill",
-        amount=Decimal("100.00"),
-        day_of_month=15,
-        account_id=account2.id,
-        category_id=test_category.id,
-    )
-
-    # Convert and create bills
-    bill1 = await recurring_bill_repository.create(bill1_schema.model_dump())
-    bill2 = await recurring_bill_repository.create(bill2_schema.model_dump())
-    bill3 = await recurring_bill_repository.create(bill3_schema.model_dump())
-
-    # 3. ACT: Get bills by account ID
+    # 1. ARRANGE: Extract accounts and bills from fixture
+    account1, account2, bills = test_bills_by_account
+    bill1, bill2, bill3 = bills
+    
+    # 2. ACT: Get bills by account ID
     account1_bills = await recurring_bill_repository.get_by_account_id(account1.id)
     account2_bills = await recurring_bill_repository.get_by_account_id(account2.id)
 
-    # 4. ASSERT: Verify the operation results
+    # 3. ASSERT: Verify the operation results
     assert len(account1_bills) >= 2
     assert any(bill.id == bill1.id for bill in account1_bills)
     assert any(bill.id == bill2.id for bill in account1_bills)
@@ -316,10 +262,10 @@ async def test_get_upcoming_bills(
     test_multiple_recurring_bills: List[RecurringBill],
 ):
     """Test retrieving upcoming bills within a date range."""
-    # 1. ARRANGE: Setup date range for upcoming bills
-    today = date.today()
-    start_date = today
-    end_date = today + timedelta(days=45)  # Cover at least one full month
+    # 1. ARRANGE: Setup date range for upcoming bills using datetime utilities
+    current_date = utc_now().date()
+    start_date = current_date  # Start from today
+    end_date = days_from_now(45).date()  # Cover at least one full month
 
     # 2. ACT: Get upcoming bills in date range
     upcoming_bills = await recurring_bill_repository.get_upcoming_bills(
@@ -327,7 +273,9 @@ async def test_get_upcoming_bills(
     )
 
     # 3. ASSERT: Verify the operation results
-    assert len(upcoming_bills) >= len(test_multiple_recurring_bills)
+    # Filter to only include active bills, since repository method only returns active bills
+    active_bills = [bill for bill in test_multiple_recurring_bills if bill.active]
+    assert len(upcoming_bills) >= len(active_bills)
 
     # Verify dates are within range
     for bill, due_date in upcoming_bills:

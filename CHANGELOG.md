@@ -6,6 +6,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.50] - 2025-03-28
+
+### Fixed
+
+- Fixed bill_split_repository test_get_split_distribution:
+  - Updated repository method to use GROUP BY with func.sum() to properly aggregate amounts
+  - Enhanced SQL query to sum split amounts by account_id rather than returning the last one
+  - Updated method documentation to clarify it returns total amounts per account
+- Fixed income_category_repository test_get_categories_with_income_counts:
+  - Modified repository implementation to use COUNT(Income.id) instead of COUNT(*)
+  - Implemented SQL pattern: COUNT(*) counts rows even for NULL values in LEFT JOINs
+  - COUNT(column) only counts non-NULL values, properly handling empty relationships
+- Created database-agnostic SQL patterns:
+  - Improved cross-database compatibility with standardized aggregate functions
+  - Enhanced SQL patterns for COUNT and GROUP BY with proper documentation
+  - Created patterns for handling LEFT JOINs with aggregate functions
+- All 52/52 previously failing repository tests now passing
+
 ## [0.5.49] - 2025-03-27
 
 ### Fixed

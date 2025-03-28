@@ -104,6 +104,92 @@ async def test_recurring_income(
 
 
 @pytest_asyncio.fixture
+async def test_bills_by_account(
+    db_session: AsyncSession,
+    test_category,
+) -> tuple:
+    """
+    Create accounts and recurring bills for testing account-specific operations.
+    
+    This fixture creates two accounts and multiple bills, with specific bills
+    assigned to each account, to test repository methods that filter by account.
+    
+    Returns:
+        tuple: A tuple containing (account1, account2, bills)
+               - account1: First test account with two bills
+               - account2: Second test account with one bill
+               - bills: List of all created bills [bill1, bill2, bill3]
+    """
+    from src.models.accounts import Account
+    
+    # Create two accounts directly
+    account1 = Account(
+        name="Account A for Bill Test",
+        type="checking",
+        available_balance=Decimal("1000.00"),
+    )
+    
+    account2 = Account(
+        name="Account B for Bill Test",
+        type="savings",
+        available_balance=Decimal("2000.00"),
+    )
+    
+    # Add accounts to session
+    db_session.add(account1)
+    db_session.add(account2)
+    await db_session.flush()
+    await db_session.refresh(account1)
+    await db_session.refresh(account2)
+    
+    # Create bills for account 1
+    bill1 = RecurringBill(
+        bill_name="Account 1 Bill 1",
+        amount=Decimal("50.00"),
+        day_of_month=5,
+        account_id=account1.id,
+        category_id=test_category.id,
+        auto_pay=True,
+        active=True,
+    )
+    
+    bill2 = RecurringBill(
+        bill_name="Account 1 Bill 2",
+        amount=Decimal("75.00"),
+        day_of_month=10,
+        account_id=account1.id,
+        category_id=test_category.id,
+        auto_pay=True,
+        active=True,
+    )
+    
+    # Create bill for account 2
+    bill3 = RecurringBill(
+        bill_name="Account 2 Bill",
+        amount=Decimal("100.00"),
+        day_of_month=15,
+        account_id=account2.id,
+        category_id=test_category.id,
+        auto_pay=True,
+        active=True,
+    )
+    
+    # Add bills to session
+    db_session.add(bill1)
+    db_session.add(bill2)
+    db_session.add(bill3)
+    await db_session.flush()
+    
+    # Refresh all bills to make sure they reflect what's in the database
+    await db_session.refresh(bill1)
+    await db_session.refresh(bill2)
+    await db_session.refresh(bill3)
+    
+    # Return accounts and all bills
+    return account1, account2, [bill1, bill2, bill3]
+
+
+@pytest_asyncio.fixture
 async def test_multiple_recurring_incomes(
     db_session: AsyncSession,
     test_checking_account,

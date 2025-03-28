@@ -139,6 +139,28 @@ async def test_multiple_accounts_with_statements(
             await db_session.flush()
             await db_session.refresh(statement)
             statements.append(statement)
+        
+        # Create additional statements with future due dates (needed for tests checking upcoming due dates)
+        for j in range(3):
+            days_future = (j + 1) * 10  # 10, 20, 30 days in future
+            # Make datetimes naive for DB storage
+            stmt_date = (now - timedelta(days=30 - j * 10)).replace(tzinfo=None)  # Statements from past 30 days
+            due_date = (now + timedelta(days=days_future)).replace(tzinfo=None)   # Due dates in the future
+            
+            # Create statement model instance directly
+            statement = StatementHistory(
+                account_id=account.id,
+                statement_date=stmt_date,
+                statement_balance=Decimal(f"{(i+j+4)*200}.00"),  # Continue the sequence from previous statements
+                minimum_payment=Decimal(f"{(i+j+4)*10}.00"),     # Continue the sequence from previous statements
+                due_date=due_date,
+            )
+            
+            # Add to session manually
+            db_session.add(statement)
+            await db_session.flush()
+            await db_session.refresh(statement)
+            statements.append(statement)
 
     return accounts, statements
 

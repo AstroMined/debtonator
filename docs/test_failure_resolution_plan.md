@@ -10,10 +10,10 @@ This document outlines the strategic plan for resolving the 28 remaining test fa
 - [x] Phase 2: Database Function Issues (1/1 fixed)
 - [x] Phase 3: DateTime Handling (4/4 fixed)
 - [x] Phase 4: Model Attribute/Relationship Issues (3/3 fixed)
-- [ ] Phase 5: Data Count/Value Assertions (14/19 fixed)
-- [ ] Phase 6: Validation Error Issues (0/1 fixed)
+- [x] Phase 5: Data Count/Value Assertions (19/19 fixed)
+- [x] Phase 6: Validation Error Issues (1/1 fixed)
 
-**Total Progress: 46/52 tests fixed (6 remaining)**
+**Total Progress: 52/52 tests fixed (COMPLETED)**
 
 ## Resolution Sequence
 
@@ -257,29 +257,47 @@ def safe_end_date(today, days):
   - **Error**: `AssertionError: assert 3 >= 4`
   - **Solution**: Fixed underlying `get_forecast_trend` method with inclusive date range
 
-### Bill and Payment Repository Issues (3 failures)
+### Bill and Payment Repository Issues (Fixed ✓)
 
-- [ ] Fix test_get_split_distribution in bill_split_repository_advanced.py:
+- [x] Fix test_get_split_distribution in bill_split_repository_advanced.py:
   - **Error**: `AssertionError: assert Decimal('100.0000') == Decimal('300.0000')`
-  - **Solution**: Fix distribution calculation or test expectation
+  - **Solution**: Fixed aggregation in get_split_distribution method:
+    1. Updated method to use GROUP BY with func.sum() to properly aggregate amounts
+    2. Enhanced SQL query to sum split amounts by account_id
+    3. Updated method documentation to clarify it returns total amounts per account
 
-- [ ] Fix test_get_categories_with_income_counts in income_category_repository_advanced.py:
+- [x] Fix test_get_categories_with_income_counts in income_category_repository_advanced.py:
   - **Error**: `AssertionError: assert 1 == 0`
-  - **Solution**: Fix count query or update test expectation
+  - **Solution**: Fixed COUNT handling with LEFT JOINs:
+    1. Updated repository implementation to use COUNT(Income.id) instead of COUNT(*)
+    2. This properly counts only non-NULL income entries for each category
+    3. Leveraged OUTER JOIN semantics for categories with no income entries
 
-- [ ] Fix test_get_upcoming_bills in recurring_bill_repository_advanced.py:
+- [x] Fix test_get_upcoming_bills in recurring_bill_repository_advanced.py:
   - **Error**: `AssertionError: assert 5 >= 6`
-  - **Solution**: Fix bill retrieval method or adjust expected count
+  - **Solution**: Made test expectations consistent by properly filtering active bills:
+    1. Created test_bills_by_account fixture using direct model instantiation
+    2. Updated test to check only active bills in test_multiple_recurring_bills
+    3. Used datetime utilities to generate consistent date ranges
+    4. Fixed assertion to match repository behavior (which correctly filters out inactive bills)
+    5. Removed circular dependency by replacing repository-based test data creation with fixtures
 
-### Statement Repository Issues (2 failures)
+### Statement Repository Issues (2 failures - Fixed ✓)
 
-- [ ] Fix test_get_statements_with_due_dates in statement_history_repository_advanced.py:
+- [x] Fix test_get_statements_with_due_dates in statement_history_repository_advanced.py:
   - **Error**: `AssertionError: assert 0 > 0`
-  - **Solution**: Fix query to properly retrieve statements with due dates
+  - **Solution**: Enhanced test fixtures to include statements with future due dates:
+    1. Modified `test_multiple_accounts_with_statements` fixture to add statements with due dates in the future
+    2. Added statements with due dates at 10, 20, and 30 days in the future
+    3. Created proper statement date and balance data for the new statements
+    4. Used timezone-aware datetime comparison utilities
 
-- [ ] Fix test_get_upcoming_statements_with_accounts in statement_history_repository_advanced.py:
+- [x] Fix test_get_upcoming_statements_with_accounts in statement_history_repository_advanced.py:
   - **Error**: `AssertionError: assert 0 > 0`
-  - **Solution**: Fix upcoming statement detection logic
+  - **Solution**: Same as above - adding future due dates to fixtures resolved both tests:
+    1. Same fixture enhancement ensured statements with future due dates were available
+    2. Updated fixture to create statements that would match the expected date range
+    3. Used consistent creation pattern to ensure test data matches expectations
 
 ### Transaction History Repository Issues (5 failures - Fixed ✓)
 
@@ -314,14 +332,15 @@ def safe_end_date(today, days):
     1. Enhanced the test_multiple_transactions fixture with additional transactions
     2. Ensured enough transactions of each type were present
 
-## Phase 6: Validation Error Issues (1 failure)
+## Phase 6: Validation Error Issues (Fixed ✓)
 
-- [ ] Fix test_validation_error_handling in income_category_repository_advanced.py:
+- [x] Fix test_validation_error_handling in income_category_repository_advanced.py:
   - **Error**: String assertion failure in error message detection
-  - **Solution**: Fix the validation error message check pattern:
-    1. Pattern `assert "name" in str(e).lower() and "length" in str(e).lower()` checks for specific words
-    2. Standardize Pydantic V2 error format handling across tests
-    3. Focus on checking for field name presence rather than exact error message formatting
+  - **Solution**: Implemented flexible Pydantic V2 error message handling:
+    1. Used more flexible assertion pattern to handle Pydantic V2 error formats
+    2. Instead of checking for exact keywords like "length", used pattern matching with alternatives
+    3. Used `any(term in error_str for term in ["length", "characters", "at most"])` pattern
+    4. This approach maintains compatibility with both Pydantic V1 and V2 error formats
 
 ```python
 # Example updated test pattern that's more resilient to Pydantic error format changes
@@ -528,6 +547,20 @@ When fixing tests:
 
 ## Final Verification
 
-- [ ] All 28 remaining tests passing
-- [ ] Documentation updated with any new patterns discovered
-- [ ] Commit message prepared with summary of fixes
+- [x] All 52 tests passing
+- [x] Documentation updated with newly discovered SQL aggregation patterns
+- [x] Commit message prepared with summary of fixes
+
+## Key Learnings & Patterns
+
+During the test fixing process, we identified several important patterns that have been incorporated into the codebase:
+
+1. **SQL Aggregation with Group By**: When grouping data with SQLAlchemy, using `func.sum()` with `group_by()` ensures proper aggregation.
+
+2. **COUNT(*) vs COUNT(column)**: When using OUTER JOINs, COUNT(*) will count rows even when the joined table has NULL values, while COUNT(column) will only count non-NULL values. This distinction is crucial for accurate counts with JOINs.
+
+3. **Error Message Flexibility**: For validation error testing, use flexible pattern matching to accommodate changes in error message formatting between library versions.
+
+4. **Timezone-Aware DateTime Handling**: Always use timezone-aware datetime utilities from datetime_utils.py to ensure consistent behavior across environments.
+
+All these patterns have been successfully implemented across the repository layer, resulting in a robust and consistent codebase.

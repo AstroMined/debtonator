@@ -251,23 +251,30 @@ class BillSplitRepository(BaseRepository[BillSplit, int]):
 
     async def get_split_distribution(self, liability_id: int) -> Dict[int, Decimal]:
         """
-        Get the distribution of splits across accounts for a liability.
+        Get the distribution of splits across accounts for a liability,
+        summing the amounts for each account.
 
         Args:
             liability_id (int): ID of the liability to analyze
 
         Returns:
-            Dict[int, Decimal]: Mapping of account IDs to their split amounts
+            Dict[int, Decimal]: Mapping of account IDs to their total split amounts
         """
-        query = select(BillSplit.account_id, BillSplit.amount).where(
+        query = select(
+            BillSplit.account_id, 
+            func.sum(BillSplit.amount).label('total_amount')
+        ).where(
             BillSplit.liability_id == liability_id
+        ).group_by(
+            BillSplit.account_id
         )
+        
         result = await self.session.execute(query)
 
         # Build the distribution dictionary
         distribution = {}
-        for account_id, amount in result:
-            distribution[account_id] = amount
+        for account_id, total_amount in result:
+            distribution[account_id] = total_amount
 
         return distribution
 

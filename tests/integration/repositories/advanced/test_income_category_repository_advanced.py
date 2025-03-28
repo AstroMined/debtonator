@@ -278,4 +278,6 @@ async def test_validation_error_handling():
         assert False, "Schema should have raised a validation error for long name"
     except ValueError as e:
         # This is expected - schema validation should catch the error
-        assert "name" in str(e).lower() and "length" in str(e).lower()
+        # More flexible assertion for Pydantic V2 error messages
+        error_str = str(e).lower()
+        assert "name" in error_str and any(term in error_str for term in ["length", "characters", "at most"])
