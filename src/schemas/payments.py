@@ -45,41 +45,10 @@ class PaymentSourceBase(BaseSchemaValidator):
     Base schema for payment source data.
 
     Represents a portion of a payment coming from a specific account.
+    Payment sources are always created in the context of a parent payment, with
+    the payment_id managed by the repository layer rather than the schema.
     """
 
-    model_config = ConfigDict(from_attributes=True)
-
-    account_id: int = Field(..., gt=0, description="ID of the account used for payment")
-    amount: MoneyDecimal = Field(
-        ..., gt=Decimal("0"), description="Amount paid from this account"
-    )
-    payment_id: int = Field(..., gt=0, description="ID of the parent payment")
-
-    @field_validator("amount", mode="before")
-    @classmethod
-    def validate_amount_precision(cls, value: Decimal) -> Decimal:
-        """
-        Validates that amount has at most 2 decimal places.
-
-        Args:
-            value: The Decimal value to validate
-
-        Returns:
-            Decimal: The validated value
-
-        Raises:
-            ValueError: If value has more than 2 decimal places
-        """
-        return validate_decimal_precision(value)
-
-
-class PaymentSourceCreateNested(BaseSchemaValidator):
-    """
-    Schema for creating a payment source nested within a payment creation.
-    
-    Used when creating a payment source as part of a new payment, before
-    the payment ID exists. This avoids circular dependency with payment_id.
-    """
     model_config = ConfigDict(from_attributes=True)
 
     account_id: int = Field(..., gt=0, description="ID of the account used for payment")
@@ -105,14 +74,38 @@ class PaymentSourceCreateNested(BaseSchemaValidator):
         return validate_decimal_precision(value)
 
 
-class PaymentSourceCreate(PaymentSourceBase):
+class PaymentSourceCreate(BaseSchemaValidator):
     """
-    Schema for creating a standalone payment source.
+    Schema for creating a payment source.
 
-    Used when creating a payment source directly, not as part of a payment creation.
+    This is the only schema for creating payment sources, which are always created
+    in the context of a parent payment. The payment_id is managed at the repository
+    layer rather than required in the schema, eliminating circular dependencies.
     """
 
-    pass
+    model_config = ConfigDict(from_attributes=True)
+
+    account_id: int = Field(..., gt=0, description="ID of the account used for payment")
+    amount: MoneyDecimal = Field(
+        ..., gt=Decimal("0"), description="Amount paid from this account"
+    )
+
+    @field_validator("amount", mode="before")
+    @classmethod
+    def validate_amount_precision(cls, value: Decimal) -> Decimal:
+        """
+        Validates that amount has at most 2 decimal places.
+
+        Args:
+            value: The Decimal value to validate
+
+        Returns:
+            Decimal: The validated value
+
+        Raises:
+            ValueError: If value has more than 2 decimal places
+        """
+        return validate_decimal_precision(value)
 
 
 class PaymentSourceUpdate(PaymentSourceBase):
@@ -257,15 +250,15 @@ class PaymentCreate(PaymentBase):
         None,
         description="ID of the associated income, if this payment is from an income source",
     )
-    sources: List[PaymentSourceCreateNested] = Field(
+    sources: List[PaymentSourceCreate] = Field(
         ..., description="Payment sources (accounts from which the payment is drawn)"
     )
 
     @field_validator("sources")
     @classmethod
     def validate_sources(
-        cls, sources: List[PaymentSourceCreateNested], info: Any
-    ) -> List[PaymentSourceCreateNested]:
+        cls, sources: List[PaymentSourceCreate], info: Any
+    ) -> List[PaymentSourceCreate]:
         """
         Validate that payment sources total matches payment amount and no duplicate accounts.
 
@@ -274,7 +267,7 @@ class PaymentCreate(PaymentBase):
             info: Validation context with all data
 
         Returns:
-            List[PaymentSourceCreateNested]: The validated sources
+            List[PaymentSourceCreate]: The validated sources
 
         Raises:
             ValueError: If validation fails for any reason

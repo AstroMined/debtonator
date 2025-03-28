@@ -6,14 +6,16 @@ import pytest
 from pydantic import ValidationError
 
 from src.schemas.accounts import AccountResponse
-from src.schemas.statement_history import (StatementHistory,
-                                           StatementHistoryBase,
-                                           StatementHistoryCreate,
-                                           StatementHistoryResponse,
-                                           StatementHistoryTrend,
-                                           StatementHistoryUpdate,
-                                           StatementHistoryWithAccount,
-                                           UpcomingStatementDue)
+from src.schemas.statement_history import (
+    StatementHistory,
+    StatementHistoryBase,
+    StatementHistoryCreate,
+    StatementHistoryResponse,
+    StatementHistoryTrend,
+    StatementHistoryUpdate,
+    StatementHistoryWithAccount,
+    UpcomingStatementDue,
+)
 
 
 def test_statement_history_base_valid():

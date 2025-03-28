@@ -4,10 +4,12 @@ from decimal import Decimal
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.payment_schedules import (PaymentSchedule,
-                                           PaymentScheduleBase,
-                                           PaymentScheduleCreate,
-                                           PaymentScheduleUpdate)
+from src.schemas.payment_schedules import (
+    PaymentSchedule,
+    PaymentScheduleBase,
+    PaymentScheduleCreate,
+    PaymentScheduleUpdate,
+)
 
 
 # Test valid object creation

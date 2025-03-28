@@ -3,8 +3,12 @@ from decimal import Decimal
 
 import pytest
 
-from src.schemas.liabilities import (AutoPaySettings, AutoPayUpdate,
-                                     LiabilityCreate, LiabilityUpdate)
+from src.schemas.liabilities import (
+    AutoPaySettings,
+    AutoPayUpdate,
+    LiabilityCreate,
+    LiabilityUpdate,
+)
 from src.services.liabilities import LiabilityService
 
 

@@ -11,9 +11,14 @@ from src.models.accounts import Account
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
 from src.models.transaction_history import TransactionHistory
-from src.schemas.cashflow import (AccountCorrelation, AccountRiskAssessment,
-                                  AccountUsagePattern, BalanceDistribution,
-                                  CrossAccountAnalysis, TransferPattern)
+from src.schemas.cashflow import (
+    AccountCorrelation,
+    AccountRiskAssessment,
+    AccountUsagePattern,
+    BalanceDistribution,
+    CrossAccountAnalysis,
+    TransferPattern,
+)
 from src.schemas.realtime_cashflow import AccountBalance, RealtimeCashflow
 
 

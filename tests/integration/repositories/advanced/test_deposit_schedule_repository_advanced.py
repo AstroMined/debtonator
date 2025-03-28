@@ -23,13 +23,19 @@ from src.models.income import Income
 from src.repositories.accounts import AccountRepository
 from src.repositories.deposit_schedules import DepositScheduleRepository
 from src.repositories.income import IncomeRepository
-from src.schemas.deposit_schedules import (DepositScheduleCreate,
-                                           DepositScheduleUpdate)
+from src.schemas.deposit_schedules import DepositScheduleCreate, DepositScheduleUpdate
+from src.utils.datetime_utils import (
+    datetime_equals,
+    datetime_greater_than,
+    days_ago,
+    days_from_now,
+    utc_now,
+)
 from tests.helpers.schema_factories.accounts import create_account_schema
-from tests.helpers.schema_factories.deposit_schedules import \
-    create_deposit_schedule_schema
+from tests.helpers.schema_factories.deposit_schedules import (
+    create_deposit_schedule_schema,
+)
 from tests.helpers.schema_factories.income import create_income_schema
-from src.utils.datetime_utils import utc_now, days_from_now, days_ago, datetime_greater_than, datetime_equals
 
 pytestmark = pytest.mark.asyncio
 
@@ -127,10 +133,12 @@ async def test_get_by_date_range(
     # Verify dates are within the range
     for schedule in results:
         # Use proper timezone-aware comparison
-        assert (datetime_greater_than(schedule.schedule_date, start_date, ignore_timezone=True) or 
-                datetime_equals(schedule.schedule_date, start_date, ignore_timezone=True))
-        assert (datetime_greater_than(end_date, schedule.schedule_date, ignore_timezone=True) or 
-                datetime_equals(end_date, schedule.schedule_date, ignore_timezone=True))
+        assert datetime_greater_than(
+            schedule.schedule_date, start_date, ignore_timezone=True
+        ) or datetime_equals(schedule.schedule_date, start_date, ignore_timezone=True)
+        assert datetime_greater_than(
+            end_date, schedule.schedule_date, ignore_timezone=True
+        ) or datetime_equals(end_date, schedule.schedule_date, ignore_timezone=True)
 
 
 async def test_get_pending_schedules(
@@ -229,14 +237,16 @@ async def test_get_upcoming_schedules(
 
         # Schedule date should be in the future and within 7 days
         now = utc_now()
-        
+
         # Use proper timezone-aware comparison
-        assert datetime_greater_than(schedule.schedule_date, now, ignore_timezone=True) or \
-               datetime_equals(schedule.schedule_date, now, ignore_timezone=True)
-        
+        assert datetime_greater_than(
+            schedule.schedule_date, now, ignore_timezone=True
+        ) or datetime_equals(schedule.schedule_date, now, ignore_timezone=True)
+
         future_limit = now + timedelta(days=7)
-        assert datetime_greater_than(future_limit, schedule.schedule_date, ignore_timezone=True) or \
-               datetime_equals(future_limit, schedule.schedule_date, ignore_timezone=True)
+        assert datetime_greater_than(
+            future_limit, schedule.schedule_date, ignore_timezone=True
+        ) or datetime_equals(future_limit, schedule.schedule_date, ignore_timezone=True)
 
         # Relationships should be loaded
         assert schedule.account is not None
@@ -256,7 +266,7 @@ async def test_find_overdue_schedules(
     # 4. ASSERT: Verify the operation results
     assert len(results) >= 1  # Should get at least 1 overdue schedule
     now = utc_now()
-    
+
     for schedule in results:
         assert schedule.status == "pending"
         # Use proper timezone-aware comparison

@@ -18,7 +18,13 @@ from src.models.categories import Category
 from src.models.liabilities import Liability, LiabilityStatus
 from src.repositories.liabilities import LiabilityRepository
 from src.schemas.liabilities import LiabilityCreate, LiabilityUpdate
-from src.utils.datetime_utils import utc_now, days_from_now, datetime_greater_than, datetime_equals, days_ago
+from src.utils.datetime_utils import (
+    datetime_equals,
+    datetime_greater_than,
+    days_ago,
+    days_from_now,
+    utc_now,
+)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.categories import create_category_schema
 from tests.helpers.schema_factories.liabilities import create_liability_schema
@@ -104,8 +110,12 @@ async def test_get_bills_due_in_range(
     # 3. ASSERT: Verify the operation results
     assert len(results) >= 2  # Should find at least 2 bills due within 20 days
     for liability in results:
-        assert datetime_greater_than(liability.due_date, start_date, ignore_timezone=True) or datetime_equals(liability.due_date, start_date, ignore_timezone=True)
-        assert datetime_greater_than(end_date, liability.due_date, ignore_timezone=True) or datetime_equals(end_date, liability.due_date, ignore_timezone=True)
+        assert datetime_greater_than(
+            liability.due_date, start_date, ignore_timezone=True
+        ) or datetime_equals(liability.due_date, start_date, ignore_timezone=True)
+        assert datetime_greater_than(
+            end_date, liability.due_date, ignore_timezone=True
+        ) or datetime_equals(end_date, liability.due_date, ignore_timezone=True)
         assert liability.paid is False  # By default, include_paid is False
 
 
@@ -214,8 +224,12 @@ async def test_get_upcoming_payments(
     future_date = days_from_now(10)
     for liability in results:
         # Verify each bill is due within the next 10 days using proper timezone-aware comparison
-        assert datetime_greater_than(liability.due_date, now) or datetime_equals(liability.due_date, now)
-        assert datetime_greater_than(future_date, liability.due_date) or datetime_equals(future_date, liability.due_date)
+        assert datetime_greater_than(liability.due_date, now) or datetime_equals(
+            liability.due_date, now
+        )
+        assert datetime_greater_than(
+            future_date, liability.due_date
+        ) or datetime_equals(future_date, liability.due_date)
         assert liability.paid is False
 
 
@@ -296,7 +310,9 @@ async def test_validation_error_handling():
         invalid_schema = LiabilityCreate(
             name="",  # Invalid empty name
             amount=Decimal("-10.00"),  # Invalid negative amount
-            due_date=days_ago(10),  # Past date is actually valid per ADR-002 for historical data
+            due_date=days_ago(
+                10
+            ),  # Past date is actually valid per ADR-002 for historical data
             category_id=1,
             primary_account_id=1,
         )
@@ -304,4 +320,6 @@ async def test_validation_error_handling():
     except ValueError as e:
         # This is expected - schema validation should catch the error
         error_str = str(e).lower()
-        assert "name" in error_str or "amount" in error_str  # Note: due_date removed as past dates are valid
+        assert (
+            "name" in error_str or "amount" in error_str
+        )  # Note: due_date removed as past dates are valid

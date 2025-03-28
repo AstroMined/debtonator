@@ -8,7 +8,7 @@ income category-related queries.
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy import and_, func, or_, select, case
+from sqlalchemy import and_, case, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
@@ -180,17 +180,11 @@ class IncomeCategoryRepository(BaseRepository[IncomeCategory, int]):
                 func.sum(Income.amount).label("total_amount"),
                 func.count().label("entry_count"),
                 func.avg(Income.amount).label("avg_amount"),
+                func.sum(case((Income.deposited == False, 1), else_=0)).label(
+                    "pending_count"
+                ),
                 func.sum(
-                    case(
-                        (Income.deposited == False, 1),
-                        else_=0
-                    )
-                ).label("pending_count"),
-                func.sum(
-                    case(
-                        (Income.deposited == False, Income.amount),
-                        else_=0
-                    )
+                    case((Income.deposited == False, Income.amount), else_=0)
                 ).label("pending_amount"),
             )
             .outerjoin(Income, Income.category_id == IncomeCategory.id)

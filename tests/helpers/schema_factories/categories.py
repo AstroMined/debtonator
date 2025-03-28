@@ -8,9 +8,14 @@ Pydantic schema instances for use in tests.
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from src.schemas.categories import (Category, CategoryCreate, CategoryUpdate,
-                                    CategoryWithBills, CategoryWithChildren,
-                                    CategoryWithParent)
+from src.schemas.categories import (
+    Category,
+    CategoryCreate,
+    CategoryUpdate,
+    CategoryWithBills,
+    CategoryWithChildren,
+    CategoryWithParent,
+)
 from tests.helpers.schema_factories.base import factory_function, utc_now
 
 

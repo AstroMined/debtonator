@@ -18,14 +18,14 @@ from src.models.accounts import Account
 from src.models.statement_history import StatementHistory
 from src.repositories.accounts import AccountRepository
 from src.repositories.statement_history import StatementHistoryRepository
-from src.schemas.statement_history import (StatementHistoryCreate,
-                                           StatementHistoryUpdate)
-from src.utils.datetime_utils import (datetime_equals,
-                                          datetime_greater_than, utc_now)
+from src.schemas.statement_history import StatementHistoryCreate, StatementHistoryUpdate
+from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
+
 # Import schema factory functions directly
 from tests.helpers.schema_factories.accounts import create_account_schema
-from tests.helpers.schema_factories.statement_history import \
-    create_statement_history_schema
+from tests.helpers.schema_factories.statement_history import (
+    create_statement_history_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 

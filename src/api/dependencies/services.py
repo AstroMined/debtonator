@@ -8,8 +8,11 @@ instances into API routes.
 from fastapi import Depends
 
 from src.api.dependencies.repositories import (
-    get_account_repository, get_credit_limit_history_repository,
-    get_statement_history_repository, get_transaction_history_repository)
+    get_account_repository,
+    get_credit_limit_history_repository,
+    get_statement_history_repository,
+    get_transaction_history_repository,
+)
 from src.repositories.accounts import AccountRepository
 from src.repositories.credit_limit_history import CreditLimitHistoryRepository
 from src.repositories.statement_history import StatementHistoryRepository

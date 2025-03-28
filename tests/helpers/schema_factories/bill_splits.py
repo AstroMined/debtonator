@@ -9,15 +9,22 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Union
 
-from src.schemas.bill_splits import (BillSplitCreate, BillSplitInDB,
-                                     BillSplitResponse, BillSplitUpdate,
-                                     BillSplitValidation, BulkOperationResult,
-                                     BulkSplitOperation, HistoricalAnalysis,
-                                     ImpactAnalysis, OptimizationMetrics,
-                                     PatternMetrics, SplitPattern,
-                                     SplitSuggestion)
-from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT,
-                                                 factory_function, utc_now)
+from src.schemas.bill_splits import (
+    BillSplitCreate,
+    BillSplitInDB,
+    BillSplitResponse,
+    BillSplitUpdate,
+    BillSplitValidation,
+    BulkOperationResult,
+    BulkSplitOperation,
+    HistoricalAnalysis,
+    ImpactAnalysis,
+    OptimizationMetrics,
+    PatternMetrics,
+    SplitPattern,
+    SplitSuggestion,
+)
+from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function, utc_now
 
 
 @factory_function(BillSplitCreate)

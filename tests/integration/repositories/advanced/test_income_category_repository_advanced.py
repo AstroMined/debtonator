@@ -21,11 +21,11 @@ from src.models.income_categories import IncomeCategory
 from src.repositories.income import IncomeRepository
 from src.repositories.income_categories import IncomeCategoryRepository
 from src.schemas.income import IncomeCreate
-from src.schemas.income_categories import (IncomeCategoryCreate,
-                                           IncomeCategoryUpdate)
+from src.schemas.income_categories import IncomeCategoryCreate, IncomeCategoryUpdate
 from tests.helpers.schema_factories.income import create_income_schema
-from tests.helpers.schema_factories.income_categories import \
-    create_income_category_schema
+from tests.helpers.schema_factories.income_categories import (
+    create_income_category_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 
@@ -280,4 +280,6 @@ async def test_validation_error_handling():
         # This is expected - schema validation should catch the error
         # More flexible assertion for Pydantic V2 error messages
         error_str = str(e).lower()
-        assert "name" in error_str and any(term in error_str for term in ["length", "characters", "at most"])
+        assert "name" in error_str and any(
+            term in error_str for term in ["length", "characters", "at most"]
+        )

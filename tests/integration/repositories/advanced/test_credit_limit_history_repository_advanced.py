@@ -18,12 +18,15 @@ from src.models.accounts import Account
 from src.models.credit_limit_history import CreditLimitHistory
 from src.repositories.accounts import AccountRepository
 from src.repositories.credit_limit_history import CreditLimitHistoryRepository
-from src.schemas.credit_limit_history import (CreditLimitHistoryCreate,
-                                              CreditLimitHistoryUpdate)
+from src.schemas.credit_limit_history import (
+    CreditLimitHistoryCreate,
+    CreditLimitHistoryUpdate,
+)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.credit_limit_history import (
     create_credit_limit_history_schema,
-    create_credit_limit_history_update_schema)
+    create_credit_limit_history_update_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 

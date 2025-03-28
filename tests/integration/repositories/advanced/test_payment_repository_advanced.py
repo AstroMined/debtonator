@@ -17,11 +17,17 @@ from src.models.accounts import Account
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
 from src.repositories.payments import PaymentRepository
-from src.schemas.payments import (PaymentCreate, PaymentDateRange,
-                                  PaymentSourceCreateNested, PaymentUpdate)
-from src.utils.datetime_utils import utc_now, datetime_greater_than, datetime_equals
+from src.schemas.payments import (
+    PaymentCreate,
+    PaymentDateRange,
+    PaymentSourceCreate,
+    PaymentUpdate,
+)
+from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
 from tests.helpers.schema_factories.payments import (
-    create_payment_date_range_schema, create_payment_schema)
+    create_payment_date_range_schema,
+    create_payment_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 
@@ -195,10 +201,12 @@ async def test_get_payments_in_date_range(
 
     # Verify all returned payments are within the date range
     for payment in results:
-        assert datetime_greater_than(payment.payment_date, start_date, ignore_timezone=True) or \
-               datetime_equals(payment.payment_date, start_date, ignore_timezone=True)
-        assert datetime_greater_than(end_date, payment.payment_date, ignore_timezone=True) or \
-               datetime_equals(end_date, payment.payment_date, ignore_timezone=True)
+        assert datetime_greater_than(
+            payment.payment_date, start_date, ignore_timezone=True
+        ) or datetime_equals(payment.payment_date, start_date, ignore_timezone=True)
+        assert datetime_greater_than(
+            end_date, payment.payment_date, ignore_timezone=True
+        ) or datetime_equals(end_date, payment.payment_date, ignore_timezone=True)
 
 
 async def test_get_payments_by_category(
@@ -274,8 +282,9 @@ async def test_get_recent_payments(
     now = utc_now()
     cutoff_date = now - timedelta(days=10)
     for payment in results:
-        assert datetime_greater_than(payment.payment_date, cutoff_date, ignore_timezone=True) or \
-               datetime_equals(payment.payment_date, cutoff_date, ignore_timezone=True)
+        assert datetime_greater_than(
+            payment.payment_date, cutoff_date, ignore_timezone=True
+        ) or datetime_equals(payment.payment_date, cutoff_date, ignore_timezone=True)
 
 
 async def test_validation_error_handling():
@@ -288,7 +297,7 @@ async def test_validation_error_handling():
             payment_date=utc_now(),
             category="Utilities",
             sources=[
-                PaymentSourceCreateNested(
+                PaymentSourceCreate(
                     account_id=1,
                     amount=Decimal("50.00"),  # Only 50 of 100 total
                 )
@@ -308,7 +317,7 @@ async def test_validation_error_handling():
             payment_date=utc_now(),
             category="Utilities",
             sources=[
-                PaymentSourceCreateNested(
+                PaymentSourceCreate(
                     account_id=1,
                     amount=Decimal("-50.00"),
                 )

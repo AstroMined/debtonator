@@ -19,7 +19,7 @@ class IncomeCategory(BaseDBModel):
         String(100), unique=True, nullable=False, index=True
     )
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    
+
     # Relationship to Income model
     incomes: Mapped[List["Income"]] = relationship(
         "Income",

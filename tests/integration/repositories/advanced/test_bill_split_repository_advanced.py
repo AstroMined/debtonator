@@ -27,7 +27,13 @@ from src.repositories.liabilities import LiabilityRepository
 from src.schemas.accounts import AccountCreate
 from src.schemas.bill_splits import BillSplitCreate, BillSplitUpdate
 from src.schemas.liabilities import LiabilityCreate
-from src.utils.datetime_utils import utc_now, days_ago, days_from_now, datetime_equals, datetime_greater_than
+from src.utils.datetime_utils import (
+    datetime_equals,
+    datetime_greater_than,
+    days_ago,
+    days_from_now,
+    utc_now,
+)
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.bill_splits import create_bill_split_schema
 from tests.helpers.schema_factories.liabilities import create_liability_schema
@@ -124,8 +130,12 @@ async def test_get_splits_in_date_range(
     for split in results:
         assert split.account_id == test_checking_account.id
         # Use proper timezone-aware comparison
-        assert datetime_greater_than(split.liability.due_date, start_date) or datetime_equals(split.liability.due_date, start_date)
-        assert datetime_greater_than(end_date, split.liability.due_date) or datetime_equals(end_date, split.liability.due_date)
+        assert datetime_greater_than(
+            split.liability.due_date, start_date
+        ) or datetime_equals(split.liability.due_date, start_date)
+        assert datetime_greater_than(
+            end_date, split.liability.due_date
+        ) or datetime_equals(end_date, split.liability.due_date)
 
 
 async def test_get_splits_by_amount_range(

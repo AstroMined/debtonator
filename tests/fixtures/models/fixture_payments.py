@@ -18,7 +18,7 @@ async def test_payment(
     """Create a test payment for use in tests."""
     # Create a naive datetime for DB storage
     payment_date = utc_now().replace(tzinfo=None)
-    
+
     # Create payment model instance directly
     payment = Payment(
         amount=Decimal("50.00"),
@@ -27,25 +27,25 @@ async def test_payment(
         description="Test payment for utilities",
         liability_id=test_liability.id,
     )
-    
+
     # Add payment to session and flush to get ID
     db_session.add(payment)
     await db_session.flush()
-    
+
     # Create payment source for the payment
     payment_source = PaymentSource(
         payment_id=payment.id,
         account_id=test_checking_account.id,
         amount=Decimal("50.00"),
     )
-    
+
     # Add payment source to session
     db_session.add(payment_source)
     await db_session.flush()
-    
+
     # Refresh payment to load relationship
     await db_session.refresh(payment)
-    
+
     return payment
 
 
@@ -103,7 +103,7 @@ async def test_multiple_payments(
     for data in payment_data:
         # Make datetime naive for DB storage
         naive_date = data["payment_date"].replace(tzinfo=None)
-        
+
         # Create payment model instance directly
         payment = Payment(
             amount=data["amount"],
@@ -111,11 +111,11 @@ async def test_multiple_payments(
             category=data["category"],
             liability_id=data.get("liability_id"),
         )
-        
+
         # Add payment to session and flush to get ID
         db_session.add(payment)
         await db_session.flush()
-        
+
         # Create payment sources for the payment
         for source_data in data["sources"]:
             payment_source = PaymentSource(
@@ -124,17 +124,17 @@ async def test_multiple_payments(
                 amount=source_data["amount"],
             )
             db_session.add(payment_source)
-        
+
         # Add to payments list
         payments.append(payment)
-    
+
     # Flush to establish all database rows
     await db_session.flush()
-    
+
     # Refresh all payments to load relationships
     for payment in payments:
         await db_session.refresh(payment)
-        
+
     return payments
 
 
@@ -156,12 +156,12 @@ async def test_payment_source(
         account_id=test_checking_account.id,
         amount=Decimal("75.00"),
     )
-    
+
     # Add to session manually
     db_session.add(payment_source)
     await db_session.flush()
     await db_session.refresh(payment_source)
-    
+
     return payment_source
 
 
@@ -174,7 +174,7 @@ async def test_payment_with_multiple_sources(
     """Create a test payment with multiple payment sources."""
     # Create a naive datetime for DB storage
     payment_date = utc_now().replace(tzinfo=None)
-    
+
     # Create payment model instance directly
     payment = Payment(
         amount=Decimal("150.00"),
@@ -182,31 +182,31 @@ async def test_payment_with_multiple_sources(
         category="Bill Payment",
         description="Test payment with multiple sources",
     )
-    
+
     # Add payment to session and flush to get ID
     db_session.add(payment)
     await db_session.flush()
-    
+
     # Create payment sources
     sources = [
         PaymentSource(
             payment_id=payment.id,
             account_id=test_checking_account.id,
-            amount=Decimal("100.00")
+            amount=Decimal("100.00"),
         ),
         PaymentSource(
             payment_id=payment.id,
             account_id=test_second_account.id,
-            amount=Decimal("50.00")
+            amount=Decimal("50.00"),
         ),
     ]
-    
+
     # Add payment sources to session
     for source in sources:
         db_session.add(source)
-    
+
     # Flush and refresh to establish relationships
     await db_session.flush()
     await db_session.refresh(payment)
-    
+
     return payment

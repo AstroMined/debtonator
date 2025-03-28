@@ -16,7 +16,7 @@ from sqlalchemy.orm import joinedload, selectinload
 from src.models.accounts import Account
 from src.models.balance_history import BalanceHistory
 from src.repositories.base import BaseRepository
-from src.utils.datetime_utils import utc_now, date_in_collection, normalize_db_date
+from src.utils.datetime_utils import date_in_collection, normalize_db_date, utc_now
 
 
 class BalanceHistoryRepository(BaseRepository[BalanceHistory, int]):
@@ -296,7 +296,7 @@ class BalanceHistoryRepository(BaseRepository[BalanceHistory, int]):
         today = utc_now().replace(hour=0, minute=0, second=0, microsecond=0)
         end_date = today
         start_date = today - timedelta(days=days)
-        
+
         # Get all dates with balance records
         result = await self.session.execute(
             select(func.date(BalanceHistory.timestamp))
@@ -309,7 +309,7 @@ class BalanceHistoryRepository(BaseRepository[BalanceHistory, int]):
             )
             .group_by(func.date(BalanceHistory.timestamp))
         )
-        
+
         # Process results to normalize date format using our utility
         recorded_dates = []
         for row in result.all():
@@ -317,17 +317,17 @@ class BalanceHistoryRepository(BaseRepository[BalanceHistory, int]):
             # Use our utility to handle any date format from the database
             normalized_date = normalize_db_date(date_val)
             recorded_dates.append(normalized_date)
-        
+
         # Find missing dates
         missing_dates = []
         current_date = start_date.date()
         end = end_date.date()
-        
+
         while current_date <= end:
             if not date_in_collection(current_date, recorded_dates):
                 missing_dates.append(current_date)
             current_date += timedelta(days=1)
-        
+
         return missing_dates
 
     async def get_available_credit_trend(

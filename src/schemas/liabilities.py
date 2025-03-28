@@ -128,10 +128,10 @@ class LiabilityCreate(LiabilityBase):
     Extends the base liability schema with default category ID
     when none is provided, used specifically for creation operations.
     """
-    
+
     category_id: int = Field(
-        default=DEFAULT_CATEGORY_ID, 
-        description="ID of the category for this liability, defaults to 'Uncategorized'"
+        default=DEFAULT_CATEGORY_ID,
+        description="ID of the category for this liability, defaults to 'Uncategorized'",
     )
 
 

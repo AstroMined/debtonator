@@ -6,10 +6,12 @@ from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.cashflow.historical import (HistoricalPeriodAnalysis,
-                                             HistoricalTrendMetrics,
-                                             HistoricalTrendsResponse,
-                                             SeasonalityAnalysis)
+from src.schemas.cashflow.historical import (
+    HistoricalPeriodAnalysis,
+    HistoricalTrendMetrics,
+    HistoricalTrendsResponse,
+    SeasonalityAnalysis,
+)
 
 
 # Test valid object creation

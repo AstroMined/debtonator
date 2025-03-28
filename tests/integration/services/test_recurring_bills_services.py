@@ -8,8 +8,7 @@ from src.models.accounts import Account
 from src.models.categories import Category
 from src.models.liabilities import Liability
 from src.models.recurring_bills import RecurringBill
-from src.schemas.recurring_bills import (RecurringBillCreate,
-                                         RecurringBillUpdate)
+from src.schemas.recurring_bills import RecurringBillCreate, RecurringBillUpdate
 from src.services.recurring_bills import RecurringBillService
 
 

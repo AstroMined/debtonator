@@ -12,8 +12,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Annotated, Any, Dict, List, Optional, Type, TypeVar, Union
 
-from pydantic import (BaseModel, ConfigDict, Field, field_validator,
-                      model_validator)
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from src.core.decimal_precision import DecimalPrecision
 
@@ -272,45 +271,48 @@ class BaseSchemaValidator(BaseModel):
                 # Update the field with the properly converted UTC datetime
                 setattr(self, field_name, utc_dt)
         return self
-        
+
     @model_validator(mode="after")
     def validate_required_fields_not_none(self) -> "BaseSchemaValidator":
         """
         Validates that required fields are not set to None in update schemas.
-        
+
         This validator only applies to schemas that are likely to be used for updates
         (those with 'Update' in their name) to prevent setting required fields to None.
         """
         # Only apply this validation to Update schemas
-        if not self.__class__.__name__.endswith('Update'):
+        if not self.__class__.__name__.endswith("Update"):
             return self
-            
+
         for field_name, field_value in self.__dict__.items():
             # Skip fields that weren't explicitly set
             if field_name not in self.__pydantic_fields_set__:
                 continue
-                
+
             # Check if field is None
             if field_value is None:
                 # Get the model class this schema is associated with
-                model_class = getattr(self.__class__, '__model__', None)
-                
+                model_class = getattr(self.__class__, "__model__", None)
+
                 # If we can't determine the model class, use a heuristic approach
                 if model_class is None:
                     # Try to infer model class name from schema name (e.g., AccountUpdate -> Account)
-                    model_name = self.__class__.__name__.replace('Update', '')
+                    model_name = self.__class__.__name__.replace("Update", "")
                     # Import the model dynamically (this is a fallback and may not always work)
                     try:
                         import importlib
-                        models_module = importlib.import_module('src.models')
+
+                        models_module = importlib.import_module("src.models")
                         model_class = getattr(models_module, model_name, None)
                     except (ImportError, AttributeError):
                         model_class = None
-                
+
                 # If we have a model class, check if the field is non-nullable
-                if model_class and hasattr(model_class, '__table__'):
+                if model_class and hasattr(model_class, "__table__"):
                     column = getattr(model_class.__table__.columns, field_name, None)
                     if column and not column.nullable:
-                        raise ValueError(f"Field '{field_name}' cannot be set to None (database column is non-nullable)")
-                
+                        raise ValueError(
+                            f"Field '{field_name}' cannot be set to None (database column is non-nullable)"
+                        )
+
         return self

@@ -18,13 +18,18 @@ from src.models.accounts import Account
 from src.models.statement_history import StatementHistory
 from src.repositories.accounts import AccountRepository
 from src.repositories.statement_history import StatementHistoryRepository
-from src.schemas.statement_history import (StatementHistoryCreate,
-                                           StatementHistoryUpdate)
-from src.utils.datetime_utils import utc_now, days_from_now, days_ago, datetime_greater_than, datetime_equals
-
+from src.schemas.statement_history import StatementHistoryCreate, StatementHistoryUpdate
+from src.utils.datetime_utils import (
+    datetime_equals,
+    datetime_greater_than,
+    days_ago,
+    days_from_now,
+    utc_now,
+)
 from tests.helpers.schema_factories.accounts import create_account_schema
-from tests.helpers.schema_factories.statement_history import \
-    create_statement_history_schema
+from tests.helpers.schema_factories.statement_history import (
+    create_statement_history_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 
@@ -120,10 +125,12 @@ async def test_get_by_date_range(
     for statement in results:
         assert statement.account_id == test_credit_account.id
         # Use proper timezone-aware comparison
-        assert (datetime_greater_than(statement.statement_date, start_date, ignore_timezone=True) or 
-                datetime_equals(statement.statement_date, start_date, ignore_timezone=True))
-        assert (datetime_greater_than(end_date, statement.statement_date, ignore_timezone=True) or 
-                datetime_equals(end_date, statement.statement_date, ignore_timezone=True))
+        assert datetime_greater_than(
+            statement.statement_date, start_date, ignore_timezone=True
+        ) or datetime_equals(statement.statement_date, start_date, ignore_timezone=True)
+        assert datetime_greater_than(
+            end_date, statement.statement_date, ignore_timezone=True
+        ) or datetime_equals(end_date, statement.statement_date, ignore_timezone=True)
 
 
 async def test_get_statements_with_due_dates(
@@ -149,8 +156,12 @@ async def test_get_statements_with_due_dates(
     # Check that due dates are within range
     for statement in results:
         assert statement.due_date is not None
-        assert datetime_greater_than(statement.due_date, start_date, ignore_timezone=True) or datetime_equals(statement.due_date, start_date, ignore_timezone=True)
-        assert datetime_greater_than(end_date, statement.due_date, ignore_timezone=True) or datetime_equals(end_date, statement.due_date, ignore_timezone=True)
+        assert datetime_greater_than(
+            statement.due_date, start_date, ignore_timezone=True
+        ) or datetime_equals(statement.due_date, start_date, ignore_timezone=True)
+        assert datetime_greater_than(
+            end_date, statement.due_date, ignore_timezone=True
+        ) or datetime_equals(end_date, statement.due_date, ignore_timezone=True)
 
 
 async def test_get_upcoming_statements_with_accounts(
@@ -181,12 +192,18 @@ async def test_get_upcoming_statements_with_accounts(
         assert statement.account_id == account.id
         assert statement.due_date is not None
         # Use proper timezone-aware comparison
-        assert datetime_greater_than(statement.due_date, now) or datetime_equals(statement.due_date, now)
-        assert datetime_greater_than(days_from_now(30), statement.due_date) or datetime_equals(days_from_now(30), statement.due_date)
+        assert datetime_greater_than(statement.due_date, now) or datetime_equals(
+            statement.due_date, now
+        )
+        assert datetime_greater_than(
+            days_from_now(30), statement.due_date
+        ) or datetime_equals(days_from_now(30), statement.due_date)
 
     # Check custom days parameter
     for statement, account in results_custom:
-        assert datetime_greater_than(days_from_now(10), statement.due_date) or datetime_equals(days_from_now(10), statement.due_date)
+        assert datetime_greater_than(
+            days_from_now(10), statement.due_date
+        ) or datetime_equals(days_from_now(10), statement.due_date)
 
 
 async def test_get_statements_with_minimum_payment(

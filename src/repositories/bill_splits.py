@@ -260,15 +260,14 @@ class BillSplitRepository(BaseRepository[BillSplit, int]):
         Returns:
             Dict[int, Decimal]: Mapping of account IDs to their total split amounts
         """
-        query = select(
-            BillSplit.account_id, 
-            func.sum(BillSplit.amount).label('total_amount')
-        ).where(
-            BillSplit.liability_id == liability_id
-        ).group_by(
-            BillSplit.account_id
+        query = (
+            select(
+                BillSplit.account_id, func.sum(BillSplit.amount).label("total_amount")
+            )
+            .where(BillSplit.liability_id == liability_id)
+            .group_by(BillSplit.account_id)
         )
-        
+
         result = await self.session.execute(query)
 
         # Build the distribution dictionary

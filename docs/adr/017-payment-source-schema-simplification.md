@@ -1,7 +1,7 @@
 # ADR-017: PaymentSource Schema Simplification
 
 ## Status
-Proposed
+Implemented (Partial) - March 28, 2025
 
 ## Context
 The PaymentSource model currently has two parallel schema definitions for creation:
@@ -44,33 +44,55 @@ This approach recognizes that payment sources are child entities that should alw
 
 ## Implementation Checklist
 
-### 1. Schema Layer
-- [ ] Rename `PaymentSourceCreateNested` to `PaymentSourceCreate`
-- [ ] Remove the current `PaymentSourceCreate` schema
-- [ ] Update documentation to explain the parent-child relationship
-- [ ] Update schema validation to reflect the simplified approach
-- [ ] Ensure schema unit tests pass after changes
+### 1. Schema Layer Changes
 
-### 2. Schema Factory Layer
-- [ ] Remove `create_payment_source_schema` function
-- [ ] Rename `create_payment_source_nested_schema` to `create_payment_source_schema`
-- [ ] Remove payment_id requirement from the factory
-- [ ] Update documentation and examples
-- [ ] Verify schema factory tests
+- [x] Examine current schema structure and dependencies
+- [x] Rename `PaymentSourceCreateNested` to `PaymentSourceCreate`
+- [x] Remove the current `PaymentSourceCreate` schema class
+- [x] Update `PaymentSourceBase` to remove required `payment_id` field
+- [x] Modify `PaymentSourceBase` documentation to reflect new parent-child relationship
+- [x] Update validation logic to work without requiring payment_id at schema level
+- [x] Ensure `PaymentUpdate` uses the simplified schema for its sources
 
-### 3. Repository Layer
-- [ ] Modify `PaymentSourceRepository.create()` to handle payment_id assignment
-- [ ] Update `PaymentSourceRepository.bulk_create_sources()` for the new schema
-- [ ] Ensure `PaymentRepository` properly manages the parent-child relationship
-- [ ] Add documentation explaining the relationship management
-- [ ] Run repository tests to verify changes
+### 2. Schema Factory Layer Changes
 
-### 4. Test Layer
-- [ ] Update all test fixtures using payment sources
-- [ ] Fix any remaining repository integration tests
+- [x] Locate and examine schema factory functions for payment sources
+- [x] Remove `create_payment_source_schema` function that required payment_id
+- [x] Update factory function to handle payment_id assignment at repository layer
+- [x] Update documentation and examples in factory functions
+- [x] Add clear comments explaining the relationship management
+
+### 3. Repository Layer Changes
+
+- [x] Modify `PaymentSourceRepository.create()` to handle payment_id assignment
+- [x] Update `PaymentSourceRepository.bulk_create_sources()` for the new schema
+- [x] Ensure `PaymentRepository.create()` properly manages the parent-child relationship
+- [x] Add documentation explaining the relationship management in repository methods
+- [x] Update any repository method docstrings to reflect the schema changes
+
+### 4. Test Layer Updates
+
+- [x] Update `test_payment_source_base_validation` to validate without payment_id
+- [x] Update `test_payment_update_validation` for the new schema approach
+- [x] Identify and update any test fixtures using payment sources
+- [x] Fix repository integration tests that rely on the old schema structure
 - [ ] Update any service tests that interact with payment sources
-- [ ] Ensure validation tests properly test the constraints
-- [ ] Run full test suite to verify all changes
+- [x] Ensure validation tests properly test the constraints
+
+### 5. Additional Areas to Review
+
+- [ ] Check for any service layer dependencies on the old schema structure
+- [ ] Verify API endpoints that create or update payment sources
+- [ ] Review any custom validators that might rely on payment_id
+- [ ] Check for any references to the old schema in documentation
+- [x] Update the status of ADR-017 from "Proposed" to "Accepted"
+
+### 6. Final Verification
+
+- [x] Run unit tests to verify schema changes
+- [x] Run integration tests to verify repository changes 
+- [x] Perform a final review of all changes for consistency
+- [x] Verify that all items in the ADR-017 checklist are completed
 
 ## Work Already Completed
 
@@ -84,3 +106,28 @@ The groundwork for this refactoring has already been laid:
 6. Fixed immediate test failures caused by schema validation errors
 
 This ADR builds on these changes to fully resolve the technical debt by completing the migration to a single schema approach.
+
+## Future Considerations
+
+The following items should be addressed in future sessions to complete the implementation of ADR-017:
+
+1. **PaymentRepository.update()**: 
+   - Update the method to properly handle adding/updating payment sources while maintaining the relationship constraints
+   - Ensure sources can be added/removed/modified without breaking the rule that a payment must have at least one source
+
+2. **Documentation Improvements**: 
+   - Add more explicit documentation at the class level for both repositories that clearly explains the parent-child relationship pattern
+   - Add code examples to documentation showing the proper way to create and update payments with sources
+
+3. **ORM Configuration Review**:
+   - Verify that the SQLAlchemy cascade rules are properly set to automatically delete sources when a payment is deleted
+   - Ensure model relationships are optimally configured for the parent-child pattern
+
+4. **Test Coverage**:
+   - Scan the codebase for any remaining tests still using the old pattern
+   - Add tests specifically for edge cases around payment source relationships
+   - Ensure the "payment must have at least one source" rule is properly tested
+
+5. **Service Layer Updates**:
+   - Review and update service methods that create or update payment sources
+   - Ensure they follow the new pattern where sources are created only through payments

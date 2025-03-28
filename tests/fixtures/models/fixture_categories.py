@@ -14,12 +14,12 @@ async def test_category(db_session) -> Category:
         name="Test Bill Category",
         description="Test category for bill tests",
     )
-    
+
     # Add to session manually
     db_session.add(category)
     await db_session.flush()
     await db_session.refresh(category)
-    
+
     return category
 
 
@@ -31,12 +31,12 @@ async def test_income_category(db_session) -> IncomeCategory:
         name="Test Income Category",
         description="Test category for income",
     )
-    
+
     # Add to session manually
     db_session.add(income_category)
     await db_session.flush()
     await db_session.refresh(income_category)
-    
+
     return income_category
 
 
@@ -71,16 +71,16 @@ async def test_multiple_categories(db_session) -> List[IncomeCategory]:
             name=data["name"],
             description=data["description"],
         )
-        
+
         # Add to session manually
         db_session.add(income_category)
         created_categories.append(income_category)
-    
+
     # Flush to get IDs and establish database rows
     await db_session.flush()
-    
+
     # Refresh all entries to make sure they reflect what's in the database
     for category in created_categories:
         await db_session.refresh(category)
-        
+
     return created_categories

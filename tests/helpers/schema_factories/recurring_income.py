@@ -9,11 +9,13 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from src.schemas.recurring_income import (RecurringIncomeBase,
-                                          RecurringIncomeCreate,
-                                          RecurringIncomeInDB,
-                                          RecurringIncomeResponse,
-                                          RecurringIncomeUpdate)
+from src.schemas.recurring_income import (
+    RecurringIncomeBase,
+    RecurringIncomeCreate,
+    RecurringIncomeInDB,
+    RecurringIncomeResponse,
+    RecurringIncomeUpdate,
+)
 from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function
 
 

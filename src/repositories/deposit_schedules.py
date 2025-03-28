@@ -224,7 +224,6 @@ class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
             List[DepositSchedule]: List of upcoming deposit schedules
         """
 
-        
         today = utc_now()
         end_date = safe_end_date(today, days)
 

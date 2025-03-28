@@ -246,29 +246,31 @@ class LiabilityRepository(BaseRepository[Liability, int]):
             split_ids_query = (
                 select(Liability.id)
                 .join(BillSplit, BillSplit.liability_id == Liability.id)
-                .where(and_(BillSplit.account_id == account_id, Liability.active == True))
+                .where(
+                    and_(BillSplit.account_id == account_id, Liability.active == True)
+                )
             )
             if not include_paid:
                 split_ids_query = split_ids_query.where(Liability.paid == False)
-            
+
             # Get all IDs (primary and splits)
             # Use union instead of union_all to ensure uniqueness
             primary_ids = await self.session.execute(primary_ids_query)
             primary_ids_list = [id for (id,) in primary_ids.all()]
-            
+
             split_ids = await self.session.execute(split_ids_query)
             split_ids_list = [id for (id,) in split_ids.all()]
-            
+
             # Combine without duplicates
             combined_ids = list(set(primary_ids_list + split_ids_list))
         else:
             # Only use primary ids
             primary_ids = await self.session.execute(primary_ids_query)
             combined_ids = [id for (id,) in primary_ids.all()]
-        
+
         if not combined_ids:
             return []
-            
+
         # Final query that selects full entities by ID
         final_query = (
             select(Liability)

@@ -6,10 +6,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...database.database import get_db
 from ...models.liabilities import Liability
-from ...schemas.bill_splits import (BillSplitCreate, BillSplitResponse,
-                                    BillSplitSuggestionResponse,
-                                    BillSplitUpdate, BulkOperationResult,
-                                    BulkSplitOperation, HistoricalAnalysis)
+from ...schemas.bill_splits import (
+    BillSplitCreate,
+    BillSplitResponse,
+    BillSplitSuggestionResponse,
+    BillSplitUpdate,
+    BulkOperationResult,
+    BulkSplitOperation,
+    HistoricalAnalysis,
+)
 from ...services.bill_splits import BillSplitService
 
 router = APIRouter(tags=["bill-splits"])

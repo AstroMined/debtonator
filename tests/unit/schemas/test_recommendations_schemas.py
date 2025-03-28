@@ -5,11 +5,14 @@ from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.recommendations import (BillPaymentTimingRecommendation,
-                                         ConfidenceLevel, ImpactMetrics,
-                                         RecommendationBase,
-                                         RecommendationResponse,
-                                         RecommendationType)
+from src.schemas.recommendations import (
+    BillPaymentTimingRecommendation,
+    ConfidenceLevel,
+    ImpactMetrics,
+    RecommendationBase,
+    RecommendationResponse,
+    RecommendationType,
+)
 
 
 # Test valid object creation

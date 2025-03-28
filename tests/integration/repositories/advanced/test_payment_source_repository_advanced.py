@@ -20,12 +20,10 @@ from src.repositories.accounts import AccountRepository
 from src.repositories.payment_sources import PaymentSourceRepository
 from src.repositories.payments import PaymentRepository
 from src.schemas.accounts import AccountCreate
-from src.schemas.payments import (PaymentCreate, PaymentSourceCreate,
-                                  PaymentSourceCreateNested, PaymentSourceUpdate)
+from src.schemas.payments import PaymentCreate, PaymentSourceCreate, PaymentSourceUpdate
 from src.utils.datetime_utils import utc_now
 from tests.helpers.schema_factories.accounts import create_account_schema
-from tests.helpers.schema_factories.payment_sources import \
-    create_payment_source_schema, create_payment_source_nested_schema
+from tests.helpers.schema_factories.payment_sources import create_payment_source_schema
 from tests.helpers.schema_factories.payments import create_payment_schema
 
 pytestmark = pytest.mark.asyncio
@@ -101,47 +99,68 @@ async def test_get_sources_for_account(
         assert source.account_id == test_checking_account.id
 
 
-async def test_bulk_create_sources(
-    payment_source_repository: PaymentSourceRepository,
-    test_payment: Payment,
+async def test_payment_with_multiple_sources(
+    payment_repository: PaymentRepository,
     test_checking_account: Account,
     test_second_account: Account,
 ):
-    """Test creating multiple sources at once with proper validation flow."""
+    """
+    Test creating a payment with multiple sources.
+
+    This test aligns with the ADR-017 design where payment sources can only be created
+    as part of a parent payment, never standalone.
+    """
     # 1. ARRANGE: Setup is already done with fixtures
+    total_amount = Decimal("70.00")
+    source1_amount = Decimal("30.00")
+    source2_amount = Decimal("40.00")
 
     # 2. SCHEMA: Create and validate through Pydantic schema
-    source_schema1 = create_payment_source_nested_schema(
-        account_id=test_checking_account.id,
-        amount=Decimal("30.00"),
+    payment_schema = create_payment_schema(
+        amount=total_amount,
+        payment_date=utc_now(),
+        category="Test Multiple Sources",
+        description="Test payment with multiple sources creation through ADR-017 pattern",
+        sources=[
+            {
+                "account_id": test_checking_account.id,
+                "amount": source1_amount,
+            },
+            {
+                "account_id": test_second_account.id,
+                "amount": source2_amount,
+            },
+        ],
     )
 
-    source_schema2 = create_payment_source_nested_schema(
-        account_id=test_second_account.id,
-        amount=Decimal("40.00"),
-    )
+    # Convert validated schema to dict for repository
+    validated_data = payment_schema.model_dump()
 
-    # Convert validated schemas to dicts for repository and add payment_id
-    sources_data = [
-        {**source_schema1.model_dump(), "payment_id": test_payment.id},
-        {**source_schema2.model_dump(), "payment_id": test_payment.id}
-    ]
-
-    # 3. ACT: Pass validated data to repository
-    results = await payment_source_repository.bulk_create_sources(sources_data)
+    # 3. ACT: Pass validated data to repository to create payment with sources
+    result = await payment_repository.create(validated_data)
 
     # 4. ASSERT: Verify the operation results
-    assert results is not None
-    assert len(results) == 2
+    assert result is not None
+    assert result.id is not None
+    assert result.amount == total_amount
 
-    # Check that both sources were created correctly
-    assert results[0].payment_id == test_payment.id
-    assert results[0].account_id == test_checking_account.id
-    assert results[0].amount == Decimal("30.00")
+    # Verify sources were created as part of the payment
+    assert hasattr(result, "sources")
+    assert len(result.sources) == 2
 
-    assert results[1].payment_id == test_payment.id
-    assert results[1].account_id == test_second_account.id
-    assert results[1].amount == Decimal("40.00")
+    # Find sources by account
+    source1 = next(
+        s for s in result.sources if s.account_id == test_checking_account.id
+    )
+    source2 = next(s for s in result.sources if s.account_id == test_second_account.id)
+
+    # Verify first source
+    assert source1.payment_id == result.id
+    assert source1.amount == source1_amount
+
+    # Verify second source
+    assert source2.payment_id == result.id
+    assert source2.amount == source2_amount
 
 
 async def test_get_total_amount_by_account(
@@ -200,8 +219,8 @@ async def test_validation_error_handling():
     """Test that schema validation catches invalid data."""
     # Try creating a schema with invalid data
     try:
-        # Using PaymentSourceCreateNested since it doesn't require payment_id
-        invalid_schema = PaymentSourceCreateNested(
+        # Using PaymentSourceCreate since it doesn't require payment_id
+        invalid_schema = PaymentSourceCreate(
             account_id=-1,  # Invalid negative ID
             amount=Decimal("-50.00"),  # Invalid negative amount
         )

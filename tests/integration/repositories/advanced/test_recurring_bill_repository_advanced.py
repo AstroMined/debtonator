@@ -16,9 +16,8 @@ from src.models.accounts import Account
 from src.models.categories import Category
 from src.models.recurring_bills import RecurringBill
 from src.repositories.recurring_bills import RecurringBillRepository
-from src.schemas.recurring_bills import (RecurringBillCreate,
-                                         RecurringBillUpdate)
-from src.utils.datetime_utils import utc_now, days_from_now, start_of_day, end_of_day
+from src.schemas.recurring_bills import RecurringBillCreate, RecurringBillUpdate
+from src.utils.datetime_utils import days_from_now, end_of_day, start_of_day, utc_now
 
 pytestmark = pytest.mark.asyncio
 
@@ -135,16 +134,16 @@ async def test_get_with_relationships(
     assert bill_with_account.account is not None
     assert bill_with_account.account.id == test_checking_account.id
     assert bill_with_account.account.name == test_checking_account.name
-    
+
     # For bill_with_account, we don't request category, so don't check for it
-    
+
     # Check bill with category relationship
     assert bill_with_category.category is not None
     assert bill_with_category.category.id == test_category.id
     assert bill_with_category.category.name == test_category.name
-    
+
     # For bill_with_category, we don't request account, so don't check for it
-    
+
     # Check bill with all relationships
     assert bill_with_all.account is not None
     assert bill_with_all.account.id == test_checking_account.id
@@ -162,7 +161,7 @@ async def test_get_by_account_id(
     # 1. ARRANGE: Extract accounts and bills from fixture
     account1, account2, bills = test_bills_by_account
     bill1, bill2, bill3 = bills
-    
+
     # 2. ACT: Get bills by account ID
     account1_bills = await recurring_bill_repository.get_by_account_id(account1.id)
     account2_bills = await recurring_bill_repository.get_by_account_id(account2.id)

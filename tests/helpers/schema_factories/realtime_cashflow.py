@@ -9,12 +9,19 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from src.schemas.realtime_cashflow import (AccountBalance, AccountType,
-                                           RealtimeCashflow,
-                                           RealtimeCashflowResponse)
-from tests.helpers.schema_factories.base import (LARGE_AMOUNT, MEDIUM_AMOUNT,
-                                                 SMALL_AMOUNT,
-                                                 factory_function, utc_now)
+from src.schemas.realtime_cashflow import (
+    AccountBalance,
+    AccountType,
+    RealtimeCashflow,
+    RealtimeCashflowResponse,
+)
+from tests.helpers.schema_factories.base import (
+    LARGE_AMOUNT,
+    MEDIUM_AMOUNT,
+    SMALL_AMOUNT,
+    factory_function,
+    utc_now,
+)
 
 
 @factory_function(AccountBalance)

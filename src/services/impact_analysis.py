@@ -10,9 +10,13 @@ from src.models.accounts import Account
 from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability
 from src.models.payments import Payment
-from src.schemas.impact_analysis import (AccountImpact, CashflowImpact,
-                                         RiskFactor, SplitImpactAnalysis,
-                                         SplitImpactRequest)
+from src.schemas.impact_analysis import (
+    AccountImpact,
+    CashflowImpact,
+    RiskFactor,
+    SplitImpactAnalysis,
+    SplitImpactRequest,
+)
 
 
 class ImpactAnalysisService:

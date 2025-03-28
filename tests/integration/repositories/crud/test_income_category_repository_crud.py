@@ -21,14 +21,14 @@ from src.models.income_categories import IncomeCategory
 from src.repositories.income import IncomeRepository
 from src.repositories.income_categories import IncomeCategoryRepository
 from src.schemas.income import IncomeCreate
+
 # Import schemas and schema factories - essential part of the validation pattern
-from src.schemas.income_categories import (IncomeCategoryCreate,
-                                           IncomeCategoryUpdate)
-from src.utils.datetime_utils import (datetime_equals,
-                                          datetime_greater_than, utc_now)
+from src.schemas.income_categories import IncomeCategoryCreate, IncomeCategoryUpdate
+from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
 from tests.helpers.schema_factories.income import create_income_schema
-from tests.helpers.schema_factories.income_categories import \
-    create_income_category_schema
+from tests.helpers.schema_factories.income_categories import (
+    create_income_category_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 

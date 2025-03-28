@@ -1,9 +1,20 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Repository Test Suite Completion (52/52 Tests Passing), SQL Aggregation Patterns, Database-Agnostic Implementation, Test Fixture Architecture
+Payment Source Schema Simplification, Repository Test Fixes, Parent-Child Relationship Pattern
 
 ### Recent Changes
+
+1. **Implemented ADR-017: Payment Source Schema Simplification** ✓
+   - Enforced parent-child relationship between Payment and PaymentSource
+   - Made PaymentSource creation methods private (_create, _bulk_create_sources)
+   - Updated PaymentRepository to enforce at least one source per payment
+   - Renamed PaymentSourceCreateNested to PaymentSourceCreate (single schema approach)
+   - Removed payment_id requirement from PaymentSourceBase
+   - Updated repository integration tests to follow the new pattern
+   - Fixed schema factory functions to align with the new design
+   - Added future considerations to ADR-017 for completion
+   - Improved documentation for parent-child relationship
 
 1. **Completed Repository Test Suite (52/52)** ✓
    - Fixed all remaining repository test failures

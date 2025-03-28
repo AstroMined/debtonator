@@ -5,10 +5,15 @@ from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.income_trends import (FrequencyType, IncomePattern,
-                                       IncomeTrendsAnalysis,
-                                       IncomeTrendsRequest, PeriodType,
-                                       SeasonalityMetrics, SourceStatistics)
+from src.schemas.income_trends import (
+    FrequencyType,
+    IncomePattern,
+    IncomeTrendsAnalysis,
+    IncomeTrendsRequest,
+    PeriodType,
+    SeasonalityMetrics,
+    SourceStatistics,
+)
 
 
 # Test valid object creation

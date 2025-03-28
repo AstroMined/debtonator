@@ -25,9 +25,9 @@ class Category(BaseDBModel):
         ForeignKey("categories.id", ondelete="CASCADE"), nullable=True
     )
     system: Mapped[bool] = mapped_column(
-        Boolean, 
-        default=False, 
-        doc="System flag for protected categories that cannot be modified or deleted"
+        Boolean,
+        default=False,
+        doc="System flag for protected categories that cannot be modified or deleted",
     )
 
     # Relationship with liabilities (bills)

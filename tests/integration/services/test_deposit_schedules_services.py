@@ -7,8 +7,7 @@ import pytest
 from src.models.accounts import Account
 from src.models.deposit_schedules import DepositSchedule
 from src.models.income import Income
-from src.schemas.deposit_schedules import (DepositScheduleCreate,
-                                           DepositScheduleUpdate)
+from src.schemas.deposit_schedules import DepositScheduleCreate, DepositScheduleUpdate
 from src.services.deposit_schedules import DepositScheduleService
 
 
@@ -123,10 +122,12 @@ async def test_update_deposit_schedule(
     test_deposit_schedule: DepositSchedule,
 ):
     update_data = DepositScheduleUpdate(amount=Decimal("500.00"), status="completed")
-    success, error, updated_schedule = (
-        await deposit_schedule_service.update_deposit_schedule(
-            test_deposit_schedule.id, update_data
-        )
+    (
+        success,
+        error,
+        updated_schedule,
+    ) = await deposit_schedule_service.update_deposit_schedule(
+        test_deposit_schedule.id, update_data
     )
 
     assert success is True

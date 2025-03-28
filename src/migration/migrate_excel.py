@@ -6,8 +6,7 @@ import asyncio
 import sys
 from pathlib import Path
 
-from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
-                                    create_async_engine)
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from src.migration.database_importer import DatabaseImporter
 from src.utils.config import get_settings

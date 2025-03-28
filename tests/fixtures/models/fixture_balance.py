@@ -22,7 +22,7 @@ async def test_balance_history(
     """Create a test balance history record for use in tests."""
     # Get a UTC timestamp but make it naive for DB storage
     timestamp = utc_now().replace(tzinfo=None)
-    
+
     # Create model instance directly
     balance = BalanceHistory(
         account_id=test_checking_account.id,
@@ -31,12 +31,12 @@ async def test_balance_history(
         notes="Initial balance",
         timestamp=timestamp,
     )
-    
+
     # Add to session manually
     db_session.add(balance)
     await db_session.flush()
     await db_session.refresh(balance)
-    
+
     return balance
 
 
@@ -57,7 +57,7 @@ async def test_multiple_balances(
     for timestamp, amount, reconciled, note in balance_configs:
         # Make timestamp naive for DB storage
         naive_timestamp = timestamp.replace(tzinfo=None)
-        
+
         # Create model instance directly
         balance = BalanceHistory(
             account_id=test_checking_account.id,
@@ -66,18 +66,18 @@ async def test_multiple_balances(
             notes=note,
             timestamp=naive_timestamp,
         )
-        
+
         # Add to session manually
         db_session.add(balance)
         balances.append(balance)
-    
+
     # Flush to get IDs and establish database rows
     await db_session.flush()
-    
+
     # Refresh all entries to make sure they reflect what's in the database
     for balance in balances:
         await db_session.refresh(balance)
-        
+
     return balances
 
 
@@ -89,7 +89,7 @@ async def test_balance_reconciliation(
     """Create a test balance reconciliation entry for use in tests."""
     # Create a naive datetime for DB storage
     naive_date = utc_now().replace(tzinfo=None)
-    
+
     # Create model instance directly
     reconciliation = BalanceReconciliation(
         account_id=test_checking_account.id,
@@ -99,12 +99,12 @@ async def test_balance_reconciliation(
         reason="Initial reconciliation after transaction verification",
         reconciliation_date=naive_date,
     )
-    
+
     # Add to session manually
     db_session.add(reconciliation)
     await db_session.flush()
     await db_session.refresh(reconciliation)
-    
+
     return reconciliation
 
 
@@ -120,7 +120,7 @@ async def test_multiple_reconciliations(
     for i, x_days_ago in enumerate([90, 60, 30, 15, 5]):
         # Calculate dates as naive datetimes (without timezone info)
         naive_date = days_ago(x_days_ago).replace(tzinfo=None)
-        
+
         # Create model instance directly
         entry = BalanceReconciliation(
             account_id=test_checking_account.id,
@@ -130,19 +130,20 @@ async def test_multiple_reconciliations(
             reason=f"Reconciliation #{i + 1}",
             reconciliation_date=naive_date,  # Directly use naive datetime
         )
-        
+
         # Add to session manually
         db_session.add(entry)
         entries.append(entry)
-    
+
     # Flush to get IDs and establish database rows
     await db_session.flush()
-    
+
     # Refresh all entries to make sure they reflect what's in the database
     for entry in entries:
         await db_session.refresh(entry)
 
     return entries
+
 
 @pytest_asyncio.fixture
 async def test_balance_history_with_gaps(
@@ -152,15 +153,15 @@ async def test_balance_history_with_gaps(
     """Create balance history records with specific gaps for missing days test."""
     now = utc_now()
     today = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    
+
     # Create exactly 3 balance entries with specific dates
     # This should result in exactly 8 missing days
     balance_dates = [
-        today,                     # Today (day 0)
-        today - timedelta(days=5), # 5 days ago
-        today - timedelta(days=10) # 10 days ago
+        today,  # Today (day 0)
+        today - timedelta(days=5),  # 5 days ago
+        today - timedelta(days=10),  # 10 days ago
     ]
-    
+
     balances = []
     for i, timestamp in enumerate(balance_dates):
         # Create model directly (not using repository)
@@ -169,18 +170,20 @@ async def test_balance_history_with_gaps(
             balance=Decimal(f"{1000 + (i * 200)}.00"),
             is_reconciled=False,
             notes=f"Balance entry {i+1}",
-            timestamp=timestamp.replace(tzinfo=None)  # Make naive for DB
+            timestamp=timestamp.replace(tzinfo=None),  # Make naive for DB
         )
-        
+
         db_session.add(balance)
         balances.append(balance)
-    
+
     await db_session.flush()
-    
+
     # Refresh to ensure database state is reflected
     for balance in balances:
         await db_session.refresh(balance)
-        
+
     # Print actual dates for debugging
-    print(f"Created balance entries for dates: {[b.timestamp.date() for b in balances]}")
+    print(
+        f"Created balance entries for dates: {[b.timestamp.date() for b in balances]}"
+    )
     return balances

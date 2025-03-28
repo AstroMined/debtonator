@@ -178,7 +178,7 @@ class AccountRepository(BaseRepository[Account, int]):
             # Initialize available_credit to 0 if it's None
             if account.available_credit is None:
                 account.available_credit = Decimal("0.0")
-            
+
             account.available_credit = account.total_limit - abs(
                 account.available_balance
             )

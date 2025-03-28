@@ -8,8 +8,7 @@ from sqlalchemy.orm import selectinload
 from src.models.accounts import Account
 from src.models.deposit_schedules import DepositSchedule
 from src.models.income import Income
-from src.schemas.deposit_schedules import (DepositScheduleCreate,
-                                           DepositScheduleUpdate)
+from src.schemas.deposit_schedules import DepositScheduleCreate, DepositScheduleUpdate
 
 
 class DepositScheduleService:

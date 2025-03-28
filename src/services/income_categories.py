@@ -5,8 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.income_categories import IncomeCategory
-from ..schemas.income_categories import (IncomeCategoryCreate,
-                                         IncomeCategoryUpdate)
+from ..schemas.income_categories import IncomeCategoryCreate, IncomeCategoryUpdate
 from ..utils.db import handle_db_error
 
 

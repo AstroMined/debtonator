@@ -6,6 +6,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.51] - 2025-03-28
+
+### Changed
+
+- Implemented ADR-017 Payment Source Schema Simplification
+- Enforced parent-child relationship between Payment and PaymentSource entities
+- Made PaymentSourceRepository's creation methods private (_create, _bulk_create_sources)
+- Renamed PaymentSourceCreateNested to PaymentSourceCreate (single schema approach)
+- Removed payment_id requirement from PaymentSourceBase
+
+### Fixed
+
+- Fixed repository integration tests to follow the new parent-child pattern
+- Fixed schema factory functions to align with the new design
+- Fixed unit and integration tests for the updated parent-child relationship
+
+### Added
+
+- Added future considerations section to ADR-017 for completion in future sessions
+- Improved documentation for parent-child relationship pattern
+
 ## [0.5.50] - 2025-03-28
 
 ### Fixed

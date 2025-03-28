@@ -19,11 +19,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.cashflow import CashflowForecast
 from src.repositories.cashflow import CashflowForecastRepository
+
 # Import schemas and schema factories - essential part of the validation pattern
 from src.schemas.cashflow.base import CashflowCreate, CashflowUpdate
 from src.utils.datetime_utils import datetime_equals, datetime_greater_than
 from tests.helpers.schema_factories.cashflow.base import (
-    create_cashflow_schema, create_cashflow_update_schema)
+    create_cashflow_schema,
+    create_cashflow_update_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 

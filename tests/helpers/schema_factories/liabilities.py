@@ -10,13 +10,16 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
 from src.constants import DEFAULT_CATEGORY_ID
-
-from src.schemas.liabilities import (AutoPaySettings, AutoPayUpdate,
-                                     LiabilityCreate, LiabilityDateRange,
-                                     LiabilityInDB, LiabilityResponse,
-                                     LiabilityUpdate)
-from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT,
-                                                 factory_function, utc_now)
+from src.schemas.liabilities import (
+    AutoPaySettings,
+    AutoPayUpdate,
+    LiabilityCreate,
+    LiabilityDateRange,
+    LiabilityInDB,
+    LiabilityResponse,
+    LiabilityUpdate,
+)
+from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function, utc_now
 
 
 @factory_function(LiabilityCreate)

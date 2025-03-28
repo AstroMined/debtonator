@@ -9,12 +9,21 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from src.schemas.income_trends import (FrequencyType, IncomePattern,
-                                       IncomeTrendsAnalysis,
-                                       IncomeTrendsRequest, PeriodType,
-                                       SeasonalityMetrics, SourceStatistics)
-from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT, SMALL_AMOUNT,
-                                                 factory_function, utc_now)
+from src.schemas.income_trends import (
+    FrequencyType,
+    IncomePattern,
+    IncomeTrendsAnalysis,
+    IncomeTrendsRequest,
+    PeriodType,
+    SeasonalityMetrics,
+    SourceStatistics,
+)
+from tests.helpers.schema_factories.base import (
+    MEDIUM_AMOUNT,
+    SMALL_AMOUNT,
+    factory_function,
+    utc_now,
+)
 
 
 @factory_function(IncomePattern)

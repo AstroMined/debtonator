@@ -25,12 +25,12 @@ async def test_recurring_bill(
         auto_pay=True,
         active=True,  # Default to active
     )
-    
+
     # Add to session manually
     db_session.add(bill)
     await db_session.flush()
     await db_session.refresh(bill)
-    
+
     return bill
 
 
@@ -63,18 +63,18 @@ async def test_multiple_recurring_bills(
             auto_pay=auto_pay,
             active=active,  # Set active status directly
         )
-        
+
         # Add to session manually
         db_session.add(bill)
         bills.append(bill)
-    
+
     # Flush to get IDs and establish database rows
     await db_session.flush()
-    
+
     # Refresh all entries to make sure they reflect what's in the database
     for bill in bills:
         await db_session.refresh(bill)
-        
+
     return bills
 
 
@@ -94,12 +94,12 @@ async def test_recurring_income(
         day_of_month=15,
         active=True,
     )
-    
+
     # Add to session manually
     db_session.add(income)
     await db_session.flush()
     await db_session.refresh(income)
-    
+
     return income
 
 
@@ -110,10 +110,10 @@ async def test_bills_by_account(
 ) -> tuple:
     """
     Create accounts and recurring bills for testing account-specific operations.
-    
+
     This fixture creates two accounts and multiple bills, with specific bills
     assigned to each account, to test repository methods that filter by account.
-    
+
     Returns:
         tuple: A tuple containing (account1, account2, bills)
                - account1: First test account with two bills
@@ -121,27 +121,27 @@ async def test_bills_by_account(
                - bills: List of all created bills [bill1, bill2, bill3]
     """
     from src.models.accounts import Account
-    
+
     # Create two accounts directly
     account1 = Account(
         name="Account A for Bill Test",
         type="checking",
         available_balance=Decimal("1000.00"),
     )
-    
+
     account2 = Account(
         name="Account B for Bill Test",
         type="savings",
         available_balance=Decimal("2000.00"),
     )
-    
+
     # Add accounts to session
     db_session.add(account1)
     db_session.add(account2)
     await db_session.flush()
     await db_session.refresh(account1)
     await db_session.refresh(account2)
-    
+
     # Create bills for account 1
     bill1 = RecurringBill(
         bill_name="Account 1 Bill 1",
@@ -152,7 +152,7 @@ async def test_bills_by_account(
         auto_pay=True,
         active=True,
     )
-    
+
     bill2 = RecurringBill(
         bill_name="Account 1 Bill 2",
         amount=Decimal("75.00"),
@@ -162,7 +162,7 @@ async def test_bills_by_account(
         auto_pay=True,
         active=True,
     )
-    
+
     # Create bill for account 2
     bill3 = RecurringBill(
         bill_name="Account 2 Bill",
@@ -173,18 +173,18 @@ async def test_bills_by_account(
         auto_pay=True,
         active=True,
     )
-    
+
     # Add bills to session
     db_session.add(bill1)
     db_session.add(bill2)
     db_session.add(bill3)
     await db_session.flush()
-    
+
     # Refresh all bills to make sure they reflect what's in the database
     await db_session.refresh(bill1)
     await db_session.refresh(bill2)
     await db_session.refresh(bill3)
-    
+
     # Return accounts and all bills
     return account1, account2, [bill1, bill2, bill3]
 
@@ -244,16 +244,16 @@ async def test_multiple_recurring_incomes(
             day_of_month=config["day_of_month"],
             active=config["active"],
         )
-        
+
         # Add to session manually
         db_session.add(income)
         incomes.append(income)
-    
+
     # Flush to get IDs and establish database rows
     await db_session.flush()
-    
+
     # Refresh all entries to make sure they reflect what's in the database
     for income in incomes:
         await db_session.refresh(income)
-        
+
     return incomes

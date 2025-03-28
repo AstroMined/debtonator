@@ -12,8 +12,12 @@ from src.models.base_model import naive_utc_now
 from src.models.categories import Category
 from src.models.liabilities import Liability
 from src.models.payments import Payment
-from src.schemas.liabilities import (AutoPaySettings, AutoPayUpdate,
-                                     LiabilityCreate, LiabilityUpdate)
+from src.schemas.liabilities import (
+    AutoPaySettings,
+    AutoPayUpdate,
+    LiabilityCreate,
+    LiabilityUpdate,
+)
 
 
 class LiabilityService:

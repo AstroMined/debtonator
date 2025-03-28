@@ -25,12 +25,12 @@ async def test_savings_account(db_session: AsyncSession) -> Account:
         type="savings",
         available_balance=Decimal("500.00"),
     )
-    
+
     # Add to session manually
     db_session.add(account)
     await db_session.flush()
     await db_session.refresh(account)
-    
+
     return account
 
 
@@ -43,12 +43,12 @@ async def test_second_account(db_session: AsyncSession) -> Account:
         type="checking",
         available_balance=Decimal("2000.00"),
     )
-    
+
     # Add to session manually
     db_session.add(account)
     await db_session.flush()
     await db_session.refresh(account)
-    
+
     return account
 
 
@@ -77,18 +77,18 @@ async def test_multiple_accounts(db_session: AsyncSession) -> List[Account]:
             total_limit=Decimal("3000.00") if acc_type == "credit" else None,
             available_credit=Decimal("2300.00") if acc_type == "credit" else None,
         )
-        
+
         # Add to session manually
         db_session.add(account)
         accounts.append(account)
-    
+
     # Flush to get IDs and establish database rows
     await db_session.flush()
-    
+
     # Refresh all entries to make sure they reflect what's in the database
     for account in accounts:
         await db_session.refresh(account)
-        
+
     return accounts
 
 

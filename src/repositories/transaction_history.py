@@ -12,15 +12,21 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import and_, func, or_, select
-from src.utils.datetime_utils import (
-    utc_now, days_ago, start_of_day, end_of_day, datetime_equals,
-    date_range, ensure_utc, normalize_db_date
-)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from src.models.transaction_history import TransactionHistory, TransactionType
 from src.repositories.base import BaseRepository
+from src.utils.datetime_utils import (
+    date_range,
+    datetime_equals,
+    days_ago,
+    end_of_day,
+    ensure_utc,
+    normalize_db_date,
+    start_of_day,
+    utc_now,
+)
 
 
 class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
@@ -118,7 +124,7 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
         # Ensure proper date range bounds per ADR-011
         range_start = start_of_day(ensure_utc(start_date))
         range_end = end_of_day(ensure_utc(end_date))
-        
+
         query = (
             select(TransactionHistory)
             .where(
@@ -295,7 +301,7 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
     ) -> List[Dict[str, Any]]:
         """
         Get monthly transaction totals.
-        
+
         Using ADR-011 compliant datetime handling with utilities.
 
         Args:
@@ -308,32 +314,32 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
         # Calculate date range using ADR-011 compliant utilities
         end_date = utc_now()
         start_date = days_ago(30 * months)
-        
+
         # Get raw transaction data using database-agnostic query
         # instead of using date_trunc SQL function which varies by database engine
         query = select(
             TransactionHistory.transaction_date,
             TransactionHistory.transaction_type,
-            TransactionHistory.amount
+            TransactionHistory.amount,
         ).where(
             and_(
                 TransactionHistory.account_id == account_id,
                 TransactionHistory.transaction_date >= start_date,
-                TransactionHistory.transaction_date <= end_date
+                TransactionHistory.transaction_date <= end_date,
             )
         )
-        
+
         result = await self.session.execute(query)
         transactions = result.all()
-        
+
         # Process with Python - database-agnostic solution that works
         # across SQLite, MySQL, PostgreSQL, etc.
         monthly_data = {}
         for transaction in transactions:
             # Format the month key
-            month_key = transaction.transaction_date.strftime('%Y-%m')
+            month_key = transaction.transaction_date.strftime("%Y-%m")
             tx_type = transaction.transaction_type
-            
+
             # Initialize if needed
             if month_key not in monthly_data:
                 # Store first day of month as datetime for proper compatibility with test
@@ -343,18 +349,18 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
                     "debits": Decimal("0.0"),
                     "net": Decimal("0.0"),
                 }
-                
+
             # Add to total based on transaction type
             if tx_type == TransactionType.CREDIT:
                 monthly_data[month_key]["credits"] += transaction.amount
             else:
                 monthly_data[month_key]["debits"] += transaction.amount
-            
+
             # Update net change (credits - debits)
             monthly_data[month_key]["net"] = (
                 monthly_data[month_key]["credits"] - monthly_data[month_key]["debits"]
             )
-        
+
         # Convert to list sorted by month (matches expected test output format)
         return [v for k, v in sorted(monthly_data.items())]
 
@@ -363,7 +369,7 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
     ) -> List[Dict[str, Any]]:
         """
         Identify recurring transaction patterns.
-        
+
         Using ADR-011 compliant datetime handling with utilities.
 
         Args:
@@ -455,9 +461,9 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
                     elif 13 <= data["average_days_between"] <= 16:
                         data["pattern_type"] = "Bi-weekly"
                     else:
-                        data["pattern_type"] = (
-                            f'Every {round(data["average_days_between"])} days'
-                        )
+                        data[
+                            "pattern_type"
+                        ] = f'Every {round(data["average_days_between"])} days'
 
             result.append(data)
 

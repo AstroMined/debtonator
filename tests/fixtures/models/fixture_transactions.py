@@ -6,9 +6,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.transaction_history import TransactionHistory, TransactionType
-from src.utils.datetime_utils import (
-    utc_now, days_ago, start_of_day, end_of_day
-)
+from src.utils.datetime_utils import days_ago, end_of_day, start_of_day, utc_now
 
 
 @pytest_asyncio.fixture
@@ -19,7 +17,7 @@ async def test_transaction_history(
     """Create a test transaction for use in tests."""
     # Create a naive datetime for DB storage
     transaction_date = utc_now().replace(tzinfo=None)
-    
+
     # Create model instance directly
     transaction = TransactionHistory(
         account_id=test_checking_account.id,
@@ -28,12 +26,12 @@ async def test_transaction_history(
         description="Initial deposit",
         transaction_date=transaction_date,
     )
-    
+
     # Add to session manually
     db_session.add(transaction)
     await db_session.flush()
     await db_session.refresh(transaction)
-    
+
     return transaction
 
 
@@ -145,7 +143,7 @@ async def test_multiple_transactions(
     for config in transaction_configs:
         # Make datetime naive for DB storage
         naive_date = config["transaction_date"].replace(tzinfo=None)
-        
+
         # Create model instance directly
         transaction = TransactionHistory(
             account_id=config["account_id"],
@@ -155,18 +153,18 @@ async def test_multiple_transactions(
             transaction_type=config["transaction_type"],
             # Removed balance_after and category as they don't exist in the model
         )
-        
+
         # Add to session manually
         db_session.add(transaction)
         transactions.append(transaction)
-    
+
     # Flush to get IDs and establish database rows
     await db_session.flush()
-    
+
     # Refresh all entries to make sure they reflect what's in the database
     for transaction in transactions:
         await db_session.refresh(transaction)
-        
+
     return transactions
 
 
@@ -177,15 +175,15 @@ async def test_recurring_transaction_patterns(
 ) -> List[TransactionHistory]:
     """
     Create recurring transaction patterns for pattern detection testing.
-    
+
     Creates:
     - 4 weekly grocery transactions (Weekly Grocery Shopping)
     - 2 monthly bill payments (Monthly Internet Bill)
-    
+
     All created directly as models, bypassing repository methods.
     """
     transactions = []
-    
+
     # Weekly grocery transactions
     for week in range(1, 5):
         transaction_date = days_ago(week * 7).replace(tzinfo=None)  # Make naive for DB
@@ -198,26 +196,28 @@ async def test_recurring_transaction_patterns(
         )
         db_session.add(transaction)
         transactions.append(transaction)
-        
+
     # Monthly bill payments
     for month in range(1, 3):
-        transaction_date = days_ago(month * 30).replace(tzinfo=None)  # Make naive for DB
+        transaction_date = days_ago(month * 30).replace(
+            tzinfo=None
+        )  # Make naive for DB
         transaction = TransactionHistory(
             account_id=test_checking_account.id,
-            amount=Decimal("120.00"), 
+            amount=Decimal("120.00"),
             transaction_type=TransactionType.DEBIT,
             description="Monthly Internet Bill",
             transaction_date=transaction_date,
         )
         db_session.add(transaction)
         transactions.append(transaction)
-        
+
     await db_session.flush()
-    
+
     # Refresh all transactions to ensure they have IDs
     for transaction in transactions:
         await db_session.refresh(transaction)
-        
+
     return transactions
 
 
@@ -228,34 +228,36 @@ async def test_date_range_transactions(
 ) -> List[TransactionHistory]:
     """
     Create transactions across specific date ranges for date range testing.
-    
+
     Creates transactions at:
     - 5, 10, 15, 20, 25 days ago (inside common test ranges)
     - 30, 45, 60 days ago (outside common test ranges)
-    
+
     Alternates between CREDIT and DEBIT types for variety.
     """
     transactions = []
-    
+
     # Create transactions at specific intervals back from now
     date_offsets = [5, 10, 15, 20, 25, 30, 45, 60]
-    
+
     for offset in date_offsets:
         transaction_date = days_ago(offset).replace(tzinfo=None)  # Make naive for DB
         transaction = TransactionHistory(
             account_id=test_checking_account.id,
             amount=Decimal("50.00"),
-            transaction_type=TransactionType.DEBIT if offset % 2 == 0 else TransactionType.CREDIT,
+            transaction_type=TransactionType.DEBIT
+            if offset % 2 == 0
+            else TransactionType.CREDIT,
             description=f"Transaction {offset} days ago",
             transaction_date=transaction_date,
         )
         db_session.add(transaction)
         transactions.append(transaction)
-    
+
     await db_session.flush()
-    
+
     # Refresh all transactions
     for transaction in transactions:
         await db_session.refresh(transaction)
- 
+
     return transactions

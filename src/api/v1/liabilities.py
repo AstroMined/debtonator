@@ -5,9 +5,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.database import get_db
-from src.schemas.liabilities import (AutoPayUpdate, LiabilityCreate,
-                                     LiabilityDateRange, LiabilityResponse,
-                                     LiabilityUpdate)
+from src.schemas.liabilities import (
+    AutoPayUpdate,
+    LiabilityCreate,
+    LiabilityDateRange,
+    LiabilityResponse,
+    LiabilityUpdate,
+)
 from src.schemas.payments import PaymentCreate, PaymentResponse
 from src.services.liabilities import LiabilityService
 from src.services.payments import PaymentService

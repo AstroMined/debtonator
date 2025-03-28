@@ -17,20 +17,29 @@ import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.utils.datetime_utils import (
-    utc_now, days_ago, start_of_day, end_of_day, datetime_equals,
-    date_range, ensure_utc, normalize_db_date, datetime_greater_than
-)
-
 from src.models.accounts import Account
 from src.models.transaction_history import TransactionHistory, TransactionType
 from src.repositories.accounts import AccountRepository
 from src.repositories.transaction_history import TransactionHistoryRepository
-from src.schemas.transaction_history import (TransactionHistoryCreate,
-                                             TransactionHistoryUpdate)
+from src.schemas.transaction_history import (
+    TransactionHistoryCreate,
+    TransactionHistoryUpdate,
+)
+from src.utils.datetime_utils import (
+    date_range,
+    datetime_equals,
+    datetime_greater_than,
+    days_ago,
+    end_of_day,
+    ensure_utc,
+    normalize_db_date,
+    start_of_day,
+    utc_now,
+)
 from tests.helpers.schema_factories.accounts import create_account_schema
-from tests.helpers.schema_factories.transaction_history import \
-    create_transaction_history_schema
+from tests.helpers.schema_factories.transaction_history import (
+    create_transaction_history_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 
@@ -79,13 +88,13 @@ async def test_get_by_date_range(
     test_date_range_transactions: List[TransactionHistory],
 ):
     """Test getting transaction history entries within a date range.
-    
+
     Uses ADR-011 compliant datetime handling with utilities.
     Uses test_date_range_transactions fixture with known date patterns.
     """
     # 1. ARRANGE: Use specific date range with transactions at known dates
     # Our fixture creates transactions at days 5, 10, 15, 20, 25, 30, 45, 60 ago
-    
+
     # Use a date range that should capture 4 transactions (days 10-25 ago)
     start_date = start_of_day(days_ago(25))
     end_date = end_of_day(days_ago(10))
@@ -98,14 +107,18 @@ async def test_get_by_date_range(
     # 3. ASSERT: Verify the operation results
     # We expect exactly 4 transactions in this range (days 10, 15, 20, 25 ago)
     assert len(results) == 4
-    
+
     for entry in results:
         assert entry.account_id == test_checking_account.id
-        
+
         # Use ADR-011 compliant date comparison utilities
         # Database-agnostic date comparison
-        assert datetime_greater_than(entry.transaction_date, start_date, ignore_timezone=True) or datetime_equals(entry.transaction_date, start_date, ignore_timezone=True)
-        assert datetime_greater_than(end_date, entry.transaction_date, ignore_timezone=True) or datetime_equals(entry.transaction_date, end_date, ignore_timezone=True)
+        assert datetime_greater_than(
+            entry.transaction_date, start_date, ignore_timezone=True
+        ) or datetime_equals(entry.transaction_date, start_date, ignore_timezone=True)
+        assert datetime_greater_than(
+            end_date, entry.transaction_date, ignore_timezone=True
+        ) or datetime_equals(entry.transaction_date, end_date, ignore_timezone=True)
 
 
 async def test_get_by_type(
@@ -253,14 +266,14 @@ async def test_get_transaction_patterns(
     test_recurring_transaction_patterns: List[TransactionHistory],
 ):
     """Test identifying recurring transaction patterns.
-    
+
     Uses ADR-011 compliant datetime handling with utilities.
     Uses test_recurring_transaction_patterns fixture that creates:
     - 4 weekly grocery transactions (Weekly Grocery Shopping)
     - 2 monthly bill payments (Monthly Internet Bill)
     """
     # 1. ARRANGE: Setup is already done with the fixture
-    
+
     # 2. ACT: Analyze transaction patterns
     patterns = await transaction_history_repository.get_transaction_patterns(
         test_checking_account.id
@@ -294,11 +307,11 @@ async def test_bulk_create_transactions(
     test_checking_account: Account,
 ):
     """Test creating multiple transactions in bulk.
-    
+
     Uses ADR-011 compliant datetime handling with utilities.
     """
     # 1. ARRANGE: Prepare multiple transaction schemas using ADR-011 utilities
-    
+
     transaction_schemas = [
         create_transaction_history_schema(
             account_id=test_checking_account.id,
@@ -341,7 +354,7 @@ async def test_bulk_create_transactions(
 
 async def test_validation_error_handling():
     """Test handling of validation errors that would be caught by the Pydantic schema.
-    
+
     Uses ADR-011 compliant datetime handling with utilities.
     """
     # Try creating a schema with invalid data

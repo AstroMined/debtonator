@@ -12,8 +12,11 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.constants import (DEFAULT_CATEGORY_DESCRIPTION, DEFAULT_CATEGORY_ID,
-                           DEFAULT_CATEGORY_NAME)
+from src.constants import (
+    DEFAULT_CATEGORY_DESCRIPTION,
+    DEFAULT_CATEGORY_ID,
+    DEFAULT_CATEGORY_NAME,
+)
 from src.models.categories import Category
 from src.models.liabilities import Liability
 from src.repositories.categories import CategoryRepository

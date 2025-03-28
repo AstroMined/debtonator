@@ -157,7 +157,6 @@ async def base_account(db_session: AsyncSession) -> Account:
     return account
 
 
-
 @pytest.fixture(scope="function")
 async def base_category(db_session: AsyncSession) -> Category:
     """Create a basic category for testing"""

@@ -17,8 +17,15 @@ from src.models.accounts import Account
 from src.models.cashflow import CashflowForecast
 from src.repositories.base import BaseRepository
 from src.utils.datetime_utils import (
-    utc_now, days_ago, days_from_now, start_of_day, end_of_day,
-    utc_datetime, ensure_utc, datetime_equals, datetime_greater_than
+    datetime_equals,
+    datetime_greater_than,
+    days_ago,
+    days_from_now,
+    end_of_day,
+    ensure_utc,
+    start_of_day,
+    utc_datetime,
+    utc_now,
 )
 
 
@@ -97,7 +104,8 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
             .where(
                 and_(
                     CashflowForecast.forecast_date >= range_start,
-                    CashflowForecast.forecast_date <= range_end,  # Use <= for inclusive end date
+                    CashflowForecast.forecast_date
+                    <= range_end,  # Use <= for inclusive end date
                 )
             )
             .group_by(func.date(CashflowForecast.forecast_date))

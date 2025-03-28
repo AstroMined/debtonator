@@ -6,11 +6,11 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
+
 # Import our models and config
 from src.database.base import Base
 from src.models import Income  # Import models to register them
-from src.models import (Account, Liability, Payment, PaymentSource,
-                        StatementHistory)
+from src.models import Account, Liability, Payment, PaymentSource, StatementHistory
 from src.utils.config import get_settings
 
 settings = get_settings()

@@ -20,7 +20,7 @@ async def test_statement_history(
     # Create naive datetimes for DB storage
     statement_date = (utc_now() - timedelta(days=15)).replace(tzinfo=None)
     due_date = (utc_now() + timedelta(days=15)).replace(tzinfo=None)
-    
+
     # Create model instance directly
     statement = StatementHistory(
         account_id=test_credit_account.id,
@@ -29,12 +29,12 @@ async def test_statement_history(
         minimum_payment=Decimal("25.00"),
         due_date=due_date,
     )
-    
+
     # Add to session manually
     db_session.add(statement)
     await db_session.flush()
     await db_session.refresh(statement)
-    
+
     return statement
 
 
@@ -67,7 +67,7 @@ async def test_multiple_statements(
         # Make datetimes naive for DB storage
         naive_stmt_date = stmt_date.replace(tzinfo=None)
         naive_due_date = due_date.replace(tzinfo=None)
-        
+
         # Create model instance directly
         statement = StatementHistory(
             account_id=test_credit_account.id,
@@ -76,18 +76,18 @@ async def test_multiple_statements(
             minimum_payment=min_payment,
             due_date=naive_due_date,
         )
-        
+
         # Add to session manually
         db_session.add(statement)
         statements.append(statement)
-    
+
     # Flush to get IDs and establish database rows
     await db_session.flush()
-    
+
     # Refresh all entries to make sure they reflect what's in the database
     for statement in statements:
         await db_session.refresh(statement)
-        
+
     return statements
 
 
@@ -111,7 +111,7 @@ async def test_multiple_accounts_with_statements(
             total_limit=Decimal(f"{(i+1)*1000}.00"),
             available_credit=Decimal(f"{(i+1)*1000 - (i+5)*100}.00"),
         )
-        
+
         # Add to session manually
         db_session.add(account)
         await db_session.flush()
@@ -123,8 +123,10 @@ async def test_multiple_accounts_with_statements(
             days_offset = (3 - j) * 30  # 90, 60, 30 days ago
             # Make datetimes naive for DB storage
             stmt_date = (now - timedelta(days=days_offset)).replace(tzinfo=None)
-            due_date = (now - timedelta(days=days_offset - 21)).replace(tzinfo=None)  # Due 21 days after statement
-            
+            due_date = (now - timedelta(days=days_offset - 21)).replace(
+                tzinfo=None
+            )  # Due 21 days after statement
+
             # Create statement model instance directly
             statement = StatementHistory(
                 account_id=account.id,
@@ -133,29 +135,37 @@ async def test_multiple_accounts_with_statements(
                 minimum_payment=Decimal(f"{(i+j+1)*10}.00"),
                 due_date=due_date,
             )
-            
+
             # Add to session manually
             db_session.add(statement)
             await db_session.flush()
             await db_session.refresh(statement)
             statements.append(statement)
-        
+
         # Create additional statements with future due dates (needed for tests checking upcoming due dates)
         for j in range(3):
             days_future = (j + 1) * 10  # 10, 20, 30 days in future
             # Make datetimes naive for DB storage
-            stmt_date = (now - timedelta(days=30 - j * 10)).replace(tzinfo=None)  # Statements from past 30 days
-            due_date = (now + timedelta(days=days_future)).replace(tzinfo=None)   # Due dates in the future
-            
+            stmt_date = (now - timedelta(days=30 - j * 10)).replace(
+                tzinfo=None
+            )  # Statements from past 30 days
+            due_date = (now + timedelta(days=days_future)).replace(
+                tzinfo=None
+            )  # Due dates in the future
+
             # Create statement model instance directly
             statement = StatementHistory(
                 account_id=account.id,
                 statement_date=stmt_date,
-                statement_balance=Decimal(f"{(i+j+4)*200}.00"),  # Continue the sequence from previous statements
-                minimum_payment=Decimal(f"{(i+j+4)*10}.00"),     # Continue the sequence from previous statements
+                statement_balance=Decimal(
+                    f"{(i+j+4)*200}.00"
+                ),  # Continue the sequence from previous statements
+                minimum_payment=Decimal(
+                    f"{(i+j+4)*10}.00"
+                ),  # Continue the sequence from previous statements
                 due_date=due_date,
             )
-            
+
             # Add to session manually
             db_session.add(statement)
             await db_session.flush()
@@ -173,7 +183,7 @@ async def test_credit_limit_history(
     """Create a test credit limit history entry for use in tests."""
     # Create a naive datetime for DB storage
     effective_date = utc_now().replace(tzinfo=None)
-    
+
     # Create model instance directly
     credit_limit = CreditLimitHistory(
         account_id=test_credit_account.id,
@@ -181,12 +191,12 @@ async def test_credit_limit_history(
         reason="Credit limit increase",
         effective_date=effective_date,
     )
-    
+
     # Add to session manually
     db_session.add(credit_limit)
     await db_session.flush()
     await db_session.refresh(credit_limit)
-    
+
     return credit_limit
 
 
@@ -241,7 +251,7 @@ async def test_credit_limit_changes(
     )
     db_session.add(latest)
     await db_session.flush()
-    
+
     # Refresh all entries
     await db_session.refresh(increase)
     await db_session.refresh(decrease)

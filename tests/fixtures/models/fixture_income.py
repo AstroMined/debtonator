@@ -16,7 +16,7 @@ async def test_income(
     """Fixture to create a test income entry."""
     # Create a naive datetime for DB storage
     income_date = datetime.now(timezone.utc).replace(tzinfo=None)
-    
+
     # Create model instance directly
     income = Income(
         source="Monthly Salary",
@@ -25,12 +25,12 @@ async def test_income(
         date=income_date,
         deposited=False,
     )
-    
+
     # Add to session manually
     db_session.add(income)
     await db_session.flush()
     await db_session.refresh(income)
-    
+
     return income
 
 
@@ -42,7 +42,7 @@ async def test_additional_income(
     """Fixture to create a second test income entry."""
     # Create a naive datetime for DB storage
     income_date = datetime.now(timezone.utc).replace(tzinfo=None)
-    
+
     # Create model instance directly
     income = Income(
         source="Freelance Payment",
@@ -51,12 +51,12 @@ async def test_additional_income(
         date=income_date,
         deposited=False,
     )
-    
+
     # Add to session manually
     db_session.add(income)
     await db_session.flush()
     await db_session.refresh(income)
-    
+
     return income
 
 
@@ -112,7 +112,7 @@ async def test_income_entries(
 
     # Create a naive datetime for DB storage
     income_date = datetime.now(timezone.utc).replace(tzinfo=None)
-    
+
     # Create the income entries using direct model instantiation
     created_incomes = []
     for data in income_data:
@@ -125,16 +125,16 @@ async def test_income_entries(
             date=income_date,
             deposited=data["deposited"],
         )
-        
+
         # Add to session manually
         db_session.add(income)
         created_incomes.append(income)
-    
+
     # Flush to get IDs and establish database rows
     await db_session.flush()
-    
+
     # Refresh all entries to make sure they reflect what's in the database
     for income in created_incomes:
         await db_session.refresh(income)
-        
+
     return created_incomes

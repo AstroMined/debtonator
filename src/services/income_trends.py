@@ -8,9 +8,13 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.income import Income
-from src.schemas.income_trends import (IncomePattern, IncomeTrendsAnalysis,
-                                       IncomeTrendsRequest, SeasonalityMetrics,
-                                       SourceStatistics)
+from src.schemas.income_trends import (
+    IncomePattern,
+    IncomeTrendsAnalysis,
+    IncomeTrendsRequest,
+    SeasonalityMetrics,
+    SourceStatistics,
+)
 
 
 class IncomeTrendsService:

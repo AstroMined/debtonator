@@ -6,10 +6,15 @@ from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.accounts import (AccountBase, AccountCreate, AccountInDB,
-                                  AccountType, AccountUpdate,
-                                  AvailableCreditResponse,
-                                  StatementBalanceHistory)
+from src.schemas.accounts import (
+    AccountBase,
+    AccountCreate,
+    AccountInDB,
+    AccountType,
+    AccountUpdate,
+    AvailableCreditResponse,
+    StatementBalanceHistory,
+)
 
 
 def test_account_base_valid():

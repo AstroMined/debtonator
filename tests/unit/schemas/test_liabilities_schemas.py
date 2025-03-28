@@ -3,13 +3,17 @@ from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 import pytest
-from src.constants import DEFAULT_CATEGORY_ID
 from pydantic import ValidationError
 
-from src.schemas.liabilities import (AutoPaySettings, AutoPayUpdate,
-                                     LiabilityCreate, LiabilityDateRange,
-                                     LiabilityUpdate)
-from src.utils.datetime_utils import days_from_now, days_ago, utc_now
+from src.constants import DEFAULT_CATEGORY_ID
+from src.schemas.liabilities import (
+    AutoPaySettings,
+    AutoPayUpdate,
+    LiabilityCreate,
+    LiabilityDateRange,
+    LiabilityUpdate,
+)
+from src.utils.datetime_utils import days_ago, days_from_now, utc_now
 
 
 def test_liability_create_valid():
@@ -200,9 +204,7 @@ def test_liability_update_accepts_past_due_date():
     """Test that a liability update with a past due date is accepted"""
     past_date = days_ago(45)  # 45 days in the past
     update = LiabilityUpdate(
-        name="Past Due Bill", 
-        due_date=past_date,
-        amount=Decimal("75.50")
+        name="Past Due Bill", due_date=past_date, amount=Decimal("75.50")
     )
     assert update.due_date == past_date
     assert update.due_date < datetime.now(timezone.utc)
@@ -232,12 +234,12 @@ def test_liability_create_uses_default_category():
         name="Test Liability",
         amount=Decimal("100.00"),
         due_date=datetime.now(timezone.utc),
-        primary_account_id=1
+        primary_account_id=1,
     )
-    
+
     # Verify the default category ID is used
     assert liability.category_id == DEFAULT_CATEGORY_ID
-    
+
     # Create another liability with explicit category_id
     custom_category_id = 5
     liability_with_category = LiabilityCreate(
@@ -245,9 +247,9 @@ def test_liability_create_uses_default_category():
         amount=Decimal("100.00"),
         due_date=datetime.now(timezone.utc),
         category_id=custom_category_id,
-        primary_account_id=1
+        primary_account_id=1,
     )
-    
+
     # Verify the specified category ID is used
     assert liability_with_category.category_id == custom_category_id
 

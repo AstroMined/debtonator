@@ -6,8 +6,8 @@ datetime objects that comply with ADR-011 requirements, and utilities
 for safely comparing datetime objects with different timezone awareness.
 """
 
-from datetime import datetime, timedelta, timezone, date
 import calendar
+from datetime import date, datetime, timedelta, timezone
 
 
 def utc_now():
@@ -138,115 +138,129 @@ def utc_datetime_from_str(datetime_str, format_str="%Y-%m-%d %H:%M:%S"):
 def datetime_equals(dt1, dt2, ignore_timezone=False, ignore_microseconds=False):
     """
     Safely compare two datetimes, handling timezone differences.
-    
+
     Args:
         dt1: First datetime
         dt2: Second datetime
         ignore_timezone: If True, only compare the time values, not timezone
         ignore_microseconds: If True, ignore microsecond precision
-        
+
     Returns:
         bool: True if datetimes are equal considering the parameters
     """
     # Make copies to avoid modifying the originals
     dt1_copy = dt1
     dt2_copy = dt2
-    
+
     # Normalize both to UTC-aware if either has timezone
     if dt1_copy.tzinfo is not None or dt2_copy.tzinfo is not None:
         dt1_copy = ensure_utc(dt1_copy)
         dt2_copy = ensure_utc(dt2_copy)
-    
+
     if ignore_microseconds:
         dt1_copy = dt1_copy.replace(microsecond=0)
         dt2_copy = dt2_copy.replace(microsecond=0)
-        
+
     if ignore_timezone:
         dt1_copy = dt1_copy.replace(tzinfo=None)
         dt2_copy = dt2_copy.replace(tzinfo=None)
-        
+
     return dt1_copy == dt2_copy
 
 
 def datetime_greater_than(dt1, dt2, ignore_timezone=False):
     """
     Safely compare if dt1 > dt2, handling timezone differences.
-    
+
     Args:
         dt1: First datetime
         dt2: Second datetime
         ignore_timezone: If True, only compare the time values, not timezone
-        
+
     Returns:
         bool: True if dt1 > dt2 considering the parameters
     """
     # Make copies to avoid modifying the originals
     dt1_copy = dt1
     dt2_copy = dt2
-    
+
     # Normalize both to UTC-aware if either has timezone
     if dt1_copy.tzinfo is not None or dt2_copy.tzinfo is not None:
         dt1_copy = ensure_utc(dt1_copy)
         dt2_copy = ensure_utc(dt2_copy)
-        
+
     if ignore_timezone:
         dt1_copy = dt1_copy.replace(tzinfo=None)
         dt2_copy = dt2_copy.replace(tzinfo=None)
-        
+
     return dt1_copy > dt2_copy
 
 
 def safe_end_date(today, days):
     """
     Calculate end date safely handling month transitions.
-    
+
     This prevents "day out of range" errors when adding days crosses
     into months with fewer days.
-    
+
     Args:
         today (datetime): Starting date
         days (int): Number of days to add
-        
+
     Returns:
         datetime: End date with time set to end of day (23:59:59.999999)
     """
-    
+
     # Get the timezone from the original date
     tzinfo = today.tzinfo
-    
+
     # Simple case - within same month
     target_date = today + timedelta(days=days)
-    
+
     # Check if the day would be invalid in the target month
     # (e.g., trying to create Feb 30)
     year, month = target_date.year, target_date.month
     _, last_day = calendar.monthrange(year, month)
-    
+
     # If the day exceeds the last day of the month, cap it
     if target_date.day > last_day:
         # Use the last day of the month instead
-        return datetime(year, month, last_day, 
-                       hour=23, minute=59, second=59, microsecond=999999,
-                       tzinfo=tzinfo)
-    
+        return datetime(
+            year,
+            month,
+            last_day,
+            hour=23,
+            minute=59,
+            second=59,
+            microsecond=999999,
+            tzinfo=tzinfo,
+        )
+
     # Otherwise, use the end of the calculated day
-    return datetime(target_date.year, target_date.month, target_date.day,
-                  hour=23, minute=59, second=59, microsecond=999999,
-                  tzinfo=tzinfo)
+    return datetime(
+        target_date.year,
+        target_date.month,
+        target_date.day,
+        hour=23,
+        minute=59,
+        second=59,
+        microsecond=999999,
+        tzinfo=tzinfo,
+    )
 
 
 def normalize_db_date(date_val):
     """
     Normalize date values returned from the database to Python date objects.
-    
+
     Handles different database engines that may return:
     - String dates (common in SQLite)
     - Datetime objects (common in PostgreSQL)
     - Custom date types
-    
+
     Args:
         date_val: Date value from database
-        
+
     Returns:
         date: Python date object or original value if conversion fails
     """
@@ -263,15 +277,15 @@ def normalize_db_date(date_val):
                     continue
             # If all parsing attempts fail, return as is
             return date_val
-    
+
     # Datetime case (common in PostgreSQL, MySQL)
-    elif hasattr(date_val, 'date') and callable(getattr(date_val, 'date')):
+    elif hasattr(date_val, "date") and callable(getattr(date_val, "date")):
         return date_val.date()
-    
+
     # Already a date
     elif isinstance(date_val, date) and not isinstance(date_val, datetime):
         return date_val
-    
+
     # Other cases, just return as is
     return date_val
 
@@ -279,48 +293,48 @@ def normalize_db_date(date_val):
 def date_equals(date1, date2):
     """
     Safely compare two date objects, handling potential type differences.
-    
+
     This function handles comparison between date objects that might come
     from different sources (e.g., database query results vs. Python date objects).
-    
+
     Args:
         date1: First date (can be date, datetime, or string)
         date2: Second date (can be date, datetime, or string)
-        
+
     Returns:
         bool: True if dates are equal
     """
     # Normalize both dates
     date1 = normalize_db_date(date1)
     date2 = normalize_db_date(date2)
-    
+
     # If both are dates now, do a direct comparison
     if isinstance(date1, date) and isinstance(date2, date):
         return date1 == date2
-    
+
     # Fallback to string comparison for any values that couldn't be converted
     str1 = date1 if isinstance(date1, str) else str(date1)
     str2 = date2 if isinstance(date2, str) else str(date2)
-    
+
     return str1 == str2
 
 
 def date_in_collection(target_date, date_collection):
     """
     Check if a date exists in a collection of dates.
-    
+
     Handles type differences and ensures reliable comparison.
-    
+
     Args:
         target_date: Date to check for (can be date, datetime, or string)
         date_collection: Collection of dates to check against
-        
+
     Returns:
         bool: True if the date exists in the collection
     """
     # Normalize target date
     normalized_target = normalize_db_date(target_date)
-    
+
     for d in date_collection:
         if date_equals(normalized_target, d):
             return True
@@ -330,10 +344,10 @@ def date_in_collection(target_date, date_collection):
 def start_of_day(dt=None):
     """
     Get start of day (00:00:00) for a given datetime.
-    
+
     Args:
         dt: Input datetime (defaults to now if None)
-        
+
     Returns:
         datetime: UTC-aware datetime for start of day (00:00:00)
     """
@@ -344,10 +358,10 @@ def start_of_day(dt=None):
 def end_of_day(dt=None):
     """
     Get end of day (23:59:59.999999) for a given datetime.
-    
+
     Args:
         dt: Input datetime (defaults to now if None)
-        
+
     Returns:
         datetime: UTC-aware datetime for end of day (23:59:59.999999)
     """
@@ -358,11 +372,11 @@ def end_of_day(dt=None):
 def date_range(start_date, end_date):
     """
     Generate a list of dates within a range.
-    
+
     Args:
         start_date: Start date (inclusive)
         end_date: End date (inclusive)
-        
+
     Returns:
         list: List of UTC-aware datetimes, one for each day in the range
     """

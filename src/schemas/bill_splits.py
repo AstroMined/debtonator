@@ -12,8 +12,13 @@ from typing import Dict, List, Optional, Union
 
 from pydantic import Field, model_validator
 
-from src.schemas import (BaseSchemaValidator, IntMoneyDict, IntPercentageDict,
-                         MoneyDecimal, PercentageDecimal)
+from src.schemas import (
+    BaseSchemaValidator,
+    IntMoneyDict,
+    IntPercentageDict,
+    MoneyDecimal,
+    PercentageDecimal,
+)
 
 
 class BillSplitBase(BaseSchemaValidator):

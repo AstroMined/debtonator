@@ -19,7 +19,7 @@ async def test_liability(
     """Create a test liability for use in tests."""
     # Create a naive datetime for DB storage
     due_date = (utc_now() + timedelta(days=30)).replace(tzinfo=None)
-    
+
     # Create model instance directly
     liability = Liability(
         name="Test Bill",
@@ -29,12 +29,12 @@ async def test_liability(
         primary_account_id=test_checking_account.id,
         status=LiabilityStatus.PENDING,
     )
-    
+
     # Add to session manually
     db_session.add(liability)
     await db_session.flush()
     await db_session.refresh(liability)
-    
+
     return liability
 
 
@@ -58,7 +58,7 @@ async def test_multiple_liabilities(
     for i, due_date in enumerate(due_dates):
         # Make timestamp naive for DB storage
         naive_due_date = due_date.replace(tzinfo=None)
-        
+
         # Create model instance directly
         liability = Liability(
             name=f"Test Bill {i+1}",
@@ -69,18 +69,18 @@ async def test_multiple_liabilities(
             paid=(i == 2),  # Make one of them paid
             recurring=(i % 2 == 0),  # Make some recurring
         )
-        
+
         # Add to session manually
         db_session.add(liability)
         liabilities.append(liability)
-    
+
     # Flush to get IDs and establish database rows
     await db_session.flush()
-    
+
     # Refresh all entries to make sure they reflect what's in the database
     for liability in liabilities:
         await db_session.refresh(liability)
-        
+
     return liabilities
 
 
@@ -106,16 +106,16 @@ async def test_bill_splits(
             account_id=test_checking_account.id,
             amount=config["amount"],
         )
-        
+
         # Add to session manually
         db_session.add(bill_split)
         splits.append(bill_split)
-    
+
     # Flush to get IDs and establish database rows
     await db_session.flush()
-    
+
     # Refresh all entries to make sure they reflect what's in the database
     for split in splits:
         await db_session.refresh(split)
-        
+
     return splits

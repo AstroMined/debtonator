@@ -19,15 +19,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.cashflow import CashflowForecast
 from src.repositories.cashflow import CashflowForecastRepository
+
 # Import schemas and schema factories - essential part of the validation pattern
 from src.schemas.cashflow.base import CashflowCreate, CashflowUpdate
 from src.utils.datetime_utils import (
-    utc_now, days_ago, days_from_now, start_of_day, end_of_day,
-    utc_datetime, datetime_equals, datetime_greater_than,
-    date_range, ensure_utc
+    date_range,
+    datetime_equals,
+    datetime_greater_than,
+    days_ago,
+    days_from_now,
+    end_of_day,
+    ensure_utc,
+    start_of_day,
+    utc_datetime,
+    utc_now,
 )
 from tests.helpers.schema_factories.cashflow.base import (
-    create_cashflow_schema, create_cashflow_update_schema)
+    create_cashflow_schema,
+    create_cashflow_update_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 
@@ -52,7 +62,7 @@ async def test_get_by_date(
     assert datetime_equals(
         start_of_day(result.forecast_date),
         start_of_day(test_date),
-        ignore_timezone=True
+        ignore_timezone=True,
     )
 
     # Verify the correct forecast was retrieved
@@ -81,11 +91,13 @@ async def test_get_by_date_range(
     # Verify dates are within the range
     for forecast in results:
         # Use datetime utility for consistent timezone handling
-        assert datetime_greater_than(forecast.forecast_date, start_date, ignore_timezone=True) or \
-               datetime_equals(forecast.forecast_date, start_date, ignore_timezone=True)
-               
-        assert datetime_greater_than(end_date, forecast.forecast_date, ignore_timezone=True) or \
-               datetime_equals(end_date, forecast.forecast_date, ignore_timezone=True)
+        assert datetime_greater_than(
+            forecast.forecast_date, start_date, ignore_timezone=True
+        ) or datetime_equals(forecast.forecast_date, start_date, ignore_timezone=True)
+
+        assert datetime_greater_than(
+            end_date, forecast.forecast_date, ignore_timezone=True
+        ) or datetime_equals(end_date, forecast.forecast_date, ignore_timezone=True)
 
 
 async def test_get_latest_forecast(

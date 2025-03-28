@@ -7,15 +7,24 @@ their unique requirements.
 """
 
 from contextlib import asynccontextmanager
-from typing import (Any, AsyncContextManager, Dict, Generic, List, Optional,
-                    Tuple, Type, TypeVar, Union)
+from typing import (
+    Any,
+    AsyncContextManager,
+    Dict,
+    Generic,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from src.database.base import Base
-
 from src.models.base_model import naive_utc_now
 
 ModelType = TypeVar("ModelType", bound=Base)
@@ -194,18 +203,22 @@ class BaseRepository(Generic[ModelType, PKType]):
             if key in db_obj.__mapper__.relationships:
                 if value is not None:
                     filtered_obj_in[key] = value
-            elif value is not None or key not in db_obj.__table__.columns or db_obj.__table__.columns[key].nullable:
+            elif (
+                value is not None
+                or key not in db_obj.__table__.columns
+                or db_obj.__table__.columns[key].nullable
+            ):
                 filtered_obj_in[key] = value
 
         # Update fields; the ORM will trigger the onupdate for updated_at
         for key, value in filtered_obj_in.items():
             setattr(db_obj, key, value)
-            
+
         # Force updated_at to refresh with a new timestamp
         # This ensures updated_at changes even if SQLAlchemy doesn't detect field changes
-        if hasattr(db_obj, 'updated_at'):
+        if hasattr(db_obj, "updated_at"):
             # Explicitly set to current time
-            setattr(db_obj, 'updated_at', naive_utc_now())
+            setattr(db_obj, "updated_at", naive_utc_now())
 
         # Explicitly mark as modified to ensure SQLAlchemy tracks changes
         self.session.add(db_obj)
@@ -213,7 +226,7 @@ class BaseRepository(Generic[ModelType, PKType]):
         # Flush changes so that onupdate is applied
         await self.session.flush()
         await self.session.refresh(db_obj)
-                
+
         return db_obj
 
     async def delete(self, id: PKType) -> bool:

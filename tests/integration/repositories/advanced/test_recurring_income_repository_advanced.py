@@ -22,15 +22,21 @@ from src.models.accounts import Account
 from src.models.recurring_income import RecurringIncome
 from src.repositories.accounts import AccountRepository
 from src.repositories.recurring_income import RecurringIncomeRepository
+
 # Import schema and schema factories - essential part of the validation pattern
-from src.schemas.recurring_income import (RecurringIncomeCreate,
-                                          RecurringIncomeUpdate)
+from src.schemas.recurring_income import RecurringIncomeCreate, RecurringIncomeUpdate
 from src.utils.datetime_utils import (
-    utc_now, days_ago, days_from_now, datetime_equals, datetime_greater_than
+    datetime_equals,
+    datetime_greater_than,
+    days_ago,
+    days_from_now,
+    utc_now,
 )
 from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.recurring_income import (
-    create_recurring_income_schema, create_recurring_income_update_schema)
+    create_recurring_income_schema,
+    create_recurring_income_update_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 
@@ -287,7 +293,9 @@ async def test_get_upcoming_deposits(
     # Verify projected dates are in the future using proper timezone-aware comparison
     now = utc_now()
     for deposit in results:
-        assert datetime_greater_than(deposit["projected_date"], now) or datetime_equals(deposit["projected_date"], now)
+        assert datetime_greater_than(deposit["projected_date"], now) or datetime_equals(
+            deposit["projected_date"], now
+        )
 
 
 async def test_find_by_pattern(

@@ -9,12 +9,20 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from src.schemas.payment_patterns import (AmountStatistics, FrequencyMetrics,
-                                          PatternType, PaymentPatternAnalysis,
-                                          PaymentPatternRequest,
-                                          SeasonalMetrics)
-from tests.helpers.schema_factories.base import (COMMON_AMOUNTS, MEDIUM_AMOUNT,
-                                                 factory_function, utc_now)
+from src.schemas.payment_patterns import (
+    AmountStatistics,
+    FrequencyMetrics,
+    PatternType,
+    PaymentPatternAnalysis,
+    PaymentPatternRequest,
+    SeasonalMetrics,
+)
+from tests.helpers.schema_factories.base import (
+    COMMON_AMOUNTS,
+    MEDIUM_AMOUNT,
+    factory_function,
+    utc_now,
+)
 
 
 @factory_function(AmountStatistics)

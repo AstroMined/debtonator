@@ -7,8 +7,12 @@ import pytest
 from pydantic import ValidationError
 
 from src.schemas.credit_limit_history import (
-    AccountCreditLimitHistoryResponse, CreditLimitHistoryBase,
-    CreditLimitHistoryCreate, CreditLimitHistoryInDB, CreditLimitHistoryUpdate)
+    AccountCreditLimitHistoryResponse,
+    CreditLimitHistoryBase,
+    CreditLimitHistoryCreate,
+    CreditLimitHistoryInDB,
+    CreditLimitHistoryUpdate,
+)
 
 
 # Test valid object creation

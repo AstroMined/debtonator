@@ -10,9 +10,12 @@ from src.models.accounts import Account
 from src.models.liabilities import Liability
 from src.models.payments import Payment
 from src.schemas.payment_patterns import PatternType, PaymentPatternAnalysis
-from src.schemas.recommendations import (BillPaymentTimingRecommendation,
-                                         ConfidenceLevel, ImpactMetrics,
-                                         RecommendationResponse)
+from src.schemas.recommendations import (
+    BillPaymentTimingRecommendation,
+    ConfidenceLevel,
+    ImpactMetrics,
+    RecommendationResponse,
+)
 from src.services.cashflow import CashflowService
 from src.services.payment_patterns import BillPaymentPatternService
 
@@ -59,9 +62,9 @@ class RecommendationService:
     ) -> Optional[BillPaymentTimingRecommendation]:
         """Analyze payment patterns for a bill and generate timing recommendations."""
         # Get payment patterns
-        pattern_analysis: Optional[PaymentPatternAnalysis] = (
-            await self.pattern_service.analyze_bill_payments(bill.id)
-        )
+        pattern_analysis: Optional[
+            PaymentPatternAnalysis
+        ] = await self.pattern_service.analyze_bill_payments(bill.id)
         print(f"\nAnalyzing bill {bill.id} with pattern analysis: {pattern_analysis}")
         if not pattern_analysis:
             print("No pattern analysis found")

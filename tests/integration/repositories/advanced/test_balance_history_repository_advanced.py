@@ -15,11 +15,9 @@ import pytest
 from src.models.accounts import Account
 from src.models.balance_history import BalanceHistory
 from src.repositories.balance_history import BalanceHistoryRepository
-from src.schemas.balance_history import (BalanceHistoryCreate,
-                                         BalanceHistoryUpdate)
-from src.utils.datetime_utils import utc_now, datetime_equals, datetime_greater_than
-from tests.helpers.schema_factories.balance_history import \
-    create_balance_history_schema
+from src.schemas.balance_history import BalanceHistoryCreate, BalanceHistoryUpdate
+from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
+from tests.helpers.schema_factories.balance_history import create_balance_history_schema
 
 pytestmark = pytest.mark.asyncio
 
@@ -115,10 +113,12 @@ async def test_get_by_date_range(
     for balance in results:
         assert balance.account_id == test_checking_account.id
         # Use proper timezone-aware comparison
-        assert datetime_greater_than(balance.timestamp, start_date, ignore_timezone=True) or \
-               datetime_equals(balance.timestamp, start_date, ignore_timezone=True)
-        assert datetime_greater_than(end_date, balance.timestamp, ignore_timezone=True) or \
-               datetime_equals(end_date, balance.timestamp, ignore_timezone=True)
+        assert datetime_greater_than(
+            balance.timestamp, start_date, ignore_timezone=True
+        ) or datetime_equals(balance.timestamp, start_date, ignore_timezone=True)
+        assert datetime_greater_than(
+            end_date, balance.timestamp, ignore_timezone=True
+        ) or datetime_equals(end_date, balance.timestamp, ignore_timezone=True)
 
 
 async def test_get_reconciled_balances(
@@ -340,42 +340,42 @@ async def test_get_missing_days(
     # Get the actual dates from our test fixture
     entry_dates = [entry.timestamp.date() for entry in test_balance_history_with_gaps]
     print(f"Test fixture dates: {entry_dates}")
-    
+
     # Get today's date from the most recent entry
     most_recent = max(test_balance_history_with_gaps, key=lambda x: x.timestamp)
     today = most_recent.timestamp.replace(hour=0, minute=0, second=0, microsecond=0)
     print(f"Today's reference date: {today.date()}")
-    
+
     # 2. ACT: Get missing days
     missing_days = await balance_history_repository.get_missing_days(
         test_checking_account.id, days=10
     )
-    
+
     # Print date ranges and missing days for debugging
     date_range = [(today - timedelta(days=i)).date() for i in range(11)]
     print(f"Date range being checked: {date_range}")
     print(f"Entry dates in database: {entry_dates}")
     print(f"Expected missing dates: {[d for d in date_range if d not in entry_dates]}")
     print(f"Actual missing dates found: {missing_days}")
-    
+
     # 3. ASSERT: Verify there are exactly 8 missing days
     # Should find days 1-4 and 6-9 as missing (8 total)
     assert len(missing_days) == 8
-    
+
     # Check specific days that should be missing
     day_minus_1 = (today - timedelta(days=1)).date()
     day_minus_6 = (today - timedelta(days=6)).date()
     day_minus_9 = (today - timedelta(days=9)).date()
-    
+
     assert day_minus_1 in missing_days
     assert day_minus_6 in missing_days
     assert day_minus_9 in missing_days
-    
+
     # Check days that should not be missing
     day_minus_0 = today.date()
     day_minus_5 = (today - timedelta(days=5)).date()
     day_minus_10 = (today - timedelta(days=10)).date()
-    
+
     assert day_minus_0 not in missing_days
     assert day_minus_5 not in missing_days
     assert day_minus_10 not in missing_days

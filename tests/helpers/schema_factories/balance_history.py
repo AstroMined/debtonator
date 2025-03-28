@@ -10,8 +10,7 @@ from decimal import Decimal
 from typing import Any, Dict, Optional
 
 from src.schemas.balance_history import BalanceHistoryCreate, BalanceHistoryUpdate
-from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT,
-                                                 factory_function, utc_now)
+from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function, utc_now
 
 
 @factory_function(BalanceHistoryCreate)
@@ -54,6 +53,7 @@ def create_balance_history_schema(
         data["notes"] = notes
 
     return data
+
 
 @factory_function(BalanceHistoryUpdate)
 def create_balance_history_update_schema(

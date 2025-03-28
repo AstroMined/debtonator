@@ -1,5 +1,22 @@
 # Progress
 
+## March 28, 2025 (6:45 PM)
+
+### Completed Tasks
+
+- Implemented ADR-017: Payment Source Schema Simplification:
+  - Enforced parent-child relationship between Payment and PaymentSource
+  - Made PaymentSourceRepository's creation methods private (_create, _bulk_create_sources)
+  - Updated PaymentRepository to enforce at least one source per payment
+  - Renamed PaymentSourceCreateNested to PaymentSourceCreate (single schema approach)
+  - Removed payment_id requirement from PaymentSourceBase
+  - Updated repository integration tests to follow the new pattern
+  - Fixed schema factory functions to align with the new design
+  - Added future considerations to ADR-017 for completion
+  - Improved documentation for parent-child relationship pattern
+  - Fixed unit and integration tests to work with the new approach
+  - Fixed repository test failures related to the schema changes
+
 ## March 28, 2025 (12:00 AM)
 
 ### Completed Tasks
@@ -226,11 +243,13 @@
    - Add scanner to CI pipeline (remaining)
    - Consider expanding helper utilities to production code (remaining)
 
-3. **PaymentSource Schema Simplification (ADR-017) (0%)**
-   - Implement changes outlined in ADR-017
-   - Follow layer-by-layer implementation approach
-   - Remove technical debt from dual schema approach
-   - Update all related tests and repositories
+3. **PaymentSource Schema Simplification (ADR-017) (80%)**
+   - ✓ Implemented core schema and repository changes from ADR-017
+   - ✓ Enforced parent-child relationship between Payment and PaymentSource
+   - ✓ Made payment sources only creatable through parent payments
+   - ✓ Removed technical debt from dual schema approach
+   - ✓ Updated unit and integration tests to use new approach
+   - Complete remaining items from ADR-017 future considerations
 
 4. **Service Layer Refactoring (12%)**
    - ✓ AccountService refactored to use repository pattern

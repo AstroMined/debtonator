@@ -9,15 +9,21 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from src.schemas.cashflow.forecasting import (AccountForecastMetrics,
-                                              AccountForecastRequest,
-                                              AccountForecastResponse,
-                                              AccountForecastResult,
-                                              CustomForecastParameters,
-                                              CustomForecastResponse,
-                                              CustomForecastResult)
-from tests.helpers.schema_factories.base import (MEDIUM_AMOUNT, SMALL_AMOUNT,
-                                                 factory_function, utc_now)
+from src.schemas.cashflow.forecasting import (
+    AccountForecastMetrics,
+    AccountForecastRequest,
+    AccountForecastResponse,
+    AccountForecastResult,
+    CustomForecastParameters,
+    CustomForecastResponse,
+    CustomForecastResult,
+)
+from tests.helpers.schema_factories.base import (
+    MEDIUM_AMOUNT,
+    SMALL_AMOUNT,
+    factory_function,
+    utc_now,
+)
 
 
 @factory_function(CustomForecastParameters)

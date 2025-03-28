@@ -15,7 +15,7 @@ async def test_cashflow_forecast(
     """Fixture to create a test cashflow forecast."""
     # Create a naive datetime for DB storage
     forecast_date = datetime.now(timezone.utc).replace(tzinfo=None)
-    
+
     # Create model instance directly
     forecast = CashflowForecast(
         forecast_date=forecast_date,
@@ -34,12 +34,12 @@ async def test_cashflow_forecast(
         hourly_rate_30=Decimal("26.67"),
         hourly_rate_20=Decimal("40.00"),
     )
-    
+
     # Add to session manually
     db_session.add(forecast)
     await db_session.flush()
     await db_session.refresh(forecast)
-    
+
     return forecast
 
 
@@ -127,7 +127,7 @@ async def test_multiple_forecasts(
     for data in forecast_data:
         # Make datetime naive for DB storage
         naive_date = data["forecast_date"].replace(tzinfo=None)
-        
+
         # Create model instance directly
         forecast = CashflowForecast(
             forecast_date=naive_date,
@@ -146,16 +146,16 @@ async def test_multiple_forecasts(
             hourly_rate_30=data["hourly_rate_30"],
             hourly_rate_20=data["hourly_rate_20"],
         )
-        
+
         # Add to session manually
         db_session.add(forecast)
         created_forecasts.append(forecast)
-    
+
     # Flush to get IDs and establish database rows
     await db_session.flush()
-    
+
     # Refresh all entries to make sure they reflect what's in the database
     for forecast in created_forecasts:
         await db_session.refresh(forecast)
-        
+
     return created_forecasts

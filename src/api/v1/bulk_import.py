@@ -4,8 +4,11 @@ from fastapi import APIRouter, Depends, File, Query, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.database import get_db
-from src.services.bulk_import import (BulkImportPreview, BulkImportResponse,
-                                      BulkImportService)
+from src.services.bulk_import import (
+    BulkImportPreview,
+    BulkImportResponse,
+    BulkImportService,
+)
 from src.services.income import IncomeService
 from src.services.liabilities import LiabilityService
 

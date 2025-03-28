@@ -4,9 +4,15 @@ from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.categories import (Category, CategoryBase, CategoryCreate,
-                                    CategoryUpdate, CategoryWithBills,
-                                    CategoryWithChildren, CategoryWithParent)
+from src.schemas.categories import (
+    Category,
+    CategoryBase,
+    CategoryCreate,
+    CategoryUpdate,
+    CategoryWithBills,
+    CategoryWithChildren,
+    CategoryWithParent,
+)
 from src.schemas.liabilities import LiabilityBase
 
 

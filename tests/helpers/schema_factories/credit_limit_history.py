@@ -10,8 +10,11 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
 from src.schemas.credit_limit_history import (
-    AccountCreditLimitHistoryResponse, CreditLimitHistoryCreate,
-    CreditLimitHistoryInDB, CreditLimitHistoryUpdate)
+    AccountCreditLimitHistoryResponse,
+    CreditLimitHistoryCreate,
+    CreditLimitHistoryInDB,
+    CreditLimitHistoryUpdate,
+)
 from tests.helpers.schema_factories.base import factory_function, utc_now
 
 

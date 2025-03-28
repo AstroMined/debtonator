@@ -32,29 +32,32 @@ class PaymentSourceRepository(BaseRepository[PaymentSource, int]):
             session (AsyncSession): SQLAlchemy async session
         """
         super().__init__(session, PaymentSource)
-        
-    async def create(self, obj_in: Dict[str, Any]) -> PaymentSource:
+
+    async def _create(self, obj_in: Dict[str, Any], payment_id: int) -> PaymentSource:
         """
-        Create a new payment source ensuring all required fields are present.
-        
-        This overrides the base create method to properly validate the presence
-        of required payment_id and account_id before creating the source.
+        INTERNAL METHOD: Create a new payment source with required payment_id.
+
+        This is a private method to be used only by PaymentRepository.
+        PaymentSources should not be created standalone without a parent Payment.
+
+        This implementation enforces the ADR-017 design where payment sources
+        must always exist as part of a payment.
 
         Args:
             obj_in (Dict[str, Any]): Dictionary containing payment source attributes
+            payment_id (int): ID of the parent payment (required)
 
         Returns:
             PaymentSource: Created payment source object
-            
-        Raises:
-            ValueError: If payment_id is missing
         """
-        # Ensure payment_id is present - this is a required field
-        if "payment_id" not in obj_in or obj_in["payment_id"] is None:
-            raise ValueError("payment_id is required for creating PaymentSource objects")
-            
+        # Make a copy of obj_in to avoid modifying the original
+        source_data = dict(obj_in)
+
+        # Always use the provided payment_id
+        source_data["payment_id"] = payment_id
+
         # Create the payment source as a proper model instance
-        source = PaymentSource(**obj_in)
+        source = PaymentSource(**source_data)
         self.session.add(source)
         await self.session.flush()
         await self.session.refresh(source)
@@ -136,19 +139,29 @@ class PaymentSourceRepository(BaseRepository[PaymentSource, int]):
         result = await self.session.execute(query)
         return result.scalars().all()
 
-    async def bulk_create_sources(
-        self, sources: List[Dict[str, Any]]
+    async def _bulk_create_sources(
+        self, sources: List[Dict[str, Any]], payment_id: int
     ) -> List[PaymentSource]:
         """
-        Create multiple payment sources in one operation.
+        INTERNAL METHOD: Create multiple payment sources for a single payment.
+
+        This is a private method to be used only by PaymentRepository.
+        PaymentSources should not be created standalone without a parent Payment.
+
+        This implementation enforces the ADR-017 design where payment sources
+        must always exist as part of a payment.
 
         Args:
             sources (List[Dict[str, Any]]): List of source attribute dictionaries
+            payment_id (int): ID of the parent payment to assign to all sources
 
         Returns:
             List[PaymentSource]: List of created payment source objects
         """
-        return await self.bulk_create(sources)
+        # Create copies of source dicts with payment_id included
+        processed_sources = [{**source, "payment_id": payment_id} for source in sources]
+
+        return await self.bulk_create(processed_sources)
 
     async def get_total_amount_by_account(self, account_id: int) -> Decimal:
         """

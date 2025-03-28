@@ -13,7 +13,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased, joinedload, noload, selectinload
 from sqlalchemy.sql.expression import union_all
 
-from src.constants import DEFAULT_CATEGORY_DESCRIPTION, DEFAULT_CATEGORY_ID, DEFAULT_CATEGORY_NAME
+from src.constants import (
+    DEFAULT_CATEGORY_DESCRIPTION,
+    DEFAULT_CATEGORY_ID,
+    DEFAULT_CATEGORY_NAME,
+)
 from src.models.categories import Category
 from src.models.liabilities import Liability
 from src.repositories.base import BaseRepository
@@ -60,19 +64,21 @@ class CategoryRepository(BaseRepository[Category, int]):
         """
         # Try to get the default category
         default_category = await self.get(DEFAULT_CATEGORY_ID)
-        
+
         # If it doesn't exist, create it
         if not default_category:
-            default_category = await self.create({
-                "id": DEFAULT_CATEGORY_ID,
-                "name": DEFAULT_CATEGORY_NAME,
-                "description": DEFAULT_CATEGORY_DESCRIPTION,
-                "system": True
-            })
+            default_category = await self.create(
+                {
+                    "id": DEFAULT_CATEGORY_ID,
+                    "name": DEFAULT_CATEGORY_NAME,
+                    "description": DEFAULT_CATEGORY_DESCRIPTION,
+                    "system": True,
+                }
+            )
         elif not default_category.system:
             # Ensure the default category is marked as a system category
             await self.update(DEFAULT_CATEGORY_ID, {"system": True})
-        
+
         return default_category.id
 
     async def update(self, id: int, values: Dict[str, Any]) -> Optional[Category]:
@@ -93,7 +99,7 @@ class CategoryRepository(BaseRepository[Category, int]):
         category = await self.get(id)
         if category and (category.system or id == DEFAULT_CATEGORY_ID):
             raise ValueError(f"Cannot modify system category: {category.name}")
-        
+
         # Proceed with normal update for non-system categories
         return await super().update(id, values)
 
@@ -114,7 +120,7 @@ class CategoryRepository(BaseRepository[Category, int]):
         category = await self.get(id)
         if category and (category.system or id == DEFAULT_CATEGORY_ID):
             raise ValueError(f"Cannot delete system category: {category.name}")
-        
+
         # Proceed with normal delete for non-system categories
         return await super().delete(id)
 

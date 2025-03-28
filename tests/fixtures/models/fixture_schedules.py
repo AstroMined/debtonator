@@ -19,7 +19,7 @@ async def test_payment_schedule(
     """Fixture to create a test payment schedule."""
     # Create a naive datetime for DB storage
     scheduled_date = (utc_now() + timedelta(days=7)).replace(tzinfo=None)
-    
+
     # Create model instance directly
     schedule = PaymentSchedule(
         liability_id=test_liability.id,
@@ -29,12 +29,12 @@ async def test_payment_schedule(
         description="Test payment schedule",
         auto_process=False,  # Default value
     )
-    
+
     # Add to session manually
     db_session.add(schedule)
     await db_session.flush()
     await db_session.refresh(schedule)
-    
+
     return schedule
 
 
@@ -89,7 +89,7 @@ async def test_multiple_payment_schedules(
     for data in schedule_data:
         # Make datetime naive for DB storage
         naive_date = data["scheduled_date"].replace(tzinfo=None)
-        
+
         # Create model instance directly
         schedule = PaymentSchedule(
             liability_id=data["liability_id"],
@@ -99,18 +99,18 @@ async def test_multiple_payment_schedules(
             description=data["description"],
             auto_process=data["auto_process"],
         )
-        
+
         # Add to session manually
         db_session.add(schedule)
         created_schedules.append(schedule)
-    
+
     # Flush to get IDs and establish database rows
     await db_session.flush()
-    
+
     # Refresh all entries to make sure they reflect what's in the database
     for schedule in created_schedules:
         await db_session.refresh(schedule)
-        
+
     return created_schedules
 
 
@@ -122,8 +122,10 @@ async def test_deposit_schedule(
 ) -> DepositSchedule:
     """Fixture to create a test deposit schedule."""
     # Create a naive datetime for DB storage
-    schedule_date = (datetime.now(timezone.utc) + timedelta(days=7)).replace(tzinfo=None)
-    
+    schedule_date = (datetime.now(timezone.utc) + timedelta(days=7)).replace(
+        tzinfo=None
+    )
+
     # Create model instance directly
     schedule = DepositSchedule(
         income_id=test_income.id,
@@ -133,12 +135,12 @@ async def test_deposit_schedule(
         recurring=False,
         status="pending",
     )
-    
+
     # Add to session manually
     db_session.add(schedule)
     await db_session.flush()
     await db_session.refresh(schedule)
-    
+
     return schedule
 
 
@@ -198,7 +200,7 @@ async def test_multiple_deposit_schedules(
     for data in schedule_data:
         # Make datetime naive for DB storage
         naive_date = data["schedule_date"].replace(tzinfo=None)
-        
+
         # Create model instance directly
         schedule = DepositSchedule(
             income_id=data["income_id"],
@@ -209,16 +211,16 @@ async def test_multiple_deposit_schedules(
             recurrence_pattern=data["recurrence_pattern"],
             status=data["status"],
         )
-        
+
         # Add to session manually
         db_session.add(schedule)
         created_schedules.append(schedule)
-    
+
     # Flush to get IDs and establish database rows
     await db_session.flush()
-    
+
     # Refresh all entries to make sure they reflect what's in the database
     for schedule in created_schedules:
         await db_session.refresh(schedule)
-        
+
     return created_schedules

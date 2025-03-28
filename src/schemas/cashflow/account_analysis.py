@@ -4,9 +4,16 @@ from typing import Dict, List, Optional, Tuple
 
 from pydantic import Field
 
-from src.schemas import (BaseSchemaValidator, CorrelationDecimal, IntMoneyDict,
-                         IntPercentageDict, MoneyDecimal, MoneyDict,
-                         PercentageDecimal, PercentageDict)
+from src.schemas import (
+    BaseSchemaValidator,
+    CorrelationDecimal,
+    IntMoneyDict,
+    IntPercentageDict,
+    MoneyDecimal,
+    MoneyDict,
+    PercentageDecimal,
+    PercentageDict,
+)
 
 
 class AccountCorrelation(BaseSchemaValidator):

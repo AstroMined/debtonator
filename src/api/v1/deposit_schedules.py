@@ -5,9 +5,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.database import get_db
-from src.schemas.deposit_schedules import (DepositSchedule,
-                                           DepositScheduleCreate,
-                                           DepositScheduleUpdate)
+from src.schemas.deposit_schedules import (
+    DepositSchedule,
+    DepositScheduleCreate,
+    DepositScheduleUpdate,
+)
 from src.services.deposit_schedules import DepositScheduleService
 
 router = APIRouter(prefix="/deposit-schedules", tags=["deposit_schedules"])

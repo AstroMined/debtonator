@@ -4,8 +4,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...database.database import get_db
-from ...schemas.categories import (Category, CategoryCreate, CategoryUpdate,
-                                   CategoryWithBills)
+from ...schemas.categories import (
+    Category,
+    CategoryCreate,
+    CategoryUpdate,
+    CategoryWithBills,
+)
 from ...services.categories import CategoryError, CategoryService
 
 router = APIRouter(prefix="/categories", tags=["categories"])

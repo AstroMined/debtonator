@@ -1,9 +1,12 @@
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.income_categories import (IncomeCategory, IncomeCategoryBase,
-                                           IncomeCategoryCreate,
-                                           IncomeCategoryUpdate)
+from src.schemas.income_categories import (
+    IncomeCategory,
+    IncomeCategoryBase,
+    IncomeCategoryCreate,
+    IncomeCategoryUpdate,
+)
 
 
 # Test valid object creation

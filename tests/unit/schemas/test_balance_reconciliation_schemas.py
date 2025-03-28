@@ -5,10 +5,12 @@ from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.balance_reconciliation import (BalanceReconciliation,
-                                                BalanceReconciliationBase,
-                                                BalanceReconciliationCreate,
-                                                BalanceReconciliationUpdate)
+from src.schemas.balance_reconciliation import (
+    BalanceReconciliation,
+    BalanceReconciliationBase,
+    BalanceReconciliationCreate,
+    BalanceReconciliationUpdate,
+)
 
 
 # Test valid object creation

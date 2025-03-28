@@ -8,8 +8,10 @@ from sqlalchemy.orm import selectinload
 
 from src.models.accounts import Account
 from src.models.balance_reconciliation import BalanceReconciliation
-from src.schemas.balance_reconciliation import (BalanceReconciliationCreate,
-                                                BalanceReconciliationUpdate)
+from src.schemas.balance_reconciliation import (
+    BalanceReconciliationCreate,
+    BalanceReconciliationUpdate,
+)
 
 
 class BalanceReconciliationService:

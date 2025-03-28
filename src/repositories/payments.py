@@ -33,29 +33,38 @@ class PaymentRepository(BaseRepository[Payment, int]):
             session (AsyncSession): SQLAlchemy async session
         """
         super().__init__(session, Payment)
-        
+
     async def create(self, obj_in: Dict[str, Any]) -> Payment:
         """
-        Create a new payment with nested payment sources using ORM relationships.
+        Create a new payment with required payment sources using ORM relationships.
 
-        This method uses SQLAlchemy's relationship handling to automatically
-        manage the foreign key relationships between Payment and PaymentSource.
-        It creates the payment and its sources in a single transaction using
-        the relationship cascade.
+        This method implements the ADR-017 design where a payment must always have
+        at least one payment source, and payment sources can only exist as part of a payment.
+
+        It uses SQLAlchemy's relationship handling to automatically manage the
+        foreign key relationships between Payment and PaymentSource, creating
+        the payment and its sources in a single transaction.
 
         Args:
             obj_in (Dict[str, Any]): Dictionary containing payment attributes
-                and optionally a 'sources' key with a list of payment source data
+                and a required 'sources' key with a list of payment source data
 
         Returns:
             Payment: Created payment with sources attached
+
+        Raises:
+            ValueError: If no payment sources are provided
         """
-        # Extract sources from the input if present
+        # Extract sources from the input
         sources_data = obj_in.pop("sources", [])
-        
+
+        # Validate that at least one source is provided
+        if not sources_data:
+            raise ValueError("A payment must have at least one payment source")
+
         # Create the payment instance
         payment = Payment(**obj_in)
-        
+
         # Create and associate source instances directly via the relationship
         for source_data in sources_data:
             # Create the source and associate with payment using the ORM relationship
@@ -63,14 +72,14 @@ class PaymentRepository(BaseRepository[Payment, int]):
             source = PaymentSource(**source_data)
             # Associate with payment through the relationship
             payment.sources.append(source)
-            
+
         # Add the parent to the session - cascade takes care of children
         self.session.add(payment)
         await self.session.flush()
-        
+
         # Refresh and eagerly load sources
         await self.session.refresh(payment, ["sources"])
-        
+
         return payment
 
     async def get_with_sources(self, payment_id: int) -> Optional[Payment]:

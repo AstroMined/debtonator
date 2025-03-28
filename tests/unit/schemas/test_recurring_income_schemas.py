@@ -5,8 +5,7 @@ from zoneinfo import ZoneInfo
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.recurring_income import (RecurringIncomeCreate,
-                                          RecurringIncomeUpdate)
+from src.schemas.recurring_income import RecurringIncomeCreate, RecurringIncomeUpdate
 
 
 class TestRecurringIncome:

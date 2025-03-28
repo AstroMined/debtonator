@@ -15,13 +15,19 @@ from src.repositories.accounts import AccountRepository
 from src.repositories.credit_limit_history import CreditLimitHistoryRepository
 from src.repositories.statement_history import StatementHistoryRepository
 from src.repositories.transaction_history import TransactionHistoryRepository
-from src.schemas.accounts import (AccountCreate, AccountInDB,
-                                  AccountStatementHistoryResponse,
-                                  AccountUpdate, AvailableCreditResponse,
-                                  StatementBalanceHistory)
+from src.schemas.accounts import (
+    AccountCreate,
+    AccountInDB,
+    AccountStatementHistoryResponse,
+    AccountUpdate,
+    AvailableCreditResponse,
+    StatementBalanceHistory,
+)
 from src.schemas.credit_limit_history import (
-    AccountCreditLimitHistoryResponse, CreditLimitHistoryCreate,
-    CreditLimitHistoryUpdate)
+    AccountCreditLimitHistoryResponse,
+    CreditLimitHistoryCreate,
+    CreditLimitHistoryUpdate,
+)
 from src.schemas.statement_history import StatementHistoryCreate
 
 

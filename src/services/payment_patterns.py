@@ -8,9 +8,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
-from src.schemas.payment_patterns import (AmountStatistics, FrequencyMetrics,
-                                          PatternType, PaymentPatternAnalysis,
-                                          PaymentPatternRequest)
+from src.schemas.payment_patterns import (
+    AmountStatistics,
+    FrequencyMetrics,
+    PatternType,
+    PaymentPatternAnalysis,
+    PaymentPatternRequest,
+)
 
 
 # TODO: Create a separate ExpensePatternService for analyzing non-bill payment patterns

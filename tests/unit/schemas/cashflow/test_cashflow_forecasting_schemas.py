@@ -6,13 +6,15 @@ from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.cashflow.forecasting import (AccountForecastMetrics,
-                                              AccountForecastRequest,
-                                              AccountForecastResponse,
-                                              AccountForecastResult,
-                                              CustomForecastParameters,
-                                              CustomForecastResponse,
-                                              CustomForecastResult)
+from src.schemas.cashflow.forecasting import (
+    AccountForecastMetrics,
+    AccountForecastRequest,
+    AccountForecastResponse,
+    AccountForecastResult,
+    CustomForecastParameters,
+    CustomForecastResponse,
+    CustomForecastResult,
+)
 
 
 # Test valid object creation

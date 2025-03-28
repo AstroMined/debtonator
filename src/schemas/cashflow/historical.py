@@ -4,9 +4,15 @@ from typing import Dict, List, Tuple
 
 from pydantic import Field
 
-from src.schemas import (BaseSchemaValidator, IntMoneyDict, IntPercentageDict,
-                         MoneyDecimal, MoneyDict, PercentageDecimal,
-                         PercentageDict)
+from src.schemas import (
+    BaseSchemaValidator,
+    IntMoneyDict,
+    IntPercentageDict,
+    MoneyDecimal,
+    MoneyDict,
+    PercentageDecimal,
+    PercentageDict,
+)
 
 
 class HistoricalTrendMetrics(BaseSchemaValidator):
