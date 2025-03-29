@@ -13,11 +13,11 @@ from sqlalchemy import and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from src.core.decimal_precision import DecimalPrecision
+from src.utils.decimal_precision import DecimalPrecision
 from src.models.accounts import Account
 from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability
-from src.repositories.base import BaseRepository
+from src.repositories.base_repository import BaseRepository
 from src.utils.datetime_utils import days_ago
 
 

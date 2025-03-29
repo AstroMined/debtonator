@@ -15,7 +15,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from src.models.income import Income
 from src.models.recurring_income import RecurringIncome
-from src.repositories.base import BaseRepository
+from src.repositories.base_repository import BaseRepository
 
 
 class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):

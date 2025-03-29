@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
 
-from . import BaseSchemaValidator, MoneyDecimal
+from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
 from .income_categories import IncomeCategory
 
 

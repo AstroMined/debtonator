@@ -16,7 +16,7 @@ from sqlalchemy.orm import joinedload, selectinload
 from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability, LiabilityStatus
 from src.models.payments import Payment
-from src.repositories.base import BaseRepository
+from src.repositories.base_repository import BaseRepository
 
 
 class LiabilityRepository(BaseRepository[Liability, int]):

@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from src.models.income import Income
-from src.repositories.base import BaseRepository
+from src.repositories.base_repository import BaseRepository
 
 
 class IncomeRepository(BaseRepository[Income, int]):

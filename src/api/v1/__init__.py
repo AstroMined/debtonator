@@ -1,21 +1,21 @@
 from fastapi import APIRouter
 
-from .accounts import router as accounts_router
-from .bill_splits import router as bill_splits_router
-from .bulk_import import router as bulk_import_router
-from .cashflow import router as cashflow_router
-from .categories import router as categories_router
-from .deposit_schedules import router as deposit_schedules_router
-from .income import router as income_router
-from .income_analysis import router as income_analysis_router
-from .income_categories import router as income_categories_router
-from .liabilities import router as liabilities_router
-from .payment_schedules import router as payment_schedules_router
-from .payments import router as payments_router
-from .realtime_cashflow import router as realtime_cashflow_router
-from .recurring_bills import router as recurring_bills_router
-from .recurring_income import router as recurring_income_router
-from .transactions import router as transactions_router
+from src.api.v1.accounts import router as accounts_router
+from src.api.v1.bill_splits import router as bill_splits_router
+from src.api.v1.bulk_import import router as bulk_import_router
+from src.api.v1.cashflow import router as cashflow_router
+from src.api.v1.categories import router as categories_router
+from src.api.v1.deposit_schedules import router as deposit_schedules_router
+from src.api.v1.income import router as income_router
+from src.api.v1.income_analysis import router as income_analysis_router
+from src.api.v1.income_categories import router as income_categories_router
+from src.api.v1.liabilities import router as liabilities_router
+from src.api.v1.payment_schedules import router as payment_schedules_router
+from src.api.v1.payments import router as payments_router
+from src.api.v1.realtime_cashflow import router as realtime_cashflow_router
+from src.api.v1.recurring_bills import router as recurring_bills_router
+from src.api.v1.recurring_income import router as recurring_income_router
+from src.api.v1.transactions import router as transactions_router
 
 api_v1_router = APIRouter()
 

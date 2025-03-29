@@ -4,7 +4,8 @@ from decimal import Decimal
 from sqlalchemy import DateTime, ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base_model import BaseDBModel, naive_utc_now
+from src.models.base_model import BaseDBModel
+from src.utils.datetime_utils import naive_utc_now
 
 
 class CreditLimitHistory(BaseDBModel):

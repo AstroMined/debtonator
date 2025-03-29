@@ -15,7 +15,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from src.models.accounts import Account
 from src.models.statement_history import StatementHistory
-from src.repositories.base import BaseRepository
+from src.repositories.base_repository import BaseRepository
 
 
 class StatementHistoryRepository(BaseRepository[StatementHistory, int]):

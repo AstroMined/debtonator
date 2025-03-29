@@ -3,14 +3,14 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...database.database import get_db
-from ...schemas.categories import (
+from src.database.database import get_db
+from src.schemas.categories import (
     Category,
     CategoryCreate,
     CategoryUpdate,
     CategoryWithBills,
 )
-from ...services.categories import CategoryError, CategoryService
+from src.services.categories import CategoryError, CategoryService
 
 router = APIRouter(prefix="/categories", tags=["categories"])
 

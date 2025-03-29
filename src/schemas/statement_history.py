@@ -14,7 +14,7 @@ from pydantic import ConfigDict, Field
 
 from src.schemas.accounts import AccountResponse
 
-from . import BaseSchemaValidator, MoneyDecimal
+from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
 
 
 class StatementHistoryBase(BaseSchemaValidator):

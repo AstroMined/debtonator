@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Union
 
 from sqlalchemy import select
 
-from src.core.decimal_precision import DecimalPrecision
+from src.utils.decimal_precision import DecimalPrecision
 from src.models.accounts import Account
 from src.models.cashflow import CashflowForecast
 from src.models.liabilities import Liability

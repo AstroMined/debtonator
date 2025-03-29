@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.core.decimal_precision import DecimalPrecision
+from src.utils.decimal_precision import DecimalPrecision
 from src.models.accounts import Account
 from src.models.balance_history import BalanceHistory
 from src.schemas.balance_history import BalanceHistoryCreate, BalanceTrend

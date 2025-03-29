@@ -1,6 +1,6 @@
 from pydantic import Field
 
-from src.schemas import BaseSchemaValidator
+from src.schemas.base_schema import BaseSchemaValidator
 
 
 class IncomeCategoryBase(BaseSchemaValidator):

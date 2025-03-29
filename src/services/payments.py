@@ -6,13 +6,13 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from src.core.decimal_precision import DecimalPrecision
+from src.utils.decimal_precision import DecimalPrecision
 
-from ..models.accounts import Account
-from ..models.income import Income
-from ..models.liabilities import Liability
-from ..models.payments import Payment, PaymentSource
-from ..schemas.payments import PaymentCreate, PaymentUpdate
+from src.models.accounts import Account
+from src.models.income import Income
+from src.models.liabilities import Liability
+from src.models.payments import Payment, PaymentSource
+from src.schemas.payments import PaymentCreate, PaymentUpdate
 
 
 class PaymentService:

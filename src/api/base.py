@@ -3,9 +3,9 @@ from typing import Any, Callable
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
-from ..utils.config import settings
-from .response_formatter import format_response, with_formatted_response
-from .v1 import api_v1_router
+from src.utils.config import settings
+from src.api.response_formatter import format_response, with_formatted_response
+from src.api.v1 import api_v1_router
 
 api_router = APIRouter()
 

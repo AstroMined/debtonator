@@ -4,7 +4,7 @@ from decimal import Decimal
 
 import pytest
 
-from src.core.decimal_precision import DecimalPrecision
+from src.utils.decimal_precision import DecimalPrecision
 
 
 class TestDecimalPrecision:

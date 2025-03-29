@@ -15,7 +15,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from src.models.accounts import Account
 from src.models.cashflow import CashflowForecast
-from src.repositories.base import BaseRepository
+from src.repositories.base_repository import BaseRepository
 from src.utils.datetime_utils import (
     datetime_equals,
     datetime_greater_than,

@@ -8,13 +8,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import func
 
-from src.core.decimal_precision import DecimalPrecision
+from src.utils.decimal_precision import DecimalPrecision
 
-from ..models.accounts import Account
-from ..models.liabilities import Liability
-from ..models.recurring_bills import RecurringBill
-from ..schemas.recurring_bills import RecurringBillCreate, RecurringBillUpdate
-from ..utils.datetime_utils import naive_utc_from_date
+from src.models.accounts import Account
+from src.models.liabilities import Liability
+from src.models.recurring_bills import RecurringBill
+from src.schemas.recurring_bills import RecurringBillCreate, RecurringBillUpdate
+from src.utils.datetime_utils import naive_utc_from_date
 
 
 class RecurringBillService:

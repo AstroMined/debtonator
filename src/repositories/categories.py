@@ -20,7 +20,7 @@ from src.constants import (
 )
 from src.models.categories import Category
 from src.models.liabilities import Liability
-from src.repositories.base import BaseRepository
+from src.repositories.base_repository import BaseRepository
 
 
 class CategoryRepository(BaseRepository[Category, int]):

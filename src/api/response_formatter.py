@@ -11,8 +11,8 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from pydantic import BaseModel
 
-from src.core.decimal_precision import DecimalPrecision
-from src.schemas import BaseSchemaValidator
+from src.utils.decimal_precision import DecimalPrecision
+from src.schemas.base_schema import BaseSchemaValidator
 
 
 def format_decimal_precision(

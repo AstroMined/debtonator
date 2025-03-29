@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from src.models.credit_limit_history import CreditLimitHistory
-from src.repositories.base import BaseRepository
+from src.repositories.base_repository import BaseRepository
 
 
 class CreditLimitHistoryRepository(BaseRepository[CreditLimitHistory, int]):

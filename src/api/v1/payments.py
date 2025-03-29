@@ -4,14 +4,14 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...database.database import get_db
-from ...schemas.payments import (
+from src.database.database import get_db
+from src.schemas.payments import (
     PaymentCreate,
     PaymentDateRange,
     PaymentResponse,
     PaymentUpdate,
 )
-from ...services.payments import PaymentService
+from src.services.payments import PaymentService
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 

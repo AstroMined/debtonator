@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...database.database import get_db
-from ...models.liabilities import Liability
-from ...schemas.bill_splits import (
+from src.database.database import get_db
+from src.models.liabilities import Liability
+from src.schemas.bill_splits import (
     BillSplitCreate,
     BillSplitResponse,
     BillSplitSuggestionResponse,
@@ -15,7 +15,7 @@ from ...schemas.bill_splits import (
     BulkSplitOperation,
     HistoricalAnalysis,
 )
-from ...services.bill_splits import BillSplitService
+from src.services.bill_splits import BillSplitService
 
 router = APIRouter(tags=["bill-splits"])
 

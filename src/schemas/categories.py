@@ -4,7 +4,7 @@ from typing import ForwardRef, List, Optional
 
 from pydantic import Field, field_validator
 
-from src.schemas import BaseSchemaValidator
+from src.schemas.base_schema import BaseSchemaValidator
 
 # Forward reference for circular references
 LiabilityBaseRef = ForwardRef("LiabilityBase")

@@ -3,15 +3,15 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...database.database import get_db
-from ...schemas.liabilities import LiabilityResponse
-from ...schemas.recurring_bills import (
+from src.database.database import get_db
+from src.schemas.liabilities import LiabilityResponse
+from src.schemas.recurring_bills import (
     GenerateBillsRequest,
     RecurringBillCreate,
     RecurringBillResponse,
     RecurringBillUpdate,
 )
-from ...services.recurring_bills import RecurringBillService
+from src.services.recurring_bills import RecurringBillService
 
 router = APIRouter()
 

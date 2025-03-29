@@ -4,7 +4,8 @@ from decimal import Decimal
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models import Account, TransactionHistory, TransactionType
+from src.models.accounts import Account
+from src.models.transaction_history import TransactionHistory, TransactionType
 from src.schemas.transaction_history import (
     TransactionHistoryCreate as TransactionCreate,
 )

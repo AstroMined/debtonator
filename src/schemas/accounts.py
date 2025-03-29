@@ -13,7 +13,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from pydantic import ConfigDict, Field, field_validator
 
-from . import BaseSchemaValidator, IntMoneyDict, MoneyDecimal, PercentageDecimal
+from src.schemas.base_schema import BaseSchemaValidator, IntMoneyDict, MoneyDecimal, PercentageDecimal
 
 
 class AccountType(str, Enum):

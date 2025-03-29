@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
 
-from src.schemas import BaseSchemaValidator, MoneyDecimal
+from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
 
 
 class AccountType(str, Enum):

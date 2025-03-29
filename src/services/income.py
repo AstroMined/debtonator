@@ -7,9 +7,9 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from src.core.decimal_precision import DecimalPrecision
+from src.utils.decimal_precision import DecimalPrecision
 from src.models.accounts import Account
-from src.models.base_model import naive_utc_now
+from src.utils.datetime_utils import naive_utc_now
 from src.models.income import Income
 from src.models.income_categories import IncomeCategory
 from src.schemas.income import IncomeCreate, IncomeFilters, IncomeUpdate

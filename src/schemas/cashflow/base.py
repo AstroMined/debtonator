@@ -4,7 +4,7 @@ from typing import Annotated, List, Optional
 
 from pydantic import Field
 
-from src.schemas import BaseSchemaValidator, MoneyDecimal
+from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
 
 
 class CashflowBase(BaseSchemaValidator):

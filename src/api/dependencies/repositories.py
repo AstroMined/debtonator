@@ -8,7 +8,7 @@ instances into API routes and services.
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.session import get_db
+from src.database.database import get_db
 from src.repositories.accounts import AccountRepository
 from src.repositories.balance_history import BalanceHistoryRepository
 from src.repositories.balance_reconciliation import BalanceReconciliationRepository

@@ -9,7 +9,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
-from src.core.decimal_precision import DecimalPrecision
+from src.utils.decimal_precision import DecimalPrecision
 from src.models.accounts import Account as AccountModel
 from src.repositories.accounts import AccountRepository
 from src.repositories.credit_limit_history import CreditLimitHistoryRepository

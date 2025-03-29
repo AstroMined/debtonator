@@ -219,7 +219,7 @@ To simplify dependency injection, we'll create a repository factory:
 from typing import Type, TypeVar, Dict, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.repositories.base import BaseRepository
+from src.repositories.base_repository import BaseRepository
 
 T = TypeVar('T', bound=BaseRepository)
 

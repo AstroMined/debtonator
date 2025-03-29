@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from pydantic import Field
 
-from src.schemas import BaseSchemaValidator, MoneyDecimal, PercentageDecimal
+from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal, PercentageDecimal
 
 
 class AccountImpact(BaseSchemaValidator):

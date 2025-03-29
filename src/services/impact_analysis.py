@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.decimal_precision import DecimalPrecision
+from src.utils.decimal_precision import DecimalPrecision
 from src.models.accounts import Account
 from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability

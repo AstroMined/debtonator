@@ -13,14 +13,6 @@ NAMING_CONVENTION = {
 # Create a base metadata instance with proper dialect options
 metadata = MetaData(naming_convention=NAMING_CONVENTION)
 
-# Configure SQLite dialect options
-from sqlalchemy.dialects import sqlite
-
-sqlite.DATETIME = sqlite.DATETIME(
-    timezone=True,
-    storage_format="%(year)04d-%(month)02d-%(day)02d %(hour)02d:%(minute)02d:%(second)02d%(tz_name)s",
-)
-
 
 class Base(DeclarativeBase):
     """Base class for all database models"""
@@ -33,34 +25,3 @@ class Base(DeclarativeBase):
 
     # Use the configured metadata
     metadata = metadata
-
-
-# Import all models at the bottom to avoid circular imports
-from ..models import (
-    accounts,
-    bill_splits,
-    cashflow,
-    categories,
-    deposit_schedules,
-    income,
-    income_categories,
-    liabilities,
-    payments,
-    recurring_bills,
-    recurring_income,
-)
-
-__all__ = [
-    "Base",
-    "accounts",
-    "bill_splits",
-    "recurring_bills",
-    "income",
-    "cashflow",
-    "liabilities",
-    "payments",
-    "categories",
-    "income_categories",
-    "deposit_schedules",
-    "recurring_income",
-]

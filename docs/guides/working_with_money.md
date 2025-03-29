@@ -21,11 +21,11 @@ This guide outlines how to properly handle monetary values and decimal precision
 
 ## Using the DecimalPrecision Core Module
 
-The `src.core.decimal_precision` module provides all the utilities needed for handling decimal precision:
+The `src.utils.decimal_precision` module provides all the utilities needed for handling decimal precision:
 
 ```python
 from decimal import Decimal
-from src.core.decimal_precision import DecimalPrecision
+from src.utils.decimal_precision import DecimalPrecision
 
 # Round for display (2 decimal places)
 amount = Decimal('10.23456')
@@ -73,7 +73,7 @@ Always use the standardized type annotations when defining monetary or percentag
 from decimal import Decimal
 from typing import Annotated
 from pydantic import Field
-from src.schemas import BaseSchemaValidator, MoneyDecimal, PercentageDecimal
+from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal, PercentageDecimal
 
 class PaymentSchema(BaseSchemaValidator):
     # Monetary field (2 decimal places)
@@ -295,7 +295,7 @@ Remember, always use 4 decimal places for internal calculations, even for moneta
 When working with dictionaries that contain decimal values, use the predefined dictionary types:
 
 ```python
-from src.schemas import MoneyDict, PercentageDict, IntMoneyDict, RatioDict
+from src.schemas.base_schema import MoneyDict, PercentageDict, IntMoneyDict, RatioDict
 
 class AnalysisSchema(BaseSchemaValidator):
     # Dictionary with string keys and monetary values

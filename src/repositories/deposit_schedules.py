@@ -15,7 +15,7 @@ from sqlalchemy.orm import joinedload, selectinload
 from src.models.accounts import Account
 from src.models.deposit_schedules import DepositSchedule
 from src.models.income import Income
-from src.repositories.base import BaseRepository
+from src.repositories.base_repository import BaseRepository
 from src.utils.datetime_utils import safe_end_date, utc_now
 
 

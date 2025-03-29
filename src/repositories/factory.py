@@ -9,7 +9,7 @@ from typing import Any, Dict, Type, TypeVar
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.repositories.base import BaseRepository
+from src.repositories.base_repository import BaseRepository
 
 T = TypeVar("T", bound=BaseRepository)
 

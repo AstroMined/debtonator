@@ -15,7 +15,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from src.models.liabilities import Liability
 from src.models.recurring_bills import RecurringBill
-from src.repositories.base import BaseRepository
+from src.repositories.base_repository import BaseRepository
 
 
 class RecurringBillRepository(BaseRepository[RecurringBill, int]):

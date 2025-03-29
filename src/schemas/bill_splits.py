@@ -12,7 +12,7 @@ from typing import Dict, List, Optional, Union
 
 from pydantic import Field, model_validator
 
-from src.schemas import (
+from src.schemas.base_schema import (
     BaseSchemaValidator,
     IntMoneyDict,
     IntPercentageDict,

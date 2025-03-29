@@ -4,7 +4,7 @@ from typing import Optional
 
 from pydantic import Field, field_validator
 
-from src.schemas import BaseSchemaValidator, MoneyDecimal
+from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
 
 
 class PaymentScheduleBase(BaseSchemaValidator):

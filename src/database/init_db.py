@@ -10,8 +10,8 @@ from src.constants import (
 )
 from src.models.categories import Category
 
-from .base import Base
-from .database import engine
+from src.database.base import Base
+from src.database.database import engine
 
 
 async def init_db(db_engine: AsyncEngine) -> None:

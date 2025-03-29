@@ -3,7 +3,7 @@ from decimal import Decimal
 from sqlalchemy import ForeignKey, Index, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base_model import BaseDBModel
+from src.models.base_model import BaseDBModel
 
 
 class BillSplit(BaseDBModel):

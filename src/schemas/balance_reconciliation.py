@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from pydantic import ConfigDict, Field, ValidationInfo, field_validator
 
-from src.schemas import BaseSchemaValidator, MoneyDecimal
+from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
 
 
 class BalanceReconciliationBase(BaseSchemaValidator):

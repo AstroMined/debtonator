@@ -6,6 +6,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.53] - 2025-03-29
+
+### Changed
+
+- Standardized import patterns across all layers (models, schemas, repositories)
+- Moved schema validation code from `__init__.py` to dedicated `base_schema.py` file
+- Simplified database/base.py to focus on core Base class functionality
+- Updated all `__init__.py` files to contain only docstrings
+- Removed unnecessary exports to reduce maintenance burden
+- Eliminated circular import workarounds
+
 ## [0.5.52] - 2025-03-29
 
 ### Added

@@ -7,7 +7,7 @@ from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base_model import BaseDBModel
+from src.models.base_model import BaseDBModel
 
 
 class TransactionType(str, Enum):

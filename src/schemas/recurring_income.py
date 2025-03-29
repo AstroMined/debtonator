@@ -4,7 +4,7 @@ from typing import Optional
 
 from pydantic import ConfigDict, Field, field_validator
 
-from . import BaseSchemaValidator, MoneyDecimal
+from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
 
 
 class RecurringIncomeBase(BaseSchemaValidator):

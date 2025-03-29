@@ -1,10 +1,11 @@
+
 from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import DateTime, Index, Numeric
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base_model import BaseDBModel
+from src.models.base_model import BaseDBModel
 
 
 class CashflowForecast(BaseDBModel):

@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Tuple
 
 from pydantic import Field
 
-from src.schemas import (
+from src.schemas.base_schema import (
     BaseSchemaValidator,
     CorrelationDecimal,
     IntMoneyDict,

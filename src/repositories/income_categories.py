@@ -14,7 +14,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from src.models.income import Income
 from src.models.income_categories import IncomeCategory
-from src.repositories.base import BaseRepository
+from src.repositories.base_repository import BaseRepository
 
 
 class IncomeCategoryRepository(BaseRepository[IncomeCategory, int]):

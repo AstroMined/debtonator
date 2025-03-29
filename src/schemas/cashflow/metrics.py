@@ -3,7 +3,7 @@ from typing import Annotated
 
 from pydantic import Field
 
-from src.schemas import BaseSchemaValidator, MoneyDecimal
+from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
 
 
 class MinimumRequired(BaseSchemaValidator):

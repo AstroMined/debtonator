@@ -15,7 +15,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from src.models.accounts import Account
 from src.models.balance_history import BalanceHistory
-from src.repositories.base import BaseRepository
+from src.repositories.base_repository import BaseRepository
 from src.utils.datetime_utils import date_in_collection, normalize_db_date, utc_now
 
 

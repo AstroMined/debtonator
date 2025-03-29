@@ -5,8 +5,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ..models.categories import Category
-from ..schemas.categories import CategoryCreate, CategoryUpdate
+from src.models.categories import Category
+from src.schemas.categories import CategoryCreate, CategoryUpdate
 
 
 class CategoryError(Exception):

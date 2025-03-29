@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
-from src.repositories.base import BaseRepository
+from src.repositories.base_repository import BaseRepository
 from src.schemas.accounts import AccountCreate
 
 pytestmark = pytest.mark.integration

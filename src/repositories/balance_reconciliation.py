@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from src.models.balance_reconciliation import BalanceReconciliation
-from src.repositories.base import BaseRepository
+from src.repositories.base_repository import BaseRepository
 from src.utils.datetime_utils import days_ago, utc_now
 
 

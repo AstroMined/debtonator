@@ -10,7 +10,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models.payment_schedules import PaymentSchedule
 
-from .base_model import BaseDBModel, naive_utc_now
+from src.models.base_model import BaseDBModel
+from src.utils.datetime_utils import naive_utc_now
 
 
 class LiabilityStatus(str, Enum):

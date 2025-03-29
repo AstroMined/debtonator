@@ -3,8 +3,8 @@ from datetime import datetime
 from sqlalchemy import DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ..database.base import Base
-from ..utils.datetime_utils import naive_utc_now
+from src.database.base import Base
+from src.utils.datetime_utils import naive_utc_now
 
 
 class BaseDBModel(Base):

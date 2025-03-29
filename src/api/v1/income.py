@@ -4,15 +4,15 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...database.database import get_db
-from ...schemas.income import (
+from src.database.database import get_db
+from src.schemas.income import (
     IncomeCreate,
     IncomeFilters,
     IncomeList,
     IncomeResponse,
     IncomeUpdate,
 )
-from ...services.income import IncomeService
+from src.services.income import IncomeService
 
 router = APIRouter()
 

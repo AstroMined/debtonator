@@ -4,9 +4,9 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.income_categories import IncomeCategory
-from ..schemas.income_categories import IncomeCategoryCreate, IncomeCategoryUpdate
-from ..utils.db import handle_db_error
+from src.models.income_categories import IncomeCategory
+from src.schemas.income_categories import IncomeCategoryCreate, IncomeCategoryUpdate
+from src.utils.db import handle_db_error
 
 
 class IncomeCategoryService:
