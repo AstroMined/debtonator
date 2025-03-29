@@ -6,6 +6,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.52] - 2025-03-29
+
+### Added
+
+- Enhanced datetime standardization in ADR-011:
+  - Added enforcement of datetime_utils.py functions usage throughout the codebase
+  - Created comprehensive examples of correct datetime usage
+  - Added strict enforcement of non-UTC timezone rejection
+  - Improved documentation of datetime utility functions
+
+### Changed
+
+- Updated test suite to enforce ADR-011 compliance:
+  - Fixed tests for ensure_utc() to validate it rejects non-UTC timezones
+  - Updated datetime_equals() tests to reject non-UTC timezones
+  - Improved datetime_greater_than() tests for ADR-011 enforcement
+  - Enhanced datetime comparison tests with proper validation
+
+### Fixed
+
+- Fixed datetime handling in tests to properly validate timezone compliance
+
 ## [0.5.51] - 2025-03-28
 
 ### Changed

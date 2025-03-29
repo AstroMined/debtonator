@@ -4,9 +4,9 @@ from decimal import Decimal
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.base_model import naive_utc_from_date, naive_utc_now
 from src.models.cashflow import CashflowForecast
 from src.services.cashflow.metrics_service import MetricsService
+from src.utils.datetime_utils import naive_utc_from_date, naive_utc_now
 
 
 @pytest.fixture(scope="function")

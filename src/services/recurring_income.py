@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from src.models.accounts import Account
-from src.models.base_model import naive_utc_from_date
 from src.models.income import Income
 from src.models.recurring_income import RecurringIncome
 from src.schemas.income import IncomeCreate, IncomeResponse
@@ -16,6 +15,7 @@ from src.schemas.recurring_income import (
     RecurringIncomeCreate,
     RecurringIncomeUpdate,
 )
+from src.utils.datetime_utils import naive_utc_from_date
 
 
 class RecurringIncomeService:

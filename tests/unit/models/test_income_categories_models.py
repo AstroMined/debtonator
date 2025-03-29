@@ -2,9 +2,9 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.base_model import naive_utc_from_date
 from src.models.income import Income
 from src.models.income_categories import IncomeCategory
+from src.utils.datetime_utils import naive_utc_from_date
 
 pytestmark = pytest.mark.asyncio
 

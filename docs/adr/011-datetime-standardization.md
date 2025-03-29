@@ -476,6 +476,139 @@ The real-world benefit is significant: repository methods can now handle date va
 - Comprehensive documentation and examples
 - Extensive test suite for validation behavior (now at 100% coverage)
 
+## Update (2025-03-29): Enhanced Enforcement and Utility Standardization
+
+Following our recent datetime utility function improvements and standardization efforts, we've further enhanced our datetime handling approach:
+
+### Enhanced Timezone Enforcement
+
+We've implemented stricter enforcement of ADR-011 compliance in datetime functions:
+
+1. **Explicit Rejection of Non-UTC Timezones**
+   - Functions now validate that datetimes are either naive or UTC timezone-aware
+   - Non-UTC timezone-aware datetimes are rejected with a clear error message:
+     ```
+     "Datetime has non-UTC timezone: [datetime]. This violates ADR-011 which requires all 
+     datetimes to be either naive (from DB) or timezone-aware with UTC."
+     ```
+   - No silent timezone conversions - explicit errors instead
+
+2. **Key Functions Updated with Strict Validation**
+   - `ensure_utc()`: Now rejects non-UTC timezones instead of converting
+   - `datetime_equals()`: Validates timezone compliance before comparison
+   - `datetime_greater_than()`: Ensures proper timezone validation
+   - Other comparison functions follow the same pattern
+
+### Mandated Use of datetime_utils.py
+
+We are now **explicitly requiring** the use of functions from `datetime_utils.py` throughout the codebase:
+
+1. **Direct Use of Python datetime Functions Prohibited**
+   - **NEVER** use `datetime.now()` directly - use `utc_now()` instead
+   - **NEVER** create naive datetimes with `datetime(year, month, day)` - use `utc_datetime()` instead
+   - **NEVER** use raw timedelta arithmetic - use appropriate utility functions
+
+2. **Essential Functions for Common Tasks**
+   | Task | Prohibited | Required |
+   |------|------------|----------|
+   | Current time | `datetime.now()` | `utc_now()` |
+   | Create datetime | `datetime(2025, 3, 15)` | `utc_datetime(2025, 3, 15)` |
+   | Days ago | `datetime.now() - timedelta(days=3)` | `days_ago(3)` |
+   | Days ahead | `datetime.now() + timedelta(days=3)` | `days_from_now(3)` |
+   | Day boundaries | Manual hour/min/sec setting | `start_of_day()`, `end_of_day()` |
+   | Date ranges | Manual loop construction | `date_range(start, end)` |
+   | Date equality | Direct `==` comparison | `datetime_equals()`, `date_equals()` |
+   | Greater/less than | Direct `>`, `<` comparison | `datetime_greater_than()` |
+
+3. **Application Code Requirements**
+   - Repository methods must use these functions for all datetime operations
+   - Service layer must convert any external datetimes using `ensure_utc()`
+   - Database access code must normalize dates with `normalize_db_date()`
+   - Test code must create datetimes using these functions
+
+### Safe Datetime Operations
+
+We've enhanced several utilities to handle edge cases more reliably:
+
+1. **Improved `safe_end_date()`**
+   - Better handling of month transitions (e.g., January 30 + 3 days)
+   - Properly caps at month end when transitioning to shorter months
+   - Preserves timezone information from the original datetime
+   - Includes additional validation for ADR-011 compliance
+
+2. **Enhanced Comparison Functions**
+   - Safer comparison with `ignore_timezone` parameter for comparing DB values
+   - New parameter `ignore_microseconds` for precision control in equality checks
+   - Explicit rejection of non-compliant datetime values
+
+### Implementation Examples
+
+**Example 1: Repository Query with Date Range**
+```python
+# Correct implementation
+from src.utils.datetime_utils import ensure_utc, start_of_day, end_of_day
+
+def get_transactions_in_range(start_date, end_date):
+    """Get transactions within a date range (inclusive)."""
+    # Ensure proper timezone handling
+    range_start = start_of_day(ensure_utc(start_date))
+    range_end = end_of_day(ensure_utc(end_date))
+    
+    query = select(Transaction).where(
+        and_(
+            Transaction.date >= range_start,
+            Transaction.date <= range_end  # Note inclusive comparison
+        )
+    )
+    return session.execute(query).scalars().all()
+```
+
+**Example 2: Service Function with Date Handling**
+```python
+# Correct implementation
+from src.utils.datetime_utils import utc_now, days_from_now, safe_end_date
+
+def schedule_future_payment(amount, days_ahead):
+    """Schedule a payment for future date."""
+    # Use utility functions rather than raw datetime manipulation
+    today = utc_now()
+    due_date = safe_end_date(today, days_ahead)
+    
+    payment = Payment(
+        amount=amount,
+        date=due_date,
+        created_at=today
+    )
+    return repository.create(payment)
+```
+
+**Example 3: Test Date Assertions**
+```python
+# Correct implementation
+from src.utils.datetime_utils import utc_datetime, datetime_equals
+
+def test_payment_date():
+    """Test payment date handling."""
+    # Create dates with utility functions
+    payment_date = utc_datetime(2025, 3, 15)
+    payment = create_payment(date=payment_date)
+    
+    # Use safe comparisons with clear semantics
+    assert datetime_equals(payment.date, payment_date)
+    # Optionally ignore microseconds if needed
+    assert datetime_equals(payment.processed_at, payment.date, 
+                         ignore_microseconds=True)
+```
+
+### Integration with Existing Guidelines
+
+These new requirements complement our existing guidelines for:
+- Date filtering (using inclusive ranges)
+- Date range generation
+- Database compatibility
+- Repository method patterns
+- Test improvements
+
 ## References
 - [Python datetime docs](https://docs.python.org/3/library/datetime.html)  
 - [SQLAlchemy DateTime docs](https://docs.sqlalchemy.org/en/14/core/type_basics.html#sqlalchemy.types.DateTime)  

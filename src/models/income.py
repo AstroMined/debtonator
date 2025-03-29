@@ -13,7 +13,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base_model import BaseDBModel, naive_utc_from_date, naive_utc_now
+from ..utils.datetime_utils import naive_utc_from_date, naive_utc_now
+from .base_model import BaseDBModel
 
 
 class Income(BaseDBModel):

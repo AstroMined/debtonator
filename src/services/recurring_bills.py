@@ -11,10 +11,10 @@ from sqlalchemy.sql.expression import func
 from src.core.decimal_precision import DecimalPrecision
 
 from ..models.accounts import Account
-from ..models.base_model import naive_utc_from_date
 from ..models.liabilities import Liability
 from ..models.recurring_bills import RecurringBill
 from ..schemas.recurring_bills import RecurringBillCreate, RecurringBillUpdate
+from ..utils.datetime_utils import naive_utc_from_date
 
 
 class RecurringBillService:

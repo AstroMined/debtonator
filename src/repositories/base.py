@@ -25,7 +25,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from src.database.base import Base
-from src.models.base_model import naive_utc_now
+from src.utils.datetime_utils import naive_utc_now
 
 ModelType = TypeVar("ModelType", bound=Base)
 PKType = TypeVar("PKType")

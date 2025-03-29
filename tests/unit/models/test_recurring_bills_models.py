@@ -5,9 +5,9 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
-from src.models.base_model import naive_utc_from_date, naive_utc_now
 from src.models.categories import Category
 from src.models.recurring_bills import RecurringBill
+from src.utils.datetime_utils import naive_utc_from_date, naive_utc_now
 
 pytestmark = pytest.mark.asyncio
 
