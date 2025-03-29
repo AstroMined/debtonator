@@ -5,6 +5,18 @@ Datetime Standardization, Repository Architectural Improvements, Code Cleanup an
 
 ### Recent Changes
 
+1. **Eliminated Circular References in Schema Layer** ✓
+   - Refactored src/schemas/categories.py to remove circular dependencies
+   - Implemented "Reference by ID + Service Composition" approach
+   - Removed ForwardRef and model_rebuild() calls for better code maintainability
+   - Created new CategoryTree and CategoryWithBillsResponse schemas for rich responses
+   - Added service layer composition methods to build rich structures at runtime
+   - Updated API endpoints to use new composition approach
+   - Updated unit tests and integration tests for new schema classes
+   - Updated schema factories to support the new structure
+   - Added implementation note to ADR-015 explaining the refactoring
+   - Complete redesign eliminates tech debt while maintaining functionality
+
 1. **Test Code Cleanup with Autoflake** ✓
    - Fixed unused variables in test files using autoflake
    - Addressed all identified unused variables in repository test files
@@ -49,17 +61,6 @@ Datetime Standardization, Repository Architectural Improvements, Code Cleanup an
    - Fixed schema factory functions to align with the new design
    - Added future considerations to ADR-017 for completion
    - Improved documentation for parent-child relationship
-
-1. **Completed Repository Test Suite (52/52)** ✓
-   - Fixed all remaining repository test failures
-   - Fixed bill split distribution issue with proper SQL aggregation
-   - Implemented SQL COUNT(column) vs COUNT(*) pattern for accurate OUTER JOIN counts
-   - Created reusable database-agnostic SQL patterns
-   - Updated test_failure_resolution_plan.md with SQL aggregation patterns
-   - Documented best practices for database-agnostic implementation
-   - Enhanced repository documentation with lessons learned
-   - Fixed income category count assertions with proper LEFT JOIN behavior
-   - Created pattern for handling validation error message flexibility
 
 ## Next Steps
 

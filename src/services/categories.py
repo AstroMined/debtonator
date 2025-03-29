@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -6,7 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models.categories import Category
-from src.schemas.categories import CategoryCreate, CategoryUpdate
+from src.schemas.categories import (
+    CategoryCreate,
+    CategoryTree,
+    CategoryUpdate,
+    CategoryWithBillsResponse,
+)
 
 
 class CategoryError(Exception):
@@ -241,3 +246,107 @@ class CategoryService:
             return False
 
         return await self.is_ancestor_of(ancestor, parent)
+
+    # Rich composition methods for building response objects without circular references
+
+    async def compose_category_tree(
+        self, category_id: int, depth: int = -1
+    ) -> Optional[CategoryTree]:
+        """
+        Build a rich category tree response without circular references.
+        
+        This method composes a hierarchical tree of categories at runtime, eliminating
+        the need for circular references in the schema layer.
+        
+        Args:
+            category_id: The ID of the root category
+            depth: Maximum depth to recurse (-1 for unlimited)
+            
+        Returns:
+            CategoryTree object with child categories nested to specified depth
+        """
+        # Get category with children loaded
+        category = await self.get_category_with_children(category_id)
+        if not category:
+            return None
+            
+        # Create the base tree node
+        result = CategoryTree(
+            id=category.id,
+            name=category.name,
+            description=category.description,
+            parent_id=category.parent_id,
+            created_at=category.created_at,
+            updated_at=category.updated_at,
+        )
+        
+        # Add full path
+        result.full_path = await self.get_full_path(category)
+        
+        # Only recurse if depth limit not reached
+        if depth != 0 and category.children:
+            result.children = []
+            for child in category.children:
+                child_tree = await self.compose_category_tree(
+                    child.id, 
+                    depth - 1 if depth > 0 else -1
+                )
+                if child_tree:
+                    result.children.append(child_tree)
+                    
+        return result
+
+    async def compose_category_with_bills(
+        self, category_id: int
+    ) -> Optional[CategoryWithBillsResponse]:
+        """
+        Build a rich category response with bills without circular references.
+        
+        This method composes a category with its bills at runtime, eliminating
+        the need for circular references in the schema layer.
+        
+        Args:
+            category_id: The ID of the category
+            
+        Returns:
+            CategoryWithBillsResponse object with bills and child categories
+        """
+        # Get category with bills and children loaded
+        category = await self.get_category_with_bills(category_id)
+        if not category:
+            return None
+            
+        # Create the base response object
+        result = CategoryWithBillsResponse(
+            id=category.id,
+            name=category.name,
+            description=category.description,
+            parent_id=category.parent_id,
+            created_at=category.created_at,
+            updated_at=category.updated_at,
+        )
+        
+        # Add full path
+        result.full_path = await self.get_full_path(category)
+        
+        # Transform bills to simplified dict representation
+        result.bills = [
+            {
+                "id": bill.id,
+                "name": bill.name,
+                "amount": bill.amount,
+                "due_date": bill.due_date,
+                "status": bill.status.value if hasattr(bill, "status") else None,
+                "paid": bill.paid,
+            }
+            for bill in category.bills
+        ]
+        
+        # Add children recursively
+        result.children = []
+        for child in category.children:
+            child_with_bills = await self.compose_category_with_bills(child.id)
+            if child_with_bills:
+                result.children.append(child_with_bills)
+                
+        return result

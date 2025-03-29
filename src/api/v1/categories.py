@@ -7,8 +7,9 @@ from src.database.database import get_db
 from src.schemas.categories import (
     Category,
     CategoryCreate,
+    CategoryTree,
     CategoryUpdate,
-    CategoryWithBills,
+    CategoryWithBillsResponse,
 )
 from src.services.categories import CategoryError, CategoryService
 
@@ -63,24 +64,20 @@ async def get_category(
     return category
 
 
-@router.get("/{category_id}/bills", response_model=CategoryWithBills)
+@router.get("/{category_id}/bills", response_model=CategoryWithBillsResponse)
 async def get_category_with_bills(
     category_id: int, db: AsyncSession = Depends(get_db)
-) -> CategoryWithBills:
+) -> CategoryWithBillsResponse:
     """Get a category with its associated bills"""
     category_service = CategoryService(db)
-    category = await category_service.get_category_with_bills(category_id)
-    if not category:
+    
+    # Use the new composition method instead of direct database mapping
+    category_response = await category_service.compose_category_with_bills(category_id)
+    
+    if not category_response:
         raise HTTPException(status_code=404, detail="Category not found")
 
-    # Set full_path for the category
-    category.full_path = await category_service.get_full_path(category)
-
-    # Set full_path for any children
-    for child in category.children:
-        child.full_path = await category_service.get_full_path(child)
-
-    return category
+    return category_response
 
 
 @router.put("/{category_id}", response_model=Category)

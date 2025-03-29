@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Dict, List
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
@@ -8,12 +9,11 @@ from src.schemas.categories import (
     Category,
     CategoryBase,
     CategoryCreate,
+    CategoryTree,
     CategoryUpdate,
-    CategoryWithBills,
-    CategoryWithChildren,
-    CategoryWithParent,
+    CategoryWithBillIDs,
+    CategoryWithBillsResponse,
 )
-from src.schemas.liabilities import LiabilityBase
 
 
 # Test valid object creation
@@ -99,12 +99,12 @@ def test_category_valid():
     assert data.full_path == ""  # Default empty string
 
 
-def test_category_with_children_valid():
-    """Test valid category with children schema"""
+def test_category_tree_valid():
+    """Test valid category tree schema (replacement for CategoryWithChildren)"""
     now = datetime.now(timezone.utc)
 
     # Create parent category
-    parent = CategoryWithChildren(
+    parent = CategoryTree(
         id=1,
         name="Parent Category",
         description="Parent description",
@@ -113,7 +113,7 @@ def test_category_with_children_valid():
     )
 
     # Create child categories
-    child1 = CategoryWithChildren(
+    child1 = CategoryTree(
         id=2,
         name="Child Category 1",
         description="Child 1 description",
@@ -122,7 +122,7 @@ def test_category_with_children_valid():
         updated_at=now,
     )
 
-    child2 = CategoryWithChildren(
+    child2 = CategoryTree(
         id=3,
         name="Child Category 2",
         description="Child 2 description",
@@ -144,64 +144,90 @@ def test_category_with_children_valid():
     assert parent.children[1].name == "Child Category 2"
 
 
-def test_category_with_parent_valid():
-    """Test valid category with parent schema"""
+def test_category_with_bill_ids_valid():
+    """Test valid category with bill IDs schema"""
     now = datetime.now(timezone.utc)
 
-    # Create parent category
-    parent = CategoryWithChildren(
+    # Create category with bill IDs
+    category = CategoryWithBillIDs(
         id=1,
-        name="Parent Category",
-        description="Parent description",
+        name="Bills Category",
         created_at=now,
         updated_at=now,
-    )
-
-    # Create child category with parent
-    child = CategoryWithParent(
-        id=2,
-        name="Child Category",
-        description="Child description",
-        parent_id=1,
-        parent=parent,  # Set parent object
-        created_at=now,
-        updated_at=now,
-    )
-
-    # Assertions
-    assert child.id == 2
-    assert child.name == "Child Category"
-    assert child.parent_id == 1
-    assert child.parent is not None
-    assert child.parent.id == 1
-    assert child.parent.name == "Parent Category"
-
-
-def test_category_with_bills_valid():
-    """Test valid category with bills schema"""
-    now = datetime.now(timezone.utc)
-
-    # Create liability
-    liability = LiabilityBase(
-        name="Test Liability",
-        amount=100.00,
-        description="Test liability description",
-        due_date=now.replace(day=now.day + 1),  # Due date in the future
-        category_id=1,
-        primary_account_id=1,
-    )
-
-    # Create category with bills
-    category = CategoryWithBills(
-        id=1, name="Bills Category", created_at=now, updated_at=now, bills=[liability]
+        children_ids=[2, 3],
+        bill_ids=[101, 102, 103],
     )
 
     # Assertions
     assert category.id == 1
     assert category.name == "Bills Category"
-    assert len(category.bills) == 1
-    assert category.bills[0].name == "Test Liability"
-    assert category.bills[0].amount == 100.00
+    assert len(category.children_ids) == 2
+    assert category.children_ids[0] == 2
+    assert category.children_ids[1] == 3
+    assert len(category.bill_ids) == 3
+    assert 101 in category.bill_ids
+    assert 102 in category.bill_ids
+    assert 103 in category.bill_ids
+
+
+def test_category_with_bills_response_valid():
+    """Test valid category with bills response schema (used by service composition)"""
+    now = datetime.now(timezone.utc)
+
+    # Create simplified bill representations
+    bill1 = {
+        "id": 101,
+        "name": "Test Bill 1",
+        "amount": 100.00,
+        "due_date": now.replace(day=now.day + 1),
+        "status": "pending",
+        "paid": False,
+    }
+    
+    bill2 = {
+        "id": 102,
+        "name": "Test Bill 2",
+        "amount": 200.00,
+        "due_date": now.replace(day=now.day + 2),
+        "status": "pending",
+        "paid": False,
+    }
+
+    # Create child category with bills
+    child = CategoryWithBillsResponse(
+        id=2,
+        name="Child Category",
+        created_at=now, 
+        updated_at=now,
+        parent_id=1,
+        bills=[bill2],
+    )
+
+    # Create parent category with bills and child
+    parent = CategoryWithBillsResponse(
+        id=1,
+        name="Parent Category",
+        created_at=now,
+        updated_at=now,
+        bills=[bill1],
+        children=[child],
+    )
+
+    # Assertions
+    assert parent.id == 1
+    assert parent.name == "Parent Category"
+    assert len(parent.bills) == 1
+    assert parent.bills[0]["id"] == 101
+    assert parent.bills[0]["name"] == "Test Bill 1"
+    assert parent.bills[0]["amount"] == 100.00
+    
+    # Test child category with bill
+    assert len(parent.children) == 1
+    assert parent.children[0].id == 2
+    assert parent.children[0].name == "Child Category"
+    assert len(parent.children[0].bills) == 1
+    assert parent.children[0].bills[0]["id"] == 102
+    assert parent.children[0].bills[0]["name"] == "Test Bill 2"
 
 
 # Test field validations
@@ -306,19 +332,19 @@ def test_datetime_utc_validation():
 
 # Test hierarchical structure
 def test_nested_category_hierarchy():
-    """Test nested category hierarchy"""
+    """Test nested category hierarchy with new CategoryTree class"""
     now = datetime.now(timezone.utc)
 
     # Create a three-level hierarchy
-    grandparent = CategoryWithChildren(
+    grandparent = CategoryTree(
         id=1, name="Grandparent", created_at=now, updated_at=now
     )
 
-    parent = CategoryWithChildren(
+    parent = CategoryTree(
         id=2, name="Parent", parent_id=1, created_at=now, updated_at=now
     )
 
-    child = CategoryWithChildren(
+    child = CategoryTree(
         id=3, name="Child", parent_id=2, created_at=now, updated_at=now
     )
 

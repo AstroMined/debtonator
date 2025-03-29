@@ -1,5 +1,27 @@
 # Progress
 
+## March 29, 2025 (2:40 PM)
+
+### Completed Tasks
+
+- Eliminated Circular References in Schema Layer:
+  - Refactored src/schemas/categories.py to remove circular dependencies
+  - Replaced ForwardRef and model_rebuild() calls with a cleaner approach
+  - Implemented the "Reference by ID + Service Composition" pattern:
+    - Added CategoryWithBillIDs schema to store IDs instead of nested objects
+    - Created CategoryTree for hierarchical structure with composition
+    - Created CategoryWithBillsResponse schema for rich responses
+  - Added service layer composition methods:
+    - compose_category_tree() to build rich hierarchical structures
+    - compose_category_with_bills() for bills association
+  - Updated API endpoints to use composition approach
+  - Updated all tests to work with new schema classes:
+    - Unit tests for schema validation
+    - Integration tests for service composition
+    - API tests for response format
+  - Fixed schema factories for test data generation
+  - Removed all circular import workarounds in the schema layer
+
 ## March 29, 2025 (1:30 PM)
 
 ### Completed Tasks

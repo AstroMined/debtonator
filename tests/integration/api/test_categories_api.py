@@ -93,9 +93,18 @@ async def test_delete_nonexistent_category(client: AsyncClient):
 
 
 async def test_get_category_with_bills(client: AsyncClient, test_category: Category):
+    """Test the endpoint that returns a category with bills using the new composition approach"""
     response = await client.get(f"/api/v1/categories/{test_category.id}/bills")
     assert response.status_code == 200
     data = response.json()
+    
+    # Verify the basic structure from CategoryWithBillsResponse
     assert data["id"] == test_category.id
+    assert data["name"] == test_category.name
     assert "bills" in data
     assert isinstance(data["bills"], list)
+    assert "children" in data
+    assert isinstance(data["children"], list)
+    
+    # The test category may not have bills or children in this test,
+    # but we at least verify that the structure is correct

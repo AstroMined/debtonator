@@ -67,3 +67,14 @@ We have implemented a default "Uncategorized" category that:
 ## Notes
 
 This approach balances data integrity (requiring a valid foreign key) with user experience (not requiring immediate categorization). It also creates a foundation for future machine learning categorization functionality.
+
+## Implementation Note (Added 2025-03-29)
+
+The initial implementation of category hierarchies and relationships introduced circular references in the schema layer, which required using Pydantic's `ForwardRef` and `model_rebuild()` mechanisms. To improve code quality and eliminate these circular dependencies, we refactored to follow a "Reference by ID + Service Composition" pattern:
+
+1. Schema layer now uses ID references instead of embedded objects
+2. Service layer composes rich response objects at runtime
+3. This maintains all functionality while eliminating circular references
+4. The approach better aligns with our architecture principles from ADR-012
+
+This refactoring did not change the core decision about default categories, only improved the implementation approach.

@@ -11,12 +11,17 @@ from typing import Any, Dict, List, Optional
 from src.schemas.categories import (
     Category,
     CategoryCreate,
+    CategoryTree,
     CategoryUpdate,
-    CategoryWithBills,
-    CategoryWithChildren,
-    CategoryWithParent,
+    CategoryWithBillIDs,
+    CategoryWithBillsResponse,
 )
 from tests.helpers.schema_factories.base import factory_function, utc_now
+
+# Note: The following classes have been removed in the code refactoring:
+# - CategoryWithChildren (replaced by CategoryTree)
+# - CategoryWithParent (functionality now in service layer via composition)
+# - CategoryWithBills (replaced by CategoryWithBillsResponse)
 
 
 @factory_function(CategoryCreate)
@@ -136,8 +141,8 @@ def create_category_in_db_schema(
     return data
 
 
-@factory_function(CategoryWithChildren)
-def create_category_with_children_schema(
+@factory_function(CategoryTree)
+def create_category_tree_schema(
     id: int,
     name: str = "Parent Category",
     description: Optional[str] = None,
@@ -149,7 +154,7 @@ def create_category_with_children_schema(
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """
-    Create a valid CategoryWithChildren schema instance.
+    Create a valid CategoryTree schema instance.
 
     Args:
         id: Unique category identifier
@@ -163,7 +168,7 @@ def create_category_with_children_schema(
         **kwargs: Additional fields to override
 
     Returns:
-        Dict[str, Any]: Data to create CategoryWithChildren schema
+        Dict[str, Any]: Data to create CategoryTree schema
     """
     # Create base category data
     base_data = create_category_in_db_schema(
@@ -206,69 +211,67 @@ def create_category_with_children_schema(
     return data
 
 
-@factory_function(CategoryWithParent)
-def create_category_with_parent_schema(
+@factory_function(CategoryWithBillIDs)
+def create_category_with_bill_ids_schema(
     id: int,
-    name: str = "Child Category",
+    name: str = "Category With Bills",
     description: Optional[str] = None,
-    parent: Optional[Dict[str, Any]] = None,
+    parent_id: Optional[int] = None,
     full_path: str = "",
+    children_ids: Optional[List[int]] = None,
+    bill_ids: Optional[List[int]] = None,
     created_at: Optional[datetime] = None,
     updated_at: Optional[datetime] = None,
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """
-    Create a valid CategoryWithParent schema instance.
+    Create a valid CategoryWithBillIDs schema instance.
 
     Args:
         id: Unique category identifier
         name: Category name
         description: Optional description for the category
-        parent: Parent category data (creates default if None)
+        parent_id: Optional parent category ID for hierarchical categories
         full_path: Full hierarchical path of the category
+        children_ids: List of child category IDs
+        bill_ids: List of liability IDs associated with this category
         created_at: Creation timestamp (defaults to now)
         updated_at: Last update timestamp (defaults to now)
         **kwargs: Additional fields to override
 
     Returns:
-        Dict[str, Any]: Data to create CategoryWithParent schema
+        Dict[str, Any]: Data to create CategoryWithBillIDs schema
     """
-    # Create default parent if none provided
-    if parent is None:
-        parent_id = id - 1 if id > 1 else 100
-        parent_name = "Parent Category"
-        parent = create_category_with_children_schema(
-            id=parent_id,
-            name=parent_name,
-            full_path=parent_name,
-            children=[],  # Empty to avoid circular references
-        )
-        # Add proper full path if not specified
-        if not full_path:
-            full_path = f"{parent_name}/{name}"
-
     # Create base category data
     base_data = create_category_in_db_schema(
         id=id,
         name=name,
         description=description,
-        parent_id=parent["id"],
+        parent_id=parent_id,
         full_path=full_path,
         created_at=created_at,
         updated_at=updated_at,
     )
 
+    # Default IDs if none provided
+    if children_ids is None:
+        children_ids = [id + 1, id + 2]
+    
+    if bill_ids is None:
+        bill_ids = [101, 102, 103]
+
     data = {
         **base_data,
-        "parent": parent,
+        "children_ids": children_ids,
+        "bill_ids": bill_ids,
         **kwargs,
     }
 
     return data
 
 
-@factory_function(CategoryWithBills)
-def create_category_with_bills_schema(
+@factory_function(CategoryWithBillsResponse)
+def create_category_with_bills_response_schema(
     id: int,
     name: str = "Category With Bills",
     description: Optional[str] = None,
@@ -281,7 +284,7 @@ def create_category_with_bills_schema(
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """
-    Create a valid CategoryWithBills schema instance.
+    Create a valid CategoryWithBillsResponse schema instance.
 
     Args:
         id: Unique category identifier
@@ -290,16 +293,16 @@ def create_category_with_bills_schema(
         parent_id: Optional parent category ID for hierarchical categories
         full_path: Full hierarchical path of the category
         children: List of child categories (creates 2 if None)
-        bills: List of liabilities associated with this category
+        bills: List of simplified bill dictionaries (creates 2 if None)
         created_at: Creation timestamp (defaults to now)
         updated_at: Last update timestamp (defaults to now)
         **kwargs: Additional fields to override
 
     Returns:
-        Dict[str, Any]: Data to create CategoryWithBills schema
+        Dict[str, Any]: Data to create CategoryWithBillsResponse schema
     """
-    # Create base category with children
-    with_children = create_category_with_children_schema(
+    # Create base category tree
+    tree_data = create_category_tree_schema(
         id=id,
         name=name,
         description=description,
@@ -312,10 +315,28 @@ def create_category_with_bills_schema(
 
     # Default bills if none provided
     if bills is None:
-        bills = []
+        now = utc_now()
+        bills = [
+            {
+                "id": 101,
+                "name": "Test Bill 1",
+                "amount": 100.00,
+                "due_date": now,
+                "status": "pending",
+                "paid": False,
+            },
+            {
+                "id": 102,
+                "name": "Test Bill 2",
+                "amount": 200.00,
+                "due_date": now,
+                "status": "pending",
+                "paid": False,
+            },
+        ]
 
     data = {
-        **with_children,
+        **tree_data,
         "bills": bills,
         **kwargs,
     }

@@ -1,13 +1,9 @@
 from datetime import datetime
-from typing import ForwardRef, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import Field, field_validator
 
 from src.schemas.base_schema import BaseSchemaValidator
-from src.schemas.liabilities import LiabilityBase
-
-# Forward reference for circular references
-LiabilityBaseRef = ForwardRef("LiabilityBase")
 
 
 class CategoryBase(BaseSchemaValidator):
@@ -116,44 +112,46 @@ class Category(CategoryBase):
     )
 
 
-class CategoryWithChildren(Category):
+class CategoryWithBillIDs(Category):
     """
-    Extended category schema that includes child categories.
-
-    Used for returning hierarchical category structures.
+    Schema that includes IDs of children and associated bills.
+    
+    Used for category-based financial reporting at the schema level.
+    Actual composition of rich objects happens at the service layer.
     """
 
-    children: List["CategoryWithChildren"] = Field(
+    children_ids: List[int] = Field(
+        default_factory=list, description="List of child category IDs"
+    )
+    bill_ids: List[int] = Field(
+        default_factory=list, description="List of liability IDs associated with this category"
+    )
+
+
+# Rich response schemas built by service composition
+
+class CategoryTree(Category):
+    """
+    Rich response schema for hierarchical category structure.
+    
+    Built by service composition methods, not directly from database queries.
+    This eliminates circular dependencies in the schema layer.
+    """
+    
+    children: List["CategoryTree"] = Field(
         default_factory=list, description="List of child categories"
     )
 
 
-class CategoryWithParent(Category):
+class CategoryWithBillsResponse(CategoryTree):
     """
-    Extended category schema that includes the parent category.
-
-    Used for returning categories with their parent information.
+    Rich response schema for categories with bills.
+    
+    Built by service composition methods, not directly from database queries.
+    Contains simplified bill information to avoid circular dependencies.
     """
-
-    parent: Optional[CategoryWithChildren] = Field(
-        None, description="Parent category, if this is a subcategory"
-    )
-
-
-class CategoryWithBills(CategoryWithChildren):
-    """
-    Extended category schema that includes both children and associated bills.
-
-    Used for category-based financial reporting.
-    """
-
-    bills: List[LiabilityBaseRef] = Field(
+    
+    bills: List[Dict[str, Any]] = Field(
         default_factory=list,
-        description="List of liabilities associated with this category",
+        description="List of simplified bill information",
     )
-
-
-# Update forward references after class definitions
-
-CategoryWithBills.model_rebuild()
-CategoryWithChildren.model_rebuild()

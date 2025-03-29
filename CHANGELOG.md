@@ -1,10 +1,24 @@
 <!-- markdownlint-disable MD024 -->
+<!-- markdownlint-disable MD037 -->
 # Changelog
 
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.5.55] - 2025-03-29
+
+### Changed
+
+- Improved schema architecture by eliminating circular references:
+  - Refactored src/schemas/categories.py to remove ForwardRef and model_rebuild() calls
+  - Implemented "Reference by ID + Service Composition" approach for cleaner architecture
+  - Created new CategoryTree and CategoryWithBillsResponse schemas for rich responses
+  - Added service layer composition methods to build rich structures at runtime
+  - Updated tests to work with the new schema classes
+  - Replaced circular dependencies with cleaner composition-based approach
+  - Maintained full functionality while improving code maintainability
 
 ## [0.5.54] - 2025-03-29
 
