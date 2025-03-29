@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+from typing import Any, Dict
 
 import pytest
 from pydantic import ValidationError
@@ -10,6 +11,7 @@ from src.schemas.balance_history import (
     BalanceHistoryCreate,
     BalanceTrend,
 )
+from src.utils.datetime_utils import utc_datetime, utc_now
 
 
 # Test valid object creation
@@ -270,6 +272,52 @@ def test_date_range_validation():
         volatility=Decimal("75.50"),
     )
     assert data.start_date == data.end_date
+    
+    # Test validation of start_date field
+    # This exercises the branch in validate_date_range where info.field_name == "start_date"
+    # (which should just return the value without validation)
+    # To test this properly, we need to call the validator directly
+    
+    # Create mock info for start_date validation
+    class MockInfoStartDate:
+        def __init__(self):
+            self.field_name = "start_date"
+            self.data = {}  # Empty data since start_date isn't validated against anything
+    
+    # The validator should simply return the value when field_name is "start_date"
+    # This tests line 155 where the if-condition is false
+    start_date = utc_datetime(2025, 1, 1)
+    result = BalanceTrend.validate_date_range(start_date, MockInfoStartDate())
+    assert result == start_date
+    
+    # Create mock info for end_date validation with start_date in data
+    class MockInfoEndDate:
+        def __init__(self):
+            self.field_name = "end_date"
+            self.data = {"start_date": utc_datetime(2025, 1, 15)}
+    
+    # Test with valid end_date (after start_date)
+    end_date = utc_datetime(2025, 1, 31) 
+    result = BalanceTrend.validate_date_range(end_date, MockInfoEndDate())
+    assert result == end_date
+    
+    # Test with datetime_utils functions
+    data = BalanceTrend(
+        account_id=1,
+        start_date=utc_datetime(2025, 1, 1),
+        end_date=utc_datetime(2025, 1, 31),
+        start_balance=Decimal("1000.00"),
+        end_balance=Decimal("1500.00"),
+        net_change=Decimal("500.00"),
+        average_balance=Decimal("1250.00"),
+        min_balance=Decimal("900.00"),
+        max_balance=Decimal("1600.00"),
+        trend_direction="increasing",
+        volatility=Decimal("75.50"),
+    )
+    assert data.start_date.year == 2025
+    assert data.start_date.month == 1
+    assert data.start_date.day == 1
 
 
 def test_net_change_validation():

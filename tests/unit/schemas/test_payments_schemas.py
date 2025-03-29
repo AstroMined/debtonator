@@ -1,16 +1,44 @@
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+from typing import Any, List, Dict, Optional
 
 import pytest
-from pydantic import ValidationError
+from pydantic import ValidationError, ValidationInfo
 
 from src.schemas.payments import (
     PaymentBase,
     PaymentCreate,
     PaymentDateRange,
     PaymentSourceBase,
+    PaymentSourceCreate,
     PaymentUpdate,
+    validate_decimal_precision,
+    validate_payment_sources,
 )
+from src.utils.datetime_utils import utc_datetime, utc_now
+
+
+def test_validate_decimal_precision_function():
+    """Test the validate_decimal_precision function directly (lines 35-36)."""
+    # Valid 2 decimal places
+    assert validate_decimal_precision(Decimal("123.45")) == Decimal("123.45")
+    
+    # Valid 1 decimal place
+    assert validate_decimal_precision(Decimal("123.4")) == Decimal("123.4")
+    
+    # Valid 0 decimal places
+    assert validate_decimal_precision(Decimal("123")) == Decimal("123")
+    
+    # Invalid - too many decimal places
+    with pytest.raises(ValueError, match="Amount must have at most 2 decimal places"):
+        validate_decimal_precision(Decimal("123.456"))
+    
+    # Test with custom decimal places
+    assert validate_decimal_precision(Decimal("123.456"), decimal_places=3) == Decimal("123.456")
+    
+    # Too many places for custom setting
+    with pytest.raises(ValueError, match="Amount must have at most 3 decimal places"):
+        validate_decimal_precision(Decimal("123.4567"), decimal_places=3)
 
 
 def test_payment_source_base_validation():
@@ -122,6 +150,39 @@ def test_payment_base_validation():
         PaymentBase(**{**valid_data, "category": "a" * 101})
 
 
+def test_validate_payment_sources_function():
+    """Test the validate_payment_sources function directly."""
+    # Create test sources
+    sources = [
+        PaymentSourceCreate(account_id=1, amount=Decimal("60.00")),
+        PaymentSourceCreate(account_id=2, amount=Decimal("40.00")),
+    ]
+    
+    # Valid total amount
+    result = validate_payment_sources(sources, Decimal("100.00"))
+    assert len(result) == 2
+    
+    # Empty sources list
+    with pytest.raises(ValueError, match="At least one payment source is required"):
+        validate_payment_sources([])
+    
+    # Sources total doesn't match amount
+    with pytest.raises(ValueError, match="Sum of payment sources .* must equal payment amount"):
+        validate_payment_sources(sources, Decimal("110.00"))
+    
+    # Duplicate account IDs
+    duplicate_sources = [
+        PaymentSourceCreate(account_id=1, amount=Decimal("50.00")),
+        PaymentSourceCreate(account_id=1, amount=Decimal("50.00")),
+    ]
+    with pytest.raises(ValueError, match="Duplicate account IDs in payment sources"):
+        validate_payment_sources(duplicate_sources)
+    
+    # Payment amount is None (should not validate total)
+    result = validate_payment_sources(sources, None)
+    assert len(result) == 2
+
+
 def test_payment_create_validation():
     """Test PaymentCreate validation rules."""
     now = datetime.now(timezone.utc)
@@ -206,6 +267,37 @@ def test_payment_create_validation():
         PaymentCreate(**{**valid_data, "sources": duplicate_sources})
 
 
+def test_payment_create_validator_directly():
+    """Test PaymentCreate validator methods directly (lines 220-228)."""
+    # Test the validate_sources method directly
+    validator = PaymentCreate.validate_sources
+    
+    # Create test sources
+    sources = [
+        PaymentSourceCreate(account_id=1, amount=Decimal("60.00")),
+        PaymentSourceCreate(account_id=2, amount=Decimal("40.00")),
+    ]
+    
+    # Create a mock ValidationInfo object
+    class MockValidationInfo:
+        def __init__(self, amount: Optional[Decimal]):
+            self.data = {"amount": amount} if amount is not None else {}
+    
+    # Valid case - amount matches sources total
+    info = MockValidationInfo(Decimal("100.00"))
+    result = validator(sources, info)
+    assert len(result) == 2
+    
+    # Edge case - amount is None (shouldn't validate total)
+    info = MockValidationInfo(None)
+    with pytest.raises(ValueError, match="Sum of payment sources .* must equal payment amount"):
+        validator(sources, info)
+    
+    # Empty sources
+    with pytest.raises(ValueError, match="At least one payment source is required"):
+        validator([], info)
+
+
 def test_payment_update_validation():
     """Test PaymentUpdate validation rules."""
     # Valid data (partial update)
@@ -250,6 +342,37 @@ def test_payment_update_validation():
         PaymentUpdate(**{**valid_data, "sources": duplicate_sources})
 
 
+def test_payment_update_validator_directly():
+    """Test PaymentUpdate validator methods directly (lines 275-283)."""
+    # Test the validate_sources_update method directly
+    validator = PaymentUpdate.validate_sources_update
+    
+    # Create test sources
+    sources = [
+        PaymentSourceCreate(account_id=1, amount=Decimal("60.00")),
+        PaymentSourceCreate(account_id=2, amount=Decimal("40.00")),
+    ]
+    
+    # Create a mock ValidationInfo object
+    class MockValidationInfo:
+        def __init__(self, amount: Optional[Decimal]):
+            self.data = {"amount": amount} if amount is not None else {}
+    
+    # Valid case - amount matches sources total
+    info = MockValidationInfo(Decimal("100.00"))
+    result = validator(sources, info)
+    assert len(result) == 2
+    
+    # Edge case - amount is None (shouldn't validate total)
+    info = MockValidationInfo(None)
+    result = validator(sources, info)
+    assert len(result) == 2
+    
+    # Edge case - sources is None (should return None)
+    result = validator(None, info)
+    assert result is None
+
+
 def test_payment_date_range_validation():
     """Test PaymentDateRange validation rules."""
     now = datetime.now(timezone.utc)
@@ -270,3 +393,41 @@ def test_payment_date_range_validation():
         PaymentDateRange(
             start_date=datetime.now(), end_date=datetime.now() + timedelta(days=1)
         )
+
+
+def test_payment_date_range_validator_directly():
+    """Test PaymentDateRange validator method directly (line 335 validation)."""
+    # Test the validate_date_range method directly
+    validator = PaymentDateRange.validate_date_range
+    
+    # Create a mock ValidationInfo object
+    class MockValidationInfo:
+        def __init__(self, start_date: Optional[datetime] = None):
+            self.data = {"start_date": start_date} if start_date is not None else {}
+    
+    # Valid case
+    now = utc_now()
+    end_date = now + timedelta(days=1)
+    info = MockValidationInfo(now)
+    
+    # This should pass validation
+    result = validator(end_date, info)
+    assert result == end_date
+    
+    # Invalid case - end date before start date
+    end_date = now - timedelta(days=1)
+    info = MockValidationInfo(now)
+    
+    # This should fail validation
+    with pytest.raises(ValueError, match="End date must be after start date"):
+        validator(end_date, info)
+    
+    # Edge case - no start_date in info (should not validate)
+    info = MockValidationInfo(None)
+    result = validator(end_date, info)
+    assert result == end_date
+    
+    # Edge case - empty info data (should not validate)
+    info = MockValidationInfo()
+    result = validator(end_date, info)
+    assert result == end_date

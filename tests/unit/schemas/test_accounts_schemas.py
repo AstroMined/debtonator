@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from decimal import Decimal
+from typing import Any
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
@@ -12,7 +13,9 @@ from src.schemas.accounts import (
     AccountUpdate,
     AvailableCreditResponse,
     StatementBalanceHistory,
+    validate_credit_account_field,
 )
+from src.utils.datetime_utils import utc_datetime, utc_now
 
 
 def test_account_base_valid():
@@ -90,6 +93,40 @@ def test_account_base_decimal_validation():
         )
 
 
+def test_validate_credit_account_field_function():
+    """Test the validate_credit_account_field function directly."""
+    # Create validator function for testing
+    validator = validate_credit_account_field("total_limit")
+    
+    # Test case with None account type (should not validate/raise error)
+    class MockInfoNoneType:
+        def __init__(self):
+            self.data = {"type": None}
+    
+    # This tests line 69 in accounts.py - when account_type is None
+    result = validator(Decimal("1000.00"), MockInfoNoneType())
+    assert result == Decimal("1000.00")
+    
+    # When value is None, should always return None
+    assert validator(None, MockInfoNoneType()) is None
+    
+    # Test with checking account type (should raise error)
+    class MockInfoChecking:
+        def __init__(self):
+            self.data = {"type": AccountType.CHECKING}
+    
+    with pytest.raises(ValueError, match="Total Limit can only be set for credit accounts"):
+        validator(Decimal("1000.00"), MockInfoChecking())
+    
+    # Test with credit account type (should pass)
+    class MockInfoCredit:
+        def __init__(self):
+            self.data = {"type": AccountType.CREDIT}
+    
+    result = validator(Decimal("1000.00"), MockInfoCredit())
+    assert result == Decimal("1000.00")
+
+
 def test_account_base_credit_validation():
     """Test credit account specific validation"""
     # Test total_limit on non-credit account
@@ -121,6 +158,27 @@ def test_account_base_credit_validation():
     )
     assert account.total_limit == Decimal("5000.00")
     assert account.available_credit == Decimal("3000.00")
+    
+    # Test account type transition
+    # Create a credit account with credit-specific fields
+    credit_account = AccountBase(
+        name="Credit Card",
+        type=AccountType.CREDIT,
+        total_limit=Decimal("5000.00"),
+        available_credit=Decimal("3000.00")
+    )
+    
+    # Now try to update it to a checking account without removing credit fields
+    # This should fail validation
+    update_data = {
+        "type": AccountType.CHECKING,
+        # Keeping credit fields which should be invalid for checking
+        "total_limit": Decimal("5000.00"),
+        "available_credit": Decimal("3000.00")
+    }
+    
+    with pytest.raises(ValidationError):
+        AccountUpdate(**update_data)
 
 
 def test_account_base_invalid_statement_date():
@@ -141,6 +199,32 @@ def test_account_base_invalid_statement_date():
             type=AccountType.CHECKING,
             last_statement_date=non_utc_date,
         )
+        
+    # Test with datetime_utils.py functions
+    # Create account with UTC datetime from datetime_utils
+    now = utc_now()
+    account = AccountBase(
+        name="Test Account",
+        type=AccountType.CHECKING,
+        last_statement_date=now
+    )
+    
+    # Verify datetime is preserved correctly
+    assert account.last_statement_date == now
+    
+    # Test with utc_datetime function
+    specific_date = utc_datetime(2025, 3, 15, 14, 30)
+    account = AccountBase(
+        name="Test Account",
+        type=AccountType.CHECKING,
+        last_statement_date=specific_date
+    )
+    
+    # Verify datetime is preserved correctly
+    assert account.last_statement_date == specific_date
+    assert account.last_statement_date.year == 2025
+    assert account.last_statement_date.month == 3
+    assert account.last_statement_date.day == 15
 
 
 def test_account_update_valid():

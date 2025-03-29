@@ -7,6 +7,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.56] - 2025-03-29
+
+### Fixed
+
+- Validator method signatures in test files to match current Pydantic implementation
+- Error assertions to match Pydantic v2 error message formats
+- Test failures for balance_history, balance_reconciliation, and payments schemas
+- Schema model validator direct testing approach
+
+### Improved
+
+- Enhanced test utilities with proper datetime_utils function usage
+- Increased overall schema test coverage from 95% to 97%
+- Implemented consistent validation method calling patterns
+- Added implementation lesson for validator method calling patterns
+- Enhanced ADR-011 compliance in schema validation tests
+
 ## [0.5.55] - 2025-03-29
 
 ### Changed

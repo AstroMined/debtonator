@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
 from decimal import Decimal
+from typing import Any, Dict, Optional
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
-from pydantic import ValidationError
+from pydantic import ValidationError, ValidationInfo
 
 from src.schemas.balance_reconciliation import (
     BalanceReconciliation,
@@ -11,6 +12,7 @@ from src.schemas.balance_reconciliation import (
     BalanceReconciliationCreate,
     BalanceReconciliationUpdate,
 )
+from src.utils.datetime_utils import utc_datetime, utc_now
 
 
 # Test valid object creation
@@ -58,6 +60,61 @@ def test_balance_reconciliation_create_valid():
     assert data.new_balance == Decimal("1200.00")
     assert data.adjustment_amount == Decimal("200.00")  # Verify adjustment_amount
     assert data.reason == "Monthly reconciliation"
+
+
+def test_adjustment_amount_validator():
+    """Test the adjustment_amount validator directly including edge cases."""
+    # Create test validator function
+    validate_adjustment = BalanceReconciliationCreate.validate_adjustment_amount
+    
+    # Test case when values are present and correct
+    class MockInfoValid:
+        def __init__(self):
+            self.data = {
+                "new_balance": Decimal("1200.00"),
+                "previous_balance": Decimal("1000.00")
+            }
+    
+    # Test valid case - adjustment matches difference
+    result = validate_adjustment(Decimal("200.00"), MockInfoValid())
+    assert result == Decimal("200.00")
+    
+    # Test invalid case - adjustment doesn't match difference
+    with pytest.raises(ValueError, match="adjustment_amount must equal new_balance - previous_balance"):
+        validate_adjustment(Decimal("300.00"), MockInfoValid())
+    
+    # Test case with missing new_balance (line 50 branch)
+    class MockInfoMissingNewBalance:
+        def __init__(self):
+            self.data = {
+                "previous_balance": Decimal("1000.00")
+                # new_balance is missing
+            }
+    
+    # This should pass without validation since new_balance is None
+    result = validate_adjustment(Decimal("200.00"), MockInfoMissingNewBalance())
+    assert result == Decimal("200.00")
+    
+    # Test case with missing previous_balance (line 50 branch)
+    class MockInfoMissingPreviousBalance:
+        def __init__(self):
+            self.data = {
+                "new_balance": Decimal("1200.00")
+                # previous_balance is missing
+            }
+    
+    # This should pass without validation since previous_balance is None
+    result = validate_adjustment(Decimal("200.00"), MockInfoMissingPreviousBalance())
+    assert result == Decimal("200.00")
+    
+    # Test case with both values missing (line 50 branch)
+    class MockInfoEmpty:
+        def __init__(self):
+            self.data = {}  # Empty data dict
+    
+    # This should pass without validation since both values are None
+    result = validate_adjustment(Decimal("200.00"), MockInfoEmpty())
+    assert result == Decimal("200.00")
 
 
 def test_balance_reconciliation_update_valid():
@@ -240,6 +297,37 @@ def test_datetime_utc_validation():
             created_at=datetime.now(),  # Naive datetime
             updated_at=datetime.now(ZoneInfo("Europe/London")),  # Non-UTC timezone
         )
+        
+    # Test with datetime_utils functions
+    now = utc_now()
+    reconciliation = BalanceReconciliation(
+        id=1,
+        account_id=1,
+        previous_balance=Decimal("1000.00"),
+        new_balance=Decimal("1200.00"),
+        adjustment_amount=Decimal("200.00"),
+        reconciliation_date=now,
+        created_at=now,
+        updated_at=now,
+    )
+    assert reconciliation.reconciliation_date == now
+    
+    # Test with specific datetime using utc_datetime
+    specific_date = utc_datetime(2025, 3, 15, 14, 30)
+    reconciliation = BalanceReconciliation(
+        id=1,
+        account_id=1,
+        previous_balance=Decimal("1000.00"),
+        new_balance=Decimal("1200.00"),
+        adjustment_amount=Decimal("200.00"),
+        reconciliation_date=specific_date,
+        created_at=now,
+        updated_at=now,
+    )
+    assert reconciliation.reconciliation_date == specific_date
+    assert reconciliation.reconciliation_date.year == 2025
+    assert reconciliation.reconciliation_date.month == 3
+    assert reconciliation.reconciliation_date.day == 15
 
 
 # Test ID validation
