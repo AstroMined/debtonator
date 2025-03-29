@@ -1,7 +1,5 @@
-from datetime import date
 from decimal import Decimal
 
-import pytest
 from httpx import AsyncClient
 
 from src.schemas.liabilities import AutoPaySettings, AutoPayUpdate

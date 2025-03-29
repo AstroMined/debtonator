@@ -7,9 +7,9 @@ payment-related queries.
 
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 
-from sqlalchemy import and_, between, desc, func, or_, select
+from sqlalchemy import and_, between, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 

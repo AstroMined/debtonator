@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from typing import Dict, List
 
 import pytest
 from pydantic import ValidationError
@@ -10,7 +9,6 @@ from src.schemas.payments import (
     PaymentCreate,
     PaymentDateRange,
     PaymentSourceBase,
-    PaymentSourceCreate,
     PaymentUpdate,
 )
 
@@ -210,8 +208,6 @@ def test_payment_create_validation():
 
 def test_payment_update_validation():
     """Test PaymentUpdate validation rules."""
-    now = datetime.now(timezone.utc)
-
     # Valid data (partial update)
     valid_data = {
         "amount": Decimal("100.00"),

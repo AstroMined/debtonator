@@ -2,13 +2,11 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 import pytest
-from sqlalchemy import select
 
 from src.models.accounts import Account
 from src.models.categories import Category
 from src.models.income import Income
 from src.models.liabilities import Liability
-from src.models.payments import Payment
 from src.schemas.cashflow import CustomForecastParameters
 from src.services.cashflow import CashflowService
 

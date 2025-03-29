@@ -8,35 +8,23 @@ the validation flow from services to repositories.
 Implements ADR-011 compliant datetime handling with utilities from datetime_utils.
 """
 
-import asyncio
-from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import List
 
 import pytest
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.transaction_history import TransactionHistory, TransactionType
-from src.repositories.accounts import AccountRepository
 from src.repositories.transaction_history import TransactionHistoryRepository
-from src.schemas.transaction_history import (
-    TransactionHistoryCreate,
-    TransactionHistoryUpdate,
-)
+from src.schemas.transaction_history import TransactionHistoryCreate
 from src.utils.datetime_utils import (
-    date_range,
     datetime_equals,
     datetime_greater_than,
     days_ago,
     end_of_day,
-    ensure_utc,
-    normalize_db_date,
     start_of_day,
     utc_now,
 )
-from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.transaction_history import (
     create_transaction_history_schema,
 )

@@ -1,4 +1,3 @@
-from datetime import datetime
 from decimal import Decimal
 
 import pytest
@@ -9,7 +8,7 @@ from src.models.income import Income
 from src.models.income_categories import IncomeCategory
 from src.models.recurring_income import RecurringIncome
 from src.services.recurring_income import RecurringIncomeService
-from src.utils.datetime_utils import naive_utc_from_date, naive_utc_now
+from src.utils.datetime_utils import naive_utc_now
 
 pytestmark = pytest.mark.asyncio
 

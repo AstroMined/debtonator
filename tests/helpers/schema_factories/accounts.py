@@ -18,7 +18,7 @@ from src.schemas.accounts import (
     AvailableCreditResponse,
     StatementBalanceHistory,
 )
-from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function, utc_now
+from tests.helpers.schema_factories.base import factory_function, utc_now
 
 
 @factory_function(AccountCreate)

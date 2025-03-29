@@ -1,6 +1,5 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Dict
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
@@ -8,7 +7,6 @@ from pydantic import ValidationError
 
 from src.schemas.accounts import (
     AccountBase,
-    AccountCreate,
     AccountInDB,
     AccountType,
     AccountUpdate,

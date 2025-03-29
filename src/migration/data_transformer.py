@@ -1,7 +1,6 @@
 """Transform extracted Excel data into SQLAlchemy models."""
 
 from datetime import datetime
-from decimal import Decimal
 from typing import Any, Dict, List
 
 from src.models.bills import Bill

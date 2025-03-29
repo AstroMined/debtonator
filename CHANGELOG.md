@@ -6,6 +6,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.54] - 2025-03-29
+
+### Changed
+
+- Enhanced code quality by removing unused variables:
+  - Fixed unused variables in repository test files using autoflake
+  - Addressed time variables (now, start_date, end_date) in multiple test files
+  - Simplified datetime calculations in test_deposit_schedule_repository_advanced.py
+  - Streamlined test_payment_schedule_repository_advanced.py variable usage
+  - Fixed test_cashflow_forecast_repository_advanced.py and test_statement_history_repository_advanced.py
+  - Identified unused variables in services for future refactoring
+
+### Added
+
+- Identified potential code cleanup needs in service implementation files
+
 ## [0.5.53] - 2025-03-29
 
 ### Changed

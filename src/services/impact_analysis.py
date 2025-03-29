@@ -1,15 +1,12 @@
 from datetime import date, timedelta
 from decimal import Decimal
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.utils.decimal_precision import DecimalPrecision
 from src.models.accounts import Account
-from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability
-from src.models.payments import Payment
 from src.schemas.impact_analysis import (
     AccountImpact,
     CashflowImpact,
@@ -17,6 +14,7 @@ from src.schemas.impact_analysis import (
     SplitImpactAnalysis,
     SplitImpactRequest,
 )
+from src.utils.decimal_precision import DecimalPrecision
 
 
 class ImpactAnalysisService:

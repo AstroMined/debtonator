@@ -9,11 +9,11 @@ response formats for different account-related operations.
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, List, Optional
 
 from pydantic import ConfigDict, Field, field_validator
 
-from src.schemas.base_schema import BaseSchemaValidator, IntMoneyDict, MoneyDecimal, PercentageDecimal
+from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
 
 
 class AccountType(str, Enum):
@@ -164,8 +164,6 @@ class AccountCreate(AccountBase):
     Extends the base account schema without adding additional fields.
     """
 
-    pass
-
 
 class AccountUpdate(BaseSchemaValidator):
     """
@@ -281,8 +279,6 @@ class AccountResponse(AccountInDB):
 
     Extends the database account schema for API response formatting.
     """
-
-    pass
 
 
 class AccountStatementHistoryResponse(BaseSchemaValidator):

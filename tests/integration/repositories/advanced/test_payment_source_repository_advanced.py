@@ -6,24 +6,16 @@ test database to verify CRUD operations and specialized methods.
 These tests follow the Arrange-Schema-Act-Assert pattern for repository testing.
 """
 
-from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import List
 
 import pytest
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.payments import Payment, PaymentSource
-from src.repositories.accounts import AccountRepository
 from src.repositories.payment_sources import PaymentSourceRepository
 from src.repositories.payments import PaymentRepository
-from src.schemas.accounts import AccountCreate
-from src.schemas.payments import PaymentCreate, PaymentSourceCreate, PaymentSourceUpdate
+from src.schemas.payments import PaymentSourceCreate
 from src.utils.datetime_utils import utc_now
-from tests.helpers.schema_factories.accounts import create_account_schema
-from tests.helpers.schema_factories.payment_sources import create_payment_source_schema
 from tests.helpers.schema_factories.payments import create_payment_schema
 
 pytestmark = pytest.mark.asyncio

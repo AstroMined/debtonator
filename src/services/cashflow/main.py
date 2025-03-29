@@ -1,6 +1,5 @@
-from datetime import date, datetime
 from decimal import Decimal
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 

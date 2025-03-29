@@ -1,23 +1,17 @@
-from datetime import date, datetime, timedelta
-from decimal import Decimal
+from datetime import date, timedelta
 from typing import Dict, List, Optional, Tuple
 
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from src.utils.decimal_precision import DecimalPrecision
 from src.models.accounts import Account
 from src.models.base_model import naive_utc_now
 from src.models.categories import Category
 from src.models.liabilities import Liability
 from src.models.payments import Payment
-from src.schemas.liabilities import (
-    AutoPaySettings,
-    AutoPayUpdate,
-    LiabilityCreate,
-    LiabilityUpdate,
-)
+from src.schemas.liabilities import AutoPayUpdate, LiabilityCreate, LiabilityUpdate
+from src.utils.decimal_precision import DecimalPrecision
 
 
 class LiabilityService:

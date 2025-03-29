@@ -9,7 +9,6 @@ from sqlalchemy.orm import joinedload
 from src.models.accounts import Account
 from src.models.income import Income
 from src.models.recurring_income import RecurringIncome
-from src.schemas.income import IncomeCreate, IncomeResponse
 from src.schemas.recurring_income import (
     GenerateIncomeRequest,
     RecurringIncomeCreate,

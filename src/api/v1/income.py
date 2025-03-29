@@ -5,13 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.database import get_db
-from src.schemas.income import (
-    IncomeCreate,
-    IncomeFilters,
-    IncomeList,
-    IncomeResponse,
-    IncomeUpdate,
-)
+from src.schemas.income import IncomeCreate, IncomeFilters, IncomeResponse, IncomeUpdate
 from src.services.income import IncomeService
 
 router = APIRouter()

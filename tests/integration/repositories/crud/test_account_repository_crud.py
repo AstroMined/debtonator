@@ -6,25 +6,16 @@ standard 4-step pattern (Arrange-Schema-Act-Assert) to properly simulate
 the validation flow from services to repositories.
 """
 
-from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import List
 
 import pytest
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
-from src.models.statement_history import StatementHistory
 from src.repositories.accounts import AccountRepository
-from src.repositories.statement_history import StatementHistoryRepository
-from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
+from src.utils.datetime_utils import datetime_greater_than
 from tests.helpers.schema_factories.accounts import (
     create_account_schema,
     create_account_update_schema,
-)
-from tests.helpers.schema_factories.statement_history import (
-    create_statement_history_schema,
 )
 
 pytestmark = pytest.mark.asyncio

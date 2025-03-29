@@ -9,7 +9,6 @@ from datetime import date
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
-from src.utils.decimal_precision import DecimalPrecision
 from src.models.accounts import Account as AccountModel
 from src.repositories.accounts import AccountRepository
 from src.repositories.credit_limit_history import CreditLimitHistoryRepository
@@ -29,6 +28,7 @@ from src.schemas.credit_limit_history import (
     CreditLimitHistoryUpdate,
 )
 from src.schemas.statement_history import StatementHistoryCreate
+from src.utils.decimal_precision import DecimalPrecision
 
 
 class AccountService:

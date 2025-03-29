@@ -9,20 +9,16 @@ These tests verify CRUD operations and specialized methods for the
 CashflowForecastRepository, ensuring proper validation flow and data integrity.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
 
 import pytest
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.cashflow import CashflowForecast
 from src.repositories.cashflow import CashflowForecastRepository
 
 # Import schemas and schema factories - essential part of the validation pattern
-from src.schemas.cashflow.base import CashflowCreate, CashflowUpdate
-from src.utils.datetime_utils import datetime_equals, datetime_greater_than
+from src.utils.datetime_utils import datetime_greater_than
 from tests.helpers.schema_factories.cashflow.base import (
     create_cashflow_schema,
     create_cashflow_update_schema,

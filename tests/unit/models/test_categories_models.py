@@ -1,14 +1,14 @@
 from datetime import datetime
 
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models.categories import Category
 from src.models.liabilities import Liability
-from src.utils.datetime_utils import naive_utc_from_date, naive_utc_now
+from src.utils.datetime_utils import naive_utc_from_date
 
 pytestmark = pytest.mark.asyncio
 

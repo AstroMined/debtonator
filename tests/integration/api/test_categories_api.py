@@ -3,7 +3,6 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.categories import Category
-from src.schemas.categories import CategoryCreate
 
 
 @pytest.fixture(scope="function")

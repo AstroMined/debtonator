@@ -1,8 +1,7 @@
 from datetime import datetime
-from decimal import Decimal
-from typing import Dict, Optional
+from typing import Dict
 
-from pydantic import Field, field_validator
+from pydantic import Field
 
 from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
 
@@ -43,8 +42,6 @@ class DepositScheduleCreate(DepositScheduleBase):
 
     Extends the base schema without adding additional fields.
     """
-
-    pass
 
 
 class DepositScheduleUpdate(BaseSchemaValidator):

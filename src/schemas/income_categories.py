@@ -25,8 +25,6 @@ class IncomeCategoryCreate(IncomeCategoryBase):
     Extends the base schema without adding additional fields.
     """
 
-    pass
-
 
 class IncomeCategoryUpdate(IncomeCategoryBase):
     """

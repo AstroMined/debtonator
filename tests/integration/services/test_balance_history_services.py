@@ -2,10 +2,8 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 import pytest
-from sqlalchemy import select
 
 from src.models.accounts import Account
-from src.models.balance_history import BalanceHistory
 from src.schemas.balance_history import BalanceHistoryCreate
 from src.services.balance_history import BalanceHistoryService
 

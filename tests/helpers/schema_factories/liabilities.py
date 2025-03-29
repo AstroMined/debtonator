@@ -7,7 +7,7 @@ Pydantic schema instances for use in tests.
 
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from src.constants import DEFAULT_CATEGORY_ID
 from src.schemas.liabilities import (

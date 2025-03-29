@@ -6,7 +6,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.transaction_history import TransactionHistory, TransactionType
-from src.utils.datetime_utils import days_ago, end_of_day, start_of_day, utc_now
+from src.utils.datetime_utils import days_ago, utc_now
 
 
 @pytest_asyncio.fixture
@@ -245,9 +245,9 @@ async def test_date_range_transactions(
         transaction = TransactionHistory(
             account_id=test_checking_account.id,
             amount=Decimal("50.00"),
-            transaction_type=TransactionType.DEBIT
-            if offset % 2 == 0
-            else TransactionType.CREDIT,
+            transaction_type=(
+                TransactionType.DEBIT if offset % 2 == 0 else TransactionType.CREDIT
+            ),
             description=f"Transaction {offset} days ago",
             transaction_date=transaction_date,
         )

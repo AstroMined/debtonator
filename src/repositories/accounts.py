@@ -7,11 +7,11 @@ account-related queries.
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Union
+from typing import List, Optional
 
-from sqlalchemy import and_, desc, or_, select
+from sqlalchemy import and_, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import selectinload
 
 from src.models.accounts import Account
 from src.models.statement_history import StatementHistory

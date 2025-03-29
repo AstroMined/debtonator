@@ -3,7 +3,6 @@ from decimal import Decimal
 
 import pytest
 from httpx import AsyncClient
-from sqlalchemy import select
 
 from src.models.accounts import Account
 from src.models.balance_reconciliation import BalanceReconciliation

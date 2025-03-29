@@ -11,25 +11,17 @@ from decimal import Decimal
 from typing import List
 
 import pytest
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.balance_reconciliation import BalanceReconciliation
-from src.repositories.accounts import AccountRepository
 from src.repositories.balance_reconciliation import BalanceReconciliationRepository
-from src.schemas.balance_reconciliation import (
-    BalanceReconciliationCreate,
-    BalanceReconciliationUpdate,
-)
+from src.schemas.balance_reconciliation import BalanceReconciliationCreate
 from src.utils.datetime_utils import (
     datetime_equals,
     datetime_greater_than,
     days_ago,
-    days_from_now,
     utc_now,
 )
-from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.balance_reconciliation import (
     create_balance_reconciliation_schema,
 )
@@ -82,7 +74,6 @@ async def test_get_by_date_range(
 ):
     """Test getting balance reconciliation entries within a date range."""
     # 1. ARRANGE: Setup is already done with fixtures
-    now = utc_now()
     start_date = days_ago(95)  # Ensure we cover the oldest reconciliation (90 days ago)
     end_date = days_ago(
         3
@@ -127,7 +118,6 @@ async def test_get_most_recent(
 
     # Should be the most recent one (5 days ago)
     now = utc_now()
-    five_days_ago = now - timedelta(days=5)
     seven_days_ago = now - timedelta(days=7)
     # Use datetime helpers for timezone-aware comparison with ignore_timezone=True
     assert datetime_greater_than(
@@ -246,7 +236,7 @@ async def test_validation_error_handling():
     """Test handling of validation errors that would be caught by the Pydantic schema."""
     # Try creating a schema with invalid data
     try:
-        invalid_schema = BalanceReconciliationCreate(
+        _ = BalanceReconciliationCreate(
             account_id=999,
             previous_balance=Decimal("1000.00"),
             new_balance=Decimal(

@@ -9,8 +9,8 @@ from alembic import context
 
 # Import our models and config
 from src.database.base import Base
-from src.models.income import Income  # Import models to register them
 from src.models.accounts import Account
+from src.models.income import Income  # Import models to register them
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
 from src.models.statement_history import StatementHistory

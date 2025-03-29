@@ -7,26 +7,14 @@ forecast-related queries.
 
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 
-from sqlalchemy import and_, desc, func, or_, select
+from sqlalchemy import and_, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
 
-from src.models.accounts import Account
 from src.models.cashflow import CashflowForecast
 from src.repositories.base_repository import BaseRepository
-from src.utils.datetime_utils import (
-    datetime_equals,
-    datetime_greater_than,
-    days_ago,
-    days_from_now,
-    end_of_day,
-    ensure_utc,
-    start_of_day,
-    utc_datetime,
-    utc_now,
-)
+from src.utils.datetime_utils import days_ago, end_of_day, start_of_day, utc_now
 
 
 class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):

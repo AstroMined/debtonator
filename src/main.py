@@ -1,12 +1,11 @@
 import json
 from decimal import Decimal
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 # Import all models to ensure they are registered
-from . import models
 from .api.base import api_router
 from .api.response_formatter import format_response
 from .database.base import Base

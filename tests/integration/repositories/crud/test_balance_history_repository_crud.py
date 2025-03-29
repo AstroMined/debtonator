@@ -6,16 +6,14 @@ standard 4-step pattern (Arrange-Schema-Act-Assert) to properly simulate
 the validation flow from services to repositories.
 """
 
-from datetime import timedelta
 from decimal import Decimal
-from typing import List
 
 import pytest
 
 from src.models.accounts import Account
 from src.models.balance_history import BalanceHistory
 from src.repositories.balance_history import BalanceHistoryRepository
-from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
+from src.utils.datetime_utils import datetime_equals, datetime_greater_than
 from tests.helpers.schema_factories.balance_history import (
     create_balance_history_schema,
     create_balance_history_update_schema,

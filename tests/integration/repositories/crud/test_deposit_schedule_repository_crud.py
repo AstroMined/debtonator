@@ -11,27 +11,20 @@ DepositScheduleRepository, ensuring proper validation flow and data integrity.
 
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from typing import Dict, List, Optional, Tuple
 
 import pytest
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.deposit_schedules import DepositSchedule
 from src.models.income import Income
-from src.repositories.accounts import AccountRepository
 from src.repositories.deposit_schedules import DepositScheduleRepository
-from src.repositories.income import IncomeRepository
 
 # Import schemas and schema factories - essential part of the validation pattern
-from src.schemas.deposit_schedules import DepositScheduleCreate, DepositScheduleUpdate
-from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
-from tests.helpers.schema_factories.accounts import create_account_schema
+from src.schemas.deposit_schedules import DepositScheduleUpdate
+from src.utils.datetime_utils import datetime_greater_than
 from tests.helpers.schema_factories.deposit_schedules import (
     create_deposit_schedule_schema,
 )
-from tests.helpers.schema_factories.income import create_income_schema
 
 pytestmark = pytest.mark.asyncio
 

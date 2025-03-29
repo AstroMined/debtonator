@@ -9,34 +9,24 @@ These tests verify CRUD operations and specialized methods for the
 CashflowForecastRepository, ensuring proper validation flow and data integrity.
 """
 
-from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import List
 
 import pytest
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.cashflow import CashflowForecast
 from src.repositories.cashflow import CashflowForecastRepository
 
 # Import schemas and schema factories - essential part of the validation pattern
-from src.schemas.cashflow.base import CashflowCreate, CashflowUpdate
+from src.schemas.cashflow.base import CashflowCreate
 from src.utils.datetime_utils import (
-    date_range,
     datetime_equals,
     datetime_greater_than,
     days_ago,
     days_from_now,
-    end_of_day,
     ensure_utc,
     start_of_day,
-    utc_datetime,
     utc_now,
-)
-from tests.helpers.schema_factories.cashflow.base import (
-    create_cashflow_schema,
-    create_cashflow_update_schema,
 )
 
 pytestmark = pytest.mark.asyncio
@@ -76,7 +66,6 @@ async def test_get_by_date_range(
 ):
     """Test getting forecasts within a date range."""
     # 1. ARRANGE: Setup date range
-    now = utc_now()
     start_date = days_ago(8)
     end_date = days_from_now(1)
 
@@ -266,7 +255,6 @@ async def test_get_forecast_summary(
 ):
     """Test getting a summary of forecasts over a period."""
     # 1. ARRANGE: Setup date range
-    now = utc_now()
     start_date = days_ago(15)
     end_date = days_from_now(1)
 

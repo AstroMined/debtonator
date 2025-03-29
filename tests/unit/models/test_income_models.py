@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 from decimal import Decimal
 
 import pytest
@@ -6,8 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.income import Income
-from src.services.income import IncomeService
-from src.utils.datetime_utils import naive_utc_from_date, naive_utc_now
+from src.utils.datetime_utils import naive_utc_from_date
 
 pytestmark = pytest.mark.asyncio
 

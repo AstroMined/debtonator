@@ -5,7 +5,6 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
-from tests.helpers.schema_factories.accounts import create_account_schema
 
 
 @pytest_asyncio.fixture

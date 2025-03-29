@@ -1,18 +1,17 @@
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 from typing import List, Optional, Tuple
 
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
-
-from src.utils.decimal_precision import DecimalPrecision
 
 from src.models.accounts import Account
 from src.models.income import Income
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
 from src.schemas.payments import PaymentCreate, PaymentUpdate
+from src.utils.decimal_precision import DecimalPrecision
 
 
 class PaymentService:

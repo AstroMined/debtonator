@@ -6,12 +6,11 @@ category-related queries.
 """
 
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy import and_, column, desc, func, literal, or_, select
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import aliased, joinedload, noload, selectinload
-from sqlalchemy.sql.expression import union_all
+from sqlalchemy.orm import joinedload, selectinload
 
 from src.constants import (
     DEFAULT_CATEGORY_DESCRIPTION,

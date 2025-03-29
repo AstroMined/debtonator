@@ -10,21 +10,17 @@ PaymentScheduleRepository, ensuring proper validation flow and relationship
 loading.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from decimal import Decimal
-from typing import List, Optional
+from typing import List
 
 import pytest
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
-from src.models.liabilities import Liability, LiabilityStatus
+from src.models.liabilities import Liability
 from src.models.payment_schedules import PaymentSchedule
-from src.repositories.accounts import AccountRepository
-from src.repositories.liabilities import LiabilityRepository
 from src.repositories.payment_schedules import PaymentScheduleRepository
-from src.schemas.payment_schedules import PaymentScheduleCreate, PaymentScheduleUpdate
+from src.schemas.payment_schedules import PaymentScheduleCreate
 from src.utils.datetime_utils import (
     datetime_equals,
     datetime_greater_than,
@@ -32,12 +28,7 @@ from src.utils.datetime_utils import (
     days_from_now,
     utc_now,
 )
-from tests.helpers.schema_factories.accounts import create_account_schema
-from tests.helpers.schema_factories.liabilities import create_liability_schema
-from tests.helpers.schema_factories.payment_schedules import (
-    create_payment_schedule_schema,
-    create_payment_schedule_update_schema,
-)
+
 
 pytestmark = pytest.mark.asyncio
 
@@ -122,9 +113,8 @@ async def test_get_by_date_range(
 ):
     """Test getting payment schedules within a date range."""
     # 1. ARRANGE: Setup date range
-    now = utc_now()
-    start_date = now - timedelta(days=5)  # Expanded range to catch more test data
-    end_date = now + timedelta(days=15)  # Expanded range to catch more test data
+    start_date = utc_now() - timedelta(days=5)  # Expanded range to catch more test data
+    end_date = utc_now() + timedelta(days=15)  # Expanded range to catch more test data
 
     # 2. SCHEMA: Not needed for this query-only operation
 
@@ -170,10 +160,7 @@ async def test_get_processed_schedules(
     process_time = utc_now()
 
     # Use the repository method to mark as processed
-    update_schema = create_payment_schedule_update_schema(
-        processed=True,
-        # Note: processed_date will be set by the mark_as_processed method
-    )
+    # Note: processed_date will be set by the mark_as_processed method
 
     await payment_schedule_repository.mark_as_processed(test_schedule.id, process_time)
 
@@ -221,7 +208,6 @@ async def test_get_schedules_with_relationships(
 ):
     """Test getting payment schedules with all relationships loaded."""
     # 1. ARRANGE: Set up date range
-    now = utc_now()
     date_range = (days_ago(10), days_from_now(20))
 
     # 2. SCHEMA: Not needed for this query-only operation
@@ -262,7 +248,7 @@ async def test_get_upcoming_schedules(
         assert schedule.account_id == test_checking_account.id
         assert schedule.processed is False
 
-        # Schedule date should be in the future and within 7 days using proper timezone-aware comparison
+        # Schedule date should be in the future and within 7 days using timezone-aware comparison
         assert datetime_greater_than(schedule.scheduled_date, now) or datetime_equals(
             schedule.scheduled_date, now
         )
@@ -305,7 +291,6 @@ async def test_get_auto_process_schedules(
 ):
     """Test getting payment schedules set for auto-processing."""
     # 1. ARRANGE: Set up date range
-    now = utc_now()
     date_range = (days_ago(1), days_from_now(30))
 
     # 2. SCHEMA: Not needed for this query-only operation
@@ -331,7 +316,6 @@ async def test_get_total_scheduled_payments(
 ):
     """Test calculating total amount of scheduled payments."""
     # 1. ARRANGE: Set up date range
-    now = utc_now()
     start_date = days_ago(10)
     end_date = days_from_now(20)
 
@@ -372,7 +356,7 @@ async def test_validation_error_handling(
     """Test handling invalid data that would normally be caught by schema validation."""
     # Try creating a schema with invalid data and expect it to fail validation
     try:
-        invalid_schema = PaymentScheduleCreate(
+        _ = PaymentScheduleCreate(
             liability_id=test_liability.id,
             account_id=test_checking_account.id,
             scheduled_date=utc_now(),

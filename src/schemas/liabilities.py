@@ -1,12 +1,10 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Annotated, Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
 
 from src.constants import DEFAULT_CATEGORY_ID
-from src.utils.decimal_precision import DecimalPrecision
-
 from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
 
 

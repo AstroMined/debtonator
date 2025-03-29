@@ -4,7 +4,7 @@ Unit tests for the BaseRepository class.
 These tests validate the core functionality of the BaseRepository with real database fixtures.
 """
 
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from decimal import Decimal
 
 import pytest

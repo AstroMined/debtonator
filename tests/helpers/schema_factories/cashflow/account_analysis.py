@@ -17,12 +17,7 @@ from src.schemas.cashflow.account_analysis import (
     CrossAccountAnalysis,
     TransferPattern,
 )
-from tests.helpers.schema_factories.base import (
-    MEDIUM_AMOUNT,
-    SMALL_AMOUNT,
-    factory_function,
-    utc_now,
-)
+from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function, utc_now
 
 
 @factory_function(AccountCorrelation)

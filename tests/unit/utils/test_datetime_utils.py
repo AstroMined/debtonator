@@ -10,7 +10,6 @@ Tests all datetime utility functions with a focus on:
 """
 
 from datetime import date, datetime, time, timedelta, timezone
-from typing import List
 
 import pytest
 

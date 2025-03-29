@@ -1,16 +1,15 @@
 from datetime import datetime
 from decimal import Decimal
 from statistics import mean, stdev
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
-from src.utils.decimal_precision import DecimalPrecision
 from src.models.accounts import Account
 from src.models.balance_history import BalanceHistory
 from src.schemas.balance_history import BalanceHistoryCreate, BalanceTrend
+from src.utils.decimal_precision import DecimalPrecision
 
 
 class BalanceHistoryService:

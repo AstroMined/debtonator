@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Dict
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
@@ -14,14 +13,8 @@ from src.schemas.bill_splits import (
     BillSplitSuggestionResponse,
     BillSplitUpdate,
     BillSplitValidation,
-    BulkOperationError,
     BulkOperationResult,
     BulkSplitOperation,
-    HistoricalAnalysis,
-    ImpactAnalysis,
-    OptimizationMetrics,
-    OptimizationSuggestion,
-    PatternMetrics,
     SplitPattern,
     SplitSuggestion,
 )

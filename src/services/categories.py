@@ -12,8 +12,6 @@ from src.schemas.categories import CategoryCreate, CategoryUpdate
 class CategoryError(Exception):
     """Base exception for category-related errors"""
 
-    pass
-
 
 class CategoryService:
     def __init__(self, db: AsyncSession):

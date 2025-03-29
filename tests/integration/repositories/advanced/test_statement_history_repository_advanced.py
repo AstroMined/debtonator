@@ -6,19 +6,16 @@ standard 4-step pattern (Arrange-Schema-Act-Assert) to properly simulate
 the validation flow from services to repositories.
 """
 
-from datetime import date, datetime, timedelta
+from datetime import timedelta
 from decimal import Decimal
 from typing import List, Tuple
 
 import pytest
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.statement_history import StatementHistory
-from src.repositories.accounts import AccountRepository
 from src.repositories.statement_history import StatementHistoryRepository
-from src.schemas.statement_history import StatementHistoryCreate, StatementHistoryUpdate
+from src.schemas.statement_history import StatementHistoryCreate
 from src.utils.datetime_utils import (
     datetime_equals,
     datetime_greater_than,
@@ -26,7 +23,6 @@ from src.utils.datetime_utils import (
     days_from_now,
     utc_now,
 )
-from tests.helpers.schema_factories.accounts import create_account_schema
 from tests.helpers.schema_factories.statement_history import (
     create_statement_history_schema,
 )
@@ -212,8 +208,6 @@ async def test_get_statements_with_minimum_payment(
 ):
     """Test retrieving statements with minimum payment information."""
     # 1. ARRANGE: Create statements with and without minimum payments
-    now = utc_now()
-
     # Create statement with minimum payment
     with_payment_schema = create_statement_history_schema(
         account_id=test_credit_account.id,

@@ -1,6 +1,5 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Dict, List, Tuple
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
@@ -550,7 +549,6 @@ def test_decimal_precision():
 
 def test_datetime_utc_validation():
     """Test datetime UTC validation per ADR-011"""
-    now = datetime.now(timezone.utc)
 
     # Create component schemas for cross account analysis
     correlation = AccountCorrelation(

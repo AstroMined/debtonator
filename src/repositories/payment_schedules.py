@@ -6,14 +6,12 @@ specialized payment schedule-related queries.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
-from sqlalchemy import and_, desc, func, or_, select
+from sqlalchemy import and_, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import joinedload
 
-from src.models.accounts import Account
-from src.models.liabilities import Liability
 from src.models.payment_schedules import PaymentSchedule
 from src.repositories.base_repository import BaseRepository
 from src.utils.datetime_utils import safe_end_date, utc_now

@@ -10,14 +10,13 @@ from decimal import Decimal
 from typing import List
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.categories import Category
 from src.models.recurring_bills import RecurringBill
 from src.repositories.recurring_bills import RecurringBillRepository
-from src.schemas.recurring_bills import RecurringBillCreate, RecurringBillUpdate
-from src.utils.datetime_utils import days_from_now, end_of_day, start_of_day, utc_now
+from src.schemas.recurring_bills import RecurringBillCreate
+from src.utils.datetime_utils import days_from_now, utc_now
 
 pytestmark = pytest.mark.asyncio
 

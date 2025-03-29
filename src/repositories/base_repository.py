@@ -17,12 +17,11 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
-    Union,
 )
 
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import joinedload
 
 from src.database.base import Base
 from src.utils.datetime_utils import naive_utc_now

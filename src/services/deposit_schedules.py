@@ -3,7 +3,6 @@ from typing import List, Optional, Tuple
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from src.models.accounts import Account
 from src.models.deposit_schedules import DepositSchedule

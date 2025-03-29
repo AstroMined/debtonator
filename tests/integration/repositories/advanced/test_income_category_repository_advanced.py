@@ -10,22 +10,14 @@ IncomeCategoryRepository, ensuring proper validation flow and data integrity.
 """
 
 from decimal import Decimal
-from typing import List, Optional, Tuple
+from typing import List
 
 import pytest
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.income import Income
 from src.models.income_categories import IncomeCategory
-from src.repositories.income import IncomeRepository
 from src.repositories.income_categories import IncomeCategoryRepository
-from src.schemas.income import IncomeCreate
-from src.schemas.income_categories import IncomeCategoryCreate, IncomeCategoryUpdate
-from tests.helpers.schema_factories.income import create_income_schema
-from tests.helpers.schema_factories.income_categories import (
-    create_income_category_schema,
-)
+from src.schemas.income_categories import IncomeCategoryCreate
 
 pytestmark = pytest.mark.asyncio
 

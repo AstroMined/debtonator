@@ -1,6 +1,4 @@
 from datetime import datetime
-from decimal import Decimal
-from typing import Literal
 
 from pydantic import Field, field_validator
 
@@ -37,8 +35,6 @@ class BalanceHistoryCreate(BalanceHistoryBase):
 
     Extends the base schema without adding additional fields.
     """
-
-    pass
 
 
 class BalanceHistoryUpdate(BalanceHistoryBase):

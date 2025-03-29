@@ -5,7 +5,7 @@ This module provides a factory class that creates and caches repository instance
 simplifying dependency injection and ensuring consistent repository usage across services.
 """
 
-from typing import Any, Dict, Type, TypeVar
+from typing import Dict, Type, TypeVar
 
 from sqlalchemy.ext.asyncio import AsyncSession
 

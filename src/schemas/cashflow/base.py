@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Annotated, List, Optional
+from typing import List, Optional
 
 from pydantic import Field
 
@@ -76,8 +76,6 @@ class CashflowCreate(CashflowBase):
 
     Extends the base schema without adding additional fields.
     """
-
-    pass
 
 
 class CashflowUpdate(BaseSchemaValidator):
@@ -177,8 +175,6 @@ class CashflowResponse(CashflowInDB):
 
     Extends the database schema for API responses.
     """
-
-    pass
 
 
 class CashflowList(BaseSchemaValidator):

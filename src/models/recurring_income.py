@@ -1,11 +1,9 @@
-from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Numeric, String
+from sqlalchemy import Boolean, ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models.base_model import BaseDBModel
-from src.utils.datetime_utils import naive_utc_now
 
 
 class RecurringIncome(BaseDBModel):

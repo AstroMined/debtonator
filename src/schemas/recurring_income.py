@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
-from pydantic import ConfigDict, Field, field_validator
+from pydantic import Field, field_validator
 
 from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
 
@@ -75,8 +75,6 @@ class RecurringIncomeCreate(RecurringIncomeBase):
 
     Inherits all fields and validation from RecurringIncomeBase.
     """
-
-    pass
 
 
 class RecurringIncomeUpdate(BaseSchemaValidator):

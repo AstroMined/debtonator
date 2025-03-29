@@ -3,12 +3,12 @@ from decimal import Decimal
 
 import pytest
 
-from src.utils.decimal_precision import DecimalPrecision
 from src.models.accounts import Account
 from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability
 from src.schemas.bill_splits import BillSplitCreate, BillSplitValidation
 from src.services.bill_splits import BillSplitService, BillSplitValidationError
+from src.utils.decimal_precision import DecimalPrecision
 
 
 @pytest.fixture(scope="function")

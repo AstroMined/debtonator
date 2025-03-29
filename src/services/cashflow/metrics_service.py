@@ -1,15 +1,14 @@
-from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 from sqlalchemy import select
 
-from src.utils.decimal_precision import DecimalPrecision
 from src.models.accounts import Account
 from src.models.cashflow import CashflowForecast
 from src.models.liabilities import Liability
 from src.models.payments import Payment
 from src.schemas.cashflow import CustomForecastResult
+from src.utils.decimal_precision import DecimalPrecision
 
 from .base import BaseService
 from .transaction_service import TransactionService

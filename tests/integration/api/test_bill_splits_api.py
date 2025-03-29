@@ -7,7 +7,6 @@ from httpx import AsyncClient
 from src.models.accounts import Account
 from src.models.categories import Category
 from src.models.liabilities import Liability
-from src.schemas.bill_splits import BillSplitCreate, BulkSplitOperation
 
 
 @pytest.fixture(scope="function")

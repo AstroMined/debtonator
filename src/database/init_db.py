@@ -8,10 +8,9 @@ from src.constants import (
     DEFAULT_CATEGORY_ID,
     DEFAULT_CATEGORY_NAME,
 )
-from src.models.categories import Category
-
 from src.database.base import Base
 from src.database.database import engine
+from src.models.categories import Category
 
 
 async def init_db(db_engine: AsyncEngine) -> None:

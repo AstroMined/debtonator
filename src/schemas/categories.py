@@ -1,10 +1,10 @@
 from datetime import datetime
-from enum import Enum
 from typing import ForwardRef, List, Optional
 
 from pydantic import Field, field_validator
 
 from src.schemas.base_schema import BaseSchemaValidator
+from src.schemas.liabilities import LiabilityBase
 
 # Forward reference for circular references
 LiabilityBaseRef = ForwardRef("LiabilityBase")
@@ -154,7 +154,6 @@ class CategoryWithBills(CategoryWithChildren):
 
 
 # Update forward references after class definitions
-from src.schemas.liabilities import LiabilityBase
 
 CategoryWithBills.model_rebuild()
 CategoryWithChildren.model_rebuild()

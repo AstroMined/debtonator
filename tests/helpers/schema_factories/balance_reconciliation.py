@@ -13,7 +13,7 @@ from src.schemas.balance_reconciliation import (
     BalanceReconciliationCreate,
     BalanceReconciliationUpdate,
 )
-from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function, utc_now
+from tests.helpers.schema_factories.base import factory_function, utc_now
 
 
 @factory_function(BalanceReconciliationCreate)

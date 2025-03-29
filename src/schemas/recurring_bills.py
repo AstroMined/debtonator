@@ -1,8 +1,7 @@
 from datetime import datetime
-from decimal import Decimal
 from typing import Optional
 
-from pydantic import Field, field_validator
+from pydantic import Field
 
 from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
 
@@ -41,8 +40,6 @@ class RecurringBillCreate(RecurringBillBase):
 
     Extends the base schema without adding additional fields.
     """
-
-    pass
 
 
 class RecurringBillUpdate(BaseSchemaValidator):

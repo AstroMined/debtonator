@@ -12,24 +12,16 @@ loading.
 
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from typing import List, Optional
 
 import pytest
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
-from src.models.liabilities import Liability, LiabilityStatus
+from src.models.liabilities import Liability
 from src.models.payment_schedules import PaymentSchedule
-from src.repositories.accounts import AccountRepository
-from src.repositories.liabilities import LiabilityRepository
 from src.repositories.payment_schedules import PaymentScheduleRepository
 
 # Import schemas and schema factories - essential part of the validation pattern
-from src.schemas.payment_schedules import PaymentScheduleCreate, PaymentScheduleUpdate
-from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
-from tests.helpers.schema_factories.accounts import create_account_schema
-from tests.helpers.schema_factories.liabilities import create_liability_schema
+from src.utils.datetime_utils import datetime_greater_than
 from tests.helpers.schema_factories.payment_schedules import (
     create_payment_schedule_schema,
     create_payment_schedule_update_schema,

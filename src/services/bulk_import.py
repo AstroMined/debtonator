@@ -8,8 +8,6 @@ from typing import List, Optional, Tuple, Union
 from fastapi import UploadFile
 from pydantic import BaseModel, ValidationError
 
-from src.models.income import Income
-from src.models.liabilities import Liability
 from src.schemas.categories import CategoryCreate
 from src.schemas.income import IncomeCreate
 from src.schemas.liabilities import LiabilityCreate

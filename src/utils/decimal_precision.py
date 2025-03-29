@@ -7,7 +7,7 @@ throughout the application.
 """
 
 from decimal import ROUND_HALF_UP, Decimal
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional
 
 
 class DecimalPrecision:

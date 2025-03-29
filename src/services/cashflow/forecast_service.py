@@ -1,7 +1,7 @@
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 from statistics import mean, stdev
-from typing import Dict, List, Optional, Tuple, cast
+from typing import Dict, List, Optional
 
 from sqlalchemy import select
 

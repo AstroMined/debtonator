@@ -5,7 +5,6 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.main import app
 from src.models.income import Income
 
 

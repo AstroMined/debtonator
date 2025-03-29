@@ -1,10 +1,11 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from decimal import Decimal
-from typing import Dict, List, Optional
+from typing import List, Optional
 
-from pydantic import ConfigDict, Field, field_validator, model_validator
+from pydantic import Field, model_validator
 
 from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
+
 from .income_categories import IncomeCategory
 
 
@@ -52,8 +53,6 @@ class IncomeCreate(IncomeBase):
 
     Inherits all fields and validation from IncomeBase.
     """
-
-    pass
 
 
 class IncomeUpdate(BaseSchemaValidator):

@@ -9,23 +9,14 @@ These tests verify CRUD operations and specialized methods for the
 IncomeCategoryRepository, ensuring proper validation flow and data integrity.
 """
 
-from decimal import Decimal
-from typing import List, Optional, Tuple
-
 import pytest
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.income import Income
 from src.models.income_categories import IncomeCategory
-from src.repositories.income import IncomeRepository
 from src.repositories.income_categories import IncomeCategoryRepository
-from src.schemas.income import IncomeCreate
 
 # Import schemas and schema factories - essential part of the validation pattern
-from src.schemas.income_categories import IncomeCategoryCreate, IncomeCategoryUpdate
-from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
-from tests.helpers.schema_factories.income import create_income_schema
+from src.schemas.income_categories import IncomeCategoryUpdate
+from src.utils.datetime_utils import datetime_greater_than
 from tests.helpers.schema_factories.income_categories import (
     create_income_category_schema,
 )

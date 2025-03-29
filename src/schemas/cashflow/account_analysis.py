@@ -1,5 +1,4 @@
 from datetime import datetime
-from decimal import Decimal
 from typing import Dict, List, Optional, Tuple
 
 from pydantic import Field
@@ -7,10 +6,7 @@ from pydantic import Field
 from src.schemas.base_schema import (
     BaseSchemaValidator,
     CorrelationDecimal,
-    IntMoneyDict,
-    IntPercentageDict,
     MoneyDecimal,
-    MoneyDict,
     PercentageDecimal,
     PercentageDict,
 )

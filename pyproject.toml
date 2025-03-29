@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "debtonator"
-version = "0.5.53"
+version = "0.5.54"
 authors = [
   { name = "Debtonator Team" },
 ]
@@ -32,6 +32,11 @@ test = [
     "pytest-asyncio>=0.21.0",
     "httpx>=0.25.0",
 ]
+dev = [
+    "autoflake>=2.2.0",
+    "black>=23.7.0",
+    "isort>=5.12.0",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -53,3 +58,9 @@ addopts = "-v --showlocals"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
+
+[tool.autoflake]
+remove-all-unused-imports = true
+remove-unused-variables = false
+ignore-init-module-imports = true
+recursive = true

@@ -1,7 +1,6 @@
 """Database importer for migrating Excel data into the SQLite database."""
 
-import asyncio
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession

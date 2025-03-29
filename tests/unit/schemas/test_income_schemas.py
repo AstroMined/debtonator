@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.income import IncomeCreate, IncomeFilters, IncomeUpdate
+from src.schemas.income import IncomeCreate, IncomeFilters
 
 
 class TestIncomeCreate:

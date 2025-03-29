@@ -10,33 +10,18 @@ RecurringIncomeRepository, ensuring proper validation flow and relationship
 loading.
 """
 
-from datetime import timedelta, timezone
 from decimal import Decimal
-from typing import List, Optional
+from typing import List
 
 import pytest
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.recurring_income import RecurringIncome
-from src.repositories.accounts import AccountRepository
 from src.repositories.recurring_income import RecurringIncomeRepository
 
 # Import schema and schema factories - essential part of the validation pattern
-from src.schemas.recurring_income import RecurringIncomeCreate, RecurringIncomeUpdate
-from src.utils.datetime_utils import (
-    datetime_equals,
-    datetime_greater_than,
-    days_ago,
-    days_from_now,
-    utc_now,
-)
-from tests.helpers.schema_factories.accounts import create_account_schema
-from tests.helpers.schema_factories.recurring_income import (
-    create_recurring_income_schema,
-    create_recurring_income_update_schema,
-)
+from src.schemas.recurring_income import RecurringIncomeCreate
+from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
 
 pytestmark = pytest.mark.asyncio
 

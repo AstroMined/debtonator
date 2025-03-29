@@ -7,23 +7,19 @@ which track account transactions such as credits and debits.
 Implements ADR-011 compliant datetime handling with utilities from datetime_utils.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
 
 from src.models.transaction_history import TransactionHistory, TransactionType
 from src.repositories.base_repository import BaseRepository
 from src.utils.datetime_utils import (
-    date_range,
-    datetime_equals,
     days_ago,
     end_of_day,
     ensure_utc,
-    normalize_db_date,
     start_of_day,
     utc_now,
 )
@@ -461,9 +457,9 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
                     elif 13 <= data["average_days_between"] <= 16:
                         data["pattern_type"] = "Bi-weekly"
                     else:
-                        data[
-                            "pattern_type"
-                        ] = f'Every {round(data["average_days_between"])} days'
+                        data["pattern_type"] = (
+                            f'Every {round(data["average_days_between"])} days'
+                        )
 
             result.append(data)
 

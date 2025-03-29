@@ -7,13 +7,12 @@ implementing standard CRUD functionality along with RecurringIncome-specific que
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
-from sqlalchemy import and_, func, or_, select, update
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from src.models.income import Income
 from src.models.recurring_income import RecurringIncome
 from src.repositories.base_repository import BaseRepository
 

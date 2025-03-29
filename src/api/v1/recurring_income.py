@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession

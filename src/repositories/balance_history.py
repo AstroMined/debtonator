@@ -7,13 +7,12 @@ balance history-related queries.
 
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
-from sqlalchemy import and_, desc, func, or_, select
+from sqlalchemy import and_, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import joinedload
 
-from src.models.accounts import Account
 from src.models.balance_history import BalanceHistory
 from src.repositories.base_repository import BaseRepository
 from src.utils.datetime_utils import date_in_collection, normalize_db_date, utc_now

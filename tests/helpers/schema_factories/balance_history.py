@@ -5,12 +5,11 @@ This module provides factory functions for creating valid BalanceHistory-related
 Pydantic schema instances for use in tests.
 """
 
-from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
 from src.schemas.balance_history import BalanceHistoryCreate, BalanceHistoryUpdate
-from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function, utc_now
+from tests.helpers.schema_factories.base import factory_function
 
 
 @factory_function(BalanceHistoryCreate)

@@ -7,13 +7,11 @@ specialized response formats for different statement-related operations.
 """
 
 from datetime import datetime
-from decimal import Decimal
-from typing import Any, List, Optional
+from typing import List, Optional
 
 from pydantic import ConfigDict, Field
 
 from src.schemas.accounts import AccountResponse
-
 from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
 
 
@@ -45,8 +43,6 @@ class StatementHistoryCreate(StatementHistoryBase):
 
     Extends the base statement history schema without adding additional fields.
     """
-
-    pass
 
 
 class StatementHistoryUpdate(BaseSchemaValidator):
@@ -101,8 +97,6 @@ class StatementHistoryResponse(StatementHistory):
 
     Extends the database statement history schema for API response formatting.
     """
-
-    pass
 
 
 class StatementHistoryTrend(BaseSchemaValidator):

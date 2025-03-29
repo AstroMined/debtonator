@@ -8,10 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.balance_history import BalanceHistory
 from src.models.balance_reconciliation import BalanceReconciliation
 from src.utils.datetime_utils import days_ago, utc_now
-from tests.helpers.schema_factories.balance_history import create_balance_history_schema
-from tests.helpers.schema_factories.balance_reconciliation import (
-    create_balance_reconciliation_schema,
-)
 
 
 @pytest_asyncio.fixture

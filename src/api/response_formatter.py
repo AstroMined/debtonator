@@ -7,12 +7,11 @@ providing utilities to ensure consistent decimal precision in API responses.
 
 import inspect
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Optional, Set
 
 from pydantic import BaseModel
 
 from src.utils.decimal_precision import DecimalPrecision
-from src.schemas.base_schema import BaseSchemaValidator
 
 
 def format_decimal_precision(

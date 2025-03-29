@@ -4,15 +4,9 @@ from decimal import Decimal
 import pytest
 
 from src.models.accounts import Account
-from src.models.bill_splits import BillSplit
 from src.models.categories import Category
 from src.models.liabilities import Liability
-from src.schemas.bill_splits import (
-    BillSplitCreate,
-    BillSplitUpdate,
-    BulkOperationResult,
-    BulkSplitOperation,
-)
+from src.schemas.bill_splits import BillSplitCreate, BillSplitUpdate, BulkSplitOperation
 from src.services.bill_splits import BillSplitService
 
 

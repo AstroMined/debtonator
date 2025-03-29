@@ -6,24 +6,16 @@ standard 4-step pattern (Arrange-Schema-Act-Assert) to properly simulate
 the validation flow from services to repositories.
 """
 
-from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import List
 
 import pytest
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.categories import Category
 from src.models.recurring_bills import RecurringBill
-from src.repositories.accounts import AccountRepository
-from src.repositories.categories import CategoryRepository
 from src.repositories.recurring_bills import RecurringBillRepository
-from src.schemas.recurring_bills import RecurringBillCreate, RecurringBillUpdate
-from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
-from tests.helpers.schema_factories.accounts import create_account_schema
-from tests.helpers.schema_factories.categories import create_category_schema
+from src.schemas.recurring_bills import RecurringBillUpdate
+from src.utils.datetime_utils import datetime_greater_than
 from tests.helpers.schema_factories.recurring_bills import create_recurring_bill_schema
 
 pytestmark = pytest.mark.asyncio

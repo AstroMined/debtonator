@@ -1,7 +1,5 @@
 """Integration tests for the API response formatter."""
 
-from decimal import Decimal
-
 import pytest
 from httpx import AsyncClient
 

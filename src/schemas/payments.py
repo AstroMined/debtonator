@@ -1,12 +1,11 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Annotated, Any, List, Optional
+from typing import Any, List, Optional
 
-from pydantic import ConfigDict, Field, field_validator, model_validator
-
-from src.utils.decimal_precision import DecimalPrecision
+from pydantic import ConfigDict, Field, field_validator
 
 from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
+from src.utils.decimal_precision import DecimalPrecision
 
 
 # Common validation function for decimal precision
@@ -153,8 +152,6 @@ class PaymentSourceResponse(PaymentSourceInDB):
 
     Used for returning payment source data in API responses.
     """
-
-    pass
 
 
 class PaymentBase(BaseSchemaValidator):
@@ -393,8 +390,6 @@ class PaymentResponse(PaymentInDB):
 
     Used for returning payment data in API responses.
     """
-
-    pass
 
 
 class PaymentDateRange(BaseSchemaValidator):

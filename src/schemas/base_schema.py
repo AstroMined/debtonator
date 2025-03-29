@@ -8,11 +8,9 @@ all API boundaries.
 
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Annotated, Any, Dict, List, Optional, Type, TypeVar, Union
+from typing import Annotated, Any, Dict
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-
-from src.utils.decimal_precision import DecimalPrecision
 
 # 2 decimal places for monetary values (e.g., $100.00)
 MoneyDecimal = Annotated[

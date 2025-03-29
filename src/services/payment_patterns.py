@@ -6,7 +6,6 @@ import numpy as np
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
 from src.schemas.payment_patterns import (
     AmountStatistics,

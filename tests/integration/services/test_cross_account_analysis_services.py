@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 import pytest
-from sqlalchemy import select
 
 from src.models.accounts import Account
 from src.models.payments import Payment, PaymentSource

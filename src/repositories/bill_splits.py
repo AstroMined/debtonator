@@ -5,7 +5,7 @@ This module provides a BillSplitRepository class that handles database operation
 for bill splits, including specialized methods for split-specific queries and operations.
 """
 
-from datetime import date, datetime
+from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -13,12 +13,11 @@ from sqlalchemy import and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from src.utils.decimal_precision import DecimalPrecision
-from src.models.accounts import Account
 from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability
 from src.repositories.base_repository import BaseRepository
 from src.utils.datetime_utils import days_ago
+from src.utils.decimal_precision import DecimalPrecision
 
 
 class BillSplitRepository(BaseRepository[BillSplit, int]):

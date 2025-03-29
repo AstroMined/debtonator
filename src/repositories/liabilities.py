@@ -7,15 +7,14 @@ queries for bill/liability-related functionality.
 
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import List, Optional
 
-from sqlalchemy import and_, desc, func, or_, select
+from sqlalchemy import and_, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability, LiabilityStatus
-from src.models.payments import Payment
 from src.repositories.base_repository import BaseRepository
 
 

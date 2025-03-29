@@ -1,21 +1,17 @@
-import asyncio
 import inspect
-import os
 import re
 import uuid
 import warnings
 from datetime import datetime
 from decimal import Decimal
-from typing import AsyncGenerator, Generator
+from typing import AsyncGenerator
 from zoneinfo import ZoneInfo
 
 import pytest
-from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.constants import DEFAULT_CATEGORY_ID
 from src.database.base import Base
 from src.database.database import get_db
 from src.main import app

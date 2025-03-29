@@ -1,17 +1,17 @@
 """
 DateTime Utilities
 
-This module provides comprehensive datetime handling utilities that comply with 
+This module provides comprehensive datetime handling utilities that comply with
 ADR-011 requirements for datetime standardization. Functions are organized by purpose
 and provide consistent timezone handling.
 
-IMPORTANT: Per ADR-011, all datetimes in the database are stored as naive datetimes 
-that semantically represent UTC time, while all business logic uses timezone-aware 
+IMPORTANT: Per ADR-011, all datetimes in the database are stored as naive datetimes
+that semantically represent UTC time, while all business logic uses timezone-aware
 UTC datetimes.
 
 Key function categories:
 - Creation: Functions that create new datetime objects
-- Conversion: Functions that convert between different datetime representations  
+- Conversion: Functions that convert between different datetime representations
 - Comparison: Functions for safely comparing datetimes
 - Range Operations: Functions for handling date ranges and boundaries
 - Database Compatibility: Functions for handling database-specific datetime issues
@@ -19,19 +19,7 @@ Key function categories:
 
 import calendar
 from datetime import date, datetime, time, timedelta, timezone
-from typing import (
-    Any,
-    Callable,
-    Collection,
-    Dict,
-    List,
-    Optional,
-    Type,
-    TypeVar,
-    Union,
-    cast,
-    overload,
-)
+from typing import Any, Collection, List, Optional, TypeVar, Union, overload
 
 # Type definitions for improved type hinting
 DateType = TypeVar("DateType", datetime, date, str)
@@ -295,13 +283,11 @@ def end_of_day(dt: Optional[datetime] = None) -> datetime:
 
 
 @overload
-def ensure_utc(dt: datetime) -> datetime:
-    ...
+def ensure_utc(dt: datetime) -> datetime: ...
 
 
 @overload
-def ensure_utc(dt: None) -> None:
-    ...
+def ensure_utc(dt: None) -> None: ...
 
 
 def ensure_utc(dt: Optional[datetime]) -> Optional[datetime]:

@@ -2,7 +2,6 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 import pytest
-from sqlalchemy import select
 
 from src.models.accounts import Account
 from src.models.bill_splits import BillSplit

@@ -1,12 +1,11 @@
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from decimal import Decimal
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
-from sqlalchemy import and_, delete, desc, func, or_, select
+from sqlalchemy import and_, delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from src.utils.decimal_precision import DecimalPrecision
 from src.models.accounts import Account
 from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability
@@ -26,12 +25,11 @@ from src.schemas.bill_splits import (
     SplitPattern,
     SplitSuggestion,
 )
+from src.utils.decimal_precision import DecimalPrecision
 
 
 class BillSplitValidationError(Exception):
     """Custom exception for bill split validation errors"""
-
-    pass
 
 
 class BillSplitService:

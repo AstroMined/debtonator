@@ -1,9 +1,21 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Datetime Standardization, Repository Architectural Improvements, Payment Source Schema Simplification
+Datetime Standardization, Repository Architectural Improvements, Code Cleanup and Quality
 
 ### Recent Changes
+
+1. **Test Code Cleanup with Autoflake** ✓
+   - Fixed unused variables in test files using autoflake
+   - Addressed all identified unused variables in repository test files
+   - Carefully reviewed each instance to preserve intentional documentation variables
+   - Fixed test_balance_reconciliation_repository_advanced.py unused 'now' variables
+   - Fixed test_cashflow_forecast_repository_advanced.py unused 'now' variables 
+   - Fixed test_statement_history_repository_advanced.py unused 'now' variable
+   - Fixed test_payment_schedule_repository_advanced.py unused 'now' variables
+   - Fixed test_deposit_schedule_repository_advanced.py unused 'now' variable
+   - Identified unused variables in service files for future refactoring
+   - Added code_cleanup.md to document cleanup patterns
 
 1. **Code Organization and Import Pattern Standardization** ✓
    - Standardized import patterns across all layers (models, schemas, repositories)
@@ -48,18 +60,6 @@ Datetime Standardization, Repository Architectural Improvements, Payment Source 
    - Enhanced repository documentation with lessons learned
    - Fixed income category count assertions with proper LEFT JOIN behavior
    - Created pattern for handling validation error message flexibility
-
-2. **Fixed Transaction History Repository Tests** ✓
-   - Fixed all 5 Transaction History Repository test failures
-   - Enhanced test fixture to provide the required number and type of transactions
-   - Added additional transactions to meet test expectations (7+ transactions total)
-   - Ensured sufficient credit transactions (3+) and debit transactions (4+)
-   - Fixed timezone handling in date comparisons for date range tests
-   - Used ADR-011 compliant utilities: start_of_day() and end_of_day()
-   - Applied datetime_greater_than() and datetime_equals() with ignore_timezone=True
-   - Added transactions with sufficient values to meet debit total requirements (>= 280.50)
-   - Fixed data count/value assertions through enhanced test fixtures
-   - Created reusable pattern for extending test fixtures to meet count and value requirements
 
 ## Next Steps
 

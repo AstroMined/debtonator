@@ -15,7 +15,7 @@ import pytest
 from src.models.accounts import Account
 from src.models.balance_history import BalanceHistory
 from src.repositories.balance_history import BalanceHistoryRepository
-from src.schemas.balance_history import BalanceHistoryCreate, BalanceHistoryUpdate
+from src.schemas.balance_history import BalanceHistoryCreate
 from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
 from tests.helpers.schema_factories.balance_history import create_balance_history_schema
 
@@ -178,12 +178,12 @@ async def test_get_balance_trend(
     assert len(trend) >= 3  # At least our 3 balances
 
     # Check that trend contains timestamp and balance pairs
-    timestamps = [timestamp for timestamp, _ in trend]
+    trend_timestamps = [timestamp for timestamp, _ in trend]
     balances = [balance for _, balance in trend]
 
     # Verify our balance timestamps and amounts are in the trend
     for balance in test_multiple_balances:
-        assert balance.timestamp in timestamps
+        assert balance.timestamp in trend_timestamps
         assert balance.balance in balances
 
 
@@ -387,6 +387,8 @@ async def test_get_available_credit_trend(
 ):
     """Test retrieving available credit trend for a credit account."""
     # 1. ARRANGE: Create balance history records with available credit
+    ten_days_ago = utc_now() - timedelta(days=10)
+    five_days_ago = utc_now() - timedelta(days=5)
     now = utc_now()
 
     # Create schemas with available credit
@@ -394,14 +396,14 @@ async def test_get_available_credit_trend(
         account_id=test_credit_account.id,
         balance=Decimal("-500.00"),
         available_credit=Decimal("1500.00"),
-        timestamp=now - timedelta(days=10),
+        timestamp=ten_days_ago,
     )
 
     day2_schema = create_balance_history_schema(
         account_id=test_credit_account.id,
         balance=Decimal("-700.00"),
         available_credit=Decimal("1300.00"),
-        timestamp=now - timedelta(days=5),
+        timestamp=five_days_ago,
     )
 
     day3_schema = create_balance_history_schema(
@@ -425,20 +427,26 @@ async def test_get_available_credit_trend(
     assert len(trend) >= 3
 
     # Check that the trend contains timestamp and credit pairs
-    timestamps = [timestamp for timestamp, _ in trend]
-    credits = [credit for _, credit in trend]
+    trend_timestamps = [timestamp for timestamp, _ in trend]
+    trend_credits = [credit for _, credit in trend]
 
-    # Verify the expected values are in the trend
-    assert Decimal("1500.00") in credits
-    assert Decimal("1300.00") in credits
-    assert Decimal("1100.00") in credits
+    # Verify the expected trend_timestamps are in the trend
+    assert ten_days_ago in trend_timestamps
+    assert five_days_ago in trend_timestamps
+    assert now in trend_timestamps
+    assert ten_days_ago < five_days_ago < now
+
+    # Verify the expected credit values are in the trend
+    assert Decimal("1500.00") in trend_credits
+    assert Decimal("1300.00") in trend_credits
+    assert Decimal("1100.00") in trend_credits
 
 
 async def test_validation_error_handling():
     """Test handling of validation errors that would be caught by the Pydantic schema."""
     # Try creating a schema with invalid data
     try:
-        invalid_schema = BalanceHistoryCreate(
+        _ = BalanceHistoryCreate(
             account_id=0,  # Invalid account ID
             balance=Decimal("-100.00"),  # Valid but negative
             is_reconciled="not_a_boolean",  # Invalid type for boolean field

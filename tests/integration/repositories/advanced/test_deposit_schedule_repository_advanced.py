@@ -9,21 +9,17 @@ These tests verify CRUD operations and specialized methods for the
 DepositScheduleRepository, ensuring proper validation flow and data integrity.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from decimal import Decimal
-from typing import Dict, List, Optional, Tuple
+from typing import List
 
 import pytest
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.deposit_schedules import DepositSchedule
 from src.models.income import Income
-from src.repositories.accounts import AccountRepository
 from src.repositories.deposit_schedules import DepositScheduleRepository
-from src.repositories.income import IncomeRepository
-from src.schemas.deposit_schedules import DepositScheduleCreate, DepositScheduleUpdate
+from src.schemas.deposit_schedules import DepositScheduleCreate
 from src.utils.datetime_utils import (
     datetime_equals,
     datetime_greater_than,
@@ -31,11 +27,6 @@ from src.utils.datetime_utils import (
     days_from_now,
     utc_now,
 )
-from tests.helpers.schema_factories.accounts import create_account_schema
-from tests.helpers.schema_factories.deposit_schedules import (
-    create_deposit_schedule_schema,
-)
-from tests.helpers.schema_factories.income import create_income_schema
 
 pytestmark = pytest.mark.asyncio
 
@@ -118,9 +109,8 @@ async def test_get_by_date_range(
 ):
     """Test getting deposit schedules within a date range."""
     # 1. ARRANGE: Setup date range
-    now = utc_now()
-    start_date = now - timedelta(days=14)
-    end_date = now + timedelta(days=7)
+    start_date = utc_now() - timedelta(days=14)
+    end_date = utc_now() + timedelta(days=7)
 
     # 2. SCHEMA: Not needed for this query-only operation
 
@@ -300,7 +290,6 @@ async def test_get_total_scheduled_deposits(
 ):
     """Test calculating total amount of scheduled deposits."""
     # 1. ARRANGE: Setup date range
-    now = utc_now()
     start_date = days_ago(14)
     end_date = days_from_now(14)
 

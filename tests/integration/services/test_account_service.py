@@ -1,10 +1,8 @@
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, timedelta
 from decimal import Decimal
-from zoneinfo import ZoneInfo
 
 import pytest
 
-from src.models.accounts import Account as AccountModel
 from src.repositories.accounts import AccountRepository
 from src.repositories.credit_limit_history import CreditLimitHistoryRepository
 from src.repositories.statement_history import StatementHistoryRepository
