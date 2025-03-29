@@ -1,9 +1,20 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Payment Source Schema Simplification, Repository Test Fixes, Parent-Child Relationship Pattern
+Datetime Standardization, Repository Architectural Improvements, Payment Source Schema Simplification
 
 ### Recent Changes
+
+1. **Enhanced ADR-011 Datetime Standardization** ✓
+   - Added explicit mandate to use datetime_utils.py functions throughout the codebase
+   - Created comprehensive function table showing prohibited vs. required function usage
+   - Implemented strict enforcement of UTC timezone with standardized error messages
+   - Updated datetime utility function tests to enforce ADR-011 compliance
+   - Fixed tests for ensure_utc(), datetime_equals(), and datetime_greater_than()
+   - Added detailed implementation examples for different datetime scenarios
+   - Enhanced validation of non-UTC timezone rejection
+   - Added comprehensive enforcement guidelines
+   - Improved error message standardization for better developer experience
 
 1. **Implemented ADR-017: Payment Source Schema Simplification** ✓
    - Enforced parent-child relationship between Payment and PaymentSource

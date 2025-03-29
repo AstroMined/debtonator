@@ -1,5 +1,21 @@
 # Progress
 
+## March 28, 2025 (10:00 PM)
+
+### Completed Tasks
+
+- Enhanced ADR-011 Datetime Standardization:
+  - Added explicit mandate to use datetime_utils.py functions throughout the codebase
+  - Created comprehensive function table showing prohibited vs. required function usage
+  - Implemented strict enforcement of UTC timezone with standardized error messages
+  - Updated datetime utility function tests to properly enforce ADR-011 compliance
+  - Fixed tests for ensure_utc(), datetime_equals(), and datetime_greater_than()
+  - Added detailed implementation examples for different datetime scenarios
+  - Enhanced validation of non-UTC timezone rejection
+  - Improved error message standardization for better developer experience
+  - Standardized datetime test assertions for consistent test patterns
+  - Added testing patterns for proper UTC timezone handling
+
 ## March 28, 2025 (6:45 PM)
 
 ### Completed Tasks
