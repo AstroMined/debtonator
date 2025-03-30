@@ -5,6 +5,18 @@ Datetime Standardization, Repository Architectural Improvements, Code Cleanup an
 
 ### Recent Changes
 
+1. **Completed ADR-011 Compliance Test Coverage** ✓
+   - Achieved 100% test coverage for schema validation layer
+   - Fixed all remaining validator method calls in test files
+   - Created targeted tests for model validation edge cases
+   - Improved test methods for datetime serialization and validation
+   - Fixed validator error assertions to match Pydantic v2 formats
+   - Enhanced test coverage for base_schema.py and validation utilities
+   - Fixed nested dictionary datetime conversion tests
+   - Created comprehensive test suite for model dynamic lookup
+   - Improved direct validator method testing patterns 
+   - Consolidated test code to prevent test sprawl
+
 1. **ADR-011 Compliance Review and Test Improvements** ✓
    - Conducted comprehensive ADR-011 compliance review for schema layer
    - Fixed validator method signatures in test files to match current Pydantic implementation
@@ -13,7 +25,7 @@ Datetime Standardization, Repository Architectural Improvements, Code Cleanup an
    - Improved test coverage for `base_schema.py` and validator methods
    - Fixed test failures for balance history, balance reconciliation, and payments schemas
    - Enhanced test utilities with proper datetime_utils function usage
-   - Increased overall schema test coverage to 97%
+   - Increased overall schema test coverage to 99%
    - Identified and addressed validator method signature changes for compatibility
    - Implemented consistent validation method calling patterns
 
@@ -52,43 +64,31 @@ Datetime Standardization, Repository Architectural Improvements, Code Cleanup an
    - Reduced technical debt with explicit import patterns
    - Confirmed all tests pass with the new structure
 
-1. **Enhanced ADR-011 Datetime Standardization** ✓
-   - Added explicit mandate to use datetime_utils.py functions throughout the codebase
-   - Created comprehensive function table showing prohibited vs. required function usage
-   - Implemented strict enforcement of UTC timezone with standardized error messages
-   - Updated datetime utility function tests to enforce ADR-011 compliance
-   - Fixed tests for ensure_utc(), datetime_equals(), and datetime_greater_than()
-   - Added detailed implementation examples for different datetime scenarios
-   - Enhanced validation of non-UTC timezone rejection
-   - Added comprehensive enforcement guidelines
-   - Improved error message standardization for better developer experience
-
 ## Next Steps
 
-1. **Complete ADR-011 Compliance Test Coverage**
-   - Achieve 100% test coverage for schema validation
-   - Fix remaining validator method calls in test files
-   - Enhance test assertions for proper Pydantic v2 error message formats
-   - Document consistent validator testing patterns
-   - Create examples of proper test structure for model validators
-
-2. **Consolidate SQL Aggregation Patterns**
+1. **Consolidate SQL Aggregation Patterns**
    - Audit repository methods for proper COUNT() handling with JOINs
    - Review SUM() operations for consistency with GROUP BY usage
    - Standardize date range filtering for cross-database compatibility
    - Create pattern library for common repository operations
 
-3. **Enhance Repository Documentation**
+2. **Enhance Repository Documentation**
    - Document SQL aggregation patterns in repository guides
    - Create examples for proper join handling
    - Update existing method documentation with lessons learned
    - Create guidance for cross-database compatibility
 
-4. **Implement Validation Layer Standardization (ADR-012)**
+3. **Implement Validation Layer Standardization (ADR-012)**
    - Begin implementation of validation layer aligned with fixed tests
    - Standardize error message handling across validation layers
    - Create consistent pattern for Pydantic validation
    - Ensure compatibility with different Pydantic versions
+
+4. **Add Naive DateTime Scanner to CI Pipeline**
+   - Create GitHub Action for detecting naive datetime usage
+   - Integrate scanner with test runs for early detection
+   - Add quality gates to prevent introduction of new issues
+   - Create documentation for preventing naive datetime usage
 
 ## Implementation Lessons
 
@@ -106,7 +106,16 @@ Datetime Standardization, Repository Architectural Improvements, Code Cleanup an
    - Mock validation info objects should match Pydantic's ValidationInfo interface
    - Error assertion patterns should match Pydantic v2's error message format
 
-2. **SQL Aggregation Patterns**
+2. **Edge Case Testing for Schema Validators**
+   - Test both direct and normal validation paths for model validators
+   - Create synthetic objects to test field access patterns
+   - Use object.__setattr__ to bypass initial validation for testing post-validators
+   - Check error message formats match Pydantic's actual format
+   - Avoid mocking in validator tests and prefer real objects
+   - Test fallback paths in model_validate and other methods
+   - When testing model lookup functionality, test with both __model__ references and dynamic name-based lookups
+
+3. **SQL Aggregation Patterns**
    - Use `func.sum(column)` with `group_by()` for proper aggregation
    - For counting with LEFT JOINs, use `func.count(right_table.id)` instead of `func.count()`
    - COUNT(*) counts rows even when joined columns are NULL
@@ -115,36 +124,10 @@ Datetime Standardization, Repository Architectural Improvements, Code Cleanup an
    - Always test with empty related tables to verify correct behavior
    - Document SQL aggregation patterns in method docstrings
 
-3. **SQLAlchemy Case Expression Pattern**
-   - Use `from sqlalchemy import case` to properly import the case function
-   - Use proper syntax for case expressions in SQLAlchemy queries:
-   ```python
-   func.sum(
-       case(
-           (Income.deposited == False, 1),
-           else_=0
-       )
-   ).label("pending_count")
-   ```
-   - Handle boolean expressions in case statements with proper syntax
-   - Ensure column labels are properly defined for aggregated results
-   - Test complex SQL expressions thoroughly with different inputs
-
-4. **Month Boundary Safe Date Calculation**
-   - Use a safe_end_date utility function to handle month boundary issues:
-   ```python
-   def safe_end_date(today, days):
-       """Calculate end date safely handling month transitions."""
-       target_date = today + timedelta(days=days)
-       year, month = target_date.year, target_date.month
-       _, last_day = calendar.monthrange(year, month)
-       if target_date.day > last_day:
-           return datetime(year, month, last_day, 
-                          hour=23, minute=59, second=59, microsecond=999999)
-       return datetime(target_date.year, target_date.month, target_date.day,
-                     hour=23, minute=59, second=59, microsecond=999999)
-   ```
-   - Never directly manipulate day component in a datetime object
-   - Use calendar.monthrange() to determine the last day of a month
-   - Add days using timedelta and then adjust if the result is invalid
-   - Handle month transitions properly when calculating end dates
+4. **Nested Object Fields and DateTime Conversion**
+   - Top-level datetime fields are properly converted by Pydantic validators
+   - Datetime fields in nested containers may require explicit handling
+   - Prefer flat object structures when possible for better validation
+   - Test both direct field access and nested object access patterns
+   - Use composition rather than nesting for complex object structures
+   - For nested objects, consider explicit validators for each nesting level

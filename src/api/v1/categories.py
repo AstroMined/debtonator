@@ -70,10 +70,10 @@ async def get_category_with_bills(
 ) -> CategoryWithBillsResponse:
     """Get a category with its associated bills"""
     category_service = CategoryService(db)
-    
+
     # Use the new composition method instead of direct database mapping
     category_response = await category_service.compose_category_with_bills(category_id)
-    
+
     if not category_response:
         raise HTTPException(status_code=404, detail="Category not found")
 

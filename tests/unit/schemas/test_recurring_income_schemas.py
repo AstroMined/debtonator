@@ -32,6 +32,17 @@ class TestRecurringIncome:
             )
         assert "Day 31 is not supported" in str(exc_info.value)
 
+    def test_accepts_day_30(self):
+        """Test that day 30 is accepted but gets warning in documentation"""
+        # This test covers line 68 in recurring_income.py
+        income = RecurringIncomeCreate(
+            source="End of Month Salary",
+            amount=Decimal("5000.00"),
+            day_of_month=30,
+            account_id=1,
+        )
+        assert income.day_of_month == 30
+
     def test_amount_precision(self):
         """Test amount precision validation"""
         with pytest.raises(ValidationError) as exc_info:

@@ -14,6 +14,7 @@ from src.schemas.categories import (
     CategoryWithBillIDs,
     CategoryWithBillsResponse,
 )
+from src.utils.datetime_utils import safe_end_date
 
 
 # Test valid object creation
@@ -174,21 +175,21 @@ def test_category_with_bills_response_valid():
     """Test valid category with bills response schema (used by service composition)"""
     now = datetime.now(timezone.utc)
 
-    # Create simplified bill representations
+    # Create simplified bill representations using safe_end_date for ADR-011 compliance
     bill1 = {
         "id": 101,
         "name": "Test Bill 1",
         "amount": 100.00,
-        "due_date": now.replace(day=now.day + 1),
+        "due_date": safe_end_date(now, 1),  # Add 1 day, handling month boundaries
         "status": "pending",
         "paid": False,
     }
-    
+
     bill2 = {
         "id": 102,
         "name": "Test Bill 2",
         "amount": 200.00,
-        "due_date": now.replace(day=now.day + 2),
+        "due_date": safe_end_date(now, 2),  # Add 2 days, handling month boundaries
         "status": "pending",
         "paid": False,
     }
@@ -197,7 +198,7 @@ def test_category_with_bills_response_valid():
     child = CategoryWithBillsResponse(
         id=2,
         name="Child Category",
-        created_at=now, 
+        created_at=now,
         updated_at=now,
         parent_id=1,
         bills=[bill2],
@@ -220,7 +221,7 @@ def test_category_with_bills_response_valid():
     assert parent.bills[0]["id"] == 101
     assert parent.bills[0]["name"] == "Test Bill 1"
     assert parent.bills[0]["amount"] == 100.00
-    
+
     # Test child category with bill
     assert len(parent.children) == 1
     assert parent.children[0].id == 2
@@ -336,9 +337,7 @@ def test_nested_category_hierarchy():
     now = datetime.now(timezone.utc)
 
     # Create a three-level hierarchy
-    grandparent = CategoryTree(
-        id=1, name="Grandparent", created_at=now, updated_at=now
-    )
+    grandparent = CategoryTree(id=1, name="Grandparent", created_at=now, updated_at=now)
 
     parent = CategoryTree(
         id=2, name="Parent", parent_id=1, created_at=now, updated_at=now

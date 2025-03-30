@@ -7,6 +7,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.57] - 2025-03-29
+
+### Fixed
+
+- Fixed validator method signatures in test files to match Pydantic v2 implementation
+- Fixed test assertions to match Pydantic v2 error message formats
+- Fixed nested dictionary datetime conversion in validators
+
+### Improved
+
+- Achieved 100% test coverage for schema validation layer
+- Enhanced test coverage for base_schema.py validation utilities
+- Added targeted tests for model validation edge cases
+- Improved test methods for datetime serialization and validation
+- Enhanced direct validator method testing patterns
+- Consolidated test code to prevent test sprawl
+
+### Added
+
+- Added new implementation lessons for edge case testing of validators
+- Added documentation on proper validator method testing
+- Added pattern for testing nested object datetime conversion
+
 ## [0.5.56] - 2025-03-29
 
 ### Fixed

@@ -327,78 +327,100 @@ def test_bill_split_create_validator():
     """Test bill split create with negative amount validation (line 51)."""
     # Test the validate_amount model validator in BillSplitCreate
     # First create a valid object that passes validation
-    valid_split = BillSplitCreate(amount=Decimal("100.00"), liability_id=1, account_id=1)
+    valid_split = BillSplitCreate(
+        amount=Decimal("100.00"), liability_id=1, account_id=1
+    )
     assert valid_split.amount == Decimal("100.00")
-    
-    # Create a class that bypasses the initial validation but will trigger the model validator
-    class TestSplit(BillSplitCreate):
-        def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-            # This bypasses the initial validation but triggers the model validator
-            object.__setattr__(self, "amount", Decimal("0"))
-    
-    # Test zero amount - should trigger validate_amount model validator
+
+    # Test zero amount - directly test the validator method
+    model = BillSplitCreate(amount=Decimal("100.00"), liability_id=1, account_id=1)
+    # Manually set the amount to 0 and call the validator
+    object.__setattr__(model, "amount", Decimal("0"))
+
+    # Directly call the validator method to test its behavior
     with pytest.raises(ValueError, match="Split amount must be greater than 0"):
-        TestSplit(amount=Decimal("100.00"), liability_id=1, account_id=1)
-    
+        model.validate_amount()
+
     # Test negative amount
-    class TestNegativeSplit(BillSplitCreate):
-        def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-            # Set a negative amount to trigger the model validator
-            object.__setattr__(self, "amount", Decimal("-10.00"))
-    
+    model_neg = BillSplitCreate(amount=Decimal("100.00"), liability_id=1, account_id=1)
+    # Manually set the amount to -10 and call the validator
+    object.__setattr__(model_neg, "amount", Decimal("-10.00"))
+
+    # Directly call the validator method to test its behavior
     with pytest.raises(ValueError, match="Split amount must be greater than 0"):
-        TestNegativeSplit(amount=Decimal("100.00"), liability_id=1, account_id=1)
+        model_neg.validate_amount()
 
 
 def test_bulk_operation_validator():
     """Test BulkSplitOperation validators thoroughly (lines 332, 335->341, 337->341)."""
     # Test the validate_operation model validator
     validator = BulkSplitOperation.validate_operation
-    
+
     # Test empty splits list validation (line 332)
     test_instance = BulkSplitOperation(
-        operation_type="create", 
-        splits=[BillSplitCreate(amount=Decimal("50.00"), liability_id=1, account_id=2)]
+        operation_type="create",
+        splits=[BillSplitCreate(amount=Decimal("50.00"), liability_id=1, account_id=2)],
     )
-    
+
     # Manually set the splits to empty to test the validation
     object.__setattr__(test_instance, "splits", [])
-    
+
     # This should trigger the validation on line 332
     with pytest.raises(ValueError, match="At least one split is required"):
         validator(test_instance)
-    
+
     # Test mixed types for create operation (lines 335-336)
     mixed_splits = [
         BillSplitCreate(amount=Decimal("50.00"), liability_id=1, account_id=2),
-        BillSplitUpdate(id=1, amount=Decimal("75.00"))
+        BillSplitUpdate(id=1, amount=Decimal("75.00")),
     ]
-    
+
     test_instance = BulkSplitOperation(
-        operation_type="create", 
-        splits=[BillSplitCreate(amount=Decimal("50.00"), liability_id=1, account_id=2)]
+        operation_type="create",
+        splits=[BillSplitCreate(amount=Decimal("50.00"), liability_id=1, account_id=2)],
     )
-    
+
     # Set mixed split list to trigger validation
     object.__setattr__(test_instance, "splits", mixed_splits)
-    
+
     # This should trigger the validation on lines 335-336
-    with pytest.raises(ValueError, match="Create operation requires BillSplitCreate instances"):
+    with pytest.raises(
+        ValueError, match="Create operation requires BillSplitCreate instances"
+    ):
         validator(test_instance)
-        
+
     # Test mixed types for update operation (lines 337-341)
     test_instance = BulkSplitOperation(
-        operation_type="update", 
-        splits=[BillSplitUpdate(id=1, amount=Decimal("75.00"))]
+        operation_type="update", splits=[BillSplitUpdate(id=1, amount=Decimal("75.00"))]
     )
-    
+
     # Set mixed split list to trigger validation
     object.__setattr__(test_instance, "splits", mixed_splits)
-    
+
     # This should trigger the validation on lines 337-341
-    with pytest.raises(ValueError, match="Update operation requires BillSplitUpdate instances"):
+    with pytest.raises(
+        ValueError, match="Update operation requires BillSplitUpdate instances"
+    ):
+        validator(test_instance)
+
+    # Test with all create instances for update operation - this covers the branch
+    # where the first condition in line 337 is true but the second condition is false
+    create_only_splits = [
+        BillSplitCreate(amount=Decimal("50.00"), liability_id=1, account_id=2),
+        BillSplitCreate(amount=Decimal("75.00"), liability_id=1, account_id=3),
+    ]
+
+    test_instance = BulkSplitOperation(
+        operation_type="update", splits=[BillSplitUpdate(id=1, amount=Decimal("75.00"))]
+    )
+
+    # Set create-only split list to trigger validation for update operation
+    object.__setattr__(test_instance, "splits", create_only_splits)
+
+    # This should trigger the validation on lines 337-341 in a different way
+    with pytest.raises(
+        ValueError, match="Update operation requires BillSplitUpdate instances"
+    ):
         validator(test_instance)
 
 

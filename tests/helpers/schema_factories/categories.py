@@ -256,7 +256,7 @@ def create_category_with_bill_ids_schema(
     # Default IDs if none provided
     if children_ids is None:
         children_ids = [id + 1, id + 2]
-    
+
     if bill_ids is None:
         bill_ids = [101, 102, 103]
 

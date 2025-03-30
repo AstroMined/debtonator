@@ -5,7 +5,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.categories import Category
 from src.models.liabilities import Liability
-from src.schemas.categories import CategoryCreate, CategoryTree, CategoryUpdate, CategoryWithBillsResponse
+from src.schemas.categories import (
+    CategoryCreate,
+    CategoryTree,
+    CategoryUpdate,
+    CategoryWithBillsResponse,
+)
 from src.services.categories import CategoryError, CategoryService
 
 
@@ -247,6 +252,7 @@ async def test_get_full_path_with_none(category_service: CategoryService):
 
 # Tests for new composition methods
 
+
 @pytest.fixture
 async def liability(db_session: AsyncSession, root_category: Category) -> Liability:
     """Fixture to create a test liability (bill) for composition tests"""
@@ -271,7 +277,7 @@ async def test_compose_category_tree(
     category_service: CategoryService, root_category: Category, child_category: Category
 ):
     """Test the compose_category_tree method that builds rich tree structures"""
-    
+
     # Create a grandchild category
     grandchild_data = CategoryCreate(
         name="Grandchild Category",
@@ -279,55 +285,57 @@ async def test_compose_category_tree(
         parent_id=child_category.id,
     )
     grandchild = await category_service.create_category(grandchild_data)
-    
+
     # Test composition for full tree structure
     tree = await category_service.compose_category_tree(root_category.id)
-    
+
     # Verify the structure matches our expectations
     assert isinstance(tree, CategoryTree)
     assert tree.id == root_category.id
     assert tree.name == root_category.name
     assert len(tree.children) == 1
-    
+
     # Check first level child
     assert tree.children[0].id == child_category.id
     assert tree.children[0].name == child_category.name
     assert len(tree.children[0].children) == 1
-    
+
     # Check second level grandchild
     assert tree.children[0].children[0].id == grandchild.id
     assert tree.children[0].children[0].name == grandchild.name
-    
+
     # Verify path is correctly populated
     assert tree.full_path == root_category.name
     assert tree.children[0].full_path == f"{root_category.name} > {child_category.name}"
     assert tree.children[0].children[0].full_path == (
         f"{root_category.name} > {child_category.name} > {grandchild.name}"
     )
-    
+
     # Test depth limiting (just test depth=1)
-    limited_tree = await category_service.compose_category_tree(root_category.id, depth=1)
+    limited_tree = await category_service.compose_category_tree(
+        root_category.id, depth=1
+    )
     assert len(limited_tree.children) == 1
     assert limited_tree.children[0].id == child_category.id
     assert limited_tree.children[0].children == []  # No grandchildren at depth 1
 
 
 async def test_compose_category_with_bills(
-    category_service: CategoryService, 
-    root_category: Category, 
+    category_service: CategoryService,
+    root_category: Category,
     child_category: Category,
-    liability: Liability
+    liability: Liability,
 ):
     """Test the compose_category_with_bills method that builds rich response objects with bills"""
-    
+
     # Test composition for a category with bills
     response = await category_service.compose_category_with_bills(root_category.id)
-    
+
     # Verify the response structure
     assert isinstance(response, CategoryWithBillsResponse)
     assert response.id == root_category.id
     assert response.name == root_category.name
-    
+
     # Verify bills are included and formatted correctly
     assert len(response.bills) == 1
     assert response.bills[0]["id"] == liability.id
@@ -335,11 +343,11 @@ async def test_compose_category_with_bills(
     assert response.bills[0]["amount"] == liability.amount
     assert response.bills[0]["status"] == liability.status.value
     assert response.bills[0]["paid"] == liability.paid
-    
+
     # Verify children are included
     assert len(response.children) == 1
     assert response.children[0].id == child_category.id
     assert response.children[0].name == child_category.name
-    
+
     # Child category should have no bills in this test
     assert len(response.children[0].bills) == 0

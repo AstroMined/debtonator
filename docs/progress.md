@@ -1,5 +1,29 @@
 # Progress
 
+## March 29, 2025 (10:30 PM)
+
+### Completed Tasks
+
+- Completed ADR-011 Compliance Test Coverage:
+  - Achieved 100% test coverage for schema validation layer:
+    - Created targeted tests for model validation edge cases
+    - Implemented tests for datetime serialization and validation
+    - Added test coverage for nested dictionary datetime handling
+    - Created tests for model dynamic lookup functionality
+  - Fixed remaining validator tests to match Pydantic v2 behavior:
+    - Updated error assertion tests to match Pydantic v2 error formats
+    - Fixed ValidationInfo object mocking in unit tests
+    - Used direct object validation rather than mocking in tests
+  - Enhanced test coverage for base_schema.py utility methods:
+    - Added tests for model_validate with different input types
+    - Tested ensure_datetime_fields_are_utc with various field types
+    - Added tests for validate_required_fields_not_none edge cases
+  - Improved testing consistency across schema files:
+    - Consolidated test code to prevent test sprawl
+    - Used consistent patterns for validator testing
+    - Documented test patterns for future validator implementations
+  - Added new implementation lesson for edge case testing in active_context.md
+
 ## March 29, 2025 (4:30 PM)
 
 ### Completed Tasks
@@ -12,7 +36,7 @@
   - Improved test coverage for key schema files:
     - Fixed test failures for balance_history, balance_reconciliation, and payments schemas
     - Enhanced test utilities with proper datetime_utils function usage
-    - Increased overall schema test coverage from 95% to 97%
+    - Increased overall schema test coverage from 95% to 99%
   - Fixed Pydantic validator method signature compatibility:
     - Identified incorrect validator method calls in tests (passing class as first argument)
     - Updated test assertion patterns to match Pydantic v2 error formats

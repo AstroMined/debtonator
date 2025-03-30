@@ -115,7 +115,7 @@ class Category(CategoryBase):
 class CategoryWithBillIDs(Category):
     """
     Schema that includes IDs of children and associated bills.
-    
+
     Used for category-based financial reporting at the schema level.
     Actual composition of rich objects happens at the service layer.
     """
@@ -124,20 +124,22 @@ class CategoryWithBillIDs(Category):
         default_factory=list, description="List of child category IDs"
     )
     bill_ids: List[int] = Field(
-        default_factory=list, description="List of liability IDs associated with this category"
+        default_factory=list,
+        description="List of liability IDs associated with this category",
     )
 
 
 # Rich response schemas built by service composition
 
+
 class CategoryTree(Category):
     """
     Rich response schema for hierarchical category structure.
-    
+
     Built by service composition methods, not directly from database queries.
     This eliminates circular dependencies in the schema layer.
     """
-    
+
     children: List["CategoryTree"] = Field(
         default_factory=list, description="List of child categories"
     )
@@ -146,11 +148,11 @@ class CategoryTree(Category):
 class CategoryWithBillsResponse(CategoryTree):
     """
     Rich response schema for categories with bills.
-    
+
     Built by service composition methods, not directly from database queries.
     Contains simplified bill information to avoid circular dependencies.
     """
-    
+
     bills: List[Dict[str, Any]] = Field(
         default_factory=list,
         description="List of simplified bill information",

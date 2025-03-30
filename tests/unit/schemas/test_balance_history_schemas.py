@@ -272,35 +272,37 @@ def test_date_range_validation():
         volatility=Decimal("75.50"),
     )
     assert data.start_date == data.end_date
-    
+
     # Test validation of start_date field
     # This exercises the branch in validate_date_range where info.field_name == "start_date"
     # (which should just return the value without validation)
     # To test this properly, we need to call the validator directly
-    
+
     # Create mock info for start_date validation
     class MockInfoStartDate:
         def __init__(self):
             self.field_name = "start_date"
-            self.data = {}  # Empty data since start_date isn't validated against anything
-    
+            self.data = (
+                {}
+            )  # Empty data since start_date isn't validated against anything
+
     # The validator should simply return the value when field_name is "start_date"
     # This tests line 155 where the if-condition is false
     start_date = utc_datetime(2025, 1, 1)
     result = BalanceTrend.validate_date_range(start_date, MockInfoStartDate())
     assert result == start_date
-    
+
     # Create mock info for end_date validation with start_date in data
     class MockInfoEndDate:
         def __init__(self):
             self.field_name = "end_date"
             self.data = {"start_date": utc_datetime(2025, 1, 15)}
-    
+
     # Test with valid end_date (after start_date)
-    end_date = utc_datetime(2025, 1, 31) 
+    end_date = utc_datetime(2025, 1, 31)
     result = BalanceTrend.validate_date_range(end_date, MockInfoEndDate())
     assert result == end_date
-    
+
     # Test with datetime_utils functions
     data = BalanceTrend(
         account_id=1,

@@ -106,6 +106,23 @@ class TestIncomeFilters:
         assert filters.min_amount == Decimal("1000.00")
         assert filters.max_amount == Decimal("10000.00")
 
+    def test_partial_amount_filters(self):
+        """Test filters with only min_amount or max_amount - covers line 177->180"""
+        # Only min_amount provided
+        min_only = IncomeFilters(min_amount=Decimal("1000.00"))
+        assert min_only.min_amount == Decimal("1000.00")
+        assert min_only.max_amount is None
+
+        # Only max_amount provided
+        max_only = IncomeFilters(max_amount=Decimal("5000.00"))
+        assert max_only.min_amount is None
+        assert max_only.max_amount == Decimal("5000.00")
+
+        # Neither min_amount nor max_amount provided
+        neither = IncomeFilters()
+        assert neither.min_amount is None
+        assert neither.max_amount is None
+
     def test_invalid_date_range(self):
         """Test invalid date range validation"""
         with pytest.raises(ValidationError) as exc_info:

@@ -29,7 +29,6 @@ from src.utils.datetime_utils import (
     utc_now,
 )
 
-
 pytestmark = pytest.mark.asyncio
 
 

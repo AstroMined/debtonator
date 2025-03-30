@@ -66,23 +66,25 @@ def test_adjustment_amount_validator():
     """Test the adjustment_amount validator directly including edge cases."""
     # Create test validator function
     validate_adjustment = BalanceReconciliationCreate.validate_adjustment_amount
-    
+
     # Test case when values are present and correct
     class MockInfoValid:
         def __init__(self):
             self.data = {
                 "new_balance": Decimal("1200.00"),
-                "previous_balance": Decimal("1000.00")
+                "previous_balance": Decimal("1000.00"),
             }
-    
+
     # Test valid case - adjustment matches difference
     result = validate_adjustment(Decimal("200.00"), MockInfoValid())
     assert result == Decimal("200.00")
-    
+
     # Test invalid case - adjustment doesn't match difference
-    with pytest.raises(ValueError, match="adjustment_amount must equal new_balance - previous_balance"):
+    with pytest.raises(
+        ValueError, match="adjustment_amount must equal new_balance - previous_balance"
+    ):
         validate_adjustment(Decimal("300.00"), MockInfoValid())
-    
+
     # Test case with missing new_balance (line 50 branch)
     class MockInfoMissingNewBalance:
         def __init__(self):
@@ -90,11 +92,11 @@ def test_adjustment_amount_validator():
                 "previous_balance": Decimal("1000.00")
                 # new_balance is missing
             }
-    
+
     # This should pass without validation since new_balance is None
     result = validate_adjustment(Decimal("200.00"), MockInfoMissingNewBalance())
     assert result == Decimal("200.00")
-    
+
     # Test case with missing previous_balance (line 50 branch)
     class MockInfoMissingPreviousBalance:
         def __init__(self):
@@ -102,16 +104,16 @@ def test_adjustment_amount_validator():
                 "new_balance": Decimal("1200.00")
                 # previous_balance is missing
             }
-    
+
     # This should pass without validation since previous_balance is None
     result = validate_adjustment(Decimal("200.00"), MockInfoMissingPreviousBalance())
     assert result == Decimal("200.00")
-    
+
     # Test case with both values missing (line 50 branch)
     class MockInfoEmpty:
         def __init__(self):
             self.data = {}  # Empty data dict
-    
+
     # This should pass without validation since both values are None
     result = validate_adjustment(Decimal("200.00"), MockInfoEmpty())
     assert result == Decimal("200.00")
@@ -297,7 +299,7 @@ def test_datetime_utc_validation():
             created_at=datetime.now(),  # Naive datetime
             updated_at=datetime.now(ZoneInfo("Europe/London")),  # Non-UTC timezone
         )
-        
+
     # Test with datetime_utils functions
     now = utc_now()
     reconciliation = BalanceReconciliation(
@@ -311,7 +313,7 @@ def test_datetime_utc_validation():
         updated_at=now,
     )
     assert reconciliation.reconciliation_date == now
-    
+
     # Test with specific datetime using utc_datetime
     specific_date = utc_datetime(2025, 3, 15, 14, 30)
     reconciliation = BalanceReconciliation(

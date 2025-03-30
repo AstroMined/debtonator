@@ -457,9 +457,9 @@ class TransactionHistoryRepository(BaseRepository[TransactionHistory, int]):
                     elif 13 <= data["average_days_between"] <= 16:
                         data["pattern_type"] = "Bi-weekly"
                     else:
-                        data["pattern_type"] = (
-                            f'Every {round(data["average_days_between"])} days'
-                        )
+                        data[
+                            "pattern_type"
+                        ] = f'Every {round(data["average_days_between"])} days'
 
             result.append(data)
 
