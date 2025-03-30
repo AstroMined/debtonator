@@ -7,6 +7,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.58] - 2025-03-29
+
+### Changed
+
+- Consolidated decimal precision handling ADRs:
+  - Combined 013-decimal-precision-handling.md and 013-decimal-precision-handling-update.md into a single document
+  - Created a unified ADR with a clear evolution of the implementation approach
+  - Enhanced structure for better readability and understanding
+  - Updated status to "Implemented" to reflect current state
+  - Archived the redundant update file
+  - Added comprehensive revision history
+
 ## [0.5.57] - 2025-03-29
 
 ### Fixed

@@ -1,5 +1,20 @@
 # Progress
 
+## March 29, 2025 (11:45 PM)
+
+### Completed Tasks
+
+- Consolidated Decimal Precision Handling ADRs:
+  - Combined the original ADR-013 and its update document into a single comprehensive document
+  - Revised structure for better readability and logical progression of information
+  - Added dedicated "Evolution from Original Implementation" section to explain the migration from ConstrainedDecimal to Annotated types
+  - Created a clear narrative showing the progression of the implementation approach
+  - Enhanced documentation with detailed examples of Annotated types and dictionary validation
+  - Maintained complete version history from initial proposal through implementation
+  - Created archive directory for superseded ADR documents
+  - Updated version information to v0.5.58
+  - Updated CHANGELOG.md with the changes
+
 ## March 29, 2025 (10:30 PM)
 
 ### Completed Tasks

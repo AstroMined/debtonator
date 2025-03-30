@@ -1,11 +1,19 @@
 # Active Context: Debtonator
 
 ## Current Focus
-Datetime Standardization, Repository Architectural Improvements, Code Cleanup and Quality
+Datetime Standardization, Repository Architectural Improvements, Code Cleanup and Quality, Documentation Consolidation
 
 ### Recent Changes
 
-1. **Completed ADR-011 Compliance Test Coverage** ✓
+1. **Consolidated Decimal Precision Handling ADRs** ✓
+   - Combined the original ADR-013 with its update document into a single comprehensive ADR
+   - Created a clear narrative showing evolution from ConstrainedDecimal to Annotated types approach
+   - Enhanced documentation with detailed technical implementation examples
+   - Maintained complete version history from initial proposal through implementation
+   - Created archive directory for superseded ADR documents
+   - Updated changelog and version information (v0.5.58)
+
+2. **Completed ADR-011 Compliance Test Coverage** ✓
    - Achieved 100% test coverage for schema validation layer
    - Fixed all remaining validator method calls in test files
    - Created targeted tests for model validation edge cases

@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Implemented
 
 ## Context
 
@@ -33,11 +33,9 @@ Based on a systematic review of all decimal fields in the codebase (documented i
    This approach clearly separates presentation precision (what users see) from calculation precision (what the system uses internally).
 
 2. **Validation Strategy**:
-   - Continue using our current Pydantic schema validators that enforce 2 decimal places for inputs
+   - Use Pydantic V2's Annotated types with Field constraints to enforce 2 decimal places for monetary inputs 
    - Allow higher precision for internal service layer operations
    - Explicitly round values at API boundaries when returning responses
-   
-   Example from inventory: Our `validate_amount_precision()` in schemas and `decimal_places=2` in Field definitions will continue to enforce 2 decimal place validation at API/UI boundaries.
 
 3. **Rounding and Remainder Distribution Strategies**:
    - Implement the "Largest Remainder Method" for bill splits and allocations
@@ -48,10 +46,82 @@ Based on a systematic review of all decimal fields in the codebase (documented i
 
 4. **Database Schema Updates**:
    - Update all 23 identified monetary columns from `Numeric(10, 2)` to `Numeric(12, 4)`
-   - Create a single Alembic migration to handle all these changes
    - Document data scaling for existing production values
 
 This approach balances the need for accuracy in financial calculations with the practical considerations of financial reporting and user expectations. The systematic inventory confirms that this change will primarily affect bill splits, percentage-based calculations, and running balance calculations where precision is most critical.
+
+## Evolution from Original Implementation
+
+Our original implementation approach used Pydantic's `ConstrainedDecimal` class, which was completely removed in Pydantic V2. We revised our implementation to use Pydantic V2's recommended pattern with Annotated types, which maintains the same validation goals while being compatible with Pydantic V2.
+
+### Pydantic V2 Compatibility
+
+Pydantic V2 represents a significant evolution from V1, introducing breaking changes that affect our decimal validation strategy. Key changes affecting our implementation:
+
+1. **Removal of Constrained Types**: Pydantic V2 removed the entire `ConstrainedX` class family, including `ConstrainedDecimal` that our original implementation relied on.
+
+2. **New Annotated Types Pattern**: Pydantic V2 recommends using Python's `typing.Annotated` with `Field` constraints for validation, offering a more integrated approach with Python's type system.
+
+3. **Validator Changes**: The validator decorators changed from `@validator` to `@field_validator` and `@model_validator` with different behavior and syntax.
+
+4. **Error Message Changes**: Validation error messages follow a new pattern, using "Input should be a multiple of X" instead of "Decimal input should have no more than X decimal places".
+
+### Revised Validation Strategy
+
+Our revised implementation centers on clearly defined Annotated types that encapsulate their validation rules:
+
+```python
+# 2 decimal places for monetary values (e.g., $100.00)
+MoneyDecimal = Annotated[
+    Decimal,
+    Field(multiple_of=Decimal("0.01"), description="Monetary value with 2 decimal places")
+]
+
+# 4 decimal places for percentage values (0-1 range, e.g., 0.1234 = 12.34%)
+PercentageDecimal = Annotated[
+    Decimal,
+    Field(ge=0, le=1, multiple_of=Decimal("0.0001"), 
+          description="Percentage value with 4 decimal places (0-1 range)")
+]
+
+# 4 decimal places for correlation values (-1 to 1 range)
+CorrelationDecimal = Annotated[
+    Decimal,
+    Field(ge=-1, le=1, multiple_of=Decimal("0.0001"), 
+          description="Correlation value with 4 decimal places (-1 to 1 range)")
+]
+```
+
+This approach creates specialized decimal types that:
+- Carry their validation rules with them
+- Provide clear documentation through type hints
+- Enforce consistent validation across the codebase
+- Can be imported and used directly in schema definitions
+
+### Dictionary Validation Strategy
+
+Our implementation includes specialized handling for dictionaries containing decimal values, a common pattern in financial data structures. Dictionaries present unique validation challenges because:
+
+1. Simple type aliases like `MoneyDict = Dict[str, MoneyDecimal]` don't automatically validate each value in the dictionary.
+
+2. Nested dictionaries may contain decimal values at different levels.
+
+3. In-place modifications to dictionaries could bypass validation.
+
+Our solution implements a thorough validation strategy:
+
+1. **Dictionary Type Aliases**: Clear type aliases for common dictionary patterns.
+```python
+MoneyDict = Dict[str, MoneyDecimal]
+PercentageDict = Dict[str, PercentageDecimal]
+IntMoneyDict = Dict[int, MoneyDecimal]
+```
+
+2. **Model-level Validation**: A `validate_decimal_dictionaries` validator that checks all dictionary fields after model construction, enforcing proper precision for each value based on the field's annotation.
+
+3. **Custom Dictionary Classes**: For advanced use cases, validated dictionary classes that enforce precision constraints when values are set or modified.
+
+This comprehensive approach ensures consistent decimal validation throughout our codebase, including within complex nested data structures.
 
 ## Technical Details
 
@@ -114,29 +184,8 @@ This approach balances the need for accuracy in financial calculations with the 
                result[i] += Decimal('0.01')
                
            return result
-               
-       @staticmethod
-       def validate_sum_equals_total(items: List[Any], total: Decimal, amount_attr: str = 'amount', epsilon: Optional[Decimal] = None) -> bool:
-           """
-           Validates that a sum of values equals an expected total within a small epsilon.
-           
-           Args:
-               items: List of objects with amount attributes
-               total: Expected total
-               amount_attr: Name of the attribute containing the amount
-               epsilon: Maximum allowed difference (defaults to DecimalPrecision.EPSILON)
-               
-           Returns:
-               bool: True if sum matches total within epsilon, False otherwise
-           """
-           if not items:
-               return total == Decimal('0')
-               
-           if epsilon is None:
-               epsilon = DecimalPrecision.EPSILON
-               
-           sum_value = sum(getattr(item, amount_attr) for item in items)
-           return abs(sum_value - total) <= epsilon
+       
+       # Other utility methods remain unchanged...
    ```
 
 2. **Database Schema Updates**:
@@ -148,241 +197,245 @@ This approach balances the need for accuracy in financial calculations with the 
    amount = Column(Numeric(12, 4), nullable=False)
    ```
 
-3. **Centralized Schema Validation with BaseSchemaValidator**:
+3. **Pydantic V2 Annotated Types**:
    ```python
-   class BaseSchemaValidator(BaseModel):
-       """Base schema validator with both datetime and decimal validation."""
-       
-       # Existing datetime validation...
-       
-       @classmethod
-       def money_field(cls, description: str, **kwargs) -> Field:
-           """
-           Creates a standard monetary field with 2 decimal places.
-           
-           Implementing ADR-013, this method standardizes the creation of monetary
-           fields with proper decimal precision validation.
-           
-           Args:
-               description: Field description
-               **kwargs: Additional Field parameters
-               
-           Returns:
-               Field: Configured Field instance with decimal_places=2
-           """
-           return Field(
-               decimal_places=2,
-               description=description,
-               **kwargs
-           )
-       
-       @classmethod
-       def percentage_field(cls, description: str, **kwargs) -> Field:
-           """
-           Creates a percentage field with 4 decimal places.
-           
-           This special case is for percentage fields that require higher precision,
-           as specified in ADR-013.
-           
-           Args:
-               description: Field description
-               **kwargs: Additional Field parameters
-               
-           Returns:
-               Field: Configured Field instance with decimal_places=4
-           """
-           return Field(
-               decimal_places=4,
-               ge=0,
-               le=1,
-               description=description,
-               **kwargs
-           )
-       
-       @field_validator("*", mode="before")
-       @classmethod
-       def validate_decimal_precision(cls, value: Any) -> Any:
-           """Validates that decimal values don't exceed the specified decimal places at API boundaries."""
-           if isinstance(value, Decimal):
-               # Check if we're in a field validation (field name is available)
-               field_name = getattr(cls.validate_decimal_precision, 'field_name', None)
-               
-               if field_name and field_name in cls.model_fields:
-                   field_info = cls.model_fields[field_name]
-                   # Check if this field has a custom decimal_places setting
-                   if hasattr(field_info, 'json_schema_extra') and field_info.json_schema_extra and 'decimal_places' in field_info.json_schema_extra:
-                       decimal_places = field_info.json_schema_extra['decimal_places']
-                       if decimal_places != 2:
-                           # Special handling for non-standard precision (e.g., 4 decimal places for percentages)
-                           if value.as_tuple().exponent < -decimal_places:
-                               raise ValueError(f"Value must have at most {decimal_places} decimal places")
-                           return value
-               
-               # Standard case: Use the DecimalPrecision utility to validate input precision (2 decimal places)
-               if not DecimalPrecision.validate_input_precision(value):
-                   raise ValueError("Decimal input should have no more than 2 decimal places")
-           
-           return value
+   from typing import Annotated, Dict
+   from decimal import Decimal
+   from pydantic import BaseModel, Field, model_validator
+   
+   # 2 decimal places for monetary values
+   MoneyDecimal = Annotated[
+       Decimal,
+       Field(multiple_of=Decimal("0.01"), description="Monetary value with 2 decimal places")
+   ]
+   
+   # 4 decimal places for percentage values (0-1 range)
+   PercentageDecimal = Annotated[
+       Decimal,
+       Field(ge=0, le=1, multiple_of=Decimal("0.0001"), description="Percentage value with 4 decimal places (0-1 range)")
+   ]
+   
+   # 4 decimal places for correlation values (-1 to 1 range)
+   CorrelationDecimal = Annotated[
+       Decimal,
+       Field(ge=-1, le=1, multiple_of=Decimal("0.0001"), description="Correlation value with 4 decimal places (-1 to 1 range)")
+   ]
+   
+   # 4 decimal places for general ratio values (no min/max constraints)
+   RatioDecimal = Annotated[
+       Decimal,
+       Field(multiple_of=Decimal("0.0001"), description="Ratio value with 4 decimal places")
+   ]
+   
+   # Dictionary type aliases
+   MoneyDict = Dict[str, MoneyDecimal]
+   PercentageDict = Dict[str, PercentageDecimal]
+   IntMoneyDict = Dict[int, MoneyDecimal]
+   IntPercentageDict = Dict[int, PercentageDecimal]
    ```
 
-4. **Schema Field Implementation Example**:
+4. **Schema Implementation with Annotated Types**:
    ```python
-   # Example of using the standardized fields
+   # Example schema class using Annotated types
    class BalanceDistribution(BaseSchemaValidator):
        """Schema for balance distribution data."""
-       account_id: int = Field(
-           ...,
-           description="ID of the account"
-       )
-       average_balance: Decimal = BaseSchemaValidator.money_field(
-           description="Average account balance"
-       )
-       percentage_of_total: Decimal = BaseSchemaValidator.percentage_field(
-           description="Percentage of total funds across all accounts"
-       )
+       account_id: int = Field(description="ID of the account")
+       average_balance: MoneyDecimal = Field(description="Average account balance")
+       percentage_of_total: PercentageDecimal = Field(description="Percentage of total funds across all accounts")
    ```
 
-5. **Additional Specialized Distribution Utilities**:
+5. **Dictionary Validation**:
    ```python
-   @staticmethod
-   def distribute_by_percentage(total: Decimal, percentages: List[Decimal]) -> List[Decimal]:
-       """
-       Distribute a total amount according to percentages, ensuring the sum equals the original total.
+   class BaseSchemaValidator(BaseModel):
+       """Base schema validator with UTC timezone and decimal validation."""
        
-       Args:
-           total: Total amount to distribute
-           percentages: List of percentages (should sum to 100%)
-           
-       Returns:
-           List of distributed amounts that sum exactly to the total
-       """
-       # Validate percentages
-       percentage_sum = sum(percentages)
-       if abs(percentage_sum - Decimal('100')) > Decimal('0.0001'):
-           raise ValueError(f"Percentages must sum to 100%, got {percentage_sum}%")
+       # Existing model configuration...
        
-       # Calculate amounts with 4 decimal precision
-       amounts = [total * (p / Decimal('100')) for p in percentages]
+       @model_validator(mode='after')
+       def validate_decimal_dictionaries(self) -> 'BaseSchemaValidator':
+           """Validate all dictionary fields with decimal values for proper precision."""
+           for field_name, field_value in self.__dict__.items():
+               # Skip non-dictionary fields
+               if not isinstance(field_value, dict):
+                   continue
+                   
+               field_info = self.model_fields.get(field_name)
+               if not field_info or not hasattr(field_info, 'annotation'):
+                   continue
+                   
+               # Check dictionary field types
+               annotation = field_info.annotation
+               
+               # Handle MoneyDict fields
+               if annotation == MoneyDict or annotation == IntMoneyDict:
+                   for key, value in field_value.items():
+                       if isinstance(value, Decimal) and value.as_tuple().exponent < -2:
+                           raise ValueError(f"Dictionary value for key '{key}' should have no more than 2 decimal places")
+               
+               # Handle PercentageDict fields
+               elif annotation == PercentageDict or annotation == IntPercentageDict:
+                   for key, value in field_value.items():
+                       if isinstance(value, Decimal):
+                           # Check decimal places
+                           if value.as_tuple().exponent < -4:
+                               raise ValueError(f"Dictionary value for key '{key}' should have no more than 4 decimal places")
+                           # Check range
+                           if value < 0 or value > 1:
+                               raise ValueError(f"Percentage value for key '{key}' must be between 0 and 1")
+           return self
        
-       # Round to 2 decimal places for initial allocation
-       rounded = [amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP) for amount in amounts]
-       
-       # Calculate difference due to rounding
-       rounded_sum = sum(rounded)
-       remainder = (total - rounded_sum).quantize(Decimal('0.01'))
-       
-       # Distribute remainder using largest fractional part method
-       if remainder != Decimal('0'):
-           # Find indices of amounts with the largest fractional parts
-           fractional_parts = [(i, (amounts[i] - rounded[i]).copy_abs()) 
-                             for i in range(len(amounts))]
-           fractional_parts.sort(key=lambda x: x[1], reverse=True)
-           
-           # Add or subtract cents from amounts with the largest fractional parts
-           cents_to_distribute = int(remainder * 100)
-           for i in range(abs(cents_to_distribute)):
-               idx = fractional_parts[i % len(fractional_parts)][0]
-               if cents_to_distribute > 0:
-                   rounded[idx] += Decimal('0.01')
-               else:
-                   rounded[idx] -= Decimal('0.01')
-       
-       return rounded
-   ```
-
-6. **Bill Split Implementation Example**:
-   ```python
-   def split_bill_amount(total: Decimal, splits: int) -> List[Decimal]:
-       """
-       Split a bill amount into equal parts, handling rounding appropriately.
-       
-       Args:
-           total: The total bill amount
-           splits: Number of ways to split the bill
-           
-       Returns:
-           List of equal split amounts that sum exactly to the original total
-       """
-       # Calculate with 4 decimal precision for accuracy
-       per_split = (total / splits).quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
-       
-       # Create list of equal amounts
-       split_amounts = [per_split] * splits
-       
-       # Round and ensure the sum matches the original total
-       return round_split_amounts(split_amounts, total)
+       # Other validators remain unchanged...
    ```
 
 ### Implementation Strategy
 
-Our implementation follows a centralized approach to maintain consistency and minimize code duplication:
+Our implementation follows a phased approach detailed in `docs/adr/compliance/adr013_implementation_checklist_v2.md`:
 
-1. **Phase 1: Core Utilities**
-   - Created the `DecimalPrecision` utility module in `src/core/decimal_precision.py`
-   - Implemented rounding, validation, and distribution utilities
-   - Added utility functions for common operations like sum validation
-   - Comprehensive test coverage for all utility functions
+1. **Phase 1: Core Type Definitions**
+   - Update `src/schemas/__init__.py` with Annotated type definitions
+   - Remove utility methods in favor of direct type annotations
+   - Add dictionary type definitions
+   - Update documentation and examples
 
-2. **Phase 2: BaseSchemaValidator Enhancement**
-   - Enhanced `BaseSchemaValidator` in `src/schemas/__init__.py` with:
-     - `money_field()` method for standardized 2-decimal monetary fields
-     - `percentage_field()` method for standardized 4-decimal percentage fields
-     - Enhanced validation that respects field-specific decimal precision
-   - Created a unified validation approach that handles both standard and special cases
-   
-3. **Phase 3: Database Schema Updates**
-   - Updated all database models to use `Numeric(12, 4)` for decimal fields
-   - Created a simplified database reset approach instead of complex migrations:
-     ```python
-     # Example migration operation for all monetary fields
-     op.alter_column('accounts', 'available_balance', 
-                    type_=sa.Numeric(12, 4), 
-                    existing_type=sa.Numeric(10, 2))
-     
-     op.alter_column('liabilities', 'amount', 
-                    type_=sa.Numeric(12, 4), 
-                    existing_type=sa.Numeric(10, 2))
-     
-     # ...and so on for all 23 columns identified in the inventory
-     ```
-   - Test data migration with sample datasets using test fixtures
-   - Update SQLAlchemy model definitions to reflect new precision
+2. **Phase 2: Dictionary Validation Strategy**
+   - Implement dictionary validation for decimal precision
+   - Add model validators to BaseSchemaValidator
+   - Create specialized dictionary types if needed
 
-3. **Phase 3: Service Layer Integration (Week 3)**
-   - BillSplitService: Update to use largest remainder method
-   - PaymentService: Update payment distribution logic
-   - BalanceService: Update calculation methods
-   - Add explicit rounding at API response boundaries
+3. **Phase 3: Schema Updates**
+   - Update all 22 schema files to use the new Annotated types
+   - Replace utility method calls with direct type annotations
+   - Fix any validation issues
 
-4. **Phase 4: Testing and Documentation (Week 4)**
-   - Update test assertions to account for new precision rules
-   - Add specialized test cases for splitting and distribution logic
-   - Document precision handling in technical documentation
-   - Create developer guidelines for working with monetary values
+4. **Phase 4: Test Updates**
+   - Update all schema tests to reflect new validation behavior
+   - Add dictionary validation tests
+   - Update error message expectations
+
+5. **Phase 5: Service Tests**
+   - Update service tests to handle the new precision model
+   - Implement tests for the "$100 split three ways" scenario
+   - Test largest remainder method for distribution
+
+6. **Phase 6: API Response Formatting**
+   - Implement response formatter middleware
+   - Add @with_formatted_response decorator
+   - Create get_decimal_formatter() dependency
+
+7. **Phase 7: Documentation**
+   - Update developer documentation for decimal handling
+   - Create examples for common scenarios
+   - Document dictionary validation approach
+
+8. **Phase 8: Quality Assurance**
+   - Conduct comprehensive testing
+   - Verify all money-related features
+   - Complete final documentation review
 
 ## Consequences
 
 ### Positive
 
+- **Pydantic V2 Compatibility**: Implementation works with the latest Pydantic version
+- **Type Safety**: Provides distinct types that carry their validation rules with them
+- **Cleaner Schema Code**: Field constraints are declared alongside the field definition
+- **Simpler Mental Model**: Direct type annotations are easier to understand than utility methods
+- **Better IDE Integration**: Improved type hints for better IDE support
 - **Improved Calculation Accuracy**: Reduced cumulative rounding errors in multi-step calculations
 - **Consistent Behavior**: Clear, documented approach to decimal precision throughout the application
 - **Better Split Handling**: More accurate handling of bill splits and allocations with guaranteed exact totals
 - **Regulatory Compliance**: Better alignment with financial accounting practices
-- **Testing Clarity**: Tests will have a clear expectation of precision requirements
+- **Testing Clarity**: Tests have a clear expectation of precision requirements
 - **Avoided Penny Problems**: Solved the "$100 split three ways" problem (33.33 + 33.33 + 33.34 = 100.00)
 
 ### Negative
 
-- **Migration Effort**: Requires updates to database schema, models, and calculation logic
+- **Migration Effort**: Requires updates to all schema files
+- **Testing Updates**: Tests need to be updated for new error messages
+- **Dictionary Validation Complexity**: Dictionary validation requires special handling
 - **Potential Backward Compatibility Issues**: Existing data may need conversion
 - **Added Complexity**: More sophisticated handling of precision and rounding
 - **Development Overhead**: Developers must understand when to apply rounding
 
 ### Neutral
 
+- **Changed Implementation Approach**: Using Annotated types rather than custom validators
+- **Documentation Updates**: Need to clearly document the new approach
 - **Changed Validation Behavior**: Input validation remains strict, but internal calculations have more flexibility
-- **Documentation Requirements**: Need to clearly document precision expectations
 - **Implementation Consistency**: Schema updates require coordinated changes across multiple files
+
+## Benefits of the New Approach
+
+1. **Simplicity**: Leverages Pydantic's built-in validation rather than creating a parallel system
+2. **Type Safety**: Provides distinct types that carry their validation rules with them
+3. **Cleaner Schema Code**: Field constraints are declared alongside the field definition
+4. **Simpler Mental Model**: Direct type annotations are easier to understand than utility methods
+5. **Better IDE Integration**: Improved type hints for better IDE support
+6. **Future-Proof**: Aligned with Pydantic's design direction
+7. **Self-Documenting**: Type definitions clearly express validation intent and constraints
+8. **Consistent Validation**: Enforces the same validation behavior across all schema files
+9. **Reduced Boilerplate**: Eliminates repeated validation code across schema definitions
+10. **Explicit Precision Rules**: Makes the two-tier precision model (2 vs 4 decimal places) explicit in the type system
+
+### Usage Examples
+
+#### Basic Schema Definition
+
+```python
+class PaymentCreate(BaseSchemaValidator):
+    """Schema for creating a new payment."""
+    
+    payment_date: datetime
+    amount: MoneyDecimal = Field(description="Payment amount in dollars") 
+    description: str | None = None
+    
+    # Percentage field with 4 decimal places (0-1 range)
+    confidence_score: PercentageDecimal = Field(default=0.95)
+```
+
+#### Dictionary Fields
+
+```python
+class AccountAnalysis(BaseSchemaValidator):
+    """Schema for account analysis results."""
+    
+    account_id: int
+    
+    # Dictionary of category distributions (percentage per category)
+    category_distribution: PercentageDict = Field(
+        description="Distribution of spending across categories"
+    )
+    
+    # Dictionary of daily balances (date string -> balance)
+    daily_balances: MoneyDict = Field(
+        description="Account balance on each day"
+    )
+```
+
+#### Complex Schema with Mixed Precision
+
+```python
+class FinancialAnalysisResult(BaseSchemaValidator):
+    """Schema for financial analysis results."""
+    
+    # 2 decimal places for monetary values
+    total_assets: MoneyDecimal
+    total_liabilities: MoneyDecimal
+    net_worth: MoneyDecimal
+    
+    # 4 decimal places for percentages (0-1 range)
+    debt_to_income_ratio: PercentageDecimal
+    savings_rate: PercentageDecimal
+    
+    # 4 decimal places for correlations (-1 to 1 range)
+    income_spending_correlation: CorrelationDecimal
+    
+    # Dictionary of monetary values by account
+    account_balances: IntMoneyDict
+    
+    # Dictionary of percentage values by category
+    category_allocations: PercentageDict
+```
 
 ## Performance Impact
 
@@ -424,13 +477,6 @@ Our implementation follows a centralized approach to maintain consistency and mi
 - ADR-012: Validation Layer Standardization
 - Financial calculation best practices documentation
 
-## Notes
-
-- Initial implementation focuses on 23 identified monetary fields across 14 model files
-- Specialized handling for BillSplit and PaymentSource, which are particularly vulnerable to precision issues
-- Future refinements may include percentage-based interest calculations
-- Consider formal verification of critical financial algorithms
-
 ## Affected Fields
 
 Based on our comprehensive inventory analysis, the following classification of fields emerged:
@@ -459,3 +505,6 @@ Refer to `/docs/decimal_fields_inventory.md` for the complete inventory of affec
 | 2025-03-16 | 1.1 | Cline | Added systematic inventory results; Refined implementation details; Added specific field listings; Updated migration strategy with timeline |
 | 2025-03-16 | 2.0 | Cline | Completed comprehensive inventory of all 187 decimal fields; Updated status to Accepted; Added detailed classification of database vs. schema fields and precision requirements |
 | 2025-03-16 | 2.1 | Cline | Implemented centralized approach with enhanced BaseSchemaValidator; Added utility field methods and improved DecimalPrecision core module; Updated implementation strategy to focus on consistency and standardization |
+| 2025-03-18 | 3.0 | Cline | Completely revised implementation approach to use Pydantic V2's Annotated types instead of ConstrainedDecimal which was removed in Pydantic V2; Added dictionary validation strategy; Updated sample code and implementation plan |
+| 2025-03-19 | 3.1 | Cline | Enhanced documentation with comprehensive Pydantic V2 compatibility section; Expanded dictionary validation strategy details; Added usage examples for Annotated types; Updated benefits section |
+| 2025-03-29 | 4.0 | Cline | Consolidated decimal precision handling documents into a single unified ADR; Updated status to "Implemented"; Maintained complete version history; Enhanced structure for better readability |
