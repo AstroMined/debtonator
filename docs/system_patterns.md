@@ -2,6 +2,37 @@
 
 ## Core Patterns
 
+### Dynamic Accounts and Bill Split Management
+
+```mermaid
+graph TD
+    Bills[Bills Table] --> PrimaryAccount[Primary Account]
+    Bills --> BillSplits[Bill Splits Table]
+    BillSplits --> Accounts[Accounts Table]
+    PrimaryAccount --> Accounts
+```
+
+- **Primary Account Relationship**: Each bill has a primary account (required)
+- **Split Relationships**: Bills can be split across multiple accounts
+- **Split Amount Logic**: Primary account amount = total bill amount - sum of splits
+- **Auto-Split Creation**: Primary account split is created automatically
+
+#### Validation Rules
+1. Split amounts must sum to total bill amount
+2. All account references must be valid
+3. No negative split amounts allowed
+4. Each bill-account combination must be unique (enforced by database constraint)
+
+#### Implementation Pattern
+1. Bill creation: 
+   - Assign primary account
+   - Create splits for non-primary accounts
+   - Calculate and create primary account split automatically
+2. Bill update:
+   - Validate split integrity
+   - Update or create splits as needed
+   - Recalculate primary account split amount
+
 ### Datetime Standardization
 ```mermaid
 graph TD

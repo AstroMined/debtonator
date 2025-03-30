@@ -29,6 +29,24 @@
   - Component-based architecture
   - Type safety with TypeScript
 
+- **State Management**: Redux Toolkit
+  - Domain-driven slice architecture:
+    - Accounts: Account entities, balances, limits, and status
+    - Bills: Bill entities, payments, splits, and status
+    - Income: Income sources, deposits, and undeposited amounts
+    - Cashflow: Forecasts, requirements, and cross-account data
+  - Performance optimizations:
+    - Memoized selectors with createSelector
+    - Entity adapter pattern for normalized state
+    - Efficient updates with createSlice
+  - Type-safe implementation:
+    - Strongly typed actions and state
+    - Type-safe selectors and dispatches
+    - RootState type integration
+  - Usage patterns:
+    - Custom hooks for common operations
+    - Async thunk pattern for API calls
+
 - **UI Components**: Material-UI
   - Comprehensive component library
   - Responsive design support
@@ -57,6 +75,38 @@
 - MoneyDecimal type for monetary values
 - PercentageDecimal type for percentage values
 - Formatting handled consistently across the application
+
+### Bill Split Implementation
+
+#### Core Calculation Logic
+
+- **Primary Account Amount Calculation**:  
+  `primary_account_amount = total_bill_amount - sum_of_other_splits`
+
+- **Total Validation**:  
+  `sum_of_all_splits == total_bill_amount`
+
+- **Split Generation**:
+  - User creates explicit splits for non-primary accounts
+  - System automatically creates/updates split for primary account
+  - All splits stored in bill_splits table with consistent structure
+
+#### Implementation Rules
+
+1. **Split Validation**:
+   - Validate all accounts exist
+   - Validate no negative amounts
+   - Validate total doesn't exceed bill amount
+
+2. **Update Logic**:
+   - When bill amount changes, recalculate primary account split
+   - When splits change, validate and recalculate primary account split
+   - Maintain integrity between bill amount and total of all splits
+
+3. **Error Handling**:
+   - Transaction rollback on validation failures
+   - Clear error messages for user correction
+   - Preserve valid split data for correction attempts
 
 ## Data Models
 
