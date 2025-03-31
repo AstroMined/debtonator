@@ -3,6 +3,7 @@
 ## Technology Stack
 
 ### Backend
+
 - **Framework**: FastAPI
   - High performance, async Python web framework
   - Automatic OpenAPI documentation
@@ -25,6 +26,7 @@
   - Comprehensive cross-field validation
 
 ### Frontend
+
 - **Framework**: React with TypeScript
   - Component-based architecture
   - Type safety with TypeScript
@@ -58,17 +60,30 @@
 ## Technical Standards
 
 ### Datetime Handling
+
 - All datetime fields use timezone-aware datetime objects
 - UTC is used as the standard timezone for stored data
 - Conversion to local timezone handled in UI layer
 
 ### Validation Architecture
+
 - Three-layer validation approach:
   1. **Schema Layer**: Basic structural validation with Pydantic
   2. **Service Layer**: Business logic validation
   3. **Database Layer**: Data integrity constraints
 
+### Testing Architecture
+
+- **Integration-First Approach**:
+  - No mocks policy: unittest.mock and MagicMock are strictly prohibited
+  - Real test database that gets set up and torn down between each test
+  - Cross-layer integration tests with real objects
+  - Repository tests use real database sessions and real schemas
+  - Service tests use real repositories connected to test database
+  - All data validation uses real Pydantic schemas, not test dummies
+
 ### Decimal Precision
+
 - Two-tier precision model:
   - 4 decimal places for storage in database (Numeric(12, 4))
   - 2 decimal places for display at UI/API boundaries
@@ -111,6 +126,7 @@
 ## Data Models
 
 ### Core Entity Models
+
 - **Account**: Account types, balances, credit limits
 - **Bill/Liability**: Due dates, amounts, categories
 - **Payment**: Amount, date, bill reference
@@ -119,6 +135,7 @@
 - **Income**: Sources, amounts, deposit status
 
 ### Analysis Models
+
 - **BalanceHistory**: Historical account balance tracking
 - **StatementHistory**: Credit account statement tracking
 - **CreditLimitHistory**: Changes in available credit
@@ -128,21 +145,25 @@
 ## Technical Constraints
 
 ### Data Migration
+
 - Preserve historical data since 2017
 - Maintain data integrity during migration
 - Handle date format conversions
 
 ### Performance Requirements
+
 - Fast cashflow calculations
 - Responsive UI updates
 - Efficient database queries
 
 ### Security Requirements
+
 - Secure user authentication
 - Financial data encryption
 - Input validation
 
 ## Development Setup
+
 1. Python virtual environment with UV
    - Centralized configuration in pyproject.toml
    - Dependency management with UV
@@ -155,6 +176,7 @@
    - Testing frameworks (pytest)
 
 ## Deployment Considerations
+
 1. Database migration strategy
    - Schema versioning
    - Data migration scripts

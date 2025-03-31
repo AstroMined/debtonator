@@ -11,15 +11,19 @@ In our architecture, services are responsible for validating data through Pydant
 ## The Four-Step Pattern
 
 ### 1. Arrange: Set up test data and dependencies
+
 Set up any test fixtures, database session, and other dependencies needed for the test.
 
 ### 2. Schema: Create and validate data through Pydantic schemas
+
 Create a Pydantic schema instance for the data you want to use in the test. This is a critical step that simulates the service layer's validation process.
 
 ### 3. Act: Pass validated data to repository methods
+
 Convert the validated schema to a dictionary using `model_dump()` and pass it to the repository method.
 
 ### 4. Assert: Verify the repository operation results
+
 Check that the operation produced the expected results in the database.
 
 ## Code Template
@@ -99,9 +103,37 @@ async def test_validation_error_handling(entity_repository: EntityRepository):
         assert "name" in str(e) or "value" in str(e)
 ```
 
+## Testing Philosophy: Real Objects, No Mocks
+
+Debtonator follows an integration-first testing approach with real objects:
+
+1. **No Mocks Policy**: We strictly prohibit using unittest.mock, MagicMock, or any mocking libraries
+2. **Real Database Testing**: Tests use a real test database that gets set up/torn down between tests
+3. **Cross-Layer Integration**: Tests verify real interactions between layers using actual objects
+4. **Real Schemas**: All test data is validated through real Pydantic schemas
+
+Benefits of this approach:
+
+- Tests catch integration issues that mocks would miss
+- Tests validate actual database operations and constraints
+- Test maintenance is simpler without complex mock setup
+- Greater confidence that tests reflect production behavior
+
 ## Common Pitfalls to Avoid
 
-1. **Direct Dictionary Creation**: Never create raw dictionaries for repository methods
+1. **Using Mocks**: Never use mocks for repositories, schemas, or any other components
+
+   ```python
+   # INCORRECT ❌
+   mock_repo = MagicMock()
+   mock_repo.get.return_value = None
+   
+   # CORRECT ✅
+   repo = Repository(db_session)  # Use real repository with test database
+   ```
+
+2. **Direct Dictionary Creation**: Never create raw dictionaries for repository methods
+
    ```python
    # INCORRECT ❌
    data = {"name": "Test", "value": 100}
@@ -112,13 +144,15 @@ async def test_validation_error_handling(entity_repository: EntityRepository):
    result = await repository.create(schema.model_dump())
    ```
 
-2. **Missing Schema Import**: Always import the appropriate schema classes
+3. **Missing Schema Import**: Always import the appropriate schema classes
+
    ```python
    # Required at the top of your test file
    from src.schemas.entities import EntityCreate, EntityUpdate
    ```
 
-3. **Forgetting Validation**: Don't skip the schema validation step
+4. **Forgetting Validation**: Don't skip the schema validation step
+
    ```python
    # INCORRECT ❌
    result = await repository.create({"name": "Test"})
@@ -128,7 +162,8 @@ async def test_validation_error_handling(entity_repository: EntityRepository):
    result = await repository.create(schema.model_dump())
    ```
 
-4. **Modifying After Validation**: Don't modify data after validation
+5. **Modifying After Validation**: Don't modify data after validation
+
    ```python
    # INCORRECT ❌
    validated = schema.model_dump()

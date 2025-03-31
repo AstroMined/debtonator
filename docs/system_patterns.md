@@ -154,13 +154,28 @@ graph TD
 
 ## Testing Patterns
 
-### Integration-First Approach
+### Integration-First Approach with Real Objects
 
-- Integration tests for services with real database
-- Unit tests for pure business logic and utilities
-- Repository tests with test fixtures
-- API tests for endpoint validation
+```mermaid
+graph TD
+    A[Test] --> B[Real Objects]
+    B --> C[Real Database]
+    B --> D[Real Repositories]
+    B --> E[Real Schemas]
+    
+    F[Test Philosophy] --> G[No Mocks]
+    F --> H[Integration Tests]
+    F --> I[Cross-Layer Validation]
+    F --> J[Test Database per Test]
+```
+
+- **No Mocks Policy**: Strictly prohibit using unittest.mock, MagicMock, or any other mocking libraries
+- Integration tests for services with real database that resets between tests
+- Cross-layer integration to verify actual interactions between components
+- Repository tests with real database fixtures
+- API tests for endpoint validation with real service and repository implementations
 - Error case testing for validation scenarios
+- Service tests with real repositories connected to test database
 
 ## Database Patterns
 

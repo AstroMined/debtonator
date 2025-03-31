@@ -465,16 +465,16 @@ When implementing a new repository:
    - [x] Add common test utility functions
 
 2. **Base Repository Tests**
-   - [ ] Create `tests/unit/repositories/test_base_repository.py`
-   - [ ] Test all CRUD operations
-   - [ ] Test filtering and pagination
+   - [X] Create `tests/unit/repositories/test_base_repository.py`
+   - [X] Test all CRUD operations
+   - [X] Test filtering and pagination
 
 3. **Repository Test Pattern Implementation**
    - [x] Document the Arrange-Schema-Act-Assert pattern in `docs/guides/repository_test_pattern.md`
    - [x] Set up modular directory structure for schema factories
    - [x] Implement BalanceReconciliationRepository tests as the reference implementation
-   - [ ] Review and refactor existing repository tests to follow the pattern
-   - [ ] Ensure tests use schema factories to validate data before repository operations
+   - [X] Review and refactor existing repository tests to follow the pattern
+   - [X] Ensure tests use schema factories to validate data before repository operations
 
 4. **Schema Factory Implementation**
    - [x] Create modular directory structure for schema factories
@@ -483,10 +483,10 @@ When implementing a new repository:
    - [x] Implement reusable factory functions with sensible defaults
 
 5. **Integration Tests**
-   - [ ] Ensure all integration tests follow the Arrange-Schema-Act-Assert pattern
-   - [ ] Test transaction boundaries
-   - [ ] Test complex query scenarios
-   - [ ] Test error handling
+   - [X] Ensure all integration tests follow the Arrange-Schema-Act-Assert pattern
+   - [X] Test transaction boundaries
+   - [X] Test complex query scenarios
+   - [X] Test error handling
 
 6. **Model-Specific Repository Integration Tests**
    - [x] Create/Update test file for AccountRepository
@@ -497,10 +497,10 @@ When implementing a new repository:
    - [x] Create/Update test file for RecurringBillRepository
    - [x] Create/Update test file for StatementHistoryRepository
    - [x] Create/Update test file for BalanceHistoryRepository
-   - [ ] Create/Update test file for CategoryRepository
+   - [X] Create/Update test file for CategoryRepository
    - [x] Create/Update test file for CreditLimitHistoryRepository
-   - [ ] Create/Update test file for BalanceReconciliationRepository
-   - [ ] Create/Update test file for TransactionHistoryRepository
+   - [X] Create/Update test file for BalanceReconciliationRepository
+   - [X] Create/Update test file for TransactionHistoryRepository
    - [x] Create/Update test file for DepositScheduleRepository
    - [x] Create test file for RecurringIncomeRepository (New)
    - [x] Create test file for IncomeCategoryRepository (New)
@@ -512,9 +512,9 @@ When implementing a new repository:
 ## Phase 5: Service Refactoring
 
 1. **Account Service Refactoring**
-   - [x] Update `src/services/accounts.py` to use repositories
-   - [x] Update service tests
-   - [x] Validate refactored approach
+   - [ ] Update `src/services/accounts.py` to use repositories
+   - [ ] Update service tests
+   - [ ] Validate refactored approach
 
 2. **Bill Service Refactoring**
    - [ ] Update `src/services/bills.py` to use repositories
