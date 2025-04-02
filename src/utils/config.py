@@ -15,6 +15,12 @@ class Settings(BaseSettings):
     APP_NAME: str = "Debtonator"
     APP_VERSION: str = "0.1.0"
     DESCRIPTION: str = "Bill & Cashflow Management System"
+    
+    # Environment
+    APP_ENV: str = "development"
+    
+    # Feature Flags
+    ENABLE_FEATURE_FLAG_MANAGEMENT: bool = True
 
     # Security
     SECRET_KEY: str = "VeN37vbQTHWVhqIhptGn2MR27dfceaVtoFDS2qJcbPE"

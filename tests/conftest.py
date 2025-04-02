@@ -37,6 +37,7 @@ pytest_plugins = [
     "tests.fixtures.models.fixture_transactions",
     "tests.fixtures.models.fixture_recurring",
     "tests.fixtures.models.fixture_schedules",
+    "tests.fixtures.models.fixture_feature_flags",
 ]
 
 # ADR-011 Datetime validation hooks

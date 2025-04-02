@@ -6,6 +6,7 @@ from src.api.v1.bulk_import import router as bulk_import_router
 from src.api.v1.cashflow import router as cashflow_router
 from src.api.v1.categories import router as categories_router
 from src.api.v1.deposit_schedules import router as deposit_schedules_router
+from src.api.v1.feature_flags import router as feature_flags_router
 from src.api.v1.income import router as income_router
 from src.api.v1.income_analysis import router as income_analysis_router
 from src.api.v1.income_categories import router as income_categories_router
@@ -48,3 +49,4 @@ api_v1_router.include_router(deposit_schedules_router, tags=["deposit-schedules"
 api_v1_router.include_router(recurring_income_router, tags=["recurring-income"])
 api_v1_router.include_router(income_analysis_router, tags=["income-analysis"])
 api_v1_router.include_router(realtime_cashflow_router, tags=["realtime-cashflow"])
+api_v1_router.include_router(feature_flags_router, prefix="/feature-flags", tags=["feature-flags"])

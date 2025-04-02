@@ -7,6 +7,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.61] - 2025-04-02
+
+### Added
+
+- Implemented Feature Flag System Phase 2 Dependency Integration:
+  - Added `get_registry()` function to implement singleton pattern for feature flag registry
+  - Created generic repository provider in `src/api/dependencies/repositories.py`
+  - Added context support to FeatureFlagService for environment-specific evaluation
+
+### Fixed
+
+- Fixed circular dependency issues in feature flag system:
+  - Updated FeatureFlagService to accept and store context parameter
+  - Fixed context integration in feature flag service
+  - Made all integration tests use correct service parameter patterns
+  - Updated API tests to use `value` field instead of deprecated `enabled` attribute
+
+### Changed
+
+- Enhanced dependency integration for feature flag system:
+  - Improved proper dependency injection across all feature flag components
+  - Optimized initialization flow for consistent flag state
+  - Connected registry singleton to configuration system
+  - Completed Phase 2 sections 2 and 3 of ADR-024 implementation checklist
+
 ## [0.5.60] - 2025-04-01
 
 ### Fixed

@@ -5,10 +5,13 @@ This module provides FastAPI dependency functions that create and inject reposit
 instances into API routes and services.
 """
 
+from typing import Type
+
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.database import get_db
+from src.repositories.base_repository import BaseRepository
 from src.repositories.accounts import AccountRepository
 from src.repositories.balance_history import BalanceHistoryRepository
 from src.repositories.balance_reconciliation import BalanceReconciliationRepository
@@ -301,3 +304,25 @@ def get_cashflow_forecast_repository(
         CashflowForecastRepository: Cashflow forecast repository instance
     """
     return CashflowForecastRepository(db)
+
+
+def get_repository(
+    repository_class: Type[BaseRepository], 
+    db: AsyncSession = Depends(get_db)
+) -> BaseRepository:
+    """
+    Generic repository provider that can create any repository type.
+    
+    This function allows creating any repository type dynamically by passing
+    the repository class as an argument. It's particularly useful for 
+    dependency providers that need to create different repository types.
+    
+    Args:
+        repository_class: The repository class to instantiate
+        db: Database session from dependency injection
+        
+    Returns:
+        An instance of the specified repository type
+    """
+    # Create and return repository instance
+    return repository_class(db)

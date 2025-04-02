@@ -17,6 +17,7 @@ from src.models.feature_flags import FeatureFlag
 from src.registry.feature_flags import FeatureFlagRegistry, FeatureFlagObserver
 from src.repositories.feature_flags import FeatureFlagRepository
 from src.utils.datetime_utils import ensure_utc, utc_now
+from src.utils.feature_flags.context import EnvironmentContext
 from src.schemas.feature_flags import (
     FeatureFlagCreate, 
     FeatureFlagResponse, 
@@ -43,16 +44,19 @@ class FeatureFlagService(FeatureFlagObserver):
         self, 
         registry: FeatureFlagRegistry,
         repository: FeatureFlagRepository,
+        context: Optional[EnvironmentContext] = None,
     ):
         """
-        Initialize the service with a registry and repository.
+        Initialize the service with a registry, repository and optional context.
         
         Args:
             registry: In-memory feature flag registry
             repository: Database repository for feature flags
+            context: Optional environment context for flag evaluation
         """
         self.registry = registry
         self.repository = repository
+        self.context = context
         
         # Register as an observer to receive notifications of flag changes
         self.registry.add_observer(self)

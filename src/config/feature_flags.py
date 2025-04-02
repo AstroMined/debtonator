@@ -16,6 +16,28 @@ from src.schemas.feature_flags import FeatureFlagType
 
 logger = logging.getLogger(__name__)
 
+# Global registry instance (singleton)
+_REGISTRY: FeatureFlagRegistry = None
+
+
+def get_registry() -> FeatureFlagRegistry:
+    """
+    Get the global FeatureFlagRegistry instance.
+    
+    This function implements the singleton pattern, ensuring that
+    all parts of the application use the same registry instance.
+    
+    Returns:
+        FeatureFlagRegistry: The global feature flag registry instance
+    """
+    global _REGISTRY
+    
+    if _REGISTRY is None:
+        logger.debug("Creating new FeatureFlagRegistry instance")
+        _REGISTRY = FeatureFlagRegistry()
+    
+    return _REGISTRY
+
 # Default feature flags as defined in ADR-024
 DEFAULT_FEATURE_FLAGS = [
     {
