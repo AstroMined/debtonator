@@ -7,6 +7,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.60] - 2025-04-01
+
+### Fixed
+
+- Resolved SQLAlchemy metadata naming conflict by renaming to flag_metadata in feature flag system
+- Fixed validation patterns for feature flag values using model_validator
+- Updated tests to use consistent field naming across model and schema layers
+- Resolved test failures in unit, integration, and config tests for feature flags
+- Enhanced test fixtures to include proper metadata fields for feature flags
+
+### Changed
+
+- Improved model validation pattern to use Pydantic's model_validator for better field validation
+- Enhanced feature flag schema validators with more robust type checking
+- Standardized field naming across the feature flag implementation
+
+### Completed
+
+- Checked off all items in Phase 1 of ADR-024 Feature Flag System implementation
+
 ## [0.5.59] - 2025-04-01
 
 ### Added
