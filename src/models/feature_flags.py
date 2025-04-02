@@ -35,7 +35,7 @@ class FeatureFlag(BaseDBModel):
         flag_type (str): Type of flag (boolean, percentage, user_segment, time_based)
         value (JSON): Current value of the flag (format depends on flag_type)
         description (str): Human-readable description of the feature flag
-        metadata (JSON): Additional configuration data for the flag
+        flag_metadata (JSON): Additional configuration data for the flag
         is_system (bool): Whether this is a system-defined flag (protected)
     """
 
@@ -68,7 +68,7 @@ class FeatureFlag(BaseDBModel):
         doc="Human-readable description of the feature flag",
     )
     
-    metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+    flag_metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(
         JSON,
         nullable=True,
         doc="Additional configuration data for the flag",

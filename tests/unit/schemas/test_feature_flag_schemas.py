@@ -148,9 +148,9 @@ class TestFeatureFlagCreate:
             name="TEST_BOOLEAN_FLAG",
             flag_type=FeatureFlagType.BOOLEAN,
             value=True,
-            metadata={"owner": "test-team", "jira_ticket": "TEST-123"},
+            flag_metadata={"owner": "test-team", "jira_ticket": "TEST-123"},
         )
-        assert flag.metadata == {"owner": "test-team", "jira_ticket": "TEST-123"}
+        assert flag.flag_metadata == {"owner": "test-team", "jira_ticket": "TEST-123"}
 
     def test_create_system_flag(self):
         """Test creating a system flag."""
@@ -237,8 +237,8 @@ class TestFeatureFlagUpdate:
 
     def test_update_metadata(self):
         """Test updating a flag's metadata."""
-        update = FeatureFlagUpdate(metadata={"owner": "new-team"})
-        assert update.metadata == {"owner": "new-team"}
+        update = FeatureFlagUpdate(flag_metadata={"owner": "new-team"})
+        assert update.flag_metadata == {"owner": "new-team"}
 
     def test_update_flag_type(self):
         """Test updating a flag's type."""
@@ -250,18 +250,18 @@ class TestFeatureFlagUpdate:
         update = FeatureFlagUpdate(
             value=False,
             description="Updated description",
-            metadata={"owner": "new-team"},
+            flag_metadata={"owner": "new-team"},
         )
         assert update.value is False
         assert update.description == "Updated description"
-        assert update.metadata == {"owner": "new-team"}
+        assert update.flag_metadata == {"owner": "new-team"}
 
     def test_empty_update(self):
         """Test that an empty update is valid."""
         update = FeatureFlagUpdate()
         assert update.value is None
         assert update.description is None
-        assert update.metadata is None
+        assert update.flag_metadata is None
         assert update.flag_type is None
 
     def test_validate_value_for_type(self):
@@ -288,7 +288,7 @@ class TestFeatureFlagResponse:
             flag_type=FeatureFlagType.BOOLEAN,
             value=True,
             description="Test flag",
-            metadata={"owner": "test-team"},
+            flag_metadata={"owner": "test-team"},
             is_system=False,
             created_at=now,
             updated_at=now,
@@ -297,7 +297,7 @@ class TestFeatureFlagResponse:
         assert response.flag_type == FeatureFlagType.BOOLEAN
         assert response.value is True
         assert response.description == "Test flag"
-        assert response.metadata == {"owner": "test-team"}
+        assert response.flag_metadata == {"owner": "test-team"}
         assert response.is_system is False
         assert response.created_at == now
         assert response.updated_at == now
@@ -316,7 +316,7 @@ class TestFeatureFlagResponse:
         assert response.flag_type == FeatureFlagType.BOOLEAN
         assert response.value is True
         assert response.description is None
-        assert response.metadata is None
+        assert response.flag_metadata is None
         assert response.is_system is False
         assert response.created_at == now
         assert response.updated_at == now

@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union, Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 
 from src.schemas.base_schema import BaseSchemaValidator
 
@@ -37,8 +37,9 @@ class FeatureFlagBase(BaseSchemaValidator):
     name: str = Field(
         ...,
         description="Unique identifier for the feature flag",
-        pattern=r"^[A-Z][A-Z0-9_]+$",  # UPPERCASE_WITH_UNDERSCORES
+        # Document pattern without automatic validation
         examples=["BANKING_ACCOUNT_TYPES_ENABLED", "MULTI_CURRENCY_SUPPORT_ENABLED"],
+        json_schema_extra={"pattern": "^[A-Z][A-Z0-9_]+$"},  # For documentation only
     )
     
     description: Optional[str] = Field(
@@ -81,7 +82,7 @@ class FeatureFlagCreate(FeatureFlagBase):
         examples=[True, 50, ["admin", "beta"], {"start_time": "2025-04-01T00:00:00Z"}],
     )
     
-    metadata: Optional[Dict[str, Any]] = Field(
+    flag_metadata: Optional[Dict[str, Any]] = Field(
         None,
         description="Additional configuration data for the flag",
         examples=[{"owner": "backend-team", "jira_ticket": "DEBT-123"}],
@@ -92,32 +93,33 @@ class FeatureFlagCreate(FeatureFlagBase):
         description="Whether this is a system-defined flag (protected)",
     )
     
-    @field_validator("value")
-    @classmethod
-    def validate_value_for_type(cls, v: Any, info) -> Any:
-        """Validate that the value matches the expected format for the flag type."""
-        values = info.data
-        flag_type = values.get("flag_type")
+    @model_validator(mode='after')
+    def validate_value_for_type(self) -> 'FeatureFlagCreate':
+        """Validate that value matches the expected format for the flag type."""
+        if self.flag_type is None:
+            return self
+            
+        flag_type_str = self.flag_type.value if hasattr(self.flag_type, 'value') else str(self.flag_type)
         
-        if not flag_type:
-            return v
-            
-        if flag_type == FeatureFlagType.BOOLEAN and not isinstance(v, bool):
-            raise ValueError("Boolean flag value must be a boolean")
-            
-        if flag_type == FeatureFlagType.PERCENTAGE:
-            if not isinstance(v, int) and not isinstance(v, float):
+        if flag_type_str == FeatureFlagType.BOOLEAN.value:
+            if not isinstance(self.value, bool):
+                raise ValueError("Boolean flag value must be a boolean")
+        
+        elif flag_type_str == FeatureFlagType.PERCENTAGE.value:
+            if not isinstance(self.value, (int, float)):
                 raise ValueError("Percentage flag value must be a number")
-            if v < 0 or v > 100:
+            if self.value < 0 or self.value > 100:
                 raise ValueError("Percentage flag value must be between 0 and 100")
-                
-        if flag_type == FeatureFlagType.USER_SEGMENT and not isinstance(v, list):
-            raise ValueError("User segment flag value must be a list of segments")
+        
+        elif flag_type_str == FeatureFlagType.USER_SEGMENT.value:
+            if not isinstance(self.value, list):
+                raise ValueError("User segment flag value must be a list of segments")
+        
+        elif flag_type_str == FeatureFlagType.TIME_BASED.value:
+            if not isinstance(self.value, dict):
+                raise ValueError("Time-based flag value must be a dictionary with start/end times")
             
-        if flag_type == FeatureFlagType.TIME_BASED and not isinstance(v, dict):
-            raise ValueError("Time-based flag value must be a dictionary with start/end times")
-            
-        return v
+        return self
 
 
 class FeatureFlagUpdate(BaseSchemaValidator):
@@ -139,7 +141,7 @@ class FeatureFlagUpdate(BaseSchemaValidator):
         description="New value for the feature flag",
     )
     
-    metadata: Optional[Dict[str, Any]] = Field(
+    flag_metadata: Optional[Dict[str, Any]] = Field(
         None,
         description="Updated metadata for the flag",
     )
@@ -149,35 +151,33 @@ class FeatureFlagUpdate(BaseSchemaValidator):
         description="Type of feature flag (if changing the flag type)",
     )
     
-    @field_validator("value")
-    @classmethod
-    def validate_update_value(cls, v: Any, info) -> Any:
-        """Validate updated value against flag_type if both are provided."""
-        values = info.data
-        flag_type = values.get("flag_type")
+    @model_validator(mode='after')
+    def validate_value_for_type(self) -> 'FeatureFlagUpdate':
+        """Validate that value matches the expected format for the flag type."""
+        if self.value is None or self.flag_type is None:
+            return self
+            
+        flag_type_str = self.flag_type.value if hasattr(self.flag_type, 'value') else str(self.flag_type)
         
-        if v is None or flag_type is None:
-            return v
-            
-        # Reuse the same validation logic from FeatureFlagCreate
-        # This is a simplified version - in a real implementation, you might
-        # want to extract this to a shared function
-        if flag_type == FeatureFlagType.BOOLEAN and not isinstance(v, bool):
-            raise ValueError("Boolean flag value must be a boolean")
-            
-        if flag_type == FeatureFlagType.PERCENTAGE:
-            if not isinstance(v, int) and not isinstance(v, float):
+        if flag_type_str == FeatureFlagType.BOOLEAN.value:
+            if not isinstance(self.value, bool):
+                raise ValueError("Boolean flag value must be a boolean")
+        
+        elif flag_type_str == FeatureFlagType.PERCENTAGE.value:
+            if not isinstance(self.value, (int, float)):
                 raise ValueError("Percentage flag value must be a number")
-            if v < 0 or v > 100:
+            if self.value < 0 or self.value > 100:
                 raise ValueError("Percentage flag value must be between 0 and 100")
-                
-        if flag_type == FeatureFlagType.USER_SEGMENT and not isinstance(v, list):
-            raise ValueError("User segment flag value must be a list of segments")
+        
+        elif flag_type_str == FeatureFlagType.USER_SEGMENT.value:
+            if not isinstance(self.value, list):
+                raise ValueError("User segment flag value must be a list of segments")
+        
+        elif flag_type_str == FeatureFlagType.TIME_BASED.value:
+            if not isinstance(self.value, dict):
+                raise ValueError("Time-based flag value must be a dictionary with start/end times")
             
-        if flag_type == FeatureFlagType.TIME_BASED and not isinstance(v, dict):
-            raise ValueError("Time-based flag value must be a dictionary with start/end times")
-            
-        return v
+        return self
 
 
 class FeatureFlagResponse(FeatureFlagBase):
@@ -198,7 +198,7 @@ class FeatureFlagResponse(FeatureFlagBase):
         description="Current value of the feature flag",
     )
     
-    metadata: Optional[Dict[str, Any]] = Field(
+    flag_metadata: Optional[Dict[str, Any]] = Field(
         None,
         description="Additional configuration data for the flag",
     )

@@ -221,7 +221,16 @@ class FeatureFlagRegistry:
                     try:
                         observer.flag_changed(flag_name, old_value, value)
                     except Exception as e:
-                        logger.error(f"Error notifying observer about flag change: {e}")
+                        logger.error(
+                            f"Error notifying observer about flag change: {e}",
+                            exc_info=True,  # Include stack trace for better debugging
+                            extra={
+                                "flag_name": flag_name,
+                                "old_value": old_value,
+                                "new_value": value,
+                                "observer": observer.__class__.__name__
+                            }
+                        )
     
     def get_all_flags(self) -> Dict[str, Dict[str, Any]]:
         """

@@ -186,7 +186,7 @@ This checklist serves as a comprehensive verification tool for ensuring code qua
 - [ ] Tests create data through Pydantic schemas before passing to repositories
 - [ ] Tests convert schemas to dictionaries using `model_dump()` before repository calls
 - [ ] Tests never pass raw dictionaries directly to repository methods
-- [ ] Tests follow strict No Mocks Policy (no unittest.mock or MagicMock usage)
+- [ ] Tests follow strict No Mocks Policy (no unittest.mock, MagicMock, or monkeypatch usage)
 
 ### Schema Testing
 
@@ -201,7 +201,7 @@ This checklist serves as a comprehensive verification tool for ensuring code qua
 - [ ] Tests verify service business rules
 - [ ] Tests cover error handling and edge cases
 - [ ] Tests use real repositories with test database fixtures
-- [ ] Tests never use unittest.mock or MagicMock
+- [ ] Tests never use unittest.mock, MagicMock, or monkeypatch
 
 ### Integration Tests
 

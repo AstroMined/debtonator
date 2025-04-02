@@ -9,6 +9,7 @@ The repository is a core component of the Feature Flag System defined in ADR-024
 """
 
 from typing import Any, Dict, List, Optional, Tuple, Union
+from datetime import datetime
 
 from src.utils.datetime_utils import ensure_utc, utc_now
 
@@ -135,6 +136,10 @@ class FeatureFlagRepository(BaseRepository[FeatureFlag, str]):
                     f"Must be one of: {valid_types}"
                 )
         
+        # Convert any metadata field to flag_metadata for the model
+        if "metadata" in data_dict:
+            data_dict["flag_metadata"] = data_dict.pop("metadata")
+            
         # Create the feature flag
         flag = FeatureFlag(**data_dict)
         self.session.add(flag)
@@ -185,9 +190,30 @@ class FeatureFlagRepository(BaseRepository[FeatureFlag, str]):
                     f"Must be one of: {valid_types}"
                 )
         
+        # Validate datetime values in time-based flags
+        if flag.flag_type == FeatureFlagType.TIME_BASED and "value" in data_dict:
+            value = data_dict["value"]
+            if isinstance(value, dict):
+                for key, val in value.items():
+                    if isinstance(val, datetime):
+                        value[key] = ensure_utc(val)
+                    elif isinstance(val, str) and "T" in val:  # Likely ISO datetime
+                        try:
+                            dt = datetime.fromisoformat(val.replace('Z', '+00:00'))
+                            value[key] = ensure_utc(dt).isoformat()
+                        except ValueError:
+                            pass  # Not a datetime string
+        
+        # Convert any metadata field to flag_metadata for the model
+        if "metadata" in data_dict:
+            data_dict["flag_metadata"] = data_dict.pop("metadata")
+            
         # Update fields
         for key, value in data_dict.items():
             setattr(flag, key, value)
+        
+        # Ensure updated_at is set to current UTC time
+        flag.updated_at = utc_now()
         
         # Add to session and flush
         self.session.add(flag)
@@ -222,9 +248,12 @@ class FeatureFlagRepository(BaseRepository[FeatureFlag, str]):
             List of created feature flags
         """
         created_flags = []
-        for flag_data in flags:
-            flag = await self.create(flag_data)
-            created_flags.append(flag)
+        
+        # Use explicit transaction with savepoint
+        async with self.session.begin_nested():  # Creates a savepoint
+            for flag_data in flags:
+                flag = await self.create(flag_data)
+                created_flags.append(flag)
         
         return created_flags
     
@@ -239,9 +268,12 @@ class FeatureFlagRepository(BaseRepository[FeatureFlag, str]):
             List of updated feature flags (None for flags not found)
         """
         updated_flags = []
-        for name, data in updates:
-            flag = await self.update(name, data)
-            updated_flags.append(flag)
+        
+        # Use explicit transaction with savepoint
+        async with self.session.begin_nested():  # Creates a savepoint
+            for name, data in updates:
+                flag = await self.update(name, data)
+                updated_flags.append(flag)
         
         return updated_flags
     
@@ -252,12 +284,14 @@ class FeatureFlagRepository(BaseRepository[FeatureFlag, str]):
         Returns:
             Dictionary mapping flag types to counts
         """
-        result = await self.session.execute(
-            select(
-                self.model_class.flag_type,
-                func.count(self.model_class.name).label("count")
-            ).group_by(self.model_class.flag_type)
-        )
+        # Use SQLAlchemy's func with specific column
+        count_expr = func.count(self.model_class.name)
+        query = select(
+            self.model_class.flag_type,
+            count_expr.label("count")
+        ).group_by(self.model_class.flag_type)
+        
+        result = await self.session.execute(query)
         
         counts = {row[0]: row[1] for row in result.all()}
         

@@ -24,7 +24,7 @@ DEFAULT_FEATURE_FLAGS = [
         "value": False,
         "description": "Enable new banking account types from ADR-019",
         "is_system": True,
-        "metadata": {"adr": "019", "owner": "backend-team"},
+        "flag_metadata": {"adr": "019", "owner": "backend-team"},
     },
     {
         "name": "MULTI_CURRENCY_SUPPORT_ENABLED",
@@ -32,7 +32,7 @@ DEFAULT_FEATURE_FLAGS = [
         "value": False,
         "description": "Enable multi-currency support for accounts",
         "is_system": True,
-        "metadata": {"adr": "019", "owner": "backend-team"},
+        "flag_metadata": {"adr": "019", "owner": "backend-team"},
     },
     {
         "name": "INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED",
@@ -40,7 +40,7 @@ DEFAULT_FEATURE_FLAGS = [
         "value": False,
         "description": "Enable international account support (IBAN, SWIFT, etc.)",
         "is_system": True,
-        "metadata": {"adr": "019", "owner": "backend-team"},
+        "flag_metadata": {"adr": "019", "owner": "backend-team"},
     },
 ]
 

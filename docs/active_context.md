@@ -6,6 +6,18 @@ Datetime Standardization, Repository Architectural Improvements, Code Cleanup an
 
 ### Recent Changes
 
+1. **Fixed Feature Flag System SQLAlchemy Reserved Attribute Issue** ✓
+   - Resolved SQLAlchemy metadata naming conflict by renaming `metadata` field to `flag_metadata`
+   - Updated model, schema, repository, and service layers consistently 
+   - Used model_validator instead of field_validator for complex validation patterns
+   - Implemented proper validation for different flag types (boolean, percentage, user segment, time-based)
+   - Fixed all test failures in unit, integration, and config tests
+   - Updated assertion patterns to match the new field name
+   - Enhanced configuration test fixtures to include metadata
+   - Applied schema changes systematically across the codebase
+   - Used Pydantic V2 model_validator for comprehensive model validation
+   - Improved test coverage for edge cases in value validation
+
 1. **Implemented Feature Flag System Phase 1** ✓
    - Created comprehensive test suite for feature flag schemas
    - Implemented feature flag registry unit tests without mocks/monkeypatching

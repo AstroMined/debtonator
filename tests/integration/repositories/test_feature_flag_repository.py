@@ -32,7 +32,7 @@ class TestFeatureFlagRepository:
             flag_type=FeatureFlagType.BOOLEAN,
             value=True,
             description="Test boolean flag",
-            metadata={"test": "metadata"},
+            flag_metadata={"test": "metadata"},
             is_system=False,
             created_at=utc_now(),
             updated_at=utc_now(),
@@ -59,7 +59,7 @@ class TestFeatureFlagRepository:
         assert flag.flag_type == FeatureFlagType.BOOLEAN
         assert flag.value is True
         assert flag.description == "New test flag"
-        assert flag.metadata == {"owner": "test-team"}
+        assert flag.flag_metadata == {"owner": "test-team"}
         assert flag.is_system is False
         assert flag.created_at is not None
         assert flag.updated_at is not None
@@ -73,7 +73,7 @@ class TestFeatureFlagRepository:
         assert flag.flag_type == sample_flag.flag_type
         assert flag.value == sample_flag.value
         assert flag.description == sample_flag.description
-        assert flag.metadata == sample_flag.metadata
+        assert flag.flag_metadata == sample_flag.flag_metadata
         assert flag.is_system == sample_flag.is_system
 
     async def test_get_nonexistent_flag(self, repository: FeatureFlagRepository):
@@ -121,7 +121,7 @@ class TestFeatureFlagRepository:
         assert updated_flag is not None
         assert updated_flag.value is False
         assert updated_flag.description == "Updated description"
-        assert updated_flag.metadata == {"updated": True}
+        assert updated_flag.flag_metadata == {"updated": True}
         # These should remain unchanged
         assert updated_flag.name == sample_flag.name
         assert updated_flag.flag_type == sample_flag.flag_type
@@ -131,7 +131,7 @@ class TestFeatureFlagRepository:
         retrieved_flag = await repository.get(sample_flag.name)
         assert retrieved_flag.value is False
         assert retrieved_flag.description == "Updated description"
-        assert retrieved_flag.metadata == {"updated": True}
+        assert retrieved_flag.flag_metadata == {"updated": True}
 
     async def test_update_nonexistent_flag(self, repository: FeatureFlagRepository):
         """Test updating a nonexistent feature flag."""

@@ -86,7 +86,7 @@ class FeatureFlagService(FeatureFlagObserver):
                     flag_type=flag.flag_type,
                     default_value=flag.value,
                     description=flag.description,
-                    metadata=flag.metadata,
+                    metadata=flag.flag_metadata,  # Changed field name
                     is_system=flag.is_system,
                 )
             except ValueError:
@@ -101,13 +101,38 @@ class FeatureFlagService(FeatureFlagObserver):
         """
         Check if a feature flag is enabled.
         
+        This method evaluates the flag based on its type and the provided context:
+        - Boolean flags: Returns the flag's value directly
+        - Percentage flags: Determines if the user falls within the rollout percentage
+        - User segment flags: Checks if the user belongs to an enabled segment
+        - Time-based flags: Verifies if current time is within the enabled timeframe
+        
         Args:
             flag_name: Name of the feature flag to check
-            context: Optional context information for evaluating the flag
+            context: Optional context information for evaluating the flag, such as:
+              - user_id: Identifier for percentage-based flags
+              - is_admin, is_beta_tester: Status flags for segment-based targeting
+              - user_groups: List of user groups for segment-based targeting
             
         Returns:
-            True if the flag is enabled, False otherwise
+            True if the flag is enabled for the given context, False otherwise
             
+        Examples:
+            # Check a simple boolean flag
+            is_feature_enabled = service.is_enabled("NEW_DASHBOARD_ENABLED")
+            
+            # Check a percentage rollout flag with user context
+            is_enabled_for_user = service.is_enabled(
+                "GRADUAL_ROLLOUT_FEATURE", 
+                context={"user_id": "user-123"}
+            )
+            
+            # Check a user segment flag
+            is_enabled_for_admin = service.is_enabled(
+                "ADMIN_ONLY_FEATURE", 
+                context={"is_admin": True}
+            )
+        
         Note:
             If the flag doesn't exist, this returns False as a safety measure.
         """
@@ -166,13 +191,39 @@ class FeatureFlagService(FeatureFlagObserver):
         """
         Set the value of a feature flag.
         
+        This method validates the value based on the flag type and updates
+        both the in-memory registry and (optionally) the database.
+        
         Args:
             flag_name: Name of the feature flag to update
-            value: New value for the flag
+            value: New value for the flag, format depends on flag_type:
+                - BOOLEAN: Boolean true/false
+                - PERCENTAGE: Integer or float (0-100)
+                - USER_SEGMENT: List of segment names
+                - TIME_BASED: Dict with start_time/end_time keys
             persist: Whether to persist the change to the database
             
         Returns:
             True if the operation was successful, False otherwise
+            
+        Examples:
+            # Set a boolean flag
+            await service.set_value("FEATURE_X_ENABLED", True)
+            
+            # Set a percentage rollout
+            await service.set_value("FEATURE_Y_ROLLOUT", 25)  # 25% of users
+            
+            # Set user segments
+            await service.set_value("ADMIN_FEATURE", ["admin", "staff"])
+            
+            # Set time-based availability
+            await service.set_value(
+                "HOLIDAY_FEATURE", 
+                {
+                    "start_time": "2025-12-01T00:00:00Z",
+                    "end_time": "2026-01-01T00:00:00Z"
+                }
+            )
         """
         flag = self.registry.get_flag(flag_name)
         if not flag:
@@ -183,21 +234,57 @@ class FeatureFlagService(FeatureFlagObserver):
         flag_type = flag["type"]
         
         if flag_type == FeatureFlagType.BOOLEAN and not isinstance(value, bool):
-            logger.warning(f"Invalid value for boolean flag: {value}")
+            logger.warning(
+                f"Invalid value for boolean flag: {value} (type: {type(value).__name__}). "
+                f"Expected boolean value."
+            )
             return False
         
         if flag_type == FeatureFlagType.PERCENTAGE:
-            if not isinstance(value, (int, float)) or value < 0 or value > 100:
-                logger.warning(f"Invalid percentage value: {value}")
+            if not isinstance(value, (int, float)):
+                logger.warning(
+                    f"Invalid percentage value: {value} (type: {type(value).__name__}). "
+                    f"Expected number between 0 and 100."
+                )
+                return False
+            if value < 0 or value > 100:
+                logger.warning(
+                    f"Invalid percentage value: {value}. "
+                    f"Value must be between 0 and 100."
+                )
                 return False
         
         if flag_type == FeatureFlagType.USER_SEGMENT and not isinstance(value, list):
-            logger.warning(f"Invalid user segment value: {value}")
+            logger.warning(
+                f"Invalid user segment value: {value} (type: {type(value).__name__}). "
+                f"Expected list of segment names."
+            )
             return False
         
-        if flag_type == FeatureFlagType.TIME_BASED and not isinstance(value, dict):
-            logger.warning(f"Invalid time-based value: {value}")
-            return False
+        if flag_type == FeatureFlagType.TIME_BASED:
+            if not isinstance(value, dict):
+                logger.warning(
+                    f"Invalid time-based value: {value} (type: {type(value).__name__}). "
+                    f"Expected dictionary with start_time/end_time keys."
+                )
+                return False
+            
+            # Validate datetime values in time-based flags
+            if isinstance(value, dict):
+                from datetime import datetime
+                for key, val in value.items():
+                    if isinstance(val, datetime):
+                        value[key] = ensure_utc(val)
+                    elif isinstance(val, str) and "T" in val:  # Likely ISO datetime
+                        try:
+                            dt = datetime.fromisoformat(val.replace('Z', '+00:00'))
+                            value[key] = ensure_utc(dt).isoformat()
+                        except ValueError:
+                            logger.warning(
+                                f"Invalid datetime string in time-based flag: {val}. "
+                                f"Expected ISO format (YYYY-MM-DDThh:mm:ssZ)"
+                            )
+                            # Continue with original value
         
         # Update the registry
         self.registry.set_value(flag_name, value)
@@ -239,7 +326,7 @@ class FeatureFlagService(FeatureFlagObserver):
                 flag_type=flag_type,
                 default_value=flag.value,
                 description=flag.description,
-                metadata=flag.metadata,
+                metadata=flag.flag_metadata,  # Changed field name
                 is_system=flag.is_system,
             )
             
@@ -354,7 +441,7 @@ class FeatureFlagService(FeatureFlagObserver):
                 description=flag.description,
                 flag_type=flag.flag_type,
                 value=flag.value,
-                metadata=flag.metadata,
+                flag_metadata=flag.flag_metadata,  # Changed field name
                 is_system=flag.is_system,
                 created_at=ensure_utc(flag.created_at),
                 updated_at=ensure_utc(flag.updated_at),
@@ -383,7 +470,7 @@ class FeatureFlagService(FeatureFlagObserver):
             description=db_flag.description,
             flag_type=db_flag.flag_type,
             value=db_flag.value,
-            metadata=db_flag.metadata,
+            flag_metadata=db_flag.flag_metadata,  # Changed field name
             is_system=db_flag.is_system,
             created_at=ensure_utc(db_flag.created_at),
             updated_at=ensure_utc(db_flag.updated_at),
@@ -405,4 +492,12 @@ class FeatureFlagService(FeatureFlagObserver):
             typically called as a result of a direct registry update from set_value,
             which already handles persistence.
         """
-        logger.info(f"Feature flag '{flag_name}' changed: {old_value} -> {new_value}")
+        logger.info(
+            f"Feature flag '{flag_name}' changed: {old_value} -> {new_value}",
+            extra={
+                "flag_name": flag_name,
+                "old_value": old_value,
+                "new_value": new_value,
+                "source": "registry_notification"
+            }
+        )

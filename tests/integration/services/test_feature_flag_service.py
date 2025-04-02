@@ -48,6 +48,7 @@ class TestFeatureFlagService:
                 flag_type=FeatureFlagType.BOOLEAN,
                 value=True,
                 description="Test boolean flag",
+                flag_metadata={"type": "boolean"},
                 is_system=False,
                 created_at=utc_now(),
                 updated_at=utc_now(),
@@ -57,6 +58,7 @@ class TestFeatureFlagService:
                 flag_type=FeatureFlagType.PERCENTAGE,
                 value=50,
                 description="Test percentage flag",
+                flag_metadata={"type": "percentage"},
                 is_system=False,
                 created_at=utc_now(),
                 updated_at=utc_now(),
@@ -66,6 +68,7 @@ class TestFeatureFlagService:
                 flag_type=FeatureFlagType.USER_SEGMENT,
                 value=["admin", "beta"],
                 description="Test user segment flag",
+                flag_metadata={"type": "segment"},
                 is_system=False,
                 created_at=utc_now(),
                 updated_at=utc_now(),
@@ -211,7 +214,7 @@ class TestFeatureFlagService:
             flag_type=FeatureFlagType.BOOLEAN,
             value=True,
             description="New test flag",
-            metadata={"owner": "test-team"},
+            flag_metadata={"owner": "test-team"},
         )
         
         # Create the flag
@@ -231,7 +234,7 @@ class TestFeatureFlagService:
         assert db_flag is not None
         assert db_flag.value is True
         assert db_flag.description == "New test flag"
-        assert db_flag.metadata == {"owner": "test-team"}
+        assert db_flag.flag_metadata == {"owner": "test-team"}
 
     async def test_update_flag(self, service: FeatureFlagService, repository: FeatureFlagRepository):
         """Test updating an existing feature flag."""
@@ -247,7 +250,7 @@ class TestFeatureFlagService:
         update_data = {
             "value": True,
             "description": "Updated description",
-            "metadata": {"updated": True},
+            "flag_metadata": {"updated": True},
         }
         
         updated_flag = await service.update_flag("UPDATE_FLAG", update_data)
@@ -256,7 +259,7 @@ class TestFeatureFlagService:
         assert updated_flag is not None
         assert updated_flag.value is True
         assert updated_flag.description == "Updated description"
-        assert updated_flag.metadata == {"updated": True}
+        assert updated_flag.flag_metadata == {"updated": True}
         
         # Check registry was updated
         registry_flag = service.registry.get_flag("UPDATE_FLAG")
@@ -266,7 +269,7 @@ class TestFeatureFlagService:
         db_flag = await repository.get("UPDATE_FLAG")
         assert db_flag.value is True
         assert db_flag.description == "Updated description"
-        assert db_flag.metadata == {"updated": True}
+        assert db_flag.flag_metadata == {"updated": True}
 
     async def test_delete_flag(self, service: FeatureFlagService, repository: FeatureFlagRepository):
         """Test deleting a feature flag."""
