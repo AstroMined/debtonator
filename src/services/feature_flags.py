@@ -12,7 +12,6 @@ The service is a core component of the Feature Flag System defined in ADR-024.
 import logging
 from typing import Any, Dict, List, Optional, Union
 
-from src.models.feature_flags import FeatureFlag
 from src.registry.feature_flags import FeatureFlagObserver, FeatureFlagRegistry
 from src.repositories.feature_flags import FeatureFlagRepository
 from src.schemas.feature_flags import (
@@ -348,7 +347,7 @@ class FeatureFlagService(FeatureFlagObserver):
             )
 
             logger.info(f"Feature flag created: {flag.name}")
-            
+
             # Return the response object with proper timezone conversion
             return response
 

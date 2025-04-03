@@ -2,11 +2,62 @@
 
 ## Current Focus
 
-Datetime Standardization, Repository Architectural Improvements, Code Cleanup and Quality, Documentation Consolidation, Feature Flag System Implementation
+Account Type Expansion, Datetime Standardization, Feature Flag System Implementation, Documentation Consolidation, Schema Validation Standardization
 
 ### Recent Changes
 
-1. **Fixed Feature Flag UTC Datetime Validation and Registry Initialization** ✓
+1. **Implemented Banking Account Type Schemas (ADR-019)** ✓
+   - Created comprehensive schema hierarchy for all 6 banking account types
+   - Implemented CheckingAccount schema with international banking field validation
+   - Developed SavingsAccount schema with interest rate and balance validation
+   - Created CreditAccount schema with statement tracking and autopay validation
+   - Built modern financial services schemas (PaymentApp, BNPL, EWA)
+   - Added type-specific field validators with business rule enforcement
+   - Implemented discriminated union pattern using Pydantic's Annotated and Union
+   - Created proper inheritance structure for all account type schemas
+   - Documented all schemas with comprehensive field descriptions
+   - Updated ADR-019 implementation checklist with completed tasks
+
+2. **Updated Base Account Schema Architecture (ADR-016)** ✓
+   - Renamed `type` field to `account_type` for discriminator column
+   - Added support for currency and internationalization fields
+   - Implemented feature flag integration for controlled feature rollout
+   - Created validators for account type verification against registry
+   - Added fields for performance optimization (next_action_date/amount)
+   - Enhanced validation for currency and international banking fields
+   - Built comprehensive validation patterns for all field types
+   - Updated field documentation for better developer experience
+   - Aligned schema with ADR-013 (Decimal Precision) and ADR-011 (DateTime)
+   - Updated ADR-016 implementation checklist with completed items
+
+3. **Created Feature Flag Integration for Banking Types (ADR-024)** ✓
+   - Implemented banking-specific feature flag configuration module
+   - Created three feature flags for banking features:
+     - BANKING_ACCOUNT_TYPES_ENABLED for overall type availability
+     - MULTI_CURRENCY_SUPPORT_ENABLED for currency field functionality
+     - INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED for international fields
+   - Added proper environment-specific default values
+   - Created detailed feature flag documentation
+   - Updated account type registry to use feature flags for availability
+   - Added validation for feature flag-controlled fields
+   - Integrated with existing feature flag infrastructure
+   - Created proper initialization flow for feature flags
+   - Ensured graceful degradation for disabled features
+   - Updated ADR-024 implementation checklist with completed tasks
+
+4. **Enhanced Account Type Registry Integration** ✓
+   - Connected schema classes to account type registry
+   - Updated account registry initialization with schema registration
+   - Created robust account type validation against registry
+   - Implemented feature flag service integration for type availability
+   - Added metadata support for type-specific documentation
+   - Created registry-based validation for account_type field
+   - Implemented singleton pattern for consistent registry access
+   - Enhanced error messages for invalid account types
+   - Added support for getting types by category or feature
+   - Documented registry usage patterns for developers
+
+5. **Fixed Feature Flag UTC Datetime Validation and Registry Initialization** ✓
    - Fixed failure of all feature flag API tests due to improper datetime handling
    - Implemented proper UTC conversion for datetime fields in feature flag responses
    - Updated `create_flag()` and `update_flag()` to return properly formatted FeatureFlagResponse objects
@@ -16,99 +67,29 @@ Datetime Standardization, Repository Architectural Improvements, Code Cleanup an
    - Fixed bulk update operations to use responses with UTC-aware datetimes
    - Modified service interface to maintain consistent return types across all methods
 
-2. **Fixed Feature Flag System Test Failures** ✓
-   - Fixed repository dependency injection issue in feature flags
-   - Added missing environment enum value in schema validation
-   - Added validators for environment type feature flags
-   - Modified dependency functions to properly handle session dependency chains
-   - Fixed `get_feature_flag_repository` to properly pass database session
-   - Improved error handling for feature flag environment validation
-   - Resolved 422 validation errors in feature flag API endpoints
-   - Added proper support for environment-based flag types
-
-2. **Resolved Model Layer Circular References** ✓
-   - Fixed database initialization errors caused by circular imports between model files
-   - Implemented String Reference pattern for model relationships
-   - Created central model registration in models/__init__.py with proper dependency order
-   - Developed Repository-Based System Initialization pattern
-   - Created dedicated system_initialization service for seeding system data
-   - Separated database schema creation from data seeding operations
-   - Added comprehensive documentation to system_patterns.md
-   - Updated ADR-015 with implementation details
-   - Maintained architectural consistency with repository layer for all data access
-
-2. **Implemented Feature Flag System Phase 2 Dependency Integration** ✓
-   - Added `get_registry()` function to implement singleton pattern for feature flag registry
-   - Created generic repository provider in `src/api/dependencies/repositories.py`
-   - Updated `FeatureFlagService` to accept and store context parameter
-   - Fixed context integration in feature flag service
-   - Made all integration tests use correct service parameter patterns
-   - Updated API tests to use `value` field instead of deprecated `enabled` attribute
-   - Ensured proper dependency injection across all feature flag components
-   - Fixed circular imports and dependency resolution
-   - Connected registry singleton to configuration system
-   - Completed dependency work for feature flag system implementation
-
-2. **Implemented Feature Flag System Phase 1** ✓
-   - Created comprehensive test suite for feature flag schemas
-   - Implemented feature flag registry unit tests without mocks/monkeypatching
-   - Created integration tests for feature flag repository layer with real database
-   - Built integration tests for feature flag service with repository integration
-   - Implemented config tests for application initialization flow
-   - Followed Real Objects Testing Philosophy for all tests
-   - Adhered to the project's testing patterns for integration tests
-   - Established foundation for all subsequent feature flag phases
-   - Created tests for boolean, percentage, user segment, and time-based flags
-   - Designed test fixtures specific to feature flag functionality
-
-3. **Consolidated Decimal Precision Handling ADRs** ✓
-   - Combined the original ADR-013 with its update document into a single comprehensive ADR
-   - Created a clear narrative showing evolution from ConstrainedDecimal to Annotated types approach
-   - Enhanced documentation with detailed technical implementation examples
-   - Maintained complete version history from initial proposal through implementation
-   - Created archive directory for superseded ADR documents
-   - Updated changelog and version information (v0.5.58)
-
-4. **Completed ADR-011 Compliance Test Coverage** ✓
-   - Achieved 100% test coverage for schema validation layer
-   - Fixed all remaining validator method calls in test files
-   - Created targeted tests for model validation edge cases
-   - Improved test methods for datetime serialization and validation
-   - Fixed validator error assertions to match Pydantic v2 formats
-   - Enhanced test coverage for base_schema.py and validation utilities
-   - Fixed nested dictionary datetime conversion tests
-   - Created comprehensive test suite for model dynamic lookup
-   - Improved direct validator method testing patterns
-   - Consolidated test code to prevent test sprawl
-
-5. **ADR-011 Compliance Review and Test Improvements** ✓
-   - Conducted comprehensive ADR-011 compliance review for schema layer
-   - Fixed validator method signatures in test files to match current Pydantic implementation
-   - Updated test methods to properly test model validators directly
-   - Fixed error assertions to match Pydantic v2 error message formats
-   - Improved test coverage for `base_schema.py` and validator methods
-   - Fixed test failures for balance history, balance reconciliation, and payments schemas
-   - Enhanced test utilities with proper datetime_utils function usage
-   - Increased overall schema test coverage to 99%
-   - Identified and addressed validator method signature changes for compatibility
-   - Implemented consistent validation method calling patterns
-
-6. **Eliminated Circular References in Schema Layer** ✓
-   - Refactored src/schemas/categories.py to remove circular dependencies
-   - Implemented "Reference by ID + Service Composition" approach
-   - Removed ForwardRef and model_rebuild() calls for better code maintainability
-   - Created new CategoryTree and CategoryWithBillsResponse schemas for rich responses
-   - Added service layer composition methods to build rich structures at runtime
-   - Updated API endpoints to use new composition approach
-   - Updated unit tests and integration tests for new schema classes
-   - Updated schema factories to support the new structure
-   - Added implementation note to ADR-015 explaining the refactoring
-   - Complete redesign eliminates tech debt while maintaining functionality
-
 ## Next Steps
 
-1. **Complete Feature Flag System Implementation (Phases 2-8)**
-   - Implement API and Dependency Integration (Phase 2)
+1. **Complete Repository Layer for Account Types**
+   - Implement polymorphic query support in AccountRepository
+   - Create type-specific repository methods for specialized operations
+   - Implement feature flag integration in repository layer
+   - Add proper transaction handling for polymorphic operations
+   - Update integration tests for polymorphic account types
+   - Create database migration scripts for new tables
+   - Implement validation for international banking fields
+   - Add cross-currency operation support
+
+2. **Implement Service Layer for Account Types**
+   - Update AccountService to support polymorphic operations
+   - Add business rule validation for different account types
+   - Implement account lifecycle management (especially for BNPL)
+   - Add feature flag integration in service layer
+   - Create specialized error classes for account type validation
+   - Implement rich error messages for validation failures
+   - Add support for multi-currency operations
+   - Create overview methods for banking accounts
+
+3. **Complete Feature Flag System Implementation (Phases 3-8)**
    - Integrate with Repository and Service layers (Phase 3)
    - Build Feature Flag Management Interface (Phase 4)
    - Implement Monitoring and Logging (Phase 5)
@@ -116,32 +97,79 @@ Datetime Standardization, Repository Architectural Improvements, Code Cleanup an
    - Create Documentation and Training resources (Phase 7)
    - Plan Deployment and Rollout strategy (Phase 8)
 
-2. **Consolidate SQL Aggregation Patterns**
+4. **Complete Account Type API Integration**
+   - Update existing account endpoints for polymorphic support
+   - Create endpoints for listing available account types
+   - Implement specialized endpoints for banking account operations
+   - Add proper error handling for invalid account types
+   - Implement feature flag integration for API endpoints
+   - Update OpenAPI documentation for new schemas
+   - Create test suite for API endpoints
+   - Implement validation for international banking fields
+
+5. **Consolidate SQL Aggregation Patterns**
    - Audit repository methods for proper COUNT() handling with JOINs
    - Review SUM() operations for consistency with GROUP BY usage
    - Standardize date range filtering for cross-database compatibility
    - Create pattern library for common repository operations
-
-3. **Enhance Repository Documentation**
    - Document SQL aggregation patterns in repository guides
-   - Create examples for proper join handling
-   - Update existing method documentation with lessons learned
-   - Create guidance for cross-database compatibility
-
-4. **Implement Validation Layer Standardization (ADR-012)**
-   - Begin implementation of validation layer aligned with fixed tests
-   - Standardize error message handling across validation layers
-   - Create consistent pattern for Pydantic validation
-
-5. **Add Naive DateTime Scanner to CI Pipeline**
-   - Create GitHub Action for detecting naive datetime usage
-   - Integrate scanner with test runs for early detection
-   - Add quality gates to prevent introduction of new issues
-   - Create documentation for preventing naive datetime usage
 
 ## Implementation Lessons
 
-1. **Real Objects Testing Philosophy**
+1. **Polymorphic Schema Pattern with Pydantic V2**
+   - Use Literal fields to enforce discriminator values in derived schemas:
+
+   ```python
+   # Base schema allows any valid account_type
+   class AccountBase(BaseSchemaValidator):
+       account_type: str = Field(..., description="Type of account")
+   
+   # Derived schema enforces a specific account_type
+   class CheckingAccountBase(AccountBase):
+       account_type: Literal["checking"] = "checking"
+   ```
+
+   - Use Annotated with Union and Field(discriminator=) for polymorphic API schemas:
+
+   ```python
+   from typing import Annotated, Union
+   from pydantic import Field
+
+   AccountCreateUnion = Annotated[
+       Union[
+           CheckingAccountCreate,
+           SavingsAccountCreate,
+           CreditAccountCreate,
+       ],
+       Field(discriminator="account_type")
+   ]
+   ```
+
+   - With discriminated unions, client only needs to set account_type and other fields
+   - API will automatically deserialize to the correct schema class
+   - Always document discriminator field usage in schema docstrings
+
+2. **Feature Flag Layer Integration**
+   - Feature flags should be evaluated at the service layer, not directly in repositories
+   - Integration tests for feature flags should test full flow from config to database
+   - Flag values should be synchronized between registry (memory) and repository (database)
+   - Design feature flags to handle context-specific evaluation
+   - Use composition to build complex flag evaluation logic
+   - Test both enabled and disabled states for proper flag behavior
+   
+   ```python
+   # Feature flag service integration in service layer
+   def get_available_account_types(self, user_id: int) -> List[Dict[str, Any]]:
+       # Check if banking account types are enabled
+       if not self.feature_flag_service.is_enabled("BANKING_ACCOUNT_TYPES_ENABLED"):
+           # Return only basic account types if feature is disabled
+           return self.registry.get_types_by_category("Basic")
+       
+       # Return all account types when feature is enabled
+       return self.registry.get_all_types()
+   ```
+
+3. **Real Objects Testing Philosophy**
    - Never use mocks in tests - unittest.mock and MagicMock are strictly prohibited:
 
    ```python
@@ -162,7 +190,7 @@ Datetime Standardization, Repository Architectural Improvements, Code Cleanup an
    - Use real schema validation in every test
    - Integration-first approach gives higher confidence in production behavior
 
-2. **Validator Method Calling Patterns**
+4. **Validator Method Calling Patterns**
    - When testing validator methods directly, don't pass the class as first argument:
 
    ```python
@@ -178,36 +206,27 @@ Datetime Standardization, Repository Architectural Improvements, Code Cleanup an
    - Validation info objects should match Pydantic's ValidationInfo interface
    - Error assertion patterns should match Pydantic v2's error message format
 
-3. **Edge Case Testing for Schema Validators**
-   - Test both direct and normal validation paths for model validators
-   - Create synthetic objects to test field access patterns
-   - Use `object.__setattr__` to bypass initial validation for testing post-validators
-   - Check error message formats match Pydantic's actual format
-   - Avoid mocking in validator tests and prefer real objects
-   - Test fallback paths in model_validate and other methods
-   - When testing model lookup functionality, test with both `__model__` references and dynamic name-based lookups
+5. **Type-Specific Validator Methods**
+   - Implement cross-field validation using model validators:
 
-4. **SQL Aggregation Patterns**
-   - Use `func.sum(column)` with `group_by()` for proper aggregation
-   - For counting with LEFT JOINs, use `func.count(right_table.id)` instead of `func.count()`
-   - COUNT(*) counts rows even when joined columns are NULL
-   - COUNT(column) only counts non-NULL values of that column
-   - This distinction is crucial for accurate counts with OUTER JOINs
-   - Always test with empty related tables to verify correct behavior
-   - Document SQL aggregation patterns in method docstrings
+   ```python
+   @field_validator("overdraft_limit")
+   @classmethod
+   def validate_overdraft_limit(cls, value: Optional[Decimal], info: dict) -> Optional[Decimal]:
+       has_protection = info.data.get("has_overdraft_protection", False)
+       
+       if has_protection and value is None:
+           raise ValueError("Overdraft limit is required when overdraft protection is enabled")
+           
+       if not has_protection and value is not None:
+           raise ValueError("Overdraft limit cannot be set when overdraft protection is disabled")
+           
+       return value
+   ```
 
-5. **Nested Object Fields and DateTime Conversion**
-   - Top-level datetime fields are properly converted by Pydantic validators
-   - Datetime fields in nested containers may require explicit handling
-   - Prefer flat object structures when possible for better validation
-   - Test both direct field access and nested object access patterns
-   - Use composition rather than nesting for complex object structures
-   - For nested objects, consider explicit validators for each nesting level
-
-6. **Feature Flag Layer Integration**
-   - Feature flags should be evaluated at the service layer, not directly in repositories
-   - Integration tests for feature flags should test full flow from config to database
-   - Flag values should be synchronized between registry (memory) and repository (database)
-   - Design feature flags to handle context-specific evaluation
-   - Use composition to build complex flag evaluation logic
-   - Test both enabled and disabled states for proper flag behavior
+   - Validate complex business rules at the model level, not individual fields
+   - Error messages should be clear and actionable
+   - Use validation context (info.data) to access other field values
+   - Always check for None values to handle partial updates
+   - Consider the impact of concurrent validation on dependent fields
+   - Each validator should focus on a single responsibility

@@ -152,7 +152,8 @@ async def test_update_feature_flag(
 
     # Make request to update the flag
     response = await client.put(
-        f"/api/v1/feature-flags/flags/{test_boolean_flag.name}", json={"update": update_data}
+        f"/api/v1/feature-flags/flags/{test_boolean_flag.name}",
+        json={"update": update_data},
     )
 
     # Verify response
@@ -189,7 +190,9 @@ async def test_create_feature_flag(
     }
 
     # Make request to create the flag
-    response = await client.post("/api/v1/feature-flags/flags", json={"flag": flag_data})
+    response = await client.post(
+        "/api/v1/feature-flags/flags", json={"flag": flag_data}
+    )
 
     # Verify response
     assert response.status_code == 201
@@ -232,7 +235,9 @@ async def test_create_duplicate_feature_flag(
     }
 
     # Make request to create the flag
-    response = await client.post("/api/v1/feature-flags/flags", json={"flag": flag_data})
+    response = await client.post(
+        "/api/v1/feature-flags/flags", json={"flag": flag_data}
+    )
 
     # Verify response
     assert response.status_code == 409
@@ -260,7 +265,9 @@ async def test_bulk_update_feature_flags(
     }
 
     # Make request to bulk update flags
-    response = await client.post("/api/v1/feature-flags/flags/bulk", json={"updates": updates})
+    response = await client.post(
+        "/api/v1/feature-flags/flags/bulk", json={"updates": updates}
+    )
 
     # Verify response
     assert response.status_code == 200
@@ -288,7 +295,9 @@ async def test_empty_bulk_update(client: AsyncClient, env_setup):
     os.environ["ENABLE_FEATURE_FLAG_MANAGEMENT"] = "1"
 
     # Make request with empty updates
-    response = await client.post("/api/v1/feature-flags/flags/bulk", json={"updates": {}})
+    response = await client.post(
+        "/api/v1/feature-flags/flags/bulk", json={"updates": {}}
+    )
 
     # Verify response
     assert response.status_code == 400

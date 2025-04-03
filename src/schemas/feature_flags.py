@@ -125,7 +125,7 @@ class FeatureFlagCreate(FeatureFlagBase):
                 raise ValueError(
                     "Time-based flag value must be a dictionary with start/end times"
                 )
-                
+
         elif flag_type_str == FeatureFlagType.ENVIRONMENT.value:
             if not isinstance(self.value, dict):
                 raise ValueError(
@@ -201,7 +201,7 @@ class FeatureFlagUpdate(BaseSchemaValidator):
                 raise ValueError(
                     "Time-based flag value must be a dictionary with start/end times"
                 )
-                
+
         elif flag_type_str == FeatureFlagType.ENVIRONMENT.value:
             if not isinstance(self.value, dict):
                 raise ValueError(

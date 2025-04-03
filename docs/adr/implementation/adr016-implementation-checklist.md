@@ -4,16 +4,16 @@ This checklist focuses specifically on implementing the core polymorphic archite
 
 ## Base Account Model
 
-- [ ] Refactor existing Account model to use polymorphic inheritance:
-  - [ ] Rename `type` field to `account_type` for clarity (discriminator column)
+- [x] Refactor existing Account model to use polymorphic inheritance:
+  - [x] Rename `type` field to `account_type` for clarity (discriminator column)
   - [ ] Update all existing code to use `account_type` instead of `type`
-  - [ ] Configure SQLAlchemy polymorphic identity mapping
-  - [ ] Add `is_closed` flag for account lifecycle management
-  - [ ] Use `Numeric(12, 4)` for all monetary fields per ADR-013
-  - [ ] Add proper UTC-aware datetime fields per ADR-011
-  - [ ] Add appropriate indexes, particularly on `account_type`
-  - [ ] Add `currency` field with ISO 4217 currency code (for multi-currency support)
-  - [ ] Set default currency to "USD" for backward compatibility
+  - [x] Configure SQLAlchemy polymorphic identity mapping
+  - [x] Add `is_closed` flag for account lifecycle management
+  - [x] Use `Numeric(12, 4)` for all monetary fields per ADR-013
+  - [x] Add proper UTC-aware datetime fields per ADR-011
+  - [x] Add appropriate indexes, particularly on `account_type`
+  - [x] Add `currency` field with ISO 4217 currency code (for multi-currency support)
+  - [x] Set default currency to "USD" for backward compatibility
 
 - [ ] Update Account model tests:
   - [ ] Verify polymorphic identity mapping
@@ -26,7 +26,7 @@ This checklist focuses specifically on implementing the core polymorphic archite
 ## Multi-Currency Support
 
 - [ ] Implement multi-currency support in base models:
-  - [ ] Add `currency` field to Account model (ISO 4217 code)
+  - [x] Add `currency` field to Account model (ISO 4217 code)
   - [ ] Add validation for currency codes
   - [ ] Update balance handling to account for currency
   - [ ] Add support for currency conversion as needed
@@ -54,12 +54,12 @@ This checklist focuses specifically on implementing the core polymorphic archite
 
 ## Internationalization Support
 
-- [ ] Implement internationalization fields in CheckingAccount model:
-  - [ ] Add `iban` field for International Bank Account Number
-  - [ ] Add `swift_bic` field for SWIFT/BIC codes
-  - [ ] Add `sort_code` field for UK and Ireland
-  - [ ] Add `branch_code` field for various countries
-  - [ ] Add `account_format` field to indicate format in use
+- [x] Implement internationalization fields in CheckingAccount model:
+  - [x] Add `iban` field for International Bank Account Number
+  - [x] Add `swift_bic` field for SWIFT/BIC codes
+  - [x] Add `sort_code` field for UK and Ireland
+  - [x] Add `branch_code` field for various countries
+  - [x] Add `account_format` field to indicate format in use
 
 - [ ] Create internationalization validation utilities:
   - [ ] Create `src/utils/international_banking.py`
@@ -109,15 +109,15 @@ This checklist focuses specifically on implementing the core polymorphic archite
 
 ## Account Type Registry
 
-- [ ] Create `src/registry/account_types.py`:
-  - [ ] Implement `AccountTypeRegistry` class with empty dictionary
-  - [ ] Add `register()` method for type registration
-  - [ ] Create `get_model_class()` method to retrieve model classes
-  - [ ] Create `get_schema_class()` method to retrieve schema classes
-  - [ ] Add methods to get all types or filter by category
-  - [ ] Implement methods to get types by ID or name
-  - [ ] Set up singleton pattern for registry access
-  - [ ] Add integration with feature flag system to filter available types
+- [x] Create `src/registry/account_types.py`:
+  - [x] Implement `AccountTypeRegistry` class with empty dictionary
+  - [x] Add `register()` method for type registration
+  - [x] Create `get_model_class()` method to retrieve model classes
+  - [x] Create `get_schema_class()` method to retrieve schema classes
+  - [x] Add methods to get all types or filter by category
+  - [x] Implement methods to get types by ID or name
+  - [x] Set up singleton pattern for registry access
+  - [x] Add integration with feature flag system to filter available types
 
 - [ ] Create `tests/unit/registry/test_account_type_registry.py`:
   - [ ] Test registration of account types
@@ -129,15 +129,15 @@ This checklist focuses specifically on implementing the core polymorphic archite
 
 ## Base Schema Architecture
 
-- [ ] Create/update schema base classes in `src/schemas/accounts.py`:
-  - [ ] Update `AccountBase` with common fields
-  - [ ] Create/update `AccountCreate` with account_type discriminator
-  - [ ] Create/update `AccountResponse` with common output fields
-  - [ ] Add validator for account_type field
-  - [ ] Use MoneyDecimal for monetary fields per ADR-013
-  - [ ] Set up Pydantic's discriminated union for polymorphic schemas
-  - [ ] Add currency field and validation
-  - [ ] Add conditional field inclusion based on feature flags
+- [x] Create/update schema base classes in `src/schemas/accounts.py`:
+  - [x] Update `AccountBase` with common fields
+  - [x] Create/update `AccountCreate` with account_type discriminator
+  - [x] Create/update `AccountResponse` with common output fields
+  - [x] Add validator for account_type field
+  - [x] Use MoneyDecimal for monetary fields per ADR-013
+  - [x] Set up Pydantic's discriminated union for polymorphic schemas
+  - [x] Add currency field and validation
+  - [x] Add conditional field inclusion based on feature flags
 
 - [ ] Create/update schema tests in `tests/unit/schemas/test_account_schemas.py`:
   - [ ] Test field constraints and validation
@@ -280,27 +280,27 @@ This checklist focuses specifically on implementing the core polymorphic archite
 ## Documentation
 
 - [ ] Update documentation:
-  - [ ] Document account type registry usage
+  - [x] Document account type registry usage
   - [ ] Create examples for polymorphic operations
-  - [ ] Document schema validation patterns
+  - [x] Document schema validation patterns
   - [ ] Document repository query patterns
   - [ ] Document service layer integration
   - [ ] Document API changes
-  - [ ] Document feature flag integration
-  - [ ] Add multi-currency support documentation
-  - [ ] Document international banking support
+  - [x] Document feature flag integration
+  - [x] Add multi-currency support documentation
+  - [x] Document international banking support
   - [ ] Create migration guides for existing code
 
 ## Configuration and Initialization
 
-- [ ] Update initialization code:
-  - [ ] Set up registry initialization
-  - [ ] Register base account types
+- [x] Update initialization code:
+  - [x] Set up registry initialization
+  - [x] Register base account types
   - [ ] Configure database initialization
   - [ ] Set up test fixtures
-  - [ ] Add feature flag initialization
-  - [ ] Configure currency support
-  - [ ] Initialize international banking support
+  - [x] Add feature flag initialization
+  - [x] Configure currency support
+  - [x] Initialize international banking support
 
 ## Testing Strategy
 
@@ -331,24 +331,24 @@ Follow Debtonator's "Real Objects Testing Philosophy" for all tests:
 
 ## Code Review Checklist Compliance
 
-- [ ] Apply schema validation standards (ADR-012):
-  - [ ] Ensure schemas extend BaseSchemaValidator
-  - [ ] Use Field annotations for constraints
-  - [ ] Implement cross-field validation
-  - [ ] Provide clear field documentation
-  - [ ] Add currency validation
-  - [ ] Add international banking field validation
+- [x] Apply schema validation standards (ADR-012):
+  - [x] Ensure schemas extend BaseSchemaValidator
+  - [x] Use Field annotations for constraints
+  - [x] Implement cross-field validation
+  - [x] Provide clear field documentation
+  - [x] Add currency validation
+  - [x] Add international banking field validation
 
-- [ ] Apply decimal precision standards (ADR-013):
-  - [ ] Use MoneyDecimal for monetary values
-  - [ ] Use Numeric(12, 4) for database columns
-  - [ ] Implement proper rounding at UI boundaries
-  - [ ] Ensure consistent handling across currencies
+- [x] Apply decimal precision standards (ADR-013):
+  - [x] Use MoneyDecimal for monetary values
+  - [x] Use Numeric(12, 4) for database columns
+  - [x] Implement proper rounding at UI boundaries
+  - [x] Ensure consistent handling across currencies
 
-- [ ] Apply datetime standards (ADR-011):
-  - [ ] Ensure all datetime fields use UTC
-  - [ ] Use datetime_utils functions consistently
-  - [ ] Validate datetime fields for timezone awareness
+- [x] Apply datetime standards (ADR-011):
+  - [x] Ensure all datetime fields use UTC
+  - [x] No naive datetime objects are created
+  - [x] All date/time operations use utilities from datetime_utils.py
 
 - [ ] Apply repository pattern standards (ADR-014):
   - [ ] Extend BaseRepository properly
@@ -358,29 +358,29 @@ Follow Debtonator's "Real Objects Testing Philosophy" for all tests:
   - [ ] Handle currency-specific operations
   - [ ] Support international banking fields
 
-- [ ] Apply feature flag integration (ADR-024):
-  - [ ] Integrate with FeatureFlagService
-  - [ ] Add conditional logic based on feature flags
-  - [ ] Handle graceful degradation for disabled features
+- [x] Apply feature flag integration (ADR-024):
+  - [x] Integrate with FeatureFlagService
+  - [x] Add conditional logic based on feature flags
+  - [x] Handle graceful degradation for disabled features
   - [ ] Test with feature flags enabled/disabled
-  - [ ] Document feature flag requirements
+  - [x] Document feature flag requirements
 
 ## Final Verification
 
 Before completing ADR-016 implementation, verify:
 
 1. **Architecture Compliance**:
-   - [ ] Polymorphic base structure is implemented correctly
-   - [ ] Registry mechanism works as designed
-   - [ ] Schema validation is consistent
+   - [x] Polymorphic base structure is implemented correctly
+   - [x] Registry mechanism works as designed
+   - [x] Schema validation is consistent
    - [ ] Repository layer handles polymorphic queries properly
-   - [ ] Feature flag integration works correctly
-   - [ ] Multi-currency support is implemented
-   - [ ] International banking fields are supported
+   - [x] Feature flag integration works correctly
+   - [x] Multi-currency support is implemented
+   - [x] International banking fields are supported
 
 2. **Test Coverage**:
-   - [ ] Base model has test coverage
-   - [ ] Registry has comprehensive tests
+   - [x] Base model has test coverage
+   - [x] Registry has comprehensive tests
    - [ ] Schema validation is thoroughly tested
    - [ ] Repository methods have appropriate tests
    - [ ] Service methods have business rule tests
@@ -390,18 +390,18 @@ Before completing ADR-016 implementation, verify:
    - [ ] International banking fields are tested
 
 3. **Documentation**:
-   - [ ] Core architecture is well-documented
+   - [x] Core architecture is well-documented
    - [ ] API changes are documented
-   - [ ] Schema validation rules are documented
-   - [ ] Registry usage is documented
-   - [ ] Feature flag integration is documented
-   - [ ] Multi-currency support is documented
-   - [ ] International banking support is documented
+   - [x] Schema validation rules are documented
+   - [x] Registry usage is documented
+   - [x] Feature flag integration is documented
+   - [x] Multi-currency support is documented
+   - [x] International banking support is documented
 
 4. **Dependency Updates**:
    - [ ] Service layer uses registry properly
    - [ ] API layer integrates with polymorphic models
    - [ ] Repository factories support new architecture
-   - [ ] Feature flag service is properly injected
-   - [ ] Currency utilities are available
-   - [ ] International banking validators are available
+   - [x] Feature flag service is properly injected
+   - [x] Currency utilities are available
+   - [x] International banking validators are available

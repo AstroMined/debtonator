@@ -66,13 +66,14 @@ def test_detect_environment_default(env_setup, monkeypatch):
     """Test environment detection with default values."""
     # No environment variable set, should default to development
     os.environ.clear()  # Clear any existing env vars
-    
+
     # Temporarily patch sys.modules to remove pytest for this test
     import sys
+
     original_modules = sys.modules.copy()
-    if 'pytest' in sys.modules:
-        monkeypatch.delitem(sys.modules, 'pytest')
-        
+    if "pytest" in sys.modules:
+        monkeypatch.delitem(sys.modules, "pytest")
+
     try:
         # Now detect_environment should return DEVELOPMENT as default
         assert detect_environment() == Environment.DEVELOPMENT
@@ -95,10 +96,11 @@ def test_detect_environment_from_env_var(env_setup, monkeypatch):
 
     # Temporarily patch sys.modules to remove pytest for this test
     import sys
+
     original_modules = sys.modules.copy()
-    if 'pytest' in sys.modules:
-        monkeypatch.delitem(sys.modules, 'pytest')
-    
+    if "pytest" in sys.modules:
+        monkeypatch.delitem(sys.modules, "pytest")
+
     try:
         for env_name, expected in env_cases:
             # Set real environment variable for testing

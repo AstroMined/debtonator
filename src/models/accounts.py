@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
 
-from sqlalchemy import DateTime, Index, Numeric, String
+from sqlalchemy import Boolean, DateTime, Index, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models.base_model import BaseDBModel
@@ -12,12 +12,17 @@ class Account(BaseDBModel):
     """
     Account model representing a financial account.
 
+    This is a polymorphic base class using SQLAlchemy's joined table inheritance.
+    The account_type field acts as the discriminator to determine the concrete type.
+
     This is a pure data structure model with no business logic (ADR-012 compliant).
     All business logic, such as available_credit calculations and validation,
     is handled by the AccountService.
 
     All datetime fields are stored as naive datetimes in UTC (ADR-011 compliant).
     Timezone validation is enforced through Pydantic schemas.
+
+    Implemented as part of ADR-016 Account Type Expansion.
     """
 
     __tablename__ = "accounts"
@@ -25,10 +30,10 @@ class Account(BaseDBModel):
     # Primary key and basic fields
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
-    type: Mapped[str] = mapped_column(
+    account_type: Mapped[str] = mapped_column(
         String(20),
         nullable=False,
-        comment="Type of account (credit, checking, savings)",
+        comment="Type of account - discriminator for polymorphic identity",
     )
     description: Mapped[Optional[str]] = mapped_column(
         String(255),
@@ -37,24 +42,44 @@ class Account(BaseDBModel):
     )
 
     # Balance and credit fields
+    current_balance: Mapped[Decimal] = mapped_column(
+        Numeric(12, 4), nullable=False, default=0, comment="Current balance"
+    )
     available_balance: Mapped[Decimal] = mapped_column(
-        Numeric(12, 4), nullable=False, default=0, comment="Current available balance"
-    )
-    available_credit: Mapped[Optional[Decimal]] = mapped_column(
-        Numeric(12, 4), nullable=True, comment="Available credit for credit accounts"
-    )
-    total_limit: Mapped[Optional[Decimal]] = mapped_column(
-        Numeric(12, 4), nullable=True, comment="Total credit limit for credit accounts"
+        Numeric(12, 4), nullable=False, default=0, comment="Available balance"
     )
 
-    # Statement fields
-    last_statement_balance: Mapped[Optional[Decimal]] = mapped_column(
-        Numeric(12, 4), nullable=True, comment="Balance from last statement"
+    # New fields for ADR-016
+    institution: Mapped[Optional[str]] = mapped_column(
+        String(100), nullable=True, comment="Financial institution for the account"
     )
-    last_statement_date: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(),  # No timezone parameter - enforced by schema
+    currency: Mapped[str] = mapped_column(
+        String(3),
+        nullable=False,
+        default="USD",
+        comment="ISO 4217 currency code (e.g., USD, EUR, GBP)",
+    )
+    is_closed: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, comment="Whether the account is closed"
+    )
+    account_number: Mapped[Optional[str]] = mapped_column(
+        String(50), nullable=True, comment="Account number (may be masked for security)"
+    )
+    url: Mapped[Optional[str]] = mapped_column(
+        String(255), nullable=True, comment="URL for the account's web portal"
+    )
+    logo_path: Mapped[Optional[str]] = mapped_column(
+        String(255), nullable=True, comment="Path to the account's logo image"
+    )
+
+    # Action tracking for performance optimization
+    next_action_date: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(),
         nullable=True,
-        doc="UTC timestamp of the last statement date",
+        comment="Date of next required action (payment due, etc.)",
+    )
+    next_action_amount: Mapped[Optional[Decimal]] = mapped_column(
+        Numeric(12, 4), nullable=True, comment="Amount associated with next action"
     )
 
     # Relationships
@@ -98,8 +123,22 @@ class Account(BaseDBModel):
         "BalanceHistory", back_populates="account", cascade="all, delete-orphan"
     )
 
+    # SQLAlchemy polymorphic mapping
+    __mapper_args__ = {
+        "polymorphic_identity": "account",
+        "polymorphic_on": account_type,
+    }
+
     # Create indexes for efficient lookups
-    __table_args__ = (Index("idx_accounts_name", "name"),)
+    __table_args__ = (
+        Index("idx_accounts_name", "name"),
+        Index("idx_accounts_type", account_type),
+        Index("idx_accounts_user_type", "user_id", account_type),
+        Index("idx_accounts_is_closed", is_closed),
+    )
 
     def __repr__(self) -> str:
-        return f"<Account {self.name}>"
+        return f"<Account(id={self.id}, name={self.name}, type={self.account_type})>"
+
+
+# Concrete account type models will be implemented in separate files as part of ADR-019

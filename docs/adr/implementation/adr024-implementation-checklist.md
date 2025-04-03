@@ -109,27 +109,28 @@ This checklist outlines the specific tasks required to implement the Feature Fla
 
 ## Phase 2: API and Dependency Integration
 
-### 2.1 API Endpoints
+### 2.1 API Endpoints ✅
 
-- [ ] Create `src/api/endpoints/feature_flags.py`:
-  - [ ] Implement GET endpoint to list all flags
-  - [ ] Implement GET endpoint to get specific flag
-  - [ ] Implement POST endpoint to update flag value
-  - [ ] Implement endpoint for bulk updates
-  - [ ] Add comprehensive error handling
-  - [ ] Implement proper HTTP status codes
+- [x] Create `src/api/v1/feature_flags.py`:
+  - [x] Implement GET endpoint to list all flags
+  - [x] Implement GET endpoint to get specific flag
+  - [x] Implement PUT endpoint to update flag value
+  - [x] Implement POST endpoint to create new flags
+  - [x] Implement endpoint for bulk updates
+  - [x] Add comprehensive error handling
+  - [x] Implement proper HTTP status codes
 
-- [ ] Update `src/api/api.py` to include feature flag routes:
-  - [ ] Add feature flag router to API
-  - [ ] Apply admin-only middleware to routes
-  - [ ] Configure route prefix and tags
+- [x] Update `src/api/v1/__init__.py` to include feature flag routes:
+  - [x] Add feature flag router to API
+  - [x] Apply admin-only middleware to routes
+  - [x] Configure route prefix and tags
 
-- [ ] Create `tests/integration/api/test_feature_flag_endpoints.py`:
-  - [ ] Test listing all flags
-  - [ ] Test getting specific flag
-  - [ ] Test updating flag value
-  - [ ] Test bulk updates
-  - [ ] Test error handling and status codes
+- [x] Create `tests/integration/api/v1/test_feature_flags_api.py`:
+  - [x] Test listing all flags
+  - [x] Test getting specific flag
+  - [x] Test updating flag value
+  - [x] Test bulk updates
+  - [x] Test error handling and status codes
 
 ### 2.2 Dependency Injection ✅
 
@@ -303,16 +304,16 @@ This checklist outlines the specific tasks required to implement the Feature Fla
 
 ### 6.1 Banking Account Types Flag Integration
 
-- [ ] Create `BANKING_ACCOUNT_TYPES_ENABLED` flag:
-  - [ ] Register flag in configuration
-  - [ ] Configure default values per environment
-  - [ ] Document purpose and usage
+- [x] Create `BANKING_ACCOUNT_TYPES_ENABLED` flag:
+  - [x] Register flag in configuration
+  - [x] Configure default values per environment
+  - [x] Document purpose and usage
 
-- [ ] Integrate with account type registry:
-  - [ ] Add flag check to account type registration
-  - [ ] Update available types based on flag
-  - [ ] Add flag check to account creation
-  - [ ] Update account type validation
+- [x] Integrate with account type registry:
+  - [x] Add flag check to account type registration
+  - [x] Update available types based on flag
+  - [x] Add flag check to account creation
+  - [x] Update account type validation
 
 - [ ] Update API behavior:
   - [ ] Filter available account types based on flag
@@ -327,14 +328,14 @@ This checklist outlines the specific tasks required to implement the Feature Fla
 
 ### 6.2 Multi-Currency Support Flag Integration
 
-- [ ] Create `MULTI_CURRENCY_SUPPORT_ENABLED` flag:
-  - [ ] Register flag in configuration
-  - [ ] Configure default values per environment
-  - [ ] Document purpose and usage
+- [x] Create `MULTI_CURRENCY_SUPPORT_ENABLED` flag:
+  - [x] Register flag in configuration
+  - [x] Configure default values per environment
+  - [x] Document purpose and usage
 
-- [ ] Integrate with account models:
-  - [ ] Add flag check to account schema validation
-  - [ ] Update model behavior based on flag
+- [x] Integrate with account models:
+  - [x] Add flag check to account schema validation
+  - [x] Update model behavior based on flag
   - [ ] Add flag check to currency operations
   - [ ] Update repository queries
 
@@ -351,14 +352,14 @@ This checklist outlines the specific tasks required to implement the Feature Fla
 
 ### 6.3 International Account Support Flag Integration
 
-- [ ] Create `INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED` flag:
-  - [ ] Register flag in configuration
-  - [ ] Configure default values per environment
-  - [ ] Document purpose and usage
+- [x] Create `INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED` flag:
+  - [x] Register flag in configuration
+  - [x] Configure default values per environment
+  - [x] Document purpose and usage
 
-- [ ] Integrate with account models:
-  - [ ] Add flag check to account schema validation
-  - [ ] Update model behavior based on flag
+- [x] Integrate with account models:
+  - [x] Add flag check to account schema validation
+  - [x] Update model behavior based on flag
   - [ ] Add flag check to international field operations
   - [ ] Update repository queries
 

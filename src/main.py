@@ -3,9 +3,9 @@ import logging
 from decimal import Decimal
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 
 # Import all models to ensure they are registered
@@ -13,10 +13,10 @@ from .api.base import api_router
 from .api.response_formatter import format_response
 from .database.base import Base
 from .database.database import engine, get_db
-from .utils.feature_flags.feature_flags import get_registry
 from .repositories.feature_flags import FeatureFlagRepository
 from .services.feature_flags import FeatureFlagService
 from .utils.config import settings
+from .utils.feature_flags.feature_flags import get_registry
 
 
 # Create tables
@@ -38,6 +38,7 @@ app = FastAPI(
 # Configure logger
 logger = logging.getLogger(__name__)
 
+
 # Add validation error handlers for debugging
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -49,19 +50,16 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         body_str = body.decode() if body else "No body"
     except Exception as e:
         body_str = f"Error reading body: {str(e)}"
-    
+
     logger.error(f"Request validation error: {exc.errors()}")
     logger.error(f"Request path: {request.url.path}")
     logger.error(f"Request body: {body_str}")
-    
+
     return JSONResponse(
         status_code=422,
-        content={
-            "detail": exc.errors(),
-            "path": request.url.path,
-            "body": body_str
-        },
+        content={"detail": exc.errors(), "path": request.url.path, "body": body_str},
     )
+
 
 @app.exception_handler(ValidationError)
 async def pydantic_validation_exception_handler(request: Request, exc: ValidationError):
@@ -70,7 +68,7 @@ async def pydantic_validation_exception_handler(request: Request, exc: Validatio
     """
     logger.error(f"Pydantic validation error: {exc}")
     logger.error(f"Request path: {request.url.path}")
-    
+
     return JSONResponse(
         status_code=422,
         content={
@@ -78,6 +76,7 @@ async def pydantic_validation_exception_handler(request: Request, exc: Validatio
             "path": request.url.path,
         },
     )
+
 
 # Configure CORS
 app.add_middleware(
@@ -149,7 +148,7 @@ for route in app.routes:
 async def startup_event():
     # Create database tables
     await create_tables()
-    
+
     # Initialize feature flag registry from database
     async for db_session in get_db():
         try:
@@ -157,7 +156,7 @@ async def startup_event():
             repository = FeatureFlagRepository(db_session)
             registry = get_registry()
             service = FeatureFlagService(registry=registry, repository=repository)
-            
+
             # Initialize service to load flags from database into registry
             await service.initialize()
             logger.info("Feature flag registry initialized from database")

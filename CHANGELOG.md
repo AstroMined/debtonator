@@ -7,6 +7,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.65] - 2025-04-03
+
+### Added
+
+- Implemented banking account type schemas with comprehensive validation (ADR-019)
+- Added six new account types: CheckingAccount, SavingsAccount, CreditAccount, PaymentAppAccount, BNPLAccount, EWAAccount
+- Created banking-specific feature flags for controlled rollout of new account types
+- Implemented discriminated union pattern for polymorphic API schemas
+- Added support for multi-currency operations in account schemas
+- Added international banking field validation for CheckingAccount
+
+### Changed
+
+- Enhanced account type registry to include schema classes and feature flag integration
+- Renamed 'type' field to 'account_type' for better schema clarity
+- Updated base account schema with performance optimization fields
+- Added validators for currency and international banking fields
+
+### Fixed
+
+- Updated ADR-016, ADR-019, and ADR-024 implementation checklists to reflect current progress
+
+### Technical
+
+- Used Pydantic's Annotated and Union approach for discriminated unions
+- Implemented proper inheritance structure for all account schemas
+- Integrated with existing feature flag system for conditional functionality
+- Added documentation for polymorphic schema pattern with Pydantic V2
+
 ## [0.5.64] - 2025-04-03
 
 ### Fixed

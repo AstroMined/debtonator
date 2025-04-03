@@ -6,16 +6,16 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 
 ### 1.1 Banking Account Types Feature Flag
 
-- [ ] Integrate with the feature flag system from ADR-024:
-  - [ ] Add dependency on feature flag service in relevant components
-  - [ ] Implement conditional logic for banking account types
-  - [ ] Add feature flag checks before exposing new account types
-  - [ ] Add proper error handling for disabled features
+- [x] Integrate with the feature flag system from ADR-024:
+  - [x] Add dependency on feature flag service in relevant components
+  - [x] Implement conditional logic for banking account types
+  - [x] Add feature flag checks before exposing new account types
+  - [x] Add proper error handling for disabled features
 
-- [ ] Add specific feature flag for banking account types:
-  - [ ] Use `BANKING_ACCOUNT_TYPES_ENABLED` flag from feature flag registry
-  - [ ] Configure default value (false in production)
-  - [ ] Document feature flag usage in code
+- [x] Add specific feature flag for banking account types:
+  - [x] Use `BANKING_ACCOUNT_TYPES_ENABLED` flag from feature flag registry
+  - [x] Configure default value (false in production)
+  - [x] Document feature flag usage in code
 
 **Verification:**
 - Integration with feature flag system is working correctly
@@ -33,12 +33,12 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 
 ### 2.1 Base Account Model Enhancements
 
-- [ ] Update Account model to include currency field for international support
-- [ ] Add next_action_date and next_action_amount fields for performance optimization
-- [ ] Ensure all date fields use timezone-aware DateTime as per ADR-011
-- [ ] Verify Account model includes is_closed field with default=False
-- [ ] Add appropriate indexes to the Account model (account_type, user_id, is_closed)
-- [ ] Add composite index on (user_id, account_type) for frequent queries
+- [x] Update Account model to include currency field for international support
+- [x] Add next_action_date and next_action_amount fields for performance optimization
+- [x] Ensure all date fields use timezone-aware DateTime as per ADR-011
+- [x] Verify Account model includes is_closed field with default=False
+- [x] Add appropriate indexes to the Account model (account_type, user_id, is_closed)
+- [x] Add composite index on (user_id, account_type) for frequent queries
 
 **Verification:**
 - Database migration script creates appropriate columns
@@ -54,16 +54,16 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 
 ### 2.2 Traditional Banking Account Models
 
-- [ ] Implement CheckingAccount model with all fields defined in ADR-019
+- [x] Implement CheckingAccount model with all fields defined in ADR-019
   - Include routing_number, has_overdraft_protection, overdraft_limit, monthly_fee, interest_rate
   - Add international fields: iban, swift_bic, sort_code, branch_code, account_format
-- [ ] Implement SavingsAccount model with all required fields
+- [x] Implement SavingsAccount model with all required fields
   - interest_rate, compound_frequency, interest_earned_ytd, withdrawal_limit, minimum_balance
-- [ ] Implement CreditAccount model with all required fields
+- [x] Implement CreditAccount model with all required fields
   - credit_limit, statement_balance, statement_due_date, minimum_payment, apr, annual_fee, rewards_program, autopay_status, last_statement_date
-- [ ] Ensure all models inherit properly from Account base model
-- [ ] Verify polymorphic_identity is correctly set for each model
-- [ ] Configure appropriate nullable constraints on required fields
+- [x] Ensure all models inherit properly from Account base model
+- [x] Verify polymorphic_identity is correctly set for each model
+- [x] Configure appropriate nullable constraints on required fields
 
 **Verification:**
 - All model fields match ADR-019 specifications
@@ -80,15 +80,15 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 
 ### 2.3 Modern Financial Services Models
 
-- [ ] Implement PaymentAppAccount model with defined fields
+- [x] Implement PaymentAppAccount model with defined fields
   - platform, has_debit_card, card_last_four, linked_account_ids, supports_direct_deposit, supports_crypto
-- [ ] Implement BNPLAccount model with all required fields
+- [x] Implement BNPLAccount model with all required fields
   - original_amount, installment_count, installments_paid, installment_amount, payment_frequency, next_payment_date, promotion_info, late_fee, bnpl_provider
-- [ ] Implement EWAAccount model with defined fields
+- [x] Implement EWAAccount model with defined fields
   - provider, max_advance_percentage, per_transaction_fee, pay_period_start, pay_period_end, next_payday
-- [ ] Ensure all models inherit properly from Account base model
-- [ ] Verify polymorphic_identity is correctly set for each model
-- [ ] Configure appropriate nullable constraints on required fields
+- [x] Ensure all models inherit properly from Account base model
+- [x] Verify polymorphic_identity is correctly set for each model
+- [x] Configure appropriate nullable constraints on required fields
 
 **Verification:**
 - All model fields match ADR-019 specifications
@@ -130,12 +130,12 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 
 ### 3.1 Base Schema Enhancements
 
-- [ ] Update AccountBase, AccountCreate, and AccountResponse schemas as needed
-- [ ] Ensure proper MoneyDecimal and PercentageDecimal usage as per ADR-013
-- [ ] Verify field validators follow Pydantic V2 patterns with @field_validator
-- [ ] Add appropriate validators for currency and international fields
-- [ ] Implement proper date validation for all datetime fields
-- [ ] Add documentation alongside schema implementation
+- [x] Update AccountBase, AccountCreate, and AccountResponse schemas as needed
+- [x] Ensure proper MoneyDecimal and PercentageDecimal usage as per ADR-013
+- [x] Verify field validators follow Pydantic V2 patterns with @field_validator
+- [x] Add appropriate validators for currency and international fields
+- [x] Implement proper date validation for all datetime fields
+- [x] Add documentation alongside schema implementation
 
 **Verification:**
 - Schemas correctly use MoneyDecimal and PercentageDecimal types
@@ -153,18 +153,18 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 
 ### 3.2 Traditional Banking Account Schemas
 
-- [ ] Implement CheckingAccountCreate and CheckingAccountResponse schemas
+- [x] Implement CheckingAccountCreate and CheckingAccountResponse schemas
   - Include validators for routing_number format
   - Add validator for overdraft_limit when has_overdraft_protection is True
   - Add validators for international banking fields
-- [ ] Implement SavingsAccountCreate and SavingsAccountResponse schemas
+- [x] Implement SavingsAccountCreate and SavingsAccountResponse schemas
   - Include validators for interest_rate (must be valid percentage)
   - Add validator for compound_frequency (must be valid option)
-- [ ] Implement CreditAccountCreate and CreditAccountResponse schemas
+- [x] Implement CreditAccountCreate and CreditAccountResponse schemas
   - Include validators for credit_limit (must be positive)
   - Add validators for statement_balance, minimum_payment
   - Add validator for autopay_status (must be valid option)
-- [ ] Create documentation alongside schema implementation
+- [x] Create documentation alongside schema implementation
 
 **Verification:**
 - All schemas include appropriate Literal["account_type"] field
@@ -182,17 +182,17 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 
 ### 3.3 Modern Financial Services Schemas
 
-- [ ] Implement PaymentAppAccountCreate and PaymentAppAccountResponse schemas
+- [x] Implement PaymentAppAccountCreate and PaymentAppAccountResponse schemas
   - Include validator for platform (must be in list of valid platforms)
   - Add validator for card_last_four format when has_debit_card is True
-- [ ] Implement BNPLAccountCreate and BNPLAccountResponse schemas
+- [x] Implement BNPLAccountCreate and BNPLAccountResponse schemas
   - Include validators for installment_count (must be positive)
   - Add validator for payment_frequency (must be valid option)
   - Add validator for next_payment_date (must be in future for new accounts)
-- [ ] Implement EWAAccountCreate and EWAAccountResponse schemas
+- [x] Implement EWAAccountCreate and EWAAccountResponse schemas
   - Include validator for max_advance_percentage (must be 0-100%)
   - Add validator for next_payday (must be in future for new accounts)
-- [ ] Create documentation alongside schema implementation
+- [x] Create documentation alongside schema implementation
 
 **Verification:**
 - All schemas include appropriate Literal["account_type"] field
@@ -210,11 +210,11 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 
 ### 3.4 Discriminated Union Implementation
 
-- [ ] Implement BankingAccountCreateUnion using Pydantic's Annotated and Union
-- [ ] Implement BankingAccountResponseUnion using Pydantic's Annotated and Union
-- [ ] Ensure all account types are included in the unions
-- [ ] Set up proper discriminator configuration
-- [ ] Create documentation for union type usage
+- [x] Implement BankingAccountCreateUnion using Pydantic's Annotated and Union
+- [x] Implement BankingAccountResponseUnion using Pydantic's Annotated and Union
+- [x] Ensure all account types are included in the unions
+- [x] Set up proper discriminator configuration
+- [x] Create documentation for union type usage
 
 **Verification:**
 - Union types include all account subtypes
@@ -405,8 +405,8 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 
 ### 6.2 Account Type Registry Integration
 
-- [ ] Update AccountTypeRegistry initialization with new account types
-- [ ] Register all banking account types with appropriate metadata
+- [x] Update AccountTypeRegistry initialization with new account types
+- [x] Register all banking account types with appropriate metadata
 - [ ] Implement API endpoint to retrieve available account types
 - [ ] Implement API endpoint to retrieve account types by category
 

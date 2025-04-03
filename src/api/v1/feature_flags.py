@@ -13,7 +13,6 @@ from src.api.dependencies.feature_flags import (
     get_feature_flag_service,
     get_flag_management_enabled,
 )
-from src.api.response_formatter import get_formatter
 from src.schemas.feature_flags import (
     FeatureFlagCreate,
     FeatureFlagResponse,
@@ -54,7 +53,7 @@ def check_management_enabled():
 async def list_feature_flags(
     request: Request,
     service: FeatureFlagService = Depends(get_feature_flag_service),
-        include_details: bool = Query(
+    include_details: bool = Query(
         False, description="Include flag details and metadata"
     ),
     prefix: Optional[str] = Query(None, description="Filter flags by prefix"),
@@ -95,7 +94,7 @@ async def get_feature_flag(
     name: str,
     request: Request,
     service: FeatureFlagService = Depends(get_feature_flag_service),
-    ):
+):
     """
     Get a specific feature flag by name.
 
@@ -133,7 +132,7 @@ async def update_feature_flag(
     update: FeatureFlagUpdate,
     request: Request,
     service: FeatureFlagService = Depends(get_feature_flag_service),
-    ):
+):
     """
     Update a feature flag.
 
@@ -171,7 +170,7 @@ async def create_feature_flag(
     flag: FeatureFlagCreate,
     request: Request,
     service: FeatureFlagService = Depends(get_feature_flag_service),
-    ):
+):
     """
     Create a new feature flag.
 
@@ -210,7 +209,7 @@ async def bulk_update_feature_flags(
     updates: Dict[str, FeatureFlagUpdate],
     request: Request,
     service: FeatureFlagService = Depends(get_feature_flag_service),
-    ):
+):
     """
     Bulk update feature flags.
 

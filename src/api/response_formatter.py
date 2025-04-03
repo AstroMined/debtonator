@@ -135,9 +135,9 @@ def format_response(response_data: Any) -> Any:
 def get_formatter():
     """
     Dependency function that returns the formatter function.
-    
+
     This allows FastAPI to properly inject the formatter as a dependency.
-    
+
     Returns:
         A function that formats response data
     """
