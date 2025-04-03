@@ -49,6 +49,7 @@ class AccountTypeRegistry:
         name: str,
         description: str,
         category: str,
+        repository_module: Optional[str] = None,  # New parameter
         feature_flag: Optional[str] = None,
     ) -> None:
         """
@@ -61,6 +62,7 @@ class AccountTypeRegistry:
             name: The human-readable name of the account type
             description: A description of the account type
             category: The category this account type belongs to (e.g., Banking, Investment)
+            repository_module: Optional module path for type-specific repository operations
             feature_flag: Optional feature flag that controls this account type's availability
         """
         self._registry[account_type_id] = {
@@ -69,6 +71,7 @@ class AccountTypeRegistry:
             "name": name,
             "description": description,
             "category": category,
+            "repository_module": repository_module,  # Store the module path
             "feature_flag": feature_flag,
         }
 
@@ -182,6 +185,18 @@ class AccountTypeRegistry:
             return feature_flag_service.is_enabled(flag)
 
         return True
+
+    def get_repository_module(self, account_type_id: str) -> Optional[str]:
+        """
+        Get the repository module path for a given account type.
+
+        Args:
+            account_type_id: The account type identifier
+
+        Returns:
+            The repository module path for the account type, or None if not found
+        """
+        return self._registry.get(account_type_id, {}).get("repository_module")
 
     def get_categories(self, feature_flag_service=None) -> List[str]:
         """

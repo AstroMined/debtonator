@@ -87,6 +87,76 @@ graph TD
 - Pagination support for large result sets
 - Transaction handling for multi-operation consistency
 
+### Repository Module Pattern
+
+```mermaid
+graph TD
+    A[BaseRepository] --> B[AccountRepository]
+    
+    B --> C[RepositoryFactory]
+    C --> D[Dynamic Loading]
+    
+    D --> E[Account Type Modules]
+    E --> F[Banking Account Modules]
+    E --> G[Investment Account Modules]
+    E --> H[Loan Account Modules]
+    
+    F --> F1[checking.py]
+    F --> F2[savings.py]
+    F --> F3[credit.py]
+    F --> F4[bnpl.py]
+    
+    I[AccountTypeRegistry] --> C
+    J[FeatureFlagService] --> C
+```
+
+The Repository Module Pattern allows for specialized repository functionality to scale to hundreds of account types without creating unwieldy monolithic repositories. Key aspects include:
+
+1. **Module Organization**: Account type-specific repository operations are organized into specialized modules:
+   - `src/repositories/account_types/{category}/{type}.py` (e.g., banking/checking.py)
+   - Each module contains functions specific to a particular account type
+   - All functions take SQLAlchemy session as their first parameter
+
+2. **Dynamic Loading**: The `RepositoryFactory` dynamically:
+   - Loads the correct module based on account type
+   - Binds specialized functions to the repository instance
+   - Handles missing modules gracefully with fallbacks
+   - Provides runtime introspection of available operations
+
+3. **Registry Integration**: The `AccountTypeRegistry`:
+   - Maps account types to their repository modules
+   - Controls which modules should be loaded
+   - Integrates with feature flag system for conditional loading
+
+4. **Feature Flag Integration**:
+   - Repository modules can be enabled/disabled through feature flags
+   - Type-specific operations are only available when features are enabled
+   - Graceful degradation when features are disabled
+
+5. **Implementation Example**:
+   ```python
+   # Repository Factory usage
+   repo = RepositoryFactory.create_account_repository(
+       session=session,
+       account_type="checking",  # Dynamically loads checking.py module
+       feature_flag_service=feature_flag_service
+   )
+
+   # Base operations from AccountRepository
+   accounts = await repo.get_all()
+   
+   # Type-specific operations from checking.py (dynamically bound)
+   with_overdraft = await repo.get_checking_accounts_with_overdraft()
+   ```
+
+This pattern provides several benefits:
+
+- **Separation of Concerns**: Each account type has isolated repository code
+- **Scalability**: Handles hundreds of account types without code bloat
+- **Maintainability**: Type-specific operations live with their respective types
+- **DRY Design**: Common operations defined only once in base repository
+- **Feature Control**: Feature flags can enable/disable account type modules
+
 ## Validation Patterns
 
 ### Multi-Layer Validation Approach

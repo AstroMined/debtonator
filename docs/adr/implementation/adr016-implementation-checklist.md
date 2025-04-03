@@ -150,18 +150,26 @@ This checklist focuses specifically on implementing the core polymorphic archite
 
 ## Repository Layer
 
-- [ ] Enhance `src/repositories/accounts.py`:
-  - [ ] Update `AccountRepository` to handle polymorphic queries
-  - [ ] Implement `get_with_type()` for loading specific subtypes
-  - [ ] Add `get_by_type()` for filtering by account type
-  - [ ] Create `get_by_user_and_type()` for user-specific queries
-  - [ ] Implement type-specific create and update methods
-  - [ ] Add methods to list available account types
-  - [ ] Ensure proper transaction handling for polymorphic operations
-  - [ ] Add feature flag service dependency
-  - [ ] Filter available types based on feature flags
-  - [ ] Add currency-aware query methods
-  - [ ] Handle international fields based on feature flags
+- [x] Enhance `src/repositories/accounts.py`:
+  - [x] Update `AccountRepository` to handle polymorphic queries
+  - [x] Implement `get_with_type()` for loading specific subtypes
+  - [x] Add `get_by_type()` for filtering by account type
+  - [x] Create `get_by_user_and_type()` for user-specific queries
+  - [x] Implement type-specific create and update methods
+  - [x] Add methods to list available account types
+  - [x] Ensure proper transaction handling for polymorphic operations
+  - [x] Add feature flag service dependency
+  - [x] Filter available types based on feature flags
+  - [x] Add currency-aware query methods
+  - [x] Handle international fields based on feature flags
+
+- [x] Implement Repository Module Pattern:
+  - [x] Create modular directory structure for account types
+  - [x] Implement type-specific repository modules
+  - [x] Create `RepositoryFactory` with dynamic module loading
+  - [x] Enable specialized operations for each account type
+  - [x] Update Registry to support repository modules
+  - [x] Document module pattern in README
 
 - [ ] Create/update tests in `tests/integration/repositories/test_account_repository.py`:
   - [ ] Follow the Arrange-Schema-Act-Assert pattern

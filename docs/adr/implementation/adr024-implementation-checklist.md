@@ -169,17 +169,25 @@ This checklist outlines the specific tasks required to implement the Feature Fla
 
 ### 3.1 Repository Layer Integration
 
-- [ ] Update `src/repositories/accounts.py`:
-  - [ ] Add feature flag service to constructor
-  - [ ] Add flag checks for account type availability
-  - [ ] Add flag checks for multi-currency support
-  - [ ] Add flag checks for international account fields
-  - [ ] Update existing methods to respect flags
-  - [ ] Update query filters based on flags
+- [x] Update `src/repositories/accounts.py`:
+  - [x] Add feature flag service to constructor
+  - [x] Add flag checks for account type availability
+  - [x] Add flag checks for multi-currency support
+  - [x] Add flag checks for international account fields
+  - [x] Update existing methods to respect flags
+  - [x] Update query filters based on flags
 
-- [ ] Update `src/repositories/factory.py`:
-  - [ ] Update factory to include feature flag service
-  - [ ] Ensure proper dependency injection
+- [x] Update `src/repositories/factory.py`:
+  - [x] Update factory to include feature flag service
+  - [x] Implement dynamic module loading with feature flag integration
+  - [x] Add modular repository pattern support
+  - [x] Ensure proper dependency injection
+
+- [x] Implement Repository Module Pattern:
+  - [x] Create modular directory structure for account types
+  - [x] Add feature flag checks in module loading
+  - [x] Integrate with account type registry
+  - [x] Document module pattern in README
 
 - [ ] Create `tests/integration/repositories/test_feature_flags_repository_integration.py`:
   - [ ] Test repository with flags enabled

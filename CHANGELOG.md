@@ -7,6 +7,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.66] - 2025-04-03
+
+### Added
+
+- Implemented Repository Module Pattern for account types
+- Created specialized banking repository modules (checking, savings, credit)
+- Added dynamic module loading capability to RepositoryFactory
+- Added repository module documentation in system_patterns.md
+
+### Changed
+
+- Enhanced AccountTypeRegistry to support repository modules
+- Updated repository factory to bind type-specific functions
+- Updated implementation checklists for ADRs 016, 019, and 024
+- Improved feature flag integration in repository layer
+
+### Fixed
+
+- Fixed repository number sequence issues in active_context.md
+- Resolved potential module loading issues with proper error handling
+
 ## [0.5.65] - 2025-04-03
 
 ### Added
