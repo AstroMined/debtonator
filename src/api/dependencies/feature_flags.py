@@ -9,8 +9,10 @@ import os
 from typing import Optional
 
 from fastapi import Depends, Request
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.dependencies.repositories import get_repository
+from src.database.database import get_db
 from src.registry.feature_flags import FeatureFlagRegistry
 from src.repositories.feature_flags import FeatureFlagRepository
 from src.services.feature_flags import FeatureFlagService
@@ -135,17 +137,19 @@ def get_feature_flag_registry() -> FeatureFlagRegistry:
     return get_registry()
 
 
-def get_feature_flag_repository():
+def get_feature_flag_repository(db: AsyncSession = Depends(get_db)):
     """
     Get the feature flag repository.
 
     This function returns a feature flag repository instance.
 
+    Args:
+        db: Database session from dependency injection
+
     Returns:
         FeatureFlagRepository: The feature flag repository
     """
-
-    return get_repository(FeatureFlagRepository)
+    return get_repository(FeatureFlagRepository, db)
 
 
 def get_feature_flag_service(

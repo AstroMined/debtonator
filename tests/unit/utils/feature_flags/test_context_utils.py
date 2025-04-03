@@ -62,14 +62,26 @@ def test_environment_context_model():
     assert context.is_test is False
 
 
-def test_detect_environment_default(env_setup):
+def test_detect_environment_default(env_setup, monkeypatch):
     """Test environment detection with default values."""
     # No environment variable set, should default to development
     os.environ.clear()  # Clear any existing env vars
-    assert detect_environment() == Environment.DEVELOPMENT
+    
+    # Temporarily patch sys.modules to remove pytest for this test
+    import sys
+    original_modules = sys.modules.copy()
+    if 'pytest' in sys.modules:
+        monkeypatch.delitem(sys.modules, 'pytest')
+        
+    try:
+        # Now detect_environment should return DEVELOPMENT as default
+        assert detect_environment() == Environment.DEVELOPMENT
+    finally:
+        # Restore sys.modules
+        sys.modules.update(original_modules)
 
 
-def test_detect_environment_from_env_var(env_setup):
+def test_detect_environment_from_env_var(env_setup, monkeypatch):
     """Test environment detection from environment variables."""
     # Test each environment type
     env_cases = [
@@ -81,10 +93,20 @@ def test_detect_environment_from_env_var(env_setup):
         ("stage", Environment.STAGING),  # Alias
     ]
 
-    for env_name, expected in env_cases:
-        # Set real environment variable for testing
-        os.environ["APP_ENV"] = env_name
-        assert detect_environment() == expected
+    # Temporarily patch sys.modules to remove pytest for this test
+    import sys
+    original_modules = sys.modules.copy()
+    if 'pytest' in sys.modules:
+        monkeypatch.delitem(sys.modules, 'pytest')
+    
+    try:
+        for env_name, expected in env_cases:
+            # Set real environment variable for testing
+            os.environ["APP_ENV"] = env_name
+            assert detect_environment() == expected
+    finally:
+        # Restore sys.modules
+        sys.modules.update(original_modules)
 
 
 def test_detect_environment_pytest(env_setup):

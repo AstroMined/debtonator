@@ -24,6 +24,7 @@ class FeatureFlagType(str, Enum):
     PERCENTAGE = "percentage"
     USER_SEGMENT = "user_segment"
     TIME_BASED = "time_based"
+    ENVIRONMENT = "environment"
 
 
 class FeatureFlagBase(BaseSchemaValidator):
@@ -124,6 +125,18 @@ class FeatureFlagCreate(FeatureFlagBase):
                 raise ValueError(
                     "Time-based flag value must be a dictionary with start/end times"
                 )
+                
+        elif flag_type_str == FeatureFlagType.ENVIRONMENT.value:
+            if not isinstance(self.value, dict):
+                raise ValueError(
+                    "Environment flag value must be a dictionary with environments and default"
+                )
+            if not all(key in self.value for key in ("environments", "default")):
+                raise ValueError(
+                    "Environment flag value must contain 'environments' and 'default' keys"
+                )
+            if not isinstance(self.value["environments"], list):
+                raise ValueError("'environments' must be a list of environment names")
 
         return self
 
@@ -188,6 +201,18 @@ class FeatureFlagUpdate(BaseSchemaValidator):
                 raise ValueError(
                     "Time-based flag value must be a dictionary with start/end times"
                 )
+                
+        elif flag_type_str == FeatureFlagType.ENVIRONMENT.value:
+            if not isinstance(self.value, dict):
+                raise ValueError(
+                    "Environment flag value must be a dictionary with environments and default"
+                )
+            if not all(key in self.value for key in ("environments", "default")):
+                raise ValueError(
+                    "Environment flag value must contain 'environments' and 'default' keys"
+                )
+            if not isinstance(self.value["environments"], list):
+                raise ValueError("'environments' must be a list of environment names")
 
         return self
 

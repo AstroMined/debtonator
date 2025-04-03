@@ -1,9 +1,12 @@
 import json
+import logging
 from decimal import Decimal
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
 
 # Import all models to ensure they are registered
 from .api.base import api_router
@@ -28,6 +31,50 @@ app = FastAPI(
     redoc_url=f"{settings.API_V1_PREFIX}/redoc",
     redirect_slashes=False,
 )
+
+# Configure logger
+logger = logging.getLogger(__name__)
+
+# Add validation error handlers for debugging
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """
+    Handle request validation errors with detailed logging for debugging.
+    """
+    try:
+        body = await request.body()
+        body_str = body.decode() if body else "No body"
+    except Exception as e:
+        body_str = f"Error reading body: {str(e)}"
+    
+    logger.error(f"Request validation error: {exc.errors()}")
+    logger.error(f"Request path: {request.url.path}")
+    logger.error(f"Request body: {body_str}")
+    
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": exc.errors(),
+            "path": request.url.path,
+            "body": body_str
+        },
+    )
+
+@app.exception_handler(ValidationError)
+async def pydantic_validation_exception_handler(request: Request, exc: ValidationError):
+    """
+    Handle Pydantic validation errors with detailed logging for debugging.
+    """
+    logger.error(f"Pydantic validation error: {exc}")
+    logger.error(f"Request path: {request.url.path}")
+    
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": exc.errors(),
+            "path": request.url.path,
+        },
+    )
 
 # Configure CORS
 app.add_middleware(

@@ -13,7 +13,7 @@ from src.api.dependencies.feature_flags import (
     get_feature_flag_service,
     get_flag_management_enabled,
 )
-from src.api.response_formatter import format_response
+from src.api.response_formatter import get_formatter
 from src.schemas.feature_flags import (
     FeatureFlagCreate,
     FeatureFlagResponse,
@@ -54,8 +54,7 @@ def check_management_enabled():
 async def list_feature_flags(
     request: Request,
     service: FeatureFlagService = Depends(get_feature_flag_service),
-    formatter=Depends(format_response),
-    include_details: bool = Query(
+        include_details: bool = Query(
         False, description="Include flag details and metadata"
     ),
     prefix: Optional[str] = Query(None, description="Filter flags by prefix"),
@@ -82,7 +81,7 @@ async def list_feature_flags(
         include_details=include_details, prefix=prefix, enabled_only=enabled_only
     )
 
-    return formatter(flags)
+    return flags
 
 
 @router.get(
@@ -96,8 +95,7 @@ async def get_feature_flag(
     name: str,
     request: Request,
     service: FeatureFlagService = Depends(get_feature_flag_service),
-    formatter=Depends(format_response),
-):
+    ):
     """
     Get a specific feature flag by name.
 
@@ -120,7 +118,7 @@ async def get_feature_flag(
             detail=f"Feature flag '{name}' not found",
         )
 
-    return formatter(flag)
+    return flag
 
 
 @router.put(
@@ -135,8 +133,7 @@ async def update_feature_flag(
     flag_update: FeatureFlagUpdate,
     request: Request,
     service: FeatureFlagService = Depends(get_feature_flag_service),
-    formatter=Depends(format_response),
-):
+    ):
     """
     Update a feature flag.
 
@@ -160,7 +157,7 @@ async def update_feature_flag(
             detail=f"Feature flag '{name}' not found",
         )
 
-    return formatter(flag)
+    return flag
 
 
 @router.post(
@@ -174,8 +171,7 @@ async def create_feature_flag(
     flag_create: FeatureFlagCreate,
     request: Request,
     service: FeatureFlagService = Depends(get_feature_flag_service),
-    formatter=Depends(format_response),
-):
+    ):
     """
     Create a new feature flag.
 
@@ -200,7 +196,7 @@ async def create_feature_flag(
         )
 
     flag = await service.create_flag(flag_create)
-    return formatter(flag)
+    return flag
 
 
 @router.post(
@@ -214,8 +210,7 @@ async def bulk_update_feature_flags(
     updates: Dict[str, FeatureFlagUpdate],
     request: Request,
     service: FeatureFlagService = Depends(get_feature_flag_service),
-    formatter=Depends(format_response),
-):
+    ):
     """
     Bulk update feature flags.
 
@@ -238,4 +233,4 @@ async def bulk_update_feature_flags(
         )
 
     results = await service.bulk_update_flags(updates)
-    return formatter(results)
+    return results

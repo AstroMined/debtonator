@@ -132,6 +132,18 @@ def format_response(response_data: Any) -> Any:
     return format_decimal_precision(response_data)
 
 
+def get_formatter():
+    """
+    Dependency function that returns the formatter function.
+    
+    This allows FastAPI to properly inject the formatter as a dependency.
+    
+    Returns:
+        A function that formats response data
+    """
+    return format_response
+
+
 def with_formatted_response(func):
     """
     Decorator for API endpoints to automatically format decimal values in responses.
