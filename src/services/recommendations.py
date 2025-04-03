@@ -62,9 +62,9 @@ class RecommendationService:
     ) -> Optional[BillPaymentTimingRecommendation]:
         """Analyze payment patterns for a bill and generate timing recommendations."""
         # Get payment patterns
-        pattern_analysis: Optional[
-            PaymentPatternAnalysis
-        ] = await self.pattern_service.analyze_bill_payments(bill.id)
+        pattern_analysis: Optional[PaymentPatternAnalysis] = (
+            await self.pattern_service.analyze_bill_payments(bill.id)
+        )
         print(f"\nAnalyzing bill {bill.id} with pattern analysis: {pattern_analysis}")
         if not pattern_analysis:
             print("No pattern analysis found")

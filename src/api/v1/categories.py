@@ -7,7 +7,6 @@ from src.database.database import get_db
 from src.schemas.categories import (
     Category,
     CategoryCreate,
-    CategoryTree,
     CategoryUpdate,
     CategoryWithBillsResponse,
 )

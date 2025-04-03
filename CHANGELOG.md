@@ -7,6 +7,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.62] - 2025-04-02
+
+### Fixed
+
+- Resolved model layer circular reference issues:
+  - Implemented string reference pattern in model relationship definitions
+  - Created central model registration in models/__init__.py with proper dependency order
+  - Separated database schema creation from system data initialization
+  - Created dedicated system_initialization service for repository-based seeding
+  - Added comprehensive documentation of circular reference resolution patterns
+  - Updated ADR-015 with implementation details for model layer references
+
+### Added
+
+- Enhanced documentation for model registration and circular reference patterns:
+  - Added new "Model Registration & Circular Reference Resolution" section to system_patterns.md
+  - Documented string reference pattern for SQLAlchemy relationships
+  - Added detailed explanation of centralized model registration approach
+  - Created documentation on repository-based system initialization
+
 ## [0.5.61] - 2025-04-02
 
 ### Added

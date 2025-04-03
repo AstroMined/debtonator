@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 import pytest
-from pydantic import ValidationError, ValidationInfo
+from pydantic import ValidationError
 
 from src.schemas.payments import (
     PaymentBase,
@@ -15,7 +15,7 @@ from src.schemas.payments import (
     validate_decimal_precision,
     validate_payment_sources,
 )
-from src.utils.datetime_utils import utc_datetime, utc_now
+from src.utils.datetime_utils import utc_now
 
 
 def test_validate_decimal_precision_function():

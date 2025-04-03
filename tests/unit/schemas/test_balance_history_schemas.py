@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from typing import Any, Dict
 
 import pytest
 from pydantic import ValidationError
@@ -11,7 +10,7 @@ from src.schemas.balance_history import (
     BalanceHistoryCreate,
     BalanceTrend,
 )
-from src.utils.datetime_utils import utc_datetime, utc_now
+from src.utils.datetime_utils import utc_datetime
 
 
 # Test valid object creation

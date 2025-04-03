@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Any, List, Union
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
@@ -19,7 +18,7 @@ from src.schemas.bill_splits import (
     SplitPattern,
     SplitSuggestion,
 )
-from src.utils.datetime_utils import utc_datetime, utc_now
+from src.utils.datetime_utils import utc_now
 
 
 # Test valid object creation

@@ -6,18 +6,16 @@ and enforce the constraints defined in the schema.
 """
 
 import pytest
-from datetime import datetime
 from pydantic import ValidationError
-from typing import Dict, Any, List
 
 from src.schemas.feature_flags import (
-    FeatureFlagType,
     FeatureFlagBase,
+    FeatureFlagContext,
     FeatureFlagCreate,
-    FeatureFlagUpdate,
     FeatureFlagResponse,
     FeatureFlagToggle,
-    FeatureFlagContext,
+    FeatureFlagType,
+    FeatureFlagUpdate,
 )
 from src.utils.datetime_utils import utc_now
 
@@ -71,7 +69,10 @@ class TestFeatureFlagBase:
         # Invalid name - special characters
         with pytest.raises(ValidationError) as exc:
             FeatureFlagBase(name="TEST-FLAG")
-        assert "Feature flag name must contain only uppercase letters, numbers, and underscores" in str(exc.value)
+        assert (
+            "Feature flag name must contain only uppercase letters, numbers, and underscores"
+            in str(exc.value)
+        )
 
         # Invalid name - starting with number
         with pytest.raises(ValidationError) as exc:
@@ -219,7 +220,9 @@ class TestFeatureFlagCreate:
                 flag_type=FeatureFlagType.TIME_BASED,
                 value="2023-01-01",  # String instead of dict
             )
-        assert "Time-based flag value must be a dictionary with start/end times" in str(exc.value)
+        assert "Time-based flag value must be a dictionary with start/end times" in str(
+            exc.value
+        )
 
 
 class TestFeatureFlagUpdate:

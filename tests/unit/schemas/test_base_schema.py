@@ -1,15 +1,14 @@
 """
 Tests for the BaseSchemaValidator class and common schema validations.
 
-These tests ensure the base validation functionality works correctly and follows 
+These tests ensure the base validation functionality works correctly and follows
 ADR-011 requirements for datetime standardization.
 """
 
 import importlib
-import sys
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -164,6 +163,7 @@ def test_base_schema_validator_utc_datetime_validation():
 
 def test_model_validate_method():
     """Test the model_validate method converts naive datetimes to UTC."""
+
     # Create a mock object that would come from SQLAlchemy
     class MockObject:
         def __init__(self):
@@ -188,6 +188,7 @@ def test_model_validate_method():
 
 def test_model_validate_fallback_path():
     """Test the fallback path in model_validate method."""
+
     # Test objects without __dict__ attribute (lines 122-135)
     class NonDictObject:
         # This object doesn't use __dict__ for attribute storage
@@ -404,6 +405,7 @@ def test_dictionary_model_validation():
 
 def test_non_dict_field_validation():
     """Test that non-dictionary fields are skipped in dictionary validation."""
+
     # This model has a field that isn't a dictionary
     class MixedModel(BaseSchemaValidator):
         non_dict_field: str = "test"
@@ -430,6 +432,7 @@ def test_dict_field_without_annotation():
 
 def test_dict_field_with_non_decimal_values():
     """Test dictionary field with non-decimal values is handled correctly."""
+
     # Create a model with a MoneyDict but try to use non-Decimal values
     class TestModel(BaseSchemaValidator):
         money_dict: MoneyDict = {}
@@ -496,6 +499,7 @@ def test_required_fields_dynamic_model_lookup():
 
     Tests lines 294->307, 303-304, 308-310 in base_schema.py.
     """
+
     # Create a mock Account model with a non-nullable name field
     class MockAccount:
         __table__ = type(
@@ -556,6 +560,7 @@ def test_json_encoder_config():
 
 def test_ensure_datetime_fields_are_utc():
     """Test ensure_datetime_fields_are_utc validator converts naive datetimes."""
+
     # Create a class that sets a naive datetime after initialization
     class PostInitModel(BaseSchemaValidator):
         name: str
@@ -665,6 +670,7 @@ class CustomModelUpdate(BaseSchemaValidator):
     def with_model_ref(cls):
         """Creates an instance with a model reference."""
         instance = cls()
+
         # Define a test model class inline
         class TestModel:
             __table__ = type(
@@ -725,6 +731,7 @@ def test_model_validate_with_slots_object():
 
 def test_datetime_field_conversion():
     """Test conversion of naive datetime fields."""
+
     # Create a class with a datetime field we can manipulate
     class TestModel(BaseSchemaValidator):
         name: str
@@ -747,6 +754,7 @@ def test_datetime_field_conversion():
 
 def test_datetime_field_conversion_with_nested_dict():
     """Test conversion of naive datetimes in nested dictionaries."""
+
     # Create a model with a nested dict of datetimes
     class NestedModel(BaseSchemaValidator):
         name: str
@@ -794,6 +802,7 @@ def test_validate_required_fields_direct():
 
 def test_validate_required_fields_with_update_suffix():
     """Test validation with *Update schema name pattern."""
+
     # Create a class that ends with "Update" to trigger name-based model lookup
     class SampleUpdate(BaseSchemaValidator):
         """Test class with Update suffix for model lookup."""

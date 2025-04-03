@@ -6,14 +6,12 @@ the database, storing and retrieving feature flags as expected.
 """
 
 import pytest
-from datetime import datetime, timedelta
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.feature_flags import FeatureFlag
 from src.repositories.feature_flags import FeatureFlagRepository
 from src.schemas.feature_flags import FeatureFlagType
-from src.utils.datetime_utils import utc_now, ensure_utc
+from src.utils.datetime_utils import utc_now
 
 
 class TestFeatureFlagRepository:
@@ -64,7 +62,9 @@ class TestFeatureFlagRepository:
         assert flag.created_at is not None
         assert flag.updated_at is not None
 
-    async def test_get_flag(self, repository: FeatureFlagRepository, sample_flag: FeatureFlag):
+    async def test_get_flag(
+        self, repository: FeatureFlagRepository, sample_flag: FeatureFlag
+    ):
         """Test retrieving a feature flag by name."""
         flag = await repository.get(sample_flag.name)
 
@@ -81,20 +81,26 @@ class TestFeatureFlagRepository:
         flag = await repository.get("NONEXISTENT_FLAG")
         assert flag is None
 
-    async def test_get_all(self, repository: FeatureFlagRepository, sample_flag: FeatureFlag):
+    async def test_get_all(
+        self, repository: FeatureFlagRepository, sample_flag: FeatureFlag
+    ):
         """Test retrieving all feature flags."""
         # Create additional flags
-        await repository.create({
-            "name": "SECOND_FLAG",
-            "flag_type": FeatureFlagType.PERCENTAGE,
-            "value": 50,
-        })
+        await repository.create(
+            {
+                "name": "SECOND_FLAG",
+                "flag_type": FeatureFlagType.PERCENTAGE,
+                "value": 50,
+            }
+        )
 
-        await repository.create({
-            "name": "THIRD_FLAG",
-            "flag_type": FeatureFlagType.USER_SEGMENT,
-            "value": ["admin", "beta"],
-        })
+        await repository.create(
+            {
+                "name": "THIRD_FLAG",
+                "flag_type": FeatureFlagType.USER_SEGMENT,
+                "value": ["admin", "beta"],
+            }
+        )
 
         # Retrieve all flags
         flags = await repository.get_all()
@@ -106,7 +112,9 @@ class TestFeatureFlagRepository:
         assert "SECOND_FLAG" in flag_names
         assert "THIRD_FLAG" in flag_names
 
-    async def test_update_flag(self, repository: FeatureFlagRepository, sample_flag: FeatureFlag):
+    async def test_update_flag(
+        self, repository: FeatureFlagRepository, sample_flag: FeatureFlag
+    ):
         """Test updating a feature flag."""
         # Update the flag
         update_data = {
@@ -138,7 +146,9 @@ class TestFeatureFlagRepository:
         updated_flag = await repository.update("NONEXISTENT_FLAG", {"value": True})
         assert updated_flag is None
 
-    async def test_delete_flag(self, repository: FeatureFlagRepository, sample_flag: FeatureFlag):
+    async def test_delete_flag(
+        self, repository: FeatureFlagRepository, sample_flag: FeatureFlag
+    ):
         """Test deleting a feature flag."""
         # Delete the flag
         result = await repository.delete(sample_flag.name)
@@ -156,23 +166,29 @@ class TestFeatureFlagRepository:
     async def test_get_all_by_type(self, repository: FeatureFlagRepository):
         """Test retrieving feature flags by type."""
         # Create flags of different types
-        await repository.create({
-            "name": "BOOLEAN_FLAG_1",
-            "flag_type": FeatureFlagType.BOOLEAN,
-            "value": True,
-        })
+        await repository.create(
+            {
+                "name": "BOOLEAN_FLAG_1",
+                "flag_type": FeatureFlagType.BOOLEAN,
+                "value": True,
+            }
+        )
 
-        await repository.create({
-            "name": "BOOLEAN_FLAG_2",
-            "flag_type": FeatureFlagType.BOOLEAN,
-            "value": False,
-        })
+        await repository.create(
+            {
+                "name": "BOOLEAN_FLAG_2",
+                "flag_type": FeatureFlagType.BOOLEAN,
+                "value": False,
+            }
+        )
 
-        await repository.create({
-            "name": "PERCENTAGE_FLAG",
-            "flag_type": FeatureFlagType.PERCENTAGE,
-            "value": 50,
-        })
+        await repository.create(
+            {
+                "name": "PERCENTAGE_FLAG",
+                "flag_type": FeatureFlagType.PERCENTAGE,
+                "value": 50,
+            }
+        )
 
         # Get boolean flags
         boolean_flags = await repository.get_all_by_type(FeatureFlagType.BOOLEAN)
@@ -188,32 +204,40 @@ class TestFeatureFlagRepository:
         assert percentage_flags[0].name == "PERCENTAGE_FLAG"
 
         # Get a type with no flags
-        user_segment_flags = await repository.get_all_by_type(FeatureFlagType.USER_SEGMENT)
+        user_segment_flags = await repository.get_all_by_type(
+            FeatureFlagType.USER_SEGMENT
+        )
         assert len(user_segment_flags) == 0
 
     async def test_get_system_flags(self, repository: FeatureFlagRepository):
         """Test retrieving system-defined feature flags."""
         # Create system and non-system flags
-        await repository.create({
-            "name": "SYSTEM_FLAG_1",
-            "flag_type": FeatureFlagType.BOOLEAN,
-            "value": True,
-            "is_system": True,
-        })
+        await repository.create(
+            {
+                "name": "SYSTEM_FLAG_1",
+                "flag_type": FeatureFlagType.BOOLEAN,
+                "value": True,
+                "is_system": True,
+            }
+        )
 
-        await repository.create({
-            "name": "SYSTEM_FLAG_2",
-            "flag_type": FeatureFlagType.BOOLEAN,
-            "value": False,
-            "is_system": True,
-        })
+        await repository.create(
+            {
+                "name": "SYSTEM_FLAG_2",
+                "flag_type": FeatureFlagType.BOOLEAN,
+                "value": False,
+                "is_system": True,
+            }
+        )
 
-        await repository.create({
-            "name": "USER_FLAG",
-            "flag_type": FeatureFlagType.BOOLEAN,
-            "value": True,
-            "is_system": False,
-        })
+        await repository.create(
+            {
+                "name": "USER_FLAG",
+                "flag_type": FeatureFlagType.BOOLEAN,
+                "value": True,
+                "is_system": False,
+            }
+        )
 
         # Get system flags
         system_flags = await repository.get_system_flags()
@@ -253,17 +277,21 @@ class TestFeatureFlagRepository:
     async def test_bulk_update(self, repository: FeatureFlagRepository):
         """Test updating multiple feature flags in a single transaction."""
         # Create flags to update
-        await repository.create({
-            "name": "UPDATE_FLAG_1",
-            "flag_type": FeatureFlagType.BOOLEAN,
-            "value": True,
-        })
+        await repository.create(
+            {
+                "name": "UPDATE_FLAG_1",
+                "flag_type": FeatureFlagType.BOOLEAN,
+                "value": True,
+            }
+        )
 
-        await repository.create({
-            "name": "UPDATE_FLAG_2",
-            "flag_type": FeatureFlagType.BOOLEAN,
-            "value": False,
-        })
+        await repository.create(
+            {
+                "name": "UPDATE_FLAG_2",
+                "flag_type": FeatureFlagType.BOOLEAN,
+                "value": False,
+            }
+        )
 
         # Update both flags
         updates = [
@@ -273,41 +301,47 @@ class TestFeatureFlagRepository:
 
         updated_flags = await repository.bulk_update(updates)
         assert len(updated_flags) == 2
-        
+
         # Both should exist and be updated
         assert all(flag is not None for flag in updated_flags)
-        
+
         # Verify updates
         flag1 = await repository.get("UPDATE_FLAG_1")
         flag2 = await repository.get("UPDATE_FLAG_2")
-        
+
         assert flag1.value is False
         assert flag2.value is True
 
     async def test_count_by_type(self, repository: FeatureFlagRepository):
         """Test counting feature flags by type."""
         # Create flags of different types
-        await repository.create({
-            "name": "COUNT_BOOLEAN_1",
-            "flag_type": FeatureFlagType.BOOLEAN,
-            "value": True,
-        })
+        await repository.create(
+            {
+                "name": "COUNT_BOOLEAN_1",
+                "flag_type": FeatureFlagType.BOOLEAN,
+                "value": True,
+            }
+        )
 
-        await repository.create({
-            "name": "COUNT_BOOLEAN_2",
-            "flag_type": FeatureFlagType.BOOLEAN,
-            "value": False,
-        })
+        await repository.create(
+            {
+                "name": "COUNT_BOOLEAN_2",
+                "flag_type": FeatureFlagType.BOOLEAN,
+                "value": False,
+            }
+        )
 
-        await repository.create({
-            "name": "COUNT_PERCENTAGE",
-            "flag_type": FeatureFlagType.PERCENTAGE,
-            "value": 50,
-        })
+        await repository.create(
+            {
+                "name": "COUNT_PERCENTAGE",
+                "flag_type": FeatureFlagType.PERCENTAGE,
+                "value": 50,
+            }
+        )
 
         # Get counts
         counts = await repository.count_by_type()
-        
+
         # Check counts are accurate
         assert counts[FeatureFlagType.BOOLEAN] == 2
         assert counts[FeatureFlagType.PERCENTAGE] == 1

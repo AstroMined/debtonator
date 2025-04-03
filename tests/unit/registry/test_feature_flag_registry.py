@@ -5,10 +5,10 @@ These tests verify that the feature flag registry properly stores, retrieves,
 and evaluates feature flags in isolation, without crossing layer boundaries.
 """
 
-import pytest
 import hashlib
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from datetime import timedelta
+
+import pytest
 
 from src.registry.feature_flags import FeatureFlagRegistry
 from src.schemas.feature_flags import FeatureFlagType
@@ -71,7 +71,7 @@ class TestFeatureFlagRegistry:
             default_value=True,
             description="Test flag",
         )
-        
+
         flag = registry._flags["TEST_FLAG"]
         assert flag["type"] == FeatureFlagType.BOOLEAN
         assert flag["value"] is True
@@ -87,14 +87,16 @@ class TestFeatureFlagRegistry:
             flag_type="boolean",
             default_value=True,
         )
-        
+
         flag = registry._flags["TEST_FLAG"]
         assert flag["type"] == "boolean"
         assert flag["value"] is True
 
     def test_register_duplicate_flag(self, registry_with_flags):
         """Test that registering a duplicate flag raises an error."""
-        with pytest.raises(ValueError, match="Feature flag TEST_BOOLEAN_FLAG already registered"):
+        with pytest.raises(
+            ValueError, match="Feature flag TEST_BOOLEAN_FLAG already registered"
+        ):
             registry_with_flags.register(
                 flag_name="TEST_BOOLEAN_FLAG",
                 flag_type=FeatureFlagType.BOOLEAN,
@@ -135,20 +137,20 @@ class TestFeatureFlagRegistry:
             flag_type=FeatureFlagType.PERCENTAGE,
             default_value=50,
         )
-        
+
         # Use known test user IDs instead of mocking
         # This user should be included (hash calculation would put it below 50%)
         # Using stable test values for consistent results
         test_user_included = "user-123456"
         test_user_excluded = "user-654321"
-        
+
         # We can test both cases without mocking
         # Included user (assuming hash puts this user in the 0-49 range)
         context_included = {"user_id": test_user_included}
-        
+
         # Excluded user (assuming hash puts this user in the 50-99 range)
         context_excluded = {"user_id": test_user_excluded}
-        
+
         # We don't assert specific outcomes as they depend on the hash algorithm
         # We just verify both cases are handled correctly
         registry.get_value("TEST_PERCENTAGE_50", context=context_included)
@@ -210,7 +212,7 @@ class TestFeatureFlagRegistry:
                 "end_time": end_time.isoformat(),
             },
         )
-        
+
         value = registry.get_value("PAST_FLAG")
         assert value is False
 
@@ -226,7 +228,7 @@ class TestFeatureFlagRegistry:
                 "end_time": end_time.isoformat(),
             },
         )
-        
+
         value = registry.get_value("FUTURE_FLAG")
         assert value is False
 
@@ -240,7 +242,7 @@ class TestFeatureFlagRegistry:
                 "start_time": start_time.isoformat(),
             },
         )
-        
+
         value = registry.get_value("START_ONLY_FLAG")
         assert value is True
 
@@ -254,7 +256,7 @@ class TestFeatureFlagRegistry:
                 "end_time": end_time.isoformat(),
             },
         )
-        
+
         value = registry.get_value("END_ONLY_FLAG")
         assert value is True
 
@@ -270,7 +272,7 @@ class TestFeatureFlagRegistry:
                 "end_time": end_time,
             },
         )
-        
+
         value = registry.get_value("DATETIME_OBJECTS_FLAG")
         assert value is True
 
@@ -297,18 +299,18 @@ class TestFeatureFlagRegistry:
         """Test adding and removing observers (without crossing layer boundaries)."""
         # For unit tests, we simply verify the observer is correctly added/removed
         # from the internal observers list.
-        
+
         # Note: This is a simple struct-like class, not a mock
         class SimpleObserver:
             def flag_changed(self, flag_name, old_value, new_value):
                 pass
-        
+
         observer = SimpleObserver()
-        
+
         # Test adding
         registry.add_observer(observer)
         assert observer in registry._observers
-        
+
         # Test removing
         registry.remove_observer(observer)
         assert observer not in registry._observers
@@ -321,16 +323,16 @@ class TestFeatureFlagRegistry:
         hash_input = f"{user_id}:{flag_name}"
         hash_value = int(hashlib.md5(hash_input.encode()).hexdigest(), 16)
         bucket = hash_value % 100
-        
+
         # Test with percentage just above the bucket
         assert registry._is_user_in_percentage(user_id, flag_name, bucket + 1) is True
-        
+
         # Test with percentage equal to the bucket
         assert registry._is_user_in_percentage(user_id, flag_name, bucket) is False
-        
+
         # Test with percentage below the bucket
         assert registry._is_user_in_percentage(user_id, flag_name, bucket - 1) is False
-        
+
         # Edge cases
         assert registry._is_user_in_percentage(user_id, flag_name, 100) is True
         assert registry._is_user_in_percentage(user_id, flag_name, 0) is False
@@ -348,7 +350,7 @@ class TestFeatureFlagRegistry:
             default_value=True,
             metadata=metadata,
         )
-        
+
         flag = registry._flags["TEST_FLAG"]
         assert flag["metadata"] == metadata
 
@@ -360,6 +362,6 @@ class TestFeatureFlagRegistry:
             default_value=True,
             is_system=True,
         )
-        
+
         flag = registry._flags["TEST_SYSTEM_FLAG"]
         assert flag["is_system"] is True

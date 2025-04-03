@@ -78,3 +78,27 @@ The initial implementation of category hierarchies and relationships introduced 
 4. The approach better aligns with our architecture principles from ADR-012
 
 This refactoring did not change the core decision about default categories, only improved the implementation approach.
+
+## Implementation Note (Added 2025-04-02)
+
+We encountered circular references in the model layer similar to those previously resolved in the schema layer. This occurred during database initialization when attempting to create the default category. We resolved this by implementing two architectural patterns together:
+
+1. **String References & Central Registration** (model layer):
+   - Used string references in all model relationships (e.g., `relationship("Category")` instead of importing directly)
+   - Created proper model registration in `src/models/__init__.py` to import all models in dependency order
+   - This solved circular imports between model files at definition time
+
+2. **Repository-Based System Initialization** (service layer):
+   - Created a dedicated service for system initialization (`src/services/system_initialization.py`)
+   - Moved default category creation to a service that uses the repository layer
+   - Leveraged the existing `CategoryRepository.get_default_category_id()` which already handled this logic
+   - This maintains architectural consistency by using repositories for all data access
+
+This approach solves both circular references while adhering to our architectural principles:
+1. Keeps all data access through the repository layer
+2. Creates cleaner separation of concerns
+3. Uses existing repository methods
+4. Maintains schema-related functionality in model layer
+5. Adheres to proper dependency injection
+
+The resulting implementation is more maintainable and eliminates circular dependency issues across both model and schema layers.

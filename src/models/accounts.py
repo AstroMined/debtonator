@@ -5,20 +5,7 @@ from typing import List, Optional
 from sqlalchemy import DateTime, Index, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.models.balance_history import BalanceHistory
-from src.models.balance_reconciliation import BalanceReconciliation
 from src.models.base_model import BaseDBModel
-from src.models.bill_splits import BillSplit
-from src.models.credit_limit_history import CreditLimitHistory
-from src.models.deposit_schedules import DepositSchedule
-from src.models.income import Income
-from src.models.liabilities import Liability
-from src.models.payment_schedules import PaymentSchedule
-from src.models.payments import PaymentSource
-from src.models.recurring_bills import RecurringBill
-from src.models.recurring_income import RecurringIncome
-from src.models.statement_history import StatementHistory
-from src.models.transaction_history import TransactionHistory
 
 
 class Account(BaseDBModel):

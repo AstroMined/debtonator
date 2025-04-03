@@ -1,10 +1,9 @@
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Any, Dict, Optional
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
-from pydantic import ValidationError, ValidationInfo
+from pydantic import ValidationError
 
 from src.schemas.balance_reconciliation import (
     BalanceReconciliation,

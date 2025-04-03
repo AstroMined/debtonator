@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Any
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest

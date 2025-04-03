@@ -283,13 +283,11 @@ def end_of_day(dt: Optional[datetime] = None) -> datetime:
 
 
 @overload
-def ensure_utc(dt: datetime) -> datetime:
-    ...
+def ensure_utc(dt: datetime) -> datetime: ...
 
 
 @overload
-def ensure_utc(dt: None) -> None:
-    ...
+def ensure_utc(dt: None) -> None: ...
 
 
 def ensure_utc(dt: Optional[datetime]) -> Optional[datetime]:

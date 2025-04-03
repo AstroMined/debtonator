@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from typing import Dict, List
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest

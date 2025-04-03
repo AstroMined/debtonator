@@ -170,15 +170,12 @@ class HistoricalService(BaseService):
                     current_start.year + 1, 1, 1, tzinfo=ZoneInfo("UTC")
                 ) - timedelta(days=1)
             else:
-                current_end = (
-                    datetime(
-                        current_start.year,
-                        current_start.month + 1,
-                        1,
-                        tzinfo=ZoneInfo("UTC"),
-                    )
-                    - timedelta(days=1)
-                )
+                current_end = datetime(
+                    current_start.year,
+                    current_start.month + 1,
+                    1,
+                    tzinfo=ZoneInfo("UTC"),
+                ) - timedelta(days=1)
 
             # Filter transactions for current period
             period_transactions = [

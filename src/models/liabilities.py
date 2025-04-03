@@ -9,7 +9,6 @@ from sqlalchemy import ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models.base_model import BaseDBModel
-from src.models.payment_schedules import PaymentSchedule
 from src.utils.datetime_utils import naive_utc_now
 
 

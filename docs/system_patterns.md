@@ -186,6 +186,69 @@ graph TD
 - Efficient joins for relationship loading
 - Type-safe relationship references
 
+## Model Registration & Circular Reference Resolution
+
+```mermaid
+graph TD
+    A[SQLAlchemy Models] --> B[String References]
+    A --> C[Central Registration]
+    
+    B --> D[Runtime Resolution]
+    C --> E[Controlled Import Order]
+    
+    D --> F[Circular Reference Resolution]
+    E --> F
+    
+    G[System Initialization] --> H[Repository-Based]
+    H --> I[Service-Based]
+    I --> J[Database Seeding]
+```
+
+### Model Layer Circular Reference Resolution
+
+The model layer uses two key patterns to handle circular dependencies between model files:
+
+#### String Reference Pattern
+- Use string references in relationship definitions: `relationship("ModelName", ...)`
+- Defer class resolution until runtime rather than import time
+- Allows cross-referencing between models without direct imports
+- Example: `bills: Mapped[List["Liability"]] = relationship("Liability", back_populates="category")`
+
+#### Central Registration Pattern
+- Import all models in controlled order in `models/__init__.py`
+- Define explicit dependency order for model registration
+- Create a single import path for database initialization
+- Ensures all model references are resolved properly at runtime
+
+### System Initialization Pattern
+
+System initialization follows a layered architectural approach:
+
+#### Repository-Based Data Access
+- All database access happens exclusively through repository layer
+- Even during initialization, direct DB access is prohibited
+- Leverages existing repository methods for data operations
+- Maintains architectural consistency throughout codebase
+
+#### System Initialization Service
+- Dedicated service layer for system data initialization
+- Clear separation between schema creation and data seeding
+- Ensures all required system data exists on startup
+- Example: `ensure_system_categories()` for default category creation
+
+#### Database Initialization Flow
+1. Schema creation through SQLAlchemy metadata
+2. Repository instantiation with database session
+3. Service-based initialization of required system data
+4. Validation of system requirements before application start
+
+This approach solves circular dependencies while maintaining architectural integrity by:
+1. Using string references for model relationships
+2. Centralizing model registration in a single location
+3. Leveraging repository layer for all data access
+4. Separating schema creation from system data initialization
+5. Using service layer for business logic, even during initialization
+
 ## Frontend Integration Patterns
 
 ### API Client

@@ -4,6 +4,7 @@ API endpoints for managing feature flags.
 This module provides endpoints for viewing and managing feature flags.
 Access to these endpoints is controlled by environment configuration.
 """
+
 from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
@@ -35,7 +36,7 @@ class FeatureFlagManagementDisabled(HTTPException):
 
 def check_management_enabled():
     """Check if feature flag management is enabled.
-    
+
     Raises:
         FeatureFlagManagementDisabled: If feature flag management is disabled
     """
@@ -54,13 +55,15 @@ async def list_feature_flags(
     request: Request,
     service: FeatureFlagService = Depends(get_feature_flag_service),
     formatter=Depends(format_response),
-    include_details: bool = Query(False, description="Include flag details and metadata"),
+    include_details: bool = Query(
+        False, description="Include flag details and metadata"
+    ),
     prefix: Optional[str] = Query(None, description="Filter flags by prefix"),
     enabled_only: bool = Query(False, description="Show only enabled flags"),
 ):
     """
     List all feature flags.
-    
+
     Args:
         request: The FastAPI request
         service: Feature flag service
@@ -68,19 +71,17 @@ async def list_feature_flags(
         include_details: Whether to include flag details and metadata
         prefix: Optional prefix to filter flags by
         enabled_only: Whether to show only enabled flags
-        
+
     Returns:
         List of feature flags
     """
     # Check if management is enabled, even for read-only operations
     check_management_enabled()
-    
+
     flags = await service.get_all_flags(
-        include_details=include_details,
-        prefix=prefix,
-        enabled_only=enabled_only
+        include_details=include_details, prefix=prefix, enabled_only=enabled_only
     )
-    
+
     return formatter(flags)
 
 
@@ -99,26 +100,26 @@ async def get_feature_flag(
 ):
     """
     Get a specific feature flag by name.
-    
+
     Args:
         name: The name of the feature flag
         request: The FastAPI request
         service: Feature flag service
         formatter: Response formatter
-        
+
     Returns:
         Feature flag details
     """
     # Check if management is enabled, even for read-only operations
     check_management_enabled()
-    
+
     flag = await service.get_flag(name)
     if not flag:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Feature flag '{name}' not found",
         )
-    
+
     return formatter(flag)
 
 
@@ -138,27 +139,27 @@ async def update_feature_flag(
 ):
     """
     Update a feature flag.
-    
+
     Args:
         name: The name of the feature flag to update
         flag_update: The update data
         request: The FastAPI request
         service: Feature flag service
         formatter: Response formatter
-        
+
     Returns:
         Updated feature flag
     """
     # Check if management is enabled
     check_management_enabled()
-    
+
     flag = await service.update_flag(name, flag_update)
     if not flag:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Feature flag '{name}' not found",
         )
-    
+
     return formatter(flag)
 
 
@@ -177,19 +178,19 @@ async def create_feature_flag(
 ):
     """
     Create a new feature flag.
-    
+
     Args:
         flag_create: The feature flag to create
         request: The FastAPI request
         service: Feature flag service
         formatter: Response formatter
-        
+
     Returns:
         Created feature flag
     """
     # Check if management is enabled
     check_management_enabled()
-    
+
     # Check if flag already exists
     existing_flag = await service.get_flag(flag_create.name)
     if existing_flag:
@@ -197,7 +198,7 @@ async def create_feature_flag(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Feature flag '{flag_create.name}' already exists",
         )
-    
+
     flag = await service.create_flag(flag_create)
     return formatter(flag)
 
@@ -217,24 +218,24 @@ async def bulk_update_feature_flags(
 ):
     """
     Bulk update feature flags.
-    
+
     Args:
         updates: Dictionary of feature flag updates keyed by flag name
         request: The FastAPI request
         service: Feature flag service
         formatter: Response formatter
-        
+
     Returns:
         Dictionary of updated feature flags keyed by flag name
     """
     # Check if management is enabled
     check_management_enabled()
-    
+
     if not updates:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No updates provided",
         )
-    
+
     results = await service.bulk_update_flags(updates)
     return formatter(results)

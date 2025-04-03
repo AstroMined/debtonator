@@ -49,4 +49,6 @@ api_v1_router.include_router(deposit_schedules_router, tags=["deposit-schedules"
 api_v1_router.include_router(recurring_income_router, tags=["recurring-income"])
 api_v1_router.include_router(income_analysis_router, tags=["income-analysis"])
 api_v1_router.include_router(realtime_cashflow_router, tags=["realtime-cashflow"])
-api_v1_router.include_router(feature_flags_router, prefix="/feature-flags", tags=["feature-flags"])
+api_v1_router.include_router(
+    feature_flags_router, prefix="/feature-flags", tags=["feature-flags"]
+)

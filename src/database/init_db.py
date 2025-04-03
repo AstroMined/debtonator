@@ -1,41 +1,26 @@
 import asyncio
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from src.constants import (
-    DEFAULT_CATEGORY_DESCRIPTION,
-    DEFAULT_CATEGORY_ID,
-    DEFAULT_CATEGORY_NAME,
-)
 from src.database.base import Base
 from src.database.database import engine
-from src.models.categories import Category
+
+# Import all models through __init__.py to ensure proper registration
+from src.repositories.categories import CategoryRepository
+from src.services.system_initialization import ensure_system_categories
 
 
 async def init_db(db_engine: AsyncEngine) -> None:
-    """Initialize the database with all models and default data"""
+    """Initialize the database with all models and system data"""
+    # Create schema
     async with db_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    # Create default category if it doesn't exist
+    # Initialize system data through repository layer
     async with AsyncSession(db_engine) as session:
-        # Check if default category exists
-        result = await session.execute(
-            select(Category).where(Category.id == DEFAULT_CATEGORY_ID)
-        )
-        default_category = result.scalars().first()
-
-        if not default_category:
-            # Create default category
-            default_category = Category(
-                id=DEFAULT_CATEGORY_ID,
-                name=DEFAULT_CATEGORY_NAME,
-                description=DEFAULT_CATEGORY_DESCRIPTION,
-                system=True,
-            )
-            session.add(default_category)
-            await session.commit()
+        # Use repository for all data access
+        category_repo = CategoryRepository(session)
+        await ensure_system_categories(category_repo)
 
 
 def init_database() -> None:
