@@ -426,6 +426,107 @@ This checklist outlines the specific tasks required to implement the Feature Fla
   - [ ] QA team training
   - [ ] Support team training
 
+## Updated Testing Strategy (April 3, 2025)
+
+Following Debtonator's "Real Objects Testing Philosophy," we'll implement a structured, progressive testing approach for the Feature Flag System. This strategy ensures thorough validation of each layer before moving to the next, mirrors the codebase structure, and requires no mocks or monkeypatching.
+
+### Testing Sequence and Structure
+- Testing progression: models → schemas → registry → repository → service → API 
+- Mirror the exact source code directory structure in test files
+- Create modular test files to keep tests focused and maintainable
+- All dependencies should be real objects, not mocks
+
+### Models and Schemas Testing
+
+- [x] Feature Flag Model Tests (`tests/unit/models/test_feature_flags.py`):
+  - [x] Test table definition and columns
+  - [x] Verify field types and constraints
+  - [x] Test JSON field for complex values
+  - [x] Validate indexes for performance
+  - [x] Test UTC awareness of datetime fields
+
+- [x] Feature Flag Schema Tests (`tests/unit/schemas/test_feature_flags.py`):
+  - [x] Test FeatureFlagBase field validation
+  - [x] Test FeatureFlagCreate with different flag types
+  - [x] Test FeatureFlagUpdate validation rules
+  - [x] Test FeatureFlagResponse serialization
+  - [x] Test validation for boolean, percentage, segment, and time-based flags
+  - [x] Test error message clarity for validation failures
+
+### Registry Testing
+
+- [x] Feature Flag Registry Tests (`tests/unit/registry/test_feature_flags.py`):
+  - [x] Test flag registration
+  - [x] Test flag value retrieval 
+  - [x] Test flag value updates
+  - [x] Test boolean flag evaluation
+  - [x] Test percentage rollout flag evaluation with different contexts
+  - [x] Test user segment flag evaluation with different user types
+  - [x] Test time-based flag evaluation with different dates
+  - [x] Test observer notification when flag values change
+  - [x] Test thread safety for concurrent access
+
+### Repository Testing
+
+- [x] Feature Flag Repository Tests (`tests/integration/repositories/test_feature_flags.py`):
+  - [x] Test CRUD operations with real database
+  - [x] Test loading all flags
+  - [x] Test getting single flag by name
+  - [x] Test transaction handling with multiple operations
+  - [x] Test bulk operations for performance
+  - [x] Test error handling for database failures
+  - [x] Test serialization/deserialization of complex flag values
+
+### Service Testing
+
+- [x] Feature Flag Service Tests (`tests/integration/services/test_feature_flags.py`):
+  - [x] Test flag evaluation with different contexts
+  - [x] Test value updates with database persistence
+  - [x] Test caching behavior for performance
+  - [x] Test service initialization and configuration
+  - [x] Test flag value transitions
+  - [x] Test complex flag evaluations (time + percentage, etc.)
+
+### API Testing
+
+- [x] Feature Flag API Tests (`tests/integration/api/v1/test_feature_flags.py`):
+  - [x] Test GET endpoints return correct data
+  - [x] Test POST/PUT endpoints properly validate and store data
+  - [x] Test authentication and authorization rules
+  - [x] Test error responses for invalid inputs
+  - [x] Test API with different flag contexts
+  - [x] Test bulk update endpoints
+
+### Integration Testing
+
+- [ ] Cross-Component Tests (`tests/integration/feature_flags/test_integration.py`):
+  - [ ] Test end-to-end flow from API to database and back
+  - [ ] Test registry synchronization with repository
+  - [ ] Test context propagation through layers
+  - [ ] Test performance with many flags
+
+- [ ] Feature Flag Integration Tests:
+  - [ ] `tests/integration/features/test_banking_account_types_flag.py`:
+    - [ ] Test repository and service behavior with flag enabled/disabled
+    - [ ] Test account type availability changes with flag toggle
+    - [ ] Test error handling for disabled features
+  - [ ] `tests/integration/features/test_multi_currency_flag.py`
+  - [ ] `tests/integration/features/test_international_account_flag.py`
+
+### System Tests
+
+- [ ] Application Startup Tests (`tests/integration/config/test_feature_flag_config.py`):
+  - [ ] Test system startup with default flags
+  - [ ] Test configuration loading from different environments
+  - [ ] Test registry initialization at startup
+  - [ ] Test error handling during initialization
+
+- [ ] Performance Tests:
+  - [ ] Test flag evaluation performance under load
+  - [ ] Test system behavior with many concurrent flag checks
+  - [ ] Test memory usage with large number of flags
+  - [ ] Test database operations under concurrent load
+
 ## Phase 8: Deployment and Rollout
 
 ### 8.1 Environment Configuration

@@ -1,3 +1,10 @@
+"""
+Unit tests for account schemas.
+
+Tests the account schema validation and serialization
+as part of ADR-016 Account Type Expansion.
+"""
+
 from datetime import datetime, timezone
 from decimal import Decimal
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
@@ -8,10 +15,10 @@ from pydantic import ValidationError
 from src.schemas.accounts import (
     AccountBase,
     AccountInDB,
-    AccountType,
     AccountUpdate,
     AvailableCreditResponse,
     StatementBalanceHistory,
+    validate_account_type,
     validate_credit_account_field,
 )
 from src.utils.datetime_utils import utc_datetime, utc_now
@@ -22,12 +29,14 @@ def test_account_base_valid():
     statement_date = datetime.now(timezone.utc)
     account = AccountBase(
         name="Test Account",
-        type=AccountType.CHECKING,
+        account_type="checking",  # Updated from type to account_type
+        current_balance=Decimal("1000.00"),  # Added current_balance
         available_balance=Decimal("1000.00"),
         last_statement_date=statement_date,
     )
     assert account.name == "Test Account"
-    assert account.type == AccountType.CHECKING
+    assert account.account_type == "checking"  # Updated field name
+    assert account.current_balance == Decimal("1000.00")  # New field
     assert account.available_balance == Decimal("1000.00")
     assert account.last_statement_date == statement_date
 
@@ -38,13 +47,13 @@ def test_account_base_name_validation():
     with pytest.raises(
         ValidationError, match="String should have at least 1 character"
     ):
-        AccountBase(name="", type=AccountType.CHECKING)
+        AccountBase(name="", account_type="checking")  # Updated field name
 
     # Test too long name
     with pytest.raises(
         ValidationError, match="String should have at most 50 characters"
     ):
-        AccountBase(name="A" * 51, type=AccountType.CHECKING)
+        AccountBase(name="A" * 51, account_type="checking")  # Updated field name
 
 
 def test_account_base_decimal_validation():
@@ -53,14 +62,16 @@ def test_account_base_decimal_validation():
     with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         AccountBase(
             name="Test Account",
-            type=AccountType.CHECKING,
-            available_balance=Decimal("100.123"),
+            account_type="checking",  # Updated field name
+            current_balance=Decimal("100.00"),  # Added current_balance
+            available_balance=Decimal("100.123"),  # Too many decimal places
         )
 
     # Test valid decimal places (0 decimals)
     valid_account = AccountBase(
         name="Test Account",
-        type=AccountType.CHECKING,
+        account_type="checking",  # Updated field name
+        current_balance=Decimal("100"),  # Added current_balance
         available_balance=Decimal("100"),
     )
     assert valid_account.available_balance == Decimal("100")
@@ -68,7 +79,8 @@ def test_account_base_decimal_validation():
     # Test valid decimal places (1 decimal)
     valid_account = AccountBase(
         name="Test Account",
-        type=AccountType.CHECKING,
+        account_type="checking",  # Updated field name
+        current_balance=Decimal("100.5"),  # Added current_balance
         available_balance=Decimal("100.5"),
     )
     assert valid_account.available_balance == Decimal("100.5")
@@ -76,7 +88,8 @@ def test_account_base_decimal_validation():
     # Test valid decimal places (2 decimals)
     valid_account = AccountBase(
         name="Test Account",
-        type=AccountType.CHECKING,
+        account_type="checking",  # Updated field name
+        current_balance=Decimal("100.50"),  # Added current_balance
         available_balance=Decimal("100.50"),
     )
     assert valid_account.available_balance == Decimal("100.50")
@@ -87,7 +100,9 @@ def test_account_base_decimal_validation():
     ):
         AccountBase(
             name="Test Account",
-            type=AccountType.CREDIT,
+            account_type="credit",  # Updated field name
+            current_balance=Decimal("0.00"),  # Added current_balance
+            available_balance=Decimal("0.00"),
             available_credit=Decimal("-100.00"),
         )
 
@@ -100,9 +115,9 @@ def test_validate_credit_account_field_function():
     # Test case with None account type (should not validate/raise error)
     class MockInfoNoneType:
         def __init__(self):
-            self.data = {"type": None}
+            self.data = {"account_type": None}  # Updated field name
 
-    # This tests line 69 in accounts.py - when account_type is None
+    # This tests when account_type is None
     result = validator(Decimal("1000.00"), MockInfoNoneType())
     assert result == Decimal("1000.00")
 
@@ -112,7 +127,7 @@ def test_validate_credit_account_field_function():
     # Test with checking account type (should raise error)
     class MockInfoChecking:
         def __init__(self):
-            self.data = {"type": AccountType.CHECKING}
+            self.data = {"account_type": "checking"}  # Updated field name
 
     with pytest.raises(
         ValueError, match="Total Limit can only be set for credit accounts"
@@ -122,7 +137,7 @@ def test_validate_credit_account_field_function():
     # Test with credit account type (should pass)
     class MockInfoCredit:
         def __init__(self):
-            self.data = {"type": AccountType.CREDIT}
+            self.data = {"account_type": "credit"}  # Updated field name
 
     result = validator(Decimal("1000.00"), MockInfoCredit())
     assert result == Decimal("1000.00")
@@ -136,7 +151,9 @@ def test_account_base_credit_validation():
     ):
         AccountBase(
             name="Test Account",
-            type=AccountType.CHECKING,
+            account_type="checking",  # Updated field name
+            current_balance=Decimal("0.00"),  # Added current_balance
+            available_balance=Decimal("0.00"),
             total_limit=Decimal("1000.00"),
         )
 
@@ -146,14 +163,18 @@ def test_account_base_credit_validation():
     ):
         AccountBase(
             name="Test Account",
-            type=AccountType.CHECKING,
+            account_type="checking",  # Updated field name
+            current_balance=Decimal("0.00"),  # Added current_balance
+            available_balance=Decimal("0.00"),
             available_credit=Decimal("1000.00"),
         )
 
     # Test valid credit account
     account = AccountBase(
         name="Credit Card",
-        type=AccountType.CREDIT,
+        account_type="credit",  # Updated field name
+        current_balance=Decimal("-2000.00"),  # Added current_balance
+        available_balance=Decimal("-2000.00"),
         total_limit=Decimal("5000.00"),
         available_credit=Decimal("3000.00"),
     )
@@ -164,7 +185,9 @@ def test_account_base_credit_validation():
     # Create a credit account with credit-specific fields
     credit_account = AccountBase(
         name="Credit Card",
-        type=AccountType.CREDIT,
+        account_type="credit",  # Updated field name
+        current_balance=Decimal("-2000.00"),  # Added current_balance
+        available_balance=Decimal("-2000.00"),
         total_limit=Decimal("5000.00"),
         available_credit=Decimal("3000.00"),
     )
@@ -172,7 +195,7 @@ def test_account_base_credit_validation():
     # Now try to update it to a checking account without removing credit fields
     # This should fail validation
     update_data = {
-        "type": AccountType.CHECKING,
+        "account_type": "checking",  # Updated field name
         # Keeping credit fields which should be invalid for checking
         "total_limit": Decimal("5000.00"),
         "available_credit": Decimal("3000.00"),
@@ -188,7 +211,9 @@ def test_account_base_invalid_statement_date():
     with pytest.raises(ValidationError, match="Datetime must be UTC"):
         AccountBase(
             name="Test Account",
-            type=AccountType.CHECKING,
+            account_type="checking",  # Updated field name
+            current_balance=Decimal("1000.00"),  # Added current_balance
+            available_balance=Decimal("1000.00"),
             last_statement_date=datetime.now(),
         )
 
@@ -197,7 +222,9 @@ def test_account_base_invalid_statement_date():
     with pytest.raises(ValidationError, match="Datetime must be UTC"):
         AccountBase(
             name="Test Account",
-            type=AccountType.CHECKING,
+            account_type="checking",  # Updated field name
+            current_balance=Decimal("1000.00"),  # Added current_balance
+            available_balance=Decimal("1000.00"),
             last_statement_date=non_utc_date,
         )
 
@@ -205,7 +232,11 @@ def test_account_base_invalid_statement_date():
     # Create account with UTC datetime from datetime_utils
     now = utc_now()
     account = AccountBase(
-        name="Test Account", type=AccountType.CHECKING, last_statement_date=now
+        name="Test Account",
+        account_type="checking",  # Updated field name
+        current_balance=Decimal("1000.00"),  # Added current_balance
+        available_balance=Decimal("1000.00"),
+        last_statement_date=now,
     )
 
     # Verify datetime is preserved correctly
@@ -215,15 +246,17 @@ def test_account_base_invalid_statement_date():
     specific_date = utc_datetime(2025, 3, 15, 14, 30)
     account = AccountBase(
         name="Test Account",
-        type=AccountType.CHECKING,
+        account_type="checking",  # Updated field name
+        current_balance=Decimal("1000.00"),  # Added current_balance
+        available_balance=Decimal("1000.00"),
         last_statement_date=specific_date,
     )
 
     # Verify datetime is preserved correctly
     assert account.last_statement_date == specific_date
-    assert account.last_statement_date.year == 2025
-    assert account.last_statement_date.month == 3
-    assert account.last_statement_date.day == 15
+    assert specific_date.year == 2025
+    assert specific_date.month == 3
+    assert specific_date.day == 15
 
 
 def test_account_update_valid():
@@ -231,11 +264,11 @@ def test_account_update_valid():
     statement_date = datetime.now(timezone.utc)
     update = AccountUpdate(
         name="Updated Account",
-        type=AccountType.SAVINGS,
+        account_type="savings",  # Updated field name
         last_statement_date=statement_date,
     )
     assert update.name == "Updated Account"
-    assert update.type == AccountType.SAVINGS
+    assert update.account_type == "savings"  # Updated field name
     assert update.last_statement_date == statement_date
 
 
@@ -251,7 +284,9 @@ def test_account_update_validation():
     with pytest.raises(
         ValidationError, match="Total Limit can only be set for credit accounts"
     ):
-        AccountUpdate(type=AccountType.CHECKING, total_limit=Decimal("1000.00"))
+        AccountUpdate(
+            account_type="checking", total_limit=Decimal("1000.00")
+        )  # Updated field name
 
     # Test too many decimal places
     with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
@@ -269,7 +304,7 @@ def test_account_update_validation():
 
     # Test valid credit account update
     update = AccountUpdate(
-        type=AccountType.CREDIT,
+        account_type="credit",  # Updated field name
         total_limit=Decimal("5000.00"),
         available_credit=Decimal("3000.00"),
     )
@@ -295,14 +330,15 @@ def test_account_in_db_valid():
     account = AccountInDB(
         id=1,
         name="Test Account",
-        type=AccountType.CREDIT,
-        available_balance=Decimal("1000.00"),
+        account_type="credit",  # Updated field name
+        current_balance=Decimal("0.00"),  # Added current_balance
+        available_balance=Decimal("0.00"),
         created_at=now,
         updated_at=now,
     )
     assert account.id == 1
     assert account.name == "Test Account"
-    assert account.type == AccountType.CREDIT
+    assert account.account_type == "credit"  # Updated field name
     assert account.created_at == now
     assert account.updated_at == now
 
@@ -316,7 +352,9 @@ def test_account_in_db_validation():
         AccountInDB(
             id=0,
             name="Test Account",
-            type=AccountType.CREDIT,
+            account_type="credit",  # Updated field name
+            current_balance=Decimal("0.00"),  # Added current_balance
+            available_balance=Decimal("0.00"),
             created_at=now,
             updated_at=now,
         )
@@ -326,7 +364,13 @@ def test_account_in_db_validation():
         ValidationError, match="String should have at least 1 character"
     ):
         AccountInDB(
-            id=1, name="", type=AccountType.CREDIT, created_at=now, updated_at=now
+            id=1,
+            name="",
+            account_type="credit",  # Updated field name
+            current_balance=Decimal("0.00"),  # Added current_balance
+            available_balance=Decimal("0.00"),
+            created_at=now,
+            updated_at=now,
         )
 
 
@@ -340,7 +384,9 @@ def test_account_in_db_invalid_timestamps():
         AccountInDB(
             id=1,
             name="Test Account",
-            type=AccountType.CREDIT,
+            account_type="credit",  # Updated field name
+            current_balance=Decimal("0.00"),  # Added current_balance
+            available_balance=Decimal("0.00"),
             created_at=naive_now,
             updated_at=now,
         )
@@ -350,7 +396,9 @@ def test_account_in_db_invalid_timestamps():
         AccountInDB(
             id=1,
             name="Test Account",
-            type=AccountType.CREDIT,
+            account_type="credit",  # Updated field name
+            current_balance=Decimal("0.00"),  # Added current_balance
+            available_balance=Decimal("0.00"),
             created_at=now,
             updated_at=naive_now,
         )
@@ -361,7 +409,9 @@ def test_account_in_db_invalid_timestamps():
         AccountInDB(
             id=1,
             name="Test Account",
-            type=AccountType.CREDIT,
+            account_type="credit",  # Updated field name
+            current_balance=Decimal("0.00"),  # Added current_balance
+            available_balance=Decimal("0.00"),
             created_at=non_utc,
             updated_at=now,
         )
@@ -501,3 +551,27 @@ def test_money_field_type():
             adjusted_balance=Decimal("3000.00"),
             available_credit=Decimal("-0.01"),  # Negative value violates ge=0
         )
+
+
+def test_validate_account_type():
+    """Test the validate_account_type function"""
+    # Test with valid account types
+    valid_types = [
+        "checking",
+        "savings",
+        "credit",
+        "payment_app",
+        "bnpl",
+        "ewa",
+        "investment",
+        "loan",
+        "bill",
+    ]
+
+    for account_type in valid_types:
+        result = validate_account_type(account_type)
+        assert result == account_type
+
+    # Test with invalid account type
+    with pytest.raises(ValueError, match="Invalid account type"):
+        validate_account_type("not_a_valid_type")

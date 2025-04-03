@@ -7,6 +7,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.67] - 2025-04-03
+
+### Added
+
+- Testing infrastructure for account type expansion (ADR-016)
+- Schema tests for all banking account types (ADR-019)
+- Feature flag model and schema tests (ADR-024)
+- Modular test structure for unlimited account type scalability
+- Feature flag integration tests with account types
+
+### Changed
+
+- Refactored account tests to use a modular structure
+- Split monolithic test files into type-specific modules
+- Updated testing strategy documentation for account types
+- Enhanced feature flag validation with context-specific tests
+
+### Fixed
+
+- Corrected schema validation issues in specialized account types
+- Fixed polymorphic identity handling in account type tests
+- Addressed feature flag context handling in tests
+
 ## [0.5.66] - 2025-04-03
 
 ### Added

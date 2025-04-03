@@ -47,9 +47,9 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - Model passes linting and type checking
 
 **Testing:**
-- [ ] Write unit tests for base Account model validating field definitions
-- [ ] Test index creation and effectiveness with sample queries
-- [ ] Verify datetime fields store timezone-aware values correctly
+- [x] Write unit tests for base Account model validating field definitions
+- [x] Test index creation and effectiveness with sample queries
+- [x] Verify datetime fields store timezone-aware values correctly
 - [ ] Test feature flag integration with model access
 
 ### 2.2 Traditional Banking Account Models
@@ -73,9 +73,9 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - Appropriate CHECK constraints are defined where needed
 
 **Testing:**
-- [ ] Write unit tests for each account model verifying inheritance works properly
-- [ ] Test foreign key constraints and cascading behavior
-- [ ] Test field constraints (e.g., nullable, defaults) with valid and invalid data
+- [x] Write unit tests for each account model verifying inheritance works properly
+- [x] Test foreign key constraints and cascading behavior
+- [x] Test field constraints (e.g., nullable, defaults) with valid and invalid data
 - [ ] Write integration tests for polymorphic queries on each model type
 
 ### 2.3 Modern Financial Services Models
@@ -98,7 +98,7 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - Field constraints match business rules
 
 **Testing:**
-- [ ] Write unit tests for each modern account model
+- [x] Write unit tests for each modern account model
 - [ ] Test special business logic for BNPL lifecycle management
 - [ ] Test relationships between PaymentApp and linked accounts
 - [ ] Write integration tests for polymorphic queries
@@ -145,10 +145,10 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - Schemas follow ADR-012 validation layer standards
 
 **Testing:**
-- [ ] Write unit tests for base schemas with valid and invalid data
-- [ ] Test datetime field validation for timezone awareness
-- [ ] Test currency field validation with various currency codes
-- [ ] Test schema validation error messages for clarity
+- [x] Write unit tests for base schemas with valid and invalid data
+- [x] Test datetime field validation for timezone awareness
+- [x] Test currency field validation with various currency codes
+- [x] Test schema validation error messages for clarity
 - [ ] Verify feature flag integration with schema validation
 
 ### 3.2 Traditional Banking Account Schemas
@@ -174,11 +174,11 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - Create schemas include appropriate defaults
 
 **Testing:**
-- [ ] Write unit tests for each schema's validators
-- [ ] Test all validation rules with valid and invalid data
-- [ ] Test error messages for clarity and accuracy
-- [ ] Test inheritance behavior from base schemas
-- [ ] Verify field constraints match business requirements
+- [x] Write unit tests for each schema's validators
+- [x] Test all validation rules with valid and invalid data
+- [x] Test error messages for clarity and accuracy
+- [x] Test inheritance behavior from base schemas
+- [x] Verify field constraints match business requirements
 
 ### 3.3 Modern Financial Services Schemas
 
@@ -202,11 +202,11 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - Create schemas include appropriate defaults
 
 **Testing:**
-- [ ] Write unit tests for each schema focusing on unique validations
-- [ ] Test BNPL-specific validations for installments and payments
-- [ ] Test PaymentApp platform validation with valid and invalid values
-- [ ] Test date validations for EWA payday requirements
-- [ ] Test internationalization aspects of schemas
+- [x] Write unit tests for each schema focusing on unique validations
+- [x] Test BNPL-specific validations for installments and payments
+- [x] Test PaymentApp platform validation with valid and invalid values
+- [x] Test date validations for EWA payday requirements
+- [x] Test internationalization aspects of schemas
 
 ### 3.4 Discriminated Union Implementation
 
@@ -223,8 +223,8 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - Serialization and deserialization work as expected
 
 **Testing:**
-- [ ] Test serialization and deserialization of each account type via the union
-- [ ] Test discriminator behavior with various account types
+- [x] Test serialization and deserialization of each account type via the union
+- [x] Test discriminator behavior with various account types
 - [ ] Test API integration with the union types
 - [ ] Test with feature flags to verify behavior when types are disabled
 - [ ] Write integration tests for end-to-end schema validation
@@ -559,6 +559,184 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [ ] Verify monitoring captures flag usage
 - [ ] Test rollback procedures
 
+## Updated Testing Strategy (April 3, 2025)
+
+Following Debtonator's "Real Objects Testing Philosophy," we'll implement a structured, progressive testing approach for Banking Account Types. This strategy ensures thorough validation of each layer before moving to the next, mirrors the codebase structure, and requires no mocks or monkeypatching.
+
+### Testing Sequence and Structure
+- Testing progression: models → schemas → schema factories → repositories → service → API
+- Mirror the exact source code directory structure in test files
+- Create modular test files to keep tests focused and maintainable
+- Schema factories must be created and tested before repository tests
+
+### Models Testing
+
+- [x] Banking Account Type Models Tests:
+  - [x] `tests/unit/models/account_types/banking/test_checking.py`:
+    - [x] Test table definition and columns
+    - [x] Verify inheritance from Account base model
+    - [x] Test polymorphic identity is "checking"
+    - [x] Validate international fields (iban, swift_bic, sort_code, etc.)
+    - [x] Test overdraft-related fields
+  - [x] `tests/unit/models/account_types/banking/test_savings.py`:
+    - [x] Test table definition and columns
+    - [x] Verify inheritance from Account base model
+    - [x] Test polymorphic identity is "savings"
+    - [x] Test interest rate fields
+    - [x] Validate withdrawal_limit and minimum_balance
+  - [x] `tests/unit/models/account_types/banking/test_credit.py`:
+    - [x] Test table definition and columns
+    - [x] Verify inheritance from Account base model
+    - [x] Test polymorphic identity is "credit"
+    - [x] Test credit limit and statement fields
+    - [x] Validate autopay_status options
+  - [x] `tests/unit/models/account_types/banking/test_payment_app.py`:
+    - [x] Test table definition and columns
+    - [x] Verify inheritance from Account base model
+    - [x] Test polymorphic identity is "payment_app"
+    - [x] Test platform field constraints
+    - [x] Validate debit card related fields
+  - [x] `tests/unit/models/account_types/banking/test_bnpl.py`:
+    - [x] Test table definition and columns
+    - [x] Verify inheritance from Account base model
+    - [x] Test polymorphic identity is "bnpl"
+    - [x] Test installment fields
+    - [x] Validate payment_frequency options
+  - [x] `tests/unit/models/account_types/banking/test_ewa.py`:
+    - [x] Test table definition and columns
+    - [x] Verify inheritance from Account base model
+    - [x] Test polymorphic identity is "ewa"
+    - [x] Test pay period fields
+    - [x] Validate advance percentage limits
+
+### Schemas Testing
+
+- [x] Banking Account Type Schema Tests:
+  - [x] `tests/unit/schemas/account_types/banking/test_checking.py`:
+    - [x] Test Literal["checking"] type enforcement
+    - [x] Test overdraft validation (limit required when protection enabled)
+    - [x] Test international banking field validations
+    - [x] Test create and response schema differences
+  - [x] `tests/unit/schemas/account_types/banking/test_savings.py`:
+    - [x] Test Literal["savings"] type enforcement
+    - [x] Test interest_rate validation (must be valid percentage)
+    - [x] Test compound_frequency validation (must be valid option)
+    - [x] Test minimum_balance and withdrawal_limit validation
+  - [x] `tests/unit/schemas/account_types/banking/test_credit.py`:
+    - [x] Test Literal["credit"] type enforcement
+    - [x] Test credit_limit validation (must be positive)
+    - [x] Test statement_balance/minimum_payment relationship validation
+    - [x] Test autopay_status validation
+  - [x] `tests/unit/schemas/account_types/banking/test_payment_app.py`:
+    - [x] Test Literal["payment_app"] type enforcement
+    - [x] Test platform validation (must be in approved list)
+    - [x] Test card_last_four validation when has_debit_card is True
+    - [x] Test linked_account_ids parsing
+  - [x] `tests/unit/schemas/account_types/banking/test_bnpl.py`:
+    - [x] Test Literal["bnpl"] type enforcement
+    - [x] Test installment_count/installments_paid validation
+    - [x] Test payment_frequency validation
+    - [x] Test next_payment_date validation (must be future for new)
+  - [x] `tests/unit/schemas/account_types/banking/test_ewa.py`:
+    - [x] Test Literal["ewa"] type enforcement
+    - [x] Test max_advance_percentage validation (0-100%)
+    - [x] Test pay period field validations
+    - [x] Test next_payday validation (must be future)
+
+- [ ] Banking Union Schema Tests:
+  - [ ] `tests/unit/schemas/account_types/banking/test_unions.py`:
+    - [ ] Test BankingAccountCreateUnion discriminated union
+    - [ ] Test BankingAccountResponseUnion discriminated union
+    - [ ] Verify proper deserialization based on account_type
+    - [ ] Test error handling for invalid account types
+    - [ ] Test with feature flags enabled/disabled
+
+### Schema Factories
+
+- [ ] Banking Type Schema Factories:
+  - [ ] `tests/helpers/schema_factories/account_types/banking/checking.py`:
+    - [ ] Implement create_checking_account_schema with appropriate defaults
+    - [ ] Support customization via **kwargs for all fields
+    - [ ] Handle international banking fields
+  - [ ] `tests/helpers/schema_factories/account_types/banking/savings.py`:
+    - [ ] Implement create_savings_account_schema with appropriate defaults
+    - [ ] Support interest rate customization
+  - [ ] `tests/helpers/schema_factories/account_types/banking/credit.py`:
+    - [ ] Implement create_credit_account_schema with appropriate defaults
+    - [ ] Support statement-related field customization
+  - [ ] `tests/helpers/schema_factories/account_types/banking/payment_app.py`:
+    - [ ] Implement create_payment_app_account_schema with appropriate defaults
+    - [ ] Support platform customization
+  - [ ] `tests/helpers/schema_factories/account_types/banking/bnpl.py`:
+    - [ ] Implement create_bnpl_account_schema with appropriate defaults
+    - [ ] Support installment field customization
+  - [ ] `tests/helpers/schema_factories/account_types/banking/ewa.py`:
+    - [ ] Implement create_ewa_account_schema with appropriate defaults
+    - [ ] Support pay period customization
+
+- [ ] Schema Factory Tests:
+  - [ ] `tests/unit/helpers/schema_factories/account_types/banking/test_checking.py`:
+    - [ ] Test default schema generation with valid values
+    - [ ] Test customization via kwargs
+    - [ ] Verify schema validates successfully
+  - [ ] Similar tests for other account types
+
+### Repository Testing
+
+- [ ] Repository Module Tests:
+  - [ ] `tests/integration/repositories/account_types/banking/test_checking.py`:
+    - [ ] Test checking-specific repository functions
+    - [ ] Test querying with international banking fields
+    - [ ] Test overdraft-related operations
+  - [ ] `tests/integration/repositories/account_types/banking/test_savings.py`:
+    - [ ] Test savings-specific repository functions
+    - [ ] Test interest-related operations
+  - [ ] `tests/integration/repositories/account_types/banking/test_credit.py`:
+    - [ ] Test credit-specific repository functions
+    - [ ] Test statement-related operations
+    - [ ] Test due date querying
+  - [ ] `tests/integration/repositories/account_types/banking/test_payment_app.py`:
+    - [ ] Test payment app-specific repository functions
+    - [ ] Test linked account operations
+  - [ ] `tests/integration/repositories/account_types/banking/test_bnpl.py`:
+    - [ ] Test BNPL-specific repository functions
+    - [ ] Test installment tracking
+    - [ ] Test next payment calculations
+  - [ ] `tests/integration/repositories/account_types/banking/test_ewa.py`:
+    - [ ] Test EWA-specific repository functions
+    - [ ] Test pay period operations
+
+- [ ] Cross-Account Operations Tests:
+  - [ ] `tests/integration/repositories/account_types/banking/test_banking_operations.py`:
+    - [ ] Test operations across multiple banking account types
+    - [ ] Test polymorphic queries with banking types
+    - [ ] Test feature flag controlled operations
+
+### Service Layer Testing
+
+- [ ] Banking Service Tests:
+  - [ ] `tests/integration/services/test_banking_overview.py`:
+    - [ ] Test get_banking_overview aggregation
+    - [ ] Test with multiple account types
+    - [ ] Verify calculation accuracy
+  - [ ] `tests/integration/services/test_upcoming_payments.py`:
+    - [ ] Test get_upcoming_payments across account types
+    - [ ] Test sorting and filtering
+    - [ ] Verify date handling
+  - [ ] `tests/integration/services/test_bnpl_lifecycle.py`:
+    - [ ] Test update_bnpl_status lifecycle management
+    - [ ] Test installment progression
+    - [ ] Verify account closure when fully paid
+
+### Feature Flag Testing
+
+- [ ] Feature Flag Integration Tests:
+  - [ ] `tests/integration/features/test_banking_account_types_flag.py`:
+    - [ ] Test repository behavior with flags enabled/disabled
+    - [ ] Test service behavior with flags enabled/disabled
+    - [ ] Test proper error handling when features are disabled
+    - [ ] Verify graceful degradation
+
 ## Phase 9: Final Verification and Release
 
 ### 9.1 Integration Testing
@@ -612,66 +790,4 @@ This checklist outlines the specific tasks required to implement the Banking Acc
   - All date/time operations use utilities from datetime_utils.py
 
 - [ ] Verify compliance with ADR-012 (Validation Layer)
-  - Models only contain constraints, no business logic
-  - Schemas handle data structure validation
-  - Service layer implements business rules
-
-- [ ] Verify compliance with ADR-013 (Decimal Precision)
-  - Monetary values use Numeric(12, 4) in database
-  - API boundaries enforce 2 decimal places
-  - Schemas use MoneyDecimal and PercentageDecimal types
-
-- [ ] Verify compliance with ADR-014 (Repository Layer)
-  - Repositories extend BaseRepository
-  - Repositories focus on data access, not business logic
-  - Transaction boundaries are properly managed
-
-- [ ] Verify compliance with ADR-016 (Account Type Expansion)
-  - Polymorphic inheritance is correctly implemented
-  - Account Type Registry is properly used
-  - Schema inheritance matches model inheritance
-
-- [ ] Verify compliance with ADR-019 (Banking Account Types)
-  - All specified account types are implemented
-  - Business rules are properly enforced
-  - International support is implemented
-  - Error handling follows defined strategy
-
-- [ ] Verify compliance with ADR-024 (Feature Flag System)
-  - Feature flags are correctly integrated
-  - Conditional logic respects feature flag state
-  - Feature flags control access to new functionality
-  - Documentation explains feature flag usage
-
-**Verification:**
-- All code follows established patterns
-- No violations of architectural principles
-- Consistent implementation across components
-- Documentation matches implementation
-
-**Testing:**
-- [ ] Run static code analysis tools
-- [ ] Perform code review with multiple reviewers
-- [ ] Verify automated tests cover all requirements
-- [ ] Check all ADR compliance points
-
-### 9.4 Release Preparation
-
-- [ ] Finalize feature flag configuration for release
-- [ ] Create release notes
-- [ ] Prepare database initialization scripts
-- [ ] Develop rollout plan with phased approach
-- [ ] Create monitoring dashboards for new features
-
-**Verification:**
-- Release notes document all new features
-- Database scripts initialize required data
-- Rollout plan includes fallback options
-- Monitoring captures key metrics
-
-**Testing:**
-- [ ] Test release process in staging environment
-- [ ] Verify database initialization works correctly
-- [ ] Test rollout plan including rollback scenarios
-- [ ] Verify monitoring captures appropriate metrics
-- [ ] Perform final end-to-end tests with production configuration
+  - Models only contain constraints,

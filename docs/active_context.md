@@ -2,11 +2,46 @@
 
 ## Current Focus
 
-Account Type Expansion, Repository Module Pattern, Datetime Standardization, Feature Flag System Implementation, Documentation Consolidation
+Account Type Expansion, Repository Module Pattern, Datetime Standardization, Feature Flag System Implementation, Documentation Consolidation, Testing Strategy Implementation
 
 ### Recent Changes
 
-1. **Implemented Repository Module Pattern for Account Types (ADR-016, ADR-019)** ✓
+1. **Implemented Testing Strategy for Account Types and Feature Flags (April 3, 2025)** ✓
+   - Created a structured, modular testing approach for all account types
+   - Followed the source code structure in test organization
+   - Split account type tests into separate files to avoid monolithic files
+   - Implemented schema tests for all banking account types
+   - Added feature flag model and schema tests
+   - Created proper directory structure to support hundreds of future account types
+   - Created test utilities and setup for feature flag testing
+   - Implemented modular test files based on the "Real Objects Testing Philosophy"
+   - Added organized test package structure with __init__.py files
+   - Created README documentation for the testing approach
+   - Implemented tests for all validation patterns
+
+2. **Completed Schema Testing for Banking Account Types (ADR-019)** ✓
+   - Added tests for CheckingAccount schema validation
+   - Implemented SavingsAccount schema test cases 
+   - Added CreditAccount statement-related validation tests
+   - Created tests for PaymentApp platform validation
+   - Implemented BNPL installment validation tests
+   - Added EWA pay period validation tests
+   - Tested all cross-field validation rules
+   - Verified error messages for clarity and accuracy
+   - Added tests for discriminated union serialization
+   - Tested schema inheritance for proper behavior
+
+3. **Implemented Feature Flag Model and Schema Tests (ADR-024)** ✓
+   - Created tests for all feature flag types (boolean, percentage, user segment, time-based)
+   - Added validation tests for complex flag configurations
+   - Implemented tests for flag name formatting validation
+   - Created tests for serialization/deserialization
+   - Added tests for error message clarity
+   - Implemented tests for FeatureFlagBase, FeatureFlagCreate, FeatureFlagUpdate
+   - Created schema validation tests for specialized flag types
+   - Tested flag metadata handling
+
+4. **Implemented Repository Module Pattern for Account Types (ADR-016, ADR-019)** ✓
    - Created modular directory structure for account types in `src/repositories/account_types/`
    - Implemented specialized banking repositories (checking, savings, credit)
    - Developed dynamic repository factory with module loading capability
@@ -18,7 +53,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Updated implementation checklists for ADRs 016, 019, and 024
    - Added pattern documentation to system_patterns.md for future reference
 
-2. **Implemented Banking Account Type Schemas (ADR-019)** ✓
+5. **Implemented Banking Account Type Schemas (ADR-019)** ✓
    - Created comprehensive schema hierarchy for all 6 banking account types
    - Implemented CheckingAccount schema with international banking field validation
    - Developed SavingsAccount schema with interest rate and balance validation
@@ -30,7 +65,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Documented all schemas with comprehensive field descriptions
    - Updated ADR-019 implementation checklist with completed tasks
 
-3. **Updated Base Account Schema Architecture (ADR-016)** ✓
+6. **Updated Base Account Schema Architecture (ADR-016)** ✓
    - Renamed `type` field to `account_type` for discriminator column
    - Added support for currency and internationalization fields
    - Implemented feature flag integration for controlled feature rollout
@@ -42,7 +77,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Aligned schema with ADR-013 (Decimal Precision) and ADR-011 (DateTime)
    - Updated ADR-016 implementation checklist with completed items
 
-4. **Created Feature Flag Integration for Banking Types (ADR-024)** ✓
+7. **Created Feature Flag Integration for Banking Types (ADR-024)** ✓
    - Implemented banking-specific feature flag configuration module
    - Created three feature flags for banking features:
      - BANKING_ACCOUNT_TYPES_ENABLED for overall type availability
@@ -57,69 +92,51 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Ensured graceful degradation for disabled features
    - Updated ADR-024 implementation checklist with completed tasks
 
-5. **Enhanced Account Type Registry Integration** ✓
-   - Connected schema classes to account type registry
-   - Updated account registry initialization with schema registration
-   - Created robust account type validation against registry
-   - Implemented feature flag service integration for type availability
-   - Added metadata support for type-specific documentation
-   - Created registry-based validation for account_type field
-   - Implemented singleton pattern for consistent registry access
-   - Enhanced error messages for invalid account types
-   - Added support for getting types by category or feature
-   - Documented registry usage patterns for developers
-
-6. **Fixed Feature Flag UTC Datetime Validation and Registry Initialization** ✓
-   - Fixed failure of all feature flag API tests due to improper datetime handling
-   - Implemented proper UTC conversion for datetime fields in feature flag responses
-   - Updated `create_flag()` and `update_flag()` to return properly formatted FeatureFlagResponse objects
-   - Added service initialization to application startup event to populate registry from database
-   - Ensured service layer properly enforces ADR-011 datetime standards
-   - Addressed registry synchronization issues between database and in-memory cache
-   - Fixed bulk update operations to use responses with UTC-aware datetimes
-   - Modified service interface to maintain consistent return types across all methods
-
 ## Next Steps
 
-1. **Complete Repository Layer for Account Types**
-   - Implement polymorphic query support in AccountRepository
-   - Create type-specific repository methods for specialized operations
-   - Implement feature flag integration in repository layer
-   - Add proper transaction handling for polymorphic operations
-   - Update integration tests for polymorphic account types
-   - Create database migration scripts for new tables
-   - Implement validation for international banking fields
-   - Add cross-currency operation support
+1. **Complete Repository Layer Tests for Account Types** 📝
+   - Create integration tests for the modular repository pattern
+   - Test polymorphic queries with all account types
+   - Implement tests for repository factory with dynamic module loading
+   - Add tests for feature flag integration in repositories
+   - Verify proper relationship loading and transaction boundaries
+   - Test repository-specific methods for each account type
+   - Create tests for error handling with invalid operations
+   - Add tests for account type filtering and sorting
+   - Implement tests for currency and international field operations
 
-2. **Implement Service Layer for Account Types**
-   - Update AccountService to support polymorphic operations
-   - Add business rule validation for different account types
-   - Implement account lifecycle management (especially for BNPL)
-   - Add feature flag integration in service layer
-   - Create specialized error classes for account type validation
-   - Implement rich error messages for validation failures
-   - Add support for multi-currency operations
-   - Create overview methods for banking accounts
+2. **Implement Service Layer Tests**
+   - Create integration tests for AccountService with all account types
+   - Test business rule validation for different account types
+   - Add tests for feature flag integration at service layer
+   - Implement tests for account lifecycle management (BNPL)
+   - Create tests for error handling and propagation
+   - Add tests for context-based flag evaluation
 
-3. **Complete Feature Flag System Implementation (Phases 3-8)**
-   - Integrate with Repository and Service layers (Phase 3)
+3. **Complete API Layer Tests**
+   - Create integration tests for API endpoints with all account types
+   - Test polymorphic request and response validation
+   - Implement tests for feature flag integration at API layer
+   - Add tests for error handling and status codes
+   - Test authentication and authorization scenarios
+   - Create tests for different feature flag states
+   - Add tests for multi-currency and international field handling
+
+4. **Finalize Feature Flag System Implementation**
+   - Complete Repository and Service layer integration (Phase 3)
    - Build Feature Flag Management Interface (Phase 4)
    - Implement Monitoring and Logging (Phase 5)
-   - Integrate feature flags with specific features (Phase 6)
    - Create Documentation and Training resources (Phase 7)
    - Plan Deployment and Rollout strategy (Phase 8)
 
-4. **Complete Account Type API Integration**
-   - Update existing account endpoints for polymorphic support
-   - Create endpoints for listing available account types
-   - Implement specialized endpoints for banking account operations
-   - Add proper error handling for invalid account types
-   - Implement feature flag integration for API endpoints
-   - Update OpenAPI documentation for new schemas
-   - Create test suite for API endpoints
-   - Implement validation for international banking fields
+5. **Implement Bill Split Integration with Account Types**
+   - Update BillSplitRepository to work with polymorphic accounts
+   - Add validation for account type compatibility
+   - Create tests for bill splits across account types
+   - Implement feature flag integration for bill splits
+   - Test transaction boundaries with complex operations
 
-5. **Consolidate SQL Aggregation Patterns**
+6. **Consolidate SQL Aggregation Patterns**
    - Audit repository methods for proper COUNT() handling with JOINs
    - Review SUM() operations for consistency with GROUP BY usage
    - Standardize date range filtering for cross-database compatibility
@@ -128,7 +145,19 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
 
 ## Implementation Lessons
 
-1. **Polymorphic Schema Pattern with Pydantic V2**
+1. **Testing Structured Directory Pattern**
+   - Mirror the exact source directory structure in test files:
+   ```
+   src/schemas/account_types/banking/checking.py
+   -> tests/unit/schemas/account_types/banking/test_checking.py
+   ```
+   - Separate test files per component keeps tests focused and maintainable
+   - Use descriptive test method names that describe the behavior being tested
+   - Tests should focus on one aspect of functionality per test method
+   - Create proper test package structure with __init__.py files
+   - Test lower layers thoroughly before moving to higher layers
+
+2. **Polymorphic Schema Pattern with Pydantic V2**
    - Use Literal fields to enforce discriminator values in derived schemas:
 
    ```python
@@ -161,7 +190,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - API will automatically deserialize to the correct schema class
    - Always document discriminator field usage in schema docstrings
 
-2. **Feature Flag Layer Integration**
+3. **Feature Flag Layer Integration**
    - Feature flags should be evaluated at the service layer, not directly in repositories
    - Integration tests for feature flags should test full flow from config to database
    - Flag values should be synchronized between registry (memory) and repository (database)
@@ -181,7 +210,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
        return self.registry.get_all_types()
    ```
 
-3. **Real Objects Testing Philosophy**
+4. **Real Objects Testing Philosophy**
    - Never use mocks in tests - unittest.mock and MagicMock are strictly prohibited:
 
    ```python
@@ -202,7 +231,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Use real schema validation in every test
    - Integration-first approach gives higher confidence in production behavior
 
-4. **Validator Method Calling Patterns**
+5. **Validator Method Calling Patterns**
    - When testing validator methods directly, don't pass the class as first argument:
 
    ```python
@@ -218,13 +247,13 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Validation info objects should match Pydantic's ValidationInfo interface
    - Error assertion patterns should match Pydantic v2's error message format
 
-5. **Type-Specific Validator Methods**
+6. **Type-Specific Validator Methods**
    - Implement cross-field validation using model validators:
 
    ```python
    @field_validator("overdraft_limit")
    @classmethod
-   def validate_overdraft_limit(cls, value: Optional[Decimal], info: dict) -> Optional[Decimal]:
+   def validate_overdraft_limit(cls, value: Optional[Decimal], info: ValidationInfo) -> Optional[Decimal]:
        has_protection = info.data.get("has_overdraft_protection", False)
        
        if has_protection and value is None:

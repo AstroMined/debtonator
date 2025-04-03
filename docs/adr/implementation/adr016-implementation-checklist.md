@@ -15,13 +15,13 @@ This checklist focuses specifically on implementing the core polymorphic archite
   - [x] Add `currency` field with ISO 4217 currency code (for multi-currency support)
   - [x] Set default currency to "USD" for backward compatibility
 
-- [ ] Update Account model tests:
-  - [ ] Verify polymorphic identity mapping
-  - [ ] Test proper relationship declarations
-  - [ ] Ensure datetime fields comply with ADR-011
-  - [ ] Test balance field decimal precision per ADR-013
-  - [ ] Test currency field validation
-  - [ ] Test default currency behavior
+- [x] Update Account model tests:
+  - [x] Verify polymorphic identity mapping
+  - [x] Test proper relationship declarations
+  - [x] Ensure datetime fields comply with ADR-011
+  - [x] Test balance field decimal precision per ADR-013
+  - [x] Test currency field validation
+  - [x] Test default currency behavior
 
 ## Multi-Currency Support
 
@@ -139,14 +139,14 @@ This checklist focuses specifically on implementing the core polymorphic archite
   - [x] Add currency field and validation
   - [x] Add conditional field inclusion based on feature flags
 
-- [ ] Create/update schema tests in `tests/unit/schemas/test_account_schemas.py`:
-  - [ ] Test field constraints and validation
-  - [ ] Test discriminated union behavior
-  - [ ] Test error cases with invalid data
-  - [ ] Test MoneyDecimal validation for 2 decimal precision
-  - [ ] Test validation of required vs. optional fields
-  - [ ] Test currency validation
-  - [ ] Test feature flag integration for field inclusion
+- [x] Create/update schema tests in `tests/unit/schemas/test_account_schemas.py`:
+  - [x] Test field constraints and validation
+  - [x] Test discriminated union behavior
+  - [x] Test error cases with invalid data
+  - [x] Test MoneyDecimal validation for 2 decimal precision
+  - [x] Test validation of required vs. optional fields
+  - [x] Test currency validation
+  - [x] Test feature flag integration for field inclusion
 
 ## Repository Layer
 
@@ -310,32 +310,147 @@ This checklist focuses specifically on implementing the core polymorphic archite
   - [x] Configure currency support
   - [x] Initialize international banking support
 
-## Testing Strategy
+## Updated Testing Strategy (April 3, 2025)
 
-Follow Debtonator's "Real Objects Testing Philosophy" for all tests:
+Following Debtonator's "Real Objects Testing Philosophy," we'll implement a structured, progressive testing approach for Account Type Expansion. This strategy ensures thorough validation of each layer before moving to the next, mirrors the codebase structure, and requires no mocks or monkeypatching.
 
-1. **No Mocks Policy**:
-   - [ ] Ensure no usage of unittest.mock or MagicMock
-   - [ ] Use real objects, real repositories, and real schemas
-   - [ ] Set up real test database fixtures for polymorphic testing
+### Testing Sequence and Structure
+- Testing progression: models → schemas → schema factories → repositories → registry
+- Mirror the exact source code directory structure in test files
+- Create modular test files to keep tests focused and maintainable
+- Schema factories must be created and tested before repository tests
 
-2. **Integration-First Approach**:
-   - [ ] Verify actual cross-layer interactions
-   - [ ] Test repositories with real database sessions
-   - [ ] Test services with real repositories
-   - [ ] Test feature flag integration across layers
-   - [ ] Test multi-currency support in real scenarios
-   - [ ] Test international banking fields in real database
+### Models Testing
 
-3. **Comprehensive Coverage**:
-   - [ ] Test polymorphic base functionality
-   - [ ] Test registry operations
-   - [ ] Test repository polymorphic methods
-   - [ ] Test service validation and business rules
-   - [ ] Test API endpoints and responses
-   - [ ] Test feature flag enabled/disabled states
-   - [ ] Test currency validation and operations
-   - [ ] Test international banking validation
+- [x] Base Account Model Tests (`tests/unit/models/test_accounts.py`):
+  - [x] Test polymorphic identity mapping setup
+  - [x] Verify field definitions and constraints (types, nullable, defaults)
+  - [x] Test relationship declarations
+  - [x] Validate datetime fields are UTC-aware (ADR-011)
+  - [x] Test decimal precision for monetary fields (ADR-013)
+  - [x] Test default currency behavior
+
+- [x] Banking Account Type Model Tests:
+  - [x] `tests/unit/models/account_types/banking/test_checking.py`:
+    - [x] Verify inheritance from Account base model
+    - [x] Test polymorphic identity matches "checking"
+    - [x] Validate international fields (iban, swift_bic, etc.)
+  - [x] `tests/unit/models/account_types/banking/test_savings.py`:
+    - [x] Verify inheritance from Account base model
+    - [x] Test polymorphic identity matches "savings"
+    - [x] Test interest rate and minimum balance fields
+  - [x] `tests/unit/models/account_types/banking/test_credit.py`:
+    - [x] Verify inheritance from Account base model 
+    - [x] Test polymorphic identity matches "credit"
+    - [x] Test credit limit and statement fields
+  - [x] `tests/unit/models/account_types/banking/test_payment_app.py`
+  - [x] `tests/unit/models/account_types/banking/test_bnpl.py`
+  - [x] `tests/unit/models/account_types/banking/test_ewa.py`
+
+### Schemas Testing
+
+- [x] Base Account Schema Tests (`tests/unit/schemas/test_accounts.py`):
+  - [x] Test field validation rules
+  - [x] Verify MoneyDecimal handling with 2 decimal places
+  - [x] Test account_type validator against registry
+  - [x] Test discriminated union behavior
+  - [x] Verify error messages for invalid values
+
+- [x] Banking Account Type Schema Tests:
+  - [x] `tests/unit/schemas/account_types/banking/test_checking.py`:
+    - [x] Test Literal["checking"] type enforcement
+    - [x] Test overdraft validation rules
+    - [x] Validate international banking field validation
+  - [x] `tests/unit/schemas/account_types/banking/test_savings.py`:
+    - [x] Test Literal["savings"] type enforcement
+    - [x] Test interest rate validation
+    - [x] Test minimum balance validation
+  - [x] `tests/unit/schemas/account_types/banking/test_credit.py`:
+    - [x] Test Literal["credit"] type enforcement
+    - [x] Test credit limit and statement balance validation
+    - [x] Test statement_due_date validation for UTC awareness
+  - [x] `tests/unit/schemas/account_types/banking/test_payment_app.py`
+  - [x] `tests/unit/schemas/account_types/banking/test_bnpl.py`
+  - [x] `tests/unit/schemas/account_types/banking/test_ewa.py`
+
+### Schema Factories
+
+- [ ] Base Account Schema Factory (`tests/helpers/schema_factories/accounts.py`):
+  - [ ] Create/update base account factory functions
+  - [ ] Support customization via **kwargs
+  - [ ] Ensure proper defaults for required fields
+  - [ ] Verify test helpers integrate with registry
+
+- [ ] Banking Type Schema Factories:
+  - [ ] `tests/helpers/schema_factories/account_types/banking/checking.py`:
+    - [ ] Implement factory with appropriate defaults
+    - [ ] Support all fields including international fields
+  - [ ] `tests/helpers/schema_factories/account_types/banking/savings.py`
+  - [ ] `tests/helpers/schema_factories/account_types/banking/credit.py`
+  - [ ] `tests/helpers/schema_factories/account_types/banking/payment_app.py`
+  - [ ] `tests/helpers/schema_factories/account_types/banking/bnpl.py`
+  - [ ] `tests/helpers/schema_factories/account_types/banking/ewa.py`
+
+- [ ] Schema Factory Tests:
+  - [ ] `tests/unit/helpers/schema_factories/test_accounts.py`:
+    - [ ] Test base factory functions produce valid schemas
+    - [ ] Verify customization via kwargs works correctly
+  - [ ] `tests/unit/helpers/schema_factories/account_types/banking/test_checking.py`:
+    - [ ] Test checking account factory produces valid schemas
+    - [ ] Verify international fields can be customized
+  - [ ] Similar tests for other account types
+
+### Repository Testing
+
+- [ ] Base Repository Tests (`tests/integration/repositories/test_accounts.py`):
+  - [ ] Basic CRUD operations:
+    - [ ] Create account with all account types
+    - [ ] Retrieve accounts with polymorphic identities
+    - [ ] Update accounts with type-specific fields
+    - [ ] Delete accounts
+  - [ ] Advanced Repository Features:
+    - [ ] Test get_with_type() with all account types
+    - [ ] Test get_by_type() filtering
+    - [ ] Test get_by_user_and_type() queries
+    - [ ] Test polymorphic joins and relationship loading
+
+- [ ] Repository Module Tests:
+  - [ ] `tests/integration/repositories/account_types/banking/test_checking.py`:
+    - [ ] Test checking-specific repository operations
+    - [ ] Test international banking field operations
+  - [ ] `tests/integration/repositories/account_types/banking/test_savings.py`
+  - [ ] `tests/integration/repositories/account_types/banking/test_credit.py`
+  - [ ] `tests/integration/repositories/account_types/banking/test_payment_app.py`
+  - [ ] `tests/integration/repositories/account_types/banking/test_bnpl.py`
+  - [ ] `tests/integration/repositories/account_types/banking/test_ewa.py`
+
+- [ ] Repository Factory Tests (`tests/integration/repositories/test_factory.py`):
+  - [ ] Test dynamic module loading
+  - [ ] Test binding of specialized methods to base repository
+  - [ ] Verify feature flag integration in module loading
+  - [ ] Test fallback behavior when modules are missing
+
+### Registry Testing
+
+- [ ] Account Type Registry Tests (`tests/unit/registry/test_account_types.py`):
+  - [ ] Test registration of account types
+  - [ ] Verify retrieval of model and schema classes
+  - [ ] Test filtering by category
+  - [ ] Test get_repository_module() functionality
+  - [ ] Verify feature flag integration for type availability
+
+### Integration Testing
+
+- [ ] Bill Split Integration Tests:
+  - [ ] Test bill splits assigned to different account types
+  - [ ] Verify validation for eligible account types
+  - [ ] Test currency handling in bill splits
+  - [ ] Test transaction boundaries with splits across types
+
+- [ ] Feature Flag Integration Tests:
+  - [ ] Test behavior with banking flags enabled/disabled
+  - [ ] Test currency support flag behavior
+  - [ ] Test international banking flag behavior
 
 ## Code Review Checklist Compliance
 
@@ -389,7 +504,7 @@ Before completing ADR-016 implementation, verify:
 2. **Test Coverage**:
    - [x] Base model has test coverage
    - [x] Registry has comprehensive tests
-   - [ ] Schema validation is thoroughly tested
+   - [x] Schema validation is thoroughly tested
    - [ ] Repository methods have appropriate tests
    - [ ] Service methods have business rule tests
    - [ ] API endpoints have response tests
