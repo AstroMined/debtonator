@@ -25,7 +25,7 @@ async def test_analyze_income_trends(client: AsyncClient, db_session: AsyncSessi
 
 @pytest.mark.asyncio
 async def test_analyze_source_trends(
-    client: AsyncClient, db_session: AsyncSession, base_account
+    client: AsyncClient, db_session: AsyncSession, test_checking_account
 ):
     # Create test income data
     source = "Test Source"
@@ -40,7 +40,7 @@ async def test_analyze_source_trends(
             amount=amount,
             deposited=False,
             undeposited_amount=amount,
-            account_id=base_account.id,
+            account_id=test_checking_account.id,
             recurring=False,
             created_at=today,
             updated_at=today,
@@ -68,7 +68,7 @@ async def test_analyze_source_trends(
 
 @pytest.mark.asyncio
 async def test_analyze_period_trends(
-    client: AsyncClient, db_session: AsyncSession, base_account
+    client: AsyncClient, db_session: AsyncSession, test_checking_account
 ):
     # Create test income data
     today = date.today()
@@ -84,7 +84,7 @@ async def test_analyze_period_trends(
                 amount=Decimal("1000.00"),
                 deposited=False,
                 undeposited_amount=Decimal("1000.00"),
-                account_id=base_account.id,
+                account_id=test_checking_account.id,
                 recurring=False,
                 created_at=today,
                 updated_at=today,

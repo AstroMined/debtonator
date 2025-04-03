@@ -8,13 +8,13 @@ from src.services.accounts import AccountService
 
 
 @pytest.mark.asyncio
-async def test_calculate_available_credit(db_session, base_credit_account):
+async def test_calculate_available_credit(db_session, test_credit_account):
     """Test available credit calculation for a credit account"""
     service = AccountService(db_session)
 
     # Add some test transactions
     debit_transaction = TransactionHistory(
-        account_id=base_credit_account.id,
+        account_id=test_credit_account.id,
         amount=Decimal("100.00"),
         transaction_type="debit",
         description="Test debit",
@@ -24,7 +24,7 @@ async def test_calculate_available_credit(db_session, base_credit_account):
     )
 
     credit_transaction = TransactionHistory(
-        account_id=base_credit_account.id,
+        account_id=test_credit_account.id,
         amount=Decimal("50.00"),
         transaction_type="credit",
         description="Test credit",
@@ -38,12 +38,12 @@ async def test_calculate_available_credit(db_session, base_credit_account):
     await db_session.flush()
 
     # Calculate available credit
-    result = await service.calculate_available_credit(base_credit_account.id)
+    result = await service.calculate_available_credit(test_credit_account.id)
 
     # Verify results
     assert result is not None
-    assert result.account_id == base_credit_account.id
-    assert result.account_name == base_credit_account.name
+    assert result.account_id == test_credit_account.id
+    assert result.account_name == test_credit_account.name
     assert result.total_limit == Decimal("2000.00")
     assert result.current_balance == Decimal("-500.00")
     assert result.pending_transactions == Decimal("50.00")  # 100 debit - 50 credit
@@ -53,15 +53,15 @@ async def test_calculate_available_credit(db_session, base_credit_account):
 
 @pytest.mark.asyncio
 async def test_calculate_available_credit_no_transactions(
-    db_session, base_credit_account
+    db_session, test_credit_account
 ):
     """Test available credit calculation with no transactions"""
     service = AccountService(db_session)
 
-    result = await service.calculate_available_credit(base_credit_account.id)
+    result = await service.calculate_available_credit(test_credit_account.id)
 
     assert result is not None
-    assert result.account_id == base_credit_account.id
+    assert result.account_id == test_credit_account.id
     assert result.total_limit == Decimal("2000.00")
     assert result.current_balance == Decimal("-500.00")
     assert result.pending_transactions == Decimal("0")
@@ -70,7 +70,9 @@ async def test_calculate_available_credit_no_transactions(
 
 
 @pytest.mark.asyncio
-async def test_calculate_available_credit_non_credit_account(db_session, base_account):
+async def test_calculate_available_credit_non_credit_account(
+    db_session, test_checking_account
+):
     """Test available credit calculation fails for non-credit account"""
     service = AccountService(db_session)
 
@@ -78,7 +80,7 @@ async def test_calculate_available_credit_non_credit_account(db_session, base_ac
         ValueError,
         match="Available credit calculation only available for credit accounts",
     ):
-        await service.calculate_available_credit(base_account.id)
+        await service.calculate_available_credit(test_checking_account.id)
 
 
 @pytest.mark.asyncio

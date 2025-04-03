@@ -24,12 +24,12 @@ async def test_account(db_session):
 
 
 @pytest.fixture
-async def test_liability(db_session, test_account, base_category):
+async def test_liability(db_session, test_account, test_category):
     liability = Liability(
         name="Test Bill",
         amount=Decimal("100.00"),
         due_date=date.today() + timedelta(days=7),
-        category_id=base_category.id,
+        category_id=test_category.id,
         primary_account_id=test_account.id,
         auto_pay=False,
         auto_pay_enabled=False,

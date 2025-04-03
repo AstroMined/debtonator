@@ -84,3 +84,20 @@ async def test_multiple_categories(db_session) -> List[IncomeCategory]:
         await db_session.refresh(category)
 
     return created_categories
+
+
+@pytest_asyncio.fixture
+async def test_recurring_category(db_session) -> Category:
+    """Create a test category specifically for recurring bills"""
+    # Create model instance directly
+    recurring_category = Category(
+        name="Recurring",
+        description="Recurring monthly bills",
+    )
+
+    # Add to session manually
+    db_session.add(recurring_category)
+    await db_session.flush()
+    await db_session.refresh(recurring_category)
+
+    return recurring_category

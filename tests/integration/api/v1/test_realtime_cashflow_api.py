@@ -36,7 +36,7 @@ async def test_accounts(db_session):
 
 
 @pytest.fixture(scope="function")
-async def test_bills(db_session, test_accounts, base_category):
+async def test_bills(db_session, test_accounts, test_category):
     """Create test bills for API testing."""
     today = datetime.now().date()
     bills = [
@@ -46,7 +46,7 @@ async def test_bills(db_session, test_accounts, base_category):
             due_date=today + timedelta(days=5),
             description="Test bill 1",
             recurring=False,
-            category_id=base_category.id,
+            category_id=test_category.id,
             primary_account_id=test_accounts[0].id,
             auto_pay=False,
             auto_pay_enabled=False,
@@ -60,7 +60,7 @@ async def test_bills(db_session, test_accounts, base_category):
             due_date=today + timedelta(days=10),
             description="Test bill 2",
             recurring=False,
-            category_id=base_category.id,
+            category_id=test_category.id,
             primary_account_id=test_accounts[0].id,
             auto_pay=False,
             auto_pay_enabled=False,

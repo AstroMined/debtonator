@@ -4,7 +4,8 @@ from decimal import Decimal
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.accounts import Account
+from src.models.account_types.banking.checking import CheckingAccount
+from src.models.account_types.banking.credit import CreditAccount
 from src.models.credit_limit_history import CreditLimitHistory
 from src.utils.datetime_utils import naive_utc_from_date, naive_utc_now
 
@@ -12,7 +13,7 @@ pytestmark = pytest.mark.asyncio
 
 
 async def test_create_credit_limit_history(
-    db_session: AsyncSession, test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: CreditAccount
 ):
     """Test creating a credit limit history record."""
     history = CreditLimitHistory(
@@ -35,7 +36,7 @@ async def test_create_credit_limit_history(
 
 
 async def test_credit_limit_history_relationships(
-    db_session: AsyncSession, test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: CreditAccount
 ):
     """Test credit limit history relationships."""
     history = CreditLimitHistory(
@@ -61,7 +62,7 @@ async def test_credit_limit_history_relationships(
 
 
 async def test_credit_limit_history_string_representation(
-    db_session: AsyncSession, test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: CreditAccount
 ):
     """Test the string representation of a credit limit history record."""
     history = CreditLimitHistory(
@@ -81,7 +82,7 @@ async def test_credit_limit_history_string_representation(
 
 
 async def test_credit_limit_history_cascade_delete(
-    db_session: AsyncSession, test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: CreditAccount
 ):
     """Test that credit limit history records are deleted when account is deleted."""
     history = CreditLimitHistory(
@@ -103,7 +104,7 @@ async def test_credit_limit_history_cascade_delete(
 
 
 async def test_multiple_credit_limit_changes(
-    db_session: AsyncSession, test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: CreditAccount
 ):
     """Test recording multiple credit limit changes for an account."""
     # Initial limit
@@ -140,7 +141,7 @@ async def test_multiple_credit_limit_changes(
 
 
 async def test_credit_limit_history_creation(
-    db_session: AsyncSession, test_checking_account: Account
+    db_session: AsyncSession, test_checking_account: CheckingAccount
 ):
     """Test that credit limit history can be created without model-level validation."""
 
@@ -165,7 +166,7 @@ async def test_credit_limit_history_creation(
 
 
 async def test_datetime_handling(
-    db_session: AsyncSession, test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: CreditAccount
 ):
     """Test proper datetime handling in credit limit history"""
     # Create history with explicit datetime values

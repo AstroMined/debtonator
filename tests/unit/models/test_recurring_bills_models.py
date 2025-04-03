@@ -14,8 +14,8 @@ pytestmark = pytest.mark.asyncio
 async def test_recurring_bill_creation(test_recurring_bill: RecurringBill):
     """Test basic recurring bill creation and attributes"""
     assert isinstance(test_recurring_bill, RecurringBill)
-    assert test_recurring_bill.bill_name == "Netflix"
-    assert test_recurring_bill.amount == Decimal("19.99")
+    assert test_recurring_bill.bill_name == "Test Recurring Bill"
+    assert test_recurring_bill.amount == Decimal("50.00")
     assert test_recurring_bill.day_of_month == 15
     assert test_recurring_bill.auto_pay is True
     assert test_recurring_bill.active is True
@@ -53,8 +53,8 @@ async def test_liability_creation_from_recurring_bill(
     await db_session.refresh(liability)
 
     # Verify the liability has all the right properties
-    assert liability.name == "Netflix"
-    assert liability.amount == Decimal("19.99")
+    assert liability.name == "Test Recurring Bill"
+    assert liability.amount == Decimal("50.00")
     assert liability.due_date == naive_utc_from_date(2025, 3, 15)
     assert liability.auto_pay is True
     assert liability.primary_account_id == test_recurring_bill.account_id
@@ -67,7 +67,7 @@ async def test_liability_creation_from_recurring_bill(
 
 async def test_recurring_bill_str_representation(test_recurring_bill: RecurringBill):
     """Test string representation of recurring bill"""
-    expected = "<RecurringBill Netflix $19.99>"
+    expected = "<RecurringBill Test Recurring Bill $50.00>"
     assert str(test_recurring_bill) == expected
 
 

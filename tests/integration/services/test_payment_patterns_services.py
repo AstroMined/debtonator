@@ -42,7 +42,7 @@ async def test_accounts(db_session: AsyncSession):
 
 
 @pytest.fixture(scope="function")
-async def test_bill(db_session: AsyncSession, base_category: Category, test_accounts):
+async def test_bill(db_session: AsyncSession, test_category: Category, test_accounts):
     """Create a test bill for payment pattern analysis"""
     now = datetime.now(timezone.utc)
     bill = Liability(
@@ -50,7 +50,7 @@ async def test_bill(db_session: AsyncSession, base_category: Category, test_acco
         amount=Decimal("100"),
         due_date=(now + timedelta(days=15)).date(),
         description="Test bill for payment patterns",
-        category_id=base_category.id,
+        category_id=test_category.id,
         active=True,
         status=LiabilityStatus.PENDING,
         auto_pay=False,

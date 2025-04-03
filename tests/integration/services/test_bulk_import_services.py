@@ -87,7 +87,7 @@ async def test_process_unsupported_file(bulk_import_service, request):
 
 @pytest.mark.asyncio
 async def test_preview_valid_liabilities_import(
-    bulk_import_service, valid_liabilities_file, base_category, request
+    bulk_import_service, valid_liabilities_file, test_category, request
 ):
     """Test previewing valid liabilities import"""
     preview = await bulk_import_service.preview_liabilities_import(
@@ -125,7 +125,7 @@ async def test_preview_invalid_liabilities_import(
 
 @pytest.mark.asyncio
 async def test_preview_valid_income_import(
-    bulk_import_service, valid_income_file, base_account, request
+    bulk_import_service, valid_income_file, test_checking_account, request
 ):
     """Test previewing valid income import"""
     preview = await bulk_import_service.preview_income_import(valid_income_file)
@@ -158,7 +158,11 @@ async def test_preview_invalid_income_import(
 
 @pytest.mark.asyncio
 async def test_import_valid_liabilities(
-    bulk_import_service, valid_liabilities_file, base_account, base_category, request
+    bulk_import_service,
+    valid_liabilities_file,
+    test_checking_account,
+    test_category,
+    request,
 ):
     """Test importing valid liabilities"""
     result = await bulk_import_service.import_liabilities(
@@ -188,7 +192,7 @@ async def test_import_invalid_liabilities(
 
 @pytest.mark.asyncio
 async def test_import_valid_income(
-    bulk_import_service, valid_income_file, base_account, request
+    bulk_import_service, valid_income_file, test_checking_account, request
 ):
     """Test importing valid income"""
     result = await bulk_import_service.import_income(valid_income_file, preview=False)
@@ -212,7 +216,7 @@ async def test_import_invalid_income(bulk_import_service, invalid_income_file, r
 
 @pytest.mark.asyncio
 async def test_preview_mode_liabilities(
-    bulk_import_service, valid_liabilities_file, base_category, request
+    bulk_import_service, valid_liabilities_file, test_category, request
 ):
     """Test liabilities import in preview mode"""
     result = await bulk_import_service.import_liabilities(

@@ -5,14 +5,23 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
+from src.utils.datetime_utils import naive_utc_now
 
 
 @pytest_asyncio.fixture
 async def test_checking_account(db_session: AsyncSession) -> Account:
-    """Test checking account for use in various tests"""
-    # This fixture is already defined in the main conftest.py
-    # Return the fixture from the main conftest for usage in these tests
-    return test_checking_account
+    """Primary Test Checking for use in various tests"""
+    checking_account = Account(
+        name="Primary Test Checking",
+        account_type="checking",
+        available_balance=Decimal("1000.00"),
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now(),
+    )
+    db_session.add(checking_account)
+    await db_session.commit()
+    await db_session.refresh(checking_account)
+    return checking_account
 
 
 @pytest_asyncio.fixture
@@ -21,7 +30,7 @@ async def test_savings_account(db_session: AsyncSession) -> Account:
     # Create model instance directly
     account = Account(
         name="Test Savings Account",
-        type="savings",
+        account_type="savings",
         available_balance=Decimal("500.00"),
     )
 
@@ -39,7 +48,7 @@ async def test_second_account(db_session: AsyncSession) -> Account:
     # Create model instance directly
     account = Account(
         name="Second Checking Account",
-        type="checking",
+        account_type="checking",
         available_balance=Decimal("2000.00"),
     )
 
@@ -71,7 +80,7 @@ async def test_multiple_accounts(db_session: AsyncSession) -> List[Account]:
         # Create model instance directly
         account = Account(
             name=name,
-            type=acc_type,
+            account_type=acc_type,
             available_balance=balance,
             total_limit=Decimal("3000.00") if acc_type == "credit" else None,
             available_credit=Decimal("2300.00") if acc_type == "credit" else None,
@@ -94,6 +103,16 @@ async def test_multiple_accounts(db_session: AsyncSession) -> List[Account]:
 @pytest_asyncio.fixture
 async def test_credit_account(db_session: AsyncSession) -> Account:
     """Test credit account for use in various tests"""
-    # This fixture is already defined in the main conftest.py
-    # Return the fixture from the main conftest for usage in these tests
-    return test_credit_account
+    credit_account = Account(
+        name="Test Credit Card",
+        account_type="credit",
+        available_balance=Decimal("-500.00"),
+        total_limit=Decimal("2000.00"),
+        available_credit=Decimal("1500.00"),  # total_limit - abs(available_balance)
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now(),
+    )
+    db_session.add(credit_account)
+    await db_session.commit()
+    await db_session.refresh(credit_account)
+    return credit_account

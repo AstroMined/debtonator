@@ -6,7 +6,19 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
 
 ### Recent Changes
 
-1. **Implemented Testing Strategy for Account Types and Feature Flags (April 3, 2025)** ✓
+1. **Fixed SQLAlchemy 2.0 Compatibility in Account Type Tests (April 3, 2025)** ✓
+   - Restructured test fixtures to use proper polymorphic account type hierarchy
+   - Created mirrored fixture directory structure matching source code organization
+   - Updated SQLAlchemy query API from legacy to 2.0 syntax for compatibility with AsyncSession
+   - Fixed test fixtures for all banking account types (checking, savings, credit, bnpl, ewa, payment_app)
+   - Resolved CI failure in unit tests for account types
+   - Updated system_patterns.md with modern SQLAlchemy query patterns
+   - Enhanced tech_context.md with explicit SQLAlchemy 2.0 and Pydantic 2.0 references
+   - Fixed CI/CD pipeline to run all tests successfully
+   - Implemented proper test fixture pattern for all account types
+   - Created consistent pattern for account type testing
+
+2. **Implemented Testing Strategy for Account Types and Feature Flags (April 3, 2025)** ✓
    - Created a structured, modular testing approach for all account types
    - Followed the source code structure in test organization
    - Split account type tests into separate files to avoid monolithic files
@@ -19,7 +31,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Created README documentation for the testing approach
    - Implemented tests for all validation patterns
 
-2. **Completed Schema Testing for Banking Account Types (ADR-019)** ✓
+3. **Completed Schema Testing for Banking Account Types (ADR-019)** ✓
    - Added tests for CheckingAccount schema validation
    - Implemented SavingsAccount schema test cases 
    - Added CreditAccount statement-related validation tests
@@ -31,7 +43,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Added tests for discriminated union serialization
    - Tested schema inheritance for proper behavior
 
-3. **Implemented Feature Flag Model and Schema Tests (ADR-024)** ✓
+4. **Implemented Feature Flag Model and Schema Tests (ADR-024)** ✓
    - Created tests for all feature flag types (boolean, percentage, user segment, time-based)
    - Added validation tests for complex flag configurations
    - Implemented tests for flag name formatting validation
@@ -41,7 +53,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Created schema validation tests for specialized flag types
    - Tested flag metadata handling
 
-4. **Implemented Repository Module Pattern for Account Types (ADR-016, ADR-019)** ✓
+5. **Implemented Repository Module Pattern for Account Types (ADR-016, ADR-019)** ✓
    - Created modular directory structure for account types in `src/repositories/account_types/`
    - Implemented specialized banking repositories (checking, savings, credit)
    - Developed dynamic repository factory with module loading capability
@@ -53,7 +65,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Updated implementation checklists for ADRs 016, 019, and 024
    - Added pattern documentation to system_patterns.md for future reference
 
-5. **Implemented Banking Account Type Schemas (ADR-019)** ✓
+6. **Implemented Banking Account Type Schemas (ADR-019)** ✓
    - Created comprehensive schema hierarchy for all 6 banking account types
    - Implemented CheckingAccount schema with international banking field validation
    - Developed SavingsAccount schema with interest rate and balance validation
@@ -64,33 +76,6 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Created proper inheritance structure for all account type schemas
    - Documented all schemas with comprehensive field descriptions
    - Updated ADR-019 implementation checklist with completed tasks
-
-6. **Updated Base Account Schema Architecture (ADR-016)** ✓
-   - Renamed `type` field to `account_type` for discriminator column
-   - Added support for currency and internationalization fields
-   - Implemented feature flag integration for controlled feature rollout
-   - Created validators for account type verification against registry
-   - Added fields for performance optimization (next_action_date/amount)
-   - Enhanced validation for currency and international banking fields
-   - Built comprehensive validation patterns for all field types
-   - Updated field documentation for better developer experience
-   - Aligned schema with ADR-013 (Decimal Precision) and ADR-011 (DateTime)
-   - Updated ADR-016 implementation checklist with completed items
-
-7. **Created Feature Flag Integration for Banking Types (ADR-024)** ✓
-   - Implemented banking-specific feature flag configuration module
-   - Created three feature flags for banking features:
-     - BANKING_ACCOUNT_TYPES_ENABLED for overall type availability
-     - MULTI_CURRENCY_SUPPORT_ENABLED for currency field functionality
-     - INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED for international fields
-   - Added proper environment-specific default values
-   - Created detailed feature flag documentation
-   - Updated account type registry to use feature flags for availability
-   - Added validation for feature flag-controlled fields
-   - Integrated with existing feature flag infrastructure
-   - Created proper initialization flow for feature flags
-   - Ensured graceful degradation for disabled features
-   - Updated ADR-024 implementation checklist with completed tasks
 
 ## Next Steps
 

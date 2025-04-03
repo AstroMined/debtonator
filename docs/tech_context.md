@@ -15,15 +15,22 @@
   - Encapsulates SQLAlchemy-specific implementation details
   - Enables easier testing through dependency injection
 
+- **Database ORM**: SQLAlchemy 2.0
+  - Fully async-compatible API using AsyncSession
+  - Modern query patterns with select() function
+  - No legacy query() method usage
+  - Type-safe query construction with SQLAlchemy 2.0 syntax
+
 - **Database**:
   - Development: SQLite (simple setup, file-based storage)
   - Production: MySQL/MariaDB (robust performance, strong community)
 
-- **Data Validation**: Pydantic
-  - Pydantic V2 style validation throughout
+- **Data Validation**: Pydantic 2.0
+  - High-performance schema validation (up to 50x faster than v1)
   - Type checking and automatic validation
   - Schema-based validation with proper inheritance
   - Comprehensive cross-field validation
+  - Model configuration through model_config dict
 
 ### Frontend
 

@@ -5,7 +5,7 @@ from httpx import AsyncClient
 from src.schemas.liabilities import AutoPaySettings, AutoPayUpdate
 
 
-async def test_update_auto_pay_settings(client: AsyncClient, base_bill):
+async def test_update_auto_pay_settings(client: AsyncClient, test_liability):
     """Test updating auto-pay settings"""
     settings = AutoPaySettings(
         preferred_pay_date=15,
@@ -18,7 +18,7 @@ async def test_update_auto_pay_settings(client: AsyncClient, base_bill):
 
     update = AutoPayUpdate(enabled=True, settings=settings)
     response = await client.put(
-        f"/api/v1/liabilities/{base_bill.id}/auto-pay",
+        f"/api/v1/liabilities/{test_liability.id}/auto-pay",
         json=update.model_dump(mode="json", exclude_none=True),
     )
 
@@ -30,18 +30,18 @@ async def test_update_auto_pay_settings(client: AsyncClient, base_bill):
     assert data["auto_pay_settings"]["preferred_pay_date"] == 15
 
 
-async def test_get_auto_pay_status(client: AsyncClient, base_bill):
+async def test_get_auto_pay_status(client: AsyncClient, test_liability):
     """Test getting auto-pay status"""
     # First enable auto-pay
     settings = AutoPaySettings(payment_method="bank_transfer")
     update = AutoPayUpdate(enabled=True, settings=settings)
     await client.put(
-        f"/api/v1/liabilities/{base_bill.id}/auto-pay",
+        f"/api/v1/liabilities/{test_liability.id}/auto-pay",
         json=update.model_dump(mode="json", exclude_none=True),
     )
 
     # Get status
-    response = await client.get(f"/api/v1/liabilities/{base_bill.id}/auto-pay")
+    response = await client.get(f"/api/v1/liabilities/{test_liability.id}/auto-pay")
 
     assert response.status_code == 200
     data = response.json()
@@ -51,36 +51,38 @@ async def test_get_auto_pay_status(client: AsyncClient, base_bill):
     assert data["last_attempt"] is None
 
 
-async def test_process_auto_pay(client: AsyncClient, base_bill):
+async def test_process_auto_pay(client: AsyncClient, test_liability):
     """Test processing auto-pay"""
     # First enable auto-pay
     settings = AutoPaySettings(payment_method="bank_transfer")
     update = AutoPayUpdate(enabled=True, settings=settings)
     await client.put(
-        f"/api/v1/liabilities/{base_bill.id}/auto-pay",
+        f"/api/v1/liabilities/{test_liability.id}/auto-pay",
         json=update.model_dump(mode="json", exclude_none=True),
     )
 
     # Process auto-pay
-    response = await client.post(f"/api/v1/liabilities/{base_bill.id}/auto-pay/process")
+    response = await client.post(
+        f"/api/v1/liabilities/{test_liability.id}/auto-pay/process"
+    )
 
     assert response.status_code == 200
     data = response.json()
     assert data["message"] == "Auto-pay processed successfully"
 
 
-async def test_disable_auto_pay(client: AsyncClient, base_bill):
+async def test_disable_auto_pay(client: AsyncClient, test_liability):
     """Test disabling auto-pay"""
     # First enable auto-pay
     settings = AutoPaySettings(payment_method="bank_transfer")
     update = AutoPayUpdate(enabled=True, settings=settings)
     await client.put(
-        f"/api/v1/liabilities/{base_bill.id}/auto-pay",
+        f"/api/v1/liabilities/{test_liability.id}/auto-pay",
         json=update.model_dump(mode="json", exclude_none=True),
     )
 
     # Then disable it
-    response = await client.delete(f"/api/v1/liabilities/{base_bill.id}/auto-pay")
+    response = await client.delete(f"/api/v1/liabilities/{test_liability.id}/auto-pay")
 
     assert response.status_code == 200
     data = response.json()
@@ -89,7 +91,7 @@ async def test_disable_auto_pay(client: AsyncClient, base_bill):
     assert data["auto_pay_settings"] is None
 
 
-async def test_get_auto_pay_candidates(client: AsyncClient, base_bill):
+async def test_get_auto_pay_candidates(client: AsyncClient, test_liability):
     """Test getting auto-pay candidates"""
     # First enable auto-pay with due date within days_ahead range
     settings = AutoPaySettings(
@@ -99,7 +101,7 @@ async def test_get_auto_pay_candidates(client: AsyncClient, base_bill):
 
     # Enable auto-pay
     response = await client.put(
-        f"/api/v1/liabilities/{base_bill.id}/auto-pay",
+        f"/api/v1/liabilities/{test_liability.id}/auto-pay",
         json=update.model_dump(mode="json", exclude_none=True),
     )
     assert response.status_code == 200
@@ -110,7 +112,7 @@ async def test_get_auto_pay_candidates(client: AsyncClient, base_bill):
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 1
-    assert data[0]["id"] == base_bill.id
+    assert data[0]["id"] == test_liability.id
 
 
 async def test_auto_pay_nonexistent_liability(client: AsyncClient):
@@ -139,7 +141,7 @@ async def test_auto_pay_nonexistent_liability(client: AsyncClient):
     assert response.status_code == 404
 
 
-async def test_invalid_auto_pay_settings(client: AsyncClient, base_bill):
+async def test_invalid_auto_pay_settings(client: AsyncClient, test_liability):
     """Test updating auto-pay with invalid settings"""
     # Test invalid preferred pay date by sending raw JSON
     payload = {
@@ -150,7 +152,7 @@ async def test_invalid_auto_pay_settings(client: AsyncClient, base_bill):
         },
     }
     response = await client.put(
-        f"/api/v1/liabilities/{base_bill.id}/auto-pay", json=payload
+        f"/api/v1/liabilities/{test_liability.id}/auto-pay", json=payload
     )
     assert response.status_code == 422
     error_detail = response.json()

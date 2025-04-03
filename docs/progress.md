@@ -1,4 +1,31 @@
+<!-- markdownlint-disable MD024 -->
 # Progress
+
+## April 3, 2025 (5:30 PM)
+
+### Completed Tasks
+
+- Fixed SQLAlchemy 2.0 Compatibility in Account Type Tests (ADRs 016, 019):
+  - Resolved critical test failures in account type tests:
+    - Fixed SQLAlchemy query API compatibility in all banking account type tests
+    - Updated from legacy query() method to modern select() API for AsyncSession compatibility
+    - Addressed ImportError in Account models due to user_id column reference
+    - Created proper test fixture structure mirroring source code organization
+    - Fixed type annotations to use concrete account types rather than base Account
+  - Enhanced test fixtures for polymorphic account types:
+    - Created dedicated fixtures for CheckingAccount, SavingsAccount, CreditAccount
+    - Added fixtures for modern financial account types (BNPL, EWA, PaymentApp)
+    - Implemented proper directory structure matching source code hierarchy
+    - Established consistent test pattern for all account types
+  - Updated project documentation:
+    - Added SQLAlchemy 2.0 specific information to tech_context.md
+    - Created new Test Fixture Pattern section in system_patterns.md
+    - Documented modern SQLAlchemy async query patterns
+    - Specified Pydantic 2.0 version details in technical documentation
+  - Fixed all unit tests in account type models:
+    - Updated 6 banking account type test files to use modern query API
+    - Implemented proper fixture structure for all account types
+    - Made all 45 account type tests pass successfully
 
 ## April 3, 2025 (3:00 PM)
 
@@ -286,12 +313,12 @@
 
 ## Current Status Overview
 
-1. **Model Layer**: COMPLETED (100%) ✓
+1. __Model Layer__: COMPLETED (100%) ✓
    - All 18 models fully compliant with ADR-011 and ADR-012
    - Comprehensive test coverage in place
    - System category support with protection mechanisms
 
-2. **Schema Layer**: COMPLETED (100%) ✓
+2. __Schema Layer__: COMPLETED (100%) ✓
    - All 23 schema files fully compliant with ADR-011 and ADR-012
    - Separated recurring_income schema from income schema for better layering
    - Pydantic V2 compatibility with Annotated types approach
@@ -301,7 +328,7 @@
    - Account type schema hierarchy implemented with polymorphic support
    - Discriminated union pattern for API integration
 
-3. **Repository Layer**: COMPLETED (100%) ✓
+3. __Repository Layer__: COMPLETED (100%) ✓
    - Repository pattern foundation complete (ADR-014) ✓
    - 18 of 18 core repositories implemented (100%) ✓
    - 5 of 5 additional repositories implemented (100%) ✓
@@ -317,30 +344,30 @@
    - UTC datetime compliance in tests (100%) ✓
    - Database-agnostic SQL patterns documented (100%) ✓
 
-4. **Service Layer**: IN PROGRESS (12%)
+4. __Service Layer__: IN PROGRESS (12%)
    - Service refactoring to use repositories (12%)
    - AccountService refactored and tested (100%) ✓
 
-5. **Documentation**: COMPLETED (100%) ✓
+5. __Documentation__: COMPLETED (100%) ✓
    - All ADRs up-to-date
    - Implementation guidelines documented
    - Service-repository integration patterns documented
    - UTC datetime compliance guide created
    - PaymentSource Schema Simplification plan documented (ADR-017)
 
-6. **Decimal Precision Handling**: COMPLETED (100%) ✓
+6. __Decimal Precision Handling__: COMPLETED (100%) ✓
    - Two-tier precision model implemented (2 decimal UI, 4 decimal DB)
    - API response formatting with proper precision
    - Comprehensive testing across all components
 
-7. **Category Management System**: COMPLETED (100%) ✓
+7. __Category Management System__: COMPLETED (100%) ✓
    - Hierarchical category management ✓
    - Parent-child relationships with full path tracking ✓
    - System categories with protection mechanisms ✓
    - Default "Uncategorized" category (ADR-015) ✓
    - Comprehensive test coverage in place ✓
 
-8. **UTC Datetime Compliance**: IN PROGRESS (95%)
+8. __UTC Datetime Compliance__: IN PROGRESS (95%)
    - Helper utilities created for consistent datetime handling ✓
    - Naive datetime detection tools implemented ✓
    - Test hooks added for automated detection during test runs ✓
@@ -352,7 +379,7 @@
    - Schema layer validator test methods fixed for proper function calls ✓
    - Adding naive datetime scanner to CI pipeline (0%)
 
-9. **Feature Flag System**: IN PROGRESS (50%)
+9. __Feature Flag System__: IN PROGRESS (50%)
    - Phase 1: Core Infrastructure (100%) ✓
    - Phase 1.1: Model and Schema Implementation (100%) ✓
    - Phase 1.2: Feature Flag Registry (100%) ✓
@@ -374,7 +401,7 @@
    - Phase 8: Deployment and Rollout (0%)
    - Testing Strategy Implementation (100%) ✓
 
-10. **Account Type Expansion**: IN PROGRESS (50%)
+10. __Account Type Expansion__: IN PROGRESS (50%)
     - Base Account Architecture (90%) ✓
     - Database Schema and Model Implementation (100%) ✓
     - Pydantic Schema Implementation (100%) ✓
@@ -388,7 +415,7 @@
 
 ## What Works
 
-1. **Repository Layer**
+1. __Repository Layer__
    - Full CRUD operations for all model types ✓
    - Advanced repository queries with proper relationship loading ✓
    - UTC-aware datetime handling in repository tests ✓
@@ -400,7 +427,7 @@
    - Proper SQL aggregation with GROUP BY and COUNT handling ✓
    - Repository module pattern for account types ✓
 
-2. **Schema Layer**
+2. __Schema Layer__
    - Complete validation for all model types ✓
    - Parent-child relationship modeling ✓
    - Decimal precision handling ✓
@@ -413,7 +440,7 @@
    - Feature flag integration in schemas ✓
    - Comprehensive schema tests for all account types ✓
 
-3. **Core Architecture**
+3. __Core Architecture__
    - Repository pattern for data access ✓
    - Sophisticated test fixture management ✓
    - System entity protection mechanisms ✓
@@ -428,7 +455,7 @@
    - Modular testing strategy for account types ✓
    - Feature flag model and schema testing ✓
 
-4. **Testing Strategy**
+4. __Testing Strategy__
    - Structured testing approach mirroring source code directory structure ✓
    - Modular test files to prevent monolithic test files ✓
    - Real Objects Testing Philosophy with no mocks ✓
@@ -442,7 +469,7 @@
 
 ## What's Left to Build
 
-1. **Complete Account Type Expansion (50%)**
+1. __Complete Account Type Expansion (50%)__
    - Implement repository integration tests for polymorphic account types
    - Create service layer for different account types
    - Add API endpoints for new account types
@@ -451,7 +478,7 @@
    - Implement bill split integration with account types
    - Complete feature flag integration at repository and service layers
 
-2. **Complete Feature Flag System (50%)**
+2. __Complete Feature Flag System (50%)__
    - Implement Repository and Service Layer Integration (Phase 3)
    - Build Feature Flag Management Interface (Phase 4)
    - Implement Monitoring and Logging (Phase 5)
@@ -459,19 +486,19 @@
    - Create Documentation and Training resources (Phase 7)
    - Plan Deployment and Rollout strategy (Phase 8)
 
-3. **Add Naive DateTime Scanner to CI Pipeline (5%)**
+3. __Add Naive DateTime Scanner to CI Pipeline (5%)__
    - Create GitHub Action for detecting naive datetime usage
    - Integrate scanner with test runs for early detection
    - Add quality gates to prevent introduction of new issues
    - Create documentation for preventing naive datetime usage
 
-4. **Service Layer Refactoring (12%)**
+4. __Service Layer Refactoring (12%)__
    - Refactor remaining services (BillService, PaymentService, etc.)
    - Update API endpoints to use refactored services
    - Ensure proper schema validation in service-to-repository flow
    - Add support for polymorphic account operations
 
-5. **SQL Aggregation Patterns Consolidation (0%)**
+5. __SQL Aggregation Patterns Consolidation (0%)__
    - Audit remaining repositories for proper COUNT/SUM handling
    - Establish consistent aggregation patterns across repositories
    - Consider standardizing GROUP BY usage in queries
@@ -480,12 +507,12 @@
 
 ## Known Issues
 
-1. **Repository Error Handling**
+1. __Repository Error Handling__
    - Need to implement custom repository exceptions
    - Error translation in services needs to be standardized
    - Exception hierarchy should be consistent across the application
 
-2. **Validator Method Calling**
+2. __Validator Method Calling__
    - Some test files may still have incorrect validator method call patterns
    - Need to update all test files to use the correct approach for validator testing
    - Error assertion patterns need to match Pydantic v2 format

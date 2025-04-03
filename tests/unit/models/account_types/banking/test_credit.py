@@ -50,12 +50,12 @@ async def test_credit_account_inheritance(db_session: AsyncSession):
     assert credit_account.apr == Decimal("0.1499")
 
     # Verify it can be queried as an Account (polymorphic parent)
-    base_account = await db_session.get(Account, credit_account.id)
-    assert base_account is not None
-    assert base_account.name == "Test Credit Card"
-    assert base_account.account_type == "credit"
-    assert base_account.current_balance == Decimal("500.00")
-    assert base_account.available_balance == Decimal("500.00")
+    test_checking_account = await db_session.get(Account, credit_account.id)
+    assert test_checking_account is not None
+    assert test_checking_account.name == "Test Credit Card"
+    assert test_checking_account.account_type == "credit"
+    assert test_checking_account.current_balance == Decimal("500.00")
+    assert test_checking_account.available_balance == Decimal("500.00")
 
     # Verify it can be queried as a CreditAccount (polymorphic child)
     retrieved_credit = await db_session.get(CreditAccount, credit_account.id)
@@ -83,15 +83,12 @@ async def test_credit_account_polymorphic_identity(db_session: AsyncSession):
     await db_session.commit()
     await db_session.refresh(credit_account)
 
-    # Query it using polymorphic query
-    all_accounts = (await db_session.execute(db_session.query(Account))).scalars().all()
+    # Query it using polymorphic query with new-style API
+    from sqlalchemy import select
 
-    # Find our account in the results
-    found_account = None
-    for account in all_accounts:
-        if account.id == credit_account.id:
-            found_account = account
-            break
+    stmt = select(Account).where(Account.id == credit_account.id)
+    result = await db_session.execute(stmt)
+    found_account = result.scalars().first()
 
     # Verify it's found with the correct type
     assert found_account is not None

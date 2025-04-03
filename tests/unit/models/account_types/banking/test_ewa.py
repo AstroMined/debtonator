@@ -8,6 +8,7 @@ and polymorphic behavior as part of ADR-016 and ADR-019.
 from decimal import Decimal
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.account_types.banking.ewa import EWAAccount
@@ -49,12 +50,12 @@ async def test_ewa_account_inheritance(db_session: AsyncSession):
     assert ewa_account.next_payday == next_payday
 
     # Verify it can be queried as an Account (polymorphic parent)
-    base_account = await db_session.get(Account, ewa_account.id)
-    assert base_account is not None
-    assert base_account.name == "Test DailyPay"
-    assert base_account.account_type == "ewa"
-    assert base_account.current_balance == Decimal("150.00")
-    assert base_account.available_balance == Decimal("150.00")
+    test_checking_account = await db_session.get(Account, ewa_account.id)
+    assert test_checking_account is not None
+    assert test_checking_account.name == "Test DailyPay"
+    assert test_checking_account.account_type == "ewa"
+    assert test_checking_account.current_balance == Decimal("150.00")
+    assert test_checking_account.available_balance == Decimal("150.00")
 
     # Verify it can be queried as an EWAAccount (polymorphic child)
     retrieved_ewa = await db_session.get(EWAAccount, ewa_account.id)
@@ -81,15 +82,10 @@ async def test_ewa_account_polymorphic_identity(db_session: AsyncSession):
     await db_session.commit()
     await db_session.refresh(ewa_account)
 
-    # Query it using polymorphic query
-    all_accounts = (await db_session.execute(db_session.query(Account))).scalars().all()
-
-    # Find our account in the results
-    found_account = None
-    for account in all_accounts:
-        if account.id == ewa_account.id:
-            found_account = account
-            break
+    # Query it using polymorphic query with new-style API
+    stmt = select(Account).where(Account.id == ewa_account.id)
+    result = await db_session.execute(stmt)
+    found_account = result.scalars().first()
 
     # Verify it's found with the correct type
     assert found_account is not None

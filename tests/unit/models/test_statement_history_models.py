@@ -4,7 +4,7 @@ from decimal import Decimal
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.accounts import Account
+from src.models.account_types.banking.credit import CreditAccount
 from src.models.statement_history import StatementHistory
 from src.utils.datetime_utils import naive_utc_from_date, naive_utc_now
 
@@ -12,7 +12,7 @@ pytestmark = pytest.mark.asyncio
 
 
 async def test_create_statement_history(
-    db_session: AsyncSession, test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: CreditAccount
 ):
     """Test creating a statement history record."""
     statement = StatementHistory(
@@ -37,7 +37,7 @@ async def test_create_statement_history(
 
 
 async def test_statement_history_relationships(
-    db_session: AsyncSession, test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: CreditAccount
 ):
     """Test statement history relationships."""
     statement = StatementHistory(
@@ -64,7 +64,7 @@ async def test_statement_history_relationships(
 
 
 async def test_statement_history_string_representation(
-    db_session: AsyncSession, test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: CreditAccount
 ):
     """Test the string representation of a statement history record."""
     statement_date = naive_utc_now()
@@ -84,7 +84,7 @@ async def test_statement_history_string_representation(
 
 
 async def test_statement_history_cascade_delete(
-    db_session: AsyncSession, test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: CreditAccount
 ):
     """Test that statement history records are deleted when account is deleted."""
     statement = StatementHistory(
@@ -107,7 +107,7 @@ async def test_statement_history_cascade_delete(
 
 
 async def test_statement_history_due_date_field(
-    db_session: AsyncSession, test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: CreditAccount
 ):
     """Test due date as a regular field in statement history model."""
     statement_date = naive_utc_now()
@@ -144,7 +144,7 @@ async def test_statement_history_due_date_field(
 
 
 async def test_multiple_statement_history(
-    db_session: AsyncSession, test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: CreditAccount
 ):
     """Test recording multiple statements for an account."""
     # First statement
@@ -180,7 +180,7 @@ async def test_multiple_statement_history(
 
 
 async def test_datetime_handling(
-    db_session: AsyncSession, test_credit_account: Account
+    db_session: AsyncSession, test_credit_account: CreditAccount
 ):
     """Test proper datetime handling in statement history"""
     # Create statement with explicit datetime values

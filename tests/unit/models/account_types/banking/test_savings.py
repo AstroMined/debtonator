@@ -46,12 +46,12 @@ async def test_savings_account_inheritance(db_session: AsyncSession):
     assert savings_account.compound_frequency == "monthly"
 
     # Verify it can be queried as an Account (polymorphic parent)
-    base_account = await db_session.get(Account, savings_account.id)
-    assert base_account is not None
-    assert base_account.name == "Test Savings"
-    assert base_account.account_type == "savings"
-    assert base_account.current_balance == Decimal("5000.00")
-    assert base_account.available_balance == Decimal("5000.00")
+    test_checking_account = await db_session.get(Account, savings_account.id)
+    assert test_checking_account is not None
+    assert test_checking_account.name == "Test Savings"
+    assert test_checking_account.account_type == "savings"
+    assert test_checking_account.current_balance == Decimal("5000.00")
+    assert test_checking_account.available_balance == Decimal("5000.00")
 
     # Verify it can be queried as a SavingsAccount (polymorphic child)
     retrieved_savings = await db_session.get(SavingsAccount, savings_account.id)
@@ -76,15 +76,12 @@ async def test_savings_account_polymorphic_identity(db_session: AsyncSession):
     await db_session.commit()
     await db_session.refresh(savings_account)
 
-    # Query it using polymorphic query
-    all_accounts = (await db_session.execute(db_session.query(Account))).scalars().all()
+    # Query it using polymorphic query with new-style API
+    from sqlalchemy import select
 
-    # Find our account in the results
-    found_account = None
-    for account in all_accounts:
-        if account.id == savings_account.id:
-            found_account = account
-            break
+    stmt = select(Account).where(Account.id == savings_account.id)
+    result = await db_session.execute(stmt)
+    found_account = result.scalars().first()
 
     # Verify it's found with the correct type
     assert found_account is not None

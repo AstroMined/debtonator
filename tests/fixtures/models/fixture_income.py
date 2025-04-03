@@ -138,3 +138,23 @@ async def test_income_entries(
         await db_session.refresh(income)
 
     return created_incomes
+
+
+@pytest_asyncio.fixture
+async def test_income_record(db_session: AsyncSession, test_checking_account) -> Income:
+    """Create a test income record"""
+    income_date = datetime.now(timezone.utc).replace(tzinfo=None)
+
+    income = Income(
+        date=income_date,
+        source="Salary",
+        amount=Decimal("2000.00"),
+        deposited=False,
+        account_id=test_checking_account.id,
+        # Set undeposited_amount directly since calculate_undeposited() was moved to service
+        undeposited_amount=Decimal("2000.00"),  # Same as amount when not deposited
+    )
+    db_session.add(income)
+    await db_session.flush()
+    await db_session.refresh(income)
+    return income

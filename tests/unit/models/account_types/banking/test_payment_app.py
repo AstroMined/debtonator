@@ -8,6 +8,7 @@ and polymorphic behavior as part of ADR-016 and ADR-019.
 from decimal import Decimal
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.account_types.banking.payment_app import PaymentAppAccount
@@ -48,12 +49,12 @@ async def test_payment_app_account_inheritance(db_session: AsyncSession):
     assert payment_app_account.card_last_four == "1234"
 
     # Verify it can be queried as an Account (polymorphic parent)
-    base_account = await db_session.get(Account, payment_app_account.id)
-    assert base_account is not None
-    assert base_account.name == "Test PayPal"
-    assert base_account.account_type == "payment_app"
-    assert base_account.current_balance == Decimal("200.00")
-    assert base_account.available_balance == Decimal("200.00")
+    test_checking_account = await db_session.get(Account, payment_app_account.id)
+    assert test_checking_account is not None
+    assert test_checking_account.name == "Test PayPal"
+    assert test_checking_account.account_type == "payment_app"
+    assert test_checking_account.current_balance == Decimal("200.00")
+    assert test_checking_account.available_balance == Decimal("200.00")
 
     # Verify it can be queried as a PaymentAppAccount (polymorphic child)
     retrieved_payment_app = await db_session.get(
@@ -82,15 +83,10 @@ async def test_payment_app_account_polymorphic_identity(db_session: AsyncSession
     await db_session.commit()
     await db_session.refresh(payment_app_account)
 
-    # Query it using polymorphic query
-    all_accounts = (await db_session.execute(db_session.query(Account))).scalars().all()
-
-    # Find our account in the results
-    found_account = None
-    for account in all_accounts:
-        if account.id == payment_app_account.id:
-            found_account = account
-            break
+    # Query it using polymorphic query with new-style API
+    stmt = select(Account).where(Account.id == payment_app_account.id)
+    result = await db_session.execute(stmt)
+    found_account = result.scalars().first()
 
     # Verify it's found with the correct type
     assert found_account is not None

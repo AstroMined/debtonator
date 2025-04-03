@@ -20,14 +20,14 @@ async def test_account(db_session):
 
 
 @pytest.fixture(scope="function")
-async def test_recurring_bill(db_session, test_account, base_category):
+async def test_recurring_bill(db_session, test_account, test_category):
     """Create a test recurring bill"""
     bill = RecurringBill(
         bill_name="Test Bill",
         amount=Decimal("100.00"),
         day_of_month=15,
         account_id=test_account.id,
-        category_id=base_category.id,
+        category_id=test_category.id,
         auto_pay=False,
         active=True,
     )
@@ -37,7 +37,7 @@ async def test_recurring_bill(db_session, test_account, base_category):
     return bill
 
 
-async def test_create_recurring_bill(client: AsyncClient, test_account, base_category):
+async def test_create_recurring_bill(client: AsyncClient, test_account, test_category):
     """Test creating a new recurring bill via API"""
     response = await client.post(
         "/api/v1/recurring-bills",
@@ -46,7 +46,7 @@ async def test_create_recurring_bill(client: AsyncClient, test_account, base_cat
             "amount": "150.00",
             "day_of_month": 20,
             "account_id": test_account.id,
-            "category_id": base_category.id,
+            "category_id": test_category.id,
             "auto_pay": True,
             "active": True,
         },
@@ -58,13 +58,13 @@ async def test_create_recurring_bill(client: AsyncClient, test_account, base_cat
     assert data["amount"] == "150.00"
     assert data["day_of_month"] == 20
     assert data["account_id"] == test_account.id
-    assert data["category_id"] == base_category.id
+    assert data["category_id"] == test_category.id
     assert data["auto_pay"] is True
     assert data["active"] is True
 
 
 async def test_create_recurring_bill_invalid_account(
-    client: AsyncClient, base_category
+    client: AsyncClient, test_category
 ):
     """Test creating a recurring bill with nonexistent account"""
     response = await client.post(
@@ -74,7 +74,7 @@ async def test_create_recurring_bill_invalid_account(
             "amount": "150.00",
             "day_of_month": 20,
             "account_id": 999,
-            "category_id": base_category.id,
+            "category_id": test_category.id,
             "auto_pay": True,
             "active": True,
         },
@@ -96,7 +96,7 @@ async def test_get_recurring_bills(client: AsyncClient, test_recurring_bill):
 
 
 async def test_get_recurring_bills_inactive(
-    client: AsyncClient, db_session, test_account, base_category
+    client: AsyncClient, db_session, test_account, test_category
 ):
     """Test retrieving inactive bills"""
     # Create an inactive bill
@@ -105,7 +105,7 @@ async def test_get_recurring_bills_inactive(
         amount=Decimal("75.00"),
         day_of_month=10,
         account_id=test_account.id,
-        category_id=base_category.id,
+        category_id=test_category.id,
         auto_pay=False,
         active=False,
     )

@@ -75,7 +75,7 @@ async def test_default_datetime_handling(db_session: AsyncSession):
     assert account.updated_at.tzinfo is None
 
 
-async def test_create_base_account(db_session: AsyncSession):
+async def test_create_test_checking_account(db_session: AsyncSession):
     """Test creating a base account with new fields from ADR-016"""
     account = Account(
         name="Basic Account",

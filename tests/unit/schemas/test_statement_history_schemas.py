@@ -71,7 +71,7 @@ def test_statement_history_base_required_fields():
     assert statement.due_date is None
 
 
-def test_statement_history_base_account_id_validation():
+def test_statement_history_test_checking_account_id_validation():
     """Test account_id field validation"""
     # Test invalid account_id (less than or equal to 0)
     with pytest.raises(ValidationError, match="Input should be greater than 0"):

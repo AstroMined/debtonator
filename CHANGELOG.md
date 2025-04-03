@@ -7,6 +7,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.68] - 2025-04-03
+
+### Fixed
+
+- Fixed SQLAlchemy 2.0 compatibility in account type tests
+- Updated query API usage to use modern select() function instead of legacy query() method
+- Resolved ImportError in account models due to user_id column reference
+- Fixed type annotations to use concrete account types rather than base Account
+
+### Added
+
+- Created structured test fixture directory mirroring source code organization
+- Added dedicated fixtures for all banking account types
+- Updated documentation with SQLAlchemy 2.0 and Pydantic 2.0 specific details
+- Added new Test Fixture Pattern section to system_patterns.md
+
 ## [0.5.67] - 2025-04-03
 
 ### Added

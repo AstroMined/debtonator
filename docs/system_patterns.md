@@ -247,6 +247,39 @@ graph TD
 - Error case testing for validation scenarios
 - Service tests with real repositories connected to test database
 
+### Test Fixture Pattern
+
+```mermaid
+graph TD
+    A[Source Code Structure] --> B[Mirror in Test Fixtures]
+    B --> C[tests/fixtures/models/account_types/]
+    B --> D[Polymorphic Subclasses]
+    
+    E[SQLAlchemy 2.0 Async] --> F[select API]
+    F --> G[No query() method]
+    E --> H[await db_session.execute]
+```
+
+- **Mirror Structure Pattern**: Test fixture directories mirror source code structure
+  - Example: `src/models/account_types/banking/` → `tests/fixtures/models/account_types/banking/`
+  - Each account type has dedicated fixture file (e.g., `fixture_checking.py`)
+  - Encourages maintainable pattern as model hierarchy grows
+
+- **Modern SQLAlchemy Query Pattern**:
+  - Use `select()` function instead of legacy `query()` method
+  - Example: 
+    ```python
+    # ✅ Correct: Modern SQLAlchemy 2.0 async pattern
+    from sqlalchemy import select
+    stmt = select(Model).where(Model.id == some_id)
+    result = await db_session.execute(stmt)
+    item = result.scalars().first()
+    
+    # ❌ Incorrect: Legacy pattern that fails with AsyncSession
+    items = (await db_session.execute(db_session.query(Model))).scalars().all()
+    ```
+  - AsyncSession doesn't support the query() method from SQLAlchemy 1.x
+
 ## Database Patterns
 
 ### Model Relationships

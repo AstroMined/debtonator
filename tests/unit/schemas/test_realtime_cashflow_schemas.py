@@ -16,7 +16,7 @@ from src.schemas.realtime_cashflow import (
 # Test valid object creation
 def test_account_balance_valid():
     """Test valid account balance schema creation"""
-    # Test checking account
+    # Primary Test Checking
     checking_account = AccountBalance(
         account_id=1,
         name="Main Checking",

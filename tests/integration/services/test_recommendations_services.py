@@ -46,14 +46,14 @@ async def test_accounts(db_session: AsyncSession):
 
 
 @pytest.fixture(scope="function")
-async def test_bill(db_session: AsyncSession, base_category: Category, test_accounts):
+async def test_bill(db_session: AsyncSession, test_category: Category, test_accounts):
     now = datetime.now(ZoneInfo("UTC"))
     bill = Liability(
         name="Test Bill",
         amount=Decimal("100"),
         due_date=now + timedelta(days=15),
         description="Test bill for recommendations",
-        category_id=base_category.id,
+        category_id=test_category.id,
         active=True,  # This bill should be active
         status=LiabilityStatus.PENDING,
         auto_pay=False,

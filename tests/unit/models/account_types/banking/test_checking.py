@@ -48,12 +48,12 @@ async def test_checking_account_inheritance(db_session: AsyncSession):
     assert checking_account.overdraft_limit == Decimal("500.00")
 
     # Verify it can be queried as an Account (polymorphic parent)
-    base_account = await db_session.get(Account, checking_account.id)
-    assert base_account is not None
-    assert base_account.name == "Test Checking"
-    assert base_account.account_type == "checking"
-    assert base_account.current_balance == Decimal("1000.00")
-    assert base_account.available_balance == Decimal("1000.00")
+    test_checking_account = await db_session.get(Account, checking_account.id)
+    assert test_checking_account is not None
+    assert test_checking_account.name == "Test Checking"
+    assert test_checking_account.account_type == "checking"
+    assert test_checking_account.current_balance == Decimal("1000.00")
+    assert test_checking_account.available_balance == Decimal("1000.00")
 
     # Verify it can be queried as a CheckingAccount (polymorphic child)
     retrieved_checking = await db_session.get(CheckingAccount, checking_account.id)
@@ -79,15 +79,12 @@ async def test_checking_account_polymorphic_identity(db_session: AsyncSession):
     await db_session.commit()
     await db_session.refresh(checking_account)
 
-    # Query it using polymorphic query
-    all_accounts = (await db_session.execute(db_session.query(Account))).scalars().all()
+    # Query it using polymorphic query with new-style API
+    from sqlalchemy import select
 
-    # Find our account in the results
-    found_account = None
-    for account in all_accounts:
-        if account.id == checking_account.id:
-            found_account = account
-            break
+    stmt = select(Account).where(Account.id == checking_account.id)
+    result = await db_session.execute(stmt)
+    found_account = result.scalars().first()
 
     # Verify it's found with the correct type
     assert found_account is not None
@@ -109,7 +106,7 @@ async def test_checking_account_fields(db_session: AsyncSession):
         url="https://testbank.com",
         logo_path="/images/testbank.png",
         is_closed=False,
-        description="Test checking account with all fields",
+        description="Primary Test Checking with all fields",
         routing_number="123456789",
         has_overdraft_protection=True,
         overdraft_limit=Decimal("500.00"),
@@ -140,7 +137,7 @@ async def test_checking_account_fields(db_session: AsyncSession):
     assert checking_account.url == "https://testbank.com"
     assert checking_account.logo_path == "/images/testbank.png"
     assert checking_account.is_closed is False
-    assert checking_account.description == "Test checking account with all fields"
+    assert checking_account.description == "Primary Test Checking with all fields"
     assert checking_account.next_action_date.year == 2025
     assert checking_account.next_action_date.month == 5
     assert checking_account.next_action_date.day == 1

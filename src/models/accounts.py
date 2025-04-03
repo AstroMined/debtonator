@@ -133,7 +133,6 @@ class Account(BaseDBModel):
     __table_args__ = (
         Index("idx_accounts_name", "name"),
         Index("idx_accounts_type", account_type),
-        Index("idx_accounts_user_type", "user_id", account_type),
         Index("idx_accounts_is_closed", is_closed),
     )
 
