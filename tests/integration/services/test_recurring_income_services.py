@@ -285,3 +285,35 @@ async def test_integration_with_generate_income(
     # Test that duplicate entries are not created
     new_results = await service.generate_income(request)
     assert len(new_results) == 0
+
+
+async def test_cascade_delete_income_entries(
+    db_session: AsyncSession, test_recurring_income: RecurringIncome
+):
+    """Test cascading delete of income entries when recurring income is deleted"""
+    # Create income entries using the service
+    service = RecurringIncomeService(db_session)
+    now = naive_utc_now()
+
+    # Create two income entries
+    income_entry1 = service.create_income_from_recurring(
+        test_recurring_income, now.month, now.year
+    )
+    income_entry2 = service.create_income_from_recurring(
+        test_recurring_income, now.month + 1, now.year
+    )
+
+    db_session.add_all([income_entry1, income_entry2])
+    await db_session.commit()
+
+    # Get income entry IDs
+    entry_ids = [income_entry1.id, income_entry2.id]
+
+    # Delete recurring income
+    await db_session.delete(test_recurring_income)
+    await db_session.commit()
+
+    # Verify income entries were deleted
+    for entry_id in entry_ids:
+        result = await db_session.get(Income, entry_id)
+        assert result is None

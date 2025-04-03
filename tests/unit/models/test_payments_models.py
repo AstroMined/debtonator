@@ -51,8 +51,8 @@ async def test_payment_with_source(db_session: AsyncSession, test_payment: Payme
 async def test_create_split_payment(
     db_session: AsyncSession,
     test_liability: Liability,
-    test_checking_account: Account,
-    test_second_account: Account,
+    test_checking_account,  # Will use proper subclass from fixture
+    test_second_account,    # Will use proper subclass from fixture
 ):
     """Test creating a payment split across multiple sources"""
 
@@ -142,7 +142,7 @@ async def test_payment_repr(db_session: AsyncSession, test_liability: Liability)
 async def test_payment_source_repr(
     db_session: AsyncSession,
     test_payment: Payment,
-    test_checking_account: Account,
+    test_checking_account,  # Using proper subclass from fixture
 ):
     """Test the string representation of PaymentSource"""
     source = PaymentSource(
@@ -180,7 +180,7 @@ async def test_payment_with_description(
 async def test_payment_cascade_delete(
     db_session: AsyncSession,
     test_payment: Payment,
-    test_checking_account: Account,
+    test_checking_account,  # Using proper subclass from fixture
 ):
     """Test cascading delete of payment sources when payment is deleted"""
     # Create additional payment source
@@ -208,7 +208,7 @@ async def test_payment_cascade_delete(
 
 
 async def test_payment_with_income(
-    db_session: AsyncSession, test_checking_account: Account
+    db_session: AsyncSession, test_checking_account
 ):
     """Test payment linked to income"""
     # Create income
@@ -306,7 +306,7 @@ async def test_datetime_handling(db_session: AsyncSession, test_liability: Liabi
 async def test_decimal_precision_storage(
     db_session: AsyncSession,
     test_liability: Liability,
-    test_checking_account: Account,
+    test_checking_account,  # Using proper subclass from fixture
 ):
     """Test four decimal place precision storage for payments and payment sources."""
     # Test payment with 4 decimal precision

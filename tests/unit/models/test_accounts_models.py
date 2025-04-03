@@ -23,8 +23,8 @@ async def test_datetime_handling(db_session: AsyncSession):
     # Create account with explicit datetime values
     account = Account(
         name="Test Account",
-        account_type="checking",  # Updated from type to account_type
-        current_balance=Decimal("1000.00"),  # Updated from available_balance
+        account_type="account",  # Using base account type to avoid polymorphic warnings
+        current_balance=Decimal("1000.00"),
         available_balance=Decimal("1000.00"),
         created_at=naive_utc_from_date(2025, 3, 15),
         updated_at=naive_utc_from_date(2025, 3, 15),
@@ -59,8 +59,8 @@ async def test_default_datetime_handling(db_session: AsyncSession):
     """Test default datetime values are properly set"""
     account = Account(
         name="Test Account",
-        account_type="checking",  # Updated from type
-        current_balance=Decimal("1000.00"),  # Added current_balance
+        account_type="account",  # Using base account type
+        current_balance=Decimal("1000.00"),
         available_balance=Decimal("1000.00"),
     )
 
@@ -156,7 +156,7 @@ async def test_update_account_balance(db_session: AsyncSession):
     # Create the account first
     account = Account(
         name="Balance Test",
-        account_type="checking",
+        account_type="account",  # Using base account type
         current_balance=Decimal("1000.00"),
         available_balance=Decimal("1000.00"),
     )
@@ -178,7 +178,7 @@ async def test_update_account_balance(db_session: AsyncSession):
 
 async def test_account_repr(db_session: AsyncSession):
     """Test the __repr__ method of Account model"""
-    account = Account(name="Repr Test", account_type="checking")
+    account = Account(name="Repr Test", account_type="account")  # Using base account type
     db_session.add(account)
     await db_session.commit()
 
@@ -194,7 +194,7 @@ async def test_decimal_precision_storage(db_session: AsyncSession):
     # Test with 4 decimal places in money fields
     account = Account(
         name="Four Decimal Account",
-        account_type="checking",
+        account_type="account",  # Using base account type
         current_balance=Decimal("1000.1234"),
         available_balance=Decimal("1000.5678"),
         next_action_amount=Decimal("500.9876"),

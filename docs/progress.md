@@ -1,6 +1,32 @@
 <!-- markdownlint-disable MD024 -->
 # Progress
 
+## April 3, 2025 (7:30 PM)
+
+### Completed Tasks
+
+- Fixed Polymorphic Identity Warnings and Test Layer Separation:
+  - Resolved test failures in model unit tests:
+    - Fixed CashflowForecast test assertions to match actual fixture values
+    - Updated test_recurring_bills_models.py to remove service layer dependencies
+    - Moved service-dependent tests to the integration test directory
+    - Created proper integration tests for service functionality
+  - Resolved SQLAlchemy polymorphic identity warnings:
+    - Updated account fixtures to use concrete subclasses (CheckingAccount, SavingsAccount, CreditAccount)
+    - Fixed all test fixtures to create proper polymorphic instances
+    - Added required fields (like current_balance) to all account instances
+    - Removed explicit account_type fields from base Account creation
+  - Enhanced testing architecture documentation:
+    - Added "Polymorphic Identity Pattern" section to system_patterns.md
+    - Added "Test Layer Separation" section to system_patterns.md
+    - Created mermaid diagrams illustrating both patterns
+    - Documented correct/incorrect approaches with examples
+  - Fixed cross-layer test organization:
+    - Ensured tests respect layer boundaries with proper locations
+    - Fixed test_payments_models.py to use proper subclass fixtures
+    - Added additional integration tests for service-dependent functionality
+    - Maintained clear separation between unit and integration tests
+
 ## April 3, 2025 (5:30 PM)
 
 ### Completed Tasks
@@ -388,7 +414,7 @@
    - Phase 1.5: Application Integration (100%) ✓
    - Phase 2: API and Dependency Integration (100%) ✓
    - Phase 2.1: API Endpoints (100%) ✓
-   - Phase 2.2: Dependency Injection (100%) ✓ 
+   - Phase 2.2: Dependency Injection (100%) ✓
    - Phase 2.3: Request Context Integration (100%) ✓
    - Phase 3: Repository and Service Layer Integration (10%)
    - Phase 4: Feature Flag Management Interface (0%)

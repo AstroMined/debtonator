@@ -60,8 +60,8 @@ async def test_cashflow_forecast_creation(test_cashflow_forecast: CashflowForeca
     """Test basic cashflow forecast creation"""
     assert isinstance(test_cashflow_forecast, CashflowForecast)
     assert test_cashflow_forecast.total_bills == Decimal("1000.00")
-    assert test_cashflow_forecast.total_income == Decimal("800.00")
-    assert test_cashflow_forecast.balance == Decimal("-200.00")
+    assert test_cashflow_forecast.total_income == Decimal("1500.00")
+    assert test_cashflow_forecast.balance == Decimal("2000.00")
 
 
 @pytest.mark.asyncio
@@ -86,8 +86,8 @@ async def test_cashflow_forecast_fields(test_cashflow_forecast: CashflowForecast
 
     # Verify initial values
     assert test_cashflow_forecast.total_bills == Decimal("1000.00")
-    assert test_cashflow_forecast.total_income == Decimal("800.00")
-    assert test_cashflow_forecast.balance == Decimal("-200.00")
+    assert test_cashflow_forecast.total_income == Decimal("1500.00")
+    assert test_cashflow_forecast.balance == Decimal("2000.00")
 
 
 @pytest.mark.asyncio

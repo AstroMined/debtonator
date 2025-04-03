@@ -4,17 +4,20 @@ from typing import List
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.models.account_types.banking.checking import CheckingAccount
+from src.models.account_types.banking.credit import CreditAccount
+from src.models.account_types.banking.savings import SavingsAccount
 from src.models.accounts import Account
 from src.utils.datetime_utils import naive_utc_now
 
 
 @pytest_asyncio.fixture
-async def test_checking_account(db_session: AsyncSession) -> Account:
+async def test_checking_account(db_session: AsyncSession) -> CheckingAccount:
     """Primary Test Checking for use in various tests"""
-    checking_account = Account(
+    checking_account = CheckingAccount(
         name="Primary Test Checking",
-        account_type="checking",
         available_balance=Decimal("1000.00"),
+        current_balance=Decimal("1000.00"),  # Added current_balance which is required
         created_at=naive_utc_now(),
         updated_at=naive_utc_now(),
     )
@@ -25,13 +28,13 @@ async def test_checking_account(db_session: AsyncSession) -> Account:
 
 
 @pytest_asyncio.fixture
-async def test_savings_account(db_session: AsyncSession) -> Account:
+async def test_savings_account(db_session: AsyncSession) -> SavingsAccount:
     """Fixture to create a second test account for recurring income."""
-    # Create model instance directly
-    account = Account(
+    # Create model instance directly using SavingsAccount
+    account = SavingsAccount(
         name="Test Savings Account",
-        account_type="savings",
         available_balance=Decimal("500.00"),
+        current_balance=Decimal("500.00"),  # Added current_balance which is required
     )
 
     # Add to session manually
@@ -43,13 +46,13 @@ async def test_savings_account(db_session: AsyncSession) -> Account:
 
 
 @pytest_asyncio.fixture
-async def test_second_account(db_session: AsyncSession) -> Account:
+async def test_second_account(db_session: AsyncSession) -> CheckingAccount:
     """Create a second test account for use in split payment tests."""
-    # Create model instance directly
-    account = Account(
+    # Create model instance directly using CheckingAccount
+    account = CheckingAccount(
         name="Second Checking Account",
-        account_type="checking",
         available_balance=Decimal("2000.00"),
+        current_balance=Decimal("2000.00"),  # Added current_balance which is required
     )
 
     # Add to session manually
@@ -63,32 +66,45 @@ async def test_second_account(db_session: AsyncSession) -> Account:
 @pytest_asyncio.fixture
 async def test_multiple_accounts(db_session: AsyncSession) -> List[Account]:
     """Create multiple test accounts of different types."""
-    # Create accounts of different types
-    account_types = [
-        ("Checking A", "checking", Decimal("1200.00")),
-        ("Savings B", "savings", Decimal("5000.00")),
-        ("Credit Card C", "credit", Decimal("-700.00")),
-        (
-            "Investment D",
-            "savings",
-            Decimal("10000.00"),
-        ),  # Changed from "investment" to "savings"
-    ]
-
     accounts = []
-    for name, acc_type, balance in account_types:
-        # Create model instance directly
-        account = Account(
-            name=name,
-            account_type=acc_type,
-            available_balance=balance,
-            total_limit=Decimal("3000.00") if acc_type == "credit" else None,
-            available_credit=Decimal("2300.00") if acc_type == "credit" else None,
-        )
-
-        # Add to session manually
-        db_session.add(account)
-        accounts.append(account)
+    
+    # Create a checking account
+    checking = CheckingAccount(
+        name="Checking A",
+        available_balance=Decimal("1200.00"),
+        current_balance=Decimal("1200.00"),
+    )
+    db_session.add(checking)
+    accounts.append(checking)
+    
+    # Create a savings account
+    savings = SavingsAccount(
+        name="Savings B",
+        available_balance=Decimal("5000.00"),
+        current_balance=Decimal("5000.00"),
+    )
+    db_session.add(savings)
+    accounts.append(savings)
+    
+    # Create a credit account
+    credit = CreditAccount(
+        name="Credit Card C",
+        available_balance=Decimal("-700.00"),
+        current_balance=Decimal("-700.00"),
+        credit_limit=Decimal("3000.00"),
+        available_credit=Decimal("2300.00"),
+    )
+    db_session.add(credit)
+    accounts.append(credit)
+    
+    # Create another savings account (previously "Investment")
+    savings2 = SavingsAccount(
+        name="Investment D",
+        available_balance=Decimal("10000.00"),
+        current_balance=Decimal("10000.00"),
+    )
+    db_session.add(savings2)
+    accounts.append(savings2)
 
     # Flush to get IDs and establish database rows
     await db_session.flush()
@@ -101,13 +117,13 @@ async def test_multiple_accounts(db_session: AsyncSession) -> List[Account]:
 
 
 @pytest_asyncio.fixture
-async def test_credit_account(db_session: AsyncSession) -> Account:
+async def test_credit_account(db_session: AsyncSession) -> CreditAccount:
     """Test credit account for use in various tests"""
-    credit_account = Account(
+    credit_account = CreditAccount(
         name="Test Credit Card",
-        account_type="credit",
         available_balance=Decimal("-500.00"),
-        total_limit=Decimal("2000.00"),
+        current_balance=Decimal("-500.00"),  # Added current_balance which is required
+        credit_limit=Decimal("2000.00"),      # Credit accounts use credit_limit
         available_credit=Decimal("1500.00"),  # total_limit - abs(available_balance)
         created_at=naive_utc_now(),
         updated_at=naive_utc_now(),

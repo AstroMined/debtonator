@@ -4,9 +4,8 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
-from src.models.categories import Category
 from src.models.recurring_bills import RecurringBill
-from src.utils.datetime_utils import naive_utc_from_date, naive_utc_now
+from src.utils.datetime_utils import naive_utc_now
 
 pytestmark = pytest.mark.asyncio
 
@@ -38,33 +37,6 @@ async def test_recurring_bill_account_relationship(
     )
 
 
-async def test_liability_creation_from_recurring_bill(
-    db_session: AsyncSession, test_recurring_bill: RecurringBill
-):
-    """Test proper creation of liability model from recurring bill template"""
-    # Import here to avoid circular imports
-    from src.services.recurring_bills import RecurringBillService
-
-    # Create service and use service method instead of model method
-    service = RecurringBillService(db_session)
-    liability = service.create_liability_from_recurring(test_recurring_bill, "03", 2025)
-    db_session.add(liability)
-    await db_session.flush()
-    await db_session.refresh(liability)
-
-    # Verify the liability has all the right properties
-    assert liability.name == "Test Recurring Bill"
-    assert liability.amount == Decimal("50.00")
-    assert liability.due_date == naive_utc_from_date(2025, 3, 15)
-    assert liability.auto_pay is True
-    assert liability.primary_account_id == test_recurring_bill.account_id
-    assert liability.category_id == test_recurring_bill.category_id
-    assert liability.category.name == "Recurring"
-
-    # This test confirms that the service method correctly sets all fields
-    # previously set by the model method, in accordance with ADR-012
-
-
 async def test_recurring_bill_str_representation(test_recurring_bill: RecurringBill):
     """Test string representation of recurring bill"""
     expected = "<RecurringBill Test Recurring Bill $50.00>"
@@ -74,9 +46,9 @@ async def test_recurring_bill_str_representation(test_recurring_bill: RecurringB
 async def test_datetime_handling(
     db_session: AsyncSession,
     test_checking_account: Account,
-    test_recurring_category: Category,
+    test_recurring_category,
 ):
-    """Test proper datetime handling in recurring bills and generated liabilities"""
+    """Test proper datetime handling in recurring bills"""
     # Create recurring bill
     bill = RecurringBill(
         bill_name="Test Bill",
@@ -96,26 +68,3 @@ async def test_datetime_handling(
     # Verify recurring bill datetime fields are naive
     assert bill.created_at.tzinfo is None
     assert bill.updated_at.tzinfo is None
-
-    # Create and verify liability datetime handling
-    # Use service method instead of model method
-    from src.services.recurring_bills import RecurringBillService
-
-    service = RecurringBillService(db_session)
-    liability = service.create_liability_from_recurring(bill, "03", 2025)
-    db_session.add(liability)
-    await db_session.flush()
-    await db_session.refresh(liability)
-
-    # Verify liability datetime fields are naive and correct
-    assert liability.due_date.tzinfo is None
-    assert liability.created_at.tzinfo is None
-    assert liability.updated_at.tzinfo is None
-
-    # Verify due_date components
-    assert liability.due_date.year == 2025
-    assert liability.due_date.month == 3
-    assert liability.due_date.day == 15
-    assert liability.due_date.hour == 0
-    assert liability.due_date.minute == 0
-    assert liability.due_date.second == 0

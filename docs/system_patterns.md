@@ -18,13 +18,15 @@ graph TD
 - **Auto-Split Creation**: Primary account split is created automatically
 
 #### Validation Rules
+
 1. Split amounts must sum to total bill amount
 2. All account references must be valid
 3. No negative split amounts allowed
 4. Each bill-account combination must be unique (enforced by database constraint)
 
 #### Implementation Pattern
-1. Bill creation: 
+
+1. Bill creation:
    - Assign primary account
    - Create splits for non-primary accounts
    - Calculate and create primary account split automatically
@@ -34,6 +36,7 @@ graph TD
    - Recalculate primary account split amount
 
 ### Datetime Standardization
+
 ```mermaid
 graph TD
     A[Datetime Field] --> B[UTC Storage]
@@ -56,6 +59,7 @@ graph TD
 ## Repository Patterns
 
 ### Repository Architecture
+
 ```mermaid
 graph TD
     A[Service Layer] --> B[Repository Layer]
@@ -134,6 +138,7 @@ The Repository Module Pattern allows for specialized repository functionality to
    - Graceful degradation when features are disabled
 
 5. **Implementation Example**:
+
    ```python
    # Repository Factory usage
    repo = RepositoryFactory.create_account_repository(
@@ -267,7 +272,8 @@ graph TD
 
 - **Modern SQLAlchemy Query Pattern**:
   - Use `select()` function instead of legacy `query()` method
-  - Example: 
+  - Example:
+
     ```python
     # ✅ Correct: Modern SQLAlchemy 2.0 async pattern
     from sqlalchemy import select
@@ -278,7 +284,123 @@ graph TD
     # ❌ Incorrect: Legacy pattern that fails with AsyncSession
     items = (await db_session.execute(db_session.query(Model))).scalars().all()
     ```
+
   - AsyncSession doesn't support the query() method from SQLAlchemy 1.x
+
+### Polymorphic Identity Pattern
+
+```mermaid
+graph TD
+    A[Base Model Class] --> B[Abstract Methods]
+    A --> C[Polymorphic Identity Mapping]
+    
+    C --> D[Concrete Subclasses]
+    D --> E[CheckingAccount]
+    D --> F[SavingsAccount]
+    D --> G[CreditAccount]
+    
+    H[Creating Instances] --> I[Always Use Subclass]
+    I --> J[CheckingAccount.new()]
+    
+    K[Testing] --> L[Match Fixture to Production]
+    L --> M[Type-Specific Fixtures]
+```
+
+- **Polymorphic Type Instantiation**:
+  - Always use the proper subclass constructor that matches the intended polymorphic type
+  - Example:
+
+    ```python
+    # ✅ Correct: Using concrete subclass constructor 
+    checking = CheckingAccount(
+        name="Primary Checking",
+        current_balance=Decimal("1000.00"),
+        available_balance=Decimal("1000.00")
+    )
+    
+    # ❌ Incorrect: Setting discriminator on base class
+    account = Account(
+        name="Primary Checking",
+        account_type="checking",  # Will cause SQLAlchemy polymorphic warnings
+        current_balance=Decimal("1000.00"),
+        available_balance=Decimal("1000.00")
+    )
+    ```
+
+- **Test Fixtures for Polymorphic Types**:
+  - Use specialized fixture functions that return proper subclass instances
+  - Mirror the polymorphic hierarchy in your test fixtures
+  - Example:
+
+    ```python
+    # Proper fixture returning correct subclass
+    @pytest_asyncio.fixture
+    async def test_checking_account(db_session) -> CheckingAccount:
+        """Create a checking account for testing."""
+        account = CheckingAccount(
+            name="Test Checking",
+            current_balance=Decimal("1000.00"),
+            available_balance=Decimal("1000.00")
+        )
+        db_session.add(account)
+        await db_session.flush()
+        return account
+    ```
+
+### Test Layer Separation
+
+```mermaid
+graph TD
+    A[Application Layers] --> B[Repository Layer]
+    A --> C[Service Layer]
+    A --> D[API Layer]
+    
+    E[Test Types] --> F[Unit Tests]
+    E --> G[Integration Tests]
+    
+    F --> H[Single Layer Focus]
+    G --> I[Cross-Layer Testing]
+    
+    H --> J[models/ Tests]
+    H --> K[repositories/ Tests]
+    
+    I --> L[services/ Tests]
+    I --> M[api/ Tests]
+```
+
+- **Layer Separation in Unit Tests**:
+  - Unit tests should not cross application layers
+  - Model unit tests should test only model-level behavior (relationships, constraints, etc.)
+  - Repository unit tests should focus on data access patterns
+  - Example:
+
+    ```python
+    # ✅ Correct: Model-only unit test
+    async def test_account_relationships(db_session):
+        """Test relationships between models"""
+        # Test with only model-level operations
+        account = CheckingAccount(name="Test Account")
+        db_session.add(account)
+        await db_session.flush()
+        
+        # Verify relationships using only model-level code
+        await db_session.refresh(account, ["transactions"])
+        assert isinstance(account.transactions, list)
+    
+    # ❌ Incorrect: Using service in model test
+    async def test_account_with_service(db_session):
+        """This crosses layers inappropriately"""
+        # Don't use services in model unit tests
+        service = AccountService(db_session)
+        account = await service.create_account(account_data)
+        # ...
+    ```
+
+- **Service-Dependent Tests**:
+  - Tests that need services should be in `tests/integration/services/`
+  - Service tests validate business logic and cross-entity operations
+  - Integration tests are appropriate for testing cross-layer behavior
+  - Type-specific behavior should be tested at the right layer
 
 ## Database Patterns
 
@@ -312,12 +434,14 @@ graph TD
 The model layer uses two key patterns to handle circular dependencies between model files:
 
 #### String Reference Pattern
+
 - Use string references in relationship definitions: `relationship("ModelName", ...)`
 - Defer class resolution until runtime rather than import time
 - Allows cross-referencing between models without direct imports
 - Example: `bills: Mapped[List["Liability"]] = relationship("Liability", back_populates="category")`
 
 #### Central Registration Pattern
+
 - Import all models in controlled order in `models/__init__.py`
 - Define explicit dependency order for model registration
 - Create a single import path for database initialization
@@ -328,24 +452,28 @@ The model layer uses two key patterns to handle circular dependencies between mo
 System initialization follows a layered architectural approach:
 
 #### Repository-Based Data Access
+
 - All database access happens exclusively through repository layer
 - Even during initialization, direct DB access is prohibited
 - Leverages existing repository methods for data operations
 - Maintains architectural consistency throughout codebase
 
 #### System Initialization Service
+
 - Dedicated service layer for system data initialization
 - Clear separation between schema creation and data seeding
 - Ensures all required system data exists on startup
 - Example: `ensure_system_categories()` for default category creation
 
 #### Database Initialization Flow
+
 1. Schema creation through SQLAlchemy metadata
 2. Repository instantiation with database session
 3. Service-based initialization of required system data
 4. Validation of system requirements before application start
 
 This approach solves circular dependencies while maintaining architectural integrity by:
+
 1. Using string references for model relationships
 2. Centralizing model registration in a single location
 3. Leveraging repository layer for all data access

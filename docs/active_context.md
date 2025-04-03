@@ -6,7 +6,19 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
 
 ### Recent Changes
 
-1. **Fixed SQLAlchemy 2.0 Compatibility in Account Type Tests (April 3, 2025)** ✓
+1. **Fixed Polymorphic Identity Warnings and Test Layer Separation (April 3, 2025)** ✓
+   - Resolved SQLAlchemy warnings about incompatible polymorphic identity
+   - Updated account fixtures to use proper polymorphic subclasses (CheckingAccount, SavingsAccount, CreditAccount)
+   - Moved service-dependent tests from model unit tests to integration test files
+   - Fixed test failures in CashflowForecast model tests
+   - Added "Polymorphic Identity Pattern" section to system_patterns.md
+   - Added "Test Layer Separation" section to document layer boundary principles
+   - Enforced proper test organization with model tests focused on model behavior only
+   - Ensured integration tests are properly located for cross-layer testing
+   - Created mermaid diagrams illustrating both patterns for documentation
+   - Fixed discriminator value warnings in payment tests
+
+2. **Fixed SQLAlchemy 2.0 Compatibility in Account Type Tests (April 3, 2025)** ✓
    - Restructured test fixtures to use proper polymorphic account type hierarchy
    - Created mirrored fixture directory structure matching source code organization
    - Updated SQLAlchemy query API from legacy to 2.0 syntax for compatibility with AsyncSession
@@ -18,7 +30,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Implemented proper test fixture pattern for all account types
    - Created consistent pattern for account type testing
 
-2. **Implemented Testing Strategy for Account Types and Feature Flags (April 3, 2025)** ✓
+3. **Implemented Testing Strategy for Account Types and Feature Flags (April 3, 2025)** ✓
    - Created a structured, modular testing approach for all account types
    - Followed the source code structure in test organization
    - Split account type tests into separate files to avoid monolithic files
@@ -27,13 +39,13 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Created proper directory structure to support hundreds of future account types
    - Created test utilities and setup for feature flag testing
    - Implemented modular test files based on the "Real Objects Testing Philosophy"
-   - Added organized test package structure with __init__.py files
+   - Added organized test package structure with `__init__.py` files
    - Created README documentation for the testing approach
    - Implemented tests for all validation patterns
 
-3. **Completed Schema Testing for Banking Account Types (ADR-019)** ✓
+4. **Completed Schema Testing for Banking Account Types (ADR-019)** ✓
    - Added tests for CheckingAccount schema validation
-   - Implemented SavingsAccount schema test cases 
+   - Implemented SavingsAccount schema test cases
    - Added CreditAccount statement-related validation tests
    - Created tests for PaymentApp platform validation
    - Implemented BNPL installment validation tests
@@ -43,7 +55,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Added tests for discriminated union serialization
    - Tested schema inheritance for proper behavior
 
-4. **Implemented Feature Flag Model and Schema Tests (ADR-024)** ✓
+5. **Implemented Feature Flag Model and Schema Tests (ADR-024)** ✓
    - Created tests for all feature flag types (boolean, percentage, user segment, time-based)
    - Added validation tests for complex flag configurations
    - Implemented tests for flag name formatting validation
@@ -53,7 +65,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Created schema validation tests for specialized flag types
    - Tested flag metadata handling
 
-5. **Implemented Repository Module Pattern for Account Types (ADR-016, ADR-019)** ✓
+6. **Implemented Repository Module Pattern for Account Types (ADR-016, ADR-019)** ✓
    - Created modular directory structure for account types in `src/repositories/account_types/`
    - Implemented specialized banking repositories (checking, savings, credit)
    - Developed dynamic repository factory with module loading capability
@@ -65,7 +77,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Updated implementation checklists for ADRs 016, 019, and 024
    - Added pattern documentation to system_patterns.md for future reference
 
-6. **Implemented Banking Account Type Schemas (ADR-019)** ✓
+7. **Implemented Banking Account Type Schemas (ADR-019)** ✓
    - Created comprehensive schema hierarchy for all 6 banking account types
    - Implemented CheckingAccount schema with international banking field validation
    - Developed SavingsAccount schema with interest rate and balance validation
@@ -132,14 +144,16 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
 
 1. **Testing Structured Directory Pattern**
    - Mirror the exact source directory structure in test files:
-   ```
+
+   ```python
    src/schemas/account_types/banking/checking.py
    -> tests/unit/schemas/account_types/banking/test_checking.py
    ```
+
    - Separate test files per component keeps tests focused and maintainable
    - Use descriptive test method names that describe the behavior being tested
    - Tests should focus on one aspect of functionality per test method
-   - Create proper test package structure with __init__.py files
+   - Create proper test package structure with `__init__.py` files
    - Test lower layers thoroughly before moving to higher layers
 
 2. **Polymorphic Schema Pattern with Pydantic V2**
@@ -182,7 +196,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Design feature flags to handle context-specific evaluation
    - Use composition to build complex flag evaluation logic
    - Test both enabled and disabled states for proper flag behavior
-   
+
    ```python
    # Feature flag service integration in service layer
    def get_available_account_types(self, user_id: int) -> List[Dict[str, Any]]:

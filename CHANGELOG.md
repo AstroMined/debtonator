@@ -7,6 +7,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.69] - 2025-04-03
+
+### Fixed
+
+- Fixed SQLAlchemy polymorphic identity warnings in account model tests
+- Fixed CashflowForecast test assertions to match fixture values
+- Fixed layer separation in model unit tests by moving service-dependent tests to integration tests
+- Added additional integration tests for service functionality
+
+### Added
+
+- Added "Polymorphic Identity Pattern" section to system_patterns.md
+- Added "Test Layer Separation" section to system_patterns.md
+- Created comprehensive documentation on proper polymorphic model usage in tests
+- Added mermaid diagrams for both patterns to improve documentation clarity
+
 ## [0.5.68] - 2025-04-03
 
 ### Fixed

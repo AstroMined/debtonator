@@ -299,3 +299,50 @@ async def test_generate_bills_for_month(
     bill_names = {bill.name for bill in generated}
     assert "Test Bill" in bill_names
     assert "Second Bill" in bill_names
+
+
+@pytest.mark.asyncio
+async def test_create_liability_from_recurring(
+    db_session: AsyncSession, recurring_bill: RecurringBill
+):
+    """Test proper creation of liability model from recurring bill template"""
+    service = RecurringBillService(db_session)
+    liability = service.create_liability_from_recurring(recurring_bill, "03", 2025)
+    db_session.add(liability)
+    await db_session.flush()
+    await db_session.refresh(liability)
+
+    # Verify the liability has all the right properties
+    assert liability.name == recurring_bill.bill_name
+    assert liability.amount == recurring_bill.amount
+    assert liability.due_date.month == 3
+    assert liability.due_date.year == 2025
+    assert liability.due_date.day == recurring_bill.day_of_month
+    assert liability.auto_pay is recurring_bill.auto_pay
+    assert liability.primary_account_id == recurring_bill.account_id
+    assert liability.category_id == recurring_bill.category_id
+
+
+@pytest.mark.asyncio
+async def test_liability_datetime_handling(
+    db_session: AsyncSession, recurring_bill: RecurringBill
+):
+    """Test proper datetime handling in generated liabilities"""
+    service = RecurringBillService(db_session)
+    liability = service.create_liability_from_recurring(recurring_bill, "03", 2025)
+    db_session.add(liability)
+    await db_session.flush()
+    await db_session.refresh(liability)
+
+    # Verify liability datetime fields are naive (no tzinfo)
+    assert liability.due_date.tzinfo is None
+    assert liability.created_at.tzinfo is None
+    assert liability.updated_at.tzinfo is None
+
+    # Verify due_date components
+    assert liability.due_date.year == 2025
+    assert liability.due_date.month == 3
+    assert liability.due_date.day == recurring_bill.day_of_month
+    assert liability.due_date.hour == 0
+    assert liability.due_date.minute == 0
+    assert liability.due_date.second == 0
