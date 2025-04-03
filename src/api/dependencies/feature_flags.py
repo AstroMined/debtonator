@@ -152,7 +152,7 @@ def get_feature_flag_repository(db: AsyncSession = Depends(get_db)):
     return get_repository(FeatureFlagRepository, db)
 
 
-def get_feature_flag_service(
+async def get_feature_flag_service(
     registry: FeatureFlagRegistry = Depends(get_feature_flag_registry),
     repository=Depends(get_feature_flag_repository),
     request: Request = None,
@@ -164,6 +164,9 @@ def get_feature_flag_service(
     This function creates a feature flag service with the appropriate context.
     If a request is provided, context will be built from it. Otherwise, an
     existing context can be provided, or a default one will be created.
+    
+    The service is automatically initialized to ensure the registry is in sync 
+    with the database, preventing "flag not found" errors.
 
     Args:
         registry: The feature flag registry
@@ -181,4 +184,11 @@ def get_feature_flag_service(
     elif not context:
         context = create_environment_context()
 
-    return FeatureFlagService(registry=registry, repository=repository, context=context)
+    # Create service with context
+    service = FeatureFlagService(registry=registry, repository=repository, context=context)
+    
+    # Initialize service to ensure registry is synced with database
+    # This is necessary both in the main app and in tests
+    await service.initialize()
+    
+    return service

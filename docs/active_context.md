@@ -6,7 +6,17 @@ Datetime Standardization, Repository Architectural Improvements, Code Cleanup an
 
 ### Recent Changes
 
-1. **Fixed Feature Flag System Test Failures** ✓
+1. **Fixed Feature Flag UTC Datetime Validation and Registry Initialization** ✓
+   - Fixed failure of all feature flag API tests due to improper datetime handling
+   - Implemented proper UTC conversion for datetime fields in feature flag responses
+   - Updated `create_flag()` and `update_flag()` to return properly formatted FeatureFlagResponse objects
+   - Added service initialization to application startup event to populate registry from database
+   - Ensured service layer properly enforces ADR-011 datetime standards
+   - Addressed registry synchronization issues between database and in-memory cache
+   - Fixed bulk update operations to use responses with UTC-aware datetimes
+   - Modified service interface to maintain consistent return types across all methods
+
+2. **Fixed Feature Flag System Test Failures** ✓
    - Fixed repository dependency injection issue in feature flags
    - Added missing environment enum value in schema validation
    - Added validators for environment type feature flags

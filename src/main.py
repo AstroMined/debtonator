@@ -12,7 +12,10 @@ from pydantic import ValidationError
 from .api.base import api_router
 from .api.response_formatter import format_response
 from .database.base import Base
-from .database.database import engine
+from .database.database import engine, get_db
+from .utils.feature_flags.feature_flags import get_registry
+from .repositories.feature_flags import FeatureFlagRepository
+from .services.feature_flags import FeatureFlagService
 from .utils.config import settings
 
 
@@ -144,7 +147,24 @@ for route in app.routes:
 
 @app.on_event("startup")
 async def startup_event():
+    # Create database tables
     await create_tables()
+    
+    # Initialize feature flag registry from database
+    async for db_session in get_db():
+        try:
+            # Create repository and service
+            repository = FeatureFlagRepository(db_session)
+            registry = get_registry()
+            service = FeatureFlagService(registry=registry, repository=repository)
+            
+            # Initialize service to load flags from database into registry
+            await service.initialize()
+            logger.info("Feature flag registry initialized from database")
+            break  # Successfully initialized, exit the loop
+        except Exception as e:
+            logger.error(f"Failed to initialize feature flags: {e}")
+            # Session will be automatically closed when the loop exits
 
 
 @app.get("/")

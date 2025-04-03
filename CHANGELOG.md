@@ -7,7 +7,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.59] - 2025-04-03
+## [0.5.64] - 2025-04-03
+
+### Fixed
+
+- Fixed Feature Flag UTC Datetime Validation and Registry Initialization:
+  - Fixed all feature flag API tests (5/5 passing) with proper datetime handling
+  - Fixed critical registry initialization issue in application startup:
+    - Added service initialization to load feature flags into registry at startup
+    - Modified dependency function to initialize service on creation
+    - Fixed race condition in registry loading between app startup and API requests
+  - Fixed ADR-011 datetime compliance issues in feature flag service:
+    - Updated service methods to return properly formatted response objects
+    - Modified create_flag() to return FeatureFlagResponse with timezone-aware datetimes
+    - Updated update_flag() to ensure timezone-aware response datetimes
+    - Improved bulk_update_flags() to leverage fixed methods for consistent UTC handling
+  - Established proper separation of concerns for timezone conversion:
+    - Database models use naive datetimes (following ADR-011)
+    - Service layer properly converts to timezone-aware datetimes at API boundary
+    - All service methods now return consistent response types with proper conversion
+
+## [0.5.63] - 2025-04-03
 
 ### Fixed
 

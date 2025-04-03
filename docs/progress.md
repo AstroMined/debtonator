@@ -1,5 +1,26 @@
 # Progress
 
+## April 3, 2025 (3:13 AM)
+
+### Completed Tasks
+
+- Fixed Feature Flag UTC Datetime Validation and Registry Initialization:
+  - Fixed all remaining feature flag API tests (5/5 passing)
+  - Identified and resolved two critical issues:
+    1. Registry Initialization:
+       - Added application startup event in `main.py` to initialize feature flag service
+       - Modified `get_feature_flag_service` to initialize service on creation
+       - Fixed race condition in registry loading between app startup and API requests
+    2. UTC DateTime Compliance:
+       - Updated service methods to return `FeatureFlagResponse` objects with proper UTC conversion
+       - Modified `create_flag()` to return a response schema instead of raw DB model
+       - Fixed `update_flag()` to also return properly formatted response
+       - Updated `bulk_update_flags()` to leverage the fixed methods
+  - Ensured service layer properly enforces ADR-011 datetime standards
+  - Made all feature flag service methods return consistent types
+  - Implemented separation of concerns where service layer handles timezone conversion
+  - Fixed feature flag tests that were previously failing with 422 validation errors
+
 ## April 3, 2025 (2:00 AM)
 
 ### Completed Tasks

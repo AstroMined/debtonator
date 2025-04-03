@@ -300,7 +300,7 @@ class FeatureFlagService(FeatureFlagObserver):
 
     async def create_flag(
         self, flag_data: Union[Dict[str, Any], FeatureFlagCreate]
-    ) -> Optional[FeatureFlag]:
+    ) -> Optional[FeatureFlagResponse]:
         """
         Create a new feature flag.
 
@@ -308,10 +308,11 @@ class FeatureFlagService(FeatureFlagObserver):
             flag_data: Feature flag data
 
         Returns:
-            The created feature flag, or None if creation failed
+            The created feature flag as a response object, or None if creation failed
 
         Note:
             This method persists the flag to the database and registers it in the in-memory registry.
+            It returns a FeatureFlagResponse with proper UTC timezone conversion, per ADR-011.
         """
         try:
             # Convert schema to dict if needed
@@ -330,12 +331,26 @@ class FeatureFlagService(FeatureFlagObserver):
                 flag_type=flag_type,
                 default_value=flag.value,
                 description=flag.description,
-                metadata=flag.flag_metadata,  # Changed field name
+                metadata=flag.flag_metadata,
                 is_system=flag.is_system,
             )
 
+            # Convert to response model to ensure proper UTC conversion
+            response = FeatureFlagResponse(
+                name=flag.name,
+                description=flag.description,
+                flag_type=flag.flag_type,
+                value=flag.value,
+                flag_metadata=flag.flag_metadata,
+                is_system=flag.is_system,
+                created_at=ensure_utc(flag.created_at),
+                updated_at=ensure_utc(flag.updated_at),
+            )
+
             logger.info(f"Feature flag created: {flag.name}")
-            return flag
+            
+            # Return the response object with proper timezone conversion
+            return response
 
         except Exception as e:
             logger.error(f"Error creating feature flag: {e}")
@@ -343,7 +358,7 @@ class FeatureFlagService(FeatureFlagObserver):
 
     async def update_flag(
         self, flag_name: str, flag_data: Union[Dict[str, Any], FeatureFlagUpdate]
-    ) -> Optional[FeatureFlag]:
+    ) -> Optional[FeatureFlagResponse]:
         """
         Update an existing feature flag.
 
@@ -352,10 +367,11 @@ class FeatureFlagService(FeatureFlagObserver):
             flag_data: Updated flag data
 
         Returns:
-            The updated feature flag, or None if update failed
+            The updated feature flag as a response object, or None if update failed
 
         Note:
             This method updates both the database and the in-memory registry.
+            It returns a FeatureFlagResponse with proper UTC timezone conversion, per ADR-011.
         """
         try:
             # Check if flag exists in registry
@@ -379,11 +395,20 @@ class FeatureFlagService(FeatureFlagObserver):
             if "value" in data_dict:
                 self.registry.set_value(flag_name, data_dict["value"])
 
-            # Note: Updating flag_type in registry is not directly supported
-            # A full registry reload would be needed for that
+            # Convert to response model to ensure proper UTC conversion
+            response = FeatureFlagResponse(
+                name=updated_flag.name,
+                description=updated_flag.description,
+                flag_type=updated_flag.flag_type,
+                value=updated_flag.value,
+                flag_metadata=updated_flag.flag_metadata,
+                is_system=updated_flag.is_system,
+                created_at=ensure_utc(updated_flag.created_at),
+                updated_at=ensure_utc(updated_flag.updated_at),
+            )
 
             logger.info(f"Feature flag updated: {flag_name}")
-            return updated_flag
+            return response
 
         except Exception as e:
             logger.error(f"Error updating feature flag: {e}")
@@ -521,19 +546,10 @@ class FeatureFlagService(FeatureFlagObserver):
         result = {}
 
         for flag_name, update_data in updates.items():
-            updated_flag = await self.update_flag(flag_name, update_data)
-            if updated_flag:
-                # Convert to response schema
-                result[flag_name] = FeatureFlagResponse(
-                    name=updated_flag.name,
-                    description=updated_flag.description,
-                    flag_type=updated_flag.flag_type,
-                    value=updated_flag.value,
-                    flag_metadata=updated_flag.flag_metadata,
-                    is_system=updated_flag.is_system,
-                    created_at=ensure_utc(updated_flag.created_at),
-                    updated_at=ensure_utc(updated_flag.updated_at),
-                )
+            # update_flag now returns a FeatureFlagResponse with proper UTC conversion
+            response = await self.update_flag(flag_name, update_data)
+            if response:
+                result[flag_name] = response
 
         return result
 

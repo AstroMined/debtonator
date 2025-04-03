@@ -130,7 +130,7 @@ async def get_feature_flag(
 )
 async def update_feature_flag(
     name: str,
-    flag_update: FeatureFlagUpdate,
+    update: FeatureFlagUpdate,
     request: Request,
     service: FeatureFlagService = Depends(get_feature_flag_service),
     ):
@@ -139,7 +139,7 @@ async def update_feature_flag(
 
     Args:
         name: The name of the feature flag to update
-        flag_update: The update data
+        update: The update data
         request: The FastAPI request
         service: Feature flag service
         formatter: Response formatter
@@ -150,7 +150,7 @@ async def update_feature_flag(
     # Check if management is enabled
     check_management_enabled()
 
-    flag = await service.update_flag(name, flag_update)
+    flag = await service.update_flag(name, update)
     if not flag:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -168,7 +168,7 @@ async def update_feature_flag(
     description="Create a new feature flag with the specified configuration",
 )
 async def create_feature_flag(
-    flag_create: FeatureFlagCreate,
+    flag: FeatureFlagCreate,
     request: Request,
     service: FeatureFlagService = Depends(get_feature_flag_service),
     ):
@@ -176,7 +176,7 @@ async def create_feature_flag(
     Create a new feature flag.
 
     Args:
-        flag_create: The feature flag to create
+        flag: The feature flag to create
         request: The FastAPI request
         service: Feature flag service
         formatter: Response formatter
@@ -188,14 +188,14 @@ async def create_feature_flag(
     check_management_enabled()
 
     # Check if flag already exists
-    existing_flag = await service.get_flag(flag_create.name)
+    existing_flag = await service.get_flag(flag.name)
     if existing_flag:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Feature flag '{flag_create.name}' already exists",
+            detail=f"Feature flag '{flag.name}' already exists",
         )
 
-    flag = await service.create_flag(flag_create)
+    flag = await service.create_flag(flag)
     return flag
 
 
