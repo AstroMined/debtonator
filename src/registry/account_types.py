@@ -11,6 +11,16 @@ Implements the singleton pattern for global access to registered account types.
 from typing import Any, ClassVar, Dict, List, Optional, Type
 
 
+class RegistryNotInitializedException(Exception):
+    """
+    Raised when a registry operation is attempted but the registry is not initialized.
+    
+    This exception indicates that the account type registry has not been properly
+    initialized before being used, which is a critical system error.
+    """
+    pass
+
+
 class AccountTypeRegistry:
     """
     Registry for managing account types and their associated classes and metadata.
@@ -108,7 +118,13 @@ class AccountTypeRegistry:
 
         Returns:
             A list of dictionaries with account type information
+            
+        Raises:
+            RegistryNotInitializedException: If the registry has not been initialized
         """
+        if not self._registry:
+            raise RegistryNotInitializedException("Account type registry has not been initialized")
+        
         result = []
 
         for type_id, info in self._registry.items():
@@ -175,7 +191,13 @@ class AccountTypeRegistry:
 
         Returns:
             True if the account type is valid and available, False otherwise
+            
+        Raises:
+            RegistryNotInitializedException: If the registry has not been initialized
         """
+        if not self._registry:
+            raise RegistryNotInitializedException("Account type registry has not been initialized")
+            
         if account_type_id not in self._registry:
             return False
 

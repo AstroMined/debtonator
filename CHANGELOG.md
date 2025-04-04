@@ -7,6 +7,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.70] - 2025-04-03
+
+### Added
+
+- Comprehensive integration test suite for repository layer with account types
+- Test coverage for repository factory with dynamic module loading
+- Feature flag integration tests for banking account types
+- Bill splits integration tests with polymorphic account types
+- Test infrastructure for checking, savings, and credit accounts
+- Repository testing for international banking and multi-currency features
+
+### Fixed
+
+- Resolved SQLAlchemy 2.0 compatibility issues in repository tests
+- Fixed polymorphic identity mapping in repository integration tests
+
+### Changed
+
+- Updated testing approach to follow "Real Objects Testing Philosophy"
+- Structured tests to mirror source code organization
+
 ## [0.5.69] - 2025-04-03
 
 ### Fixed

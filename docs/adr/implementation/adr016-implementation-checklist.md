@@ -101,11 +101,11 @@ This checklist focuses specifically on implementing the core polymorphic archite
   - [ ] Add graceful degradation for disabled features
   - [ ] Ensure backward compatibility when flags are disabled
 
-- [ ] Create feature flag tests:
-  - [ ] Test behavior with flags enabled
-  - [ ] Test behavior with flags disabled
-  - [ ] Test transitions between states
-  - [ ] Test error handling for disabled features
+- [x] Create feature flag tests:
+  - [x] Test behavior with flags enabled
+  - [x] Test behavior with flags disabled
+  - [x] Test transitions between states
+  - [x] Test error handling for disabled features
 
 ## Account Type Registry
 
@@ -171,16 +171,16 @@ This checklist focuses specifically on implementing the core polymorphic archite
   - [x] Update Registry to support repository modules
   - [x] Document module pattern in README
 
-- [ ] Create/update tests in `tests/integration/repositories/test_account_repository.py`:
-  - [ ] Follow the Arrange-Schema-Act-Assert pattern
-  - [ ] Test polymorphic queries and joins
-  - [ ] Test type-specific operations
-  - [ ] Test proper relationship loading
-  - [ ] Test error handling for polymorphic operations
-  - [ ] Test feature flag integration
-  - [ ] Test behavior with flags enabled/disabled
-  - [ ] Test currency-specific operations
-  - [ ] Test international field handling
+- [x] Create/update tests in `tests/integration/repositories/test_account_repository.py`:
+  - [x] Follow the Arrange-Schema-Act-Assert pattern
+  - [x] Test polymorphic queries and joins
+  - [x] Test type-specific operations
+  - [x] Test proper relationship loading
+  - [x] Test error handling for polymorphic operations
+  - [x] Test feature flag integration
+  - [x] Test behavior with flags enabled/disabled
+  - [x] Test currency-specific operations
+  - [x] Test international field handling
 
 ## Service Layer
 
@@ -207,20 +207,20 @@ This checklist focuses specifically on implementing the core polymorphic archite
 
 ## Integration with Bill Splits
 
-- [ ] Update Bill Split model to work with polymorphic accounts:
-  - [ ] Ensure BillSplit references base Account model
-  - [ ] Update bill split repository to handle polymorphic accounts
-  - [ ] Add validation for account type compatibility with bill splits
-  - [ ] Add currency handling for bill splits
-  - [ ] Add feature flag checks for bill split operations
+- [x] Update Bill Split model to work with polymorphic accounts:
+  - [x] Ensure BillSplit references base Account model
+  - [x] Update bill split repository to handle polymorphic accounts
+  - [x] Add validation for account type compatibility with bill splits
+  - [x] Add currency handling for bill splits
+  - [x] Add feature flag checks for bill split operations
 
-- [ ] Update tests in `tests/integration/repositories/test_bill_split_repository.py`:
-  - [ ] Test bill splits assigned to different account types
-  - [ ] Test validation rules for compatible account types
-  - [ ] Verify proper relationship loading
-  - [ ] Test transaction boundaries with complex operations
-  - [ ] Test multi-currency bill splits
-  - [ ] Test feature flag integration
+- [x] Update tests in `tests/integration/repositories/test_bill_split_repository.py`:
+  - [x] Test bill splits assigned to different account types
+  - [x] Test validation rules for compatible account types
+  - [x] Verify proper relationship loading
+  - [x] Test transaction boundaries with complex operations
+  - [x] Test multi-currency bill splits
+  - [x] Test feature flag integration
 
 ## Error Handling
 
@@ -402,33 +402,33 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
 
 ### Repository Testing
 
-- [ ] Base Repository Tests (`tests/integration/repositories/test_accounts.py`):
-  - [ ] Basic CRUD operations:
-    - [ ] Create account with all account types
-    - [ ] Retrieve accounts with polymorphic identities
-    - [ ] Update accounts with type-specific fields
-    - [ ] Delete accounts
-  - [ ] Advanced Repository Features:
-    - [ ] Test get_with_type() with all account types
-    - [ ] Test get_by_type() filtering
-    - [ ] Test get_by_user_and_type() queries
-    - [ ] Test polymorphic joins and relationship loading
+- [x] Base Repository Tests (`tests/integration/repositories/test_accounts.py`):
+  - [x] Basic CRUD operations:
+    - [x] Create account with all account types
+    - [x] Retrieve accounts with polymorphic identities
+    - [x] Update accounts with type-specific fields
+    - [x] Delete accounts
+  - [x] Advanced Repository Features:
+    - [x] Test get_with_type() with all account types
+    - [x] Test get_by_type() filtering
+    - [x] Test get_by_user_and_type() queries
+    - [x] Test polymorphic joins and relationship loading
 
-- [ ] Repository Module Tests:
-  - [ ] `tests/integration/repositories/account_types/banking/test_checking.py`:
-    - [ ] Test checking-specific repository operations
-    - [ ] Test international banking field operations
-  - [ ] `tests/integration/repositories/account_types/banking/test_savings.py`
-  - [ ] `tests/integration/repositories/account_types/banking/test_credit.py`
+- [x] Repository Module Tests:
+  - [x] `tests/integration/repositories/account_types/banking/test_checking.py`:
+    - [x] Test checking-specific repository operations
+    - [x] Test international banking field operations
+  - [x] `tests/integration/repositories/account_types/banking/test_savings.py`
+  - [x] `tests/integration/repositories/account_types/banking/test_credit.py`
   - [ ] `tests/integration/repositories/account_types/banking/test_payment_app.py`
   - [ ] `tests/integration/repositories/account_types/banking/test_bnpl.py`
   - [ ] `tests/integration/repositories/account_types/banking/test_ewa.py`
 
-- [ ] Repository Factory Tests (`tests/integration/repositories/test_factory.py`):
-  - [ ] Test dynamic module loading
-  - [ ] Test binding of specialized methods to base repository
-  - [ ] Verify feature flag integration in module loading
-  - [ ] Test fallback behavior when modules are missing
+- [x] Repository Factory Tests (`tests/integration/repositories/test_factory.py`):
+  - [x] Test dynamic module loading
+  - [x] Test binding of specialized methods to base repository
+  - [x] Verify feature flag integration in module loading
+  - [x] Test fallback behavior when modules are missing
 
 ### Registry Testing
 
@@ -441,16 +441,16 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
 
 ### Integration Testing
 
-- [ ] Bill Split Integration Tests:
-  - [ ] Test bill splits assigned to different account types
-  - [ ] Verify validation for eligible account types
-  - [ ] Test currency handling in bill splits
-  - [ ] Test transaction boundaries with splits across types
+- [x] Bill Split Integration Tests:
+  - [x] Test bill splits assigned to different account types
+  - [x] Verify validation for eligible account types
+  - [x] Test currency handling in bill splits
+  - [x] Test transaction boundaries with splits across types
 
-- [ ] Feature Flag Integration Tests:
-  - [ ] Test behavior with banking flags enabled/disabled
-  - [ ] Test currency support flag behavior
-  - [ ] Test international banking flag behavior
+- [x] Feature Flag Integration Tests:
+  - [x] Test behavior with banking flags enabled/disabled
+  - [x] Test currency support flag behavior
+  - [x] Test international banking flag behavior
 
 ## Code Review Checklist Compliance
 
@@ -473,19 +473,19 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
   - [x] No naive datetime objects are created
   - [x] All date/time operations use utilities from datetime_utils.py
 
-- [ ] Apply repository pattern standards (ADR-014):
-  - [ ] Extend BaseRepository properly
-  - [ ] Implement proper transaction management
-  - [ ] Use proper relationship loading strategies
-  - [ ] Add feature flag integration
-  - [ ] Handle currency-specific operations
-  - [ ] Support international banking fields
+- [x] Apply repository pattern standards (ADR-014):
+  - [x] Extend BaseRepository properly
+  - [x] Implement proper transaction management
+  - [x] Use proper relationship loading strategies
+  - [x] Add feature flag integration
+  - [x] Handle currency-specific operations
+  - [x] Support international banking fields
 
 - [x] Apply feature flag integration (ADR-024):
   - [x] Integrate with FeatureFlagService
   - [x] Add conditional logic based on feature flags
   - [x] Handle graceful degradation for disabled features
-  - [ ] Test with feature flags enabled/disabled
+  - [x] Test with feature flags enabled/disabled
   - [x] Document feature flag requirements
 
 ## Final Verification
@@ -496,7 +496,7 @@ Before completing ADR-016 implementation, verify:
    - [x] Polymorphic base structure is implemented correctly
    - [x] Registry mechanism works as designed
    - [x] Schema validation is consistent
-   - [ ] Repository layer handles polymorphic queries properly
+   - [x] Repository layer handles polymorphic queries properly
    - [x] Feature flag integration works correctly
    - [x] Multi-currency support is implemented
    - [x] International banking fields are supported
@@ -505,12 +505,12 @@ Before completing ADR-016 implementation, verify:
    - [x] Base model has test coverage
    - [x] Registry has comprehensive tests
    - [x] Schema validation is thoroughly tested
-   - [ ] Repository methods have appropriate tests
+   - [x] Repository methods have appropriate tests
    - [ ] Service methods have business rule tests
    - [ ] API endpoints have response tests
-   - [ ] Feature flag behavior is tested
-   - [ ] Currency support is tested
-   - [ ] International banking fields are tested
+   - [x] Feature flag behavior is tested
+   - [x] Currency support is tested
+   - [x] International banking fields are tested
 
 3. **Documentation**:
    - [x] Core architecture is well-documented
@@ -524,7 +524,7 @@ Before completing ADR-016 implementation, verify:
 4. **Dependency Updates**:
    - [ ] Service layer uses registry properly
    - [ ] API layer integrates with polymorphic models
-   - [ ] Repository factories support new architecture
+   - [x] Repository factories support new architecture
    - [x] Feature flag service is properly injected
    - [x] Currency utilities are available
    - [x] International banking validators are available

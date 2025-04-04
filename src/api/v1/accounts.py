@@ -11,7 +11,6 @@ from src.api.response_formatter import with_formatted_response
 from src.database.database import get_db
 from src.models.accounts import Account
 from src.schemas.accounts import (
-    AccountCreate,
     AccountResponse,
     AccountStatementHistoryResponse,
     AccountUpdate,

@@ -1,5 +1,6 @@
 import json
 import logging
+from contextlib import asynccontextmanager
 from decimal import Decimal
 
 from fastapi import FastAPI, Request
@@ -14,6 +15,8 @@ from .api.response_formatter import format_response
 from .database.base import Base
 from .database.database import engine, get_db
 from .repositories.feature_flags import FeatureFlagRepository
+from .registry.account_registry_init import register_account_types
+from .registry.account_types import RegistryNotInitializedException, account_type_registry
 from .services.feature_flags import FeatureFlagService
 from .utils.config import settings
 from .utils.feature_flags.feature_flags import get_registry
@@ -25,6 +28,46 @@ async def create_tables():
         await conn.run_sync(Base.metadata.create_all)
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Initialize registries and database
+    
+    # Initialize account type registry first (no async dependencies)
+    register_account_types()
+    
+    # Verify account type registry was properly initialized
+    try:
+        types = account_type_registry.get_all_types()
+        logger.info(f"Account type registry initialized with {len(types)} types")
+    except RegistryNotInitializedException as e:
+        logger.error(f"Account type registry initialization failed: {str(e)}")
+        raise RuntimeError("Failed to initialize account type registry") from e
+    
+    # Create database tables
+    await create_tables()
+    
+    # Initialize feature flag registry from database
+    async for db_session in get_db():
+        try:
+            # Create repository and service
+            repository = FeatureFlagRepository(db_session)
+            registry = get_registry()
+            service = FeatureFlagService(registry=registry, repository=repository)
+
+            # Initialize service to load flags from database into registry
+            await service.initialize()
+            logger.info("Feature flag registry initialized from database")
+            break  # Successfully initialized, exit the loop
+        except Exception as e:
+            logger.error(f"Failed to initialize feature flags: {e}")
+            # Session will be automatically closed when the loop exits
+    
+    yield  # App runs here
+    
+    # Shutdown logic could go here if needed
+    logger.info("Application shutting down")
+
+
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
@@ -33,6 +76,7 @@ app = FastAPI(
     docs_url=f"{settings.API_V1_PREFIX}/docs",
     redoc_url=f"{settings.API_V1_PREFIX}/redoc",
     redirect_slashes=False,
+    lifespan=lifespan,
 )
 
 # Configure logger
@@ -125,45 +169,9 @@ async def decimal_precision_middleware(request: Request, call_next):
     # Return the original response for non-JSON responses
     return response
 
-
-# Debug: Print all registered routes with methods
-print("\nAPI Router Routes:")
-for route in api_router.routes:
-    print(f"API Route: {route.path}")
-    for method in route.methods:
-        print(f"  Method: {method}")
-
 # Include API router
 app.include_router(api_router)
 
-# Debug: Print all app routes with methods
-print("\nApp Routes:")
-for route in app.routes:
-    print(f"App Route: {route.path}")
-    for method in route.methods:
-        print(f"  Method: {method}")
-
-
-@app.on_event("startup")
-async def startup_event():
-    # Create database tables
-    await create_tables()
-
-    # Initialize feature flag registry from database
-    async for db_session in get_db():
-        try:
-            # Create repository and service
-            repository = FeatureFlagRepository(db_session)
-            registry = get_registry()
-            service = FeatureFlagService(registry=registry, repository=repository)
-
-            # Initialize service to load flags from database into registry
-            await service.initialize()
-            logger.info("Feature flag registry initialized from database")
-            break  # Successfully initialized, exit the loop
-        except Exception as e:
-            logger.error(f"Failed to initialize feature flags: {e}")
-            # Session will be automatically closed when the loop exits
 
 
 @app.get("/")

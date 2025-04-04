@@ -6,7 +6,19 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
 
 ### Recent Changes
 
-1. **Fixed Polymorphic Identity Warnings and Test Layer Separation (April 3, 2025)** ✓
+1. **Implemented Repository Layer Tests for Account Types (April 3, 2025)** ✓
+   - Created comprehensive integration tests for the modular repository pattern
+   - Implemented tests for repository factory with dynamic module loading
+   - Added tests for checking, savings, and credit account repositories
+   - Created feature flag integration tests for banking account types
+   - Added tests for bill splits with polymorphic account types
+   - Implemented tests for proper transaction boundaries and error handling
+   - Verified proper relationship loading across polymorphic types
+   - Added test coverage for feature flag effects on account creation and querying
+   - Created specialized test fixtures for each account type
+   - Established organized test package structure with proper __init__.py files
+
+2. **Fixed Polymorphic Identity Warnings and Test Layer Separation (April 3, 2025)** ✓
    - Resolved SQLAlchemy warnings about incompatible polymorphic identity
    - Updated account fixtures to use proper polymorphic subclasses (CheckingAccount, SavingsAccount, CreditAccount)
    - Moved service-dependent tests from model unit tests to integration test files
@@ -18,7 +30,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Created mermaid diagrams illustrating both patterns for documentation
    - Fixed discriminator value warnings in payment tests
 
-2. **Fixed SQLAlchemy 2.0 Compatibility in Account Type Tests (April 3, 2025)** ✓
+3. **Fixed SQLAlchemy 2.0 Compatibility in Account Type Tests (April 3, 2025)** ✓
    - Restructured test fixtures to use proper polymorphic account type hierarchy
    - Created mirrored fixture directory structure matching source code organization
    - Updated SQLAlchemy query API from legacy to 2.0 syntax for compatibility with AsyncSession
@@ -30,7 +42,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Implemented proper test fixture pattern for all account types
    - Created consistent pattern for account type testing
 
-3. **Implemented Testing Strategy for Account Types and Feature Flags (April 3, 2025)** ✓
+4. **Implemented Testing Strategy for Account Types and Feature Flags (April 3, 2025)** ✓
    - Created a structured, modular testing approach for all account types
    - Followed the source code structure in test organization
    - Split account type tests into separate files to avoid monolithic files
@@ -43,7 +55,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Created README documentation for the testing approach
    - Implemented tests for all validation patterns
 
-4. **Completed Schema Testing for Banking Account Types (ADR-019)** ✓
+5. **Completed Schema Testing for Banking Account Types (ADR-019)** ✓
    - Added tests for CheckingAccount schema validation
    - Implemented SavingsAccount schema test cases
    - Added CreditAccount statement-related validation tests
@@ -55,7 +67,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Added tests for discriminated union serialization
    - Tested schema inheritance for proper behavior
 
-5. **Implemented Feature Flag Model and Schema Tests (ADR-024)** ✓
+6. **Implemented Feature Flag Model and Schema Tests (ADR-024)** ✓
    - Created tests for all feature flag types (boolean, percentage, user segment, time-based)
    - Added validation tests for complex flag configurations
    - Implemented tests for flag name formatting validation
@@ -65,7 +77,7 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Created schema validation tests for specialized flag types
    - Tested flag metadata handling
 
-6. **Implemented Repository Module Pattern for Account Types (ADR-016, ADR-019)** ✓
+7. **Implemented Repository Module Pattern for Account Types (ADR-016, ADR-019)** ✓
    - Created modular directory structure for account types in `src/repositories/account_types/`
    - Implemented specialized banking repositories (checking, savings, credit)
    - Developed dynamic repository factory with module loading capability
@@ -77,30 +89,14 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Updated implementation checklists for ADRs 016, 019, and 024
    - Added pattern documentation to system_patterns.md for future reference
 
-7. **Implemented Banking Account Type Schemas (ADR-019)** ✓
-   - Created comprehensive schema hierarchy for all 6 banking account types
-   - Implemented CheckingAccount schema with international banking field validation
-   - Developed SavingsAccount schema with interest rate and balance validation
-   - Created CreditAccount schema with statement tracking and autopay validation
-   - Built modern financial services schemas (PaymentApp, BNPL, EWA)
-   - Added type-specific field validators with business rule enforcement
-   - Implemented discriminated union pattern using Pydantic's Annotated and Union
-   - Created proper inheritance structure for all account type schemas
-   - Documented all schemas with comprehensive field descriptions
-   - Updated ADR-019 implementation checklist with completed tasks
-
 ## Next Steps
 
-1. **Complete Repository Layer Tests for Account Types** 📝
-   - Create integration tests for the modular repository pattern
-   - Test polymorphic queries with all account types
-   - Implement tests for repository factory with dynamic module loading
-   - Add tests for feature flag integration in repositories
-   - Verify proper relationship loading and transaction boundaries
-   - Test repository-specific methods for each account type
-   - Create tests for error handling with invalid operations
-   - Add tests for account type filtering and sorting
-   - Implement tests for currency and international field operations
+1. **Complete Modern Financial Account Types Tests**
+   - Implement repository tests for payment_app, bnpl, and ewa account types
+   - Add service-specific tests for lifecycle management (especially BNPL)
+   - Test linked account operations in payment_app repository
+   - Implement tests for specialized operations for modern account types
+   - Add tests for date-based operations on BNPL and EWA types
 
 2. **Implement Service Layer Tests**
    - Create integration tests for AccountService with all account types
@@ -126,19 +122,20 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
    - Create Documentation and Training resources (Phase 7)
    - Plan Deployment and Rollout strategy (Phase 8)
 
-5. **Implement Bill Split Integration with Account Types**
-   - Update BillSplitRepository to work with polymorphic accounts
-   - Add validation for account type compatibility
-   - Create tests for bill splits across account types
-   - Implement feature flag integration for bill splits
-   - Test transaction boundaries with complex operations
-
-6. **Consolidate SQL Aggregation Patterns**
+5. **Consolidate SQL Aggregation Patterns**
    - Audit repository methods for proper COUNT() handling with JOINs
    - Review SUM() operations for consistency with GROUP BY usage
    - Standardize date range filtering for cross-database compatibility
    - Create pattern library for common repository operations
    - Document SQL aggregation patterns in repository guides
+
+6. **Create Schema Factory Development**
+   - Implement schema factories for all account types
+   - Add support for customization via kwargs
+   - Create factories for testing with appropriate defaults
+   - Support international banking field generation
+   - Add feature flag awareness to factories
+   - Test factory output with validation
 
 ## Implementation Lessons
 

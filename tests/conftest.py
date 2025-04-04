@@ -11,6 +11,14 @@ from sqlalchemy.orm import sessionmaker
 from src.database.base import Base
 from src.database.database import get_db
 from src.main import app
+from src.registry.account_registry_init import register_account_types
+
+# Ensure account type registry is initialized for testing
+@pytest.fixture(scope="session", autouse=True)
+def initialize_account_registry():
+    """Initialize the account type registry before any tests run."""
+    register_account_types()
+    return None  # Return value not used
 
 # List of fixture modules to load
 pytest_plugins = [

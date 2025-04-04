@@ -189,11 +189,11 @@ This checklist outlines the specific tasks required to implement the Feature Fla
   - [x] Integrate with account type registry
   - [x] Document module pattern in README
 
-- [ ] Create `tests/integration/repositories/test_feature_flags_repository_integration.py`:
-  - [ ] Test repository with flags enabled
-  - [ ] Test repository with flags disabled
-  - [ ] Test flag-specific behavior
-  - [ ] Test with feature transitions
+- [x] Create `tests/integration/repositories/test_feature_flags_repository_integration.py`:
+  - [x] Test repository with flags enabled
+  - [x] Test repository with flags disabled
+  - [x] Test flag-specific behavior
+  - [x] Test with feature transitions
 
 ### 3.2 Service Layer Integration
 
@@ -328,11 +328,11 @@ This checklist outlines the specific tasks required to implement the Feature Fla
   - [ ] Add proper error messages for disabled types
   - [ ] Update OpenAPI documentation
 
-- [ ] Create `tests/integration/features/test_banking_account_types_flag.py`:
-  - [ ] Test behavior with flag enabled
-  - [ ] Test behavior with flag disabled
-  - [ ] Test transitions between states
-  - [ ] Test error handling
+- [x] Create `tests/integration/features/test_banking_account_types_flag.py`:
+  - [x] Test behavior with flag enabled
+  - [x] Test behavior with flag disabled
+  - [x] Test transitions between states
+  - [x] Test error handling
 
 ### 6.2 Multi-Currency Support Flag Integration
 
@@ -352,11 +352,11 @@ This checklist outlines the specific tasks required to implement the Feature Fla
   - [ ] Add proper error messages for disabled features
   - [ ] Update OpenAPI documentation
 
-- [ ] Create `tests/integration/features/test_multi_currency_flag.py`:
-  - [ ] Test behavior with flag enabled
-  - [ ] Test behavior with flag disabled
-  - [ ] Test transitions between states
-  - [ ] Test error handling
+- [x] Create `tests/integration/features/test_multi_currency_flag.py`:
+  - [x] Test behavior with flag enabled
+  - [x] Test behavior with flag disabled
+  - [x] Test transitions between states
+  - [x] Test error handling
 
 ### 6.3 International Account Support Flag Integration
 
@@ -376,11 +376,11 @@ This checklist outlines the specific tasks required to implement the Feature Fla
   - [ ] Add proper error messages for disabled features
   - [ ] Update OpenAPI documentation
 
-- [ ] Create `tests/integration/features/test_international_account_flag.py`:
-  - [ ] Test behavior with flag enabled
-  - [ ] Test behavior with flag disabled
-  - [ ] Test transitions between states
-  - [ ] Test error handling
+- [x] Create `tests/integration/features/test_international_account_flag.py`:
+  - [x] Test behavior with flag enabled
+  - [x] Test behavior with flag disabled
+  - [x] Test transitions between states
+  - [x] Test error handling
 
 ## Phase 7: Documentation and Training
 
@@ -499,19 +499,19 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
 
 ### Integration Testing
 
-- [ ] Cross-Component Tests (`tests/integration/feature_flags/test_integration.py`):
-  - [ ] Test end-to-end flow from API to database and back
-  - [ ] Test registry synchronization with repository
-  - [ ] Test context propagation through layers
-  - [ ] Test performance with many flags
+- [x] Cross-Component Tests (`tests/integration/feature_flags/test_integration.py`):
+  - [x] Test end-to-end flow from API to database and back
+  - [x] Test registry synchronization with repository
+  - [x] Test context propagation through layers
+  - [x] Test performance with many flags
 
-- [ ] Feature Flag Integration Tests:
-  - [ ] `tests/integration/features/test_banking_account_types_flag.py`:
-    - [ ] Test repository and service behavior with flag enabled/disabled
-    - [ ] Test account type availability changes with flag toggle
-    - [ ] Test error handling for disabled features
-  - [ ] `tests/integration/features/test_multi_currency_flag.py`
-  - [ ] `tests/integration/features/test_international_account_flag.py`
+- [x] Feature Flag Integration Tests:
+  - [x] `tests/integration/features/test_banking_account_types_flag.py`:
+    - [x] Test repository and service behavior with flag enabled/disabled
+    - [x] Test account type availability changes with flag toggle
+    - [x] Test error handling for disabled features
+  - [x] `tests/integration/features/test_multi_currency_flag.py`
+  - [x] `tests/integration/features/test_international_account_flag.py`
 
 ### System Tests
 

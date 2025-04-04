@@ -24,9 +24,9 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - Documentation explains feature flag usage
 
 **Testing:**
-- [ ] Test with feature flag enabled and disabled
-- [ ] Verify behavior changes correctly when flag is toggled
-- [ ] Test error handling when attempting to access disabled features
+- [x] Test with feature flag enabled and disabled
+- [x] Verify behavior changes correctly when flag is toggled
+- [x] Test error handling when attempting to access disabled features
 - [ ] Test feature flag persistence across application restarts
 
 ## Phase 2: Database Schema and Model Implementation
@@ -50,7 +50,7 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [x] Write unit tests for base Account model validating field definitions
 - [x] Test index creation and effectiveness with sample queries
 - [x] Verify datetime fields store timezone-aware values correctly
-- [ ] Test feature flag integration with model access
+- [x] Test feature flag integration with model access
 
 ### 2.2 Traditional Banking Account Models
 
@@ -76,7 +76,7 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [x] Write unit tests for each account model verifying inheritance works properly
 - [x] Test foreign key constraints and cascading behavior
 - [x] Test field constraints (e.g., nullable, defaults) with valid and invalid data
-- [ ] Write integration tests for polymorphic queries on each model type
+- [x] Write integration tests for polymorphic queries on each model type
 
 ### 2.3 Modern Financial Services Models
 
@@ -149,7 +149,7 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [x] Test datetime field validation for timezone awareness
 - [x] Test currency field validation with various currency codes
 - [x] Test schema validation error messages for clarity
-- [ ] Verify feature flag integration with schema validation
+- [x] Verify feature flag integration with schema validation
 
 ### 3.2 Traditional Banking Account Schemas
 
@@ -247,11 +247,11 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - ✅ Documentation clearly explains the pattern
 
 **Testing:**
-- [ ] Write unit tests for repository factory
-- [ ] Test dynamic module loading
-- [ ] Test with real database and real data
-- [ ] Verify proper error handling with edge cases
-- [ ] Test with feature flags enabled and disabled
+- [x] Write unit tests for repository factory
+- [x] Test dynamic module loading
+- [x] Test with real database and real data
+- [x] Verify proper error handling with edge cases
+- [x] Test with feature flags enabled and disabled
 
 ### 4.2 Type-Specific Repository Modules
 
@@ -270,20 +270,20 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - ✅ Modules are structured for scalability
 
 **Testing:**
-- [ ] Write unit tests for each type-specific repository module
-- [ ] Test with various account statuses (open, closed)
-- [ ] Test with realistic data including multiple account types
-- [ ] Verify order and filtering work correctly
-- [ ] Test performance with larger datasets
-- [ ] Test edge cases like no accounts found
+- [x] Write unit tests for each type-specific repository module
+- [x] Test with various account statuses (open, closed)
+- [x] Test with realistic data including multiple account types
+- [x] Verify order and filtering work correctly
+- [x] Test performance with larger datasets
+- [x] Test edge cases like no accounts found
 
 ### 4.3 Integration with Bill Split Repository
 
-- [ ] Update BillSplitRepository to work with polymorphic account types
-- [ ] Add validation for eligible account types for bill splits
-- [ ] Implement methods to retrieve bill splits by account type
-- [ ] Ensure proper transaction handling for bill splits
-- [ ] Create documentation for bill split integration
+- [x] Update BillSplitRepository to work with polymorphic account types
+- [x] Add validation for eligible account types for bill splits
+- [x] Implement methods to retrieve bill splits by account type
+- [x] Ensure proper transaction handling for bill splits
+- [x] Create documentation for bill split integration
 
 **Verification:**
 - BillSplitRepository works correctly with all account types
@@ -293,11 +293,11 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - Method signatures follow repository pattern
 
 **Testing:**
-- [ ] Test bill splits with each eligible account type
-- [ ] Test validation rules for ineligible account types
-- [ ] Test transaction handling across multiple entities
-- [ ] Verify polymorphic queries return correct bill splits
-- [ ] Test with feature flags to ensure proper integration
+- [x] Test bill splits with each eligible account type
+- [x] Test validation rules for ineligible account types
+- [x] Test transaction handling across multiple entities
+- [x] Verify polymorphic queries return correct bill splits
+- [x] Test with feature flags to ensure proper integration
 
 ## Phase 5: Service Layer Implementation
 
@@ -683,18 +683,18 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
 
 ### Repository Testing
 
-- [ ] Repository Module Tests:
-  - [ ] `tests/integration/repositories/account_types/banking/test_checking.py`:
-    - [ ] Test checking-specific repository functions
-    - [ ] Test querying with international banking fields
-    - [ ] Test overdraft-related operations
-  - [ ] `tests/integration/repositories/account_types/banking/test_savings.py`:
-    - [ ] Test savings-specific repository functions
-    - [ ] Test interest-related operations
-  - [ ] `tests/integration/repositories/account_types/banking/test_credit.py`:
-    - [ ] Test credit-specific repository functions
-    - [ ] Test statement-related operations
-    - [ ] Test due date querying
+- [x] Repository Module Tests:
+  - [x] `tests/integration/repositories/account_types/banking/test_checking.py`:
+    - [x] Test checking-specific repository functions
+    - [x] Test querying with international banking fields
+    - [x] Test overdraft-related operations
+  - [x] `tests/integration/repositories/account_types/banking/test_savings.py`:
+    - [x] Test savings-specific repository functions
+    - [x] Test interest-related operations
+  - [x] `tests/integration/repositories/account_types/banking/test_credit.py`:
+    - [x] Test credit-specific repository functions
+    - [x] Test statement-related operations
+    - [x] Test due date querying
   - [ ] `tests/integration/repositories/account_types/banking/test_payment_app.py`:
     - [ ] Test payment app-specific repository functions
     - [ ] Test linked account operations
@@ -706,11 +706,11 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
     - [ ] Test EWA-specific repository functions
     - [ ] Test pay period operations
 
-- [ ] Cross-Account Operations Tests:
-  - [ ] `tests/integration/repositories/account_types/banking/test_banking_operations.py`:
-    - [ ] Test operations across multiple banking account types
-    - [ ] Test polymorphic queries with banking types
-    - [ ] Test feature flag controlled operations
+- [x] Cross-Account Operations Tests:
+  - [x] `tests/integration/repositories/account_types/banking/test_banking_operations.py`:
+    - [x] Test operations across multiple banking account types
+    - [x] Test polymorphic queries with banking types
+    - [x] Test feature flag controlled operations
 
 ### Service Layer Testing
 
@@ -725,69 +725,4 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
     - [ ] Verify date handling
   - [ ] `tests/integration/services/test_bnpl_lifecycle.py`:
     - [ ] Test update_bnpl_status lifecycle management
-    - [ ] Test installment progression
-    - [ ] Verify account closure when fully paid
-
-### Feature Flag Testing
-
-- [ ] Feature Flag Integration Tests:
-  - [ ] `tests/integration/features/test_banking_account_types_flag.py`:
-    - [ ] Test repository behavior with flags enabled/disabled
-    - [ ] Test service behavior with flags enabled/disabled
-    - [ ] Test proper error handling when features are disabled
-    - [ ] Verify graceful degradation
-
-## Phase 9: Final Verification and Release
-
-### 9.1 Integration Testing
-
-- [ ] Perform end-to-end integration testing
-- [ ] Test all account types and their interactions
-- [ ] Verify bill split integration works correctly
-- [ ] Test international banking features
-- [ ] Test edge cases specific to each account type
-
-**Verification:**
-- All components work together correctly
-- Data flows correctly through all layers
-- Error handling works end-to-end
-- Feature flags control access to new functionality
-
-**Testing:**
-- [ ] Test complete user workflows
-- [ ] Test with realistic data sets
-- [ ] Test cross-account interactions
-- [ ] Verify error propagation through all layers
-- [ ] Test with different feature flag configurations
-
-### 9.2 Security Review
-
-- [ ] Perform security audit of new code
-- [ ] Verify authentication and authorization
-- [ ] Check for potential SQL injection vulnerabilities
-- [ ] Review error handling for information leakage
-- [ ] Verify sensitive data protection
-
-**Verification:**
-- Authentication is required for all endpoints
-- Authorization checks prevent unauthorized access
-- Error messages don't reveal sensitive information
-- Sensitive data is properly protected
-- Input validation prevents injection attacks
-
-**Testing:**
-- [ ] Test authentication bypass attempts
-- [ ] Test authorization with different user roles
-- [ ] Test with malicious input data
-- [ ] Verify error responses don't leak sensitive information
-- [ ] Test for common OWASP vulnerabilities
-
-### 9.3 Code Quality Review
-
-- [ ] Verify compliance with ADR-011 (DateTime Standardization)
-  - All datetime fields use UTC
-  - No naive datetime objects are created
-  - All date/time operations use utilities from datetime_utils.py
-
-- [ ] Verify compliance with ADR-012 (Validation Layer)
-  - Models only contain constraints,
+    -
