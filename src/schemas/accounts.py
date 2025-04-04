@@ -178,22 +178,8 @@ class AccountBase(BaseSchemaValidator):
         default=None, description="Amount associated with next action"
     )
 
-    @field_validator("account_type")
-    @classmethod
-    def validate_account_type_field(cls, value: str) -> str:
-        """
-        Validate that the account type is registered and available.
-
-        Args:
-            value: The account type to validate
-
-        Returns:
-            str: The validated account type
-
-        Raises:
-            ValueError: If account type is not valid or not available
-        """
-        return validate_account_type(value)
+    # Removed account_type validator to avoid conflicts with discriminated unions
+    # Validation now happens at the service layer
 
     @field_validator("total_limit")
     @classmethod
@@ -304,24 +290,8 @@ class AccountUpdate(AccountBase):
         default=None, description="Amount associated with next action"
     )
 
-    @field_validator("account_type")
-    @classmethod
-    def validate_account_type_field(cls, value: Optional[str]) -> Optional[str]:
-        """
-        Validate that the account type is registered and available.
-
-        Args:
-            value: The account type to validate
-
-        Returns:
-            Optional[str]: The validated account type
-
-        Raises:
-            ValueError: If account type is not valid or not available
-        """
-        if value is None:
-            return value
-        return validate_account_type(value)
+    # Removed account_type validator to avoid conflicts with discriminated unions
+    # Validation now happens at the service layer
 
     @field_validator("total_limit")
     @classmethod

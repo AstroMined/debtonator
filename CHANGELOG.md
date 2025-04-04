@@ -7,6 +7,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.72] - 2025-04-04
+
+### Added
+
+- Added comprehensive banking overview functionality to aggregate financial data across all account types
+- Implemented support for banking-specific account types including payment apps, BNPL, and EWA accounts
+- Added type-specific account handling through the feature flag-aware type registry system
+
+### Changed
+
+- Moved account type validation from schemas to service layer to support Pydantic v2 discriminated unions
+- Enhanced feature flag integration in account creation and validation workflows
+- Improved account type validation to use the account type registry with feature flag awareness
+
+### Fixed
+
+- Fixed conflict between Pydantic discriminated unions and field validators
+- Fixed incomplete implementation of get_banking_overview method
+- Resolved issues with account type validation in polymorphic account creation
+
+### Technical
+
+- Implements ADR-016 (Account Type Expansion)
+- Implements ADR-019 (Banking Account Types Expansion)
+- Implements ADR-024 (Feature Flags)
+
 ## [0.5.71] - 2025-04-04
 
 ### Added

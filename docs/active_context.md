@@ -7,16 +7,11 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 ### Recent Changes
 
 1. **Implemented Service Layer for Account Types and Feature Flags (April 4, 2025)** ✓
-   - Created specialized service modules for account type validation and lifecycle management
-   - Implemented feature flag integration in account service layer
-   - Added API dependencies for service layer with feature flag integration
-   - Created comprehensive tests for checking and BNPL account services
-   - Implemented BNPL account lifecycle management with payment tracking
-   - Added feature flag-aware banking overview functionality
-   - Created tests with real objects (no mocks) following testing philosophy
-   - Added service factory with dependency injection for feature flags
-   - Implemented type-specific business rules and validation
-   - Created service-specific error handling and messages
+   - Moved account type validation from schemas to service layer to resolve conflict with Pydantic discriminated unions
+   - Enhanced feature flag integration in account creation and validation workflows
+   - Implemented `get_banking_overview` and related methods for comprehensive financial data across all account types
+   - Added support for type-specific account handling via the feature flag-aware type registry system
+   - Fixed polymorphic schema validation issues with discriminated unions in Pydantic v2
 
 2. **Implemented Repository Layer Tests for Account Types (April 3, 2025)** ✓
    - Created comprehensive integration tests for the modular repository pattern
@@ -30,7 +25,7 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Created specialized test fixtures for each account type
    - Established organized test package structure with proper __init__.py files
 
-2. **Fixed Polymorphic Identity Warnings and Test Layer Separation (April 3, 2025)** ✓
+3. **Fixed Polymorphic Identity Warnings and Test Layer Separation (April 3, 2025)** ✓
    - Resolved SQLAlchemy warnings about incompatible polymorphic identity
    - Updated account fixtures to use proper polymorphic subclasses (CheckingAccount, SavingsAccount, CreditAccount)
    - Moved service-dependent tests from model unit tests to integration test files
@@ -42,7 +37,7 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Created mermaid diagrams illustrating both patterns for documentation
    - Fixed discriminator value warnings in payment tests
 
-3. **Fixed SQLAlchemy 2.0 Compatibility in Account Type Tests (April 3, 2025)** ✓
+4. **Fixed SQLAlchemy 2.0 Compatibility in Account Type Tests (April 3, 2025)** ✓
    - Restructured test fixtures to use proper polymorphic account type hierarchy
    - Created mirrored fixture directory structure matching source code organization
    - Updated SQLAlchemy query API from legacy to 2.0 syntax for compatibility with AsyncSession
@@ -54,7 +49,7 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Implemented proper test fixture pattern for all account types
    - Created consistent pattern for account type testing
 
-4. **Implemented Testing Strategy for Account Types and Feature Flags (April 3, 2025)** ✓
+5. **Implemented Testing Strategy for Account Types and Feature Flags (April 3, 2025)** ✓
    - Created a structured, modular testing approach for all account types
    - Followed the source code structure in test organization
    - Split account type tests into separate files to avoid monolithic files
@@ -66,40 +61,6 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Added organized test package structure with `__init__.py` files
    - Created README documentation for the testing approach
    - Implemented tests for all validation patterns
-
-5. **Completed Schema Testing for Banking Account Types (ADR-019)** ✓
-   - Added tests for CheckingAccount schema validation
-   - Implemented SavingsAccount schema test cases
-   - Added CreditAccount statement-related validation tests
-   - Created tests for PaymentApp platform validation
-   - Implemented BNPL installment validation tests
-   - Added EWA pay period validation tests
-   - Tested all cross-field validation rules
-   - Verified error messages for clarity and accuracy
-   - Added tests for discriminated union serialization
-   - Tested schema inheritance for proper behavior
-
-6. **Implemented Feature Flag Model and Schema Tests (ADR-024)** ✓
-   - Created tests for all feature flag types (boolean, percentage, user segment, time-based)
-   - Added validation tests for complex flag configurations
-   - Implemented tests for flag name formatting validation
-   - Created tests for serialization/deserialization
-   - Added tests for error message clarity
-   - Implemented tests for FeatureFlagBase, FeatureFlagCreate, FeatureFlagUpdate
-   - Created schema validation tests for specialized flag types
-   - Tested flag metadata handling
-
-7. **Implemented Repository Module Pattern for Account Types (ADR-016, ADR-019)** ✓
-   - Created modular directory structure for account types in `src/repositories/account_types/`
-   - Implemented specialized banking repositories (checking, savings, credit)
-   - Developed dynamic repository factory with module loading capability
-   - Enhanced AccountTypeRegistry to support repository module paths
-   - Added feature flag integration in repository module loading
-   - Built polymorphic repository system that scales to hundreds of account types
-   - Created comprehensive documentation of the pattern
-   - Completed integration with feature flag system for conditional loading
-   - Updated implementation checklists for ADRs 016, 019, and 024
-   - Added pattern documentation to system_patterns.md for future reference
 
 ## Next Steps
 
@@ -129,21 +90,14 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Create tests for different feature flag states
    - Add tests for multi-currency and international field handling
 
-4. **Finalize Feature Flag System Implementation**
-   - Complete Repository and Service layer integration (Phase 3)
-   - Build Feature Flag Management Interface (Phase 4)
-   - Implement Monitoring and Logging (Phase 5)
-   - Create Documentation and Training resources (Phase 7)
-   - Plan Deployment and Rollout strategy (Phase 8)
+4. **Fix Remaining Pydantic v2 Discriminator Validator Issues**
+   - Address validator conflict with discriminator fields in account type response models
+   - Ensure proper handling of field validators in discriminated unions
+   - Move specific validation logic to service layer where needed
+   - Document validation approach for Pydantic v2 discriminated unions
+   - Create comprehensive test cases for polymorphic validation
 
-5. **Consolidate SQL Aggregation Patterns**
-   - Audit repository methods for proper COUNT() handling with JOINs
-   - Review SUM() operations for consistency with GROUP BY usage
-   - Standardize date range filtering for cross-database compatibility
-   - Create pattern library for common repository operations
-   - Document SQL aggregation patterns in repository guides
-
-6. **Create Schema Factory Development**
+5. **Complete Schema Factory Development**
    - Implement schema factories for all account types
    - Add support for customization via kwargs
    - Create factories for testing with appropriate defaults
@@ -220,7 +174,35 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
        return self.registry.get_all_types()
    ```
 
-4. **Real Objects Testing Philosophy**
+4. **Discriminator Field Validator Pattern**
+   - Move validators away from discriminator fields to prevent conflict with Pydantic v2:
+
+   ```python
+   # Incorrect - validator on discriminator field:
+   class AccountBase(BaseSchemaValidator):
+       account_type: str = Field(..., description="Type of account")
+       
+       @field_validator("account_type")
+       @classmethod
+       def validate_account_type(cls, v):
+           # Validation logic
+           return v
+           
+   # Correct - move validation to service layer:
+   class AccountService:
+       def create_account(self, account_data: AccountCreateUnion) -> AccountResponseUnion:
+           account_type = account_data.account_type
+           if not self.is_valid_account_type(account_type):
+               raise ValueError(f"Invalid account type: {account_type}")
+   ```
+
+   - For discriminated unions, validators cannot operate on the discriminator field
+   - Move complex validation logic to the service layer
+   - Use Literal types to enforce discriminator values in schema classes
+   - Ensure error messages are consistent between schema and service validation
+   - Document validation approach for discriminated unions
+
+5. **Real Objects Testing Philosophy**
    - Never use mocks in tests - unittest.mock and MagicMock are strictly prohibited:
 
    ```python
@@ -240,22 +222,6 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Create real test data through schema factories and repository methods
    - Use real schema validation in every test
    - Integration-first approach gives higher confidence in production behavior
-
-5. **Validator Method Calling Patterns**
-   - When testing validator methods directly, don't pass the class as first argument:
-
-   ```python
-   # Incorrect:
-   result = ModelClass.validator_method(ModelClass, value, info)
-   
-   # Correct:
-   result = ModelClass.validator_method(value, info)
-   ```
-
-   - Pydantic v2 validator methods are already bound to the class
-   - Using datetime_utils functions helps enforce ADR-011 compliance
-   - Validation info objects should match Pydantic's ValidationInfo interface
-   - Error assertion patterns should match Pydantic v2's error message format
 
 6. **Type-Specific Validator Methods**
    - Implement cross-field validation using model validators:

@@ -11,11 +11,12 @@ from src.api.response_formatter import with_formatted_response
 from src.database.database import get_db
 from src.models.accounts import Account
 from src.schemas.accounts import (
-    AccountResponse,
+    AccountResponse, 
     AccountStatementHistoryResponse,
     AccountUpdate,
     AvailableCreditResponse,
 )
+from src.schemas.account_types import AccountCreateUnion, AccountResponseUnion
 from src.schemas.balance_reconciliation import (
     BalanceReconciliation,
     BalanceReconciliationCreate,
@@ -32,7 +33,24 @@ router = APIRouter(tags=["accounts"])
 
 
 def get_account_service(db: AsyncSession = Depends(get_db)) -> AccountService:
-    return AccountService(db)
+    from src.repositories.accounts import AccountRepository
+    from src.repositories.statement_history import StatementHistoryRepository
+    from src.repositories.credit_limit_history import CreditLimitHistoryRepository
+    from src.repositories.transaction_history import TransactionHistoryRepository
+    
+    # Initialize all required repositories
+    account_repo = AccountRepository(db)
+    statement_repo = StatementHistoryRepository(db)
+    credit_limit_repo = CreditLimitHistoryRepository(db)
+    transaction_repo = TransactionHistoryRepository(db)
+    
+    # Return properly initialized service
+    return AccountService(
+        account_repo=account_repo,
+        statement_repo=statement_repo,
+        credit_limit_repo=credit_limit_repo,
+        transaction_repo=transaction_repo
+    )
 
 
 def get_reconciliation_service(
@@ -49,7 +67,7 @@ async def get_accounts(db: AsyncSession = Depends(get_db)):
     return accounts
 
 
-@router.get("/{account_id}", response_model=AccountResponse)
+@router.get("/{account_id}", response_model=AccountResponseUnion)
 async def get_account(account_id: int, db: AsyncSession = Depends(get_db)):
     """Get a specific account by ID"""
     result = await db.execute(select(Account).filter(Account.id == account_id))
@@ -59,59 +77,46 @@ async def get_account(account_id: int, db: AsyncSession = Depends(get_db)):
     return account
 
 
-@router.post("/", response_model=AccountResponse, status_code=201)
-async def create_account(account: AccountCreate, db: AsyncSession = Depends(get_db)):
-    """Create a new account"""
-    db_account = Account(**account.model_dump())
-    db_account.update_available_credit()
-    db.add(db_account)
+@router.post("/", response_model=AccountResponseUnion, status_code=201)
+async def create_account(
+    account: AccountCreateUnion, 
+    account_service: AccountService = Depends(get_account_service)
+):
+    """Create a new account of the appropriate type"""
     try:
-        await db.commit()
-        await db.refresh(db_account)
-        return db_account
-    except Exception as e:
-        await db.rollback()
+        return await account_service.create_account(account)
+    except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.patch("/{account_id}", response_model=AccountResponse)
+@router.patch("/{account_id}", response_model=AccountResponseUnion)
 async def update_account(
-    account_id: int, account: AccountUpdate, db: AsyncSession = Depends(get_db)
+    account_id: int, 
+    account: AccountUpdate, 
+    account_service: AccountService = Depends(get_account_service)
 ):
     """Update an existing account"""
-    result = await db.execute(select(Account).filter(Account.id == account_id))
-    db_account = result.scalar_one_or_none()
-    if not db_account:
-        raise HTTPException(status_code=404, detail="Account not found")
-
-    update_data = account.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(db_account, key, value)
-
-    db_account.update_available_credit()
     try:
-        await db.commit()
-        await db.refresh(db_account)
-        return db_account
-    except Exception as e:
-        await db.rollback()
+        updated_account = await account_service.update_account(account_id, account)
+        if not updated_account:
+            raise HTTPException(status_code=404, detail="Account not found")
+        return updated_account
+    except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.delete("/{account_id}")
-async def delete_account(account_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_account(
+    account_id: int, 
+    account_service: AccountService = Depends(get_account_service)
+):
     """Delete an account"""
-    result = await db.execute(select(Account).filter(Account.id == account_id))
-    db_account = result.scalar_one_or_none()
-    if not db_account:
-        raise HTTPException(status_code=404, detail="Account not found")
-
     try:
-        await db.delete(db_account)
-        await db.commit()
+        deleted = await account_service.delete_account(account_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Account not found")
         return {"message": "Account deleted successfully"}
-    except Exception as e:
-        await db.rollback()
+    except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 

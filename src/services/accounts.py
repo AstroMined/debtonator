@@ -17,13 +17,13 @@ from src.repositories.credit_limit_history import CreditLimitHistoryRepository
 from src.repositories.statement_history import StatementHistoryRepository
 from src.repositories.transaction_history import TransactionHistoryRepository
 from src.schemas.accounts import (
-    AccountCreate,
     AccountInDB,
     AccountStatementHistoryResponse,
     AccountUpdate,
     AvailableCreditResponse,
     StatementBalanceHistory,
 )
+from src.schemas.account_types import AccountCreateUnion, AccountResponseUnion
 from src.schemas.credit_limit_history import (
     AccountCreditLimitHistoryResponse,
     CreditLimitHistoryCreate,
@@ -237,43 +237,73 @@ class AccountService:
             # Round to 2 decimal places for storage
             account.available_credit = DecimalPrecision.round_for_display(available)
 
-    async def create_account(self, account_data: AccountCreate) -> AccountInDB:
+    async def create_account(self, account_data: AccountCreateUnion) -> AccountResponseUnion:
         """
-        Create a new account and initialize credit-related fields if applicable
+        Create a new account of the appropriate type
 
         Args:
-            account_data: Account creation data
+            account_data: Type-specific account creation data (discriminated union)
 
         Returns:
-            Created account
+            Created account with appropriate type
 
         Raises:
             ValueError: If validation fails
         """
-        # Validate credit-related fields for credit accounts
-        if account_data.type == "credit":
-            if account_data.total_limit is None:
+        # Get the account type from the discriminated union
+        account_type = account_data.account_type
+        
+        # Validate account type against registry
+        # This replaces the validation that was previously in the schema
+        if not account_type_registry.is_valid_account_type(account_type, self.feature_flag_service):
+            valid_types = account_type_registry.get_all_types(self.feature_flag_service)
+            valid_type_ids = [t["id"] for t in valid_types]
+            valid_types_str = ", ".join(valid_type_ids)
+            raise ValueError(f"Invalid account type '{account_type}'. Must be one of: {valid_types_str}")
+            
+        # Check if account type is enabled through feature flags
+        if self.feature_flag_service and not self._is_account_type_enabled(account_type):
+            raise ValueError(f"Account type '{account_type}' is currently disabled")
+            
+        # Apply type-specific validation if available
+        await self._apply_type_specific_validation(
+            account_type, "validate_create", account_data
+        )
+        
+        # Initialize account dict
+        account_dict = account_data.model_dump()
+        
+        # For credit accounts, validate and calculate credit-specific fields
+        if account_type == "credit":
+            # Add special validation for credit cards
+            if not hasattr(account_data, "total_limit") or account_data.total_limit is None:
                 raise ValueError("Credit accounts must have a total limit")
 
-            # Validate initial credit limit
+            # Validate initial credit limit using a mock model
+            mock_account = AccountModel(
+                type="credit", 
+                available_balance=Decimal(0),
+                total_limit=account_data.total_limit
+            )
             is_valid, error_message = await self.validate_credit_limit_history_update(
-                AccountModel(type="credit", available_balance=Decimal(0)),
+                mock_account,
                 account_data.total_limit,
             )
             if not is_valid:
                 raise ValueError(error_message)
-
-        # Initialize available_credit for credit accounts
-        account_dict = account_data.model_dump()
-        account_obj = AccountModel(**account_dict)
-
-        # Calculate available_credit before database insertion
-        if account_obj.type == "credit" and account_obj.total_limit is not None:
+                
+            # Calculate available credit before database insertion
+            # Use a properly constructed model instance
+            account_obj = AccountModel(**account_dict)
             self._update_available_credit(account_obj)
             account_dict["available_credit"] = account_obj.available_credit
 
         # Use repository to create account
         db_account = await self.account_repo.create(account_dict)
+        
+        # Convert to appropriate response type based on account type
+        # This will work with a discriminated union because all the response types
+        # are derived from AccountInDB which is derived from AccountBase
         return AccountInDB.model_validate(db_account)
 
     async def get_account(self, account_id: int) -> Optional[AccountInDB]:
@@ -884,10 +914,14 @@ class AccountService:
                 continue
                 
             # Apply type-specific overview update function if available
-            await self._apply_type_specific_function(
+            type_specific_update = await self._apply_type_specific_function(
                 account.type, "update_overview", account, overview
             )
             
+            # If there was a type-specific handler, continue to next account
+            if type_specific_update is not None:
+                continue
+                
             # Apply basic categorization if no type-specific function was found
             if account.type == "checking":
                 overview["checking_balance"] += account.available_balance
@@ -895,10 +929,20 @@ class AccountService:
             elif account.type == "savings":
                 overview["savings_balance"] += account.available_balance
                 overview["total_cash"] += account.available_balance
+            elif account.type == "payment_app":
+                overview["payment_app_balance"] += account.available_balance
+                overview["total_cash"] += account.available_balance
             elif account.type == "credit":
-                overview["credit_used"] += account.current_balance
-                overview["credit_limit"] += account.total_limit or Decimal("0.00")
-                overview["total_debt"] += account.current_balance
+                overview["credit_used"] += abs(account.current_balance)
+                if account.total_limit:
+                    overview["credit_limit"] += account.total_limit
+                    overview["total_debt"] += abs(account.current_balance)
+            elif account.type == "bnpl":
+                overview["bnpl_balance"] += abs(account.current_balance)
+                overview["total_debt"] += abs(account.current_balance)
+            elif account.type == "ewa":
+                overview["ewa_balance"] += abs(account.current_balance)
+                overview["total_debt"] += abs(account.current_balance)
         
         # Calculate derived metrics
         if overview["credit_limit"] > 0:
@@ -939,3 +983,19 @@ class AccountService:
         
         # Sort by due date
         return sorted(upcoming_payments, key=lambda x: x["due_date"])
+        
+    async def get_account_by_user_and_type(
+        self, user_id: int, account_type: str
+    ) -> List[AccountInDB]:
+        """
+        Get all accounts of a specific type for a user.
+
+        Args:
+            user_id: User ID to get accounts for
+            account_type: Type of accounts to get
+
+        Returns:
+            List of accounts of the specified type
+        """
+        accounts = await self.account_repo.get_by_user_and_type(user_id, account_type)
+        return [AccountInDB.model_validate(account) for account in accounts]
