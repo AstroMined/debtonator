@@ -184,26 +184,26 @@ This checklist focuses specifically on implementing the core polymorphic archite
 
 ## Service Layer
 
-- [ ] Enhance `src/services/accounts.py`:
-  - [ ] Update `AccountService` to work with the `AccountTypeRegistry`
-  - [ ] Implement type-specific validation in service layer
-  - [ ] Add business rule application for different account types
-  - [ ] Create user-friendly error messages for validation failures
-  - [ ] Handle proper type-specific create and update operations
-  - [ ] Implement methods to get available account types
-  - [ ] Add feature flag service dependency
-  - [ ] Add conditional logic based on feature flags
-  - [ ] Implement currency-aware business logic
-  - [ ] Add international banking field validation
+- [x] Enhance `src/services/accounts.py`:
+  - [x] Update `AccountService` to work with the `AccountTypeRegistry`
+  - [x] Implement type-specific validation in service layer
+  - [x] Add business rule application for different account types
+  - [x] Create user-friendly error messages for validation failures
+  - [x] Handle proper type-specific create and update operations
+  - [x] Implement methods to get available account types
+  - [x] Add feature flag service dependency
+  - [x] Add conditional logic based on feature flags
+  - [x] Implement currency-aware business logic
+  - [x] Add international banking field validation
 
-- [ ] Update tests in `tests/unit/services/test_account_service.py`:
-  - [ ] Test with real repositories (no mocks)
-  - [ ] Verify business rule validation
-  - [ ] Test type-specific behavior
-  - [ ] Test error handling for invalid cases
-  - [ ] Test feature flag integration
-  - [ ] Test multi-currency operations
-  - [ ] Test international banking validation
+- [x] Update tests in `tests/unit/services/test_account_service.py`:
+  - [x] Test with real repositories (no mocks)
+  - [x] Verify business rule validation
+  - [x] Test type-specific behavior
+  - [x] Test error handling for invalid cases
+  - [x] Test feature flag integration
+  - [x] Test multi-currency operations
+  - [x] Test international banking validation
 
 ## Integration with Bill Splits
 

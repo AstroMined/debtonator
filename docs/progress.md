@@ -405,9 +405,13 @@
    - UTC datetime compliance in tests (100%) ✓
    - Database-agnostic SQL patterns documented (100%) ✓
 
-4. __Service Layer__: IN PROGRESS (12%)
-   - Service refactoring to use repositories (12%)
+4. __Service Layer__: IN PROGRESS (60%)
+   - Service refactoring to use repositories (80%)
    - AccountService refactored and tested (100%) ✓
+   - Service layer integration with feature flags (100%) ✓ 
+   - API dependency integration (100%) ✓
+   - Banking account type services (100%) ✓
+   - BNPL lifecycle management (100%) ✓
 
 5. __Documentation__: COMPLETED (100%) ✓
    - All ADRs up-to-date

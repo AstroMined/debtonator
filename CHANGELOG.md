@@ -7,11 +7,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.71] - 2025-04-04
+
+### Added
+
+- Implemented service layer for account types and feature flags
+- Created specialized service modules for account type validation and lifecycle management
+- Added API dependencies for service layer with feature flag integration
+- Implemented comprehensive tests for checking and BNPL account services
+- Added BNPL account lifecycle management with payment tracking
+- Created feature flag-aware banking overview functionality
+
+### Changed
+
+- Updated implementation checklists for ADRs 016, 019, and 024
+- Enhanced service layer integration with feature flags
+- Improved account service type safety with proper validation
+
 ## [0.5.70] - 2025-04-03
 
 ### Added
 
-- Comprehensive integration test suite for repository layer with account types
+- Implemented service layer for account types and feature flags
 - Test coverage for repository factory with dynamic module loading
 - Feature flag integration tests for banking account types
 - Bill splits integration tests with polymorphic account types

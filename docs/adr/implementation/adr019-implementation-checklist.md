@@ -303,13 +303,13 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 
 ### 5.1 Account Service Enhancements
 
-- [ ] Extend AccountService with banking-specific methods
-- [ ] Implement get_upcoming_payments method
-- [ ] Implement get_banking_overview method
-- [ ] Implement update_bnpl_status method
-- [ ] Add comprehensive error handling with specific error classes
-- [ ] Integrate with feature flag system
-- [ ] Create documentation alongside service implementation
+- [x] Extend AccountService with banking-specific methods
+- [x] Implement get_upcoming_payments method
+- [x] Implement get_banking_overview method
+- [x] Implement update_bnpl_status method
+- [x] Add comprehensive error handling with specific error classes
+- [x] Integrate with feature flag system
+- [x] Create documentation alongside service implementation
 
 **Verification:**
 - Service injects repository dependencies
@@ -320,20 +320,20 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - No direct ORM operations in service methods
 
 **Testing:**
-- [ ] Write unit tests for all service methods
-- [ ] Test business rule validation
-- [ ] Test with feature flags enabled and disabled
-- [ ] Test error handling for various scenarios
-- [ ] Test aggregation and calculation logic
-- [ ] Test lifecycle management of temporary accounts (BNPL)
+- [x] Write unit tests for all service methods
+- [x] Test business rule validation
+- [x] Test with feature flags enabled and disabled
+- [x] Test error handling for various scenarios
+- [x] Test aggregation and calculation logic
+- [x] Test lifecycle management of temporary accounts (BNPL)
 
 ### 5.2 Business Logic Implementation
 
-- [ ] Implement balance calculation logic for different account types
-- [ ] Implement due date tracking across account types
-- [ ] Implement account lifecycle management (especially for BNPL)
-- [ ] Implement validation rules for account operations
-- [ ] Create documentation for business logic
+- [x] Implement balance calculation logic for different account types
+- [x] Implement due date tracking across account types
+- [x] Implement account lifecycle management (especially for BNPL)
+- [x] Implement validation rules for account operations
+- [x] Create documentation for business logic
 
 **Verification:**
 - Balance semantics are handled correctly for each account type
@@ -343,20 +343,20 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - Methods return appropriate error messages
 
 **Testing:**
-- [ ] Test balance calculations for assets vs. liabilities
-- [ ] Test due date tracking with datetime manipulation
-- [ ] Test BNPL lifecycle from creation through completion
-- [ ] Test validation rules with valid and invalid data
-- [ ] Write integration tests for end-to-end business flows
-- [ ] Test edge cases like account status changes
+- [x] Test balance calculations for assets vs. liabilities
+- [x] Test due date tracking with datetime manipulation
+- [x] Test BNPL lifecycle from creation through completion
+- [x] Test validation rules with valid and invalid data
+- [x] Write integration tests for end-to-end business flows
+- [x] Test edge cases like account status changes
 
 ### 5.3 Error Handling Implementation
 
-- [ ] Implement hierarchical error structure as defined in ADR-019
-- [ ] Create specific error classes for validation failures
-- [ ] Implement type-specific error classes
-- [ ] Ensure error messages are clear and actionable
-- [ ] Document error handling strategy and usage
+- [x] Implement hierarchical error structure as defined in ADR-019
+- [x] Create specific error classes for validation failures
+- [x] Implement type-specific error classes
+- [x] Ensure error messages are clear and actionable
+- [x] Document error handling strategy and usage
 
 **Verification:**
 - Error hierarchy matches ADR-019 specification
@@ -366,12 +366,12 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - Errors are properly propagated through the service layer
 
 **Testing:**
-- [ ] Write unit tests for each error class
-- [ ] Test error propagation through service layers
-- [ ] Test error message clarity and actionability
-- [ ] Test error handling in edge cases
-- [ ] Verify error responses match expected format
-- [ ] Test internationalization of error messages
+- [x] Write unit tests for each error class
+- [x] Test error propagation through service layers
+- [x] Test error message clarity and actionability
+- [x] Test error handling in edge cases
+- [x] Verify error responses match expected format
+- [x] Test internationalization of error messages
 
 ## Phase 6: API Layer Implementation
 
@@ -714,15 +714,16 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
 
 ### Service Layer Testing
 
-- [ ] Banking Service Tests:
-  - [ ] `tests/integration/services/test_banking_overview.py`:
-    - [ ] Test get_banking_overview aggregation
-    - [ ] Test with multiple account types
-    - [ ] Verify calculation accuracy
-  - [ ] `tests/integration/services/test_upcoming_payments.py`:
-    - [ ] Test get_upcoming_payments across account types
-    - [ ] Test sorting and filtering
-    - [ ] Verify date handling
-  - [ ] `tests/integration/services/test_bnpl_lifecycle.py`:
-    - [ ] Test update_bnpl_status lifecycle management
-    -
+- [x] Banking Service Tests:
+  - [x] `tests/integration/services/test_banking_overview.py`:
+    - [x] Test get_banking_overview aggregation
+    - [x] Test with multiple account types
+    - [x] Verify calculation accuracy
+  - [x] `tests/integration/services/test_upcoming_payments.py`:
+    - [x] Test get_upcoming_payments across account types
+    - [x] Test sorting and filtering
+    - [x] Verify date handling
+  - [x] `tests/integration/services/test_bnpl_lifecycle.py`:
+    - [x] Test update_bnpl_status lifecycle management
+    - [x] Test payment status transitions
+    - [x] Test account closure upon final payment

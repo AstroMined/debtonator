@@ -2,11 +2,23 @@
 
 ## Current Focus
 
-Account Type Expansion, Repository Module Pattern, Datetime Standardization, Feature Flag System Implementation, Documentation Consolidation, Testing Strategy Implementation
+Account Type Expansion, Service Layer Implementation, Feature Flag System, Banking Account Types Integration, Testing Strategy Implementation, ADR Implementation Checklists
 
 ### Recent Changes
 
-1. **Implemented Repository Layer Tests for Account Types (April 3, 2025)** ✓
+1. **Implemented Service Layer for Account Types and Feature Flags (April 4, 2025)** ✓
+   - Created specialized service modules for account type validation and lifecycle management
+   - Implemented feature flag integration in account service layer
+   - Added API dependencies for service layer with feature flag integration
+   - Created comprehensive tests for checking and BNPL account services
+   - Implemented BNPL account lifecycle management with payment tracking
+   - Added feature flag-aware banking overview functionality
+   - Created tests with real objects (no mocks) following testing philosophy
+   - Added service factory with dependency injection for feature flags
+   - Implemented type-specific business rules and validation
+   - Created service-specific error handling and messages
+
+2. **Implemented Repository Layer Tests for Account Types (April 3, 2025)** ✓
    - Created comprehensive integration tests for the modular repository pattern
    - Implemented tests for repository factory with dynamic module loading
    - Added tests for checking, savings, and credit account repositories
@@ -91,20 +103,22 @@ Account Type Expansion, Repository Module Pattern, Datetime Standardization, Fea
 
 ## Next Steps
 
-1. **Complete Modern Financial Account Types Tests**
-   - Implement repository tests for payment_app, bnpl, and ewa account types
-   - Add service-specific tests for lifecycle management (especially BNPL)
-   - Test linked account operations in payment_app repository
-   - Implement tests for specialized operations for modern account types
-   - Add tests for date-based operations on BNPL and EWA types
+1. **Complete API Layer Integration**
+   - Implement GET /banking/overview endpoint
+   - Create GET /banking/upcoming-payments endpoint
+   - Add POST /accounts/banking endpoint 
+   - Implement POST /accounts/bnpl/{account_id}/update-status endpoint
+   - Create endpoints to retrieve available account types
+   - Add feature flag integration to API endpoints
+   - Create OpenAPI documentation
 
-2. **Implement Service Layer Tests**
-   - Create integration tests for AccountService with all account types
-   - Test business rule validation for different account types
-   - Add tests for feature flag integration at service layer
-   - Implement tests for account lifecycle management (BNPL)
-   - Create tests for error handling and propagation
-   - Add tests for context-based flag evaluation
+2. **Implement Error Handling System**
+   - Create account-specific error hierarchy in errors/ module
+   - Implement AccountError base class and specialized subclasses
+   - Add feature flag-related error classes
+   - Create consistent error formatting across layers
+   - Implement error translation between layers
+   - Add user-friendly error messages to API responses
 
 3. **Complete API Layer Tests**
    - Create integration tests for API endpoints with all account types

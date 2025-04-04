@@ -197,23 +197,23 @@ This checklist outlines the specific tasks required to implement the Feature Fla
 
 ### 3.2 Service Layer Integration
 
-- [ ] Update `src/services/accounts.py`:
-  - [ ] Add feature flag service to constructor
-  - [ ] Add flag checks for business logic
-  - [ ] Implement conditional logic based on flags
-  - [ ] Clean input data based on enabled flags
-  - [ ] Update validation logic for flag-specific fields
-  - [ ] Add feature flag context to operations
+- [x] Update `src/services/accounts.py`:
+  - [x] Add feature flag service to constructor
+  - [x] Add flag checks for business logic
+  - [x] Implement conditional logic based on flags
+  - [x] Clean input data based on enabled flags
+  - [x] Update validation logic for flag-specific fields
+  - [x] Add feature flag context to operations
 
-- [ ] Update `src/services/factory.py`:
-  - [ ] Update factory to include feature flag service
-  - [ ] Ensure proper dependency injection
+- [x] Update `src/services/factory.py`:
+  - [x] Update factory to include feature flag service
+  - [x] Ensure proper dependency injection
 
-- [ ] Create `tests/integration/services/test_feature_flags_service_integration.py`:
-  - [ ] Test service with flags enabled
-  - [ ] Test service with flags disabled
-  - [ ] Test flag-specific behavior
-  - [ ] Test with feature transitions
+- [x] Create `tests/integration/services/test_feature_flags_service_integration.py`:
+  - [x] Test service with flags enabled
+  - [x] Test service with flags disabled
+  - [x] Test flag-specific behavior
+  - [x] Test with feature transitions
 
 ## Phase 4: Feature Flag Management Interface
 

@@ -42,6 +42,8 @@ def register_account_types() -> None:
         name="Checking Account",
         description="Standard transaction account for day-to-day banking",
         category="Banking",
+        repository_module="src.repositories.account_types.banking.checking",
+        service_module="src.services.account_types.banking.checking",
         feature_flag="BANKING_ACCOUNT_TYPES_ENABLED",
     )
 
@@ -52,6 +54,8 @@ def register_account_types() -> None:
         name="Savings Account",
         description="Interest-bearing account for saving money",
         category="Banking",
+        repository_module="src.repositories.account_types.banking.savings",
+        service_module="src.services.account_types.banking.savings",
         feature_flag="BANKING_ACCOUNT_TYPES_ENABLED",
     )
 
@@ -62,6 +66,8 @@ def register_account_types() -> None:
         name="Credit Card",
         description="Revolving credit account with a credit limit",
         category="Banking",
+        repository_module="src.repositories.account_types.banking.credit",
+        service_module="src.services.account_types.banking.credit",
         feature_flag="BANKING_ACCOUNT_TYPES_ENABLED",
     )
 
@@ -72,6 +78,8 @@ def register_account_types() -> None:
         name="Payment App",
         description="Digital wallet like PayPal, Venmo, or Cash App",
         category="Banking",
+        repository_module="src.repositories.account_types.banking.payment_app",
+        service_module="src.services.account_types.banking.payment_app",
         feature_flag="BANKING_ACCOUNT_TYPES_ENABLED",
     )
 
@@ -82,6 +90,8 @@ def register_account_types() -> None:
         name="Buy Now, Pay Later",
         description="Short-term installment plan for purchases",
         category="Banking",
+        repository_module="src.repositories.account_types.banking.bnpl",
+        service_module="src.services.account_types.banking.bnpl",
         feature_flag="BANKING_ACCOUNT_TYPES_ENABLED",
     )
 
@@ -92,6 +102,8 @@ def register_account_types() -> None:
         name="Earned Wage Access",
         description="Early access to earned wages before payday",
         category="Banking",
+        repository_module="src.repositories.account_types.banking.ewa",
+        service_module="src.services.account_types.banking.ewa",
         feature_flag="BANKING_ACCOUNT_TYPES_ENABLED",
     )
 
