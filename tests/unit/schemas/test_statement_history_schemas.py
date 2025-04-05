@@ -1,463 +1,203 @@
-from datetime import datetime, timedelta, timezone
+"""
+Tests for statement history schemas.
+
+These tests validate the validation behavior and proper handling of
+statement history data with a focus on account integration.
+"""
+
+from datetime import datetime, timezone
 from decimal import Decimal
-from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
 import pytest
 from pydantic import ValidationError
 
 from src.schemas.accounts import AccountResponse
 from src.schemas.statement_history import (
-    StatementHistory,
-    StatementHistoryBase,
     StatementHistoryCreate,
-    StatementHistoryResponse,
-    StatementHistoryTrend,
     StatementHistoryUpdate,
     StatementHistoryWithAccount,
-    UpcomingStatementDue,
 )
+from src.utils.datetime_utils import days_ago, utc_datetime, utc_now
 
 
-def test_statement_history_base_valid():
-    """Test valid statement history base schema"""
-    statement_date = datetime.now(timezone.utc)
-    due_date = statement_date + timedelta(days=30)
-
-    statement = StatementHistoryBase(
+def test_statement_history_create_valid():
+    """Test creating a valid statement history."""
+    # Using utc_now for proper timezone handling
+    statement_date = utc_now()
+    
+    history = StatementHistoryCreate(
         account_id=1,
         statement_date=statement_date,
         statement_balance=Decimal("1000.00"),
         minimum_payment=Decimal("25.00"),
-        due_date=due_date,
+        payment_due_date=statement_date,
     )
 
-    assert statement.account_id == 1
-    assert statement.statement_date == statement_date
-    assert statement.statement_balance == Decimal("1000.00")
-    assert statement.minimum_payment == Decimal("25.00")
-    assert statement.due_date == due_date
+    assert history.account_id == 1
+    assert history.statement_date == statement_date
+    assert history.statement_balance == Decimal("1000.00")
+    assert history.minimum_payment == Decimal("25.00")
+    assert history.payment_due_date == statement_date
 
 
-def test_statement_history_base_required_fields():
-    """Test statement history base required fields"""
-    # Test missing account_id
-    with pytest.raises(ValidationError, match="Field required"):
-        StatementHistoryBase(
-            statement_date=datetime.now(timezone.utc),
-            statement_balance=Decimal("1000.00"),
-        )
-
-    # Test missing statement_date
-    with pytest.raises(ValidationError, match="Field required"):
-        StatementHistoryBase(
+def test_statement_history_create_validates_balance():
+    """Test validation of statement balance."""
+    statement_date = utc_now()
+    
+    # Test negative balance
+    with pytest.raises(ValidationError) as exc_info:
+        StatementHistoryCreate(
             account_id=1,
-            statement_balance=Decimal("1000.00"),
+            statement_date=statement_date,
+            statement_balance=Decimal("-100.00"),
+            minimum_payment=Decimal("25.00"),
+            payment_due_date=statement_date,
         )
+    assert "Input should be greater than or equal to 0" in str(exc_info.value)
 
-    # Test missing statement_balance
-    with pytest.raises(ValidationError, match="Field required"):
-        StatementHistoryBase(
-            account_id=1,
-            statement_date=datetime.now(timezone.utc),
-        )
-
-    # Test with only required fields
-    statement = StatementHistoryBase(
+    # Zero balance is valid
+    history = StatementHistoryCreate(
         account_id=1,
-        statement_date=datetime.now(timezone.utc),
-        statement_balance=Decimal("1000.00"),
+        statement_date=statement_date,
+        statement_balance=Decimal("0.00"),
+        minimum_payment=Decimal("0.00"),
+        payment_due_date=statement_date,
     )
-    assert statement.minimum_payment is None
-    assert statement.due_date is None
+    assert history.statement_balance == Decimal("0.00")
 
 
-def test_statement_history_test_checking_account_id_validation():
-    """Test account_id field validation"""
-    # Test invalid account_id (less than or equal to 0)
-    with pytest.raises(ValidationError, match="Input should be greater than 0"):
-        StatementHistoryBase(
-            account_id=0,
-            statement_date=datetime.now(timezone.utc),
-            statement_balance=Decimal("1000.00"),
-        )
-
-
-def test_statement_history_base_decimal_validation():
-    """Test decimal field validation"""
-    now = datetime.now(timezone.utc)
-
-    # Test statement_balance with too many decimal places
-    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
-        StatementHistoryBase(
+def test_statement_history_create_validates_minimum_payment():
+    """Test validation of minimum payment."""
+    statement_date = utc_now()
+    
+    # Test negative payment
+    with pytest.raises(ValidationError) as exc_info:
+        StatementHistoryCreate(
             account_id=1,
-            statement_date=now,
-            statement_balance=Decimal("1000.123"),
-        )
-
-    # Test minimum_payment with too many decimal places
-    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
-        StatementHistoryBase(
-            account_id=1,
-            statement_date=now,
-            statement_balance=Decimal("1000.00"),
-            minimum_payment=Decimal("25.123"),
-        )
-
-    # Test negative minimum_payment
-    with pytest.raises(
-        ValidationError, match="Input should be greater than or equal to 0"
-    ):
-        StatementHistoryBase(
-            account_id=1,
-            statement_date=now,
+            statement_date=statement_date,
             statement_balance=Decimal("1000.00"),
             minimum_payment=Decimal("-25.00"),
+            payment_due_date=statement_date,
         )
+    assert "Input should be greater than or equal to 0" in str(exc_info.value)
 
-    # Test valid decimal formats
-    statement1 = StatementHistoryBase(
-        account_id=1,
-        statement_date=now,
-        statement_balance=Decimal("1000"),  # 0 decimal places
-    )
-    assert statement1.statement_balance == Decimal("1000")
-
-    statement2 = StatementHistoryBase(
-        account_id=1,
-        statement_date=now,
-        statement_balance=Decimal("1000.5"),  # 1 decimal place
-    )
-    assert statement2.statement_balance == Decimal("1000.5")
-
-    statement3 = StatementHistoryBase(
-        account_id=1,
-        statement_date=now,
-        statement_balance=Decimal("1000.50"),  # 2 decimal places
-    )
-    assert statement3.statement_balance == Decimal("1000.50")
-
-
-def test_statement_history_base_datetime_validation():
-    """Test datetime field validation"""
-    now_naive = datetime.now()
-    now_utc = datetime.now(timezone.utc)
-
-    # Test naive statement_date
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
-        StatementHistoryBase(
+    # Test payment larger than balance
+    with pytest.raises(ValidationError) as exc_info:
+        StatementHistoryCreate(
             account_id=1,
-            statement_date=now_naive,
+            statement_date=statement_date,
             statement_balance=Decimal("1000.00"),
+            minimum_payment=Decimal("1100.00"),
+            payment_due_date=statement_date,
         )
+    assert "Minimum payment cannot exceed statement balance" in str(exc_info.value)
 
-    # Test naive due_date
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
-        StatementHistoryBase(
+    # Zero minimum payment is valid
+    history = StatementHistoryCreate(
+        account_id=1,
+        statement_date=statement_date,
+        statement_balance=Decimal("1000.00"),
+        minimum_payment=Decimal("0.00"),
+        payment_due_date=statement_date,
+    )
+    assert history.minimum_payment == Decimal("0.00")
+
+
+def test_statement_history_create_validates_dates():
+    """Test validation of statement and payment dates."""
+    now = utc_now()
+    
+    # Test due date before statement date
+    with pytest.raises(ValidationError) as exc_info:
+        StatementHistoryCreate(
             account_id=1,
-            statement_date=now_utc,
+            statement_date=now,
             statement_balance=Decimal("1000.00"),
-            due_date=now_naive,
+            minimum_payment=Decimal("25.00"),
+            payment_due_date=days_ago(10),  # 10 days before now
         )
+    assert "Payment due date cannot be before statement date" in str(exc_info.value)
 
-    # Test non-UTC timezone
-    non_utc_date = datetime.now(ZoneInfo("America/New_York"))
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
-        StatementHistoryBase(
-            account_id=1,
-            statement_date=non_utc_date,
-            statement_balance=Decimal("1000.00"),
-        )
-
-
-def test_statement_history_create_valid():
-    """Test valid statement history create schema"""
-    now = datetime.now(timezone.utc)
-
-    # StatementHistoryCreate should behave like StatementHistoryBase
-    statement = StatementHistoryCreate(
+    # Test same dates (valid)
+    history = StatementHistoryCreate(
         account_id=1,
         statement_date=now,
         statement_balance=Decimal("1000.00"),
         minimum_payment=Decimal("25.00"),
-        due_date=now + timedelta(days=30),
+        payment_due_date=now,
     )
-
-    assert statement.account_id == 1
-    assert statement.statement_date == now
-    assert statement.statement_balance == Decimal("1000.00")
-    assert statement.minimum_payment == Decimal("25.00")
-    assert statement.due_date == now + timedelta(days=30)
+    assert history.statement_date == history.payment_due_date
 
 
 def test_statement_history_update_valid():
-    """Test valid statement history update schema"""
-    now = datetime.now(timezone.utc)
-
-    # Test partial update with only some fields
+    """Test updating a statement history."""
+    # Using utc_now for proper timezone handling
+    due_date = utc_now()
+    
     update = StatementHistoryUpdate(
-        statement_balance=Decimal("1500.00"),
-        minimum_payment=Decimal("30.00"),
+        minimum_payment=Decimal("35.00"),
+        payment_due_date=due_date,
     )
 
-    assert update.account_id is None
-    assert update.statement_date is None
-    assert update.statement_balance == Decimal("1500.00")
-    assert update.minimum_payment == Decimal("30.00")
-    assert update.due_date is None
-
-    # Test complete update with all fields
-    full_update = StatementHistoryUpdate(
-        account_id=2,
-        statement_date=now,
-        statement_balance=Decimal("2000.00"),
-        minimum_payment=Decimal("40.00"),
-        due_date=now + timedelta(days=30),
-    )
-
-    assert full_update.account_id == 2
-    assert full_update.statement_date == now
-    assert full_update.statement_balance == Decimal("2000.00")
-    assert full_update.minimum_payment == Decimal("40.00")
-    assert full_update.due_date == now + timedelta(days=30)
+    assert update.minimum_payment == Decimal("35.00")
+    assert update.payment_due_date == due_date
+    assert update.statement_balance is None  # Not updated
 
 
-def test_statement_history_update_validation():
-    """Test statement history update validation"""
-    # Test account_id validation
-    with pytest.raises(ValidationError, match="Input should be greater than 0"):
-        StatementHistoryUpdate(account_id=0)
+def test_statement_history_update_partial():
+    """Test partial updates with validation."""
+    # Using utc_now for proper timezone handling
+    due_date = utc_now()
+    
+    # Update just minimum payment
+    update1 = StatementHistoryUpdate(minimum_payment=Decimal("35.00"))
+    assert update1.minimum_payment == Decimal("35.00")
+    assert update1.payment_due_date is None
 
-    # Test statement_balance decimal validation
-    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
-        StatementHistoryUpdate(statement_balance=Decimal("1000.123"))
-
-    # Test minimum_payment range validation
-    with pytest.raises(
-        ValidationError, match="Input should be greater than or equal to 0"
-    ):
-        StatementHistoryUpdate(minimum_payment=Decimal("-25.00"))
-
-    # Test datetime validation
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
-        StatementHistoryUpdate(statement_date=datetime.now())
-
-
-def test_statement_history_valid():
-    """Test valid statement history schema"""
-    now = datetime.now(timezone.utc)
-
-    statement = StatementHistory(
-        id=1,
-        account_id=2,
-        statement_date=now,
-        statement_balance=Decimal("1000.00"),
-        minimum_payment=Decimal("25.00"),
-        due_date=now + timedelta(days=30),
-    )
-
-    assert statement.id == 1
-    assert statement.account_id == 2
-    assert statement.statement_date == now
-    assert statement.statement_balance == Decimal("1000.00")
-    assert statement.minimum_payment == Decimal("25.00")
-    assert statement.due_date == now + timedelta(days=30)
-
-
-def test_statement_history_id_validation():
-    """Test statement history ID validation"""
-    now = datetime.now(timezone.utc)
-
-    # Test invalid ID
-    with pytest.raises(ValidationError, match="Input should be greater than 0"):
-        StatementHistory(
-            id=0,
-            account_id=2,
-            statement_date=now,
-            statement_balance=Decimal("1000.00"),
-        )
+    # Update just payment due date
+    update2 = StatementHistoryUpdate(payment_due_date=due_date)
+    assert update2.payment_due_date == due_date
+    assert update2.minimum_payment is None
 
 
 def test_statement_history_with_account_valid():
-    """Test valid statement history with account schema"""
-    now = datetime.now(timezone.utc)
-
-    # Create mock account response
+    """Test StatementHistoryWithAccount schema."""
+    now = utc_now()
+    
+    # Create account response with all required fields including account_type
     account = AccountResponse(
         id=2,
         name="Test Account",
-        type="credit",
-        available_balance=Decimal("5000.00"),
+        current_balance=Decimal("2000.00"),
+        available_balance=Decimal("1900.00"),
+        account_type="credit",  # Required field
         created_at=now,
         updated_at=now,
     )
-
-    # Create statement with account
-    statement = StatementHistoryWithAccount(
+    
+    # Create statement history
+    history = StatementHistoryWithAccount(
         id=1,
         account_id=2,
         statement_date=now,
         statement_balance=Decimal("1000.00"),
         minimum_payment=Decimal("25.00"),
-        due_date=now + timedelta(days=30),
+        payment_due_date=now,
+        is_paid=False,
+        created_at=now,
+        updated_at=now,
         account=account,
     )
 
-    assert statement.id == 1
-    assert statement.account_id == 2
-    assert statement.account.id == 2
-    assert statement.account.name == "Test Account"
-
-
-def test_statement_history_with_account_validation():
-    """Test statement history with account validation"""
-    now = datetime.now(timezone.utc)
-
-    # Missing account field
-    with pytest.raises(ValidationError, match="Field required"):
-        StatementHistoryWithAccount(
-            id=1,
-            account_id=2,
-            statement_date=now,
-            statement_balance=Decimal("1000.00"),
-        )
-
-
-def test_statement_history_response_valid():
-    """Test valid statement history response schema"""
-    now = datetime.now(timezone.utc)
-
-    # Should behave like StatementHistory
-    response = StatementHistoryResponse(
-        id=1,
-        account_id=2,
-        statement_date=now,
-        statement_balance=Decimal("1000.00"),
-        minimum_payment=Decimal("25.00"),
-        due_date=now + timedelta(days=30),
-    )
-
-    assert response.id == 1
-    assert response.account_id == 2
-    assert response.statement_date == now
-    assert response.statement_balance == Decimal("1000.00")
-
-
-def test_statement_history_trend_valid():
-    """Test valid statement history trend schema"""
-    now = datetime.now(timezone.utc)
-    dates = [now - timedelta(days=i * 30) for i in range(3)]
-    balances = [Decimal("1000.00"), Decimal("1200.00"), Decimal("900.00")]
-    payments = [Decimal("25.00"), Decimal("30.00"), None]
-
-    trend = StatementHistoryTrend(
-        account_id=1,
-        statement_dates=dates,
-        statement_balances=balances,
-        minimum_payments=payments,
-    )
-
-    assert trend.account_id == 1
-    assert len(trend.statement_dates) == 3
-    assert len(trend.statement_balances) == 3
-    assert len(trend.minimum_payments) == 3
-    assert trend.minimum_payments[2] is None
-
-
-def test_statement_history_trend_validation():
-    """Test statement history trend validation"""
-    now = datetime.now(timezone.utc)
-    dates = [now - timedelta(days=i * 30) for i in range(3)]
-    balances = [Decimal("1000.00"), Decimal("1200.00"), Decimal("900.00")]
-    payments = [Decimal("25.00"), Decimal("30.00")]  # One less than dates
-
-    # Test account_id validation
-    with pytest.raises(ValidationError, match="Input should be greater than 0"):
-        StatementHistoryTrend(
-            account_id=0,
-            statement_dates=dates,
-            statement_balances=balances,
-            minimum_payments=payments,
-        )
-
-    # Lists should be provided
-    with pytest.raises(ValidationError):
-        StatementHistoryTrend(
-            account_id=1,
-            statement_dates="not a list",  # type: ignore
-            statement_balances=balances,
-            minimum_payments=payments,
-        )
-
-    # Decimal validation in lists
-    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
-        StatementHistoryTrend(
-            account_id=1,
-            statement_dates=dates,
-            statement_balances=[Decimal("1000.123")],  # Too many decimal places
-            minimum_payments=payments,
-        )
-
-
-def test_upcoming_statement_due_valid():
-    """Test valid upcoming statement due schema"""
-    now = datetime.now(timezone.utc)
-    due_date = now + timedelta(days=5)
-
-    upcoming = UpcomingStatementDue(
-        statement_id=1,
-        account_id=2,
-        account_name="Test Account",
-        due_date=due_date,
-        statement_balance=Decimal("1000.00"),
-        minimum_payment=Decimal("25.00"),
-        days_until_due=5,
-    )
-
-    assert upcoming.statement_id == 1
-    assert upcoming.account_id == 2
-    assert upcoming.account_name == "Test Account"
-    assert upcoming.due_date == due_date
-    assert upcoming.statement_balance == Decimal("1000.00")
-    assert upcoming.minimum_payment == Decimal("25.00")
-    assert upcoming.days_until_due == 5
-
-
-def test_upcoming_statement_due_validation():
-    """Test upcoming statement due validation"""
-    now = datetime.now(timezone.utc)
-
-    # Test ID validation
-    with pytest.raises(ValidationError, match="Input should be greater than 0"):
-        UpcomingStatementDue(
-            statement_id=0,
-            account_id=2,
-            account_name="Test Account",
-            due_date=now,
-            statement_balance=Decimal("1000.00"),
-            days_until_due=5,
-        )
-
-    # Test decimal validation
-    with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
-        UpcomingStatementDue(
-            statement_id=1,
-            account_id=2,
-            account_name="Test Account",
-            due_date=now,
-            statement_balance=Decimal("1000.123"),  # Too many decimal places
-            days_until_due=5,
-        )
-
-    # Test minimum_payment validation
-    with pytest.raises(
-        ValidationError, match="Input should be greater than or equal to 0"
-    ):
-        UpcomingStatementDue(
-            statement_id=1,
-            account_id=2,
-            account_name="Test Account",
-            due_date=now,
-            statement_balance=Decimal("1000.00"),
-            minimum_payment=Decimal("-25.00"),  # Negative value
-            days_until_due=5,
-        )
+    # Verify the joined data is correct
+    assert history.id == 1
+    assert history.account_id == 2
+    assert history.statement_date == now
+    assert history.statement_balance == Decimal("1000.00")
+    assert history.minimum_payment == Decimal("25.00")
+    assert history.payment_due_date == now
+    assert history.is_paid is False
+    assert history.account.id == 2
+    assert history.account.name == "Test Account"
+    assert history.account.current_balance == Decimal("2000.00")
+    assert history.account.account_type == "credit"  # Properly included

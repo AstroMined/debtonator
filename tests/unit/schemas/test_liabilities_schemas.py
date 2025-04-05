@@ -165,7 +165,7 @@ def test_liability_create_rejects_naive_datetime():
             category_id=1,
             primary_account_id=1,
         )
-    assert "Datetime must be UTC" in str(exc_info.value)
+    assert "Please provide datetime with UTC timezone" in str(exc_info.value)
 
 
 def test_liability_create_rejects_non_utc_datetime():
@@ -179,7 +179,7 @@ def test_liability_create_rejects_non_utc_datetime():
             category_id=1,
             primary_account_id=1,
         )
-    assert "Datetime must be UTC" in str(exc_info.value)
+    assert "Please provide datetime with UTC timezone" in str(exc_info.value)
 
 
 def test_liability_update_valid():
@@ -352,10 +352,10 @@ def test_liability_date_range_validation():
             start_date=datetime.now(),  # Naive datetime
             end_date=now + timedelta(days=10),
         )
-    assert "Datetime must be UTC" in str(exc_info.value)
+    assert "Please provide datetime with UTC timezone" in str(exc_info.value)
 
     # Test non-UTC datetime rejection
     est_time = datetime.now(ZoneInfo("America/New_York"))
     with pytest.raises(ValidationError) as exc_info:
         LiabilityDateRange(start_date=est_time, end_date=now + timedelta(days=10))
-    assert "Datetime must be UTC" in str(exc_info.value)
+    assert "Please provide datetime with UTC timezone" in str(exc_info.value)

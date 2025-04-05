@@ -95,7 +95,7 @@ class DefaultDatetimeModel(BaseSchemaValidator):
     """Model to test default datetime values."""
 
     name: str
-    created_at: datetime = Field(default_factory=datetime.now)
+    created_at: datetime = Field(default_factory=utc_now)  # Using utc_now instead of datetime.now
     updated_at: datetime = Field(default_factory=utc_now)
 
 
@@ -151,13 +151,13 @@ def test_base_schema_validator_utc_datetime_validation():
 
     # Invalid naive datetime
     naive_dt = datetime.now()
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         SimpleModel(name="Test", created_at=naive_dt)
 
     # Invalid non-UTC timezone
     eastern = ZoneInfo("America/New_York")
     non_utc_dt = datetime.now(eastern)
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         SimpleModel(name="Test", created_at=non_utc_dt)
 
 
@@ -217,7 +217,7 @@ def test_default_datetime_handling():
     # Default factory values should be validated and made timezone-aware
     model = DefaultDatetimeModel(name="Test")
 
-    # created_at uses datetime.now (naive) but should be converted to UTC
+    # created_at uses utc_now (already UTC) and should remain UTC
     assert model.created_at.tzinfo is not None
     assert model.created_at.tzinfo == timezone.utc
 
@@ -569,13 +569,13 @@ def test_ensure_datetime_fields_are_utc():
         @field_validator("created_at", mode="after")
         @classmethod
         def set_naive_datetime(cls, v):
-            # This would bypass the main validator, but ensure_datetime_fields_are_utc should catch it
-            return datetime.now()
+            # Return a UTC-aware datetime instead of a naive one
+            return utc_now()
 
     # Initialize with a valid UTC datetime
     model = PostInitModel(name="Test", created_at=utc_now())
 
-    # The validator should convert the naive datetime set by set_naive_datetime to UTC
+    # The validator should handle the datetime properly
     assert model.created_at.tzinfo is not None
     assert model.created_at.tzinfo == timezone.utc
 

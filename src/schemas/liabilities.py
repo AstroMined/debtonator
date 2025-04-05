@@ -6,6 +6,7 @@ from pydantic import ConfigDict, Field, field_validator, model_validator
 
 from src.constants import DEFAULT_CATEGORY_ID
 from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
+from src.utils.datetime_utils import ensure_utc
 
 
 class AutoPaySettings(BaseSchemaValidator):
@@ -237,23 +238,25 @@ class LiabilityDateRange(BaseSchemaValidator):
         ..., description="End date for liability range (UTC timezone)"
     )
 
-    @field_validator("end_date")
-    @classmethod
-    def validate_date_range(cls, end_date: datetime, info: Any) -> datetime:
+    @model_validator(mode="after")
+    def validate_date_range(self) -> "LiabilityDateRange":
         """
         Validates that end_date is after start_date.
-
-        Args:
-            end_date: The end date to validate
-            info: The validation context containing all data
+        
+        Uses ensure_utc to ensure both dates have UTC timezone before comparison,
+        following ADR-011 requirements for datetime standardization.
 
         Returns:
-            datetime: The validated end date
+            LiabilityDateRange: The validated object if validation passes
 
         Raises:
             ValueError: If end date is not after start date
         """
-        start_date = info.data.get("start_date")
-        if start_date is not None and end_date <= start_date:
+        # Ensure both dates have UTC timezone before comparison
+        start_date = ensure_utc(self.start_date)
+        end_date = ensure_utc(self.end_date)
+        
+        if end_date <= start_date:
             raise ValueError("End date must be after start date")
-        return end_date
+            
+        return self

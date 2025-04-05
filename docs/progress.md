@@ -1,6 +1,31 @@
 <!-- markdownlint-disable MD024 -->
 # Progress
 
+## April 5, 2025 (2:20 PM)
+
+### Completed Tasks
+
+- Fixed UTC Timezone Validation and Datetime Handling Issues (ADR-011):
+  - Resolved various test failures related to UTC timezone validation:
+    - Fixed `LiabilityDateRange` validator to properly handle timezone comparisons 
+    - Created model validator with proper `ensure_utc()` calls to replace field validator
+    - Updated SQLAlchemy column validation to avoid direct boolean evaluation
+    - Fixed all test classes to use `utc_now()` instead of `datetime.now()`
+    - Fixed naive datetime handling in default value factories
+  - Created missing schema components:
+    - Added `DepositScheduleResponse` schema with proper field definitions
+    - Updated existing schemas to follow ADR-011 requirements consistently
+    - Ensured proper pattern error message in test expectations
+  - Enhanced test assertions:
+    - Updated test assertions to match Pydantic v2's error message format
+    - Made tests more resilient to library updates
+    - Ensured proper test organization with real objects
+  - Ensured ADR-011 compliance:
+    - All datetime fields validated with UTC timezone
+    - All datetime comparisons handle timezone-aware and naive objects correctly
+    - Used proper utility functions for datetime manipulation
+    - Fixed all failing tests related to timezone handling
+
 ## April 4, 2025 (1:30 PM)
 
 ### Completed Tasks
@@ -271,136 +296,6 @@
     - Followed established dependency patterns throughout codebase
     - Fixed session-handling across repository hierarchy
 
-## April 2, 2025 (12:33 AM)
-
-### Completed Tasks
-
-- Implemented Feature Flag System Phase 2 Dependency Integration:
-  - Added `get_registry()` function to implement singleton pattern for feature flag registry:
-    - Created global registry instance to ensure consistency across application
-    - Implemented lazy initialization to improve startup performance
-    - Added debug logging for registry creation
-  - Created generic repository provider in `src/api/dependencies/repositories.py`:
-    - Implemented `get_repository()` function for dynamic repository creation
-    - Made repository creation compatible with FastAPI dependency injection system
-    - Used proper type annotations for better IDE support
-    - Followed repository dependency pattern used throughout the application
-  - Updated `FeatureFlagService` to support context-based flag evaluation:
-    - Added context parameter to constructor for environment-specific evaluation
-    - Properly stored context for use in flag evaluation logic
-    - Fixed import of EnvironmentContext for proper type annotations
-    - Updated service initialization in tests to include context parameter
-  - Fixed feature flag integration tests:
-    - Updated API tests to use `value` instead of deprecated `enabled` attribute
-    - Corrected all assertions to match the new field structure
-    - Updated test validation patterns to check correct fields
-    - Fixed test fixtures to follow the new parameter structure
-  - Enhanced dependency integration for feature flag system:
-    - Ensured proper dependency injection across all components
-    - Fixed circular import issues in dependencies module
-    - Connected registry singleton to configuration system
-    - Improved initialization flow for consistent flag state
-  - Completed Phase 2 items in ADR-024 implementation checklist:
-    - Marked Dependency Injection tasks as complete
-    - Marked Request Context Integration tasks as complete
-    - Updated checklist with specific implementation details
-
-## April 1, 2025 (9:14 PM)
-
-### Completed Tasks
-
-- Fixed Feature Flag System SQLAlchemy Reserved Attribute Issue:
-  - Resolved SQLAlchemy metadata naming conflict by renaming `metadata` field to `flag_metadata`
-  - Updated model, schema, repository, and service layers consistently:
-    - Modified FeatureFlag model to use flag_metadata field name
-    - Updated schema classes (FeatureFlagCreate, FeatureFlagUpdate, FeatureFlagResponse)
-    - Fixed repository layer to properly convert between metadata and flag_metadata fields
-    - Updated service layer to use the new field name in all methods
-    - Fixed config module to use flag_metadata in default feature flag definitions
-  - Used model_validator instead of field_validator for complex validation:
-    - Replaced field-level validation with model-level validation for better support of related fields
-    - Implemented more robust field type validation with proper field attribute access
-    - Enhanced validation to handle different formats of flag_type values
-  - Fixed test failures in unit, integration, and config tests:
-    - Updated assertions to check for flag_metadata instead of metadata
-    - Fixed test fixtures to use the new field name consistently
-    - Enhanced test fixtures with proper field values for all flag types
-  - Applied schema changes systematically across the codebase:
-    - Used consistent field naming in all related modules
-    - Ensured no backward compatibility hacks (like properties or field aliasing)
-    - Followed clean architecture principles with a consistent rename approach
-  - Completed checklist items in ADR-024 Phase 1
-  - Ran comprehensive test suite and verified all 89 tests are now passing
-  
-## April 1, 2025 (6:30 PM)
-
-### Completed Tasks
-
-- Implemented Feature Flag System Phase 1:
-  - Completed all test components required for Phase 1 of the Feature Flag System:
-    - Created unit tests for feature flag schemas (tests/unit/schemas/test_feature_flag_schemas.py)
-    - Implemented unit tests for feature flag registry that follow the Real Objects Testing Philosophy (tests/unit/registry/test_feature_flag_registry.py)
-    - Created integration tests for feature flag repository with real database interactions (tests/integration/repositories/test_feature_flag_repository.py)
-    - Built integration tests for feature flag service layer (tests/integration/services/test_feature_flag_service.py)
-    - Added configuration tests for application initialization (tests/integration/config/test_feature_flag_config.py)
-  - Implemented tests for all flag types:
-    - Boolean flags (simple on/off toggles)
-    - Percentage rollout flags (gradual feature adoption)
-    - User segment flags (feature targeting to specific user groups)
-    - Time-based flags (scheduled feature availability)
-  - Established test patterns for feature flag functionality:
-    - Registry initialization and flag registration
-    - Feature flag value retrieval and updates
-    - Database persistence and synchronization
-    - Context-based feature flag evaluation
-    - Application startup configuration
-  - Followed project's testing best practices:
-    - No mocks or monkeypatching in tests
-    - Used real database interactions for repository tests
-    - Implemented proper test fixtures and setup/teardown
-    - Integrated with existing database session fixtures
-    - Test both successful and error paths
-  - Created a solid foundation for subsequent Feature Flag System phases
-
-## March 29, 2025 (11:45 PM)
-
-### Completed Tasks
-
-- Consolidated Decimal Precision Handling ADRs:
-  - Combined the original ADR-013 and its update document into a single comprehensive document
-  - Revised structure for better readability and logical progression of information
-  - Added dedicated "Evolution from Original Implementation" section to explain the migration from ConstrainedDecimal to Annotated types
-  - Created a clear narrative showing the progression of the implementation approach
-  - Enhanced documentation with detailed examples of Annotated types and dictionary validation
-  - Maintained complete version history from initial proposal through implementation
-  - Created archive directory for superseded ADR documents
-  - Updated version information to v0.5.58
-  - Updated CHANGELOG.md with the changes
-
-## March 29, 2025 (10:30 PM)
-
-### Completed Tasks
-
-- Completed ADR-011 Compliance Test Coverage:
-  - Achieved 100% test coverage for schema validation layer:
-    - Created targeted tests for model validation edge cases
-    - Implemented tests for datetime serialization and validation
-    - Added test coverage for nested dictionary datetime handling
-    - Created tests for model dynamic lookup functionality
-  - Fixed remaining validator tests to match Pydantic v2 behavior:
-    - Updated error assertion tests to match Pydantic v2 error formats
-    - Fixed ValidationInfo object mocking in unit tests
-    - Used direct object validation rather than mocking in tests
-  - Enhanced test coverage for base_schema.py utility methods:
-    - Added tests for model_validate with different input types
-    - Tested ensure_datetime_fields_are_utc with various field types
-    - Added tests for validate_required_fields_not_none edge cases
-  - Improved testing consistency across schema files:
-    - Consolidated test code to prevent test sprawl
-    - Used consistent patterns for validator testing
-    - Documented test patterns for future validator implementations
-  - Added new implementation lesson for edge case testing in active_context.md
-
 ## Current Status Overview
 
 1. __Model Layer__: COMPLETED (100%) ✓
@@ -464,7 +359,7 @@
    - Default "Uncategorized" category (ADR-015) ✓
    - Comprehensive test coverage in place ✓
 
-8. __UTC Datetime Compliance__: COMPLETED (95%)
+8. __UTC Datetime Compliance__: COMPLETED (100%) ✓
    - Helper utilities created for consistent datetime handling ✓
    - Naive datetime detection tools implemented ✓
    - Test hooks added for automated detection during test runs ✓
@@ -474,7 +369,7 @@
    - Standardized date handling with safe comparison functions ✓
    - Added patterns for handling different date formats across database engines ✓
    - Schema layer validator test methods fixed for proper function calls ✓
-   - Adding naive datetime scanner to CI pipeline (0%)
+   - Added naive datetime scanner to CI pipeline ✓
 
 9. __Feature Flag System__: IN PROGRESS (65%)
    - Phase 1: Core Infrastructure (100%) ✓

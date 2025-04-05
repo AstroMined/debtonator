@@ -8,7 +8,7 @@ all API boundaries.
 
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Annotated, Any, Dict
+from typing import Annotated, Any, Dict, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -312,9 +312,17 @@ class BaseSchemaValidator(BaseModel):
                 # If we have a model class, check if the field is non-nullable
                 if model_class and hasattr(model_class, "__table__"):
                     column = getattr(model_class.__table__.columns, field_name, None)
-                    if column and not column.nullable:
-                        raise ValueError(
-                            f"Field '{field_name}' cannot be set to None (database column is non-nullable)"
-                        )
+                    
+                    # Safe check for SQLAlchemy Column nullable property
+                    # Using hasattr and getattr instead of direct boolean evaluation
+                    if column:
+                        # Check if column has a nullable attribute
+                        nullable = getattr(column, "nullable", True)
+                        
+                        # Safely evaluate if the column is non-nullable (avoiding boolean evaluation)
+                        if nullable is False:  # Explicit comparison instead of "if column.nullable"
+                            raise ValueError(
+                                f"Field '{field_name}' cannot be set to None (database column is non-nullable)"
+                            )
 
         return self
