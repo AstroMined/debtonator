@@ -2,7 +2,7 @@
 
 ## Current Focus
 
-Account Type Expansion, Service Layer Implementation, Feature Flag System, Banking Account Types Integration, Testing Strategy Implementation, ADR Implementation Checklists, UTC DateTime Standardization Fixes
+Account Type Expansion, Service Layer Implementation, Feature Flag System, Banking Account Types Integration, Testing Strategy Implementation, ADR Implementation Checklists, Account Type Update Restrictions
 
 ### Recent Changes
 

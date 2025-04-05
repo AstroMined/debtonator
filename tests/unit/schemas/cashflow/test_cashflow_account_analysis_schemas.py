@@ -594,7 +594,7 @@ def test_datetime_utc_validation():
     )
 
     # Test naive datetime in timestamp
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         CrossAccountAnalysis(
             correlations={"1": {"2": correlation}},
             transfer_patterns=[pattern],
@@ -605,7 +605,7 @@ def test_datetime_utc_validation():
         )
 
     # Test non-UTC timezone in timestamp
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         CrossAccountAnalysis(
             correlations={"1": {"2": correlation}},
             transfer_patterns=[pattern],

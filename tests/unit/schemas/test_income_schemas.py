@@ -34,7 +34,7 @@ class TestIncomeCreate:
                 amount=Decimal("5000.00"),
                 account_id=1,
             )
-        assert "Datetime must be UTC" in str(exc_info.value)
+        assert "Please provide datetime with UTC timezone" in str(exc_info.value)
 
     def test_rejects_non_utc_datetime(self):
         """Test that non-UTC datetime is rejected"""
@@ -43,7 +43,7 @@ class TestIncomeCreate:
             IncomeCreate(
                 date=est_time, source="Salary", amount=Decimal("5000.00"), account_id=1
             )
-        assert "Datetime must be UTC" in str(exc_info.value)
+        assert "Please provide datetime with UTC timezone" in str(exc_info.value)
 
     def test_amount_validation(self):
         """Test amount validation rules"""

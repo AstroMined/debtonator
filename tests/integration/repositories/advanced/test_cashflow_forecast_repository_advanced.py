@@ -18,7 +18,7 @@ from src.models.cashflow import CashflowForecast
 from src.repositories.cashflow import CashflowForecastRepository
 
 # Import schemas and schema factories - essential part of the validation pattern
-from src.schemas.cashflow.base import CashflowCreate
+from src.schemas.cashflow.cashflow_base import CashflowCreate
 from src.utils.datetime_utils import (
     datetime_equals,
     datetime_greater_than,

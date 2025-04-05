@@ -173,7 +173,7 @@ def test_datetime_utc_validation():
     now_utc = datetime.now(timezone.utc)
 
     # Test naive datetime in timestamp
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         BalanceHistory(
             id=1,
             account_id=1,
@@ -184,7 +184,7 @@ def test_datetime_utc_validation():
         )
 
     # Test non-UTC timezone in created_at
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         BalanceHistory(
             id=1,
             account_id=1,

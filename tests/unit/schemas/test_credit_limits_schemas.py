@@ -221,14 +221,14 @@ def test_decimal_precision():
 def test_datetime_utc_validation():
     """Test datetime UTC validation per ADR-011"""
     # Test naive datetime
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         CreditLimitHistoryBase(
             credit_limit=Decimal("5000.00"),
             effective_date=datetime.now(),  # Naive datetime
         )
 
     # Test non-UTC timezone
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         CreditLimitHistoryBase(
             credit_limit=Decimal("5000.00"),
             effective_date=datetime.now(
@@ -237,7 +237,7 @@ def test_datetime_utc_validation():
         )
 
     # Test multiple UTC datetime fields
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         CreditLimitHistoryInDB(
             id=1,
             account_id=2,

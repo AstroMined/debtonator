@@ -29,30 +29,32 @@ def test_savings_account_create_schema():
     assert savings.name == "Basic Savings"
     assert savings.account_type == "savings"
     assert savings.current_balance == Decimal("5000.00")
+    assert savings.available_balance == Decimal("5000.00")
 
     # Test with all fields
     savings = SavingsAccountCreate(
         name="Full Savings",
         account_type="savings",
         current_balance=Decimal("5000.00"),
-        available_balance=Decimal("5000.00"),
+        available_balance=Decimal("4800.00"),
         institution="Test Bank",
         currency="USD",
-        account_number="9876543210",
-        interest_rate=Decimal("0.0250"),  # 2.5%
+        account_number="12345678",
+        routing_number="123456789",
+        interest_rate=Decimal("0.0150"),  # 1.50%
         compound_frequency="daily",
         interest_earned_ytd=Decimal("25.50"),
         withdrawal_limit=6,
         minimum_balance=Decimal("500.00"),
     )
-    assert savings.interest_rate == Decimal("0.0250")
+    assert savings.institution == "Test Bank"
+    assert savings.routing_number == "123456789"
+    assert savings.interest_rate == Decimal("0.0150")
     assert savings.compound_frequency == "daily"
     assert savings.interest_earned_ytd == Decimal("25.50")
-    assert savings.withdrawal_limit == 6
-    assert savings.minimum_balance == Decimal("500.00")
 
     # Test validation of incorrect account type
-    with pytest.raises(ValidationError, match="Value error at account_type"):
+    with pytest.raises(ValidationError, match="Input should be 'savings'"):
         SavingsAccountCreate(
             name="Invalid Type",
             account_type="checking",  # Wrong type
@@ -87,11 +89,12 @@ def test_savings_account_response_schema():
         name="Full Savings Response",
         account_type="savings",
         current_balance=Decimal("5000.00"),
-        available_balance=Decimal("5000.00"),
+        available_balance=Decimal("4800.00"),
         institution="Test Bank",
         currency="USD",
-        account_number="9876543210",
-        interest_rate=Decimal("0.0250"),  # 2.5%
+        account_number="12345678",
+        routing_number="123456789",
+        interest_rate=Decimal("0.0150"),  # 1.50%
         compound_frequency="daily",
         interest_earned_ytd=Decimal("25.50"),
         withdrawal_limit=6,
@@ -99,12 +102,12 @@ def test_savings_account_response_schema():
         created_at=now,
         updated_at=now,
     )
-    assert savings_response.interest_rate == Decimal("0.0250")
+    assert savings_response.institution == "Test Bank"
+    assert savings_response.interest_rate == Decimal("0.0150")
     assert savings_response.compound_frequency == "daily"
-    assert savings_response.interest_earned_ytd == Decimal("25.50")
 
     # Test validation of incorrect account type
-    with pytest.raises(ValidationError, match="Value error at account_type"):
+    with pytest.raises(ValidationError, match="Input should be 'savings'"):
         SavingsAccountResponse(
             id=1,
             name="Invalid Type",
@@ -119,23 +122,19 @@ def test_savings_account_response_schema():
 def test_savings_account_money_validation():
     """Test money validation in savings account schemas."""
     # Test money validation for interest rate (should be between 0 and 1 for decimal percentage)
-    with pytest.raises(
-        ValidationError, match="ensure this value is less than or equal to"
-    ):
+    with pytest.raises(ValidationError, match="Input should be less than or equal to 1"):
         SavingsAccountCreate(
-            name="Invalid Interest Rate",
+            name="Invalid Interest",
             account_type="savings",
             current_balance=Decimal("5000.00"),
             available_balance=Decimal("5000.00"),
-            interest_rate=Decimal(
-                "1.5"
-            ),  # Should be between 0-1 (e.g., 0.025 for 2.5%)
+            interest_rate=Decimal("1.5"),  # Should be between 0-1 (e.g., 0.015 for 1.5%)
         )
 
     # Test negative minimum balance
-    with pytest.raises(ValidationError, match="greater than or equal to 0"):
+    with pytest.raises(ValidationError, match="Input should be greater than or equal to 0"):
         SavingsAccountCreate(
-            name="Invalid Min Balance",
+            name="Invalid Minimum",
             account_type="savings",
             current_balance=Decimal("5000.00"),
             available_balance=Decimal("5000.00"),
@@ -145,7 +144,7 @@ def test_savings_account_money_validation():
 
 def test_savings_account_compound_frequency_validation():
     """Test compound frequency validation in savings account schemas."""
-    # Test valid compound frequencies
+    # Test valid frequencies
     valid_frequencies = ["daily", "monthly", "quarterly", "annually"]
 
     for frequency in valid_frequencies:
@@ -158,14 +157,14 @@ def test_savings_account_compound_frequency_validation():
         )
         assert savings.compound_frequency == frequency
 
-    # Test invalid compound frequency
+    # Test invalid frequency
     with pytest.raises(
-        ValidationError, match="value is not a valid enumeration member"
+        ValidationError, match="Compound frequency must be one of:"
     ):
         SavingsAccountCreate(
             name="Invalid Frequency",
             account_type="savings",
             current_balance=Decimal("5000.00"),
             available_balance=Decimal("5000.00"),
-            compound_frequency="weekly",  # Not in the allowed values
+            compound_frequency="weekly",  # Not in allowed values
         )

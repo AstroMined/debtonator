@@ -7,6 +7,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.75] - 2025-04-05
+
+### Fixed
+
+- Fixed failing unit tests in banking account schemas:
+  - Added routing_number field to SavingsAccountCreate validation
+  - Updated Pydantic v2 validation error message pattern in test_savings_schemas.py
+  - Fixed polymorphic validation in AccountUpdate schema to prevent circular imports
+  - Eliminated duplicate account_update_polymorphic_validation tests
+- Identified account_type update architectural issue:
+  - Added to active_context.md to investigate account type update restrictions
+  - Documented need for specialized account type conversion workflow
+  - Updated project priorities to include account type transition policies
+
+## [0.5.74] - 2025-04-05
+
+### Fixed
+
+- Fixed `LiabilityDateRange` validator to properly handle timezone-aware and naive datetime comparisons
+- Modified `validate_required_fields_not_none` to safely check SQLAlchemy column nullability
+- Updated test classes to use `utc_now()` instead of `datetime.now()` for default factories
+- Created missing `DepositScheduleResponse` schema with proper field definitions
+- Updated test assertions to be more resilient to Pydantic v2 error message format
+- Fixed all failing tests related to UTC timezone handling (ADR-011 compliance)
+
+### Added
+
+- Enhanced `DepositScheduleBase` schema with additional validations for recurring fields
+- Added validation to ensure recurring and recurrence_pattern fields are consistent
+
+### Changed
+
+- Changed field validator to model validator with proper `ensure_utc()` calls in LiabilityDateRange
+- Updated datetime validation assertions to be more resilient to Pydantic versioning
+
 ## [0.5.73] - 2025-04-04
 
 ### Fixed

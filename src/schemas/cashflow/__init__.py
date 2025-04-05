@@ -7,7 +7,7 @@ from src.schemas.cashflow.account_analysis import (
     CrossAccountAnalysis,
     TransferPattern,
 )
-from src.schemas.cashflow.base import (
+from src.schemas.cashflow.cashflow_base import (
     CashflowBase,
     CashflowCreate,
     CashflowFilters,

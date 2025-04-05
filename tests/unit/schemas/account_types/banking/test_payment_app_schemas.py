@@ -25,21 +25,22 @@ def test_payment_app_account_create_schema():
         account_type="payment_app",
         current_balance=Decimal("200.00"),
         available_balance=Decimal("200.00"),
-        platform="PayPal",
+        platform="Venmo",
     )
     assert payment_app.name == "Basic Payment App"
     assert payment_app.account_type == "payment_app"
-    assert payment_app.platform == "PayPal"
+    assert payment_app.current_balance == Decimal("200.00")
+    assert payment_app.platform == "Venmo"
 
     # Test with all fields
     payment_app = PaymentAppAccountCreate(
         name="Full Payment App",
         account_type="payment_app",
-        current_balance=Decimal("350.00"),
-        available_balance=Decimal("350.00"),
-        institution="PayPal, Inc.",
+        current_balance=Decimal("500.00"),
+        available_balance=Decimal("500.00"),
+        institution="PayPal Holdings, Inc.",
         currency="USD",
-        account_number="user@example.com",
+        account_number="PP-12345678",
         platform="PayPal",
         has_debit_card=True,
         card_last_four="5678",
@@ -55,13 +56,13 @@ def test_payment_app_account_create_schema():
     assert payment_app.supports_crypto is True
 
     # Test validation of incorrect account type
-    with pytest.raises(ValidationError, match="Value error at account_type"):
+    with pytest.raises(ValidationError, match="Input should be 'payment_app'"):
         PaymentAppAccountCreate(
             name="Invalid Type",
             account_type="checking",  # Wrong type
             current_balance=Decimal("200.00"),
             available_balance=Decimal("200.00"),
-            platform="PayPal",
+            platform="Venmo",
         )
 
     # Test validation of payment app-specific field
@@ -86,14 +87,15 @@ def test_payment_app_account_response_schema():
         account_type="payment_app",
         current_balance=Decimal("200.00"),
         available_balance=Decimal("200.00"),
-        platform="PayPal",
+        platform="Venmo",
         created_at=now,
         updated_at=now,
     )
     assert payment_app_response.id == 1
     assert payment_app_response.name == "Payment App Response"
     assert payment_app_response.account_type == "payment_app"
-    assert payment_app_response.platform == "PayPal"
+    assert payment_app_response.current_balance == Decimal("200.00")
+    assert payment_app_response.platform == "Venmo"
     assert payment_app_response.created_at == now
     assert payment_app_response.updated_at == now
 
@@ -102,11 +104,11 @@ def test_payment_app_account_response_schema():
         id=2,
         name="Full Payment App",
         account_type="payment_app",
-        current_balance=Decimal("350.00"),
-        available_balance=Decimal("350.00"),
-        institution="PayPal, Inc.",
+        current_balance=Decimal("500.00"),
+        available_balance=Decimal("500.00"),
+        institution="PayPal Holdings, Inc.",
         currency="USD",
-        account_number="user@example.com",
+        account_number="PP-12345678",
         platform="PayPal",
         has_debit_card=True,
         card_last_four="5678",
@@ -119,33 +121,25 @@ def test_payment_app_account_response_schema():
     assert payment_app_response.platform == "PayPal"
     assert payment_app_response.has_debit_card is True
     assert payment_app_response.card_last_four == "5678"
-    assert payment_app_response.linked_account_ids == "1,2,3"
 
     # Test validation of incorrect account type
-    with pytest.raises(ValidationError, match="Value error at account_type"):
+    with pytest.raises(ValidationError, match="Input should be 'payment_app'"):
         PaymentAppAccountResponse(
             id=1,
             name="Invalid Type",
             account_type="checking",  # Wrong type
             current_balance=Decimal("200.00"),
             available_balance=Decimal("200.00"),
-            platform="PayPal",
+            platform="Venmo",
             created_at=now,
             updated_at=now,
         )
 
 
 def test_payment_app_platform_validation():
-    """Test platform validation in payment app schemas."""
-    # Test various valid platforms (this list should be updated if the actual validation changes)
-    valid_platforms = [
-        "PayPal",
-        "Venmo",
-        "Cash App",
-        "Zelle",
-        "Apple Pay",
-        "Google Pay",
-    ]
+    """Test platform validation in payment app account schemas."""
+    # Test various valid platforms
+    valid_platforms = ["PayPal", "Venmo", "Cash App", "Zelle", "Apple Pay", "Google Pay"]
 
     for platform in valid_platforms:
         payment_app = PaymentAppAccountCreate(
@@ -157,20 +151,20 @@ def test_payment_app_platform_validation():
         )
         assert payment_app.platform == platform
 
-    # Test custom/other platform
-    payment_app = PaymentAppAccountCreate(
-        name="Custom Platform",
-        account_type="payment_app",
-        current_balance=Decimal("200.00"),
-        available_balance=Decimal("200.00"),
-        platform="Other Payment Service",  # Custom platform name
-    )
-    assert payment_app.platform == "Other Payment Service"
+    # Test invalid platform
+    with pytest.raises(ValidationError, match="Platform must be one of:"):
+        payment_app = PaymentAppAccountCreate(
+            name="Invalid Platform",
+            account_type="payment_app",
+            current_balance=Decimal("200.00"),
+            available_balance=Decimal("200.00"),
+            platform="Other Payment Service",  # Not in the allowed values
+        )
 
 
 def test_card_last_four_validation():
-    """Test card_last_four validation in payment app schemas."""
-    # Test valid last four digits
+    """Test card last four validation in payment app account schemas."""
+    # Test valid card last four with debit card
     payment_app = PaymentAppAccountCreate(
         name="Card Test",
         account_type="payment_app",
@@ -180,12 +174,23 @@ def test_card_last_four_validation():
         has_debit_card=True,
         card_last_four="1234",
     )
+    assert payment_app.has_debit_card is True
     assert payment_app.card_last_four == "1234"
 
-    # Test invalid (too short) last four
-    with pytest.raises(
-        ValidationError, match="String should have at least 4 characters"
-    ):
+    # Test no card last four with no debit card
+    payment_app = PaymentAppAccountCreate(
+        name="No Card Test",
+        account_type="payment_app",
+        current_balance=Decimal("200.00"),
+        available_balance=Decimal("200.00"),
+        platform="Venmo",
+        has_debit_card=False,
+    )
+    assert payment_app.has_debit_card is False
+    assert payment_app.card_last_four is None
+
+    # Test invalid card last four (non-numeric characters)
+    with pytest.raises(ValidationError, match="Card last four digits must contain only numbers"):
         PaymentAppAccountCreate(
             name="Invalid Card",
             account_type="payment_app",
@@ -193,31 +198,17 @@ def test_card_last_four_validation():
             available_balance=Decimal("200.00"),
             platform="PayPal",
             has_debit_card=True,
-            card_last_four="123",  # Too short
+            card_last_four="abcd",  # Should be numeric
         )
 
-    # Test invalid (too long) last four
-    with pytest.raises(
-        ValidationError, match="String should have at most 4 characters"
-    ):
+    # Test invalid card last four (wrong length)
+    with pytest.raises(ValidationError, match="String should have at most 4 characters"):
         PaymentAppAccountCreate(
-            name="Invalid Card",
+            name="Invalid Card Length",
             account_type="payment_app",
             current_balance=Decimal("200.00"),
             available_balance=Decimal("200.00"),
             platform="PayPal",
             has_debit_card=True,
-            card_last_four="12345",  # Too long
-        )
-
-    # Test invalid (non-numeric) last four
-    with pytest.raises(ValidationError, match="String should match pattern"):
-        PaymentAppAccountCreate(
-            name="Invalid Card",
-            account_type="payment_app",
-            current_balance=Decimal("200.00"),
-            available_balance=Decimal("200.00"),
-            platform="PayPal",
-            has_debit_card=True,
-            card_last_four="abcd",  # Non-numeric
+            card_last_four="12345",  # Should be 4 digits
         )

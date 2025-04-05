@@ -443,7 +443,7 @@ def test_datetime_utc_validation():
     now = datetime.now(timezone.utc)
 
     # Test naive datetime
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         PaymentPatternAnalysis(
             pattern_type=PatternType.REGULAR,
             confidence_score=0.95,
@@ -455,7 +455,7 @@ def test_datetime_utc_validation():
         )
 
     # Test non-UTC timezone
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         PaymentPatternAnalysis(
             pattern_type=PatternType.REGULAR,
             confidence_score=0.95,
@@ -469,11 +469,11 @@ def test_datetime_utc_validation():
         )
 
     # Test naive datetime in request
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         PaymentPatternRequest(start_date=datetime.now())  # Naive datetime
 
     # Test non-UTC timezone in request
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         PaymentPatternRequest(
             start_date=datetime.now(ZoneInfo("America/New_York"))  # Non-UTC timezone
         )

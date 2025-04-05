@@ -9,7 +9,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from src.schemas.cashflow.base import CashflowCreate, CashflowFilters, CashflowUpdate
+from src.schemas.cashflow.cashflow_base import CashflowCreate, CashflowFilters, CashflowUpdate
 from tests.helpers.schema_factories.base import (
     LARGE_AMOUNT,
     MEDIUM_AMOUNT,

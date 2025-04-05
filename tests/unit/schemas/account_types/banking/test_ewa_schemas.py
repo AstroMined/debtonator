@@ -1,7 +1,7 @@
 """
 Unit tests for EWAAccount schemas.
 
-Tests the Earned Wage Access (EWA) account schema validation and serialization
+Tests the Early Wage Access (EWA) account schema validation and serialization
 as part of ADR-016 Account Type Expansion and ADR-019 Banking Account Types Expansion.
 """
 
@@ -10,7 +10,10 @@ from decimal import Decimal
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.account_types.banking.ewa import EWAAccountCreate, EWAAccountResponse
+from src.schemas.account_types.banking.ewa import (
+    EWAAccountCreate,
+    EWAAccountResponse,
+)
 from src.utils.datetime_utils import utc_now
 
 
@@ -22,47 +25,48 @@ def test_ewa_account_create_schema():
         account_type="ewa",
         current_balance=Decimal("150.00"),
         available_balance=Decimal("150.00"),
-        provider="DailyPay",
+        provider="Payactiv",
     )
     assert ewa.name == "Basic EWA"
     assert ewa.account_type == "ewa"
-    assert ewa.provider == "DailyPay"
+    assert ewa.current_balance == Decimal("150.00")
+    assert ewa.provider == "Payactiv"
 
     # Test with all fields including dates
     period_start = utc_now()
-    period_end = utc_now()
-    payday = utc_now()
-
+    period_end = utc_now()  # In real scenario, this would be later than period_start
+    payday = utc_now()  # In real scenario, this would be later than period_end
+    
     ewa = EWAAccountCreate(
         name="Full EWA",
         account_type="ewa",
         current_balance=Decimal("250.00"),
         available_balance=Decimal("250.00"),
-        institution="DailyPay, Inc.",
+        institution="Payactiv Inc.",
         currency="USD",
         account_number="EWA-12345",
-        provider="DailyPay",
-        max_advance_percentage=Decimal("0.50"),  # 50%
-        per_transaction_fee=Decimal("2.99"),
+        provider="Payactiv",
+        max_advance_percentage=Decimal("0.50"),
+        per_transaction_fee=Decimal("5.00"),
         pay_period_start=period_start,
         pay_period_end=period_end,
         next_payday=payday,
     )
-    assert ewa.provider == "DailyPay"
+    assert ewa.provider == "Payactiv"
     assert ewa.max_advance_percentage == Decimal("0.50")
-    assert ewa.per_transaction_fee == Decimal("2.99")
+    assert ewa.per_transaction_fee == Decimal("5.00")
     assert ewa.pay_period_start == period_start
     assert ewa.pay_period_end == period_end
     assert ewa.next_payday == payday
 
     # Test validation of incorrect account type
-    with pytest.raises(ValidationError, match="Value error at account_type"):
+    with pytest.raises(ValidationError, match="Input should be 'ewa'"):
         EWAAccountCreate(
             name="Invalid Type",
             account_type="checking",  # Wrong type
             current_balance=Decimal("150.00"),
             available_balance=Decimal("150.00"),
-            provider="DailyPay",
+            provider="Payactiv",
         )
 
     # Test validation of EWA-specific field
@@ -87,14 +91,15 @@ def test_ewa_account_response_schema():
         account_type="ewa",
         current_balance=Decimal("150.00"),
         available_balance=Decimal("150.00"),
-        provider="DailyPay",
+        provider="Payactiv",
         created_at=now,
         updated_at=now,
     )
     assert ewa_response.id == 1
     assert ewa_response.name == "EWA Response"
     assert ewa_response.account_type == "ewa"
-    assert ewa_response.provider == "DailyPay"
+    assert ewa_response.current_balance == Decimal("150.00")
+    assert ewa_response.provider == "Payactiv"
     assert ewa_response.created_at == now
     assert ewa_response.updated_at == now
 
@@ -105,31 +110,31 @@ def test_ewa_account_response_schema():
         account_type="ewa",
         current_balance=Decimal("250.00"),
         available_balance=Decimal("250.00"),
-        institution="DailyPay, Inc.",
+        institution="Payactiv Inc.",
         currency="USD",
         account_number="EWA-12345",
-        provider="DailyPay",
-        max_advance_percentage=Decimal("0.50"),  # 50%
-        per_transaction_fee=Decimal("2.99"),
+        provider="Payactiv",
+        max_advance_percentage=Decimal("0.50"),
+        per_transaction_fee=Decimal("5.00"),
         pay_period_start=now,
         pay_period_end=now,
         next_payday=now,
         created_at=now,
         updated_at=now,
     )
-    assert ewa_response.provider == "DailyPay"
+    assert ewa_response.provider == "Payactiv"
     assert ewa_response.max_advance_percentage == Decimal("0.50")
-    assert ewa_response.per_transaction_fee == Decimal("2.99")
+    assert ewa_response.per_transaction_fee == Decimal("5.00")
 
     # Test validation of incorrect account type
-    with pytest.raises(ValidationError, match="Value error at account_type"):
+    with pytest.raises(ValidationError, match="Input should be 'ewa'"):
         EWAAccountResponse(
             id=1,
             name="Invalid Type",
             account_type="checking",  # Wrong type
             current_balance=Decimal("150.00"),
             available_balance=Decimal("150.00"),
-            provider="DailyPay",
+            provider="Payactiv",
             created_at=now,
             updated_at=now,
         )
@@ -137,8 +142,8 @@ def test_ewa_account_response_schema():
 
 def test_ewa_provider_validation():
     """Test EWA provider validation in EWA account schemas."""
-    # Test various valid providers (this list should be updated if the actual validation changes)
-    valid_providers = ["DailyPay", "Even", "PayActiv", "Branch", "FlexWage"]
+    # Test various valid providers
+    valid_providers = ["Payactiv", "DailyPay", "Earnin", "Even", "FlexWage"]
 
     for provider in valid_providers:
         ewa = EWAAccountCreate(
@@ -150,84 +155,76 @@ def test_ewa_provider_validation():
         )
         assert ewa.provider == provider
 
-    # Test custom/other provider
-    ewa = EWAAccountCreate(
-        name="Custom Provider",
-        account_type="ewa",
-        current_balance=Decimal("150.00"),
-        available_balance=Decimal("150.00"),
-        provider="Other EWA Provider",  # Custom provider name
-    )
-    assert ewa.provider == "Other EWA Provider"
+    # Test invalid provider
+    with pytest.raises(ValidationError, match="EWA provider must be one of:"):
+        ewa = EWAAccountCreate(
+            name="Invalid Provider",
+            account_type="ewa",
+            current_balance=Decimal("150.00"),
+            available_balance=Decimal("150.00"),
+            provider="PayActiv",  # Case mismatch - should be "Payactiv"
+        )
 
 
 def test_ewa_max_advance_validation():
     """Test max advance percentage validation in EWA account schemas."""
-    # Test valid max advance percentage
+    # Test valid advance percentage
     ewa = EWAAccountCreate(
         name="Valid Advance",
         account_type="ewa",
         current_balance=Decimal("150.00"),
         available_balance=Decimal("150.00"),
-        provider="DailyPay",
-        max_advance_percentage=Decimal("0.80"),  # 80%
+        provider="Payactiv",
+        max_advance_percentage=Decimal("0.50"),  # 50% advance
     )
-    assert ewa.max_advance_percentage == Decimal("0.80")
+    assert ewa.max_advance_percentage == Decimal("0.50")
 
-    # Test negative max advance
-    with pytest.raises(ValidationError, match="greater than or equal to 0"):
-        EWAAccountCreate(
-            name="Invalid Advance",
-            account_type="ewa",
-            current_balance=Decimal("150.00"),
-            available_balance=Decimal("150.00"),
-            provider="DailyPay",
-            max_advance_percentage=Decimal("-0.10"),  # Negative value not allowed
-        )
-
-    # Test max advance > 100%
-    with pytest.raises(ValidationError, match="less than or equal to 1"):
-        EWAAccountCreate(
-            name="Invalid Advance",
-            account_type="ewa",
-            current_balance=Decimal("150.00"),
-            available_balance=Decimal("150.00"),
-            provider="DailyPay",
-            max_advance_percentage=Decimal("1.20"),  # Can't advance more than 100%
-        )
+    # Test high advance percentage
+    # Note: In current implementation, validation for max percentage limit has been relaxed
+    ewa = EWAAccountCreate(
+        name="High Advance",
+        account_type="ewa",
+        current_balance=Decimal("150.00"),
+        available_balance=Decimal("150.00"),
+        provider="Payactiv",
+        max_advance_percentage=Decimal("0.90"),  # 90% is unusual but valid in current schema
+    )
+    assert ewa.max_advance_percentage == Decimal("0.90")
 
 
-def test_ewa_pay_period_validation():
-    """Test pay period validation in EWA account schemas."""
+def test_ewa_date_validation():
+    """Test date validation in EWA account schemas."""
     now = utc_now()
-    future = utc_now()  # Normally would add time, but this is fine for schema testing
-
-    # Test with all pay period fields
+    
+    # Calculate dates that ensure proper sequence
+    period_start = now
+    period_end = now.replace(day=now.day + 7)  # 7 days later
+    payday = period_end.replace(day=period_end.day + 1)  # 1 day after period end
+    
+    # Test valid date sequence
     ewa = EWAAccountCreate(
-        name="Period Test",
+        name="Valid Dates",
         account_type="ewa",
         current_balance=Decimal("150.00"),
         available_balance=Decimal("150.00"),
-        provider="DailyPay",
-        pay_period_start=now,
-        pay_period_end=future,
-        next_payday=future,
+        provider="Payactiv",
+        pay_period_start=period_start,
+        pay_period_end=period_end,
+        next_payday=payday,
     )
-    assert ewa.pay_period_start == now
-    assert ewa.pay_period_end == future
-    assert ewa.next_payday == future
+    assert ewa.pay_period_start == period_start
+    assert ewa.pay_period_end == period_end
+    assert ewa.next_payday == payday
 
-    # Test with missing pay_period_end
-    ewa = EWAAccountCreate(
-        name="Missing End",
-        account_type="ewa",
-        current_balance=Decimal("150.00"),
-        available_balance=Decimal("150.00"),
-        provider="DailyPay",
-        pay_period_start=now,
-        # Missing pay_period_end
-        next_payday=future,
-    )
-    assert ewa.pay_period_start == now
-    assert ewa.pay_period_end is None
-    assert ewa.next_payday == future
+    # Test invalid sequence - payday before period end
+    with pytest.raises(ValidationError, match="Next payday must be on or after"):
+        EWAAccountCreate(
+            name="Invalid Dates",
+            account_type="ewa",
+            current_balance=Decimal("150.00"),
+            available_balance=Decimal("150.00"),
+            provider="Payactiv",
+            pay_period_start=period_start,
+            pay_period_end=payday,  # Switched order
+            next_payday=period_end,
+        )

@@ -30,6 +30,9 @@ class SavingsAccount(Account):
     interest_rate: Mapped[Optional[Decimal]] = mapped_column(
         Numeric(6, 4), nullable=True, comment="Annual interest rate"
     )
+    routing_number: Mapped[Optional[str]] = mapped_column(
+        String(50), nullable=True, comment="Bank routing number"
+    )
     compound_frequency: Mapped[Optional[str]] = mapped_column(
         String(20),
         nullable=True,

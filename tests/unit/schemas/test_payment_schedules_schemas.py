@@ -311,7 +311,7 @@ def test_datetime_utc_validation():
     now_utc = datetime.now(timezone.utc)
 
     # Test naive datetime in scheduled_date
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         PaymentScheduleBase(
             liability_id=1,
             account_id=2,
@@ -320,14 +320,14 @@ def test_datetime_utc_validation():
         )
 
     # Test non-UTC timezone in update
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         non_utc_tz = timezone(timedelta(hours=5))
         PaymentScheduleUpdate(
             scheduled_date=datetime.now().replace(tzinfo=non_utc_tz)  # Non-UTC timezone
         )
 
     # Test naive datetime in PaymentSchedule
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         PaymentSchedule(
             id=1,
             liability_id=2,

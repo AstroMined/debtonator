@@ -230,7 +230,7 @@ def test_decimal_precision():
 def test_datetime_utc_validation():
     """Test datetime UTC validation per ADR-011"""
     # Test naive datetime
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         BillSplitInDB(
             id=1,
             liability_id=2,
@@ -241,7 +241,7 @@ def test_datetime_utc_validation():
         )
 
     # Test non-UTC timezone
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         BillSplitInDB(
             id=1,
             liability_id=2,

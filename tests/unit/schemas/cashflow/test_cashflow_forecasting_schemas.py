@@ -527,20 +527,20 @@ def test_datetime_utc_validation():
     future = now + timedelta(days=30)
 
     # Test naive datetime in start_date
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         CustomForecastParameters(
             start_date=datetime.now(), end_date=future  # Naive datetime
         )
 
     # Test non-UTC timezone in end_date
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         CustomForecastParameters(
             start_date=now,
             end_date=datetime.now(ZoneInfo("America/New_York")),  # Non-UTC timezone
         )
 
     # Test naive datetime in date
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         CustomForecastResult(
             date=datetime.now(),  # Naive datetime
             projected_balance=Decimal("2500.00"),
@@ -552,7 +552,7 @@ def test_datetime_utc_validation():
         )
 
     # Test non-UTC timezone in timestamp
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         CustomForecastResponse(
             parameters=CustomForecastParameters(start_date=now, end_date=future),
             results=[],

@@ -28,7 +28,10 @@ class SavingsAccountBase(AccountBase):
 
     # Savings-specific fields
     interest_rate: Optional[PercentageDecimal] = Field(
-        default=None, description="Annual interest rate", ge=0, le=100
+        default=None, description="Annual interest rate", ge=0, le=1
+    )
+    routing_number: Optional[str] = Field(
+        default=None, max_length=50, description="Bank routing number"
     )
     compound_frequency: Optional[str] = Field(
         default=None,

@@ -451,13 +451,13 @@ def test_datetime_utc_validation():
     splits = [{"account_id": 1, "amount": Decimal("100.00")}]
 
     # Test naive datetime
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         SplitImpactRequest(
             liability_id=5, splits=splits, start_date=datetime.now()  # Naive datetime
         )
 
     # Test non-UTC timezone
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         SplitImpactRequest(
             liability_id=5,
             splits=splits,

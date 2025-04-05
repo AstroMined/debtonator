@@ -124,7 +124,7 @@ def test_payment_base_validation():
     assert future_payment.payment_date > now
 
     # Invalid payment_date (naive datetime)
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         PaymentBase(**{**valid_data, "payment_date": datetime.now()})
 
     # Invalid description (empty string)
@@ -395,7 +395,7 @@ def test_payment_date_range_validation():
         PaymentDateRange(**invalid_data)
 
     # Invalid: naive datetime
-    with pytest.raises(ValidationError, match="Datetime must be UTC"):
+    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
         PaymentDateRange(
             start_date=datetime.now(), end_date=datetime.now() + timedelta(days=1)
         )

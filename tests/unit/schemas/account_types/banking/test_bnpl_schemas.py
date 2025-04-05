@@ -67,7 +67,7 @@ def test_bnpl_account_create_schema():
     assert bnpl.late_fee == Decimal("25.00")
 
     # Test validation of incorrect account type
-    with pytest.raises(ValidationError, match="Value error at account_type"):
+    with pytest.raises(ValidationError, match="Input should be 'bnpl'"):
         BNPLAccountCreate(
             name="Invalid Type",
             account_type="checking",  # Wrong type
@@ -153,7 +153,7 @@ def test_bnpl_account_response_schema():
     assert bnpl_response.promotion_info == "0% interest if paid within 6 months"
 
     # Test validation of incorrect account type
-    with pytest.raises(ValidationError, match="Value error at account_type"):
+    with pytest.raises(ValidationError, match="Input should be 'bnpl'"):
         BNPLAccountResponse(
             id=1,
             name="Invalid Type",
@@ -193,7 +193,7 @@ def test_bnpl_payment_frequency_validation():
 
     # Test invalid payment frequency
     with pytest.raises(
-        ValidationError, match="value is not a valid enumeration member"
+        ValidationError, match="Payment frequency must be one of:"
     ):
         BNPLAccountCreate(
             name="Invalid Frequency",
@@ -229,20 +229,22 @@ def test_bnpl_provider_validation():
         )
         assert bnpl.bnpl_provider == provider
 
-    # Test custom/other provider
-    bnpl = BNPLAccountCreate(
-        name="Custom Provider",
-        account_type="bnpl",
-        current_balance=Decimal("300.00"),
-        available_balance=Decimal("300.00"),
-        original_amount=Decimal("400.00"),
-        installment_count=4,
-        installments_paid=1,
-        installment_amount=Decimal("100.00"),
-        payment_frequency="monthly",
-        bnpl_provider="Other BNPL Provider",  # Custom provider name
-    )
-    assert bnpl.bnpl_provider == "Other BNPL Provider"
+    # Test invalid provider
+    with pytest.raises(
+        ValidationError, match="BNPL provider must be one of:"
+    ):
+        BNPLAccountCreate(
+            name="Invalid Provider",
+            account_type="bnpl",
+            current_balance=Decimal("300.00"),
+            available_balance=Decimal("300.00"),
+            original_amount=Decimal("400.00"),
+            installment_count=4,
+            installments_paid=1,
+            installment_amount=Decimal("100.00"),
+            payment_frequency="monthly",
+            bnpl_provider="Other BNPL Provider",  # Not in the allowed values
+        )
 
 
 def test_bnpl_installment_validation():
@@ -264,7 +266,7 @@ def test_bnpl_installment_validation():
     assert bnpl.installments_paid == 2
 
     # Test invalid (negative) installment count
-    with pytest.raises(ValidationError, match="greater than or equal to 1"):
+    with pytest.raises(ValidationError, match="Input should be greater than 0"):
         BNPLAccountCreate(
             name="Invalid Installments",
             account_type="bnpl",
@@ -280,7 +282,7 @@ def test_bnpl_installment_validation():
 
     # Test invalid (more paid than total) installments
     with pytest.raises(
-        ValidationError, match="ensure this value is less than or equal to"
+        ValidationError, match="Installments paid cannot exceed"
     ):
         BNPLAccountCreate(
             name="Invalid Installments",
