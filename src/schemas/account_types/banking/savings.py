@@ -101,12 +101,17 @@ class SavingsAccountCreate(SavingsAccountBase):
     """
 
 
-class SavingsAccountResponse(AccountResponse, SavingsAccountBase):
+class SavingsAccountResponse(SavingsAccountBase, AccountResponse):
     """
     Schema for savings account data in API responses.
 
     Extends both the base account response schema and savings account base schema
     to include all fields needed for API responses.
+    
+    Note: The inheritance order is important - SavingsAccountBase must come first
+    to ensure the Literal["savings"] type for account_type is used instead of the
+    string type from AccountResponse. This is required for discriminated unions in Pydantic v2.
     """
 
-    # Inherits fields from both AccountResponse and SavingsAccountBase
+    # Explicitly redeclare the account_type field to ensure the Literal type is used
+    account_type: Literal["savings"] = "savings"

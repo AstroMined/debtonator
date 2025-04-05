@@ -176,12 +176,17 @@ class EWAAccountCreate(EWAAccountBase):
     """
 
 
-class EWAAccountResponse(AccountResponse, EWAAccountBase):
+class EWAAccountResponse(EWAAccountBase, AccountResponse):
     """
     Schema for EWA account data in API responses.
 
     Extends both the base account response schema and EWA account base schema
     to include all fields needed for API responses.
+    
+    Note: The inheritance order is important - EWAAccountBase must come first
+    to ensure the Literal["ewa"] type for account_type is used instead of the
+    string type from AccountResponse. This is required for discriminated unions in Pydantic v2.
     """
 
-    # Inherits fields from both AccountResponse and EWAAccountBase
+    # Explicitly redeclare the account_type field to ensure the Literal type is used
+    account_type: Literal["ewa"] = "ewa"

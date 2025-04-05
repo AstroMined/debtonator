@@ -157,12 +157,17 @@ class CheckingAccountCreate(CheckingAccountBase):
     """
 
 
-class CheckingAccountResponse(AccountResponse, CheckingAccountBase):
+class CheckingAccountResponse(CheckingAccountBase, AccountResponse):
     """
     Schema for checking account data in API responses.
 
     Extends both the base account response schema and checking account base schema
     to include all fields needed for API responses.
+    
+    Note: The inheritance order is important - CheckingAccountBase must come first
+    to ensure the Literal["checking"] type for account_type is used instead of the
+    string type from AccountResponse. This is required for discriminated unions in Pydantic v2.
     """
 
-    # Inherits fields from both AccountResponse and CheckingAccountBase
+    # Explicitly redeclare the account_type field to ensure the Literal type is used
+    account_type: Literal["checking"] = "checking"

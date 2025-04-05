@@ -136,34 +136,40 @@ class BaseSchemaValidator(BaseModel):
             obj, strict=strict, from_attributes=from_attributes, context=context
         )
 
-    @field_validator("*", mode="before")
-    @classmethod
-    def validate_datetime_fields(cls, value: Any) -> Any:
+    # Instead of a wildcard field validator that affects all fields (including discriminators),
+    # we use a model validator to check datetime fields after the model is instantiated
+    @model_validator(mode="after")
+    def validate_datetime_fields(self) -> "BaseSchemaValidator":
         """Validates that all datetime fields have UTC timezone.
-
+        
+        This validator runs after the model is created and ensures that
+        all datetime fields are properly timezone-aware with UTC timezone.
+        
         Args:
-            value: The field value to validate
-
+            self: The model instance
+            
         Returns:
-            The original value if validation passes
-
+            The model instance with validated datetime fields
+            
         Raises:
-            ValueError: If a datetime field is naive (no timezone) or not in UTC
+            ValueError: If any datetime field is naive (no timezone) or not in UTC
         """
-        if isinstance(value, datetime):
-            if value.tzinfo is None:
-                raise ValueError(
-                    f"Datetime must be UTC. "
-                    f"Got naive datetime: {value}. "
-                    "Please provide datetime with UTC timezone (e.g., with Z suffix in ISO format)."
-                )
-            if value.utcoffset().total_seconds() != 0:
-                raise ValueError(
-                    f"Datetime must be UTC. "
-                    f"Got datetime with non-UTC offset: {value} (offset: {value.utcoffset()}). "
-                    "Please provide datetime with UTC timezone (offset zero)."
-                )
-        return value
+        for field_name, field_value in self.__dict__.items():
+            if isinstance(field_value, datetime):
+                if field_value.tzinfo is None:
+                    raise ValueError(
+                        f"Field '{field_name}' must have UTC timezone. "
+                        f"Got naive datetime: {field_value}. "
+                        "Please provide datetime with UTC timezone (e.g., with Z suffix in ISO format)."
+                    )
+                if field_value.utcoffset().total_seconds() != 0:
+                    raise ValueError(
+                        f"Field '{field_name}' must have UTC timezone. "
+                        f"Got datetime with non-UTC offset: {field_value} (offset: {field_value.utcoffset()}). "
+                        "Please provide datetime with UTC timezone (offset zero)."
+                    )
+                    
+        return self
 
     @model_validator(mode="after")
     def validate_decimal_dictionaries(self) -> "BaseSchemaValidator":

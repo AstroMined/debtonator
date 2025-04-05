@@ -183,12 +183,17 @@ class BNPLAccountCreate(BNPLAccountBase):
     """
 
 
-class BNPLAccountResponse(AccountResponse, BNPLAccountBase):
+class BNPLAccountResponse(BNPLAccountBase, AccountResponse):
     """
     Schema for BNPL account data in API responses.
 
     Extends both the base account response schema and BNPL account base schema
     to include all fields needed for API responses.
+    
+    Note: The inheritance order is important - BNPLAccountBase must come first
+    to ensure the Literal["bnpl"] type for account_type is used instead of the
+    string type from AccountResponse. This is required for discriminated unions in Pydantic v2.
     """
 
-    # Inherits fields from both AccountResponse and BNPLAccountBase
+    # Explicitly redeclare the account_type field to ensure the Literal type is used
+    account_type: Literal["bnpl"] = "bnpl"

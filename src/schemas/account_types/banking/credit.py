@@ -166,12 +166,17 @@ class CreditAccountCreate(CreditAccountBase):
     """
 
 
-class CreditAccountResponse(AccountResponse, CreditAccountBase):
+class CreditAccountResponse(CreditAccountBase, AccountResponse):
     """
     Schema for credit account data in API responses.
 
     Extends both the base account response schema and credit account base schema
     to include all fields needed for API responses.
+    
+    Note: The inheritance order is important - CreditAccountBase must come first
+    to ensure the Literal["credit"] type for account_type is used instead of the
+    string type from AccountResponse. This is required for discriminated unions in Pydantic v2.
     """
 
-    # Inherits fields from both AccountResponse and CreditAccountBase
+    # Explicitly redeclare the account_type field to ensure the Literal type is used
+    account_type: Literal["credit"] = "credit"

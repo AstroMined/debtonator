@@ -195,6 +195,48 @@ graph TD
 - PercentageDecimal type for percentage values (4 decimal places)
 - Annotated types with Field constraints for validation
 
+### Pydantic v2 Discriminated Union Pattern
+
+```mermaid
+graph TD
+    A[Base Schema] --> B[Discriminator Field]
+    B --> C[String Type in Base Class]
+    B --> D[Literal Type in Derived Classes]
+    
+    E[Inheritance Order] --> F[Derived First]
+    E --> G[Base Second]
+    
+    H[Validator Placement] --> I[No Before Validators on Discriminator]
+    H --> J[Use After Model Validators Instead]
+    
+    K[Response Type] --> L[Union Type]
+    L --> M[Use Discriminator]
+```
+
+- **Discriminated Union Requirements**:
+  - Discriminator field must be a `Literal` type in derived classes
+  - Base class typically defines it as a string type
+  - No `mode="before"` validators can affect discriminator fields
+  - Inheritance order in response classes is crucial
+
+- **Response Model Inheritance Pattern**:
+  - Put derived class first in inheritance list: `class CheckingResponse(CheckingBase, AccountResponse)`
+  - Explicitly redeclare the discriminator field in each response class
+  - Example: `account_type: Literal["checking"] = "checking"`
+  - This ensures the `Literal` type takes precedence over the string type
+
+- **Validator Pattern for Discriminated Fields**:
+  - Avoid wildcard field validators that apply to all fields (`@field_validator("*")`)
+  - Use model-level validators with `mode="after"` for field validation
+  - For fields that could be discriminators, implement type-specific validation in service layer
+  - Move domain validation from schema to service layer when using discriminated unions
+
+- **Common Pydantic v2 Issues to Avoid**:
+  - `mode="before"` validators on discriminator fields cause runtime errors
+  - Incorrect inheritance order leads to string type precedence over Literal
+  - Wildcard field validators affect discriminator fields even if conditional logic tries to skip them
+  - These issues often appear during schema generation, before any validation code runs
+
 ## Service Patterns
 
 ### Pattern Analysis

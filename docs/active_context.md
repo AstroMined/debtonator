@@ -6,12 +6,17 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 
 ### Recent Changes
 
-1. **Implemented Service Layer for Account Types and Feature Flags (April 4, 2025)** ✓
+1. **Implemented Service Layer for Account Types and Fixed Pydantic v2 Discriminated Union Issues (April 4, 2025)** ✓
    - Moved account type validation from schemas to service layer to resolve conflict with Pydantic discriminated unions
    - Enhanced feature flag integration in account creation and validation workflows
    - Implemented `get_banking_overview` and related methods for comprehensive financial data across all account types
    - Added support for type-specific account handling via the feature flag-aware type registry system
-   - Fixed polymorphic schema validation issues with discriminated unions in Pydantic v2
+   - Fixed polymorphic schema validation issues with discriminated unions in Pydantic v2:
+     - Removed wildcard `field_validator("*", mode="before")` that conflicted with discriminator fields
+     - Changed inheritance order in all account response classes to prioritize concrete types with Literal fields
+     - Added explicit redeclaration of discriminator fields in response classes
+     - Used model-level validators with `mode="after"` instead of field-level validators
+     - Documented the pattern in system_patterns.md for future reference
 
 2. **Implemented Repository Layer Tests for Account Types (April 3, 2025)** ✓
    - Created comprehensive integration tests for the modular repository pattern
@@ -90,12 +95,12 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Create tests for different feature flag states
    - Add tests for multi-currency and international field handling
 
-4. **Fix Remaining Pydantic v2 Discriminator Validator Issues**
-   - Address validator conflict with discriminator fields in account type response models
-   - Ensure proper handling of field validators in discriminated unions
-   - Move specific validation logic to service layer where needed
-   - Document validation approach for Pydantic v2 discriminated unions
-   - Create comprehensive test cases for polymorphic validation
+4. **Update Test Cases for Polymorphic Validation**
+   - Extend test coverage for the new Pydantic v2 discriminated union pattern
+   - Create comprehensive test cases for all account types
+   - Test proper handling of inheritance and discriminator fields
+   - Add tests for model validation in discriminated union context
+   - Ensure test factory compatibility with discriminated union models
 
 5. **Complete Schema Factory Development**
    - Implement schema factories for all account types

@@ -7,6 +7,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.73] - 2025-04-04
+
+### Fixed
+
+- Fixed Pydantic v2 discriminated union errors with account type schemas:
+  - Removed wildcard field validator that conflicted with discriminator fields
+  - Changed inheritance order in all account response classes to prioritize concrete types with Literal fields
+  - Added explicit redeclaration of discriminator fields in response classes
+  - Used model-level validators with mode="after" instead of field-level validators
+  - Fixed test failures related to Pydantic discriminator field validation
+- Documented the Pydantic v2 Discriminated Union Pattern in system_patterns.md for future reference
+
+### Technical
+
+- Implements ADR-016 (Account Type Expansion)
+- Implements ADR-019 (Banking Account Types Expansion)
+- Implements ADR-024 (Feature Flags)
+
 ## [0.5.72] - 2025-04-04
 
 ### Added
