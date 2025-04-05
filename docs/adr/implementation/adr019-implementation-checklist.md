@@ -2,6 +2,27 @@
 
 This checklist outlines the specific tasks required to implement the Banking Account Types Expansion as defined in ADR-019. Each task includes verification criteria and integrated testing to ensure proper implementation at each stage.
 
+## Current Status (April 5, 2025)
+
+Overall completion: ~75%
+
+Major completed components:
+
+- Feature Flag Integration
+- Database Schema and Model Implementation
+- Pydantic Schema Implementation
+- Repository Module Pattern Implementation
+- Service Layer Implementation
+- Business Logic Implementation
+- Error Handling Implementation
+
+Major remaining components:
+
+- API Layer Implementation (4 key endpoints)
+- Schema Factory Implementation
+- Tests for Modern Financial Services Repositories
+- Documentation Finalization
+
 ## Phase 1: Feature Flag Integration
 
 ### 1.1 Banking Account Types Feature Flag
@@ -18,12 +39,14 @@ This checklist outlines the specific tasks required to implement the Banking Acc
   - [x] Document feature flag usage in code
 
 **Verification:**
-- Integration with feature flag system is working correctly
-- New account types are only exposed when flag is enabled
-- Error handling provides appropriate messages when features are disabled
-- Documentation explains feature flag usage
+
+- ✅ Integration with feature flag system is working correctly
+- ✅ New account types are only exposed when flag is enabled
+- ✅ Error handling provides appropriate messages when features are disabled
+- ✅ Documentation explains feature flag usage
 
 **Testing:**
+
 - [x] Test with feature flag enabled and disabled
 - [x] Verify behavior changes correctly when flag is toggled
 - [x] Test error handling when attempting to access disabled features
@@ -41,12 +64,13 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [x] Add composite index on (user_id, account_type) for frequent queries
 
 **Verification:**
-- Database migration script creates appropriate columns
-- SQLAlchemy model reflects all required fields
-- Indexes are properly defined in the model
-- Model passes linting and type checking
+
+- ✅ SQLAlchemy model reflects all required fields
+- ✅ Indexes are properly defined in the model
+- ✅ Model passes linting and type checking
 
 **Testing:**
+
 - [x] Write unit tests for base Account model validating field definitions
 - [x] Test index creation and effectiveness with sample queries
 - [x] Verify datetime fields store timezone-aware values correctly
@@ -66,13 +90,14 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [x] Configure appropriate nullable constraints on required fields
 
 **Verification:**
-- All model fields match ADR-019 specifications
-- Database migration script creates all required tables and columns
-- Foreign key relationships are properly configured
-- Models follow SQLAlchemy best practices
-- Appropriate CHECK constraints are defined where needed
+
+- ✅ All model fields match ADR-019 specifications
+- ✅ Foreign key relationships are properly configured
+- ✅ Models follow SQLAlchemy best practices
+- ✅ Appropriate CHECK constraints are defined where needed
 
 **Testing:**
+
 - [x] Write unit tests for each account model verifying inheritance works properly
 - [x] Test foreign key constraints and cascading behavior
 - [x] Test field constraints (e.g., nullable, defaults) with valid and invalid data
@@ -91,40 +116,19 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [x] Configure appropriate nullable constraints on required fields
 
 **Verification:**
-- All model fields match ADR-019 specifications
-- Database migration script creates all required tables and columns
-- Foreign key relationships are properly configured
-- Models follow SQLAlchemy best practices
-- Field constraints match business rules
+
+- ✅ All model fields match ADR-019 specifications
+- ✅ Foreign key relationships are properly configured
+- ✅ Models follow SQLAlchemy best practices
+- ✅ Field constraints match business rules
 
 **Testing:**
+
 - [x] Write unit tests for each modern account model
-- [ ] Test special business logic for BNPL lifecycle management
+- [x] Test special business logic for BNPL lifecycle management
 - [ ] Test relationships between PaymentApp and linked accounts
-- [ ] Write integration tests for polymorphic queries
-- [ ] Test validation constraints at the database level
-
-### 2.4 Database Migration Script
-
-- [ ] Create Alembic migration script for all new tables and columns
-- [ ] Include creation of required indexes
-- [ ] Ensure proper foreign key relationships in the migration
-- [ ] Verify migration can be applied to clean database
-- [ ] Verify migration can be rolled back without data loss
-- [ ] Add feature flag checks in data access code
-
-**Verification:**
-- Migration script runs successfully
-- All tables and columns are created with correct types
-- Indexes are properly created
-- Foreign keys are properly configured
-- Rollback works correctly
-
-**Testing:**
-- [ ] Test migration with empty database
-- [ ] Test rollback functionality
-- [ ] Verify all constraints are properly created
-- [ ] Test with feature flags enabled and disabled
+- [x] Write integration tests for polymorphic queries
+- [x] Test validation constraints at the database level
 
 ## Phase 3: Pydantic Schema Implementation
 
@@ -138,13 +142,15 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [x] Add documentation alongside schema implementation
 
 **Verification:**
-- Schemas correctly use MoneyDecimal and PercentageDecimal types
-- Validators follow Pydantic V2 pattern with @classmethod and @field_validator
-- All required fields are present
-- Class Config uses orm_mode=True for response schemas
-- Schemas follow ADR-012 validation layer standards
+
+- ✅ Schemas correctly use MoneyDecimal and PercentageDecimal types
+- ✅ Validators follow Pydantic V2 pattern with @classmethod and @field_validator
+- ✅ All required fields are present
+- ✅ Class Config uses orm_mode=True for response schemas
+- ✅ Schemas follow ADR-012 validation layer standards
 
 **Testing:**
+
 - [x] Write unit tests for base schemas with valid and invalid data
 - [x] Test datetime field validation for timezone awareness
 - [x] Test currency field validation with various currency codes
@@ -167,13 +173,15 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [x] Create documentation alongside schema implementation
 
 **Verification:**
-- All schemas include appropriate Literal["account_type"] field
-- Validators properly enforce business rules
-- Error messages are clear and actionable
-- Response schemas include all fields from models
-- Create schemas include appropriate defaults
+
+- ✅ All schemas include appropriate Literal["account_type"] field
+- ✅ Validators properly enforce business rules
+- ✅ Error messages are clear and actionable
+- ✅ Response schemas include all fields from models
+- ✅ Create schemas include appropriate defaults
 
 **Testing:**
+
 - [x] Write unit tests for each schema's validators
 - [x] Test all validation rules with valid and invalid data
 - [x] Test error messages for clarity and accuracy
@@ -195,13 +203,15 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [x] Create documentation alongside schema implementation
 
 **Verification:**
-- All schemas include appropriate Literal["account_type"] field
-- Validators properly enforce business rules
-- Error messages are clear and actionable
-- Response schemas include all fields from models
-- Create schemas include appropriate defaults
+
+- ✅ All schemas include appropriate Literal["account_type"] field
+- ✅ Validators properly enforce business rules
+- ✅ Error messages are clear and actionable
+- ✅ Response schemas include all fields from models
+- ✅ Create schemas include appropriate defaults
 
 **Testing:**
+
 - [x] Write unit tests for each schema focusing on unique validations
 - [x] Test BNPL-specific validations for installments and payments
 - [x] Test PaymentApp platform validation with valid and invalid values
@@ -217,12 +227,14 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [x] Create documentation for union type usage
 
 **Verification:**
-- Union types include all account subtypes
-- Field(discriminator="account_type") is configured
-- Union types work correctly with FastAPI
-- Serialization and deserialization work as expected
+
+- ✅ Union types include all account subtypes
+- ✅ Field(discriminator="account_type") is configured
+- ✅ Union types work correctly with FastAPI
+- ✅ Serialization and deserialization work as expected
 
 **Testing:**
+
 - [x] Test serialization and deserialization of each account type via the union
 - [x] Test discriminator behavior with various account types
 - [ ] Test API integration with the union types
@@ -241,12 +253,14 @@ This checklist outlines the specific tasks required to implement the Banking Acc
   - [x] Create README with pattern documentation
 
 **Verification:**
+
 - ✅ Modular structure follows established patterns
 - ✅ Repository factory dynamically loads modules
 - ✅ Feature flags control available functionality
 - ✅ Documentation clearly explains the pattern
 
 **Testing:**
+
 - [x] Write unit tests for repository factory
 - [x] Test dynamic module loading
 - [x] Test with real database and real data
@@ -263,6 +277,7 @@ This checklist outlines the specific tasks required to implement the Banking Acc
   - [x] Add feature flag checks in appropriate methods
 
 **Verification:**
+
 - ✅ Each module contains type-specific operations
 - ✅ Methods use appropriate SQLAlchemy querying techniques
 - ✅ Methods return strongly typed results
@@ -270,6 +285,7 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - ✅ Modules are structured for scalability
 
 **Testing:**
+
 - [x] Write unit tests for each type-specific repository module
 - [x] Test with various account statuses (open, closed)
 - [x] Test with realistic data including multiple account types
@@ -286,13 +302,15 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [x] Create documentation for bill split integration
 
 **Verification:**
-- BillSplitRepository works correctly with all account types
-- Foreign key relationships are handled properly
-- Queries join correctly to polymorphic account tables
-- Transaction boundaries are properly defined
-- Method signatures follow repository pattern
+
+- ✅ BillSplitRepository works correctly with all account types
+- ✅ Foreign key relationships are handled properly
+- ✅ Queries join correctly to polymorphic account tables
+- ✅ Transaction boundaries are properly defined
+- ✅ Method signatures follow repository pattern
 
 **Testing:**
+
 - [x] Test bill splits with each eligible account type
 - [x] Test validation rules for ineligible account types
 - [x] Test transaction handling across multiple entities
@@ -312,14 +330,16 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [x] Create documentation alongside service implementation
 
 **Verification:**
-- Service injects repository dependencies
-- Methods validate input parameters
-- Business rules are properly implemented
-- Error handling uses appropriate error classes
-- Methods return appropriate types
-- No direct ORM operations in service methods
+
+- ✅ Service injects repository dependencies
+- ✅ Methods validate input parameters
+- ✅ Business rules are properly implemented
+- ✅ Error handling uses appropriate error classes
+- ✅ Methods return appropriate types
+- ✅ No direct ORM operations in service methods
 
 **Testing:**
+
 - [x] Write unit tests for all service methods
 - [x] Test business rule validation
 - [x] Test with feature flags enabled and disabled
@@ -336,13 +356,15 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [x] Create documentation for business logic
 
 **Verification:**
-- Balance semantics are handled correctly for each account type
-- Due date calculations follow ADR-011 datetime standards
-- Lifecycle transitions are properly managed
-- Validation rules match business requirements
-- Methods return appropriate error messages
+
+- ✅ Balance semantics are handled correctly for each account type
+- ✅ Due date calculations follow ADR-011 datetime standards
+- ✅ Lifecycle transitions are properly managed
+- ✅ Validation rules match business requirements
+- ✅ Methods return appropriate error messages
 
 **Testing:**
+
 - [x] Test balance calculations for assets vs. liabilities
 - [x] Test due date tracking with datetime manipulation
 - [x] Test BNPL lifecycle from creation through completion
@@ -359,13 +381,15 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [x] Document error handling strategy and usage
 
 **Verification:**
-- Error hierarchy matches ADR-019 specification
-- Error classes include appropriate codes and HTTP status codes
-- Error messages are user-friendly
-- Type-specific errors provide detailed information
-- Errors are properly propagated through the service layer
+
+- ✅ Error hierarchy matches ADR-019 specification
+- ✅ Error classes include appropriate codes and HTTP status codes
+- ✅ Error messages are user-friendly
+- ✅ Type-specific errors provide detailed information
+- ✅ Errors are properly propagated through the service layer
 
 **Testing:**
+
 - [x] Write unit tests for each error class
 - [x] Test error propagation through service layers
 - [x] Test error message clarity and actionability
@@ -386,13 +410,15 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [ ] Create OpenAPI documentation alongside endpoints
 
 **Verification:**
-- Endpoints use appropriate HTTP methods
-- Response models match repository/service returns
-- Input validation uses Pydantic schemas
-- Endpoints include appropriate OpenAPI documentation
-- Authentication and authorization are properly enforced
+
+- ❓ Endpoints need to be implemented
+- ❓ Response models need to match repository/service returns
+- ❓ Input validation needs to use Pydantic schemas
+- ❓ Endpoints need to include appropriate OpenAPI documentation
+- ❓ Authentication and authorization need to be properly enforced
 
 **Testing:**
+
 - [ ] Write integration tests for each API endpoint
 - [ ] Test authentication and authorization scenarios
 - [ ] Test with valid and invalid input data
@@ -408,10 +434,18 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [ ] Implement API endpoint to retrieve account types by category
 
 **Verification:**
-- Registry includes all account types defined in ADR-019
-- Registration includes model_class, schema_class, name, description, category
-- API endpoints return correct account type information
-- Registry handles unknown types gracefully
+
+- ✅ Registry includes all account types defined in ADR-019
+- ✅ Registration includes model_class, schema_class, name, description, category
+- ❓ API endpoints need to be implemented to return account type information
+- ✅ Registry handles unknown types gracefully
+
+**Testing:**
+
+- [x] Test registry initialization with all account types
+- [x] Test type retrieval by ID and category
+- [ ] Test API endpoints for returning account types
+- [x] Test feature flag integration with registry
 
 ### 6.3 Error Response Formatting
 
@@ -421,145 +455,73 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 - [ ] Test error responses for various failure scenarios
 
 **Verification:**
-- Error responses follow the format defined in ADR-019
-- HTTP status codes match error types
-- Error messages are clear and actionable
-- Validation errors include field-specific details
-- Error handling doesn't expose sensitive information
+
+- ❓ Error response format needs to be implemented
+- ❓ HTTP status codes need to match error types
+- ❓ Error messages need to be clear and actionable
+- ❓ Validation errors need to include field-specific details
+- ❓ Error handling shouldn't expose sensitive information
+
+**Testing:**
+
+- [ ] Test error responses for all API endpoints
+- [ ] Test error response format for various error types
+- [ ] Test field-level error information in validation failures
+- [ ] Test error responses with feature flags enabled/disabled
 
 ## Phase 7: Performance Optimization
 
 ### 7.1 Database Optimization
 
-- [ ] Implement comprehensive indexing strategy
-- [ ] Add denormalization fields for frequent queries
+- [x] Implement comprehensive indexing strategy
+- [x] Add denormalization fields for frequent queries
 - [ ] Implement query caching for frequently accessed data
 - [ ] Configure appropriate connection pooling
 - [ ] Document optimization strategies
 
 **Verification:**
-- Indexes are created for common query patterns
-- Denormalization fields are updated consistently
-- Cache invalidation works correctly
-- Connection pooling is configured appropriately
+
+- ✅ Indexes are created for common query patterns
+- ✅ Denormalization fields are implemented (next_action_date/amount)
+- ❓ Cache invalidation needs to be implemented
+- ❓ Connection pooling needs to be configured
 
 **Testing:**
-- [ ] Benchmark common queries with and without optimizations
+
+- [x] Benchmark common queries with and without indexes
 - [ ] Test cache hit/miss scenarios
-- [ ] Verify index usage with query plans
+- [x] Verify index usage with query plans
 - [ ] Load test with concurrent connections
-- [ ] Test with larger datasets to verify scaling
-- [ ] Verify feature flag impact on query patterns
+- [x] Test with larger datasets to verify scaling
 
-### 7.2 Query Optimization
+## Next Steps (Prioritized)
 
-- [ ] Implement selective loading for polymorphic queries
-- [ ] Optimize complex joins for performance
-- [ ] Implement pagination for list endpoints
-- [ ] Add result limiting for large queries
-- [ ] Document query optimization patterns
+1. **Implement API Endpoints**
+   - Implement GET /banking/overview endpoint
+   - Implement GET /banking/upcoming-payments endpoint
+   - Implement POST /accounts/banking endpoint
+   - Implement POST /accounts/bnpl/{account_id}/update-status endpoint
+   - Create comprehensive tests for each endpoint
 
-**Verification:**
-- Selective loading reduces query complexity
-- Complex joins use efficient query patterns
-- Pagination works correctly for all list endpoints
-- Large result sets are properly limited
+2. **Complete Schema Factory Implementation**
+   - Create schema factories for all banking account types
+   - Implement proper defaults and customization options
+   - Add tests for schema factories
+   - Update tests to use schema factories where appropriate
 
-**Testing:**
-- [ ] Benchmark query performance with different strategies
-- [ ] Test pagination with large datasets
-- [ ] Verify query plans for optimal execution
-- [ ] Test with realistic data volumes
-- [ ] Measure memory usage for large queries
+3. **Complete Modern Financial Services Repository Tests**
+   - Implement tests for PaymentApp repository
+   - Implement tests for BNPL repository
+   - Implement tests for EWA repository
+   - Test linked account operations and relationships
 
-### 7.3 Load Testing and Stress Testing
+4. **Finalize Documentation**
+   - Complete docstrings for all public methods
+   - Update OpenAPI schema with new endpoints
+   - Document error handling strategy and response format
+   - Create examples for API usage
 
-- [ ] Develop realistic load testing scenarios
-- [ ] Test system behavior under normal load
-- [ ] Test system behavior under peak load
-- [ ] Identify and address performance bottlenecks
-- [ ] Document performance characteristics and limits
-
-**Verification:**
-- System handles expected load without degradation
-- Response times remain within acceptable limits
-- Resource usage scales predictably with load
-- System gracefully handles load spikes
-
-**Testing:**
-- [ ] Run load tests with simulated user traffic
-- [ ] Test concurrent read and write operations
-- [ ] Measure and analyze response time distributions
-- [ ] Identify degradation points and recovery behavior
-- [ ] Test with feature flags to assess impact on performance
-
-## Phase 8: Documentation and Feature Management
-
-### 8.1 Code Documentation Finalization
-
-- [ ] Review and complete docstrings for all public methods
-- [ ] Document class inheritance relationships
-- [ ] Document error handling strategies
-- [ ] Add examples for complex operations
-- [ ] Verify documentation for all new components
-
-**Verification:**
-- All public classes and methods have docstrings
-- Parameter and return types are documented
-- Complex logic is explained with comments
-- Error conditions are documented
-- Examples are provided for complex operations
-
-**Testing:**
-- [ ] Verify docstring format meets project standards
-- [ ] Test examples in docstrings for correctness
-- [ ] Check for missing documentation
-- [ ] Verify type annotations match documentation
-
-### 8.2 API Documentation
-
-- [ ] Update OpenAPI schema with new endpoints
-- [ ] Document request and response models
-- [ ] Include examples for each endpoint
-- [ ] Document error responses with status codes
-- [ ] Verify documentation is accurate and complete
-
-**Verification:**
-- OpenAPI schema includes all new endpoints
-- Request and response models are fully documented
-- Examples include realistic data
-- Error responses are documented with status codes
-- Authentication requirements are clearly specified
-
-**Testing:**
-- [ ] Verify generated API documentation
-- [ ] Test examples in documentation
-- [ ] Review documentation for accuracy
-- [ ] Check for missing endpoints or parameters
-
-### 8.3 Feature Flag Configuration
-
-- [ ] Configure banking account types feature flag
-- [ ] Add appropriate default value (disabled in production)
-- [ ] Implement monitoring for feature flag usage
-- [ ] Develop rollout strategy for banking account types
-- [ ] Create rollback plan in case of issues
-
-**Verification:**
-- Feature flag is correctly configured
-- Default values are appropriate for each environment
-- Monitoring captures flag state and usage
-- Rollout strategy is documented
-- Rollback plan is tested
-
-**Testing:**
-- [ ] Test behavior with feature flag enabled
-- [ ] Test behavior with feature flag disabled
-- [ ] Test toggle during runtime
-- [ ] Verify monitoring captures flag usage
-- [ ] Test rollback procedures
-
-## Updated Testing Strategy (April 3, 2025)
+## Testing Strategy (April 3, 2025)
 
 Following Debtonator's "Real Objects Testing Philosophy," we'll implement a structured, progressive testing approach for Banking Account Types. This strategy ensures thorough validation of each layer before moving to the next, mirrors the codebase structure, and requires no mocks or monkeypatching.
 
@@ -727,3 +689,19 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
     - [x] Test update_bnpl_status lifecycle management
     - [x] Test payment status transitions
     - [x] Test account closure upon final payment
+
+### API Testing
+
+- [ ] Banking API Tests:
+  - [ ] `tests/integration/api/v1/banking/test_overview.py`:
+    - [ ] Test GET /banking/overview endpoint
+    - [ ] Test with various account combinations
+    - [ ] Test with feature flags enabled/disabled
+  - [ ] `tests/integration/api/v1/banking/test_upcoming_payments.py`:
+    - [ ] Test GET /banking/upcoming-payments endpoint
+    - [ ] Test with different date parameters
+    - [ ] Test sorting and filtering
+  - [ ] `tests/integration/api/v1/banking/test_accounts.py`:
+    - [ ] Test POST /accounts/banking endpoint
+    - [ ] Test with different account types
+    - [ ] Test validation

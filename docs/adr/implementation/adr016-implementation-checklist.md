@@ -2,6 +2,26 @@
 
 This checklist focuses specifically on implementing the core polymorphic architecture described in ADR-016, which establishes the foundation for the account type expansion project. The subsequent specialized account types will be implemented through separate ADRs (ADR-019 through ADR-023).
 
+## Current Status (April 5, 2025)
+
+Overall completion: ~80%
+
+Major completed components:
+- Base Account Model and polymorphic inheritance structure
+- Account Type Registry
+- Base Schema Architecture with discriminated unions
+- Repository Layer with polymorphic operations
+- Service Layer with type-specific validation
+- Bill Split integration with account types
+- Testing infrastructure for all completed components
+
+Major remaining components:
+- Update existing code to use `account_type` instead of `type`
+- Complete Multi-Currency and Internationalization support
+- Implement Error Handling System
+- Complete API Integration
+- Create Schema Factories
+
 ## Base Account Model
 
 - [x] Refactor existing Account model to use polymorphic inheritance:
@@ -83,23 +103,23 @@ This checklist focuses specifically on implementing the core polymorphic archite
 
 ## Feature Flag Integration
 
-- [ ] Integrate with feature flag system from ADR-024:
-  - [ ] Add feature flag support to AccountRepository
-  - [ ] Add feature flag support to AccountService
+- [x] Integrate with feature flag system from ADR-024:
+  - [x] Add feature flag support to AccountRepository
+  - [x] Add feature flag support to AccountService
   - [ ] Add feature flag checks to API endpoints
-  - [ ] Configure feature flags for account type expansion features
+  - [x] Configure feature flags for account type expansion features
 
-- [ ] Add specific feature flags:
-  - [ ] Create `MULTI_CURRENCY_SUPPORT_ENABLED` flag
-  - [ ] Create `INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED` flag
-  - [ ] Configure default values (disabled in production)
-  - [ ] Document flag behavior in code
+- [x] Add specific feature flags:
+  - [x] Create `MULTI_CURRENCY_SUPPORT_ENABLED` flag
+  - [x] Create `INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED` flag
+  - [x] Configure default values (disabled in production)
+  - [x] Document flag behavior in code
 
-- [ ] Update model behavior with feature flags:
-  - [ ] Add conditional validation based on feature flags
-  - [ ] Filter fields based on enabled features
-  - [ ] Add graceful degradation for disabled features
-  - [ ] Ensure backward compatibility when flags are disabled
+- [x] Update model behavior with feature flags:
+  - [x] Add conditional validation based on feature flags
+  - [x] Filter fields based on enabled features
+  - [x] Add graceful degradation for disabled features
+  - [x] Ensure backward compatibility when flags are disabled
 
 - [x] Create feature flag tests:
   - [x] Test behavior with flags enabled
@@ -119,13 +139,13 @@ This checklist focuses specifically on implementing the core polymorphic archite
   - [x] Set up singleton pattern for registry access
   - [x] Add integration with feature flag system to filter available types
 
-- [ ] Create `tests/unit/registry/test_account_type_registry.py`:
-  - [ ] Test registration of account types
-  - [ ] Test retrieval of model and schema classes
-  - [ ] Test filtering by category
-  - [ ] Test registry initialization with base types
-  - [ ] Test error handling for unknown types
-  - [ ] Test feature flag integration for type availability
+- [x] Create `tests/unit/registry/test_account_type_registry.py`:
+  - [x] Test registration of account types
+  - [x] Test retrieval of model and schema classes
+  - [x] Test filtering by category
+  - [x] Test registry initialization with base types
+  - [x] Test error handling for unknown types
+  - [x] Test feature flag integration for type availability
 
 ## Base Schema Architecture
 
@@ -432,12 +452,12 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
 
 ### Registry Testing
 
-- [ ] Account Type Registry Tests (`tests/unit/registry/test_account_types.py`):
-  - [ ] Test registration of account types
-  - [ ] Verify retrieval of model and schema classes
-  - [ ] Test filtering by category
-  - [ ] Test get_repository_module() functionality
-  - [ ] Verify feature flag integration for type availability
+- [x] Account Type Registry Tests (`tests/unit/registry/test_account_types.py`):
+  - [x] Test registration of account types
+  - [x] Verify retrieval of model and schema classes
+  - [x] Test filtering by category
+  - [x] Test get_repository_module() functionality
+  - [x] Verify feature flag integration for type availability
 
 ### Integration Testing
 
@@ -488,6 +508,37 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
   - [x] Test with feature flags enabled/disabled
   - [x] Document feature flag requirements
 
+## Next Steps (Prioritized)
+
+1. **Update all existing code to use `account_type` instead of `type`**
+   - Scan codebase for references to account.type
+   - Update API references to use account_type
+   - Update service layer to use account_type
+   - Fix any remaining test fixtures using type instead of account_type
+
+2. **Create account-specific error hierarchy**
+   - Implement AccountError base class and specialized subclasses
+   - Add feature flag-related error classes
+   - Implement consistent error handling across layers
+   - Create comprehensive test suite for error classes
+
+3. **Complete Schema Factory implementation**
+   - Create/update base account factory functions
+   - Set up structure for type-specific factories
+   - Implement factories for all account types
+   - Add tests for schema factories
+
+4. **Update API endpoints**
+   - Add polymorphic support to existing endpoints
+   - Implement endpoint to list available account types
+   - Add proper error handling and status codes
+   - Create comprehensive API tests
+
+5. **Complete multi-currency and internationalization support**
+   - Implement currency-related utilities
+   - Create international banking validation functions
+   - Update schemas with appropriate validation
+
 ## Final Verification
 
 Before completing ADR-016 implementation, verify:
@@ -506,7 +557,7 @@ Before completing ADR-016 implementation, verify:
    - [x] Registry has comprehensive tests
    - [x] Schema validation is thoroughly tested
    - [x] Repository methods have appropriate tests
-   - [ ] Service methods have business rule tests
+   - [x] Service methods have business rule tests
    - [ ] API endpoints have response tests
    - [x] Feature flag behavior is tested
    - [x] Currency support is tested
@@ -522,7 +573,7 @@ Before completing ADR-016 implementation, verify:
    - [x] International banking support is documented
 
 4. **Dependency Updates**:
-   - [ ] Service layer uses registry properly
+   - [x] Service layer uses registry properly
    - [ ] API layer integrates with polymorphic models
    - [x] Repository factories support new architecture
    - [x] Feature flag service is properly injected
