@@ -145,12 +145,15 @@ def create_payment_app_account_response_schema(
         supports_crypto=supports_crypto,
     )
 
+    # Convert the Pydantic model to a dictionary
+    base_dict = base_data.model_dump()
+
     # Add response-specific fields
     response_data = {
         "id": id,
         "created_at": created_at,
         "updated_at": updated_at,
-        **base_data,
+        **base_dict,
     }
 
     # Add any additional fields from kwargs

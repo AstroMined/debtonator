@@ -7,6 +7,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.77] - 2025-04-05
+
+### Changed
+
+- Refactored schema factory tests into modular files by account type
+- Fixed all datetime handling in tests to use `utc_now()` and `utc_datetime()` utils for ADR-011 compliance
+- Updated implementation checklists for ADRs 016, 019, and 024 to reflect progress
+
+### Fixed
+
+- Removed monolithic test_factories.py in favor of modular approach
+- Fixed timezone handling in all schema factory tests
+
 ## [0.5.76] - 2025-04-05
 
 ### Added

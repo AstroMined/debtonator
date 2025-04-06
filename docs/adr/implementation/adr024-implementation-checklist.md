@@ -359,6 +359,7 @@ Major remaining components:
   - [x] Test behavior with flag disabled
   - [x] Test transitions between states
   - [x] Test error handling
+  - [x] Ensure ADR-011 compliance for datetime handling in tests
 
 ### 6.2 Multi-Currency Support Flag Integration ✅
 

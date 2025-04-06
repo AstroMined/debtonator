@@ -38,7 +38,7 @@
    - Get_banking_overview implementation (100%) ✓
    - Get_upcoming_payments implementation (100%) ✓
 
-5. __Account Type Expansion__: IN PROGRESS (75%)
+5. __Account Type Expansion__: IN PROGRESS (85%)
    - Base Account Architecture (100%) ✓
    - Database Schema and Model Implementation (100%) ✓
    - Pydantic Schema Implementation (100%) ✓
@@ -47,8 +47,9 @@
    - Traditional Banking Account Types Tests (100%) ✓
    - Modern Financial Account Types Tests (50%)
    - Service Layer Implementation (100%) ✓
+   - Schema Factory Implementation (100%) ✓ 
    - API Layer Integration (0%)
-   - Documentation (75%) ✓
+   - Documentation (85%) ✓
    - Configuration and Initialization (85%) ✓
    - Bill Split Integration (90%) ✓
    - Polymorphic Schema Validation Implementation (100%) ✓

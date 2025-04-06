@@ -6,40 +6,40 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 
 ### Recent Changes
 
-1. **Implemented Hierarchical Error Handling for Account Types (April 5, 2025)** ✓
+1. **Implemented Schema Factories with ADR-011 Compliance (April 5, 2025)** ✓
+   - Refactored schema factory tests into modular files by account type
+   - Fixed datetime handling to use `utc_now()` and `utc_datetime()` utils for ADR-011 compliance
+   - Ensured proper datetime timezone-aware handling across all schema factories
+   - Modularized test structure to match source code organization
+   - Updated implementation checklists for ADRs 016, 019, and 024
+
+2. **Implemented Hierarchical Error Handling for Account Types (April 5, 2025)** ✓
    - Created modular account-specific error hierarchy with proper inheritance
    - Implemented consistent naming convention with account type prefixes (e.g., CheckingOverdraftError)
    - Structured errors in modular directory matching domain model with proper `__init__.py` exports
    - Created base account error classes with standardized parameter handling
    - Applied "No Tech Debt" policy by fixing naming issues immediately
 
-2. **Fixed UTC Timezone Validation and Datetime Handling Issues (April 5, 2025)** ✓
+3. **Fixed UTC Timezone Validation and Datetime Handling Issues (April 5, 2025)** ✓
    - Fixed `LiabilityDateRange` validator to properly handle timezone-aware comparisons
    - Changed field validator to model validator with proper `ensure_utc()` calls
    - Fixed SQLAlchemy column validation to avoid direct boolean evaluation
    - Ensured all test classes use `utc_now()` instead of `datetime.now()` for default factories
    - Created missing `DepositScheduleResponse` schema with proper field definitions
 
-3. **Implemented Service Layer for Account Types and Fixed Pydantic v2 Discriminated Union Issues (April 4, 2025)** ✓
+4. **Implemented Service Layer for Account Types and Fixed Pydantic v2 Discriminated Union Issues (April 4, 2025)** ✓
    - Moved account type validation from schemas to service layer to resolve conflict with Pydantic discriminated unions
    - Enhanced feature flag integration in account creation and validation workflows
    - Implemented `get_banking_overview` and related methods for comprehensive financial data
    - Fixed polymorphic schema validation issues with discriminated unions in Pydantic v2
    - Added support for type-specific account handling via the feature flag-aware type registry system
 
-4. **Implemented Repository Layer Tests for Account Types (April 3, 2025)** ✓
+5. **Implemented Repository Layer Tests for Account Types (April 3, 2025)** ✓
    - Created comprehensive integration tests for the modular repository pattern
    - Implemented tests for repository factory with dynamic module loading
    - Added tests for checking, savings, and credit account repositories
    - Created feature flag integration tests for banking account types
    - Added tests for bill splits with polymorphic account types
-
-5. **Fixed Polymorphic Identity Warnings and Test Layer Separation (April 3, 2025)** ✓
-   - Resolved SQLAlchemy warnings about incompatible polymorphic identity
-   - Updated account fixtures to use proper polymorphic subclasses
-   - Moved service-dependent tests from model unit tests to integration test files
-   - Fixed test failures in CashflowForecast model tests
-   - Added "Polymorphic Identity Pattern" section to system_patterns.md
 
 ## Next Steps
 

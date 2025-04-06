@@ -4,7 +4,7 @@ This checklist outlines the specific tasks required to implement the Banking Acc
 
 ## Current Status (April 5, 2025)
 
-Overall completion: ~75%
+Overall completion: ~85%
 
 Major completed components:
 
@@ -15,11 +15,12 @@ Major completed components:
 - Service Layer Implementation
 - Business Logic Implementation
 - Error Handling Implementation
+- Schema Factory Implementation for all banking account types
+- ADR-011 compliant datetime handling in tests
 
 Major remaining components:
 
 - API Layer Implementation (4 key endpoints)
-- Schema Factory Implementation
 - Tests for Modern Financial Services Repositories
 - Documentation Finalization
 
@@ -503,19 +504,13 @@ Major remaining components:
    - Implement POST /accounts/bnpl/{account_id}/update-status endpoint
    - Create comprehensive tests for each endpoint
 
-2. **Complete Schema Factory Implementation**
-   - Create schema factories for all banking account types
-   - Implement proper defaults and customization options
-   - Add tests for schema factories
-   - Update tests to use schema factories where appropriate
-
-3. **Complete Modern Financial Services Repository Tests**
+2. **Complete Modern Financial Services Repository Tests**
    - Implement tests for PaymentApp repository
    - Implement tests for BNPL repository
    - Implement tests for EWA repository
    - Test linked account operations and relationships
 
-4. **Finalize Documentation**
+3. **Finalize Documentation**
    - Complete docstrings for all public methods
    - Update OpenAPI schema with new endpoints
    - Document error handling strategy and response format
@@ -615,33 +610,33 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
 
 ### Schema Factories
 
-- [ ] Banking Type Schema Factories:
-  - [ ] `tests/helpers/schema_factories/account_types/banking/checking.py`:
-    - [ ] Implement create_checking_account_schema with appropriate defaults
-    - [ ] Support customization via **kwargs for all fields
-    - [ ] Handle international banking fields
-  - [ ] `tests/helpers/schema_factories/account_types/banking/savings.py`:
-    - [ ] Implement create_savings_account_schema with appropriate defaults
-    - [ ] Support interest rate customization
-  - [ ] `tests/helpers/schema_factories/account_types/banking/credit.py`:
-    - [ ] Implement create_credit_account_schema with appropriate defaults
-    - [ ] Support statement-related field customization
-  - [ ] `tests/helpers/schema_factories/account_types/banking/payment_app.py`:
-    - [ ] Implement create_payment_app_account_schema with appropriate defaults
-    - [ ] Support platform customization
-  - [ ] `tests/helpers/schema_factories/account_types/banking/bnpl.py`:
-    - [ ] Implement create_bnpl_account_schema with appropriate defaults
-    - [ ] Support installment field customization
-  - [ ] `tests/helpers/schema_factories/account_types/banking/ewa.py`:
-    - [ ] Implement create_ewa_account_schema with appropriate defaults
-    - [ ] Support pay period customization
+- [x] Banking Type Schema Factories:
+  - [x] `tests/helpers/schema_factories/account_types/banking/checking.py`:
+    - [x] Implement create_checking_account_schema with appropriate defaults
+    - [x] Support customization via **kwargs for all fields
+    - [x] Handle international banking fields
+  - [x] `tests/helpers/schema_factories/account_types/banking/savings.py`:
+    - [x] Implement create_savings_account_schema with appropriate defaults
+    - [x] Support interest rate customization
+  - [x] `tests/helpers/schema_factories/account_types/banking/credit.py`:
+    - [x] Implement create_credit_account_schema with appropriate defaults
+    - [x] Support statement-related field customization
+  - [x] `tests/helpers/schema_factories/account_types/banking/payment_app.py`:
+    - [x] Implement create_payment_app_account_schema with appropriate defaults
+    - [x] Support platform customization
+  - [x] `tests/helpers/schema_factories/account_types/banking/bnpl.py`:
+    - [x] Implement create_bnpl_account_schema with appropriate defaults
+    - [x] Support installment field customization
+  - [x] `tests/helpers/schema_factories/account_types/banking/ewa.py`:
+    - [x] Implement create_ewa_account_schema with appropriate defaults
+    - [x] Support pay period customization
 
-- [ ] Schema Factory Tests:
-  - [ ] `tests/unit/helpers/schema_factories/account_types/banking/test_checking.py`:
-    - [ ] Test default schema generation with valid values
-    - [ ] Test customization via kwargs
-    - [ ] Verify schema validates successfully
-  - [ ] Similar tests for other account types
+- [x] Schema Factory Tests:
+  - [x] `tests/unit/helpers/schema_factories/account_types/banking/test_checking.py`:
+    - [x] Test default schema generation with valid values
+    - [x] Test customization via kwargs
+    - [x] Verify schema validates successfully
+  - [x] Similar tests for other account types
 
 ### Repository Testing
 

@@ -4,9 +4,10 @@ This checklist focuses specifically on implementing the core polymorphic archite
 
 ## Current Status (April 5, 2025)
 
-Overall completion: ~80%
+Overall completion: ~85%
 
 Major completed components:
+
 - Base Account Model and polymorphic inheritance structure
 - Account Type Registry
 - Base Schema Architecture with discriminated unions
@@ -14,11 +15,12 @@ Major completed components:
 - Service Layer with type-specific validation
 - Bill Split integration with account types
 - Testing infrastructure for all completed components
+- Error Handling System with account type-specific errors
 
 Major remaining components:
+
 - Update existing code to use `account_type` instead of `type`
 - Complete Multi-Currency and Internationalization support
-- Implement Error Handling System
 - Complete API Integration
 - Create Schema Factories
 
@@ -244,23 +246,35 @@ Major remaining components:
 
 ## Error Handling
 
-- [ ] Create account-specific error hierarchy in `src/errors/accounts.py`:
-  - [ ] Create `AccountError` base class
-  - [ ] Add `AccountNotFoundError` for missing accounts
-  - [ ] Add `AccountTypeError` for type-related issues
-  - [ ] Add `AccountValidationError` for validation failures
-  - [ ] Implement consistent error handling across layers
-  - [ ] Add feature flag related errors
-  - [ ] Add currency-specific errors
-  - [ ] Add internationalization validation errors
+- [x] Create account-specific error hierarchy in `src/errors/accounts.py`:
+  - [x] Create `AccountError` base class
+  - [x] Add `AccountNotFoundError` for missing accounts
+  - [x] Add `AccountTypeError` for type-related issues
+  - [x] Add `AccountValidationError` for validation failures
+  - [x] Implement consistent error handling across layers
+  - [x] Add feature flag related errors
+  - [x] Add currency-specific errors
+  - [x] Add internationalization validation errors
 
-- [ ] Create tests in `tests/unit/errors/test_account_errors.py`:
-  - [ ] Test error instantiation and properties
-  - [ ] Test error message formatting
-  - [ ] Test error chaining behavior
-  - [ ] Test feature flag related errors
-  - [ ] Test currency-specific errors
-  - [ ] Test internationalization validation errors
+- [x] Create account type-specific error hierarchy:
+  - [x] Implement hierarchical structure matching account type hierarchy
+  - [x] Add banking account type errors (checking, savings, credit, etc.)
+  - [x] Implement consistent naming with account type prefixes
+  - [x] Create specialized error classes for new account types (BNPL, EWA)
+  - [x] Ensure proper inheritance from base AccountError
+
+- [x] Update error imports and exports:
+  - [x] Create proper __init__.py files for error packages
+  - [x] Implement consistent import structure
+  - [x] Prevent circular imports with proper structure
+
+- [x] Create tests in `tests/unit/errors/test_account_errors.py`:
+  - [x] Test error instantiation and properties
+  - [x] Test error message formatting
+  - [x] Test error chaining behavior
+  - [x] Test feature flag related errors
+  - [x] Test currency-specific errors
+  - [x] Test internationalization validation errors
 
 ## API Integration
 
@@ -286,30 +300,31 @@ Major remaining components:
 
 ## Schema Factory Updates
 
-- [ ] Update schema factories in `tests/helpers/schema_factories/accounts.py`:
-  - [ ] Create/update base account factory functions
-  - [ ] Set up structure for type-specific factories
-  - [ ] Provide consistent interface for all factories
-  - [ ] Use appropriate default values
-  - [ ] Export factory functions in `__init__.py`
-  - [ ] Add feature flag awareness to factories
-  - [ ] Add currency support to factories
-  - [ ] Add international banking field support
+- [x] Update schema factories in `tests/helpers/schema_factories/accounts.py`:
+  - [x] Create/update base account factory functions
+  - [x] Set up structure for type-specific factories
+  - [x] Provide consistent interface for all factories
+  - [x] Use appropriate default values
+  - [x] Export factory functions in `__init__.py`
+  - [x] Add feature flag awareness to factories
+  - [x] Add currency support to factories
+  - [x] Add international banking field support
 
-- [ ] Create tests in `tests/unit/helpers/test_account_schema_factories.py`:
-  - [ ] Test factory function behavior
-  - [ ] Verify default values
-  - [ ] Test customization options
-  - [ ] Test validation within factories
-  - [ ] Test feature flag integration
-  - [ ] Test currency customization
-  - [ ] Test international field generation
+- [x] Create tests in `tests/unit/helpers/test_account_schema_factories.py`:
+  - [x] Test factory function behavior
+  - [x] Verify default values
+  - [x] Test customization options
+  - [x] Test validation within factories
+  - [x] Test feature flag integration
+  - [x] Test currency customization
+  - [x] Test international field generation
 
 ## Documentation
 
 - [ ] Update documentation:
   - [x] Document account type registry usage
-  - [ ] Create examples for polymorphic operations
+  - [x] Document error handling patterns
+  - [x] Create examples for polymorphic operations
   - [x] Document schema validation patterns
   - [ ] Document repository query patterns
   - [ ] Document service layer integration
@@ -335,6 +350,7 @@ Major remaining components:
 Following Debtonator's "Real Objects Testing Philosophy," we'll implement a structured, progressive testing approach for Account Type Expansion. This strategy ensures thorough validation of each layer before moving to the next, mirrors the codebase structure, and requires no mocks or monkeypatching.
 
 ### Testing Sequence and Structure
+
 - Testing progression: models → schemas → schema factories → repositories → registry
 - Mirror the exact source code directory structure in test files
 - Create modular test files to keep tests focused and maintainable
@@ -360,7 +376,7 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
     - [x] Test polymorphic identity matches "savings"
     - [x] Test interest rate and minimum balance fields
   - [x] `tests/unit/models/account_types/banking/test_credit.py`:
-    - [x] Verify inheritance from Account base model 
+    - [x] Verify inheritance from Account base model
     - [x] Test polymorphic identity matches "credit"
     - [x] Test credit limit and statement fields
   - [x] `tests/unit/models/account_types/banking/test_payment_app.py`
@@ -397,7 +413,7 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
 
 - [ ] Base Account Schema Factory (`tests/helpers/schema_factories/accounts.py`):
   - [ ] Create/update base account factory functions
-  - [ ] Support customization via **kwargs
+  - [ ] Support customization via `**kwargs`
   - [ ] Ensure proper defaults for required fields
   - [ ] Verify test helpers integrate with registry
 
@@ -510,31 +526,25 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
 
 ## Next Steps (Prioritized)
 
-1. **Update all existing code to use `account_type` instead of `type`**
+1. __Update all existing code to use `account_type` instead of `type`__
    - Scan codebase for references to account.type
    - Update API references to use account_type
    - Update service layer to use account_type
    - Fix any remaining test fixtures using type instead of account_type
 
-2. **Create account-specific error hierarchy**
-   - Implement AccountError base class and specialized subclasses
-   - Add feature flag-related error classes
-   - Implement consistent error handling across layers
-   - Create comprehensive test suite for error classes
-
-3. **Complete Schema Factory implementation**
+2. __Complete Schema Factory implementation__
    - Create/update base account factory functions
    - Set up structure for type-specific factories
    - Implement factories for all account types
    - Add tests for schema factories
 
-4. **Update API endpoints**
+3. __Update API endpoints__
    - Add polymorphic support to existing endpoints
    - Implement endpoint to list available account types
    - Add proper error handling and status codes
    - Create comprehensive API tests
 
-5. **Complete multi-currency and internationalization support**
+4. __Complete multi-currency and internationalization support__
    - Implement currency-related utilities
    - Create international banking validation functions
    - Update schemas with appropriate validation
@@ -543,7 +553,7 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
 
 Before completing ADR-016 implementation, verify:
 
-1. **Architecture Compliance**:
+1. __Architecture Compliance__:
    - [x] Polymorphic base structure is implemented correctly
    - [x] Registry mechanism works as designed
    - [x] Schema validation is consistent
@@ -552,7 +562,7 @@ Before completing ADR-016 implementation, verify:
    - [x] Multi-currency support is implemented
    - [x] International banking fields are supported
 
-2. **Test Coverage**:
+2. __Test Coverage__:
    - [x] Base model has test coverage
    - [x] Registry has comprehensive tests
    - [x] Schema validation is thoroughly tested
@@ -563,7 +573,7 @@ Before completing ADR-016 implementation, verify:
    - [x] Currency support is tested
    - [x] International banking fields are tested
 
-3. **Documentation**:
+3. __Documentation__:
    - [x] Core architecture is well-documented
    - [ ] API changes are documented
    - [x] Schema validation rules are documented
@@ -571,8 +581,9 @@ Before completing ADR-016 implementation, verify:
    - [x] Feature flag integration is documented
    - [x] Multi-currency support is documented
    - [x] International banking support is documented
+   - [x] Error handling patterns are documented
 
-4. **Dependency Updates**:
+4. __Dependency Updates__:
    - [x] Service layer uses registry properly
    - [ ] API layer integrates with polymorphic models
    - [x] Repository factories support new architecture

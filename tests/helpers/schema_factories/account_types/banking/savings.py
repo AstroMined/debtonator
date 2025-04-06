@@ -36,7 +36,7 @@ def create_savings_account_schema(
         current_balance: Current account balance (defaults to 2500.00)
         available_balance: Available balance (defaults to same as current_balance)
         institution: Bank or financial institution name
-        interest_rate: Annual interest rate (defaults to 2.0%)
+        interest_rate: Annual interest rate as a decimal (defaults to 0.02 for 2%)
         compound_frequency: Interest compounding frequency (daily, monthly, quarterly, annually)
         interest_earned_ytd: Interest earned year-to-date
         withdrawal_limit: Maximum number of withdrawals per period
@@ -64,7 +64,7 @@ def create_savings_account_schema(
     if interest_rate is not None:
         data["interest_rate"] = interest_rate
     else:
-        data["interest_rate"] = Decimal("2.0")  # Default 2.0% interest rate
+        data["interest_rate"] = Decimal("0.02")  # Default 2.0% interest rate
 
     if compound_frequency is not None:
         data["compound_frequency"] = compound_frequency
@@ -146,12 +146,15 @@ def create_savings_account_response_schema(
         minimum_balance=minimum_balance,
     )
 
+    # Convert the Pydantic model to a dictionary
+    base_dict = base_data.model_dump()
+
     # Add response-specific fields
     response_data = {
         "id": id,
         "created_at": created_at,
         "updated_at": updated_at,
-        **base_data,
+        **base_dict,
     }
 
     # Add any additional fields from kwargs
