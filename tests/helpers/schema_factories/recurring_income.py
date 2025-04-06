@@ -15,6 +15,7 @@ from src.schemas.recurring_income import (
     RecurringIncomeResponse,
     RecurringIncomeUpdate,
 )
+from src.utils.datetime_utils import utc_now
 from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function
 
 
@@ -26,7 +27,7 @@ def create_recurring_income_schema(
     account_id: int = 1,
     category_id: Optional[int] = None,
     auto_deposit: bool = False,
-    active: bool = True,
+    active: bool = True,  # Used internally but not in schema
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """
@@ -39,7 +40,7 @@ def create_recurring_income_schema(
         account_id (int): ID of the account for this income
         category_id (Optional[int]): Optional category ID
         auto_deposit (bool): Whether to auto-deposit this income
-        active (bool): Whether this recurring income is active
+        active (bool): Whether this recurring income is active (not in schema)
         **kwargs: Additional fields to override
 
     Returns:
@@ -54,7 +55,6 @@ def create_recurring_income_schema(
         "day_of_month": day_of_month,
         "account_id": account_id,
         "auto_deposit": auto_deposit,
-        "active": active,
         **kwargs,
     }
 
@@ -143,8 +143,8 @@ def create_recurring_income_in_db_schema(
         category_id (Optional[int]): Optional category ID
         auto_deposit (bool): Whether to auto-deposit this income
         active (bool): Whether this recurring income is active
-        created_at (Optional[datetime]): Creation timestamp
-        updated_at (Optional[datetime]): Last update timestamp
+        created_at (Optional[datetime]): Creation timestamp (UTC)
+        updated_at (Optional[datetime]): Last update timestamp (UTC)
         **kwargs: Additional fields to override
 
     Returns:
@@ -154,7 +154,7 @@ def create_recurring_income_in_db_schema(
         amount = MEDIUM_AMOUNT * Decimal("10")  # 1000.00
 
     if created_at is None:
-        created_at = datetime.utcnow()
+        created_at = utc_now()
 
     if updated_at is None:
         updated_at = created_at
@@ -190,8 +190,8 @@ def create_recurring_income_response_schema(
     active: bool = True,
     created_at: Optional[datetime] = None,
     updated_at: Optional[datetime] = None,
-    account: Optional[Dict[str, Any]] = None,
-    category: Optional[Dict[str, Any]] = None,
+    account: Optional[Dict[str, Any]] = None,  # Used for internal processing, not in schema
+    category: Optional[Dict[str, Any]] = None,  # Used for internal processing, not in schema
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """
@@ -206,10 +206,10 @@ def create_recurring_income_response_schema(
         category_id (Optional[int]): Optional category ID
         auto_deposit (bool): Whether to auto-deposit this income
         active (bool): Whether this recurring income is active
-        created_at (Optional[datetime]): Creation timestamp
-        updated_at (Optional[datetime]): Last update timestamp
-        account (Optional[Dict[str, Any]]): Account information
-        category (Optional[Dict[str, Any]]): Category information
+        created_at (Optional[datetime]): Creation timestamp (UTC)
+        updated_at (Optional[datetime]): Last update timestamp (UTC)
+        account (Optional[Dict[str, Any]]): Account information (not in schema)
+        category (Optional[Dict[str, Any]]): Category information (not in schema)
         **kwargs: Additional fields to override
 
     Returns:
@@ -219,11 +219,12 @@ def create_recurring_income_response_schema(
         amount = MEDIUM_AMOUNT * Decimal("10")  # 1000.00
 
     if created_at is None:
-        created_at = datetime.utcnow()
+        created_at = utc_now()
 
     if updated_at is None:
         updated_at = created_at
 
+    # These are used internally but not in schema
     if account is None and account_id is not None:
         account = {
             "id": account_id,
@@ -250,11 +251,8 @@ def create_recurring_income_response_schema(
 
     if category_id is not None:
         data["category_id"] = category_id
-
-    if account is not None:
-        data["account"] = account
-
-    if category is not None:
-        data["category"] = category
+    
+    # Account and category are used by the factory but not included
+    # in the schema fields - the data is used for lookups
 
     return data

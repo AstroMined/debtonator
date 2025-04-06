@@ -16,7 +16,7 @@ from src.schemas.categories import (
     CategoryWithBillIDs,
     CategoryWithBillsResponse,
 )
-from tests.helpers.schema_factories.base import factory_function
+from tests.helpers.schema_factories.base import factory_function, extract_model_data
 from src.utils.datetime_utils import utc_now
 
 # Note: The following classes have been removed in the code refactoring:
@@ -171,7 +171,7 @@ def create_category_tree_schema(
     Returns:
         Dict[str, Any]: Data to create CategoryTree schema
     """
-    # Create base category data
+    # Create base category data as a dictionary
     base_data = create_category_in_db_schema(
         id=id,
         name=name,
@@ -181,27 +181,38 @@ def create_category_tree_schema(
         created_at=created_at,
         updated_at=updated_at,
     )
+    
+    # Extract data from model instance if needed
+    if not isinstance(base_data, dict):
+        base_data = extract_model_data(base_data)
 
     # Create default children if none provided
     if children is None:
-        children = [
-            create_category_in_db_schema(
-                id=id + 1,
-                name=f"{name} - Child 1",
-                parent_id=id,
-                full_path=(
-                    f"{full_path}/{name}/Child 1" if full_path else f"{name}/Child 1"
-                ),
-            ),
-            create_category_in_db_schema(
-                id=id + 2,
-                name=f"{name} - Child 2",
-                parent_id=id,
-                full_path=(
-                    f"{full_path}/{name}/Child 2" if full_path else f"{name}/Child 2"
-                ),
-            ),
-        ]
+        child1 = create_category_in_db_schema(
+            id=id + 1,
+            name=f"{name} - Child 1",
+            parent_id=id,
+            full_path=(f"{full_path}/{name}/Child 1" if full_path else f"{name}/Child 1"),
+        )
+        
+        child2 = create_category_in_db_schema(
+            id=id + 2,
+            name=f"{name} - Child 2",
+            parent_id=id,
+            full_path=(f"{full_path}/{name}/Child 2" if full_path else f"{name}/Child 2"),
+        )
+        
+        # Extract data from model instances if needed
+        child1_data = extract_model_data(child1)
+        child2_data = extract_model_data(child2)
+        
+        children = [child1_data, child2_data]
+    else:
+        # Process list of children to ensure they're all dictionaries
+        processed_children = []
+        for child in children:
+            processed_children.append(extract_model_data(child))
+        children = processed_children
 
     data = {
         **base_data,
@@ -253,6 +264,10 @@ def create_category_with_bill_ids_schema(
         created_at=created_at,
         updated_at=updated_at,
     )
+    
+    # Extract data from model instance if needed
+    if not isinstance(base_data, dict):
+        base_data = extract_model_data(base_data)
 
     # Default IDs if none provided
     if children_ids is None:
@@ -302,7 +317,7 @@ def create_category_with_bills_response_schema(
     Returns:
         Dict[str, Any]: Data to create CategoryWithBillsResponse schema
     """
-    # Create base category tree
+    # Create base category tree data
     tree_data = create_category_tree_schema(
         id=id,
         name=name,
@@ -313,6 +328,10 @@ def create_category_with_bills_response_schema(
         created_at=created_at,
         updated_at=updated_at,
     )
+    
+    # Extract data from model instance if needed
+    if not isinstance(tree_data, dict):
+        tree_data = extract_model_data(tree_data)
 
     # Default bills if none provided
     if bills is None:

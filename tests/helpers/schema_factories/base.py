@@ -5,9 +5,9 @@ This module provides base utility functions and classes for schema factories.
 These utilities help standardize factory creation and reduce duplication.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime
 from decimal import Decimal
-from typing import Any, Callable, Dict, Type, TypeVar, cast
+from typing import Any, Callable, Dict, List, Type, TypeVar, cast
 
 from pydantic import BaseModel
 
@@ -17,14 +17,59 @@ SchemaType = TypeVar("SchemaType", bound=BaseModel)
 FactoryFunc = TypeVar("FactoryFunc", bound=Callable[..., Dict[str, Any]])
 
 
+def extract_model_data(model: Any) -> Dict[str, Any]:
+    """
+    Extract data from a model instance as a dictionary.
+    
+    Args:
+        model: A Pydantic model instance or dictionary
+        
+    Returns:
+        Dict[str, Any]: The model's data as a dictionary
+    """
+    if hasattr(model, "model_dump"):
+        return model.model_dump()
+    elif isinstance(model, dict):
+        return model
+    else:
+        # Handle unknown types by returning the object itself
+        # This might cause errors but it's better than silent failure
+        return model
+
+
+def process_factory_data(data: Any) -> Any:
+    """
+    Process factory data to handle nested models.
+    
+    Recursively processes dictionaries and lists to extract data from model instances.
+    
+    Args:
+        data: Data structure that might contain model instances
+        
+    Returns:
+        Any: Processed data structure with model data extracted
+    """
+    if isinstance(data, dict):
+        result = {}
+        for key, value in data.items():
+            result[key] = process_factory_data(value)
+        return result
+    elif isinstance(data, list):
+        return [process_factory_data(item) for item in data]
+    elif hasattr(data, "model_dump"):  # Pydantic v2 model
+        return process_factory_data(data.model_dump())
+    else:
+        return data
+
+
 def factory_function(
     schema_cls: Type[SchemaType],
 ) -> Callable[[FactoryFunc], Callable[..., SchemaType]]:
     """
-    Decorator to simplify creating factory functions.
-
-    This decorator transforms a function that returns a dictionary into one that
-    returns a validated schema instance.
+    Enhanced decorator for factory functions that handles model instances properly.
+    
+    This decorator ensures proper handling of model instances in nested structures
+    and consistent data extraction from models.
 
     Args:
         schema_cls: The schema class that the factory creates
@@ -35,8 +80,14 @@ def factory_function(
 
     def decorator(func: FactoryFunc) -> Callable[..., SchemaType]:
         def wrapper(*args: Any, **kwargs: Any) -> SchemaType:
+            # Get raw data from factory function
             data = func(*args, **kwargs)
-            return schema_cls(**data)
+            
+            # Process the data to handle nested models
+            processed_data = process_factory_data(data)
+            
+            # Create and return the schema instance
+            return schema_cls(**processed_data)
 
         # Preserve function metadata for better IDE integration
         wrapper.__name__ = func.__name__

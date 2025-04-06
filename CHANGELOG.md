@@ -7,6 +7,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.80] - 2025-04-06
+
+### Added
+
+- Implemented enhanced schema factory system with model-to-dict conversion:
+  - Created extract_model_data() helper to properly handle model instances
+  - Added process_factory_data() for recursive handling of nested structures
+  - Enhanced factory_function decorator to handle nested model instances
+  - Improved documentation to clarify factory parameters vs schema fields
+  - Implemented consistent timezone-aware handling for all datetime fields
+
+### Fixed
+
+- Fixed schema factory tests for proper field expectations:
+  - Updated test_categories.py to handle nested model instances properly
+  - Fixed test_balance_reconciliation.py to not expect fields not in schema
+  - Corrected test_payment_sources.py to match actual schema structure
+  - Fixed test_recurring_income.py to use timezone-aware datetimes
+  - Enhanced documentation to explain factory vs schema field differences
+
+### Changed
+
+- Improved schema factory testing approach:
+  - Standardized handling of model vs dictionary data in factories
+  - Enhanced handling of fields used internally by factories but not in schemas
+  - Added clear documentation of field usage patterns in factory functions
+  - Fixed all test assertions to match actual schema expectations
+  - Implemented consistent TZ-aware datetime handling for all tests
+
 ## [0.5.79] - 2025-04-06
 
 ### Changed

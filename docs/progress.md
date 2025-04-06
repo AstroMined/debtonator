@@ -67,6 +67,17 @@
      - International Account Support Integration (85%) ✓
    - Testing Strategy Implementation (100%) ✓
 
+7. __Testing Infrastructure__: IN PROGRESS (90%)
+   - Base test utilities (100%) ✓
+   - Integration test framework (100%) ✓
+   - Unit test structure (100%) ✓
+   - Test factories for all models (75%)
+   - Schema factory testing framework (100%) ✓
+   - No-mocks test approach (100%) ✓
+   - Timezone-aware test fixtures (100%) ✓
+   - Polymorphic model test support (85%)
+   - Feature flag test integration (100%) ✓
+
 ## What Works
 
 1. __Repository Layer__
@@ -116,6 +127,8 @@
    - Feature flag integration tests in repositories ✓
    - Tests for bill splits with polymorphic account types ✓
    - Service layer tests for banking overview functionality ✓
+   - Enhanced schema factory support for nested object structures ✓
+   - Robust pattern for handling model vs. dictionary data in factories ✓
 
 ## What's Left to Build
 
@@ -143,8 +156,8 @@
    - Create comprehensive test cases for polymorphic validation
    - Add pattern documentation for schema-service validation split
 
-4. __Complete Schema Factory Development (0%)__
-   - Implement schema factories for all account types
+4. __Complete Schema Factory Development (45%)__
+   - Implement schema factories for remaining account types
    - Add support for customization via kwargs
    - Create factories for testing with appropriate defaults
    - Support international banking field generation
@@ -172,7 +185,7 @@
    - Error translation in services needs to be standardized
    - Exception hierarchy should be consistent across the application
 
-3. __Missing Schema Factories__
-   - Schema factories for account types are not yet implemented
-   - This makes test data creation more verbose and error-prone
-   - Need to create consistent factory pattern for all account types
+3. __Schema Factory Parameter Alignment__
+   - Some schema factory functions include parameters not in the final schema
+   - Need to add clear documentation for all schema factories about field usage
+   - Consider standardizing parameter patterns across all schema factories
