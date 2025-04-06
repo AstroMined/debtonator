@@ -15,7 +15,8 @@ from src.schemas.credit_limit_history import (
     CreditLimitHistoryInDB,
     CreditLimitHistoryUpdate,
 )
-from tests.helpers.schema_factories.base import factory_function, utc_now
+from tests.helpers.schema_factories.base import factory_function
+from src.utils.datetime_utils import utc_now
 
 
 @factory_function(CreditLimitHistoryCreate)

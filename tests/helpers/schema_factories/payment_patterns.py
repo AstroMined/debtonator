@@ -17,7 +17,8 @@ from src.schemas.payment_patterns import (
     PaymentPatternRequest,
     SeasonalMetrics,
 )
-from tests.helpers.schema_factories.base import factory_function, utc_now
+from tests.helpers.schema_factories.base import factory_function
+from src.utils.datetime_utils import utc_now
 
 
 @factory_function(AmountStatistics)

@@ -16,7 +16,8 @@ from src.schemas.categories import (
     CategoryWithBillIDs,
     CategoryWithBillsResponse,
 )
-from tests.helpers.schema_factories.base import factory_function, utc_now
+from tests.helpers.schema_factories.base import factory_function
+from src.utils.datetime_utils import utc_now
 
 # Note: The following classes have been removed in the code refactoring:
 # - CategoryWithChildren (replaced by CategoryTree)

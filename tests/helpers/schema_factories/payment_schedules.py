@@ -10,7 +10,8 @@ from decimal import Decimal
 from typing import Any, Dict, Optional
 
 from src.schemas.payment_schedules import PaymentScheduleCreate, PaymentScheduleUpdate
-from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function, utc_now
+from tests.helpers.schema_factories.base import MEDIUM_AMOUNT, factory_function
+from src.utils.datetime_utils import utc_now
 
 
 @factory_function(PaymentScheduleCreate)

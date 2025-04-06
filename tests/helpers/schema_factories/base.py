@@ -11,6 +11,7 @@ from typing import Any, Callable, Dict, Type, TypeVar, cast
 
 from pydantic import BaseModel
 
+
 # Generic type for Pydantic schemas
 SchemaType = TypeVar("SchemaType", bound=BaseModel)
 FactoryFunc = TypeVar("FactoryFunc", bound=Callable[..., Dict[str, Any]])
@@ -45,16 +46,6 @@ def factory_function(
         return cast(Callable[..., SchemaType], wrapper)
 
     return decorator
-
-
-def utc_now() -> datetime:
-    """
-    Get current datetime with UTC timezone.
-
-    Returns:
-        datetime: Current time with UTC timezone
-    """
-    return datetime.now(timezone.utc)
 
 
 def merge_kwargs(base_data: Dict[str, Any], kwargs: Dict[str, Any]) -> Dict[str, Any]:

@@ -7,6 +7,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.78] - 2025-04-06
+
+### Added
+
+- Added feature_flag_service fixture for modern banking account type tests
+- Added field filtering in repository tests to prevent constructor argument errors
+- Implemented test infrastructure fixes for modern banking account types
+
+### Changed
+
+- Updated conftest.py to include payment_app, bnpl, and ewa fixtures
+- Updated repository method calls from get_by_id() to get() for consistency
+- Enhanced test fixtures with proper feature flag initialization
+
+### Fixed
+
+- Fixed "available_credit is an invalid keyword argument" error in modern banking account tests
+- Fixed schema validation issue with card_last_four requiring has_debit_card
+- Fixed method name inconsistencies between tests and implementation
+
 ## [0.5.77] - 2025-04-05
 
 ### Changed

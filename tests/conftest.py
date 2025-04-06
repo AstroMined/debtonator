@@ -23,6 +23,7 @@ def initialize_account_registry():
 # List of fixture modules to load
 pytest_plugins = [
     "tests.fixtures.fixture_repositories",
+    "tests.fixtures.fixture_services",  # Add service fixtures
     "tests.fixtures.models.fixture_accounts",
     "tests.fixtures.models.fixture_categories",
     "tests.fixtures.models.fixture_liabilities",
@@ -40,6 +41,10 @@ pytest_plugins = [
     "tests.fixtures.models.account_types.banking.fixture_checking",
     "tests.fixtures.models.account_types.banking.fixture_credit",
     "tests.fixtures.models.account_types.banking.fixture_savings",
+    # Modern banking account types
+    "tests.fixtures.models.account_types.banking.fixture_payment_app",
+    "tests.fixtures.models.account_types.banking.fixture_bnpl",
+    "tests.fixtures.models.account_types.banking.fixture_ewa",
 ]
 
 # ADR-011 Datetime validation hooks

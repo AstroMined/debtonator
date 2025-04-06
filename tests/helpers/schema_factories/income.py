@@ -10,7 +10,8 @@ from decimal import Decimal
 from typing import Any, Dict, Optional
 
 from src.schemas.income import IncomeCreate
-from tests.helpers.schema_factories.base import factory_function, utc_now
+from tests.helpers.schema_factories.base import factory_function
+from src.utils.datetime_utils import utc_now
 
 
 @factory_function(IncomeCreate)

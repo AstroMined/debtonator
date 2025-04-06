@@ -2,7 +2,7 @@
 
 This checklist outlines the specific tasks required to implement the Banking Account Types Expansion as defined in ADR-019. Each task includes verification criteria and integrated testing to ensure proper implementation at each stage.
 
-## Current Status (April 5, 2025)
+## Current Status (April 6, 2025)
 
 Overall completion: ~85%
 
@@ -21,7 +21,8 @@ Major completed components:
 Major remaining components:
 
 - API Layer Implementation (4 key endpoints)
-- Tests for Modern Financial Services Repositories
+- Fix Tests for Modern Banking Account Types
+- Repository Test Method Standardization
 - Documentation Finalization
 
 ## Phase 1: Feature Flag Integration
@@ -497,18 +498,19 @@ Major remaining components:
 
 ## Next Steps (Prioritized)
 
-1. **Implement API Endpoints**
+1. **Fix Modern Banking Account Type Tests**
+   - Update repository test methods to use get() instead of get_by_id()
+   - Implement field filtering for schema-to-model conversion
+   - Fix constructor parameter errors in data preparation
+   - Add validation for schema field mapping to model fields
+   - Update EWA and BNPL repository tests with the same fixes
+
+2. **Implement API Endpoints**
    - Implement GET /banking/overview endpoint
    - Implement GET /banking/upcoming-payments endpoint
    - Implement POST /accounts/banking endpoint
    - Implement POST /accounts/bnpl/{account_id}/update-status endpoint
    - Create comprehensive tests for each endpoint
-
-2. **Complete Modern Financial Services Repository Tests**
-   - Implement tests for PaymentApp repository
-   - Implement tests for BNPL repository
-   - Implement tests for EWA repository
-   - Test linked account operations and relationships
 
 3. **Finalize Documentation**
    - Complete docstrings for all public methods

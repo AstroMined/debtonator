@@ -12,7 +12,8 @@ from src.schemas.account_types.banking.payment_app import (
     PaymentAppAccountCreate,
     PaymentAppAccountResponse,
 )
-from tests.helpers.schema_factories.base import COMMON_AMOUNTS, factory_function, utc_now
+from tests.helpers.schema_factories.base import COMMON_AMOUNTS, factory_function
+from src.utils.datetime_utils import utc_now
 
 
 @factory_function(PaymentAppAccountCreate)

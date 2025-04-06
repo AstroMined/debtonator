@@ -12,7 +12,8 @@ from src.schemas.account_types.banking.savings import (
     SavingsAccountCreate,
     SavingsAccountResponse,
 )
-from tests.helpers.schema_factories.base import COMMON_AMOUNTS, factory_function, utc_now
+from tests.helpers.schema_factories.base import COMMON_AMOUNTS, factory_function
+from src.utils.datetime_utils import utc_now
 
 
 @factory_function(SavingsAccountCreate)

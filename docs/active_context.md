@@ -6,6 +6,14 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 
 ### Recent Changes
 
+1. **Fixed Test Infrastructure for Modern Banking Account Types (April 6, 2025)** ✓
+   - Added feature_flag_service fixture with test initialization and database setup
+   - Fixed repository test method calls from get_by_id() to get() for consistency
+   - Identified and addressed constructor argument errors with field filtering
+   - Updated conftest.py to include modern banking account fixtures
+   - Fixed schema validation issue with card_last_four when has_debit_card is false
+
+
 1. **Implemented Schema Factories with ADR-011 Compliance (April 5, 2025)** ✓
    - Refactored schema factory tests into modular files by account type
    - Fixed datetime handling to use `utc_now()` and `utc_datetime()` utils for ADR-011 compliance
@@ -43,14 +51,21 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 
 ## Next Steps
 
-1. **Investigate Account Type Update Restrictions**
+1. **Investigate Repository Layer Test Architecture**
+   - Identify better approach to handle schema-to-model field mapping
+   - Address "available_credit" field-filtering issue across all tests
+   - Determine if a common test utility would reduce code duplication
+   - Evaluate if repository tests should validate constructor arg filtering
+   - Consider architectural changes to prevent these issues long-term
+
+2. **Investigate Account Type Update Restrictions**
    - Evaluate architectural implications of updating account_type field
    - Account type changes affect DB storage location (polymorphic inheritance)
    - Consider implementing formal account type conversion workflow
    - Add validation at service layer to prevent direct account_type updates
    - Document account type transition policy in ADR
 
-2. **Complete API Layer Integration**
+3. **Complete API Layer Integration**
    - Implement GET /banking/overview endpoint
    - Create GET /banking/upcoming-payments endpoint
    - Add POST /accounts/banking endpoint
@@ -76,7 +91,14 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 
 ## Implementation Lessons
 
-1. **Testing Structured Directory Pattern**
+1. **Repository Field Filtering Pattern**
+   - Schema-generated data may include fields not in model constructors
+   - Field filtering should happen before model instantiation in repositories
+   - Consider using type-aware field filtering in repository layer
+   - Alternatively, use schema_to_model() functions to handle conversion
+   - Balance between flexibility and maintenance when handling field mapping
+
+2. **Testing Structured Directory Pattern**
    - Mirror the exact source directory structure in test files
    - Separate test files per component keeps tests focused and maintainable
    - Use descriptive test method names that describe the behavior being tested
@@ -117,3 +139,10 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Use model validators instead of field validators for cross-field validation
    - Ensure all datetime comparisons handle timezone-aware and naive objects properly
    - Follow ADR-011 recommendations consistently across the codebase
+
+8. **Repository Method Naming Consistency**
+   - Use consistent method names across repository implementations
+   - Prefer get() over get_by_id() for primary key retrieval
+   - Standardize method signatures across repository hierarchy
+   - Document method name expectations in repository interfaces
+   - Use factory methods to abstract creation details from consumers

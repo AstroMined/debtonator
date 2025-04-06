@@ -4,6 +4,14 @@
 
 This guide outlines the standard pattern for writing repository tests that properly simulate the validation flow in our application architecture. All repository tests should follow this pattern to ensure consistency and proper testing of our architectural boundaries.
 
+## Test Organization
+
+Repositories tests should always be split between two directories:
+
+- The directory `tests/integration/repositories/crud` is for testing the simple CRUD operations from the repositories
+- The directory `tests/integration/repositories/advanced` is for testing the advanced operations of repositories
+- CRUD tests should always be written first and made to pass to ensure simple operations work before testing advanced options
+
 ## Why This Pattern Matters
 
 In our architecture, services are responsible for validating data through Pydantic schemas before passing it to repositories. Repositories assume data has been validated and focus on data access. This pattern ensures our tests reflect the actual application flow, catching validation issues early and making tests more realistic.

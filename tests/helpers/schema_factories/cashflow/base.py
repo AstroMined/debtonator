@@ -10,12 +10,13 @@ from decimal import Decimal
 from typing import Any, Dict, Optional
 
 from src.schemas.cashflow.cashflow_base import CashflowCreate, CashflowFilters, CashflowUpdate
+from src.utils.datetime_utils import utc_now
+
 from tests.helpers.schema_factories.base import (
     LARGE_AMOUNT,
     MEDIUM_AMOUNT,
     SMALL_AMOUNT,
-    factory_function,
-    utc_now,
+    factory_function
 )
 
 

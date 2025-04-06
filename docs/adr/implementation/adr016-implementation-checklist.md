@@ -2,7 +2,7 @@
 
 This checklist focuses specifically on implementing the core polymorphic architecture described in ADR-016, which establishes the foundation for the account type expansion project. The subsequent specialized account types will be implemented through separate ADRs (ADR-019 through ADR-023).
 
-## Current Status (April 5, 2025)
+## Current Status (April 6, 2025)
 
 Overall completion: ~85%
 
@@ -16,13 +16,14 @@ Major completed components:
 - Bill Split integration with account types
 - Testing infrastructure for all completed components
 - Error Handling System with account type-specific errors
+- Schema Factories for account types
 
 Major remaining components:
 
 - Update existing code to use `account_type` instead of `type`
 - Complete Multi-Currency and Internationalization support
 - Complete API Integration
-- Create Schema Factories
+- Fix Repository Test Infrastructure for Modern Banking Types
 
 ## Base Account Model
 
@@ -526,17 +527,17 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
 
 ## Next Steps (Prioritized)
 
-1. __Update all existing code to use `account_type` instead of `type`__
+1. __Fix Repository Test Infrastructure for Modern Banking Types__
+   - Address constructor argument errors in account models
+   - Implement consistent field filtering for schema-to-model conversion
+   - Fix method name discrepancies between tests and implementation
+   - Create helper utility for repository test data preparation
+
+2. __Update all existing code to use `account_type` instead of `type`__
    - Scan codebase for references to account.type
    - Update API references to use account_type
    - Update service layer to use account_type
    - Fix any remaining test fixtures using type instead of account_type
-
-2. __Complete Schema Factory implementation__
-   - Create/update base account factory functions
-   - Set up structure for type-specific factories
-   - Implement factories for all account types
-   - Add tests for schema factories
 
 3. __Update API endpoints__
    - Add polymorphic support to existing endpoints
@@ -572,6 +573,7 @@ Before completing ADR-016 implementation, verify:
    - [x] Feature flag behavior is tested
    - [x] Currency support is tested
    - [x] International banking fields are tested
+   - [ ] Modern banking account types have complete tests
 
 3. __Documentation__:
    - [x] Core architecture is well-documented

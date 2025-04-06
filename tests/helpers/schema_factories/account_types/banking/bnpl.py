@@ -13,7 +13,8 @@ from src.schemas.account_types.banking.bnpl import (
     BNPLAccountCreate,
     BNPLAccountResponse,
 )
-from tests.helpers.schema_factories.base import COMMON_AMOUNTS, factory_function, utc_now
+from tests.helpers.schema_factories.base import COMMON_AMOUNTS, factory_function
+from src.utils.datetime_utils import utc_now
 
 
 @factory_function(BNPLAccountCreate)
