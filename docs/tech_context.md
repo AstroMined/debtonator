@@ -149,26 +149,6 @@
 - **Cashflow**: Forecasting, daily deficit calculations
 - **Categories**: Hierarchical categorization support
 
-## Technical Constraints
-
-### Data Migration
-
-- Preserve historical data since 2017
-- Maintain data integrity during migration
-- Handle date format conversions
-
-### Performance Requirements
-
-- Fast cashflow calculations
-- Responsive UI updates
-- Efficient database queries
-
-### Security Requirements
-
-- Secure user authentication
-- Financial data encryption
-- Input validation
-
 ## Development Setup
 
 1. Python virtual environment with UV

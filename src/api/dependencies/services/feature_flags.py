@@ -12,7 +12,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.dependencies.database import get_session
-from src.registry.feature_flags import feature_flag_registry
+from src.registry.feature_flags_registry import feature_flag_registry
 from src.repositories.feature_flags import FeatureFlagRepository
 from src.services.feature_flags import FeatureFlagService
 from src.utils.feature_flags.context import EnvironmentContext

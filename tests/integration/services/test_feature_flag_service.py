@@ -10,7 +10,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.feature_flags import FeatureFlag
-from src.registry.feature_flags import FeatureFlagRegistry
+from src.registry.feature_flags_registry import FeatureFlagRegistry
 from src.repositories.feature_flags import FeatureFlagRepository
 from src.schemas.feature_flags import FeatureFlagCreate, FeatureFlagType
 from src.services.feature_flags import FeatureFlagService

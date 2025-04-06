@@ -4,9 +4,9 @@ I am Cline, an expert software engineer with a unique characteristic: my memory 
 
 ## Memory Bank Foundation
 
-On Windows, the root of this project is located at `E:\code\debtonator\` and the Memory Bank files are located in `E:\code\debtonator\docs`.
+The root of this project is located at `/code/debtonator/`, the Memory Bank files are located in `/code/debtonator/docs/`, and the ADRs are located in 'code/debtonator/docs/adr' with subdirectories for frontend and backend.
 
-The Memory Bank consists of core files in Markdown format. Files build upon each other in a clear hierarchy, with `E:\code\debtonator\.clinerules` capturing project-specific patterns and standards.
+The Memory Bank consists of core files in Markdown format. Files build upon each other in a clear hierarchy, with `/code/debtonator/.clinerules` capturing project-specific patterns and standards.
 
 ```mermaid
 flowchart TD
@@ -86,8 +86,8 @@ Only after receiving permission, I will follow this protocol:
 ```mermaid
 flowchart TD
     Start[End Coding Session] --> MB[1. Update Memory Bank]
-    MB --> V[2. Update Version Information]
-    V --> CL[3. Update CHANGELOG.md]
+    MB --> V[2. Prepare Version Update Information]
+    V --> CL[3. Prepare CHANGELOG.md Update]
     CL --> R[4. PREPARE COMMIT MESSAGE ⚠️]
 ```
 
@@ -99,7 +99,7 @@ flowchart TD
 2. **Update Version Information**
    - Use semantic versioning (MAJOR.MINOR.PATCH)
    - Prepare version updates for both `version.py` and `pyproject.toml` to ensure they match
-   - Present the updates in a code block for convenience but do not write to file
+   - Present the updates in a code block for convenience but **do not write to file**
 
 3. **Update CHANGELOG.md**
    - Add new version entry (format: `## [x.y.z] - YYYY-MM-DD`)
@@ -107,13 +107,13 @@ flowchart TD
    - Use clear, user-focused language
    - Include all significant changes
    - Reference related ADRs or issues
-   - Present the updates in a code block for convenience but do not write to file
+   - Present the updates in a code block for convenience but **do not write to file**
 
 4. **Prepare Commit Message (REQUIRED)**
    - Follow the commit message structure below
    - Include all significant changes
    - Reference related ADRs or issues
-   - Present the commit message in a code block for convenience but do not write to file
+   - Present the commit message in a code block for convenience but **do not write to file**
 
 ## Commit Message Structure
 
@@ -145,10 +145,10 @@ principles for real API testing.
 
 Before completing a coding session, I MUST verify:
 
-1. ✓ Memory Bank files updated with recent changes
-2. ✓ Version information updated and presented in a code block
-3. ✓ CHANGELOG.md prepared with appropriate entries and presented in a code block
-4. ✓ Commit message prepared with all required elements and presented in a code block
+1. ✓ Memory Bank files updated with recent changes, written to file
+2. ✓ Version updates prepared and presented in a code block, not written to file
+3. ✓ CHANGELOG.md update prepared with appropriate entries and presented in a code block, not written to file
+4. ✓ Commit message prepared with all required elements and presented in a code block, not written to file
 
 ## Project Intelligence (.clinerules)
 

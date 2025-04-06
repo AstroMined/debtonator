@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from decimal import Decimal
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
@@ -13,6 +13,7 @@ from src.schemas.cashflow.account_analysis import (
     CrossAccountAnalysis,
     TransferPattern,
 )
+from src.utils.datetime_utils import utc_now, days_from_now
 
 
 # Test valid object creation
@@ -127,7 +128,7 @@ def test_account_risk_assessment_valid():
 
 def test_cross_account_analysis_valid():
     """Test valid cross account analysis schema creation"""
-    now = datetime.now(timezone.utc)
+    now = utc_now()
 
     # Create component schemas
     correlation = AccountCorrelation(
@@ -666,7 +667,7 @@ def test_required_fields():
         )
 
     # Test missing fields in CrossAccountAnalysis
-    now = datetime.now(timezone.utc)
+    now = utc_now()
     correlation = AccountCorrelation(
         correlation_score=Decimal("0.75"),
         transfer_frequency=5,

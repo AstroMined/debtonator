@@ -1,11 +1,13 @@
 # Project Brief: Debtonator - Financial Management Platform
 
 ## Overview
+
 Debtonator is a comprehensive financial management platform designed to provide users with a "single pane of glass" view of their financial life. This system helps users track bills, income, and maintain sufficient account balances for timely bill payments, while serving as the foundation for a broader vision of financial empowerment.
 
 ## Core Requirements
 
 ### Account Management
+
 - Dynamic account management:
   - Support for multiple account types (credit, checking, savings)
   - Track available balances
@@ -14,6 +16,7 @@ Debtonator is a comprehensive financial management platform designed to provide 
   - Account-specific transaction history
 
 ### Bill Management
+
 - Track bills with key attributes:
   - Due date (Month/Day)
   - Payment status
@@ -25,6 +28,7 @@ Debtonator is a comprehensive financial management platform designed to provide 
   - Payment tracking (Paid/Unpaid)
 
 ### Bill Split Features
+
 - Support for splitting bills across multiple accounts
 - Split amount validation
 - Split payment tracking
@@ -32,6 +36,7 @@ Debtonator is a comprehensive financial management platform designed to provide 
 - Historical split payment records
 
 ### Income Tracking
+
 - Record income sources with:
   - Date
   - Source name
@@ -41,6 +46,7 @@ Debtonator is a comprehensive financial management platform designed to provide 
   - Target account for deposits
 
 ### Cashflow Analysis
+
 - 90-day rolling forecast of financial position
 - Track available credit/balance across all accounts
 - Calculate minimum required funds for different periods:
@@ -55,6 +61,7 @@ Debtonator is a comprehensive financial management platform designed to provide 
   - Visualization of how additional income affects financial outlook
 
 ### Debt Management
+
 - Track debt balances and payment progress
 - Support for "snowball" and "avalanche" debt reduction strategies
 - Visualization of debt payoff timeline
@@ -63,6 +70,7 @@ Debtonator is a comprehensive financial management platform designed to provide 
 ## Technical Requirements
 
 ### Backend
+
 - Python-based using FastAPI
 - Pydantic for data validation
 - SQLite for development
@@ -71,6 +79,7 @@ Debtonator is a comprehensive financial management platform designed to provide 
 - Split payment validation and processing
 
 ### Frontend
+
 - React-based web application with TypeScript
 - Mobile-responsive design
 - Real-time calculations
@@ -81,6 +90,7 @@ Debtonator is a comprehensive financial management platform designed to provide 
 - Form validation with Formik and Yup
 
 ### Future Extensions
+
 - Native mobile applications (Android/iOS)
 - Real-time synchronization between devices
 - Banking API integration
@@ -93,6 +103,7 @@ Debtonator is a comprehensive financial management platform designed to provide 
 - Community-based financial empowerment features
 
 ## Success Criteria
+
 1. Provide a comprehensive view of a user's financial status
 2. Deliver intuitive and efficient financial management tools
 3. Enable accurate financial forecasting
@@ -103,6 +114,7 @@ Debtonator is a comprehensive financial management platform designed to provide 
 8. Help users develop pathways to debt reduction
 
 ## User Experience Goals
+
 1. Intuitive account management
 2. Simple split payment entry
 3. Clear financial status visualization

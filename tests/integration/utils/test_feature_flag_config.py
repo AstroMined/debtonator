@@ -9,7 +9,7 @@ application startup process.
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.registry.feature_flags import FeatureFlagRegistry
+from src.registry.feature_flags_registry import FeatureFlagRegistry
 from src.repositories.feature_flags import FeatureFlagRepository
 from src.services.feature_flags import FeatureFlagService
 from src.utils.feature_flags.feature_flags import (

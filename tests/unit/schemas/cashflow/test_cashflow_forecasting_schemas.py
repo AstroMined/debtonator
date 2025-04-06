@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 from decimal import Decimal
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
@@ -14,13 +14,20 @@ from src.schemas.cashflow.forecasting import (
     CustomForecastResponse,
     CustomForecastResult,
 )
+from src.utils.datetime_utils import (
+    utc_now,
+    days_ago,
+    days_from_now,
+    utc_datetime,
+    datetime_equals,
+)
 
 
 # Test valid object creation
 def test_custom_forecast_parameters_valid():
     """Test valid custom forecast parameters schema creation"""
-    now = datetime.now(timezone.utc)
-    future = now + timedelta(days=30)
+    now = utc_now()
+    future = days_from_now(30)
 
     params = CustomForecastParameters(
         start_date=now,
@@ -45,8 +52,8 @@ def test_custom_forecast_parameters_valid():
 
 def test_custom_forecast_parameters_defaults():
     """Test custom forecast parameters with default values"""
-    now = datetime.now(timezone.utc)
-    future = now + timedelta(days=30)
+    now = utc_now()
+    future = days_from_now(30)
 
     params = CustomForecastParameters(start_date=now, end_date=future)
 
@@ -62,7 +69,7 @@ def test_custom_forecast_parameters_defaults():
 
 def test_custom_forecast_result_valid():
     """Test valid custom forecast result schema creation"""
-    now = datetime.now(timezone.utc)
+    now = utc_now()
 
     result = CustomForecastResult(
         date=now,
@@ -94,8 +101,8 @@ def test_custom_forecast_result_valid():
 
 def test_custom_forecast_response_valid():
     """Test valid custom forecast response schema creation"""
-    now = datetime.now(timezone.utc)
-    future = now + timedelta(days=30)
+    now = utc_now()
+    future = days_from_now(30)
 
     params = CustomForecastParameters(
         start_date=now,
@@ -116,7 +123,7 @@ def test_custom_forecast_response_valid():
     )
 
     result2 = CustomForecastResult(
-        date=now + timedelta(days=1),
+        date=days_from_now(1),
         projected_balance=Decimal("2700.00"),
         projected_income=Decimal("1000.00"),
         projected_expenses=Decimal("0.00"),
@@ -148,8 +155,8 @@ def test_custom_forecast_response_valid():
 
 def test_account_forecast_request_valid():
     """Test valid account forecast request schema creation"""
-    now = datetime.now(timezone.utc)
-    future = now + timedelta(days=30)
+    now = utc_now()
+    future = days_from_now(30)
 
     request = AccountForecastRequest(
         account_id=1,
@@ -172,8 +179,8 @@ def test_account_forecast_request_valid():
 
 def test_account_forecast_request_defaults():
     """Test account forecast request with default values"""
-    now = datetime.now(timezone.utc)
-    future = now + timedelta(days=30)
+    now = utc_now()
+    future = days_from_now(30)
 
     request = AccountForecastRequest(account_id=1, start_date=now, end_date=future)
 
@@ -188,9 +195,9 @@ def test_account_forecast_request_defaults():
 
 def test_account_forecast_metrics_valid():
     """Test valid account forecast metrics schema creation"""
-    now = datetime.now(timezone.utc)
-    future1 = now + timedelta(days=5)
-    future2 = now + timedelta(days=15)
+    now = utc_now()
+    future1 = days_from_now(5)
+    future2 = days_from_now(15)
 
     metrics = AccountForecastMetrics(
         average_daily_balance=Decimal("2500.00"),
@@ -217,7 +224,7 @@ def test_account_forecast_metrics_valid():
 
 def test_account_forecast_metrics_optional_fields():
     """Test account forecast metrics with optional fields"""
-    now = datetime.now(timezone.utc)
+    now = utc_now()
 
     # Test without credit_utilization (optional field)
     metrics = AccountForecastMetrics(
@@ -226,7 +233,7 @@ def test_account_forecast_metrics_optional_fields():
         maximum_projected_balance=Decimal("3200.00"),
         average_inflow=Decimal("1000.00"),
         average_outflow=Decimal("900.00"),
-        projected_low_balance_dates=[now + timedelta(days=5)],
+        projected_low_balance_dates=[days_from_now(5)],
         balance_volatility=Decimal("350.75"),
         forecast_confidence=Decimal("0.85"),
     )
@@ -236,7 +243,7 @@ def test_account_forecast_metrics_optional_fields():
 
 def test_account_forecast_result_valid():
     """Test valid account forecast result schema creation"""
-    now = datetime.now(timezone.utc)
+    now = utc_now()
 
     result = AccountForecastResult(
         date=now,
@@ -271,7 +278,7 @@ def test_account_forecast_result_valid():
 
 def test_account_forecast_result_default_warnings():
     """Test account forecast result with default warnings"""
-    now = datetime.now(timezone.utc)
+    now = utc_now()
 
     result = AccountForecastResult(
         date=now,
@@ -287,8 +294,8 @@ def test_account_forecast_result_default_warnings():
 
 def test_account_forecast_response_valid():
     """Test valid account forecast response schema creation"""
-    now = datetime.now(timezone.utc)
-    future = now + timedelta(days=30)
+    now = utc_now()
+    future = days_from_now(30)
 
     metrics = AccountForecastMetrics(
         average_daily_balance=Decimal("2500.00"),
@@ -296,7 +303,7 @@ def test_account_forecast_response_valid():
         maximum_projected_balance=Decimal("3200.00"),
         average_inflow=Decimal("1000.00"),
         average_outflow=Decimal("900.00"),
-        projected_low_balance_dates=[now + timedelta(days=5)],
+        projected_low_balance_dates=[days_from_now(5)],
         credit_utilization=Decimal("0.65"),
         balance_volatility=Decimal("350.75"),
         forecast_confidence=Decimal("0.85"),
@@ -312,7 +319,7 @@ def test_account_forecast_response_valid():
     )
 
     result2 = AccountForecastResult(
-        date=now + timedelta(days=1),
+        date=days_from_now(1),
         projected_balance=Decimal("2700.00"),
         projected_inflow=Decimal("0.00"),
         projected_outflow=Decimal("0.00"),
@@ -341,8 +348,8 @@ def test_account_forecast_response_valid():
 # Test field validations
 def test_confidence_threshold_range():
     """Test confidence threshold range validation"""
-    now = datetime.now(timezone.utc)
-    future = now + timedelta(days=30)
+    now = utc_now()
+    future = days_from_now(30)
 
     # Test below minimum
     with pytest.raises(
@@ -389,7 +396,7 @@ def test_confidence_threshold_range():
 
 def test_confidence_score_range():
     """Test confidence score range validation"""
-    now = datetime.now(timezone.utc)
+    now = utc_now()
 
     # Test below minimum
     with pytest.raises(
@@ -448,7 +455,7 @@ def test_confidence_score_range():
 
 def test_credit_utilization_range():
     """Test credit utilization range validation"""
-    now = datetime.now(timezone.utc)
+    now = utc_now()
 
     # Test below minimum
     with pytest.raises(
@@ -485,8 +492,8 @@ def test_credit_utilization_range():
 
 def test_decimal_precision():
     """Test decimal precision validation"""
-    now = datetime.now(timezone.utc)
-    future = now + timedelta(days=30)
+    now = utc_now()
+    future = days_from_now(30)
 
     # Test too many decimal places in confidence_threshold
     with pytest.raises(ValidationError, match="Input should be a multiple of 0.0001"):
@@ -523,8 +530,8 @@ def test_decimal_precision():
 
 def test_datetime_utc_validation():
     """Test datetime UTC validation per ADR-011"""
-    now = datetime.now(timezone.utc)
-    future = now + timedelta(days=30)
+    now = utc_now()
+    future = days_from_now(30)
 
     # Test naive datetime in start_date
     with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
@@ -564,8 +571,8 @@ def test_datetime_utc_validation():
 
 def test_required_fields():
     """Test required fields validation"""
-    now = datetime.now(timezone.utc)
-    future = now + timedelta(days=30)
+    now = utc_now()
+    future = days_from_now(30)
 
     # Test missing start_date in CustomForecastParameters
     with pytest.raises(ValidationError, match="Field required"):

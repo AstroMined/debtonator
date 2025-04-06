@@ -5,7 +5,7 @@ This test module ensures proper validation and functionality of cashflow base sc
 including timestamp handling and currency validation.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from decimal import Decimal
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
@@ -21,11 +21,20 @@ from src.schemas.cashflow.cashflow_base import (
     CashflowResponse,
     CashflowUpdate,
 )
+from src.utils.datetime_utils import (
+    utc_now,
+    days_ago,
+    days_from_now,
+    ensure_utc,
+    datetime_equals,
+    datetime_greater_than,
+    datetime_less_than,
+)
 
 
 def test_cashflow_base_valid():
     """Test valid cashflow base schema creation"""
-    now = datetime.now(timezone.utc)
+    now = utc_now()
     cashflow = CashflowBase(
         forecast_date=now,
         total_bills=Decimal("1500.00"),
@@ -63,7 +72,7 @@ def test_cashflow_base_valid():
 
 def test_cashflow_base_default_timestamp():
     """Test default forecast_date in UTC timezone"""
-    before = datetime.now(timezone.utc)
+    before = utc_now()
 
     # Create instance with default forecast_date
     cashflow = CashflowBase(
@@ -83,7 +92,7 @@ def test_cashflow_base_default_timestamp():
         hourly_rate_20=Decimal("25.00"),
     )
 
-    after = datetime.now(timezone.utc)
+    after = utc_now()
 
     # After our fix, default datetime values should be properly timezone aware
     # The model_validator we added ensures this behavior
@@ -96,15 +105,21 @@ def test_cashflow_base_default_timestamp():
         cashflow.forecast_date.utcoffset().total_seconds() == 0
     ), "Default timestamp should be in UTC timezone"
 
-    # Verify the timestamp is within the expected range
+    # Verify the timestamp is within the expected range using utility function
     assert (
-        before <= cashflow.forecast_date <= after
-    ), "Default timestamp should be between before and after"
+        datetime_less_than(before, cashflow.forecast_date) or 
+        datetime_equals(before, cashflow.forecast_date)
+    ), "Default timestamp should be greater than or equal to 'before'"
+    
+    assert (
+        datetime_less_than(cashflow.forecast_date, after) or 
+        datetime_equals(cashflow.forecast_date, after)
+    ), "Default timestamp should be less than or equal to 'after'"
 
 
 def test_cashflow_create_valid():
     """Test valid cashflow create schema"""
-    now = datetime.now(timezone.utc)
+    now = utc_now()
     cashflow = CashflowCreate(
         forecast_date=now,
         total_bills=Decimal("1500.00"),
@@ -130,7 +145,7 @@ def test_cashflow_create_valid():
 
 def test_cashflow_update_valid():
     """Test valid cashflow update schema"""
-    now = datetime.now(timezone.utc)
+    now = utc_now()
 
     # Empty update (all fields optional)
     empty_update = CashflowUpdate()
@@ -150,7 +165,7 @@ def test_cashflow_update_valid():
 
 def test_cashflow_in_db_valid():
     """Test valid cashflow in DB schema"""
-    now = datetime.now(timezone.utc)
+    now = utc_now()
     cashflow = CashflowInDB(
         id=1,
         created_at=now,
@@ -180,7 +195,7 @@ def test_cashflow_in_db_valid():
 
 def test_cashflow_response_valid():
     """Test valid cashflow response schema"""
-    now = datetime.now(timezone.utc)
+    now = utc_now()
     response = CashflowResponse(
         id=1,
         created_at=now,
@@ -209,7 +224,7 @@ def test_cashflow_response_valid():
 
 def test_cashflow_list_valid():
     """Test valid cashflow list schema"""
-    now = datetime.now(timezone.utc)
+    now = utc_now()
     cashflow1 = CashflowResponse(
         id=1,
         created_at=now,
@@ -262,8 +277,8 @@ def test_cashflow_list_valid():
 
 def test_cashflow_filters_valid():
     """Test valid cashflow filters schema"""
-    start_date = datetime.now(timezone.utc)
-    end_date = start_date + timedelta(days=30)
+    start_date = utc_now()
+    end_date = days_from_now(30)
 
     filters = CashflowFilters(
         start_date=start_date,
@@ -415,7 +430,7 @@ def test_negative_amounts():
 # Test datetime UTC validation
 def test_datetime_utc_validation():
     """Test datetime UTC validation per ADR-011"""
-    now = datetime.now(timezone.utc)
+    now = utc_now()
 
     # Test naive datetime
     with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
@@ -473,7 +488,7 @@ def test_datetime_utc_validation():
 
 def test_in_db_timestamps():
     """Test UTC validation for database timestamps"""
-    now = datetime.now(timezone.utc)
+    now = utc_now()
 
     # Test naive created_at
     with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):

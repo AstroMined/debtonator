@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.feature_flags import FeatureFlag
 from src.models.account_types.banking import CheckingAccount, BNPLAccount
 from src.registry.account_types import account_type_registry
-from src.registry.feature_flags import feature_flag_registry
+from src.registry.feature_flags_registry import feature_flag_registry
 from src.repositories.feature_flags import FeatureFlagRepository
 from src.services.accounts import AccountService
 from src.services.factory import ServiceFactory

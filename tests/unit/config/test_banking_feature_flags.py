@@ -13,7 +13,7 @@ from src.config.banking_feature_flags import (
     is_account_type_enabled,
 )
 from src.services.feature_flags import FeatureFlagService
-from src.registry.feature_flags import FeatureFlagRegistry
+from src.registry.feature_flags_registry import FeatureFlagRegistry
 
 
 class TestBankingFeatureFlagsRegistration:

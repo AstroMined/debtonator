@@ -8,7 +8,7 @@ and provides a function to configure the feature flag system during app startup.
 
 import logging
 
-from src.registry.feature_flags import FeatureFlagRegistry
+from src.registry.feature_flags_registry import FeatureFlagRegistry
 from src.repositories.feature_flags import FeatureFlagRepository
 from src.schemas.feature_flags import FeatureFlagType
 from src.services.feature_flags import FeatureFlagService

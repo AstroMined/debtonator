@@ -582,6 +582,73 @@ def datetime_greater_than(
     return dt1_copy > dt2_copy
 
 
+def datetime_less_than(
+    dt1: datetime, dt2: datetime, ignore_timezone: bool = False
+) -> bool:
+    """
+    Safely compare if dt1 < dt2, following ADR-011 requirements.
+
+    Per ADR-011, all datetimes should either be:
+    1. Naive (assumed to represent UTC time, typically from database)
+    2. Timezone-aware with UTC timezone
+
+    Args:
+        dt1: First datetime
+        dt2: Second datetime
+        ignore_timezone: If True, treats naive datetimes and UTC-aware datetimes equally,
+                        useful for comparing DB values (naive) with application values (UTC-aware)
+
+    Returns:
+        bool: True if dt1 < dt2 considering the parameters
+
+    Raises:
+        TypeError: If dt1 or dt2 is not a datetime object
+        ValueError: If any datetime has a non-UTC timezone (ADR-011 violation)
+
+    Example:
+        >>> # Comparing UTC-aware datetimes
+        >>> dt1 = utc_datetime(2025, 3, 15, 14, 0)
+        >>> dt2 = utc_datetime(2025, 3, 15, 14, 30)
+        >>> print(datetime_less_than(dt1, dt2))  # True
+        >>>
+        >>> # Comparing with naive datetime (from DB)
+        >>> naive_dt = datetime(2025, 3, 15, 14, 0)  # naive
+        >>> utc_dt = utc_datetime(2025, 3, 15, 14, 30)
+        >>> print(datetime_less_than(naive_dt, utc_dt))  # True
+    """
+    if not isinstance(dt1, datetime) or not isinstance(dt2, datetime):
+        raise TypeError("Both arguments must be datetime objects")
+
+    # Check for non-UTC timezones (ADR-011 violation)
+    # A datetime must either be naive (no timezone) or UTC timezone
+    for dt in [dt1, dt2]:
+        if dt.tzinfo is not None and dt.tzinfo != timezone.utc:
+            if dt.utcoffset() != timedelta(0):
+                raise ValueError(
+                    f"Datetime has non-UTC timezone: {dt}. "
+                    "This violates ADR-011 which requires all datetimes to be either "
+                    "naive (from DB) or timezone-aware with UTC."
+                )
+
+    # Make copies to avoid modifying the originals
+    dt1_copy = dt1
+    dt2_copy = dt2
+
+    if ignore_timezone:
+        # For ignore_timezone, we just strip the timezone info
+        # Used when comparing DB datetimes (naive) with application values (UTC)
+        dt1_copy = dt1.replace(tzinfo=None)
+        dt2_copy = dt2.replace(tzinfo=None)
+    else:
+        # For timezone-aware comparisons, convert naive to UTC aware
+        if dt1_copy.tzinfo is None:
+            dt1_copy = dt1_copy.replace(tzinfo=timezone.utc)
+        if dt2_copy.tzinfo is None:
+            dt2_copy = dt2_copy.replace(tzinfo=timezone.utc)
+
+    return dt1_copy < dt2_copy
+
+
 def date_equals(date1: Any, date2: Any) -> bool:
     """
     Safely compare two date objects, handling potential type differences.

@@ -106,7 +106,7 @@ def initialize_banking_feature_flags(app=None) -> None:
     else:
         # For testing or CLI usage when app is not available
         # Create a standalone feature flag service
-        from src.registry.feature_flags import FeatureFlagRegistry
+        from src.registry.feature_flags_registry import FeatureFlagRegistry
         from src.repositories.feature_flags import FeatureFlagRepository
         from src.database.database import get_db_session
 

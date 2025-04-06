@@ -10,7 +10,7 @@ from datetime import timedelta
 
 import pytest
 
-from src.registry.feature_flags import FeatureFlagRegistry
+from src.registry.feature_flags_registry import FeatureFlagRegistry
 from src.schemas.feature_flags import FeatureFlagType
 from src.utils.datetime_utils import utc_now
 

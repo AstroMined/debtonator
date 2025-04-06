@@ -5,6 +5,7 @@ from typing import List, Optional
 from pydantic import Field
 
 from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
+from src.utils.datetime_utils import utc_now
 
 
 class CashflowBase(BaseSchemaValidator):
@@ -16,7 +17,7 @@ class CashflowBase(BaseSchemaValidator):
     """
 
     forecast_date: datetime = Field(
-        default_factory=datetime.now,  # BaseSchemaValidator handles UTC validation
+        default_factory=utc_now,
         description="Date and time of forecast in UTC timezone",
     )
     total_bills: MoneyDecimal = Field(

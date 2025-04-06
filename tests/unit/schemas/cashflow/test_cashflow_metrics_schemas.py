@@ -8,6 +8,7 @@ from src.schemas.cashflow.metrics import (
     HourlyRates,
     MinimumRequired,
 )
+# Note: No datetime imports needed as this file doesn't use any datetime functionality
 
 
 def test_minimum_required_valid():

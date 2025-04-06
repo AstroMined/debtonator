@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 from decimal import Decimal
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
@@ -10,6 +10,11 @@ from src.schemas.cashflow.historical import (
     HistoricalTrendMetrics,
     HistoricalTrendsResponse,
     SeasonalityAnalysis,
+)
+from src.utils.datetime_utils import (
+    utc_now,
+    days_ago,
+    days_from_now,
 )
 
 
@@ -38,8 +43,8 @@ def test_historical_trend_metrics_valid():
 
 def test_historical_period_analysis_valid():
     """Test valid historical period analysis schema creation"""
-    now = datetime.now(timezone.utc)
-    past = now - timedelta(days=30)
+    now = utc_now()
+    past = days_ago(30)
 
     analysis = HistoricalPeriodAnalysis(
         period_start=past,
@@ -99,8 +104,8 @@ def test_seasonality_analysis_valid():
 
 def test_historical_trends_response_valid():
     """Test valid historical trends response schema creation"""
-    now = datetime.now(timezone.utc)
-    past = now - timedelta(days=30)
+    now = utc_now()
+    past = days_ago(30)
 
     metrics = HistoricalTrendMetrics(
         average_daily_change=Decimal("25.50"),
@@ -259,8 +264,8 @@ def test_decimal_precision():
         )
 
     # Test too many decimal places in average_balance
-    now = datetime.now(timezone.utc)
-    past = now - timedelta(days=30)
+    now = utc_now()
+    past = days_ago(30)
 
     with pytest.raises(ValidationError, match="Input should be a multiple of 0.01"):
         HistoricalPeriodAnalysis(
@@ -289,8 +294,8 @@ def test_decimal_precision():
 
 def test_datetime_utc_validation():
     """Test datetime UTC validation per ADR-011"""
-    now = datetime.now(timezone.utc)
-    past = now - timedelta(days=30)
+    now = utc_now()
+    past = days_ago(30)
 
     # Test naive datetime in period_start
     with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
@@ -382,8 +387,8 @@ def test_required_fields():
         )
 
     # Test missing fields in HistoricalPeriodAnalysis
-    now = datetime.now(timezone.utc)
-    past = now - timedelta(days=30)
+    now = utc_now()
+    past = days_ago(30)
 
     with pytest.raises(ValidationError, match="Field required"):
         HistoricalPeriodAnalysis(

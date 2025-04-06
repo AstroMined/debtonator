@@ -7,6 +7,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.76] - 2025-04-05
+
+### Added
+
+- Implemented hierarchical error handling system for account types
+- Created specialized error classes for all banking account types
+- Added support for BNPL and EWA specific error conditions
+- Created comprehensive error handling guide in docs/guides/error_handling.md
+
+### Changed
+
+- Applied consistent error naming convention with account type prefixes
+- Updated error imports to maintain clean architecture
+- Improved error handling patterns documentation in system_patterns.md
+- Updated cashflow schema tests to use proper datetime utilities from datetime_utils.py
+
+### Fixed
+
+- Fixed naming conflicts in error classes with fully qualified names
+- Ensured proper error inheritance hierarchy for all account types
+- Updated all tests in unit/schemas/cashflow to comply with ADR-011 datetime standardization
+- Fixed test_cashflow_base_schemas.py datetime comparison to use proper utility functions
+
 ## [0.5.75] - 2025-04-05
 
 ### Fixed

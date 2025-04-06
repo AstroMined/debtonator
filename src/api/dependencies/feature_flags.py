@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.dependencies.repositories import get_repository
 from src.database.database import get_db
-from src.registry.feature_flags import FeatureFlagRegistry
+from src.registry.feature_flags_registry import FeatureFlagRegistry
 from src.repositories.feature_flags import FeatureFlagRepository
 from src.services.feature_flags import FeatureFlagService
 from src.utils.config import settings

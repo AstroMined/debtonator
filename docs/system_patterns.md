@@ -83,14 +83,6 @@ graph TD
 - RepositoryFactory manages repository instances for dependency injection
 - Each repository focuses on a single model with related operations
 
-### Repository Implementation Pattern
-
-- Generic typing for model and primary key types
-- Consistent method signatures across repositories
-- Relationship loading with selectinload/joinedload
-- Pagination support for large result sets
-- Transaction handling for multi-operation consistency
-
 ### Repository Module Pattern
 
 ```mermaid
@@ -136,31 +128,6 @@ The Repository Module Pattern allows for specialized repository functionality to
    - Repository modules can be enabled/disabled through feature flags
    - Type-specific operations are only available when features are enabled
    - Graceful degradation when features are disabled
-
-5. **Implementation Example**:
-
-   ```python
-   # Repository Factory usage
-   repo = RepositoryFactory.create_account_repository(
-       session=session,
-       account_type="checking",  # Dynamically loads checking.py module
-       feature_flag_service=feature_flag_service
-   )
-
-   # Base operations from AccountRepository
-   accounts = await repo.get_all()
-   
-   # Type-specific operations from checking.py (dynamically bound)
-   with_overdraft = await repo.get_checking_accounts_with_overdraft()
-   ```
-
-This pattern provides several benefits:
-
-- **Separation of Concerns**: Each account type has isolated repository code
-- **Scalability**: Handles hundreds of account types without code bloat
-- **Maintainability**: Type-specific operations live with their respective types
-- **DRY Design**: Common operations defined only once in base repository
-- **Feature Control**: Feature flags can enable/disable account type modules
 
 ## Validation Patterns
 
@@ -237,37 +204,53 @@ graph TD
   - Wildcard field validators affect discriminator fields even if conditional logic tries to skip them
   - These issues often appear during schema generation, before any validation code runs
 
-## Service Patterns
-
-### Pattern Analysis
+## Error Handling Patterns
 
 ```mermaid
 graph TD
-    A[Input Data] --> B[Pattern Detection]
-    B --> C[Confidence Scoring]
+    Base[AccountError] --> TypeA[AccountTypeError]
+    Base --> TypeB[AccountNotFoundError]
+    Base --> TypeC[AccountValidationError]
+    Base --> TypeD[AccountOperationError]
     
-    B1[Pattern Types] --> B2[Regular]
-    B1 --> B3[Irregular]
-    B1 --> B4[Seasonal]
+    TypeA --> SubA1[CheckingAccountError]
+    TypeA --> SubA2[SavingsAccountError]
+    TypeA --> SubA3[CreditAccountError]
     
-    C1[Confidence Factors] --> C2[Sample Size]
-    C1 --> C3[Consistency]
-    C1 --> C4[Recency]
+    SubA1 --> SubA1a[CheckingOverdraftError]
+    SubA1 --> SubA1b[CheckingInsufficientFundsError]
+    
+    SubA2 --> SubA2a[SavingsWithdrawalLimitError]
+    SubA2 --> SubA2b[SavingsMinimumBalanceError]
 ```
 
-- Financial pattern detection for bills, income, and payments
-- Confidence scoring based on sample size and consistency
-- Pattern types classified as regular, irregular, or seasonal
-- History-based analyses for predictions
+### Error Class Naming Convention
 
-## Error Handling Patterns
+- Base error classes use general names: `AccountError`, `RepositoryError`
+- Account type-specific errors include type prefix: `CheckingAccountError`, `SavingsAccountError`
+- Specific errors include both type and error type: `CheckingOverdraftError`, `SavingsWithdrawalLimitError`
+- All error classes end with `Error` suffix
 
-### Layered Error Handling
+### Directory Structure
 
-- Service Layer: Business logic errors with context
-- Repository Layer: Data access errors with details
-- API Layer: User-friendly error messages with codes
-- Clear error hierarchies with consistent structure
+- Follow module structure that mirrors domain model:
+  - `src/errors/accounts.py` - Base account errors
+  - `src/errors/account_types/banking/checking.py` - Checking-specific errors
+  - `src/errors/account_types/banking/savings.py` - Savings-specific errors
+
+### Error Construction Pattern
+
+- Pass meaningful context in error constructors
+- Include entity IDs when available (e.g., account_id)
+- Use optional field parameters for error details
+- Standardize parameter handling in constructors
+
+### Error Usage Pattern
+
+- Raise specific error types, not generic exceptions
+- Catch exceptions at service boundaries and translate appropriately  
+- Include enough context for effective debugging
+- Format error messages consistently for both logs and user display
 
 ## Testing Patterns
 
@@ -372,22 +355,6 @@ graph TD
 - **Test Fixtures for Polymorphic Types**:
   - Use specialized fixture functions that return proper subclass instances
   - Mirror the polymorphic hierarchy in your test fixtures
-  - Example:
-
-    ```python
-    # Proper fixture returning correct subclass
-    @pytest_asyncio.fixture
-    async def test_checking_account(db_session) -> CheckingAccount:
-        """Create a checking account for testing."""
-        account = CheckingAccount(
-            name="Test Checking",
-            current_balance=Decimal("1000.00"),
-            available_balance=Decimal("1000.00")
-        )
-        db_session.add(account)
-        await db_session.flush()
-        return account
-    ```
 
 ### Test Layer Separation
 
@@ -414,44 +381,12 @@ graph TD
   - Unit tests should not cross application layers
   - Model unit tests should test only model-level behavior (relationships, constraints, etc.)
   - Repository unit tests should focus on data access patterns
-  - Example:
-
-    ```python
-    # ✅ Correct: Model-only unit test
-    async def test_account_relationships(db_session):
-        """Test relationships between models"""
-        # Test with only model-level operations
-        account = CheckingAccount(name="Test Account")
-        db_session.add(account)
-        await db_session.flush()
-        
-        # Verify relationships using only model-level code
-        await db_session.refresh(account, ["transactions"])
-        assert isinstance(account.transactions, list)
-    
-    # ❌ Incorrect: Using service in model test
-    async def test_account_with_service(db_session):
-        """This crosses layers inappropriately"""
-        # Don't use services in model unit tests
-        service = AccountService(db_session)
-        account = await service.create_account(account_data)
-        # ...
-    ```
 
 - **Service-Dependent Tests**:
   - Tests that need services should be in `tests/integration/services/`
   - Service tests validate business logic and cross-entity operations
   - Integration tests are appropriate for testing cross-layer behavior
   - Type-specific behavior should be tested at the right layer
-
-## Database Patterns
-
-### Model Relationships
-
-- Clear relationship definitions with back_populates
-- Proper cascade behavior for related records
-- Efficient joins for relationship loading
-- Type-safe relationship references
 
 ## Model Registration & Circular Reference Resolution
 
@@ -506,27 +441,3 @@ System initialization follows a layered architectural approach:
 - Clear separation between schema creation and data seeding
 - Ensures all required system data exists on startup
 - Example: `ensure_system_categories()` for default category creation
-
-#### Database Initialization Flow
-
-1. Schema creation through SQLAlchemy metadata
-2. Repository instantiation with database session
-3. Service-based initialization of required system data
-4. Validation of system requirements before application start
-
-This approach solves circular dependencies while maintaining architectural integrity by:
-
-1. Using string references for model relationships
-2. Centralizing model registration in a single location
-3. Leveraging repository layer for all data access
-4. Separating schema creation from system data initialization
-5. Using service layer for business logic, even during initialization
-
-## Frontend Integration Patterns
-
-### API Client
-
-- Consistent error handling across requests
-- Response formatting with appropriate precision
-- Type-safe request and response handling
-- Loading state management
