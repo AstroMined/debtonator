@@ -6,6 +6,8 @@ standard 4-step pattern (Arrange-Schema-Act-Assert) to properly simulate
 the validation flow from services to repositories.
 """
 
+# pylint: disable=no-member
+
 from decimal import Decimal
 
 import pytest
@@ -13,8 +15,8 @@ import pytest
 from src.models.accounts import Account
 from src.repositories.accounts import AccountRepository
 from src.utils.datetime_utils import datetime_greater_than
+from tests.helpers.schema_factories.account_types.banking.savings import create_savings_account_schema
 from tests.helpers.schema_factories.accounts import (
-    create_account_schema,
     create_account_update_schema,
 )
 
@@ -26,15 +28,15 @@ async def test_create_account(account_repository: AccountRepository):
     # 1. ARRANGE: No setup needed for this test
 
     # 2. SCHEMA: Create and validate through Pydantic schema
-    account_schema = create_account_schema(
+    account_schema = create_savings_account_schema(
         name="New Test Account",
-        account_type="savings",
+        current_balance=Decimal("2500.00"),
         available_balance=Decimal("2500.00"),
         description="Test savings account created through repository",
     )
 
-    # Convert validated schema to dict for repository
-    validated_data = account_schema.model_dump()
+    # account_schema is already a model, so we can use it directly
+    validated_data = account_schema
 
     # 3. ACT: Pass validated data to repository
     result = await account_repository.create(validated_data)
@@ -43,7 +45,7 @@ async def test_create_account(account_repository: AccountRepository):
     assert result is not None
     assert result.id is not None
     assert result.name == "New Test Account"
-    assert result.type == "savings"
+    assert result.account_type == "savings"  # Changed from type to account_type
     assert result.available_balance == Decimal("2500.00")
     assert result.description == "Test savings account created through repository"
     assert result.created_at is not None
@@ -63,7 +65,7 @@ async def test_get_account(
     assert result is not None
     assert result.id == test_checking_account.id
     assert result.name == test_checking_account.name
-    assert result.type == test_checking_account.type
+    assert result.account_type == test_checking_account.account_type  # Changed from type to account_type
     assert result.available_balance == test_checking_account.available_balance
 
 
@@ -78,13 +80,12 @@ async def test_update_account(
 
     # 2. SCHEMA: Create and validate update data through Pydantic schema
     update_schema = create_account_update_schema(
-        id=test_checking_account.id,
         name="Updated Account Name",
         description="Updated account description",
     )
 
     # Convert validated schema to dict for repository
-    update_data = update_schema.model_dump(exclude={"id"})
+    update_data = update_schema.model_dump()
 
     # 3. ACT: Pass validated data to repository
     result = await account_repository.update(test_checking_account.id, update_data)
@@ -95,7 +96,7 @@ async def test_update_account(
     assert result.name == "Updated Account Name"
     assert result.description == "Updated account description"
     # Fields not in update_data should remain unchanged
-    assert result.type == test_checking_account.type
+    assert result.account_type == test_checking_account.account_type  # Changed from type to account_type
     assert result.available_balance == test_checking_account.available_balance
     # Compare against stored original timestamp instead of test_checking_account.updated_at
     assert datetime_greater_than(

@@ -7,6 +7,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.79] - 2025-04-06
+
+### Changed
+
+- Improved AccountUpdate schema and test infrastructure:
+  - Removed id field from AccountUpdate schema as it's not part of update data
+  - Fixed test assertions to match schema structure
+  - Added proper credit-specific field validation tests
+  - Enhanced test coverage for account type validation
+  - Fixed integration test to handle account ID correctly
+
+### Fixed
+
+- Fixed schema validation in test infrastructure:
+  - Fixed test_create_account_update_schema to remove id assertions
+  - Fixed test_create_account_update_schema_minimal to remove id field
+  - Added test_create_account_update_schema_credit_fields for credit validation
+  - Added test_create_account_update_schema_credit_validation for field constraints
+  - Fixed integration test to handle ID separately from update data
+
 ## [0.5.78] - 2025-04-06
 
 ### Added

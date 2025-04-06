@@ -7,10 +7,9 @@ Pydantic schema instances for use in tests.
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from src.schemas.accounts import (
-    AccountCreate,
     AccountInDB,
     AccountResponse,
     AccountStatementHistoryResponse,
@@ -18,51 +17,75 @@ from src.schemas.accounts import (
     AvailableCreditResponse,
     StatementBalanceHistory,
 )
+from src.schemas.account_types import AccountCreateUnion
+from src.schemas.account_types.banking import (
+    CheckingAccountCreate,
+    SavingsAccountCreate,
+    CreditAccountCreate,
+    PaymentAppAccountCreate,
+    BNPLAccountCreate,
+    EWAAccountCreate,
+)
+from tests.helpers.schema_factories.account_types.banking.checking import create_checking_account_schema
+from tests.helpers.schema_factories.account_types.banking.savings import create_savings_account_schema
+from tests.helpers.schema_factories.account_types.banking.credit import create_credit_account_schema
+from tests.helpers.schema_factories.account_types.banking.payment_app import create_payment_app_account_schema
+from tests.helpers.schema_factories.account_types.banking.bnpl import create_bnpl_account_schema
+from tests.helpers.schema_factories.account_types.banking.ewa import create_ewa_account_schema
 from tests.helpers.schema_factories.base import factory_function
 from src.utils.datetime_utils import utc_now
 
 
-@factory_function(AccountCreate)
 def create_account_schema(
     name: str = "Test Account",
     account_type: str = "checking",
     available_balance: Optional[Decimal] = None,
     total_limit: Optional[Decimal] = None,
     **kwargs: Any,
-) -> Dict[str, Any]:
+) -> AccountCreateUnion:
     """
-    Create a valid AccountCreate schema instance.
+    Create a valid account schema instance using the appropriate type factory.
+
+    This function routes to type-specific schema factories based on account_type.
+    This ensures compatibility with the new polymorphic schema architecture.
 
     Args:
         name: Account name
-        account_type: Account type (checking, savings, credit)
+        account_type: Account type (checking, savings, credit, payment_app, bnpl, ewa)
         available_balance: Available balance (defaults based on account type)
         total_limit: Credit limit (only used for credit accounts)
         **kwargs: Additional fields to override
 
     Returns:
-        Dict[str, Any]: Data to create AccountCreate schema
+        AccountCreateUnion: A schema instance of the appropriate type
     """
-    if available_balance is None:
-        if account_type == "credit":
-            available_balance = Decimal("-500.00")
-        else:
-            available_balance = Decimal("1000.00")
-
-    data = {
+    # Common parameters to pass to all factories
+    common_params = {
         "name": name,
-        "type": account_type,
-        "available_balance": available_balance,
         **kwargs,
     }
 
-    # Add total_limit for credit accounts
-    if account_type == "credit":
-        if total_limit is None:
-            total_limit = Decimal("5000.00")
-        data["total_limit"] = total_limit
+    # Add balance if provided
+    if available_balance is not None:
+        common_params["available_balance"] = available_balance
 
-    return data
+    # Route to appropriate factory based on account_type
+    if account_type == "checking":
+        return create_checking_account_schema(**common_params)
+    elif account_type == "savings":
+        return create_savings_account_schema(**common_params)
+    elif account_type == "credit":
+        if total_limit is not None:
+            common_params["credit_limit"] = total_limit
+        return create_credit_account_schema(**common_params)
+    elif account_type == "payment_app":
+        return create_payment_app_account_schema(**common_params)
+    elif account_type == "bnpl":
+        return create_bnpl_account_schema(**common_params)
+    elif account_type == "ewa":
+        return create_ewa_account_schema(**common_params)
+    else:
+        raise ValueError(f"Unsupported account type: {account_type}")
 
 
 @factory_function(AccountInDB)
@@ -84,7 +107,7 @@ def create_account_in_db_schema(
     Args:
         id: Account ID (unique identifier)
         name: Account name
-        account_type: Account type (checking, savings, credit)
+        account_type: Account type (checking, savings, credit, etc.)
         available_balance: Available balance (defaults based on account type)
         total_limit: Credit limit (only used for credit accounts)
         last_statement_balance: Balance from last statement (optional)
@@ -111,7 +134,7 @@ def create_account_in_db_schema(
     data = {
         "id": id,
         "name": name,
-        "type": account_type,
+        "account_type": account_type,  # Changed from "type" to "account_type"
         "available_balance": available_balance,
         "created_at": created_at,
         "updated_at": updated_at,
@@ -160,7 +183,7 @@ def create_account_response_schema(
     Args:
         id: Account ID (unique identifier)
         name: Account name
-        account_type: Account type (checking, savings, credit)
+        account_type: Account type (checking, savings, credit, etc.)
         available_balance: Available balance (defaults based on account type)
         total_limit: Credit limit (only used for credit accounts)
         last_statement_balance: Balance from last statement (optional)
@@ -350,29 +373,40 @@ def create_available_credit_response_schema(
 
 @factory_function(AccountUpdate)
 def create_account_update_schema(
-    id: int,
     name: Optional[str] = None,
     available_balance: Optional[Decimal] = None,
+    account_type: Optional[str] = None,
+    total_limit: Optional[Decimal] = None,
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """
     Create a valid AccountUpdate schema instance.
 
     Args:
-        id: ID of the account to update
         name: New account name (optional)
         available_balance: New available balance (optional)
+        account_type: Account type (optional)
+        total_limit: Credit limit for credit accounts (optional)
         **kwargs: Additional fields to override
 
     Returns:
         Dict[str, Any]: Data to create AccountUpdate schema
     """
-    data = {"id": id, **kwargs}
+    data = {}
 
     if name is not None:
         data["name"] = name
 
     if available_balance is not None:
         data["available_balance"] = available_balance
+
+    if account_type is not None:
+        data["account_type"] = account_type
+
+    if total_limit is not None:
+        data["total_limit"] = total_limit
+
+    # Add any additional fields from kwargs
+    data.update(kwargs)
 
     return data
