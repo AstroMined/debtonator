@@ -7,6 +7,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# CHANGELOG.md update
+
+## [0.5.81] - 2025-04-07
+
+### Added
+
+- Tests for 8 additional schema factories
+- Comprehensive test coverage for complex nested schemas
+- Test validation for proper datetime timezone handling
+
+### Fixed
+
+- Timezone handling in test fixtures to use utc_datetime utility functions
+- Schema factory test assertions to match actual schema structures
+- Validation of required fields in schema factory tests
+
 ## [0.5.80] - 2025-04-06
 
 ### Added
