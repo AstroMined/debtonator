@@ -7,7 +7,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-# CHANGELOG.md update
+## [0.5.83] - 2025-04-06
+
+### Added
+
+- Comprehensive unit tests for error module with 99% coverage
+- Tests for all error classes in the errors module hierarchy
+- Tests for error details handling and message formatting
+- Tests for proper error inheritance relationships
+
+### Fixed
+
+- Parameter mismatches in SavingsAccountError classes
+- Message formatting in PaymentAppPlatformFeatureError
+- Standardized error class parameter naming
+- Improved error message formatting consistency
 
 ## [0.5.82] - 2025-04-07
 
