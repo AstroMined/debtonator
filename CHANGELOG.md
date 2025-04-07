@@ -7,6 +7,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.84] - 2025-04-07
+
+### Added
+
+- Created 5 new test files for schema factories:
+  - Added test_base.py for cashflow base schema factories
+  - Added test_forecasting.py for cashflow forecasting schema factories 
+  - Added test_historical.py for cashflow historical schema factories
+  - Added test_income_trends.py for income trends schema factories
+  - Enhanced test_accounts.py for complete accounts schema factories coverage
+
+### Fixed
+
+- Fixed SeasonalityAnalysis tests to use tolerance range for day_of_month_patterns sum validation
+- Fixed handling of next_predicted field in irregular frequency income patterns
+- Fixed PeriodType enum testing in income_trends schema tests
+
 ## [0.5.83] - 2025-04-06
 
 ### Added
