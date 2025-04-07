@@ -37,6 +37,7 @@ pytest_plugins = [
     "tests.fixtures.models.fixture_recurring",
     "tests.fixtures.models.fixture_schedules",
     "tests.fixtures.models.fixture_feature_flags",
+    "tests.fixtures.models.fixture_test_items",  # Add test items fixtures
     # Account type fixtures
     "tests.fixtures.models.account_types.banking.fixture_checking",
     "tests.fixtures.models.account_types.banking.fixture_credit",

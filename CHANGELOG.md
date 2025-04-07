@@ -7,6 +7,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.85] - 2025-04-07
+
+### Added
+
+- Generic test infrastructure for BaseRepository:
+  - Created test-specific TestItem model for repository testing
+  - Implemented TestItemCreate/Update/InDB schemas for validation
+  - Added schema factory functions for test item creation
+  - Created test fixtures for TestItem repository testing
+  - Added comprehensive test infrastructure in tests/helpers/models and tests/helpers/schemas
+
+### Changed
+
+- Refactored test_base_repository.py to use generic test model:
+  - Replaced Account model with TestItem model
+  - Replaced AccountCreate schema with TestItemCreate schema
+  - Updated all test cases to use test-specific model and schema
+  - Improved test isolation from business models
+  - Enhanced test maintainability and focus
+
+### Fixed
+
+- Fixed ImportError in test_base_repository.py:
+  - Removed dependency on non-existent AccountCreate schema
+  - Implemented proper schema validation flow in tests
+  - Added pylint disable=no-member to handle model_dump() warnings
+  - All tests now passing with proper validation flow
+
 ## [0.5.84] - 2025-04-07
 
 ### Added

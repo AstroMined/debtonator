@@ -4,6 +4,8 @@ Unit tests for the BaseRepository class.
 These tests validate the core functionality of the BaseRepository with real database fixtures.
 """
 
+# pylint: disable=no-member
+
 from datetime import datetime, timezone
 from decimal import Decimal
 
@@ -11,9 +13,9 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.accounts import Account
 from src.repositories.base_repository import BaseRepository
-from src.schemas.accounts import AccountCreate
+from tests.helpers.models.test_models import TestItem
+from tests.helpers.schemas.test_schemas import TestItemCreate, TestItemUpdate
 
 pytestmark = pytest.mark.integration
 
@@ -21,132 +23,103 @@ pytestmark = pytest.mark.integration
 async def test_create(db_session: AsyncSession):
     """Test creating a new record using a repository."""
     # Arrange
-    repo = BaseRepository(db_session, Account)
+    repo = BaseRepository(db_session, TestItem)
 
     # Schema (simulate service validation)
-    account_data = AccountCreate(
-        name="Test Account", type="checking", available_balance=Decimal("1000.00")
+    item_data = TestItemCreate(
+        name="Test Item", 
+        description="Test description", 
+        numeric_value=Decimal("100.00")
     )
 
     # Act
-    account = await repo.create(account_data.model_dump())
+    item = await repo.create(item_data.model_dump())
 
     # Assert
-    assert account.id is not None
-    assert account.name == "Test Account"
-    assert account.type == "checking"
-    assert account.available_balance == Decimal("1000.00")
+    assert item.id is not None
+    assert item.name == "Test Item"
+    assert item.description == "Test description"
+    assert item.numeric_value == Decimal("100.00")
 
 
-async def test_get(db_session: AsyncSession):
+async def test_get(test_item_repository: BaseRepository, test_item: TestItem):
     """Test retrieving a record by ID."""
-    # Arrange
-    repo = BaseRepository(db_session, Account)
-
-    # Create test account
-    account_data = AccountCreate(
-        name="Get Test Account", type="savings", available_balance=Decimal("500.00")
-    )
-    created_account = await repo.create(account_data.model_dump())
-
     # Act
-    retrieved_account = await repo.get(created_account.id)
+    retrieved_item = await test_item_repository.get(test_item.id)
 
     # Assert
-    assert retrieved_account is not None
-    assert retrieved_account.id == created_account.id
-    assert retrieved_account.name == "Get Test Account"
-    assert retrieved_account.type == "savings"
-    assert retrieved_account.available_balance == Decimal("500.00")
+    assert retrieved_item is not None
+    assert retrieved_item.id == test_item.id
+    assert retrieved_item.name == test_item.name
 
 
-async def test_get_nonexistent(db_session: AsyncSession):
+async def test_get_nonexistent(test_item_repository: BaseRepository):
     """Test retrieving a nonexistent record returns None."""
-    # Arrange
-    repo = BaseRepository(db_session, Account)
-
     # Act
-    retrieved_account = await repo.get(9999)  # Nonexistent ID
+    retrieved_item = await test_item_repository.get(9999)  # Nonexistent ID
 
     # Assert
-    assert retrieved_account is None
+    assert retrieved_item is None
 
 
-async def test_update(db_session: AsyncSession):
+async def test_update(test_item_repository: BaseRepository, test_item: TestItem):
     """Test updating a record."""
-    # Arrange
-    repo = BaseRepository(db_session, Account)
-
-    # Create test account
-    account_data = AccountCreate(
-        name="Update Test Account",
-        type="checking",
-        available_balance=Decimal("1500.00"),
-    )
-    created_account = await repo.create(account_data.model_dump())
-
     # Act
     updated_data = {
-        "name": "Updated Account Name",
-        "available_balance": Decimal("2000.00"),
+        "name": "Updated Item Name",
+        "numeric_value": Decimal("200.00"),
     }
-    updated_account = await repo.update(created_account.id, updated_data)
+    updated_item = await test_item_repository.update(test_item.id, updated_data)
 
     # Assert
-    assert updated_account is not None
-    assert updated_account.id == created_account.id
-    assert updated_account.name == "Updated Account Name"
-    assert updated_account.type == "checking"  # Unchanged
-    assert updated_account.available_balance == Decimal("2000.00")
+    assert updated_item is not None
+    assert updated_item.id == test_item.id
+    assert updated_item.name == "Updated Item Name"
+    assert updated_item.description == test_item.description  # Unchanged
+    assert updated_item.numeric_value == Decimal("200.00")
 
 
-async def test_update_nonexistent(db_session: AsyncSession):
+async def test_update_nonexistent(test_item_repository: BaseRepository):
     """Test updating a nonexistent record returns None."""
-    # Arrange
-    repo = BaseRepository(db_session, Account)
-
     # Act
     updated_data = {
-        "name": "Updated Account Name",
-        "available_balance": Decimal("2000.00"),
+        "name": "Updated Item Name",
+        "numeric_value": Decimal("200.00"),
     }
-    updated_account = await repo.update(9999, updated_data)  # Nonexistent ID
+    updated_item = await test_item_repository.update(9999, updated_data)  # Nonexistent ID
 
     # Assert
-    assert updated_account is None
+    assert updated_item is None
 
 
 async def test_delete(db_session: AsyncSession):
     """Test deleting a record."""
     # Arrange
-    repo = BaseRepository(db_session, Account)
+    repo = BaseRepository(db_session, TestItem)
 
-    # Create test account
-    account_data = AccountCreate(
-        name="Delete Test Account",
-        type="checking",
-        available_balance=Decimal("100.00"),
+    # Create test item
+    item_data = TestItemCreate(
+        name="Delete Test Item",
+        description="Item to delete",
+        numeric_value=Decimal("100.00"),
     )
-    created_account = await repo.create(account_data.model_dump())
+    created_item = await repo.create(item_data.model_dump())
 
-    # Verify account exists
-    assert await repo.get(created_account.id) is not None
+    # Verify item exists
+    assert await repo.get(created_item.id) is not None
 
     # Act
-    deleted = await repo.delete(created_account.id)
+    deleted = await repo.delete(created_item.id)
 
     # Assert
     assert deleted is True
-    assert await repo.get(created_account.id) is None
+    assert await repo.get(created_item.id) is None
 
 
-async def test_delete_nonexistent(db_session: AsyncSession):
+async def test_delete_nonexistent(test_item_repository: BaseRepository):
     """Test deleting a nonexistent record returns False."""
-    # Arrange
-    repo = BaseRepository(db_session, Account)
-
     # Act
-    deleted = await repo.delete(9999)  # Nonexistent ID
+    deleted = await test_item_repository.delete(9999)  # Nonexistent ID
 
     # Assert
     assert deleted is False
@@ -155,47 +128,44 @@ async def test_delete_nonexistent(db_session: AsyncSession):
 async def test_get_multi(db_session: AsyncSession):
     """Test retrieving multiple records with filtering."""
     # Arrange
-    repo = BaseRepository(db_session, Account)
+    repo = BaseRepository(db_session, TestItem)
 
-    # Create test accounts
-    account_data_1 = AccountCreate(
-        name="Test Account 1", type="checking", available_balance=Decimal("1000.00")
+    # Create test items
+    item_data_1 = TestItemCreate(
+        name="Test Item 1", 
+        description="Active item", 
+        numeric_value=Decimal("100.00"),
+        is_active=True
     )
-    account_data_2 = AccountCreate(
-        name="Test Account 2", type="savings", available_balance=Decimal("2000.00")
+    item_data_2 = TestItemCreate(
+        name="Test Item 2", 
+        description="Inactive item", 
+        numeric_value=Decimal("200.00"),
+        is_active=False
     )
-    account_data_3 = AccountCreate(
-        name="Test Account 3", type="checking", available_balance=Decimal("3000.00")
+    item_data_3 = TestItemCreate(
+        name="Test Item 3", 
+        description="Another active item", 
+        numeric_value=Decimal("300.00"),
+        is_active=True
     )
 
-    await repo.create(account_data_1.model_dump())
-    await repo.create(account_data_2.model_dump())
-    await repo.create(account_data_3.model_dump())
+    await repo.create(item_data_1.model_dump())
+    await repo.create(item_data_2.model_dump())
+    await repo.create(item_data_3.model_dump())
 
     # Act
-    checking_accounts = await repo.get_multi(filters={"type": "checking"})
+    active_items = await repo.get_multi(filters={"is_active": True})
 
     # Assert
-    assert len(checking_accounts) >= 2  # At least our created test accounts
-    assert all(account.type == "checking" for account in checking_accounts)
+    assert len(active_items) >= 2  # At least our created test items
+    assert all(item.is_active for item in active_items)
 
 
-async def test_get_multi_with_skip_and_limit(db_session: AsyncSession):
+async def test_get_multi_with_skip_and_limit(test_item_repository: BaseRepository, test_items: list):
     """Test pagination with skip and limit parameters."""
-    # Arrange
-    repo = BaseRepository(db_session, Account)
-
-    # Create 5 test accounts
-    for i in range(5):
-        account_data = AccountCreate(
-            name=f"Pagination Test {i}",
-            type="checking",
-            available_balance=Decimal(f"{i}000.00"),
-        )
-        await repo.create(account_data.model_dump())
-
     # Act - Get second page (skip first 2, limit to 2)
-    page = await repo.get_multi(skip=2, limit=2)
+    page = await test_item_repository.get_multi(skip=2, limit=2)
 
     # Assert
     assert len(page) == 2
@@ -204,20 +174,21 @@ async def test_get_multi_with_skip_and_limit(db_session: AsyncSession):
 async def test_get_paginated(db_session: AsyncSession):
     """Test paginated results with total count."""
     # Arrange
-    repo = BaseRepository(db_session, Account)
+    repo = BaseRepository(db_session, TestItem)
 
-    # Create 5 test accounts with the same type for filtering
+    # Create 5 test items with the same active status for filtering
     for i in range(5):
-        account_data = AccountCreate(
+        item_data = TestItemCreate(
             name=f"Pagination Total Test {i}",
-            type="savings",
-            available_balance=Decimal(f"{i}000.00"),
+            description=f"Pagination test item {i}",
+            numeric_value=Decimal(f"{i}00.00"),
+            is_active=True
         )
-        await repo.create(account_data.model_dump())
+        await repo.create(item_data.model_dump())
 
     # Act - Get first page with filter
     items, total = await repo.get_paginated(
-        page=1, items_per_page=3, filters={"type": "savings"}
+        page=1, items_per_page=3, filters={"is_active": True}
     )
 
     # Assert
@@ -228,117 +199,119 @@ async def test_get_paginated(db_session: AsyncSession):
 async def test_bulk_create(db_session: AsyncSession):
     """Test creating multiple records in a batch."""
     # Arrange
-    repo = BaseRepository(db_session, Account)
+    repo = BaseRepository(db_session, TestItem)
 
     # Prepare bulk data (simulating validated data)
     bulk_data = [
         {
-            "name": "Bulk Account 1",
-            "type": "checking",
-            "available_balance": Decimal("1000.00"),
+            "name": "Bulk Item 1",
+            "description": "First bulk item",
+            "numeric_value": Decimal("100.00"),
+            "is_active": True
         },
         {
-            "name": "Bulk Account 2",
-            "type": "savings",
-            "available_balance": Decimal("2000.00"),
+            "name": "Bulk Item 2",
+            "description": "Second bulk item",
+            "numeric_value": Decimal("200.00"),
+            "is_active": True
         },
         {
-            "name": "Bulk Account 3",
-            "type": "credit",
-            "available_balance": Decimal("-500.00"),
-            "total_limit": Decimal("5000.00"),
+            "name": "Bulk Item 3",
+            "description": "Third bulk item",
+            "numeric_value": Decimal("300.00"),
+            "is_active": False
         },
     ]
 
     # Act
-    created_accounts = await repo.bulk_create(bulk_data)
+    created_items = await repo.bulk_create(bulk_data)
 
     # Assert
-    assert len(created_accounts) == 3
-    assert all(account.id is not None for account in created_accounts)
-    assert created_accounts[0].name == "Bulk Account 1"
-    assert created_accounts[1].type == "savings"
-    assert created_accounts[2].available_balance == Decimal("-500.00")
+    assert len(created_items) == 3
+    assert all(item.id is not None for item in created_items)
+    assert created_items[0].name == "Bulk Item 1"
+    assert created_items[1].description == "Second bulk item"
+    assert created_items[2].numeric_value == Decimal("300.00")
 
 
 async def test_bulk_update(db_session: AsyncSession):
     """Test updating multiple records in a batch."""
     # Arrange
-    repo = BaseRepository(db_session, Account)
+    repo = BaseRepository(db_session, TestItem)
 
-    # Create test accounts
-    account_ids = []
+    # Create test items
+    item_ids = []
     for i in range(3):
-        account_data = AccountCreate(
+        item_data = TestItemCreate(
             name=f"Bulk Update Test {i}",
-            type="checking",
-            available_balance=Decimal(f"{i}000.00"),
+            description=f"Item for bulk update {i}",
+            numeric_value=Decimal(f"{i}00.00"),
         )
-        account = await repo.create(account_data.model_dump())
-        account_ids.append(account.id)
+        item = await repo.create(item_data.model_dump())
+        item_ids.append(item.id)
 
-    # Act - Update all accounts' available balance
-    update_data = {"available_balance": Decimal("9999.00")}
-    updated_accounts = await repo.bulk_update(account_ids, update_data)
+    # Act - Update all items' numeric value
+    update_data = {"numeric_value": Decimal("999.00")}
+    updated_items = await repo.bulk_update(item_ids, update_data)
 
     # Assert
-    assert len(updated_accounts) == 3
-    assert all(account is not None for account in updated_accounts)
+    assert len(updated_items) == 3
+    assert all(item is not None for item in updated_items)
     assert all(
-        account.available_balance == Decimal("9999.00") for account in updated_accounts
+        item.numeric_value == Decimal("999.00") for item in updated_items
     )
 
 
 async def test_transaction_commit(db_session: AsyncSession):
     """Test transaction context manager with successful commit."""
     # Arrange
-    repo = BaseRepository(db_session, Account)
+    repo = BaseRepository(db_session, TestItem)
 
     # Act
     async with repo.transaction() as tx_repo:
-        # Create account within transaction
-        account_data = AccountCreate(
+        # Create item within transaction
+        item_data = TestItemCreate(
             name="Transaction Test",
-            type="checking",
-            available_balance=Decimal("1000.00"),
+            description="Item created in transaction",
+            numeric_value=Decimal("100.00"),
         )
-        account = await tx_repo.create(account_data.model_dump())
+        item = await tx_repo.create(item_data.model_dump())
 
-    # Outside transaction, verify account was created
-    retrieved_account = await repo.get(account.id)
+    # Outside transaction, verify item was created
+    retrieved_item = await repo.get(item.id)
 
     # Assert
-    assert retrieved_account is not None
-    assert retrieved_account.name == "Transaction Test"
+    assert retrieved_item is not None
+    assert retrieved_item.name == "Transaction Test"
 
 
 async def test_transaction_rollback(db_session: AsyncSession):
     """Test transaction context manager with rollback on exception."""
     # Arrange
-    repo = BaseRepository(db_session, Account)
-    account_name = f"Rollback Test {datetime.now(timezone.utc).isoformat()}"
+    repo = BaseRepository(db_session, TestItem)
+    item_name = f"Rollback Test {datetime.now(timezone.utc).isoformat()}"
 
     # Act
     try:
         async with repo.transaction() as tx_repo:
-            # Create account within transaction
-            account_data = AccountCreate(
-                name=account_name,
-                type="checking",
-                available_balance=Decimal("1000.00"),
+            # Create item within transaction
+            item_data = TestItemCreate(
+                name=item_name,
+                description="Item that should be rolled back",
+                numeric_value=Decimal("100.00"),
             )
-            await tx_repo.create(account_data.model_dump())
+            await tx_repo.create(item_data.model_dump())
 
             # Raise exception to trigger rollback
             raise ValueError("Test exception to trigger rollback")
     except ValueError:
         pass  # Expected exception
 
-    # Outside transaction, verify account was not created
+    # Outside transaction, verify item was not created
     result = await db_session.execute(
-        select(Account).where(Account.name == account_name)
+        select(TestItem).where(TestItem.name == item_name)
     )
-    account = result.scalars().first()
+    item = result.scalars().first()
 
     # Assert
-    assert account is None  # Transaction was rolled back
+    assert item is None  # Transaction was rolled back

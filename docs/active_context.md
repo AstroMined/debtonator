@@ -6,7 +6,25 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 
 ### Recent Changes
 
-1. **Implemented Comprehensive Error Module Unit Tests (April 6, 2025)** ✓
+1. **Implemented Generic Test Infrastructure for BaseRepository (April 7, 2025)** ✓
+   - Created test-specific TestItem model for generic repository testing
+   - Implemented TestItemCreate/Update/InDB schemas for validation
+   - Created schema factory functions for test item creation
+   - Added test fixtures for TestItem repository testing
+   - Refactored test_base_repository.py to use generic test model
+   - Decoupled repository tests from specific business models
+   - Fixed import error for AccountCreate schema
+   - Added pylint disable=no-member to handle model_dump() warnings
+   - All tests passing with proper validation flow
+
+2. **Implemented Schema Factory Tests for Untested Modules (April 7, 2025)** ✓
+   - Created test files for cashflow/base.py, cashflow/forecasting.py, cashflow/historical.py, income_trends.py
+   - Added enhanced tests for accounts.py to improve coverage from 51% to 90%+
+   - Fixed issues with day_of_month_patterns sum validation in SeasonalityAnalysis tests
+   - Corrected enum handling for PeriodType in income_trends.py tests
+   - Ensured proper handling of next_predicted field for irregular frequency income patterns
+
+3. **Implemented Comprehensive Error Module Unit Tests (April 6, 2025)** ✓
    - Created unit tests for all error classes in the errors module
    - Fixed parameter mismatches in SavingsAccountError classes
    - Fixed message formatting in PaymentAppPlatformFeatureError
@@ -14,33 +32,19 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Implemented proper error inheritance testing
    - Added tests for error details handling and message formatting
 
-2. **Implemented Tests for Multiple Schema Factories (April 7, 2025)** ✓
+4. **Implemented Tests for Multiple Schema Factories (April 6, 2025)** ✓
    - Created 9 comprehensive test files for schema factories with over 85 test cases
    - Fixed nested dictionary handling in CrossAccountAnalysis schema factory
    - Resolved validation issues with complex schema structures
    - Implemented tests for time-sensitive fields with proper UTC handling
    - Added tests for boundary cases and validation scenarios
 
-3. **Implemented Enhanced Schema Factory Testing Framework (April 6, 2025)** ✓
+5. **Implemented Enhanced Schema Factory Testing Framework (April 6, 2025)** ✓
    - Created comprehensive testing for schema factories with proper model-to-dict conversion
    - Implemented enhanced factory function decorator that handles nested model instances 
    - Fixed datetime handling to ensure proper UTC timezone in all factory functions
    - Added clear documentation about fields that exist in factories but not in schemas
    - Implemented recursive data processing for complex nested schema structures
-
-4. **Fixed AccountUpdate Schema and Test Infrastructure (April 6, 2025)** ✓
-   - Removed id field from AccountUpdate schema as it's not part of update data
-   - Fixed test assertions to match schema structure
-   - Added proper credit-specific field validation tests
-   - Enhanced test coverage for account type validation
-   - Fixed integration test to handle account ID correctly
-
-5. **Fixed Test Infrastructure for Modern Banking Account Types (April 6, 2025)** ✓
-   - Added feature_flag_service fixture with test initialization and database setup
-   - Fixed repository test method calls from get_by_id() to get() for consistency
-   - Identified and addressed constructor argument errors with field filtering
-   - Updated conftest.py to include modern banking account fixtures
-   - Fixed schema validation issue with card_last_four when has_debit_card is false
 
 ## Next Steps
 
@@ -53,10 +57,10 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 
 2. **Complete Schema Factory Test Coverage**
    - Implement remaining tests for account_types schema factories
-   - Add tests for cashflow/forecasting.py and cashflow/historical.py
-   - Create test file for cashflow/base.py with proper validation
-   - Implement tests for income_trends.py schema factory
-   - Expand tests for complex nested structures
+   - Increase test coverage for specific schema factory components with < 90% coverage
+   - Improve test coverage for complex edge cases in nested structures
+   - Add cross-factory integration testing for complex relationships
+   - Implement tests for additional service-level schema validations
 
 3. **Fix Remaining Schema Factory Implementation Issues**
    - Address validator conflict with discriminator fields in response models
@@ -79,19 +83,20 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 
 ## Implementation Lessons
 
-1. **Error Class Parameter Standardization**
-   - Ensure error class parameters match between implementation and tests
-   - Use consistent parameter naming across related error classes
-   - Document parameter expectations clearly in docstrings
-   - Implement proper inheritance relationships for error classes
-   - Test both basic and detailed error instantiation patterns
+1. **Repository Test Decoupling**
+   - Create test-specific models and schemas for testing generic functionality
+   - Avoid using business models in tests for generic components
+   - Use schema factories to simplify test data creation
+   - Follow the Arrange-Schema-Act-Assert pattern consistently
+   - Create reusable test fixtures for common test scenarios
+   - Implement proper validation flow in all repository tests
 
-2. **Error Message Formatting**
-   - Be careful with message formatting when combining custom messages with default templates
-   - Test error message formatting with various parameter combinations
-   - Ensure error details dictionary contains all relevant information
-   - Implement consistent string representation for error classes
-   - Test error serialization to dictionaries for API responses
+2. **Schema Factory Test Edge Cases**
+   - Watch for subtle rounding issues in decimal sum assertions (e.g., day_of_month_patterns sum)
+   - Verify enum member existence before using in tests to prevent AttributeError
+   - Use appropriate assertions for optional fields that may be None but still exist
+   - Implement proper tolerance ranges for numerical tests where exact equality isn't required
+   - Test both None and explicit values for optional fields
 
 3. **Schema Factory Nested Object Handling**
    - Use explicit dictionary structure for nested objects to match schema expectations
@@ -100,16 +105,16 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Create specific test assertions for each level of the object structure
    - Verify schema validation with complex nested structures
 
-4. **Complex Schema Test Structure Pattern**
-   - Create modular test files for each schema factory area
-   - Test all factory functions including helper factories for nested objects
-   - Include a main default test and a custom values test for each factory
-   - Add specific tests for edge cases like boundary values
-   - Document expectations for nested structure validation
+4. **Datetime Handling for Test Assertions**
+   - Always use datetime_equals() for comparing datetime objects to ensure proper TZ handling
+   - Verify all datetimes have timezone info (tzinfo is not None)
+   - Confirm timezone is UTC (tzinfo == timezone.utc) as required by ADR-011
+   - Test both auto-created and explicitly provided datetime values
+   - Verify proper date difference calculations in nested object structures
 
-5. **Testing and Error Handling for Schema Factories**
-   - Focus on validating schema objects against their expected structure
-   - Test boundary conditions and expected validation errors
-   - Document clear examples of valid object structures
-   - Ensure error messages are specific and helpful
-   - Add test cases for each potential validation failure
+5. **Complex Enum Handling**
+   - Explicitly import and use proper enum values (e.g., FrequencyType.WEEKLY)
+   - Verify enum members exist in the enumeration before using in tests
+   - Test all valid enum values to ensure complete coverage
+   - Carefully handle string-based enums with proper literals
+   - Test proper validation behavior when using invalid enum values
