@@ -283,7 +283,7 @@ def create_account_risk_assessment_schema(
 
 @factory_function(CrossAccountAnalysis)
 def create_cross_account_analysis_schema(
-    correlations: Optional[Dict[str, Dict[str, Any]]] = None,
+    correlations: Optional[Dict[str, Dict[str, AccountCorrelation]]] = None,
     transfer_patterns: Optional[List[Dict[str, Any]]] = None,
     usage_patterns: Optional[Dict[int, Dict[str, Any]]] = None,
     balance_distribution: Optional[Dict[int, Dict[str, Any]]] = None,
@@ -312,11 +312,11 @@ def create_cross_account_analysis_schema(
     account2_id = 2
 
     if correlations is None:
-        # Create a dictionary with account pairs as keys
+        # Create a dictionary with account pairs as keys and correlation objects
+        correlation_obj = create_account_correlation_schema()
         correlations = {
             f"{account1_id}-{account2_id}": {
-                # Use the factory function for AccountCorrelation
-                create_account_correlation_schema().model_dump()
+                "correlation": correlation_obj
             }
         }
 

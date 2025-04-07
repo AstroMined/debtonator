@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # CHANGELOG.md update
 
+## [0.5.82] - 2025-04-07
+
+### Added
+
+- Test files for 9 schema factories with comprehensive validation
+- Testing for complex nested schema structures
+- Validation for correlations dictionary in CrossAccountAnalysis
+- Test coverage for custom values in all tested schema factories
+- Tests for proper UTC timezone handling in datetime fields
+
+### Fixed
+
+- Proper nested dictionary structure in CrossAccountAnalysis
+- Validation logic for complex nested schema objects
+- Structure alignment between schema factories and schema definitions
+- Proper handling of nested discriminated union validation
+- Documentation for complex schema structures
+
 ## [0.5.81] - 2025-04-07
 
 ### Added
