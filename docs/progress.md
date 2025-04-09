@@ -88,6 +88,7 @@
    - Schema factory test determinism (100%) ✓
    - Model fixture standardization (100%) ✓
    - Naive datetime functions for database fixtures (100%) ✓
+   - Utils module test coverage improvement (88%) ✓
 
 ## What Works
 
@@ -157,6 +158,8 @@
    - Proper polymorphic class usage in fixtures ✓
    - Naive datetime functions for database fixtures ✓
    - Clear separation between naive and timezone-aware datetime usage ✓
+   - Modular test organization for utils module ✓
+   - Integration test documentation for cross-layer components ✓
 
 ## What's Left to Build
 
@@ -221,3 +224,9 @@
    - Similar issues exist in other probability distribution tests
    - Solution is to use appropriate tolerance ranges in tests
    - Need standardized approach to decimal equality testing
+
+6. __Cross-Layer Concerns in Utils Module__
+   - The db.py module crosses layers between database and HTTP concerns
+   - Should move functionality to src/errors/ for better separation of concerns
+   - Some feature_flags functionality requires integration tests rather than unit tests
+   - Need to document cross-layer concerns for future refactoring

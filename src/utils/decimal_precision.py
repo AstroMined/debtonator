@@ -187,5 +187,9 @@ class DecimalPrecision:
         if epsilon is None:
             epsilon = DecimalPrecision.EPSILON
 
-        sum_value = sum(getattr(item, amount_attr) for item in items)
+        # Handle both object attributes and dictionary keys
+        sum_value = sum(
+            item[amount_attr] if isinstance(item, dict) else getattr(item, amount_attr)
+            for item in items
+        )
         return abs(sum_value - total) <= epsilon

@@ -952,6 +952,7 @@ def date_range(start_date: datetime, end_date: datetime) -> List[datetime]:
 
     Raises:
         ValueError: If end_date is earlier than start_date
+        ValueError: If either date has a non-UTC timezone (ADR-011 violation)
 
     Example:
         >>> # Get all days in March 2025
@@ -960,6 +961,16 @@ def date_range(start_date: datetime, end_date: datetime) -> List[datetime]:
         >>> march_days = date_range(march_1, march_31)
         >>> print(len(march_days))  # 31
     """
+    # Check for non-UTC timezones (ADR-011 violation)
+    for dt in [start_date, end_date]:
+        if dt.tzinfo is not None and dt.tzinfo != timezone.utc:
+            if dt.utcoffset() != timedelta(0):
+                raise ValueError(
+                    f"Datetime has non-UTC timezone: {dt}. "
+                    "This violates ADR-011 which requires all datetimes to be either "
+                    "naive (from DB) or timezone-aware with UTC."
+                )
+
     if end_date < start_date:
         raise ValueError("End date must be greater than or equal to start date")
 

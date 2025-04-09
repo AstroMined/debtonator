@@ -2,11 +2,23 @@
 
 ## Current Focus
 
-Account Type Expansion, Service Layer Implementation, Feature Flag System, Banking Account Types Integration, Testing Strategy Implementation, Schema Factory Testing, Error Handling System, UTC Datetime Compliance
+Account Type Expansion, Service Layer Implementation, Feature Flag System, Banking Account Types Integration, Testing Strategy Implementation, Schema Factory Testing, Error Handling System, UTC Datetime Compliance, Utils Module Test Coverage
 
 ### Recent Changes
 
-1. **Implemented Comprehensive Naive Datetime Functions (April 9, 2025)** ✓
+1. **Improved Utils Module Test Coverage (April 9, 2025)** ✓
+   - Refactored datetime_utils tests into logical groupings (comparison, conversion, range operations)
+   - Fixed date_range function to enforce ADR-011 compliance by checking for non-UTC timezones
+   - Added comprehensive tests for decimal_precision module with 97% coverage
+   - Created documentation for integration test candidates in feature_flags and db modules
+   - Updated db.py docstring to reflect cross-layer concerns between database and HTTP
+   - Improved test organization with modular test files for better maintainability
+   - Enhanced test coverage for datetime utility functions from 71% to 93%
+   - Implemented proper timezone validation in datetime comparison functions
+   - Added tests for date range operations with proper timezone handling
+   - Increased overall utils module test coverage from 67% to 88%
+
+2. **Implemented Comprehensive Naive Datetime Functions (April 9, 2025)** ✓
    - Added naive counterparts for all timezone-aware datetime functions in datetime_utils.py
    - Created naive_days_from_now() and naive_days_ago() functions for database storage
    - Added naive_first_day_of_month() and naive_last_day_of_month() functions
@@ -18,7 +30,7 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Added repository method patterns for both naive and timezone-aware approaches
    - Improved database compatibility with direct naive datetime functions
 
-2. **Fixed All Model Fixture Files for UTC Datetime Compliance (April 9, 2025)** ✓
+3. **Fixed All Model Fixture Files for UTC Datetime Compliance (April 9, 2025)** ✓
    - Fixed inconsistent datetime handling across all fixture files in tests/fixtures/models
    - Standardized use of naive_utc_now() instead of utc_now().replace(tzinfo=None)
    - Replaced direct use of datetime.now(timezone.utc) with utc_now() from datetime_utils
@@ -31,7 +43,7 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Improved type annotations for parameters
    - All fixture files now follow consistent patterns and best practices
 
-3. **Implemented UTC Datetime Compliance Documentation Synchronization (April 9, 2025)** ✓
+4. **Implemented UTC Datetime Compliance Documentation Synchronization (April 9, 2025)** ✓
    - Added file synchronization notices to all three datetime-related files
    - Created comprehensive code review of fixture files in tests/fixtures/models
    - Updated UTC datetime compliance guide with latest ADR-011 information
@@ -43,7 +55,7 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Added testing best practices for datetime handling
    - Created explicit guidance for maintaining documentation consistency
 
-4. **Fixed Intermittent Test Failures in Income Trends Schema Factory (April 9, 2025)** ✓
+5. **Fixed Intermittent Test Failures in Income Trends Schema Factory (April 9, 2025)** ✓
    - Identified root cause of random test failures in test_create_income_trends_analysis_schema
    - Added include_seasonality parameter to create_income_trends_analysis_schema factory function
    - Created separate test cases for with and without seasonality scenarios
@@ -52,17 +64,6 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Fixed hasattr vs None check issue in original test
    - Implemented deterministic testing approach for better reliability
    - Enhanced test coverage with additional test cases
-
-5. **Implemented Generic Test Infrastructure for BaseRepository (April 7, 2025)** ✓
-   - Created test-specific TestItem model for generic repository testing
-   - Implemented TestItemCreate/Update/InDB schemas for validation
-   - Created schema factory functions for test item creation
-   - Added test fixtures for TestItem repository testing
-   - Refactored test_base_repository.py to use generic test model
-   - Decoupled repository tests from specific business models
-   - Fixed import error for AccountCreate schema
-   - Added pylint disable=no-member to handle model_dump() warnings
-   - All tests passing with proper validation flow
 
 ## Next Steps
 
@@ -101,7 +102,17 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 
 ## Implementation Lessons
 
-1. **Naive vs. Timezone-Aware Datetime Functions**
+1. **Utils Module Test Organization**
+   - Organize tests into logical groupings based on functionality
+   - Create separate test files for different aspects of a module (e.g., comparison, conversion, range operations)
+   - Use descriptive test names that clearly indicate what's being tested
+   - Document integration test candidates when unit tests aren't appropriate
+   - Identify cross-layer concerns and document them for future refactoring
+   - Maintain consistent test patterns across related functionality
+   - Focus on behavior testing rather than implementation details
+   - Document when integration tests are needed instead of using mocks
+
+2. **Naive vs. Timezone-Aware Datetime Functions**
    - Use naive_* functions for database operations (e.g., naive_utc_now(), naive_days_ago())
    - Use timezone-aware functions for business logic (e.g., utc_now(), days_ago())
    - Convert between naive and aware only at the database boundary
@@ -111,7 +122,7 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Use timezone-aware functions when testing business logic
    - Be explicit about which type of datetime is expected in assertions
 
-2. **Fixture File Standardization**
+3. **Fixture File Standardization**
    - Use naive_utc_now() for all database datetime fields instead of utc_now().replace(tzinfo=None)
    - Always use db_session.flush() instead of db_session.commit() in fixtures
    - Add comprehensive Args and Returns sections to all fixture docstrings
@@ -122,7 +133,7 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Add proper type annotations for all parameters and return values
    - Standardize fixture naming conventions across all files
 
-3. **Schema Factory Test Determinism**
+4. **Schema Factory Test Determinism**
    - Avoid random behavior in tests that can lead to intermittent failures
    - Use explicit parameters to control test behavior (e.g., include_seasonality)
    - Create separate test cases for different scenarios instead of random behavior
@@ -130,17 +141,10 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Use random behavior tests only for verifying distribution, not for functional testing
    - Add clear parameter documentation to make test control obvious
 
-4. **Repository Test Decoupling**
+5. **Repository Test Decoupling**
    - Create test-specific models and schemas for testing generic functionality
    - Avoid using business models in tests for generic components
    - Use schema factories to simplify test data creation
    - Follow the Arrange-Schema-Act-Assert pattern consistently
    - Create reusable test fixtures for common test scenarios
    - Implement proper validation flow in all repository tests
-
-5. **Schema Factory Test Edge Cases**
-   - Watch for subtle rounding issues in decimal sum assertions (e.g., day_of_month_patterns sum)
-   - Verify enum member existence before using in tests to prevent AttributeError
-   - Use appropriate assertions for optional fields that may be None but still exist
-   - Implement proper tolerance ranges for numerical tests where exact equality isn't required
-   - Test both None and explicit values for optional fields

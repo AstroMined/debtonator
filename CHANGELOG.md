@@ -7,6 +7,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.91] - 2025-04-09
+
+### Added
+
+- Improved utils module test coverage from 67% to 88%:
+  - Refactored datetime_utils tests into logical groupings (comparison, conversion, range operations)
+  - Added comprehensive tests for decimal_precision module with 97% coverage
+  - Created documentation for integration test candidates in feature_flags and db modules
+  - Added tests for date range operations with proper timezone handling
+
+### Fixed
+
+- Fixed date_range function to enforce ADR-011 compliance by checking for non-UTC timezones
+- Updated db.py docstring to reflect cross-layer concerns between database and HTTP
+- Implemented proper timezone validation in datetime comparison functions
+- Documented cross-layer concerns in utils module for future refactoring
+
+### Changed
+
+- Improved test organization with modular test files for better maintainability
+- Enhanced test coverage for datetime utility functions from 71% to 93%
+- Documented when integration tests are needed instead of using mocks
+- Added clear separation between unit test and integration test responsibilities
+
 ## [0.5.90] - 2025-04-09
 
 ### Added
