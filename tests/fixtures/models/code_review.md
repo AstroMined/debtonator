@@ -4,6 +4,8 @@
 
 This document contains a comprehensive review of fixture files in the `tests/fixtures/models` directory, identifying issues that need to be addressed to bring them into compliance with project standards and best practices.
 
+**Review Update:** April 9, 2025 (Additional files reviewed)
+
 **Very Important:** The files listed here were the files that existed at the time of the last code review:
 
 - When conducting a code review, you should always do a full listing of this directory and all subdirectories to ensure **ALL** files are reviewed.
@@ -39,194 +41,79 @@ This file has been refactored and now complies with all project standards. It se
 
 ## fixture_accounts_models.py
 
-### Issues: ✅ FIXED
-
-1. **Inconsistent Session Handling** ✅ FIXED
-   - ✅ Line 20: Changed `await db_session.commit()` to `await db_session.flush()`
-   - ✅ Line 56: Changed `await db_session.commit()` to `await db_session.flush()`
-
-2. **Inconsistent Docstring Format** ✅ FIXED
-   - ✅ Line 13: Added Args and Returns sections in docstring
-   - ✅ Line 30: Added Args and Returns sections in docstring
-   - ✅ Line 45: Added Args and Returns sections in docstring
-   - ✅ Line 61: Added Args and Returns sections in docstring
-   - ✅ Line 102: Added Args and Returns sections in docstring
-
-3. **Inconsistent Datetime Handling** ✅ FIXED
-   - Line 17-18: Uses `naive_utc_now()` for both created_at and updated_at, which is correct
-   - Line 54-55: Uses `naive_utc_now()` for both created_at and updated_at, which is correct
-   - Other fixtures don't explicitly set created_at and updated_at, relying on default values
+This file has been refactored and now complies with all project standards.
 
 ## fixture_balance_models.py
 
-### Issues: ✅ FIXED
-
-1. **Inconsistent Datetime Handling** ✅ FIXED
-   - ✅ Line 17: Changed `utc_now().replace(tzinfo=None)` to `naive_utc_now()`
-   - ✅ Line 52: Standardized datetime handling with consistent approach
-   - ✅ Line 83: Changed `utc_now().replace(tzinfo=None)` to `naive_utc_now()`
-   - ✅ Line 118: Standardized approach for days_ago handling
-   - ✅ Line 156: Standardized datetime handling with consistent approach
-
-2. **Inconsistent Docstring Format** ✅ FIXED
-   - ✅ Added Args and Returns sections to all fixture docstrings
-
-3. **Print Statement in Code** ✅ FIXED
-   - ✅ Removed print statement from code
+This file has been refactored and now complies with all project standards.
 
 ## fixture_cashflow_models.py
 
-### Issues: ✅ FIXED
-
-1. **Direct Use of datetime.now()** ✅ FIXED
-   - ✅ Line 14: Changed `datetime.now(timezone.utc)` to `utc_now()` from datetime_utils
-   - ✅ Line 57: Changed `datetime.now(timezone.utc)` to `utc_now()` from datetime_utils
-
-2. **Inconsistent Datetime Handling** ✅ FIXED
-   - ✅ Line 14: Changed `.replace(tzinfo=None)` to `naive_utc_now()`
-   - ✅ Line 87: Standardized datetime handling approach
-
-3. **Inconsistent Docstring Format** ✅ FIXED
-   - ✅ Added Args and Returns sections to all fixture docstrings
+This file has been refactored and now complies with all project standards.
 
 ## fixture_categories_models.py
 
-### Issues: ✅ FIXED
-
-1. **Missing Type Annotation in Parameter** ✅ FIXED
-   - ✅ Line 9: Added type annotation for `db_session` parameter
-   - ✅ Line 25: Added type annotation for `db_session` parameter
-   - ✅ Line 41: Added type annotation for `db_session` parameter
-   - ✅ Line 83: Added type annotation for `db_session` parameter
-
-2. **Inconsistent Docstring Format** ✅ FIXED
-   - ✅ Added Args and Returns sections to all fixture docstrings
+This file has been refactored and now complies with all project standards.
 
 ## fixture_feature_flags_models.py
 
-### Issues: ✅ FIXED
-
-1. **Inconsistent Fixture Type** ✅ FIXED
-   - ✅ Line 87: Changed `@pytest.fixture` to `@pytest_asyncio.fixture` for `env_setup`
-   - ✅ Line 102: Added `db_session` parameter to `environment_context_fixture`
-
-2. **Inconsistent Docstring Format** ✅ FIXED
-   - ✅ Added Args and Returns sections to all fixture docstrings
-
-3. **Unused Import** ✅ FIXED
-   - ✅ Kept `os` import as it's needed for the `env_setup` fixture
+This file has been refactored and now complies with all project standards.
 
 ## fixture_income_models.py
 
-### Issues: ✅ FIXED
-
-1. **Direct Use of datetime.now()** ✅ FIXED
-   - ✅ Line 17: Changed `datetime.now(timezone.utc)` to `naive_utc_now()` from datetime_utils
-   - ✅ Line 42: Changed `datetime.now(timezone.utc)` to `naive_utc_now()` from datetime_utils
-   - ✅ Line 87: Changed `datetime.now(timezone.utc)` to `naive_utc_now()` from datetime_utils
-   - ✅ Line 130: Changed `datetime.now(timezone.utc)` to `naive_utc_now()` from datetime_utils
-
-2. **Inconsistent Datetime Handling** ✅ FIXED
-   - ✅ Line 17: Changed `.replace(tzinfo=None)` to `naive_utc_now()`
-   - ✅ Line 42: Changed `.replace(tzinfo=None)` to `naive_utc_now()`
-   - ✅ Line 87: Changed `.replace(tzinfo=None)` to `naive_utc_now()`
-   - ✅ Line 130: Changed `.replace(tzinfo=None)` to `naive_utc_now()`
-
-3. **Inconsistent Docstring Format** ✅ FIXED
-   - ✅ Added Args and Returns sections to all fixture docstrings
-
-4. **Hardcoded Account IDs** ✅ FIXED
-   - ✅ Line 71-75: Changed hardcoded account_id=1 to use test_checking_account.id
+This file has been refactored and now complies with all project standards.
 
 ## fixture_liabilities_models.py
 
-### Issues: ✅ FIXED
-
-1. **Inconsistent Datetime Handling** ✅ FIXED
-   - ✅ Line 19: Changed `(utc_now() + timedelta(days=30)).replace(tzinfo=None)` to `days_from_now(30).replace(tzinfo=None)`
-   - ✅ Line 52: Kept `due_date.replace(tzinfo=None)` as it's handling a variable, not a direct call
-
-2. **Inconsistent Docstring Format** ✅ FIXED
-   - ✅ Added Args and Returns sections to all fixture docstrings
+This file has been refactored and now complies with all project standards.
 
 ## fixture_payments_models.py
 
-### Issues: ✅ FIXED
-
-1. **Inconsistent Datetime Handling** ✅ FIXED
-   - ✅ Line 19: Changed `utc_now().replace(tzinfo=None)` to `naive_utc_now()`
-   - ✅ Line 67: Kept `data["payment_date"].replace(tzinfo=None)` as it's handling a variable, not a direct call
-   - ✅ Line 142: Changed `utc_now().replace(tzinfo=None)` to `naive_utc_now()`
-
-2. **Inconsistent Docstring Format** ✅ FIXED
-   - ✅ Added Args and Returns sections to all fixture docstrings except for `test_payment_source` which already had a good docstring
+This file has been refactored and now complies with all project standards.
 
 ## fixture_recurring_models.py
 
-### Issues: ✅ FIXED
-
-1. **Inconsistent Docstring Format** ✅ FIXED
-   - ✅ Added Args and Returns sections to all fixture docstrings
-   - ✅ Added Args section to `test_bills_by_account` docstring
-
-2. **Direct Model Instantiation Issues** ✅ FIXED
-   - ✅ Changed Account instances to use proper polymorphic classes (CheckingAccount and SavingsAccount)
-   - ✅ Added required current_balance field to both account types
-
-3. **Inconsistent Return Type Annotation** ✅ FIXED
-   - ✅ Changed `tuple` to `Tuple[CheckingAccount, SavingsAccount, List[RecurringBill]]` to specify the tuple structure
+This file has been refactored and now complies with all project standards.
 
 ## fixture_statements_models.py
 
-### Issues: ✅ FIXED
-
-1. **Inconsistent Datetime Handling** ✅ FIXED
-   - ✅ Line 19-20: Changed to `days_ago(15).replace(tzinfo=None)` and `days_from_now(15).replace(tzinfo=None)`
-   - ✅ Line 52-53: Kept `stmt_date.replace(tzinfo=None)` and `due_date.replace(tzinfo=None)` as they're handling variables
-   - ✅ Line 87-88: Kept variable-based approach as it's handling complex calculations
-   - ✅ Line 107-108: Kept variable-based approach as it's handling complex calculations
-   - ✅ Line 136: Changed `utc_now().replace(tzinfo=None)` to `naive_utc_now()`
-   - ✅ Line 159, 166, 173, 180: Changed to use `days_ago(X).replace(tzinfo=None)` for consistency
-
-2. **Inconsistent Docstring Format** ✅ FIXED
-   - ✅ Added Args and Returns sections to all fixture docstrings
-
-3. **Direct Model Instantiation Issues** ✅ FIXED
-   - ✅ Line 82-88: Changed to use `CreditAccount` class instead of base `Account` class with type field
-   - ✅ Added required `current_balance` field to `CreditAccount` instances
+This file has been refactored and now complies with all project standards.
 
 ## fixture_transactions_models.py
 
-### Issues: ✅ FIXED
-
-1. **Inconsistent Datetime Handling** ✅ FIXED
-   - ✅ Line 19: Changed `utc_now().replace(tzinfo=None)` to `naive_utc_now()`
-   - ✅ Line 67: Kept `config["transaction_date"].replace(tzinfo=None)` as it's handling a variable
-   - ✅ Line 156: Kept `days_ago(week * 7).replace(tzinfo=None)` as it's handling a variable with calculation
-   - ✅ Line 169: Kept `days_ago(month * 30).replace(tzinfo=None)` as it's handling a variable with calculation
-   - ✅ Line 198: Kept `days_ago(offset).replace(tzinfo=None)` as it's handling a variable with calculation
-
-2. **Inconsistent Docstring Format** ✅ FIXED
-   - ✅ Added Args and Returns sections to all fixture docstrings
-
-3. **Commented Out Code** ✅ FIXED
-   - ✅ Changed commented out code to a more descriptive comment
+This file has been refactored and now complies with all project standards.
 
 ## fixture_schedules_models.py
 
-### Issues: ✅ FIXED
+This file has been refactored and now complies with all project standards.
 
-1. **Direct Use of datetime.now()** ✅ FIXED
-   - ✅ Line 102: Changed `datetime.now(timezone.utc)` to `days_from_now(7).replace(tzinfo=None)`
+## fixture_income_categories_models.py
 
-2. **Inconsistent Datetime Handling** ✅ FIXED
-   - ✅ Line 19: Changed `(utc_now() + timedelta(days=7)).replace(tzinfo=None)` to `days_from_now(7).replace(tzinfo=None)`
-   - ✅ Line 67: Kept `data["scheduled_date"].replace(tzinfo=None)` as it's handling a variable
-   - ✅ Line 102-103: Changed `(datetime.now(timezone.utc) + timedelta(days=7)).replace(tzinfo=None)` to `days_from_now(7).replace(tzinfo=None)`
-   - ✅ Line 150: Kept `data["schedule_date"].replace(tzinfo=None)` as it's handling a variable
+This file has been refactored and now complies with all project standards.
 
-3. **Inconsistent Docstring Format** ✅ FIXED
-   - ✅ Added Args and Returns sections to all fixture docstrings
+## account_types/banking/fixture_checking_models.py
+
+This file has been refactored and now complies with all project standards.
+
+## account_types/banking/fixture_credit_models.py
+
+This file has been refactored and now complies with all project standards.
+
+## account_types/banking/fixture_savings_models.py
+
+This file has been refactored and now complies with all project standards.
+
+## account_types/banking/fixture_bnpl_models.py
+
+This file has been refactored and now complies with all project standards.
+
+## account_types/banking/fixture_ewa_models.py
+
+This file has been refactored and now complies with all project standards.
+
+## account_types/banking/fixture_payment_app_models.py
+
+This file has been refactored and now complies with all project standards.
 
 ## Recommendations
 
@@ -239,7 +126,8 @@ Based on the issues identified, the following actions are recommended:
 2. **Standardize Datetime Handling**
    - Use `naive_utc_now()` for all current timestamps that need to be stored in the database
    - Use `utc_now()` for all timezone-aware datetime operations
-   - Use `days_ago()`, `days_from_now()`, etc. for relative date calculations
+   - Use `naive_days_from_now()` and `naive_days_ago()` for relative date calculations that will be stored in the database
+   - Use `days_from_now()` and `days_ago()` for timezone-aware datetime operations
    - Avoid direct use of `datetime.now()` or manual timezone stripping with `.replace(tzinfo=None)`
 
 3. **Improve Docstring Format**
@@ -249,10 +137,22 @@ Based on the issues identified, the following actions are recommended:
 4. **Remove Debug Code**
    - Remove print statements from fixture code
 
+5. **Ensure Type Annotations**
+   - Add proper type annotations for all parameters
+   - Ensure return type annotations are specific and accurate
+
 ## Next Steps
 
-1. Refactor the identified files to address the issues
-2. Review the remaining fixture files in the directory
+1. ✅ Refactor the identified files to address the issues:
+   - ✅ Fixed `fixture_income_categories_models.py`
+   - ✅ Fixed banking account type fixtures in `account_types/banking/` directory
+   - ✅ Ensured all files follow the established patterns
+
+2. ✅ Verify all files in the directory structure:
+   - ✅ Checked all files in the tests/fixtures/models directory and its subdirectories
+   - ✅ Confirmed all files have proper docstrings, type annotations, and datetime handling
+   - ✅ All files now comply with project standards
+
 3. Establish a regular review schedule to ensure ongoing compliance
 
 ## Next Review Date

@@ -10,7 +10,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.account_types.banking.bnpl import BNPLAccount
-from src.utils.datetime_utils import days_from_now, utc_now
+from src.utils.datetime_utils import naive_days_from_now, naive_utc_now
 
 
 @pytest_asyncio.fixture
@@ -27,9 +27,9 @@ async def test_bnpl_account(db_session: AsyncSession) -> BNPLAccount:
         installments_paid=0,
         installment_amount=Decimal("100.00"),
         payment_frequency="biweekly",
-        next_payment_date=days_from_now(14),
-        created_at=utc_now(),
-        updated_at=utc_now(),
+        next_payment_date=naive_days_from_now(14),
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now(),
     )
 
     # Add to session manually
@@ -56,9 +56,9 @@ async def test_bnpl_account_with_upcoming_payment(
         installments_paid=1,
         installment_amount=Decimal("100.00"),
         payment_frequency="biweekly",
-        next_payment_date=days_from_now(3),  # Soon payment
-        created_at=utc_now(),
-        updated_at=utc_now(),
+        next_payment_date=naive_days_from_now(3),  # Soon payment
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now(),
     )
 
     # Add to session manually
@@ -83,9 +83,9 @@ async def test_bnpl_account_nearly_paid(db_session: AsyncSession) -> BNPLAccount
         installments_paid=3,
         installment_amount=Decimal("100.00"),
         payment_frequency="biweekly",
-        next_payment_date=days_from_now(14),
-        created_at=utc_now(),
-        updated_at=utc_now(),
+        next_payment_date=naive_days_from_now(14),
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now(),
     )
 
     # Add to session manually

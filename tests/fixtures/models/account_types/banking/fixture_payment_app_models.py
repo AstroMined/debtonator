@@ -10,7 +10,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.account_types.banking.payment_app import PaymentAppAccount
-from src.utils.datetime_utils import utc_now
+from src.utils.datetime_utils import naive_utc_now
 
 
 @pytest_asyncio.fixture
@@ -24,8 +24,8 @@ async def test_payment_app_account(db_session: AsyncSession) -> PaymentAppAccoun
         available_balance=Decimal("150.00"),
         has_debit_card=True,
         card_last_four="1234",
-        created_at=utc_now(),
-        updated_at=utc_now(),
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now(),
     )
 
     # Add to session manually
@@ -50,8 +50,8 @@ async def test_payment_app_account_with_linked_accounts(
         has_debit_card=False,
         supports_direct_deposit=True,
         linked_account_ids="1,2,3",  # Comma-separated account IDs
-        created_at=utc_now(),
-        updated_at=utc_now(),
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now(),
     )
 
     # Add to session manually

@@ -10,7 +10,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.account_types.banking.ewa import EWAAccount
-from src.utils.datetime_utils import days_from_now, utc_now
+from src.utils.datetime_utils import naive_days_from_now, naive_utc_now
 
 
 @pytest_asyncio.fixture
@@ -24,11 +24,11 @@ async def test_ewa_account(db_session: AsyncSession) -> EWAAccount:
         available_balance=Decimal("0.00"),
         max_advance_percentage=Decimal("50.00"),
         per_transaction_fee=Decimal("5.00"),
-        next_payday=days_from_now(7),
-        pay_period_start=days_from_now(-7),
-        pay_period_end=days_from_now(7),
-        created_at=utc_now(),
-        updated_at=utc_now(),
+        next_payday=naive_days_from_now(7),
+        pay_period_start=naive_days_from_now(-7),
+        pay_period_end=naive_days_from_now(7),
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now(),
     )
 
     # Add to session manually
@@ -50,11 +50,11 @@ async def test_ewa_account_approaching_payday(db_session: AsyncSession) -> EWAAc
         available_balance=Decimal("0.00"),
         max_advance_percentage=Decimal("50.00"),
         per_transaction_fee=Decimal("2.99"),
-        next_payday=days_from_now(2),  # Very soon
-        pay_period_start=days_from_now(-12),
-        pay_period_end=days_from_now(2),
-        created_at=utc_now(),
-        updated_at=utc_now(),
+        next_payday=naive_days_from_now(2),  # Very soon
+        pay_period_start=naive_days_from_now(-12),
+        pay_period_end=naive_days_from_now(2),
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now(),
     )
 
     # Add to session manually
@@ -76,11 +76,11 @@ async def test_ewa_account_no_transaction_fee(db_session: AsyncSession) -> EWAAc
         available_balance=Decimal("0.00"),
         max_advance_percentage=Decimal("75.00"),
         per_transaction_fee=Decimal("0.00"),
-        next_payday=days_from_now(14),
-        pay_period_start=days_from_now(-14),
-        pay_period_end=days_from_now(14),
-        created_at=utc_now(),
-        updated_at=utc_now(),
+        next_payday=naive_days_from_now(14),
+        pay_period_start=naive_days_from_now(-14),
+        pay_period_end=naive_days_from_now(14),
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now(),
     )
 
     # Add to session manually
