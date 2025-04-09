@@ -26,6 +26,7 @@ def initialize_account_registry():
 pytest_plugins = [
     # Add repository fixtures
     "tests.fixtures.repositories.fixture_repositories",
+    "tests.fixtures.repositories.fixture_basic_test_repositories",
     # Add service fixtures
     "tests.fixtures.services.fixture_services",
     # Add model fixtures

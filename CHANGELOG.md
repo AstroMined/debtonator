@@ -7,6 +7,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.88] - 2025-04-09
+
+### Added
+
+- Added file synchronization notices to all datetime-related files
+- Created comprehensive code review of fixture files in tests/fixtures/models
+- Added repository method patterns for date range handling in UTC datetime compliance guide
+- Added database compatibility guidance for different database engines
+- Added testing best practices for datetime handling
+
+### Changed
+
+- Updated UTC datetime compliance guide with latest ADR-011 information
+- Established datetime_utils.py as the definitive source for function behavior
+- Implemented cross-references between documentation and implementation
+- Added clear guidance on using datetime utility functions
+
+### Fixed
+
+- Fixed intermittent test failures in Income Trends Schema Factory
+- Added include_seasonality parameter to create_income_trends_analysis_schema factory function
+- Implemented deterministic testing approach for better reliability
+
 ## [0.5.87] - 2025-04-09
 
 ### Added

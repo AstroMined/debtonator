@@ -1,5 +1,15 @@
 # ADR 11: Standardize on UTC DateTime Storage
 
+> **⚠️ FILE SYNCHRONIZATION NOTICE**
+>
+> This ADR is part of a triad of files that must remain synchronized:
+> - **This ADR**: Architectural decision record defining the standard
+> - **User Guide**: [`docs/guides/utc_datetime_compliance.md`] - Developer documentation
+> - **Implementation**: [`src/utils/datetime_utils.py`] - Actual utility functions
+>
+> When updating this ADR, you MUST review and update the other files to maintain consistency.
+> The implementation in `datetime_utils.py` is the definitive source for function behavior.
+
 ## Status
 **Implemented**
 

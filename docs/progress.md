@@ -6,6 +6,7 @@
    - All 18 models fully compliant with ADR-011 and ADR-012
    - Comprehensive test coverage in place
    - System category support with protection mechanisms
+   - UTC datetime compliance with proper timezone handling
 
 2. __Schema Layer__: COMPLETED (100%) ✓
    - All 23 schema files fully compliant with ADR-011 and ADR-012

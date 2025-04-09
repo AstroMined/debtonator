@@ -1,72 +1,66 @@
 """
-Fixtures for test items.
+Fixtures for basic test models.
 
-This module provides pytest fixtures for creating and managing test items
-in the database for testing purposes.
+This module provides pytest fixtures for creating and managing TestBasicDBModel
+instances in the database for testing purposes.
 """
 
-# pylint: disable=no-member
-
-import pytest
+import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
+from decimal import Decimal
 
-from src.repositories.base_repository import BaseRepository
 from tests.helpers.models.test_basic_db_model import TestBasicDBModel
-from tests.helpers.schema_factories.basic_test_schema_factories import (
-    create_test_item_schema,
-)
 
 
-@pytest.fixture
-async def test_item_repository(db_session: AsyncSession):
-    """
-    Create a repository for TestItem models.
-
-    Args:
-        db_session: Database session fixture
-
-    Returns:
-        BaseRepository: Repository for TestItem models
-    """
-    return BaseRepository(db_session, TestBasicDBModel)
-
-
-@pytest.fixture
-async def test_item(test_item_repository: BaseRepository):
+@pytest_asyncio.fixture
+async def test_item(db_session: AsyncSession) -> TestBasicDBModel:
     """
     Create a test item in the database.
-
+    
     Args:
-        test_item_repository: Repository for TestItem models
-
+        db_session: Database session fixture
+        
     Returns:
-        TestItem: Created test item
+        TestBasicDBModel: Created test item
     """
-    test_item_schema = create_test_item_schema(name="Fixture Test Item")
-    # Convert schema to dict for repository
-    schema_dict = test_item_schema.model_dump()
-    return await test_item_repository.create(schema_dict)
+    test_item = TestBasicDBModel(
+        name="Fixture Test Item",
+        description="Test description",
+        numeric_value=Decimal("100.0000"),
+        is_active=True
+    )
+    db_session.add(test_item)
+    await db_session.flush()
+    await db_session.refresh(test_item)
+    return test_item
 
 
-@pytest.fixture
-async def test_items(test_item_repository: BaseRepository):
+@pytest_asyncio.fixture
+async def test_items(db_session: AsyncSession) -> list[TestBasicDBModel]:
     """
     Create multiple test items in the database.
-
+    
     Args:
-        test_item_repository: Repository for TestItem models
-
+        db_session: Database session fixture
+        
     Returns:
-        list[TestItem]: List of created test items
+        list[TestBasicDBModel]: List of created test items
     """
     items = []
     for i in range(5):
-        test_item_schema = create_test_item_schema(
+        test_item = TestBasicDBModel(
             name=f"Fixture Test Item {i}",
-            numeric_value=i * 100,
+            description=f"Test description {i}",
+            numeric_value=Decimal(f"{i * 100}.0000"),
+            is_active=True
         )
-        # Convert schema to dict for repository
-        schema_dict = test_item_schema.model_dump()
-        item = await test_item_repository.create(schema_dict)
-        items.append(item)
+        db_session.add(test_item)
+        items.append(test_item)
+    
+    await db_session.flush()
+    
+    # Refresh all items
+    for item in items:
+        await db_session.refresh(item)
+        
     return items

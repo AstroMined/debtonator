@@ -5,6 +5,17 @@ This module provides comprehensive datetime handling utilities that comply with
 ADR-011 requirements for datetime standardization. Functions are organized by purpose
 and provide consistent timezone handling.
 
+⚠️ FILE SYNCHRONIZATION NOTICE ⚠️
+
+This implementation is part of a triad of files that must remain synchronized:
+- This implementation: Actual utility functions (definitive source for behavior)
+- ADR-011: `docs/adr/backend/011-datetime-standardization.md` - Architectural decision
+- User Guide: `docs/guides/utc_datetime_compliance.md` - Developer documentation
+
+When modifying functions in this file, you MUST update the documentation in the other files
+to reflect the changes. This includes updating function signatures, behavior descriptions,
+and examples.
+
 IMPORTANT: Per ADR-011, all datetimes in the database are stored as naive datetimes
 that semantically represent UTC time, while all business logic uses timezone-aware
 UTC datetimes.
