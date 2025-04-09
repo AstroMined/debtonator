@@ -619,6 +619,99 @@ These new requirements complement our existing guidelines for:
 - Repository method patterns
 - Test improvements
 
+## Update (2025-04-09): Comprehensive Naive Datetime Functions
+
+To further improve our datetime handling, we've expanded our utility functions to include a complete set of naive datetime functions for database operations:
+
+### New Naive Datetime Functions
+
+We've added naive counterparts for all timezone-aware datetime functions to provide a consistent API for both business logic and database operations:
+
+```python
+# Naive datetime functions for database storage
+naive_days_from_now(days)       # Get naive datetime n days from now
+naive_days_ago(days)            # Get naive datetime n days ago
+naive_first_day_of_month(dt)    # Get naive first day of month
+naive_last_day_of_month(dt)     # Get naive last day of month
+naive_start_of_day(dt)          # Get naive start of day (00:00:00)
+naive_end_of_day(dt)            # Get naive end of day (23:59:59.999999)
+naive_utc_datetime_from_str()   # Parse string to naive datetime
+naive_date_range()              # Generate list of naive dates in range
+naive_safe_end_date()           # Calculate naive end date with month handling
+```
+
+### Benefits of Naive Functions
+
+1. **Direct Database Usage**: These functions produce naive datetimes that can be used directly in database queries without needing to strip timezone information.
+
+2. **Consistent API**: The naming convention and parameter patterns match their timezone-aware counterparts, making it easy to switch between them.
+
+3. **Clear Intent**: Using these functions makes it explicit in the code that the datetime is intended for database storage.
+
+4. **Reduced Errors**: Eliminates common errors from manually converting between timezone-aware and naive datetimes.
+
+### Repository Method Patterns with Naive Functions
+
+We now have two recommended patterns for repository methods:
+
+**Pattern 1: Using Naive Functions Directly**
+```python
+from src.utils.datetime_utils import naive_start_of_day, naive_end_of_day
+
+def get_by_date_range(start_date, end_date):
+    """Get entities within a date range using naive functions."""
+    range_start = naive_start_of_day(start_date)
+    range_end = naive_end_of_day(end_date)
+    
+    query = select(Entity).where(
+        and_(
+            Entity.datetime_field >= range_start,
+            Entity.datetime_field <= range_end
+        )
+    )
+    return session.execute(query).scalars().all()
+```
+
+**Pattern 2: Converting Timezone-Aware to Naive**
+```python
+from src.utils.datetime_utils import ensure_utc, start_of_day, end_of_day
+
+def get_by_date_range(start_date, end_date):
+    """Get entities within a date range with conversion."""
+    # Get timezone-aware datetimes
+    aware_start = start_of_day(ensure_utc(start_date))
+    aware_end = end_of_day(ensure_utc(end_date))
+    
+    # Convert to naive for database
+    naive_start = aware_start.replace(tzinfo=None)
+    naive_end = aware_end.replace(tzinfo=None)
+    
+    query = select(Entity).where(
+        and_(
+            Entity.datetime_field >= naive_start,
+            Entity.datetime_field <= naive_end
+        )
+    )
+    return session.execute(query).scalars().all()
+```
+
+### Implementation Guidelines
+
+1. **For Database Operations**:
+   - Use naive datetime functions directly when working with database queries
+   - Use clear naming in variables to distinguish between naive and aware datetimes (e.g., `db_date` vs. `aware_date`)
+   - Document the use of naive datetimes in function docstrings
+
+2. **For Business Logic**:
+   - Continue using timezone-aware functions for all business logic
+   - Convert to naive only at the database boundary
+   - Use the appropriate naive function rather than manually stripping timezone info
+
+3. **For Testing**:
+   - Use naive functions when creating test fixtures for database models
+   - Use timezone-aware functions when testing business logic
+   - Be explicit about which type of datetime is expected in assertions
+
 ## References
 - [Python datetime docs](https://docs.python.org/3/library/datetime.html)  
 - [SQLAlchemy DateTime docs](https://docs.sqlalchemy.org/en/14/core/type_basics.html#sqlalchemy.types.DateTime)  

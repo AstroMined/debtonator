@@ -7,6 +7,7 @@
    - Comprehensive test coverage in place
    - System category support with protection mechanisms
    - UTC datetime compliance with proper timezone handling
+   - Naive datetime functions for database operations
 
 2. __Schema Layer__: COMPLETED (100%) ✓
    - All 23 schema files fully compliant with ADR-011 and ADR-012
@@ -28,6 +29,7 @@
    - UTC datetime compliance in tests ✓
    - Database-agnostic SQL patterns documented ✓
    - Generic test infrastructure for BaseRepository implemented ✓
+   - Naive datetime functions for direct database operations ✓
 
 4. __Service Layer__: IN PROGRESS (75%)
    - Service refactoring to use repositories (90%)
@@ -85,6 +87,7 @@
    - Generic repository test infrastructure (100%) ✓
    - Schema factory test determinism (100%) ✓
    - Model fixture standardization (100%) ✓
+   - Naive datetime functions for database fixtures (100%) ✓
 
 ## What Works
 
@@ -100,6 +103,8 @@
    - Feature flag integration in repository layer ✓
    - Bill splits with polymorphic account types ✓
    - Generic test infrastructure for BaseRepository ✓
+   - Naive datetime functions for direct database operations ✓
+   - Two repository method patterns for datetime handling ✓
 
 2. __Schema Layer__
    - Complete validation for all model types ✓
@@ -150,6 +155,8 @@
    - Standardized model fixture docstrings with Args and Returns sections ✓
    - Consistent datetime handling in all model fixtures ✓
    - Proper polymorphic class usage in fixtures ✓
+   - Naive datetime functions for database fixtures ✓
+   - Clear separation between naive and timezone-aware datetime usage ✓
 
 ## What's Left to Build
 

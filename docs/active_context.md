@@ -6,7 +6,19 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 
 ### Recent Changes
 
-1. **Fixed All Model Fixture Files for UTC Datetime Compliance (April 9, 2025)** ✓
+1. **Implemented Comprehensive Naive Datetime Functions (April 9, 2025)** ✓
+   - Added naive counterparts for all timezone-aware datetime functions in datetime_utils.py
+   - Created naive_days_from_now() and naive_days_ago() functions for database storage
+   - Added naive_first_day_of_month() and naive_last_day_of_month() functions
+   - Implemented naive_start_of_day() and naive_end_of_day() functions
+   - Added naive_utc_datetime_from_str() for string parsing to naive datetimes
+   - Created naive_date_range() for generating lists of naive dates
+   - Implemented naive_safe_end_date() for month boundary handling
+   - Updated documentation in both ADR-011 and UTC datetime compliance guide
+   - Added repository method patterns for both naive and timezone-aware approaches
+   - Improved database compatibility with direct naive datetime functions
+
+2. **Fixed All Model Fixture Files for UTC Datetime Compliance (April 9, 2025)** ✓
    - Fixed inconsistent datetime handling across all fixture files in tests/fixtures/models
    - Standardized use of naive_utc_now() instead of utc_now().replace(tzinfo=None)
    - Replaced direct use of datetime.now(timezone.utc) with utc_now() from datetime_utils
@@ -19,7 +31,7 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Improved type annotations for parameters
    - All fixture files now follow consistent patterns and best practices
 
-2. **Implemented UTC Datetime Compliance Documentation Synchronization (April 9, 2025)** ✓
+3. **Implemented UTC Datetime Compliance Documentation Synchronization (April 9, 2025)** ✓
    - Added file synchronization notices to all three datetime-related files
    - Created comprehensive code review of fixture files in tests/fixtures/models
    - Updated UTC datetime compliance guide with latest ADR-011 information
@@ -31,7 +43,7 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Added testing best practices for datetime handling
    - Created explicit guidance for maintaining documentation consistency
 
-3. **Fixed Intermittent Test Failures in Income Trends Schema Factory (April 9, 2025)** ✓
+4. **Fixed Intermittent Test Failures in Income Trends Schema Factory (April 9, 2025)** ✓
    - Identified root cause of random test failures in test_create_income_trends_analysis_schema
    - Added include_seasonality parameter to create_income_trends_analysis_schema factory function
    - Created separate test cases for with and without seasonality scenarios
@@ -41,7 +53,7 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Implemented deterministic testing approach for better reliability
    - Enhanced test coverage with additional test cases
 
-4. **Implemented Generic Test Infrastructure for BaseRepository (April 7, 2025)** ✓
+5. **Implemented Generic Test Infrastructure for BaseRepository (April 7, 2025)** ✓
    - Created test-specific TestItem model for generic repository testing
    - Implemented TestItemCreate/Update/InDB schemas for validation
    - Created schema factory functions for test item creation
@@ -51,13 +63,6 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Fixed import error for AccountCreate schema
    - Added pylint disable=no-member to handle model_dump() warnings
    - All tests passing with proper validation flow
-
-5. **Implemented Schema Factory Tests for Untested Modules (April 7, 2025)** ✓
-   - Created test files for cashflow/base.py, cashflow/forecasting.py, cashflow/historical.py, income_trends.py
-   - Added enhanced tests for accounts.py to improve coverage from 51% to 90%+
-   - Fixed issues with day_of_month_patterns sum validation in SeasonalityAnalysis tests
-   - Corrected enum handling for PeriodType in income_trends.py tests
-   - Ensured proper handling of next_predicted field for irregular frequency income patterns
 
 ## Next Steps
 
@@ -96,7 +101,17 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 
 ## Implementation Lessons
 
-1. **Fixture File Standardization**
+1. **Naive vs. Timezone-Aware Datetime Functions**
+   - Use naive_* functions for database operations (e.g., naive_utc_now(), naive_days_ago())
+   - Use timezone-aware functions for business logic (e.g., utc_now(), days_ago())
+   - Convert between naive and aware only at the database boundary
+   - Use clear variable naming to distinguish between naive and aware datetimes (e.g., db_date vs. aware_date)
+   - Document the use of naive datetimes in function docstrings
+   - Use naive functions when creating test fixtures for database models
+   - Use timezone-aware functions when testing business logic
+   - Be explicit about which type of datetime is expected in assertions
+
+2. **Fixture File Standardization**
    - Use naive_utc_now() for all database datetime fields instead of utc_now().replace(tzinfo=None)
    - Always use db_session.flush() instead of db_session.commit() in fixtures
    - Add comprehensive Args and Returns sections to all fixture docstrings
@@ -107,7 +122,7 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Add proper type annotations for all parameters and return values
    - Standardize fixture naming conventions across all files
 
-2. **Schema Factory Test Determinism**
+3. **Schema Factory Test Determinism**
    - Avoid random behavior in tests that can lead to intermittent failures
    - Use explicit parameters to control test behavior (e.g., include_seasonality)
    - Create separate test cases for different scenarios instead of random behavior
@@ -115,7 +130,7 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Use random behavior tests only for verifying distribution, not for functional testing
    - Add clear parameter documentation to make test control obvious
 
-3. **Repository Test Decoupling**
+4. **Repository Test Decoupling**
    - Create test-specific models and schemas for testing generic functionality
    - Avoid using business models in tests for generic components
    - Use schema factories to simplify test data creation
@@ -123,16 +138,9 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Create reusable test fixtures for common test scenarios
    - Implement proper validation flow in all repository tests
 
-4. **Schema Factory Test Edge Cases**
+5. **Schema Factory Test Edge Cases**
    - Watch for subtle rounding issues in decimal sum assertions (e.g., day_of_month_patterns sum)
    - Verify enum member existence before using in tests to prevent AttributeError
    - Use appropriate assertions for optional fields that may be None but still exist
    - Implement proper tolerance ranges for numerical tests where exact equality isn't required
    - Test both None and explicit values for optional fields
-
-5. **Datetime Handling for Test Assertions**
-   - Always use datetime_equals() for comparing datetime objects to ensure proper TZ handling
-   - Verify all datetimes have timezone info (tzinfo is not None)
-   - Confirm timezone is UTC (tzinfo == timezone.utc) as required by ADR-011
-   - Test both auto-created and explicitly provided datetime values
-   - Verify proper date difference calculations in nested object structures

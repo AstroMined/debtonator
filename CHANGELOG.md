@@ -7,6 +7,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.90] - 2025-04-09
+
+### Added
+
+- Implemented comprehensive naive datetime functions in datetime_utils.py:
+  - Added naive_days_from_now() and naive_days_ago() functions for database storage
+  - Added naive_first_day_of_month() and naive_last_day_of_month() functions
+  - Implemented naive_start_of_day() and naive_end_of_day() functions
+  - Added naive_utc_datetime_from_str() for string parsing to naive datetimes
+  - Created naive_date_range() for generating lists of naive dates
+  - Implemented naive_safe_end_date() for month boundary handling
+
+### Changed
+
+- Updated documentation in both ADR-011 and UTC datetime compliance guide:
+  - Added repository method patterns for both naive and timezone-aware approaches
+  - Enhanced documentation with clear guidance on when to use each function type
+  - Organized creation functions into timezone-aware and naive sections
+  - Added examples for all new naive functions
+  - Updated repository method patterns to show both approaches
+
+### Improved
+
+- Enhanced database compatibility with direct naive datetime functions
+- Added clear implementation guidelines for database operations, business logic, and testing
+- Improved separation between database and business logic datetime handling
+
 ## [0.5.89] - 2025-04-09
 
 ### Fixed

@@ -18,7 +18,10 @@ The standards used for this review are defined in:
 - `tests/fixtures/models/README.md`: Specific guidelines for model fixtures
 - `docs/guides/utc_datetime_compliance.md`: Guidelines for datetime handling (ADR-011)
 
-These documents should be consulted for detailed information about the standards and best practices. Future code reviews should begin by reading these files to understand the context and requirements.
+These documents should be consulted for detailed information about the standards and best practices:
+
+- Future code reviews should begin by reading these files to understand the context and requirements and update the **Review Criteria** section as you see fit.
+- If you find conflicts in the standards or best practices, **ALWAYS** raise them for discussion before performing your review.
 
 ## Review Criteria
 

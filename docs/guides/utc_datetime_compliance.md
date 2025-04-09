@@ -25,6 +25,8 @@ Located at `src/utils/datetime_utils.py`, these utilities provide comprehensive 
 
 ### Creation Functions
 
+#### Timezone-Aware Functions (for Business Logic)
+
 ```python
 from src.utils.datetime_utils import utc_now, utc_datetime, days_from_now, days_ago
 
@@ -51,21 +53,48 @@ day_start = start_of_day(some_date)
 
 # Get end of day (23:59:59.999999)
 day_end = end_of_day(some_date)
+```
+
+#### Naive Functions (for Database Storage)
+
+```python
+from src.utils.datetime_utils import naive_utc_now, naive_days_from_now, naive_days_ago
 
 # Create a naive datetime for DB storage (no timezone info)
 db_date = naive_utc_now()
+
+# Get naive datetime 5 days from now (for DB storage)
+db_next_week = naive_days_from_now(5)
+
+# Get naive datetime 3 days ago (for DB storage)
+db_last_week = naive_days_ago(3)
+
+# Get naive first day of month (for DB storage)
+db_first_day = naive_first_day_of_month()
+
+# Get naive last day of month (for DB storage)
+db_last_day = naive_last_day_of_month()
+
+# Get naive start of day (for DB storage)
+db_day_start = naive_start_of_day(some_date)
+
+# Get naive end of day (for DB storage)
+db_day_end = naive_end_of_day(some_date)
 ```
 
 ### Conversion Functions
 
 ```python
-from src.utils.datetime_utils import ensure_utc, utc_datetime_from_str, normalize_db_date
+from src.utils.datetime_utils import ensure_utc, utc_datetime_from_str, naive_utc_datetime_from_str, normalize_db_date
 
 # Ensure a datetime has UTC timezone
 safe_datetime = ensure_utc(some_datetime)
 
-# Parse a string into UTC datetime
+# Parse a string into UTC datetime (timezone-aware)
 from_string = utc_datetime_from_str("2025-03-15 14:30:00")
+
+# Parse a string into naive datetime (for DB storage)
+db_from_string = naive_utc_datetime_from_str("2025-03-15 14:30:00")
 
 # Normalize date values from database
 db_date = normalize_db_date(date_from_query)
@@ -108,13 +137,19 @@ if date_in_collection(target_date, date_collection):
 ### Range Operations
 
 ```python
-from src.utils.datetime_utils import date_range, safe_end_date, is_month_boundary
+from src.utils.datetime_utils import date_range, naive_date_range, safe_end_date, naive_safe_end_date, is_month_boundary
 
-# Generate a list of dates within a range (inclusive)
+# Generate a list of dates within a range (inclusive, timezone-aware)
 march_days = date_range(march_1, march_31)
 
-# Calculate end date safely handling month transitions
+# Generate a list of naive dates within a range (inclusive, for DB storage)
+db_march_days = naive_date_range(db_march_1, db_march_31)
+
+# Calculate end date safely handling month transitions (timezone-aware)
 end_date = safe_end_date(start_date, days_to_add)
+
+# Calculate naive end date safely handling month transitions (for DB storage)
+db_end_date = naive_safe_end_date(db_start_date, days_to_add)
 
 # Check if dates cross a month boundary
 if is_month_boundary(dt1, dt2):
@@ -142,6 +177,8 @@ Replace direct datetime usage with our helper functions:
 
 When implementing repository methods that deal with date ranges, follow these patterns:
 
+### Using Timezone-Aware Functions (with Conversion)
+
 ```python
 async def get_by_date_range(self, account_id: int, start_date, end_date) -> List[Entity]:
     """
@@ -153,6 +190,36 @@ async def get_by_date_range(self, account_id: int, start_date, end_date) -> List
     # Ensure proper date range bounds per ADR-011
     range_start = start_of_day(ensure_utc(start_date))
     range_end = end_of_day(ensure_utc(end_date))
+    
+    # For database queries, we need to strip timezone info
+    naive_start = range_start.replace(tzinfo=None)
+    naive_end = range_end.replace(tzinfo=None)
+    
+    query = select(Entity).where(
+        and_(
+            Entity.account_id == account_id,
+            Entity.datetime_field >= naive_start,
+            Entity.datetime_field <= naive_end,  # Note: <= for inclusive range
+        )
+    )
+    
+    result = await self.session.execute(query)
+    return result.scalars().all()
+```
+
+### Using Naive Functions (Direct for DB)
+
+```python
+async def get_by_date_range(self, account_id: int, start_date, end_date) -> List[Entity]:
+    """
+    Get entities within a date range.
+    
+    Following ADR-011, uses inclusive date range with naive_start_of_day and naive_end_of_day
+    for direct database storage without timezone conversion.
+    """
+    # Use naive functions directly for database queries
+    range_start = naive_start_of_day(start_date)
+    range_end = naive_end_of_day(end_date)
     
     query = select(Entity).where(
         and_(
