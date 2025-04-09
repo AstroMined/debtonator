@@ -23,8 +23,8 @@ from src.schemas.income_trends import (
     SourceStatistics,
 )
 from src.utils.datetime_utils import datetime_equals, utc_now
-from tests.helpers.schema_factories.base import MEDIUM_AMOUNT
-from tests.helpers.schema_factories.income_trends import (
+from tests.helpers.schema_factories.base_schema_schema_factories import MEDIUM_AMOUNT
+from tests.helpers.schema_factories.income_trends_schema_factories import (
     create_income_pattern_schema,
     create_income_trends_analysis_schema,
     create_income_trends_request_schema,
@@ -174,7 +174,8 @@ def test_create_source_statistics_schema_with_custom_values():
 
 def test_create_income_trends_analysis_schema():
     """Test creating an IncomeTrendsAnalysis schema with default values."""
-    schema = create_income_trends_analysis_schema()
+    # Use include_seasonality=True to make the test deterministic
+    schema = create_income_trends_analysis_schema(include_seasonality=True)
     
     assert isinstance(schema, IncomeTrendsAnalysis)
     
@@ -200,12 +201,69 @@ def test_create_income_trends_analysis_schema():
     assert len(schema.source_statistics) >= 1
     assert isinstance(schema.source_statistics[0], SourceStatistics)
     
-    # Seasonality is optional but should be included about 50% of the time
-    # We'll just check if it exists without asserting either way
-    if hasattr(schema, "seasonality"):
-        assert isinstance(schema.seasonality, SeasonalityMetrics)
+    # Seasonality is now deterministically included
+    assert schema.seasonality is not None
+    assert isinstance(schema.seasonality, SeasonalityMetrics)
     
     assert schema.overall_predictability_score == Decimal("0.82")
+
+
+def test_create_income_trends_analysis_schema_with_seasonality():
+    """Test creating an IncomeTrendsAnalysis schema with seasonality."""
+    schema = create_income_trends_analysis_schema(include_seasonality=True)
+    
+    assert isinstance(schema, IncomeTrendsAnalysis)
+    
+    # Verify seasonality is included and is a SeasonalityMetrics instance
+    assert schema.seasonality is not None
+    assert isinstance(schema.seasonality, SeasonalityMetrics)
+    assert schema.seasonality.period == PeriodType.MONTHLY
+    assert schema.seasonality.peak_months == [3, 11, 12]  # Default values
+    assert schema.seasonality.trough_months == [1, 7, 8]  # Default values
+    assert schema.seasonality.confidence_score == Decimal("0.75")
+
+
+def test_create_income_trends_analysis_schema_without_seasonality():
+    """Test creating an IncomeTrendsAnalysis schema without seasonality."""
+    schema = create_income_trends_analysis_schema(include_seasonality=False)
+    
+    assert isinstance(schema, IncomeTrendsAnalysis)
+    
+    # Verify seasonality is not included
+    assert schema.seasonality is None
+
+
+def test_create_income_trends_analysis_schema_with_custom_seasonality():
+    """Test creating a schema with custom seasonality data."""
+    custom_seasonality = create_seasonality_metrics_schema(
+        period=PeriodType.ANNUAL,
+        peak_months=[6, 7, 8],  # Summer months
+        confidence_score=Decimal("0.95")
+    ).model_dump()
+    
+    schema = create_income_trends_analysis_schema(seasonality=custom_seasonality)
+    
+    assert schema.seasonality is not None
+    assert schema.seasonality.period == PeriodType.ANNUAL
+    assert schema.seasonality.peak_months == [6, 7, 8]
+    assert schema.seasonality.confidence_score == Decimal("0.95")
+
+
+def test_create_income_trends_analysis_schema_random_seasonality():
+    """Test creating multiple schemas to verify random seasonality inclusion."""
+    # Create multiple schemas and count how many include seasonality
+    count_with_seasonality = 0
+    total_samples = 100
+    
+    for _ in range(total_samples):
+        schema = create_income_trends_analysis_schema()  # No include_seasonality param
+        if schema.seasonality is not None:
+            count_with_seasonality += 1
+    
+    # With 100 samples, we should have roughly 40-60 with seasonality
+    # This gives a very low probability of false failures
+    assert 30 <= count_with_seasonality <= 70, \
+        f"Expected roughly 50% with seasonality, got {count_with_seasonality}%"
 
 
 def test_create_income_trends_analysis_schema_with_custom_values():

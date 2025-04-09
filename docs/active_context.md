@@ -6,7 +6,17 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 
 ### Recent Changes
 
-1. **Implemented Generic Test Infrastructure for BaseRepository (April 7, 2025)** ✓
+1. **Fixed Intermittent Test Failures in Income Trends Schema Factory (April 9, 2025)** ✓
+   - Identified root cause of random test failures in test_create_income_trends_analysis_schema
+   - Added include_seasonality parameter to create_income_trends_analysis_schema factory function
+   - Created separate test cases for with and without seasonality scenarios
+   - Added test for random behavior to verify ~50% inclusion rate
+   - Added test for custom seasonality data
+   - Fixed hasattr vs None check issue in original test
+   - Implemented deterministic testing approach for better reliability
+   - Enhanced test coverage with additional test cases
+
+2. **Implemented Generic Test Infrastructure for BaseRepository (April 7, 2025)** ✓
    - Created test-specific TestItem model for generic repository testing
    - Implemented TestItemCreate/Update/InDB schemas for validation
    - Created schema factory functions for test item creation
@@ -17,27 +27,20 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Added pylint disable=no-member to handle model_dump() warnings
    - All tests passing with proper validation flow
 
-2. **Implemented Schema Factory Tests for Untested Modules (April 7, 2025)** ✓
+3. **Implemented Schema Factory Tests for Untested Modules (April 7, 2025)** ✓
    - Created test files for cashflow/base.py, cashflow/forecasting.py, cashflow/historical.py, income_trends.py
    - Added enhanced tests for accounts.py to improve coverage from 51% to 90%+
    - Fixed issues with day_of_month_patterns sum validation in SeasonalityAnalysis tests
    - Corrected enum handling for PeriodType in income_trends.py tests
    - Ensured proper handling of next_predicted field for irregular frequency income patterns
 
-3. **Implemented Comprehensive Error Module Unit Tests (April 6, 2025)** ✓
+4. **Implemented Comprehensive Error Module Unit Tests (April 6, 2025)** ✓
    - Created unit tests for all error classes in the errors module
    - Fixed parameter mismatches in SavingsAccountError classes
    - Fixed message formatting in PaymentAppPlatformFeatureError
    - Achieved 99% test coverage across the errors module
    - Implemented proper error inheritance testing
    - Added tests for error details handling and message formatting
-
-4. **Implemented Tests for Multiple Schema Factories (April 6, 2025)** ✓
-   - Created 9 comprehensive test files for schema factories with over 85 test cases
-   - Fixed nested dictionary handling in CrossAccountAnalysis schema factory
-   - Resolved validation issues with complex schema structures
-   - Implemented tests for time-sensitive fields with proper UTC handling
-   - Added tests for boundary cases and validation scenarios
 
 5. **Implemented Enhanced Schema Factory Testing Framework (April 6, 2025)** ✓
    - Created comprehensive testing for schema factories with proper model-to-dict conversion
@@ -83,7 +86,15 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 
 ## Implementation Lessons
 
-1. **Repository Test Decoupling**
+1. **Schema Factory Test Determinism**
+   - Avoid random behavior in tests that can lead to intermittent failures
+   - Use explicit parameters to control test behavior (e.g., include_seasonality)
+   - Create separate test cases for different scenarios instead of random behavior
+   - Implement proper test coverage for both positive and negative cases
+   - Use random behavior tests only for verifying distribution, not for functional testing
+   - Add clear parameter documentation to make test control obvious
+
+2. **Repository Test Decoupling**
    - Create test-specific models and schemas for testing generic functionality
    - Avoid using business models in tests for generic components
    - Use schema factories to simplify test data creation
@@ -91,30 +102,23 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Create reusable test fixtures for common test scenarios
    - Implement proper validation flow in all repository tests
 
-2. **Schema Factory Test Edge Cases**
+3. **Schema Factory Test Edge Cases**
    - Watch for subtle rounding issues in decimal sum assertions (e.g., day_of_month_patterns sum)
    - Verify enum member existence before using in tests to prevent AttributeError
    - Use appropriate assertions for optional fields that may be None but still exist
    - Implement proper tolerance ranges for numerical tests where exact equality isn't required
    - Test both None and explicit values for optional fields
 
-3. **Schema Factory Nested Object Handling**
+4. **Schema Factory Nested Object Handling**
    - Use explicit dictionary structure for nested objects to match schema expectations
    - Handle multi-level nested dictionaries carefully with clear structure documentation
    - Test each level of nesting individually and with custom values
    - Create specific test assertions for each level of the object structure
    - Verify schema validation with complex nested structures
 
-4. **Datetime Handling for Test Assertions**
+5. **Datetime Handling for Test Assertions**
    - Always use datetime_equals() for comparing datetime objects to ensure proper TZ handling
    - Verify all datetimes have timezone info (tzinfo is not None)
    - Confirm timezone is UTC (tzinfo == timezone.utc) as required by ADR-011
    - Test both auto-created and explicitly provided datetime values
    - Verify proper date difference calculations in nested object structures
-
-5. **Complex Enum Handling**
-   - Explicitly import and use proper enum values (e.g., FrequencyType.WEEKLY)
-   - Verify enum members exist in the enumeration before using in tests
-   - Test all valid enum values to ensure complete coverage
-   - Carefully handle string-based enums with proper literals
-   - Test proper validation behavior when using invalid enum values

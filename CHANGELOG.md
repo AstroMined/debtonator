@@ -7,6 +7,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.86] - 2025-04-09
+
+### Fixed
+
+- Fixed intermittent test failures in income trends schema factory:
+  - Added `include_seasonality` parameter to `create_income_trends_analysis_schema` factory function
+  - Created separate test cases for with and without seasonality scenarios
+  - Fixed incorrect assertion in original test that checked `hasattr(schema, "seasonality")` but failed when the field was None
+  - Implemented deterministic testing approach for better reliability
+  - Enhanced test coverage with additional test cases for random behavior and custom seasonality
+
+### Added
+
+- Enhanced schema factory testing framework:
+  - Added test for random seasonality inclusion to verify ~50% inclusion rate
+  - Added test for custom seasonality data to verify proper field handling
+  - Implemented comprehensive test coverage for all seasonality scenarios
+  - Added explicit parameter documentation for better test control
+
 ## [0.5.85] - 2025-04-07
 
 ### Added
