@@ -5,15 +5,14 @@ Tests ensure that HTTP exception classes properly handle error details,
 status codes, and message formatting.
 """
 
-import pytest
 from fastapi import status
 
 from src.errors.http_exceptions import (
     AccountHTTPException,
     AccountNotFoundHTTPException,
+    AccountOperationHTTPException,
     AccountTypeHTTPException,
     AccountValidationHTTPException,
-    AccountOperationHTTPException,
     FeatureFlagAccountHTTPException,
 )
 
@@ -82,7 +81,10 @@ def test_account_type_http_exception_with_account_type():
     """Test initializing AccountTypeHTTPException with account type."""
     exception = AccountTypeHTTPException("invalid_type")
     assert exception.status_code == status.HTTP_400_BAD_REQUEST
-    assert exception.detail["message"] == "Invalid or unsupported account type: invalid_type"
+    assert (
+        exception.detail["message"]
+        == "Invalid or unsupported account type: invalid_type"
+    )
     assert exception.detail["account_type"] == "invalid_type"
 
 
@@ -114,7 +116,9 @@ def test_account_validation_http_exception_with_all_parameters():
     """Test initializing AccountValidationHTTPException with all parameters."""
     field_errors = {"field1": "Error in field1"}
     details = {"account_id": 123, "additional": "info"}
-    exception = AccountValidationHTTPException("Validation error", field_errors, details)
+    exception = AccountValidationHTTPException(
+        "Validation error", field_errors, details
+    )
     assert exception.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
     assert exception.detail["message"] == "Validation error"
     assert exception.detail["field_errors"] == field_errors
@@ -157,13 +161,18 @@ def test_feature_flag_account_http_exception_with_flag_name():
     """Test initializing FeatureFlagAccountHTTPException with flag name."""
     exception = FeatureFlagAccountHTTPException("TEST_FLAG")
     assert exception.status_code == status.HTTP_403_FORBIDDEN
-    assert exception.detail["message"] == "Operation not available: feature 'TEST_FLAG' is disabled"
+    assert (
+        exception.detail["message"]
+        == "Operation not available: feature 'TEST_FLAG' is disabled"
+    )
     assert exception.detail["feature_flag"] == "TEST_FLAG"
 
 
 def test_feature_flag_account_http_exception_with_custom_message():
     """Test initializing FeatureFlagAccountHTTPException with custom message."""
-    exception = FeatureFlagAccountHTTPException("TEST_FLAG", "Custom feature flag message")
+    exception = FeatureFlagAccountHTTPException(
+        "TEST_FLAG", "Custom feature flag message"
+    )
     assert exception.status_code == status.HTTP_403_FORBIDDEN
     assert exception.detail["message"] == "Custom feature flag message"
     assert exception.detail["feature_flag"] == "TEST_FLAG"

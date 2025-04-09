@@ -188,13 +188,16 @@ def test_checking_account_overdraft_validation():
         available_balance=Decimal("1000.00"),
         has_overdraft_protection=True,  # Enabled but no limit set
     )
-    
+
     assert checking.has_overdraft_protection is True
     assert checking.overdraft_limit is None
 
     # Test with overdraft protection disabled but limit set
     # Note: In the current implementation, this is valid
-    with pytest.raises(ValidationError, match="Overdraft limit cannot be set when overdraft protection is disabled"):
+    with pytest.raises(
+        ValidationError,
+        match="Overdraft limit cannot be set when overdraft protection is disabled",
+    ):
         checking = CheckingAccountCreate(
             name="No Overdraft With Limit",
             account_type="checking",

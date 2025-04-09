@@ -22,7 +22,9 @@ from src.models.liabilities import Liability
 from src.repositories.bill_splits import BillSplitRepository
 from src.schemas.bill_splits import BillSplitUpdate
 from src.utils.datetime_utils import datetime_greater_than
-from tests.helpers.schema_factories.bill_splits import create_bill_split_schema
+from tests.helpers.schema_factories.bill_splits_schema_factories import (
+    create_bill_split_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 

@@ -7,15 +7,15 @@ update, deletion, and specialized operations like statement balance and credit l
 
 from datetime import date
 from decimal import Decimal
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from src.models.accounts import Account as AccountModel
 from src.registry.account_types import account_type_registry
-from src.services.feature_flags import FeatureFlagService
 from src.repositories.accounts import AccountRepository
 from src.repositories.credit_limit_history import CreditLimitHistoryRepository
 from src.repositories.statement_history import StatementHistoryRepository
 from src.repositories.transaction_history import TransactionHistoryRepository
+from src.schemas.account_types import AccountCreateUnion, AccountResponseUnion
 from src.schemas.accounts import (
     AccountInDB,
     AccountStatementHistoryResponse,
@@ -23,13 +23,13 @@ from src.schemas.accounts import (
     AvailableCreditResponse,
     StatementBalanceHistory,
 )
-from src.schemas.account_types import AccountCreateUnion, AccountResponseUnion
 from src.schemas.credit_limit_history import (
     AccountCreditLimitHistoryResponse,
     CreditLimitHistoryCreate,
     CreditLimitHistoryUpdate,
 )
 from src.schemas.statement_history import StatementHistoryCreate
+from src.services.feature_flags import FeatureFlagService
 from src.utils.decimal_precision import DecimalPrecision
 
 
@@ -39,7 +39,7 @@ class AccountService:
 
     This service handles business logic for account operations including validation,
     creation, updates, and specialized operations like statement and credit limit management.
-    
+
     Supports dynamic loading of type-specific service modules for different account types.
     """
 
@@ -66,7 +66,7 @@ class AccountService:
         self.credit_limit_repo = credit_limit_repo
         self.transaction_repo = transaction_repo
         self.feature_flag_service = feature_flag_service
-        
+
         # Storage for dynamically loaded type-specific functions
         self._type_specific_functions: Dict[str, Callable] = {}
 
@@ -237,7 +237,9 @@ class AccountService:
             # Round to 2 decimal places for storage
             account.available_credit = DecimalPrecision.round_for_display(available)
 
-    async def create_account(self, account_data: AccountCreateUnion) -> AccountResponseUnion:
+    async def create_account(
+        self, account_data: AccountCreateUnion
+    ) -> AccountResponseUnion:
         """
         Create a new account of the appropriate type
 
@@ -252,38 +254,47 @@ class AccountService:
         """
         # Get the account type from the discriminated union
         account_type = account_data.account_type
-        
+
         # Validate account type against registry
         # This replaces the validation that was previously in the schema
-        if not account_type_registry.is_valid_account_type(account_type, self.feature_flag_service):
+        if not account_type_registry.is_valid_account_type(
+            account_type, self.feature_flag_service
+        ):
             valid_types = account_type_registry.get_all_types(self.feature_flag_service)
             valid_type_ids = [t["id"] for t in valid_types]
             valid_types_str = ", ".join(valid_type_ids)
-            raise ValueError(f"Invalid account type '{account_type}'. Must be one of: {valid_types_str}")
-            
+            raise ValueError(
+                f"Invalid account type '{account_type}'. Must be one of: {valid_types_str}"
+            )
+
         # Check if account type is enabled through feature flags
-        if self.feature_flag_service and not self._is_account_type_enabled(account_type):
+        if self.feature_flag_service and not self._is_account_type_enabled(
+            account_type
+        ):
             raise ValueError(f"Account type '{account_type}' is currently disabled")
-            
+
         # Apply type-specific validation if available
         await self._apply_type_specific_validation(
             account_type, "validate_create", account_data
         )
-        
+
         # Initialize account dict
         account_dict = account_data.model_dump()
-        
+
         # For credit accounts, validate and calculate credit-specific fields
         if account_type == "credit":
             # Add special validation for credit cards
-            if not hasattr(account_data, "total_limit") or account_data.total_limit is None:
+            if (
+                not hasattr(account_data, "total_limit")
+                or account_data.total_limit is None
+            ):
                 raise ValueError("Credit accounts must have a total limit")
 
             # Validate initial credit limit using a mock model
             mock_account = AccountModel(
-                type="credit", 
+                type="credit",
                 available_balance=Decimal(0),
-                total_limit=account_data.total_limit
+                total_limit=account_data.total_limit,
             )
             is_valid, error_message = await self.validate_credit_limit_history_update(
                 mock_account,
@@ -291,7 +302,7 @@ class AccountService:
             )
             if not is_valid:
                 raise ValueError(error_message)
-                
+
             # Calculate available credit before database insertion
             # Use a properly constructed model instance
             account_obj = AccountModel(**account_dict)
@@ -300,7 +311,7 @@ class AccountService:
 
         # Use repository to create account
         db_account = await self.account_repo.create(account_dict)
-        
+
         # Convert to appropriate response type based on account type
         # This will work with a discriminated union because all the response types
         # are derived from AccountInDB which is derived from AccountBase
@@ -771,9 +782,9 @@ class AccountService:
             account_name=db_account.name,
             statement_history=statement_history,
         )
-        
+
     # Dynamic service module loading methods
-    
+
     def _is_account_type_enabled(self, account_type: str) -> bool:
         """
         Check if an account type is currently enabled by feature flags.
@@ -787,24 +798,24 @@ class AccountService:
         # If no feature flag service, assume all types are enabled
         if not self.feature_flag_service:
             return True
-            
+
         # Get feature flag name for the account type from registry
         type_info = account_type_registry._registry.get(account_type, {})
         flag_name = type_info.get("feature_flag")
-        
+
         # If no feature flag specified for this type, it's always enabled
         if not flag_name:
             return True
-            
+
         # Check if the feature flag is enabled
         return self.feature_flag_service.is_enabled(flag_name)
-    
+
     async def _apply_type_specific_validation(
-        self, 
-        account_type: str, 
-        validation_type: str, 
-        data: Any, 
-        existing_obj: Any = None
+        self,
+        account_type: str,
+        validation_type: str,
+        data: Any,
+        existing_obj: Any = None,
     ) -> None:
         """
         Apply type-specific validation using dynamically loaded validation functions.
@@ -820,32 +831,30 @@ class AccountService:
         """
         if not self._is_account_type_enabled(account_type):
             return
-            
+
         # Use the ServiceFactory to dynamically bind service modules
         from src.services.factory import ServiceFactory
-        
+
         # Try to load and bind the service module
-        success = ServiceFactory.bind_account_type_service(self, account_type, self.account_repo._session)
+        success = ServiceFactory.bind_account_type_service(
+            self, account_type, self.account_repo._session
+        )
         if not success:
             return
-            
+
         # Check if we have a type-specific validator function
         function_key = f"{account_type}.{validation_type}"
         if function_key in self._type_specific_functions:
             validator_func = self._type_specific_functions[function_key]
-            
+
             # Call the validator function with appropriate arguments
             if existing_obj:
                 await validator_func(data, existing_obj)
             else:
                 await validator_func(data)
-    
+
     async def _apply_type_specific_function(
-        self, 
-        account_type: str, 
-        function_name: str, 
-        *args, 
-        **kwargs
+        self, account_type: str, function_name: str, *args, **kwargs
     ) -> Any:
         """
         Apply type-specific function using dynamically loaded functions.
@@ -861,25 +870,27 @@ class AccountService:
         """
         if not self._is_account_type_enabled(account_type):
             return None
-            
+
         # Use the ServiceFactory to dynamically bind service modules
         from src.services.factory import ServiceFactory
-        
+
         # Try to load and bind the service module
-        success = ServiceFactory.bind_account_type_service(self, account_type, self.account_repo._session)
+        success = ServiceFactory.bind_account_type_service(
+            self, account_type, self.account_repo._session
+        )
         if not success:
             return None
-            
+
         # Check if we have a type-specific function
         function_key = f"{account_type}.{function_name}"
         if function_key in self._type_specific_functions:
             func = self._type_specific_functions[function_key]
-            
+
             # Call the function with the provided arguments
             return await func(*args, **kwargs)
-            
+
         return None
-    
+
     async def get_banking_overview(self, user_id: int) -> Dict[str, Any]:
         """
         Get comprehensive overview of all banking accounts for a user.
@@ -892,7 +903,7 @@ class AccountService:
         """
         # Get all accounts for the user
         accounts = await self.account_repo.get_by_user(user_id)
-        
+
         # Initialize overview with zero values
         overview = {
             "total_cash": Decimal("0.00"),
@@ -905,23 +916,23 @@ class AccountService:
             "credit_utilization": Decimal("0.00"),
             "bnpl_balance": Decimal("0.00"),
             "ewa_balance": Decimal("0.00"),
-            "total_debt": Decimal("0.00")
+            "total_debt": Decimal("0.00"),
         }
-        
+
         # Process each account, updating the overview
         for account in accounts:
             if account.is_closed:
                 continue
-                
+
             # Apply type-specific overview update function if available
             type_specific_update = await self._apply_type_specific_function(
                 account.type, "update_overview", account, overview
             )
-            
+
             # If there was a type-specific handler, continue to next account
             if type_specific_update is not None:
                 continue
-                
+
             # Apply basic categorization if no type-specific function was found
             if account.type == "checking":
                 overview["checking_balance"] += account.available_balance
@@ -943,15 +954,21 @@ class AccountService:
             elif account.type == "ewa":
                 overview["ewa_balance"] += abs(account.current_balance)
                 overview["total_debt"] += abs(account.current_balance)
-        
+
         # Calculate derived metrics
         if overview["credit_limit"] > 0:
-            overview["credit_available"] = overview["credit_limit"] - overview["credit_used"]
-            overview["credit_utilization"] = (overview["credit_used"] / overview["credit_limit"]) * 100
-        
+            overview["credit_available"] = (
+                overview["credit_limit"] - overview["credit_used"]
+            )
+            overview["credit_utilization"] = (
+                overview["credit_used"] / overview["credit_limit"]
+            ) * 100
+
         return overview
-        
-    async def get_upcoming_payments(self, user_id: int, days: int = 14) -> List[Dict[str, Any]]:
+
+    async def get_upcoming_payments(
+        self, user_id: int, days: int = 14
+    ) -> List[Dict[str, Any]]:
         """
         Get all upcoming payments for a user across account types.
 
@@ -963,27 +980,27 @@ class AccountService:
             List of upcoming payments with due dates and amounts
         """
         upcoming_payments = []
-        
+
         # Get accounts for the user
         accounts = await self.account_repo.get_by_user(user_id)
-        
+
         # Process each account type
         for account in accounts:
             if account.is_closed:
                 continue
-                
+
             # Get upcoming payments for this account type if supported
             account_payments = await self._apply_type_specific_function(
                 account.type, "get_upcoming_payments", account.id, days
             )
-            
+
             # Add to the list if we got payments
             if account_payments:
                 upcoming_payments.extend(account_payments)
-        
+
         # Sort by due date
         return sorted(upcoming_payments, key=lambda x: x["due_date"])
-        
+
     async def get_account_by_user_and_type(
         self, user_id: int, account_type: str
     ) -> List[AccountInDB]:

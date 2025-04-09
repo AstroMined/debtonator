@@ -17,7 +17,7 @@ from src.repositories.income_categories import IncomeCategoryRepository
 # Import schemas and schema factories - essential part of the validation pattern
 from src.schemas.income_categories import IncomeCategoryUpdate
 from src.utils.datetime_utils import datetime_greater_than
-from tests.helpers.schema_factories.income_categories import (
+from tests.helpers.schema_factories.income_categories_schema_factories import (
     create_income_category_schema,
 )
 

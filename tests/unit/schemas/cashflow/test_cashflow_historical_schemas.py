@@ -5,17 +5,13 @@ from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.cashflow.historical import (
+from src.schemas.cashflow.cashflow_historical import (
     HistoricalPeriodAnalysis,
     HistoricalTrendMetrics,
     HistoricalTrendsResponse,
     SeasonalityAnalysis,
 )
-from src.utils.datetime_utils import (
-    utc_now,
-    days_ago,
-    days_from_now,
-)
+from src.utils.datetime_utils import days_ago, utc_now
 
 
 # Test valid object creation
@@ -298,7 +294,9 @@ def test_datetime_utc_validation():
     past = days_ago(30)
 
     # Test naive datetime in period_start
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         HistoricalPeriodAnalysis(
             period_start=datetime.now(),  # Naive datetime
             period_end=now,
@@ -312,7 +310,9 @@ def test_datetime_utc_validation():
         )
 
     # Test non-UTC timezone in period_end
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         HistoricalPeriodAnalysis(
             period_start=past,
             period_end=datetime.now(ZoneInfo("America/New_York")),  # Non-UTC timezone
@@ -356,7 +356,9 @@ def test_datetime_utc_validation():
     )
 
     # Test naive datetime in timestamp
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         HistoricalTrendsResponse(
             metrics=metrics,
             period_analysis=[analysis],
@@ -365,7 +367,9 @@ def test_datetime_utc_validation():
         )
 
     # Test non-UTC timezone in timestamp
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         HistoricalTrendsResponse(
             metrics=metrics,
             period_analysis=[analysis],

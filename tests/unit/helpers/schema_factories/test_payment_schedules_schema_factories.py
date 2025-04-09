@@ -7,13 +7,13 @@ that pass validation.
 
 # pylint: disable=no-member
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from decimal import Decimal
 
 import pytest
 
 from src.schemas.payment_schedules import PaymentScheduleCreate, PaymentScheduleUpdate
-from tests.helpers.schema_factories.payment_schedules import (
+from tests.helpers.schema_factories.payment_schedules_schema_factories import (
     create_payment_schedule_schema,
     create_payment_schedule_update_schema,
 )
@@ -22,7 +22,7 @@ from tests.helpers.schema_factories.payment_schedules import (
 def test_create_payment_schedule_schema():
     """Test creating a PaymentScheduleCreate schema with default values."""
     schema = create_payment_schedule_schema(liability_id=1, account_id=2)
-    
+
     assert isinstance(schema, PaymentScheduleCreate)
     assert schema.liability_id == 1
     assert schema.account_id == 2
@@ -31,7 +31,7 @@ def test_create_payment_schedule_schema():
     assert schema.description is None
     assert isinstance(schema.scheduled_date, datetime)
     assert schema.scheduled_date.tzinfo == timezone.utc
-    
+
     # The scheduled_date should be approximately 7 days in the future
     now = datetime.now(timezone.utc)
     date_diff = schema.scheduled_date - now
@@ -41,16 +41,16 @@ def test_create_payment_schedule_schema():
 def test_create_payment_schedule_schema_with_custom_values():
     """Test creating a PaymentScheduleCreate schema with custom values."""
     scheduled_date = datetime(2023, 6, 15, tzinfo=timezone.utc)
-    
+
     schema = create_payment_schedule_schema(
         liability_id=1,
         account_id=2,
         scheduled_date=scheduled_date,
         amount=Decimal("250.75"),
         description="Monthly mortgage payment",
-        auto_process=True
+        auto_process=True,
     )
-    
+
     assert isinstance(schema, PaymentScheduleCreate)
     assert schema.liability_id == 1
     assert schema.account_id == 2
@@ -63,11 +63,9 @@ def test_create_payment_schedule_schema_with_custom_values():
 def test_create_payment_schedule_schema_with_minimum_amount():
     """Test creating a PaymentScheduleCreate schema with minimum allowed amount."""
     schema = create_payment_schedule_schema(
-        liability_id=1,
-        account_id=2,
-        amount=Decimal("0.01")
+        liability_id=1, account_id=2, amount=Decimal("0.01")
     )
-    
+
     assert isinstance(schema, PaymentScheduleCreate)
     assert schema.liability_id == 1
     assert schema.account_id == 2
@@ -79,13 +77,13 @@ def test_create_payment_schedule_schema_with_additional_fields():
     schema = create_payment_schedule_schema(
         liability_id=1,
         account_id=2,
-        custom_field="This should be ignored by the schema"
+        custom_field="This should be ignored by the schema",
     )
-    
+
     assert isinstance(schema, PaymentScheduleCreate)
     assert schema.liability_id == 1
     assert schema.account_id == 2
-    
+
     # The custom_field should not be part of the schema
     with pytest.raises(AttributeError):
         _ = schema.custom_field
@@ -94,7 +92,7 @@ def test_create_payment_schedule_schema_with_additional_fields():
 def test_create_payment_schedule_update_schema_empty():
     """Test creating an empty PaymentScheduleUpdate schema."""
     schema = create_payment_schedule_update_schema()
-    
+
     assert isinstance(schema, PaymentScheduleUpdate)
     assert schema.scheduled_date is None
     assert schema.amount is None
@@ -107,16 +105,16 @@ def test_create_payment_schedule_update_schema_empty():
 def test_create_payment_schedule_update_schema_with_values():
     """Test creating a PaymentScheduleUpdate schema with all fields."""
     scheduled_date = datetime(2023, 7, 15, tzinfo=timezone.utc)
-    
+
     schema = create_payment_schedule_update_schema(
         scheduled_date=scheduled_date,
         amount=Decimal("350.00"),
         account_id=3,
         description="Updated payment description",
         auto_process=True,
-        processed=True
+        processed=True,
     )
-    
+
     assert isinstance(schema, PaymentScheduleUpdate)
     assert schema.scheduled_date == scheduled_date
     assert schema.amount == Decimal("350.00")
@@ -129,10 +127,9 @@ def test_create_payment_schedule_update_schema_with_values():
 def test_create_payment_schedule_update_schema_partial():
     """Test creating a PaymentScheduleUpdate schema with partial fields."""
     schema = create_payment_schedule_update_schema(
-        amount=Decimal("175.50"),
-        description="Partial update"
+        amount=Decimal("175.50"), description="Partial update"
     )
-    
+
     assert isinstance(schema, PaymentScheduleUpdate)
     assert schema.scheduled_date is None
     assert schema.amount == Decimal("175.50")

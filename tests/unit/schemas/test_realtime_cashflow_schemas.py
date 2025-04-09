@@ -479,7 +479,9 @@ def test_datetime_utc_validation():
     )
 
     # Test naive datetime in timestamp
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         RealtimeCashflow(
             timestamp=datetime.now(),  # Naive datetime
             account_balances=[checking_account],
@@ -491,7 +493,9 @@ def test_datetime_utc_validation():
         )
 
     # Test non-UTC timezone in timestamp
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         RealtimeCashflow(
             timestamp=datetime.now(ZoneInfo("America/New_York")),  # Non-UTC timezone
             account_balances=[checking_account],
@@ -503,7 +507,9 @@ def test_datetime_utc_validation():
         )
 
     # Test naive datetime in next_bill_due
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         RealtimeCashflow(
             account_balances=[checking_account],
             total_available_funds=Decimal("1000.00"),
@@ -515,7 +521,9 @@ def test_datetime_utc_validation():
         )
 
     # Test non-UTC timezone in next_bill_due
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         RealtimeCashflow(
             account_balances=[checking_account],
             total_available_funds=Decimal("1000.00"),
@@ -538,13 +546,17 @@ def test_datetime_utc_validation():
         minimum_balance_required=Decimal("200.00"),
     )
 
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         RealtimeCashflowResponse(
             data=cashflow, last_updated=datetime.now()  # Naive datetime
         )
 
     # Test non-UTC timezone in last_updated
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         RealtimeCashflowResponse(
             data=cashflow,
             last_updated=datetime.now(ZoneInfo("America/New_York")),  # Non-UTC timezone

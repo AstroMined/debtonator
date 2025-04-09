@@ -10,8 +10,6 @@ that pass validation.
 from datetime import datetime
 from decimal import Decimal
 
-import pytest
-
 from src.schemas.recurring_bills import (
     GenerateBillsRequest,
     RecurringBillCreate,
@@ -19,18 +17,18 @@ from src.schemas.recurring_bills import (
     RecurringBillUpdate,
 )
 from src.utils.datetime_utils import utc_now
-from tests.helpers.schema_factories.recurring_bills import (
+from tests.helpers.schema_factories.recurring_bills_schema_factories import (
+    create_generate_bills_request_schema,
+    create_recurring_bill_response_schema,
     create_recurring_bill_schema,
     create_recurring_bill_update_schema,
-    create_recurring_bill_response_schema,
-    create_generate_bills_request_schema,
 )
 
 
 def test_create_recurring_bill_schema():
     """Test creating a RecurringBillCreate schema with default values."""
     schema = create_recurring_bill_schema(account_id=1, category_id=2)
-    
+
     assert isinstance(schema, RecurringBillCreate)
     assert schema.account_id == 1
     assert schema.category_id == 2
@@ -48,9 +46,9 @@ def test_create_recurring_bill_schema_with_custom_values():
         bill_name="Electricity Bill",
         amount=Decimal("85.50"),
         day_of_month=20,
-        auto_pay=True
+        auto_pay=True,
     )
-    
+
     assert isinstance(schema, RecurringBillCreate)
     assert schema.account_id == 3
     assert schema.category_id == 4
@@ -63,7 +61,7 @@ def test_create_recurring_bill_schema_with_custom_values():
 def test_create_recurring_bill_update_schema_empty():
     """Test creating a RecurringBillUpdate schema with no specified fields."""
     schema = create_recurring_bill_update_schema(id=1)
-    
+
     assert isinstance(schema, RecurringBillUpdate)
     # The schema should be created but have no fields set
     assert len(schema.model_dump(exclude_none=True)) == 0
@@ -79,9 +77,9 @@ def test_create_recurring_bill_update_schema_with_all_fields():
         account_id=5,
         category_id=6,
         auto_pay=True,
-        active=False
+        active=False,
     )
-    
+
     assert isinstance(schema, RecurringBillUpdate)
     assert schema.bill_name == "Updated Utilities"
     assert schema.amount == Decimal("150.75")
@@ -95,11 +93,9 @@ def test_create_recurring_bill_update_schema_with_all_fields():
 def test_create_recurring_bill_update_schema_with_partial_fields():
     """Test creating a RecurringBillUpdate schema with some fields specified."""
     schema = create_recurring_bill_update_schema(
-        id=3,
-        bill_name="Updated Internet",
-        amount=Decimal("75.00")
+        id=3, bill_name="Updated Internet", amount=Decimal("75.00")
     )
-    
+
     assert isinstance(schema, RecurringBillUpdate)
     assert schema.bill_name == "Updated Internet"
     assert schema.amount == Decimal("75.00")
@@ -113,7 +109,7 @@ def test_create_recurring_bill_update_schema_with_partial_fields():
 def test_create_recurring_bill_response_schema():
     """Test creating a RecurringBillResponse schema with default values."""
     schema = create_recurring_bill_response_schema(id=4, account_id=7, category_id=8)
-    
+
     assert isinstance(schema, RecurringBillResponse)
     assert schema.id == 4
     assert schema.account_id == 7
@@ -131,7 +127,7 @@ def test_create_recurring_bill_response_schema_with_custom_values():
     """Test creating a RecurringBillResponse schema with custom values."""
     created_at = utc_now()
     updated_at = utc_now()
-    
+
     schema = create_recurring_bill_response_schema(
         id=5,
         account_id=9,
@@ -142,9 +138,9 @@ def test_create_recurring_bill_response_schema_with_custom_values():
         auto_pay=True,
         active=False,
         created_at=created_at,
-        updated_at=updated_at
+        updated_at=updated_at,
     )
-    
+
     assert isinstance(schema, RecurringBillResponse)
     assert schema.id == 5
     assert schema.account_id == 9
@@ -161,7 +157,7 @@ def test_create_recurring_bill_response_schema_with_custom_values():
 def test_create_generate_bills_request_schema():
     """Test creating a GenerateBillsRequest schema with default values."""
     schema = create_generate_bills_request_schema()
-    
+
     assert isinstance(schema, GenerateBillsRequest)
     assert schema.month == 1
     assert schema.year == 2025
@@ -169,11 +165,8 @@ def test_create_generate_bills_request_schema():
 
 def test_create_generate_bills_request_schema_with_custom_values():
     """Test creating a GenerateBillsRequest schema with custom values."""
-    schema = create_generate_bills_request_schema(
-        month=6,
-        year=2023
-    )
-    
+    schema = create_generate_bills_request_schema(month=6, year=2023)
+
     assert isinstance(schema, GenerateBillsRequest)
     assert schema.month == 6
     assert schema.year == 2023

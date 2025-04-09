@@ -20,7 +20,7 @@ from src.repositories.recurring_income import RecurringIncomeRepository
 
 # Import schema and schema factories - essential part of the validation pattern
 from src.utils.datetime_utils import datetime_greater_than
-from tests.helpers.schema_factories.recurring_income import (
+from tests.helpers.schema_factories.recurring_income_schema_factories import (
     create_recurring_income_schema,
     create_recurring_income_update_schema,
 )

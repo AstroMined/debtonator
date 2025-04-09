@@ -15,10 +15,12 @@ from src.models.payments import PaymentSource
 from src.repositories.payment_sources import PaymentSourceRepository
 from src.repositories.payments import PaymentRepository
 from src.utils.datetime_utils import utc_now
-from tests.helpers.schema_factories.payment_sources import (
+from tests.helpers.schema_factories.payment_sources_schema_factories import (
     create_payment_source_update_schema,
 )
-from tests.helpers.schema_factories.payments import create_payment_schema
+from tests.helpers.schema_factories.payments_schema_factories import (
+    create_payment_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 

@@ -5,17 +5,16 @@ Tests ensure that checking account error classes properly handle error details,
 message formatting, and inheritance relationships.
 """
 
-import pytest
 from decimal import Decimal
 
-from src.errors.accounts import AccountError
 from src.errors.account_types.banking.checking import (
     CheckingAccountError,
-    CheckingOverdraftError,
     CheckingInsufficientFundsError,
-    CheckingInvalidRoutingNumberError,
     CheckingInternationalBankingError,
+    CheckingInvalidRoutingNumberError,
+    CheckingOverdraftError,
 )
+from src.errors.accounts import AccountError
 
 
 def test_checking_account_error_with_message_only():
@@ -56,7 +55,7 @@ def test_checking_overdraft_error_with_all_parameters():
         "Overdraft error",
         account_id=123,
         current_balance=Decimal("100.00"),
-        details={"additional": "info"}
+        details={"additional": "info"},
     )
     assert error.message == "Overdraft error"
     assert error.details["account_id"] == 123
@@ -86,7 +85,7 @@ def test_checking_insufficient_funds_error_with_all_parameters():
         account_id=123,
         current_balance=Decimal("50.00"),
         required_amount=Decimal("100.00"),
-        details={"transaction_id": 456}
+        details={"transaction_id": 456},
     )
     assert error.message == "Insufficient funds"
     assert error.details["account_id"] == 123
@@ -106,8 +105,7 @@ def test_checking_invalid_routing_number_error_with_routing_number():
 def test_checking_invalid_routing_number_error_with_custom_message():
     """Test initializing CheckingInvalidRoutingNumberError with custom message."""
     error = CheckingInvalidRoutingNumberError(
-        "123456789", 
-        message="Custom routing number error"
+        "123456789", message="Custom routing number error"
     )
     assert error.message == "Custom routing number error"
     assert error.details == {"routing_number": "123456789"}
@@ -116,8 +114,7 @@ def test_checking_invalid_routing_number_error_with_custom_message():
 def test_checking_invalid_routing_number_error_with_details():
     """Test initializing CheckingInvalidRoutingNumberError with details."""
     error = CheckingInvalidRoutingNumberError(
-        "123456789",
-        details={"bank_name": "Test Bank"}
+        "123456789", details={"bank_name": "Test Bank"}
     )
     assert error.message == "Invalid routing number: 123456789"
     assert error.details["routing_number"] == "123456789"
@@ -135,9 +132,7 @@ def test_checking_international_banking_error_with_required_parameters():
 def test_checking_international_banking_error_with_custom_message():
     """Test initializing CheckingInternationalBankingError with custom message."""
     error = CheckingInternationalBankingError(
-        "swift_code", 
-        "INVALID123", 
-        message="Invalid SWIFT code format"
+        "swift_code", "INVALID123", message="Invalid SWIFT code format"
     )
     assert error.message == "Invalid SWIFT code format"
     assert error.details == {"field_name": "swift_code", "value": "INVALID123"}
@@ -146,9 +141,7 @@ def test_checking_international_banking_error_with_custom_message():
 def test_checking_international_banking_error_with_details():
     """Test initializing CheckingInternationalBankingError with details."""
     error = CheckingInternationalBankingError(
-        "swift_code",
-        "INVALID123",
-        details={"country": "US", "bank_name": "Test Bank"}
+        "swift_code", "INVALID123", details={"country": "US", "bank_name": "Test Bank"}
     )
     assert error.message == "Invalid swift_code: INVALID123"
     assert error.details["field_name"] == "swift_code"

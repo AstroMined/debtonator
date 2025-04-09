@@ -10,10 +10,7 @@ from decimal import Decimal
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.account_types.banking.ewa import (
-    EWAAccountCreate,
-    EWAAccountResponse,
-)
+from src.schemas.account_types.banking.ewa import EWAAccountCreate, EWAAccountResponse
 from src.utils.datetime_utils import utc_now
 
 
@@ -36,7 +33,7 @@ def test_ewa_account_create_schema():
     period_start = utc_now()
     period_end = utc_now()  # In real scenario, this would be later than period_start
     payday = utc_now()  # In real scenario, this would be later than period_end
-    
+
     ewa = EWAAccountCreate(
         name="Full EWA",
         account_type="ewa",
@@ -187,7 +184,9 @@ def test_ewa_max_advance_validation():
         current_balance=Decimal("150.00"),
         available_balance=Decimal("150.00"),
         provider="Payactiv",
-        max_advance_percentage=Decimal("0.90"),  # 90% is unusual but valid in current schema
+        max_advance_percentage=Decimal(
+            "0.90"
+        ),  # 90% is unusual but valid in current schema
     )
     assert ewa.max_advance_percentage == Decimal("0.90")
 
@@ -195,12 +194,12 @@ def test_ewa_max_advance_validation():
 def test_ewa_date_validation():
     """Test date validation in EWA account schemas."""
     now = utc_now()
-    
+
     # Calculate dates that ensure proper sequence
     period_start = now
     period_end = now.replace(day=now.day + 7)  # 7 days later
     payday = period_end.replace(day=period_end.day + 1)  # 1 day after period end
-    
+
     # Test valid date sequence
     ewa = EWAAccountCreate(
         name="Valid Dates",

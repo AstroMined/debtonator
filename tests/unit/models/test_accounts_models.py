@@ -178,7 +178,9 @@ async def test_update_account_balance(db_session: AsyncSession):
 
 async def test_account_repr(db_session: AsyncSession):
     """Test the __repr__ method of Account model"""
-    account = Account(name="Repr Test", account_type="account")  # Using base account type
+    account = Account(
+        name="Repr Test", account_type="account"
+    )  # Using base account type
     db_session.add(account)
     await db_session.commit()
 

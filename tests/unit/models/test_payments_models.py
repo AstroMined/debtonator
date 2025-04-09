@@ -4,7 +4,6 @@ from decimal import Decimal
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.accounts import Account
 from src.models.income import Income
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
@@ -52,7 +51,7 @@ async def test_create_split_payment(
     db_session: AsyncSession,
     test_liability: Liability,
     test_checking_account,  # Will use proper subclass from fixture
-    test_second_account,    # Will use proper subclass from fixture
+    test_second_account,  # Will use proper subclass from fixture
 ):
     """Test creating a payment split across multiple sources"""
 
@@ -207,9 +206,7 @@ async def test_payment_cascade_delete(
         assert result is None
 
 
-async def test_payment_with_income(
-    db_session: AsyncSession, test_checking_account
-):
+async def test_payment_with_income(db_session: AsyncSession, test_checking_account):
     """Test payment linked to income"""
     # Create income
     income = Income(

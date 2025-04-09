@@ -6,7 +6,6 @@ These tests validate the core functionality of the BaseRepository with real data
 
 # pylint: disable=no-member
 
-from datetime import datetime, timezone
 from decimal import Decimal
 
 import pytest
@@ -14,8 +13,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.repositories.base_repository import BaseRepository
-from tests.helpers.models.test_models import TestItem
-from tests.helpers.schemas.test_schemas import TestItemCreate, TestItemUpdate
+from src.utils.datetime_utils import utc_now
+from tests.helpers.models.test_basic_db_model import TestBasicDBModel
+from tests.helpers.schema_factories.basic_test_schema_factories import (
+    create_test_item_schema,
+    create_test_item_update_schema,
+)
 
 pytestmark = pytest.mark.integration
 
@@ -23,13 +26,13 @@ pytestmark = pytest.mark.integration
 async def test_create(db_session: AsyncSession):
     """Test creating a new record using a repository."""
     # Arrange
-    repo = BaseRepository(db_session, TestItem)
+    repo = BaseRepository(db_session, TestBasicDBModel)
 
     # Schema (simulate service validation)
-    item_data = TestItemCreate(
-        name="Test Item", 
-        description="Test description", 
-        numeric_value=Decimal("100.00")
+    item_data = create_test_item_schema(
+        name="Test Item",
+        description="Test description",
+        numeric_value=Decimal("100.00"),
     )
 
     # Act
@@ -42,7 +45,7 @@ async def test_create(db_session: AsyncSession):
     assert item.numeric_value == Decimal("100.00")
 
 
-async def test_get(test_item_repository: BaseRepository, test_item: TestItem):
+async def test_get(test_item_repository: BaseRepository, test_item: TestBasicDBModel):
     """Test retrieving a record by ID."""
     # Act
     retrieved_item = await test_item_repository.get(test_item.id)
@@ -62,14 +65,19 @@ async def test_get_nonexistent(test_item_repository: BaseRepository):
     assert retrieved_item is None
 
 
-async def test_update(test_item_repository: BaseRepository, test_item: TestItem):
+async def test_update(
+    test_item_repository: BaseRepository, test_item: TestBasicDBModel
+):
     """Test updating a record."""
+    # Arrange
+    update_data = create_test_item_update_schema(
+        name="Updated Item Name", numeric_value=Decimal("200.00")
+    )
+
     # Act
-    updated_data = {
-        "name": "Updated Item Name",
-        "numeric_value": Decimal("200.00"),
-    }
-    updated_item = await test_item_repository.update(test_item.id, updated_data)
+    updated_item = await test_item_repository.update(
+        test_item.id, update_data.model_dump()
+    )
 
     # Assert
     assert updated_item is not None
@@ -81,12 +89,15 @@ async def test_update(test_item_repository: BaseRepository, test_item: TestItem)
 
 async def test_update_nonexistent(test_item_repository: BaseRepository):
     """Test updating a nonexistent record returns None."""
+    # Arrange
+    update_data = create_test_item_update_schema(
+        name="Updated Item Name", numeric_value=Decimal("200.00")
+    )
+
     # Act
-    updated_data = {
-        "name": "Updated Item Name",
-        "numeric_value": Decimal("200.00"),
-    }
-    updated_item = await test_item_repository.update(9999, updated_data)  # Nonexistent ID
+    updated_item = await test_item_repository.update(
+        9999, update_data.model_dump()
+    )  # Nonexistent ID
 
     # Assert
     assert updated_item is None
@@ -95,10 +106,10 @@ async def test_update_nonexistent(test_item_repository: BaseRepository):
 async def test_delete(db_session: AsyncSession):
     """Test deleting a record."""
     # Arrange
-    repo = BaseRepository(db_session, TestItem)
+    repo = BaseRepository(db_session, TestBasicDBModel)
 
     # Create test item
-    item_data = TestItemCreate(
+    item_data = create_test_item_schema(
         name="Delete Test Item",
         description="Item to delete",
         numeric_value=Decimal("100.00"),
@@ -128,26 +139,26 @@ async def test_delete_nonexistent(test_item_repository: BaseRepository):
 async def test_get_multi(db_session: AsyncSession):
     """Test retrieving multiple records with filtering."""
     # Arrange
-    repo = BaseRepository(db_session, TestItem)
+    repo = BaseRepository(db_session, TestBasicDBModel)
 
     # Create test items
-    item_data_1 = TestItemCreate(
-        name="Test Item 1", 
-        description="Active item", 
+    item_data_1 = create_test_item_schema(
+        name="Test Item 1",
+        description="Active item",
         numeric_value=Decimal("100.00"),
-        is_active=True
+        is_active=True,
     )
-    item_data_2 = TestItemCreate(
-        name="Test Item 2", 
-        description="Inactive item", 
+    item_data_2 = create_test_item_schema(
+        name="Test Item 2",
+        description="Inactive item",
         numeric_value=Decimal("200.00"),
-        is_active=False
+        is_active=False,
     )
-    item_data_3 = TestItemCreate(
-        name="Test Item 3", 
-        description="Another active item", 
+    item_data_3 = create_test_item_schema(
+        name="Test Item 3",
+        description="Another active item",
         numeric_value=Decimal("300.00"),
-        is_active=True
+        is_active=True,
     )
 
     await repo.create(item_data_1.model_dump())
@@ -162,7 +173,9 @@ async def test_get_multi(db_session: AsyncSession):
     assert all(item.is_active for item in active_items)
 
 
-async def test_get_multi_with_skip_and_limit(test_item_repository: BaseRepository, test_items: list):
+async def test_get_multi_with_skip_and_limit(
+    test_item_repository: BaseRepository, test_items: list
+):
     """Test pagination with skip and limit parameters."""
     # Act - Get second page (skip first 2, limit to 2)
     page = await test_item_repository.get_multi(skip=2, limit=2)
@@ -174,15 +187,15 @@ async def test_get_multi_with_skip_and_limit(test_item_repository: BaseRepositor
 async def test_get_paginated(db_session: AsyncSession):
     """Test paginated results with total count."""
     # Arrange
-    repo = BaseRepository(db_session, TestItem)
+    repo = BaseRepository(db_session, TestBasicDBModel)
 
     # Create 5 test items with the same active status for filtering
     for i in range(5):
-        item_data = TestItemCreate(
+        item_data = create_test_item_schema(
             name=f"Pagination Total Test {i}",
             description=f"Pagination test item {i}",
             numeric_value=Decimal(f"{i}00.00"),
-            is_active=True
+            is_active=True,
         )
         await repo.create(item_data.model_dump())
 
@@ -199,28 +212,28 @@ async def test_get_paginated(db_session: AsyncSession):
 async def test_bulk_create(db_session: AsyncSession):
     """Test creating multiple records in a batch."""
     # Arrange
-    repo = BaseRepository(db_session, TestItem)
+    repo = BaseRepository(db_session, TestBasicDBModel)
 
-    # Prepare bulk data (simulating validated data)
+    # Prepare bulk data with schema factories
     bulk_data = [
-        {
-            "name": "Bulk Item 1",
-            "description": "First bulk item",
-            "numeric_value": Decimal("100.00"),
-            "is_active": True
-        },
-        {
-            "name": "Bulk Item 2",
-            "description": "Second bulk item",
-            "numeric_value": Decimal("200.00"),
-            "is_active": True
-        },
-        {
-            "name": "Bulk Item 3",
-            "description": "Third bulk item",
-            "numeric_value": Decimal("300.00"),
-            "is_active": False
-        },
+        create_test_item_schema(
+            name="Bulk Item 1",
+            description="First bulk item",
+            numeric_value=Decimal("100.00"),
+            is_active=True,
+        ).model_dump(),
+        create_test_item_schema(
+            name="Bulk Item 2",
+            description="Second bulk item",
+            numeric_value=Decimal("200.00"),
+            is_active=True,
+        ).model_dump(),
+        create_test_item_schema(
+            name="Bulk Item 3",
+            description="Third bulk item",
+            numeric_value=Decimal("300.00"),
+            is_active=False,
+        ).model_dump(),
     ]
 
     # Act
@@ -237,12 +250,12 @@ async def test_bulk_create(db_session: AsyncSession):
 async def test_bulk_update(db_session: AsyncSession):
     """Test updating multiple records in a batch."""
     # Arrange
-    repo = BaseRepository(db_session, TestItem)
+    repo = BaseRepository(db_session, TestBasicDBModel)
 
     # Create test items
     item_ids = []
     for i in range(3):
-        item_data = TestItemCreate(
+        item_data = create_test_item_schema(
             name=f"Bulk Update Test {i}",
             description=f"Item for bulk update {i}",
             numeric_value=Decimal(f"{i}00.00"),
@@ -250,27 +263,27 @@ async def test_bulk_update(db_session: AsyncSession):
         item = await repo.create(item_data.model_dump())
         item_ids.append(item.id)
 
-    # Act - Update all items' numeric value
-    update_data = {"numeric_value": Decimal("999.00")}
+    # Act - Update all items' numeric value using update schema
+    update_data = create_test_item_update_schema(
+        numeric_value=Decimal("999.00")
+    ).model_dump()
     updated_items = await repo.bulk_update(item_ids, update_data)
 
     # Assert
     assert len(updated_items) == 3
     assert all(item is not None for item in updated_items)
-    assert all(
-        item.numeric_value == Decimal("999.00") for item in updated_items
-    )
+    assert all(item.numeric_value == Decimal("999.00") for item in updated_items)
 
 
 async def test_transaction_commit(db_session: AsyncSession):
     """Test transaction context manager with successful commit."""
     # Arrange
-    repo = BaseRepository(db_session, TestItem)
+    repo = BaseRepository(db_session, TestBasicDBModel)
 
     # Act
     async with repo.transaction() as tx_repo:
         # Create item within transaction
-        item_data = TestItemCreate(
+        item_data = create_test_item_schema(
             name="Transaction Test",
             description="Item created in transaction",
             numeric_value=Decimal("100.00"),
@@ -288,14 +301,15 @@ async def test_transaction_commit(db_session: AsyncSession):
 async def test_transaction_rollback(db_session: AsyncSession):
     """Test transaction context manager with rollback on exception."""
     # Arrange
-    repo = BaseRepository(db_session, TestItem)
-    item_name = f"Rollback Test {datetime.now(timezone.utc).isoformat()}"
+    repo = BaseRepository(db_session, TestBasicDBModel)
+    current_time = utc_now()
+    item_name = f"Rollback Test {current_time.isoformat()}"
 
     # Act
     try:
         async with repo.transaction() as tx_repo:
             # Create item within transaction
-            item_data = TestItemCreate(
+            item_data = create_test_item_schema(
                 name=item_name,
                 description="Item that should be rolled back",
                 numeric_value=Decimal("100.00"),
@@ -309,7 +323,7 @@ async def test_transaction_rollback(db_session: AsyncSession):
 
     # Outside transaction, verify item was not created
     result = await db_session.execute(
-        select(TestItem).where(TestItem.name == item_name)
+        select(TestBasicDBModel).where(TestBasicDBModel.name == item_name)
     )
     item = result.scalars().first()
 

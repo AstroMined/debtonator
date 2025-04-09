@@ -22,7 +22,7 @@ from src.repositories.deposit_schedules import DepositScheduleRepository
 # Import schemas and schema factories - essential part of the validation pattern
 from src.schemas.deposit_schedules import DepositScheduleUpdate
 from src.utils.datetime_utils import datetime_greater_than
-from tests.helpers.schema_factories.deposit_schedules import (
+from tests.helpers.schema_factories.deposit_schedules_schema_factories import (
     create_deposit_schedule_schema,
 )
 

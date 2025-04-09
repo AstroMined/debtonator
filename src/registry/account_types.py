@@ -14,11 +14,10 @@ from typing import Any, ClassVar, Dict, List, Optional, Type
 class RegistryNotInitializedException(Exception):
     """
     Raised when a registry operation is attempted but the registry is not initialized.
-    
+
     This exception indicates that the account type registry has not been properly
     initialized before being used, which is a critical system error.
     """
-    pass
 
 
 class AccountTypeRegistry:
@@ -84,7 +83,7 @@ class AccountTypeRegistry:
             "description": description,
             "category": category,
             "repository_module": repository_module,  # Store the repository module path
-            "service_module": service_module,        # Store the service module path
+            "service_module": service_module,  # Store the service module path
             "feature_flag": feature_flag,
         }
 
@@ -121,13 +120,15 @@ class AccountTypeRegistry:
 
         Returns:
             A list of dictionaries with account type information
-            
+
         Raises:
             RegistryNotInitializedException: If the registry has not been initialized
         """
         if not self._registry:
-            raise RegistryNotInitializedException("Account type registry has not been initialized")
-        
+            raise RegistryNotInitializedException(
+                "Account type registry has not been initialized"
+            )
+
         result = []
 
         for type_id, info in self._registry.items():
@@ -194,13 +195,15 @@ class AccountTypeRegistry:
 
         Returns:
             True if the account type is valid and available, False otherwise
-            
+
         Raises:
             RegistryNotInitializedException: If the registry has not been initialized
         """
         if not self._registry:
-            raise RegistryNotInitializedException("Account type registry has not been initialized")
-            
+            raise RegistryNotInitializedException(
+                "Account type registry has not been initialized"
+            )
+
         if account_type_id not in self._registry:
             return False
 
@@ -222,7 +225,7 @@ class AccountTypeRegistry:
             The repository module path for the account type, or None if not found
         """
         return self._registry.get(account_type_id, {}).get("repository_module")
-        
+
     def get_service_module(self, account_type_id: str) -> Optional[str]:
         """
         Get the service module path for a given account type.

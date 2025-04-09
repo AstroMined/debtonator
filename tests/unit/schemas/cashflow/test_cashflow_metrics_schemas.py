@@ -3,11 +3,12 @@ from decimal import Decimal
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.cashflow.metrics import (
+from src.schemas.cashflow.cashflow_metrics import (
     DeficitCalculation,
     HourlyRates,
     MinimumRequired,
 )
+
 # Note: No datetime imports needed as this file doesn't use any datetime functionality
 
 

@@ -139,7 +139,14 @@ def test_payment_app_account_response_schema():
 def test_payment_app_platform_validation():
     """Test platform validation in payment app account schemas."""
     # Test various valid platforms
-    valid_platforms = ["PayPal", "Venmo", "Cash App", "Zelle", "Apple Pay", "Google Pay"]
+    valid_platforms = [
+        "PayPal",
+        "Venmo",
+        "Cash App",
+        "Zelle",
+        "Apple Pay",
+        "Google Pay",
+    ]
 
     for platform in valid_platforms:
         payment_app = PaymentAppAccountCreate(
@@ -190,7 +197,9 @@ def test_card_last_four_validation():
     assert payment_app.card_last_four is None
 
     # Test invalid card last four (non-numeric characters)
-    with pytest.raises(ValidationError, match="Card last four digits must contain only numbers"):
+    with pytest.raises(
+        ValidationError, match="Card last four digits must contain only numbers"
+    ):
         PaymentAppAccountCreate(
             name="Invalid Card",
             account_type="payment_app",
@@ -202,7 +211,9 @@ def test_card_last_four_validation():
         )
 
     # Test invalid card last four (wrong length)
-    with pytest.raises(ValidationError, match="String should have at most 4 characters"):
+    with pytest.raises(
+        ValidationError, match="String should have at most 4 characters"
+    ):
         PaymentAppAccountCreate(
             name="Invalid Card Length",
             account_type="payment_app",

@@ -16,7 +16,9 @@ from src.models.recurring_bills import RecurringBill
 from src.repositories.recurring_bills import RecurringBillRepository
 from src.schemas.recurring_bills import RecurringBillUpdate
 from src.utils.datetime_utils import datetime_greater_than
-from tests.helpers.schema_factories.recurring_bills import create_recurring_bill_schema
+from tests.helpers.schema_factories.recurring_bills_schema_factories import (
+    create_recurring_bill_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 

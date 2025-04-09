@@ -4,53 +4,17 @@ Unit tests for errors package initialization.
 Tests ensure that all error classes are properly exported from the errors package.
 """
 
-import pytest
-
-from src.errors import (
-    # Base error classes
+from src.errors import (  # Base error classes; Feature flag errors; HTTP exceptions; Utilities; Checking account errors; Savings account errors; Credit account errors; BNPL account errors; EWA account errors; Payment app account errors
     AccountError,
-    AccountNotFoundError,
-    AccountTypeError,
-    AccountValidationError,
-    AccountOperationError,
-    
-    # Feature flag errors
-    FeatureFlagAccountError,
-    
-    # HTTP exceptions
     AccountHTTPException,
+    AccountNotFoundError,
     AccountNotFoundHTTPException,
-    AccountTypeHTTPException,
-    AccountValidationHTTPException,
+    AccountOperationError,
     AccountOperationHTTPException,
-    FeatureFlagAccountHTTPException,
-    
-    # Utilities
-    account_error_to_http_exception,
-    
-    # Checking account errors
-    CheckingAccountError,
-    CheckingInsufficientFundsError,
-    CheckingInternationalBankingError,
-    CheckingInvalidRoutingNumberError,
-    CheckingOverdraftError,
-    
-    # Savings account errors
-    SavingsAccountError,
-    SavingsCompoundFrequencyError,
-    SavingsInterestRateError,
-    SavingsMinimumBalanceError,
-    SavingsWithdrawalLimitError,
-    
-    # Credit account errors
-    CreditAccountError,
-    CreditAPRError,
-    CreditAutopayError,
-    CreditCreditLimitExceededError,
-    CreditPaymentDueError,
-    CreditStatementError,
-    
-    # BNPL account errors
+    AccountTypeError,
+    AccountTypeHTTPException,
+    AccountValidationError,
+    AccountValidationHTTPException,
     BNPLAccountError,
     BNPLInstallmentCountError,
     BNPLInstallmentError,
@@ -58,8 +22,17 @@ from src.errors import (
     BNPLNextPaymentDateError,
     BNPLPaymentFrequencyError,
     BNPLProviderError,
-    
-    # EWA account errors
+    CheckingAccountError,
+    CheckingInsufficientFundsError,
+    CheckingInternationalBankingError,
+    CheckingInvalidRoutingNumberError,
+    CheckingOverdraftError,
+    CreditAccountError,
+    CreditAPRError,
+    CreditAutopayError,
+    CreditCreditLimitExceededError,
+    CreditPaymentDueError,
+    CreditStatementError,
     EWAAccountError,
     EWAAdvancePercentageError,
     EWAEarningsValidationError,
@@ -67,14 +40,20 @@ from src.errors import (
     EWAPayPeriodError,
     EWAProviderError,
     EWATransactionFeeError,
-    
-    # Payment app account errors
+    FeatureFlagAccountError,
+    FeatureFlagAccountHTTPException,
     PaymentAppAccountError,
     PaymentAppCardInformationError,
     PaymentAppLinkedAccountError,
     PaymentAppPlatformFeatureError,
     PaymentAppTransferError,
     PaymentAppUnsupportedPlatformError,
+    SavingsAccountError,
+    SavingsCompoundFrequencyError,
+    SavingsInterestRateError,
+    SavingsMinimumBalanceError,
+    SavingsWithdrawalLimitError,
+    account_error_to_http_exception,
 )
 
 
@@ -111,8 +90,14 @@ def test_checking_account_errors_exported():
     """Test that checking account errors are properly exported."""
     assert CheckingAccountError.__name__ == "CheckingAccountError"
     assert CheckingInsufficientFundsError.__name__ == "CheckingInsufficientFundsError"
-    assert CheckingInternationalBankingError.__name__ == "CheckingInternationalBankingError"
-    assert CheckingInvalidRoutingNumberError.__name__ == "CheckingInvalidRoutingNumberError"
+    assert (
+        CheckingInternationalBankingError.__name__
+        == "CheckingInternationalBankingError"
+    )
+    assert (
+        CheckingInvalidRoutingNumberError.__name__
+        == "CheckingInvalidRoutingNumberError"
+    )
     assert CheckingOverdraftError.__name__ == "CheckingOverdraftError"
 
 
@@ -164,17 +149,20 @@ def test_payment_app_account_errors_exported():
     assert PaymentAppLinkedAccountError.__name__ == "PaymentAppLinkedAccountError"
     assert PaymentAppPlatformFeatureError.__name__ == "PaymentAppPlatformFeatureError"
     assert PaymentAppTransferError.__name__ == "PaymentAppTransferError"
-    assert PaymentAppUnsupportedPlatformError.__name__ == "PaymentAppUnsupportedPlatformError"
+    assert (
+        PaymentAppUnsupportedPlatformError.__name__
+        == "PaymentAppUnsupportedPlatformError"
+    )
 
 
 def test_module_imports():
     """Test that all modules are properly imported."""
+    import src.errors.account_types
     import src.errors.accounts
     import src.errors.feature_flags
     import src.errors.http_exceptions
     import src.errors.utils
-    import src.errors.account_types
-    
+
     assert src.errors.accounts.__name__ == "src.errors.accounts"
     assert src.errors.feature_flags.__name__ == "src.errors.feature_flags"
     assert src.errors.http_exceptions.__name__ == "src.errors.http_exceptions"

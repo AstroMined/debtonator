@@ -95,7 +95,9 @@ class DefaultDatetimeModel(BaseSchemaValidator):
     """Model to test default datetime values."""
 
     name: str
-    created_at: datetime = Field(default_factory=utc_now)  # Using utc_now instead of datetime.now
+    created_at: datetime = Field(
+        default_factory=utc_now
+    )  # Using utc_now instead of datetime.now
     updated_at: datetime = Field(default_factory=utc_now)
 
 
@@ -151,13 +153,17 @@ def test_base_schema_validator_utc_datetime_validation():
 
     # Invalid naive datetime
     naive_dt = datetime.now()
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         SimpleModel(name="Test", created_at=naive_dt)
 
     # Invalid non-UTC timezone
     eastern = ZoneInfo("America/New_York")
     non_utc_dt = datetime.now(eastern)
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         SimpleModel(name="Test", created_at=non_utc_dt)
 
 

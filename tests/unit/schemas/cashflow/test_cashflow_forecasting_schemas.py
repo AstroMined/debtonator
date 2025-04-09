@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.cashflow.forecasting import (
+from src.schemas.cashflow.cashflow_forecasting import (
     AccountForecastMetrics,
     AccountForecastRequest,
     AccountForecastResponse,
@@ -14,13 +14,7 @@ from src.schemas.cashflow.forecasting import (
     CustomForecastResponse,
     CustomForecastResult,
 )
-from src.utils.datetime_utils import (
-    utc_now,
-    days_ago,
-    days_from_now,
-    utc_datetime,
-    datetime_equals,
-)
+from src.utils.datetime_utils import days_from_now, utc_now
 
 
 # Test valid object creation
@@ -534,20 +528,26 @@ def test_datetime_utc_validation():
     future = days_from_now(30)
 
     # Test naive datetime in start_date
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         CustomForecastParameters(
             start_date=datetime.now(), end_date=future  # Naive datetime
         )
 
     # Test non-UTC timezone in end_date
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         CustomForecastParameters(
             start_date=now,
             end_date=datetime.now(ZoneInfo("America/New_York")),  # Non-UTC timezone
         )
 
     # Test naive datetime in date
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         CustomForecastResult(
             date=datetime.now(),  # Naive datetime
             projected_balance=Decimal("2500.00"),
@@ -559,7 +559,9 @@ def test_datetime_utc_validation():
         )
 
     # Test non-UTC timezone in timestamp
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         CustomForecastResponse(
             parameters=CustomForecastParameters(start_date=now, end_date=future),
             results=[],

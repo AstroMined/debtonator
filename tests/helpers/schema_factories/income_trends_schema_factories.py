@@ -18,8 +18,11 @@ from src.schemas.income_trends import (
     SeasonalityMetrics,
     SourceStatistics,
 )
-from tests.helpers.schema_factories.base_schema_schema_factories import MEDIUM_AMOUNT, factory_function
 from src.utils.datetime_utils import utc_now
+from tests.helpers.schema_factories.base_schema_schema_factories import (
+    MEDIUM_AMOUNT,
+    factory_function,
+)
 
 
 @factory_function(IncomePattern)
@@ -277,8 +280,13 @@ def create_income_trends_analysis_schema(
     else:
         # Determine whether to include seasonality
         import random
-        should_include = include_seasonality if include_seasonality is not None else random.random() > 0.5
-        
+
+        should_include = (
+            include_seasonality
+            if include_seasonality is not None
+            else random.random() > 0.5
+        )
+
         if should_include:
             data["seasonality"] = create_seasonality_metrics_schema().model_dump()
         # Don't set seasonality at all if not including it

@@ -8,9 +8,9 @@ all API boundaries.
 
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Annotated, Any, Dict, Optional
+from typing import Annotated, Dict
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 # 2 decimal places for monetary values (e.g., $100.00)
 MoneyDecimal = Annotated[
@@ -141,16 +141,16 @@ class BaseSchemaValidator(BaseModel):
     @model_validator(mode="after")
     def validate_datetime_fields(self) -> "BaseSchemaValidator":
         """Validates that all datetime fields have UTC timezone.
-        
+
         This validator runs after the model is created and ensures that
         all datetime fields are properly timezone-aware with UTC timezone.
-        
+
         Args:
             self: The model instance
-            
+
         Returns:
             The model instance with validated datetime fields
-            
+
         Raises:
             ValueError: If any datetime field is naive (no timezone) or not in UTC
         """
@@ -168,7 +168,7 @@ class BaseSchemaValidator(BaseModel):
                         f"Got datetime with non-UTC offset: {field_value} (offset: {field_value.utcoffset()}). "
                         "Please provide datetime with UTC timezone (offset zero)."
                     )
-                    
+
         return self
 
     @model_validator(mode="after")
@@ -312,15 +312,17 @@ class BaseSchemaValidator(BaseModel):
                 # If we have a model class, check if the field is non-nullable
                 if model_class and hasattr(model_class, "__table__"):
                     column = getattr(model_class.__table__.columns, field_name, None)
-                    
+
                     # Safe check for SQLAlchemy Column nullable property
                     # Using hasattr and getattr instead of direct boolean evaluation
                     if column:
                         # Check if column has a nullable attribute
                         nullable = getattr(column, "nullable", True)
-                        
+
                         # Safely evaluate if the column is non-nullable (avoiding boolean evaluation)
-                        if nullable is False:  # Explicit comparison instead of "if column.nullable"
+                        if (
+                            nullable is False
+                        ):  # Explicit comparison instead of "if column.nullable"
                             raise ValueError(
                                 f"Field '{field_name}' cannot be set to None (database column is non-nullable)"
                             )

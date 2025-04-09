@@ -15,7 +15,7 @@ from src.models.balance_reconciliation import BalanceReconciliation
 from src.repositories.balance_reconciliation import BalanceReconciliationRepository
 from src.schemas.balance_reconciliation import BalanceReconciliationUpdate
 from src.utils.datetime_utils import datetime_greater_than
-from tests.helpers.schema_factories.balance_reconciliation import (
+from tests.helpers.schema_factories.balance_reconciliation_schema_factories import (
     create_balance_reconciliation_schema,
 )
 

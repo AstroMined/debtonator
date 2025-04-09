@@ -550,7 +550,9 @@ def test_datetime_utc_validation():
     impact = ImpactMetrics(balance_impact=Decimal("-50.00"), risk_score=Decimal("25.5"))
 
     # Test naive datetime in created_at
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         RecommendationBase(
             type=RecommendationType.BILL_PAYMENT_TIMING,
             confidence=ConfidenceLevel.HIGH,
@@ -559,7 +561,9 @@ def test_datetime_utc_validation():
         )
 
     # Test non-UTC timezone in created_at
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         RecommendationBase(
             type=RecommendationType.BILL_PAYMENT_TIMING,
             confidence=ConfidenceLevel.HIGH,
@@ -568,7 +572,9 @@ def test_datetime_utc_validation():
         )
 
     # Test naive datetime in current_due_date
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         BillPaymentTimingRecommendation(
             confidence=ConfidenceLevel.HIGH,
             impact=impact,
@@ -581,7 +587,9 @@ def test_datetime_utc_validation():
         )
 
     # Test non-UTC timezone in recommended_date
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         BillPaymentTimingRecommendation(
             confidence=ConfidenceLevel.HIGH,
             impact=impact,
@@ -607,7 +615,9 @@ def test_datetime_utc_validation():
         affected_accounts=[1, 2],
     )
 
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         RecommendationResponse(
             recommendations=[rec],
             total_savings_potential=Decimal("75.50"),
@@ -616,7 +626,9 @@ def test_datetime_utc_validation():
         )
 
     # Test non-UTC timezone in generated_at
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         RecommendationResponse(
             recommendations=[rec],
             total_savings_potential=Decimal("75.50"),

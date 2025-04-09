@@ -4,7 +4,7 @@ Banking account types feature flag configuration.
 This module defines the configuration for banking-related feature flags
 and initialization functions for the feature flag registry.
 
-Implements ADR-019 Banking Account Types Expansion and 
+Implements ADR-019 Banking Account Types Expansion and
 ADR-024 Feature Flags for granular access control.
 """
 
@@ -106,13 +106,13 @@ def initialize_banking_feature_flags(app=None) -> None:
     else:
         # For testing or CLI usage when app is not available
         # Create a standalone feature flag service
+        from src.database.database import get_db_session
         from src.registry.feature_flags_registry import FeatureFlagRegistry
         from src.repositories.feature_flags import FeatureFlagRepository
-        from src.database.database import get_db_session
 
         # Create a new registry instance
         registry = FeatureFlagRegistry()
-        
+
         # Get a db session
         db = next(get_db_session())
         repository = FeatureFlagRepository(db)
@@ -123,7 +123,9 @@ def initialize_banking_feature_flags(app=None) -> None:
         register_banking_feature_flags(feature_flag_service)
 
 
-def is_account_type_enabled(account_type: str, feature_flag_service: FeatureFlagService) -> bool:
+def is_account_type_enabled(
+    account_type: str, feature_flag_service: FeatureFlagService
+) -> bool:
     """
     Check if a specific account type is enabled.
 

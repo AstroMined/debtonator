@@ -17,7 +17,9 @@ from src.models.balance_history import BalanceHistory
 from src.repositories.balance_history import BalanceHistoryRepository
 from src.schemas.balance_history import BalanceHistoryCreate
 from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
-from tests.helpers.schema_factories.balance_history import create_balance_history_schema
+from tests.helpers.schema_factories.balance_history_schema_factories import (
+    create_balance_history_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 

@@ -16,7 +16,7 @@ from src.models.transaction_history import TransactionHistory, TransactionType
 from src.repositories.transaction_history import TransactionHistoryRepository
 from src.schemas.transaction_history import TransactionHistoryUpdate
 from src.utils.datetime_utils import datetime_greater_than
-from tests.helpers.schema_factories.transaction_history import (
+from tests.helpers.schema_factories.transaction_history_schema_factories import (
     create_transaction_history_schema,
 )
 

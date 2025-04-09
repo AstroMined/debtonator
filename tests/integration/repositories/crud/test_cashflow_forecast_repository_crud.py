@@ -19,7 +19,7 @@ from src.repositories.cashflow import CashflowForecastRepository
 
 # Import schemas and schema factories - essential part of the validation pattern
 from src.utils.datetime_utils import datetime_greater_than
-from tests.helpers.schema_factories.cashflow.base import (
+from tests.helpers.schema_factories.cashflow.base_schema_factories import (
     create_cashflow_schema,
     create_cashflow_update_schema,
 )

@@ -41,23 +41,27 @@ class DepositScheduleBase(BaseSchemaValidator):
 
     class Config:
         from_attributes = True
-        
+
     @classmethod
     def model_validate(cls, obj, *, strict=False, from_attributes=True, context=None):
         """Override to handle both income_id and source fields in legacy data."""
-        return super().model_validate(obj, strict=strict, from_attributes=from_attributes, context=context)
-        
+        return super().model_validate(
+            obj, strict=strict, from_attributes=from_attributes, context=context
+        )
+
     def model_post_init(self, __context):
         """Validate recurring field and recurrence_pattern consistency."""
         super().model_post_init(__context)
-        
+
         # Check that recurrence_pattern is provided when recurring is True
         if self.recurring and self.recurrence_pattern is None:
             raise ValueError("Recurrence pattern is required when recurring is True")
-            
+
         # Check that recurrence_pattern is not provided when recurring is False
         if not self.recurring and self.recurrence_pattern is not None:
-            raise ValueError("Recurrence pattern should not be provided when recurring is False")
+            raise ValueError(
+                "Recurrence pattern should not be provided when recurring is False"
+            )
 
 
 class DepositScheduleCreate(DepositScheduleBase):
@@ -114,7 +118,7 @@ class DepositSchedule(DepositScheduleBase):
 class DepositScheduleResponse(DepositSchedule):
     """
     Schema for API responses containing deposit schedule data.
-    
+
     Extends the complete deposit schedule record schema with appropriate serialization
     for API responses. All datetime fields are returned in ISO format with UTC timezone.
     """

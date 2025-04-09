@@ -22,7 +22,7 @@ from src.repositories.payment_schedules import PaymentScheduleRepository
 
 # Import schemas and schema factories - essential part of the validation pattern
 from src.utils.datetime_utils import datetime_greater_than
-from tests.helpers.schema_factories.payment_schedules import (
+from tests.helpers.schema_factories.payment_schedules_schema_factories import (
     create_payment_schedule_schema,
     create_payment_schedule_update_schema,
 )

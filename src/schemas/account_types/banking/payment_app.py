@@ -164,7 +164,7 @@ class PaymentAppAccountResponse(PaymentAppAccountBase, AccountResponse):
 
     Extends both the base account response schema and payment app account base schema
     to include all fields needed for API responses.
-    
+
     Note: The inheritance order is important - PaymentAppAccountBase must come first
     to ensure the Literal["payment_app"] type for account_type is used instead of the
     string type from AccountResponse. This is required for discriminated unions in Pydantic v2.

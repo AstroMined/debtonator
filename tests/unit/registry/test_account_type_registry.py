@@ -5,8 +5,6 @@ These tests verify that the account type registry properly stores, retrieves,
 and validates account types.
 """
 
-import pytest
-
 from src.registry.account_types import account_type_registry
 
 
@@ -28,7 +26,7 @@ def test_account_type_registry():
 
     # Test with invalid account type
     assert not account_type_registry.is_valid_account_type("invalid_type")
-    
+
     # Future account types that are planned but not yet implemented should not be valid
     assert not account_type_registry.is_valid_account_type("investment")
     assert not account_type_registry.is_valid_account_type("loan")

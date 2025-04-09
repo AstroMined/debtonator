@@ -51,11 +51,10 @@ class ServiceFactory:
             AccountService with ability to load specialized functionality for different types
         """
         # Import here to avoid circular imports
-        from src.services.accounts import AccountService
-        from src.repositories.accounts import AccountRepository
         from src.repositories.credit_limit_history import CreditLimitHistoryRepository
         from src.repositories.statement_history import StatementHistoryRepository
         from src.repositories.transaction_history import TransactionHistoryRepository
+        from src.services.accounts import AccountService
 
         # Create the repositories
         account_repo = RepositoryFactory.create_account_repository(
@@ -128,10 +127,10 @@ class ServiceFactory:
             if repo_module:
                 # Convert from repository module path to service module path
                 # Example: src.repositories.account_types.banking.checking -> src.services.account_types.banking.checking
-                parts = repo_module.split('.')
-                if len(parts) >= 2 and parts[1] == 'repositories':
-                    parts[1] = 'services'
-                    return '.'.join(parts)
+                parts = repo_module.split(".")
+                if len(parts) >= 2 and parts[1] == "repositories":
+                    parts[1] = "services"
+                    return ".".join(parts)
 
         # If registry doesn't have a module path, try to use a default path based on the type
         if "_" in account_type:

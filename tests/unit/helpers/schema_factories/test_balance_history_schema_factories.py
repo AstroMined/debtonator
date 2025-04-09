@@ -9,10 +9,8 @@ that pass validation.
 
 from decimal import Decimal
 
-import pytest
-
 from src.schemas.balance_history import BalanceHistoryCreate, BalanceHistoryUpdate
-from tests.helpers.schema_factories.balance_history import (
+from tests.helpers.schema_factories.balance_history_schema_factories import (
     create_balance_history_schema,
     create_balance_history_update_schema,
 )
@@ -21,7 +19,7 @@ from tests.helpers.schema_factories.balance_history import (
 def test_create_balance_history_schema():
     """Test creating a BalanceHistoryCreate schema with default values."""
     schema = create_balance_history_schema(account_id=1)
-    
+
     assert isinstance(schema, BalanceHistoryCreate)
     assert schema.account_id == 1
     assert schema.balance == Decimal("1000.00")
@@ -37,9 +35,9 @@ def test_create_balance_history_schema_with_custom_values():
         balance=Decimal("2500.00"),
         available_credit=Decimal("5000.00"),
         is_reconciled=True,
-        notes="Monthly balance update"
+        notes="Monthly balance update",
     )
-    
+
     assert isinstance(schema, BalanceHistoryCreate)
     assert schema.account_id == 2
     assert schema.balance == Decimal("2500.00")
@@ -51,7 +49,7 @@ def test_create_balance_history_schema_with_custom_values():
 def test_create_balance_history_update_schema_empty():
     """Test creating an empty BalanceHistoryUpdate schema."""
     schema = create_balance_history_update_schema()
-    
+
     assert isinstance(schema, BalanceHistoryUpdate)
     assert schema.balance is None
     assert schema.available_credit is None
@@ -65,9 +63,9 @@ def test_create_balance_history_update_schema_with_values():
         balance=Decimal("1500.00"),
         available_credit=Decimal("3000.00"),
         is_reconciled=True,
-        notes="Updated balance"
+        notes="Updated balance",
     )
-    
+
     assert isinstance(schema, BalanceHistoryUpdate)
     assert schema.balance == Decimal("1500.00")
     assert schema.available_credit == Decimal("3000.00")
@@ -78,10 +76,9 @@ def test_create_balance_history_update_schema_with_values():
 def test_create_balance_history_update_schema_partial():
     """Test creating a BalanceHistoryUpdate schema with partial fields."""
     schema = create_balance_history_update_schema(
-        balance=Decimal("1750.00"),
-        notes="Partial update"
+        balance=Decimal("1750.00"), notes="Partial update"
     )
-    
+
     assert isinstance(schema, BalanceHistoryUpdate)
     assert schema.balance == Decimal("1750.00")
     assert schema.available_credit is None

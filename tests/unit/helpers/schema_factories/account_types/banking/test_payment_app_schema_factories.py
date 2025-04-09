@@ -7,18 +7,15 @@ that pass validation.
 
 # pylint: disable=no-member
 
-import pytest
-from decimal import Decimal
 
-from src.utils.datetime_utils import utc_now, utc_datetime
 from src.schemas.account_types.banking.payment_app import (
     PaymentAppAccountCreate,
     PaymentAppAccountResponse,
 )
-
-from tests.helpers.schema_factories.account_types.banking.payment_app import (
-    create_payment_app_account_schema,
+from src.utils.datetime_utils import utc_now
+from tests.helpers.schema_factories.account_types.banking.payment_app_schema_factories import (
     create_payment_app_account_response_schema,
+    create_payment_app_account_schema,
 )
 
 

@@ -13,6 +13,7 @@ from src.database.database import get_db
 from src.main import app
 from src.registry.account_registry_init import register_account_types
 
+
 # Ensure account type registry is initialized for testing
 @pytest.fixture(scope="session", autouse=True)
 def initialize_account_registry():
@@ -20,32 +21,35 @@ def initialize_account_registry():
     register_account_types()
     return None  # Return value not used
 
+
 # List of fixture modules to load
 pytest_plugins = [
-    "tests.fixtures.fixture_repositories",
-    "tests.fixtures.fixture_services",  # Add service fixtures
-    "tests.fixtures.models.fixture_accounts",
-    "tests.fixtures.models.fixture_categories",
-    "tests.fixtures.models.fixture_liabilities",
-    "tests.fixtures.models.fixture_payments",
-    "tests.fixtures.models.fixture_balance",
-    "tests.fixtures.models.fixture_cashflow",
-    "tests.fixtures.models.fixture_income",
-    "tests.fixtures.models.fixture_income_categories",
-    "tests.fixtures.models.fixture_statements",
-    "tests.fixtures.models.fixture_transactions",
-    "tests.fixtures.models.fixture_recurring",
-    "tests.fixtures.models.fixture_schedules",
-    "tests.fixtures.models.fixture_feature_flags",
-    "tests.fixtures.models.fixture_test_items",  # Add test items fixtures
-    # Account type fixtures
-    "tests.fixtures.models.account_types.banking.fixture_checking",
-    "tests.fixtures.models.account_types.banking.fixture_credit",
-    "tests.fixtures.models.account_types.banking.fixture_savings",
-    # Modern banking account types
-    "tests.fixtures.models.account_types.banking.fixture_payment_app",
-    "tests.fixtures.models.account_types.banking.fixture_bnpl",
-    "tests.fixtures.models.account_types.banking.fixture_ewa",
+    # Add repository fixtures
+    "tests.fixtures.repositories.fixture_repositories",
+    # Add service fixtures
+    "tests.fixtures.services.fixture_services",
+    # Add model fixtures
+    "tests.fixtures.models.fixture_accounts_models",
+    "tests.fixtures.models.fixture_categories_models",
+    "tests.fixtures.models.fixture_liabilities_models",
+    "tests.fixtures.models.fixture_payments_models",
+    "tests.fixtures.models.fixture_balance_models",
+    "tests.fixtures.models.fixture_cashflow_models",
+    "tests.fixtures.models.fixture_income_models",
+    "tests.fixtures.models.fixture_income_categories_models",
+    "tests.fixtures.models.fixture_statements_models",
+    "tests.fixtures.models.fixture_transactions_models",
+    "tests.fixtures.models.fixture_recurring_models",
+    "tests.fixtures.models.fixture_schedules_models",
+    "tests.fixtures.models.fixture_feature_flags_models",
+    "tests.fixtures.models.fixture_basic_test_models",
+    # Account type model fixtures
+    "tests.fixtures.models.account_types.banking.fixture_checking_models",
+    "tests.fixtures.models.account_types.banking.fixture_credit_models",
+    "tests.fixtures.models.account_types.banking.fixture_savings_models",
+    "tests.fixtures.models.account_types.banking.fixture_payment_app_models",
+    "tests.fixtures.models.account_types.banking.fixture_bnpl_models",
+    "tests.fixtures.models.account_types.banking.fixture_ewa_models",
 ]
 
 # ADR-011 Datetime validation hooks

@@ -23,7 +23,7 @@ from src.utils.datetime_utils import (
     days_from_now,
     utc_now,
 )
-from tests.helpers.schema_factories.statement_history import (
+from tests.helpers.schema_factories.statement_history_schema_factories import (
     create_statement_history_schema,
 )
 

@@ -7,8 +7,6 @@ that pass validation.
 
 # pylint: disable=no-member
 
-import pytest
-from datetime import datetime
 
 from src.schemas.categories import (
     Category,
@@ -19,11 +17,11 @@ from src.schemas.categories import (
     CategoryWithBillsResponse,
 )
 from src.utils.datetime_utils import utc_now
-from tests.helpers.schema_factories.categories import (
-    create_category_schema,
-    create_category_update_schema,
+from tests.helpers.schema_factories.categories_schema_factories import (
     create_category_in_db_schema,
+    create_category_schema,
     create_category_tree_schema,
+    create_category_update_schema,
     create_category_with_bill_ids_schema,
     create_category_with_bills_response_schema,
 )
@@ -32,7 +30,7 @@ from tests.helpers.schema_factories.categories import (
 def test_create_category_schema():
     """Test creating a CategoryCreate schema with minimal values."""
     schema = create_category_schema()
-    
+
     assert isinstance(schema, CategoryCreate)
     assert schema.name == "Test Category"
     assert schema.description is None
@@ -42,11 +40,9 @@ def test_create_category_schema():
 def test_create_category_schema_with_parent():
     """Test creating a CategoryCreate schema with parent."""
     schema = create_category_schema(
-        name="Child Category",
-        description="A child category",
-        parent_id=1
+        name="Child Category", description="A child category", parent_id=1
     )
-    
+
     assert isinstance(schema, CategoryCreate)
     assert schema.name == "Child Category"
     assert schema.description == "A child category"
@@ -56,7 +52,7 @@ def test_create_category_schema_with_parent():
 def test_create_category_update_schema_empty():
     """Test creating an empty CategoryUpdate schema."""
     schema = create_category_update_schema()
-    
+
     assert isinstance(schema, CategoryUpdate)
     assert schema.name is None
     assert schema.description is None
@@ -66,11 +62,9 @@ def test_create_category_update_schema_empty():
 def test_create_category_update_schema_with_values():
     """Test creating a CategoryUpdate schema with all fields."""
     schema = create_category_update_schema(
-        name="Updated Category",
-        description="Updated description",
-        parent_id=2
+        name="Updated Category", description="Updated description", parent_id=2
     )
-    
+
     assert isinstance(schema, CategoryUpdate)
     assert schema.name == "Updated Category"
     assert schema.description == "Updated description"
@@ -79,10 +73,8 @@ def test_create_category_update_schema_with_values():
 
 def test_create_category_update_schema_partial():
     """Test creating a CategoryUpdate schema with partial fields."""
-    schema = create_category_update_schema(
-        name="Renamed Category"
-    )
-    
+    schema = create_category_update_schema(name="Renamed Category")
+
     assert isinstance(schema, CategoryUpdate)
     assert schema.name == "Renamed Category"
     assert schema.description is None
@@ -92,12 +84,8 @@ def test_create_category_update_schema_partial():
 def test_create_category_in_db_schema():
     """Test creating a Category schema with required fields."""
     now = utc_now()
-    schema = create_category_in_db_schema(
-        id=1,
-        created_at=now,
-        updated_at=now
-    )
-    
+    schema = create_category_in_db_schema(id=1, created_at=now, updated_at=now)
+
     assert isinstance(schema, Category)
     assert schema.id == 1
     assert schema.name == "Test Category"
@@ -118,9 +106,9 @@ def test_create_category_in_db_schema_with_all_fields():
         parent_id=1,
         full_path="Parent/Complete",
         created_at=now,
-        updated_at=now
+        updated_at=now,
     )
-    
+
     assert isinstance(schema, Category)
     assert schema.id == 2
     assert schema.name == "Complete Category"
@@ -134,7 +122,7 @@ def test_create_category_in_db_schema_with_all_fields():
 def test_create_category_tree_schema():
     """Test creating a CategoryTree schema with default children."""
     schema = create_category_tree_schema(id=1)
-    
+
     assert isinstance(schema, CategoryTree)
     assert schema.id == 1
     assert schema.name == "Parent Category"
@@ -155,17 +143,14 @@ def test_create_category_tree_schema_with_custom_children():
             "parent_id": 5,
             "full_path": "Parent/Custom Child",
             "created_at": now,
-            "updated_at": now
+            "updated_at": now,
         }
     ]
-    
+
     schema = create_category_tree_schema(
-        id=5,
-        name="Parent",
-        full_path="Parent",
-        children=custom_children
+        id=5, name="Parent", full_path="Parent", children=custom_children
     )
-    
+
     assert isinstance(schema, CategoryTree)
     assert schema.id == 5
     assert schema.name == "Parent"
@@ -179,7 +164,7 @@ def test_create_category_tree_schema_with_custom_children():
 def test_create_category_with_bill_ids_schema():
     """Test creating a CategoryWithBillIDs schema with default values."""
     schema = create_category_with_bill_ids_schema(id=1)
-    
+
     assert isinstance(schema, CategoryWithBillIDs)
     assert schema.id == 1
     assert schema.name == "Category With Bills"
@@ -195,9 +180,9 @@ def test_create_category_with_bill_ids_schema_custom():
         id=5,
         name="Custom Bills Category",
         children_ids=[10, 11, 12],
-        bill_ids=[201, 202]
+        bill_ids=[201, 202],
     )
-    
+
     assert isinstance(schema, CategoryWithBillIDs)
     assert schema.id == 5
     assert schema.name == "Custom Bills Category"
@@ -210,7 +195,7 @@ def test_create_category_with_bill_ids_schema_custom():
 def test_create_category_with_bills_response_schema():
     """Test creating a CategoryWithBillsResponse schema with default values."""
     schema = create_category_with_bills_response_schema(id=1)
-    
+
     assert isinstance(schema, CategoryWithBillsResponse)
     assert schema.id == 1
     assert schema.name == "Category With Bills"
@@ -235,7 +220,7 @@ def test_create_category_with_bills_response_schema_custom():
             "paid": False,
         }
     ]
-    
+
     custom_children = [
         {
             "id": 15,
@@ -243,17 +228,14 @@ def test_create_category_with_bills_response_schema_custom():
             "parent_id": 10,
             "full_path": "Custom Response/Child",
             "created_at": now,
-            "updated_at": now
+            "updated_at": now,
         }
     ]
-    
+
     schema = create_category_with_bills_response_schema(
-        id=10,
-        name="Custom Response",
-        bills=custom_bills,
-        children=custom_children
+        id=10, name="Custom Response", bills=custom_bills, children=custom_children
     )
-    
+
     assert isinstance(schema, CategoryWithBillsResponse)
     assert schema.id == 10
     assert schema.name == "Custom Response"

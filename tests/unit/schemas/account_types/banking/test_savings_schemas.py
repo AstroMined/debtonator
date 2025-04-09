@@ -122,17 +122,23 @@ def test_savings_account_response_schema():
 def test_savings_account_money_validation():
     """Test money validation in savings account schemas."""
     # Test money validation for interest rate (should be between 0 and 1 for decimal percentage)
-    with pytest.raises(ValidationError, match="Input should be less than or equal to 1"):
+    with pytest.raises(
+        ValidationError, match="Input should be less than or equal to 1"
+    ):
         SavingsAccountCreate(
             name="Invalid Interest",
             account_type="savings",
             current_balance=Decimal("5000.00"),
             available_balance=Decimal("5000.00"),
-            interest_rate=Decimal("1.5"),  # Should be between 0-1 (e.g., 0.015 for 1.5%)
+            interest_rate=Decimal(
+                "1.5"
+            ),  # Should be between 0-1 (e.g., 0.015 for 1.5%)
         )
 
     # Test negative minimum balance
-    with pytest.raises(ValidationError, match="Input should be greater than or equal to 0"):
+    with pytest.raises(
+        ValidationError, match="Input should be greater than or equal to 0"
+    ):
         SavingsAccountCreate(
             name="Invalid Minimum",
             account_type="savings",
@@ -158,9 +164,7 @@ def test_savings_account_compound_frequency_validation():
         assert savings.compound_frequency == frequency
 
     # Test invalid frequency
-    with pytest.raises(
-        ValidationError, match="Compound frequency must be one of:"
-    ):
+    with pytest.raises(ValidationError, match="Compound frequency must be one of:"):
         SavingsAccountCreate(
             name="Invalid Frequency",
             account_type="savings",

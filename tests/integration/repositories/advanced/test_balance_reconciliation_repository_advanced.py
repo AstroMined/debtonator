@@ -22,7 +22,7 @@ from src.utils.datetime_utils import (
     days_ago,
     utc_now,
 )
-from tests.helpers.schema_factories.balance_reconciliation import (
+from tests.helpers.schema_factories.balance_reconciliation_schema_factories import (
     create_balance_reconciliation_schema,
 )
 

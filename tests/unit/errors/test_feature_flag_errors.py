@@ -5,8 +5,6 @@ Tests ensure that feature flag error classes properly handle error details,
 message formatting, and inheritance relationships.
 """
 
-import pytest
-
 from src.errors.accounts import AccountError
 from src.errors.feature_flags import FeatureFlagAccountError
 
@@ -40,9 +38,7 @@ def test_feature_flag_account_error_with_all_parameters():
     """Test initializing FeatureFlagAccountError with all parameters."""
     details = {"operation": "create", "reason": "maintenance"}
     error = FeatureFlagAccountError(
-        "TEST_FLAG",
-        message="Custom feature flag message",
-        details=details
+        "TEST_FLAG", message="Custom feature flag message", details=details
     )
     assert error.message == "Custom feature flag message"
     assert error.details["feature_flag"] == "TEST_FLAG"
@@ -54,9 +50,12 @@ def test_feature_flag_account_error_to_dict():
     """Test converting FeatureFlagAccountError to dictionary."""
     error = FeatureFlagAccountError("TEST_FLAG")
     error_dict = error.to_dict()
-    
+
     assert error_dict["error"] == "FeatureFlagAccountError"
-    assert error_dict["message"] == "Operation not available: feature 'TEST_FLAG' is disabled"
+    assert (
+        error_dict["message"]
+        == "Operation not available: feature 'TEST_FLAG' is disabled"
+    )
     assert error_dict["details"]["feature_flag"] == "TEST_FLAG"
 
 

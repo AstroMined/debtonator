@@ -5,32 +5,7 @@ Tests ensure that all account type error classes are properly exported
 from the account_types package.
 """
 
-import pytest
-
-from src.errors.account_types import (
-    # Checking account errors
-    CheckingAccountError,
-    CheckingInsufficientFundsError,
-    CheckingInternationalBankingError,
-    CheckingInvalidRoutingNumberError,
-    CheckingOverdraftError,
-    
-    # Savings account errors
-    SavingsAccountError,
-    SavingsCompoundFrequencyError,
-    SavingsInterestRateError,
-    SavingsMinimumBalanceError,
-    SavingsWithdrawalLimitError,
-    
-    # Credit account errors
-    CreditAccountError,
-    CreditAPRError,
-    CreditAutopayError,
-    CreditCreditLimitExceededError,
-    CreditPaymentDueError,
-    CreditStatementError,
-    
-    # BNPL account errors
+from src.errors.account_types import (  # Checking account errors; Savings account errors; Credit account errors; BNPL account errors; EWA account errors; Payment app account errors
     BNPLAccountError,
     BNPLInstallmentCountError,
     BNPLInstallmentError,
@@ -38,8 +13,17 @@ from src.errors.account_types import (
     BNPLNextPaymentDateError,
     BNPLPaymentFrequencyError,
     BNPLProviderError,
-    
-    # EWA account errors
+    CheckingAccountError,
+    CheckingInsufficientFundsError,
+    CheckingInternationalBankingError,
+    CheckingInvalidRoutingNumberError,
+    CheckingOverdraftError,
+    CreditAccountError,
+    CreditAPRError,
+    CreditAutopayError,
+    CreditCreditLimitExceededError,
+    CreditPaymentDueError,
+    CreditStatementError,
     EWAAccountError,
     EWAAdvancePercentageError,
     EWAEarningsValidationError,
@@ -47,14 +31,17 @@ from src.errors.account_types import (
     EWAPayPeriodError,
     EWAProviderError,
     EWATransactionFeeError,
-    
-    # Payment app account errors
     PaymentAppAccountError,
     PaymentAppCardInformationError,
     PaymentAppLinkedAccountError,
     PaymentAppPlatformFeatureError,
     PaymentAppTransferError,
     PaymentAppUnsupportedPlatformError,
+    SavingsAccountError,
+    SavingsCompoundFrequencyError,
+    SavingsInterestRateError,
+    SavingsMinimumBalanceError,
+    SavingsWithdrawalLimitError,
 )
 
 
@@ -62,8 +49,14 @@ def test_checking_account_errors_exported():
     """Test that checking account errors are properly exported."""
     assert CheckingAccountError.__name__ == "CheckingAccountError"
     assert CheckingInsufficientFundsError.__name__ == "CheckingInsufficientFundsError"
-    assert CheckingInternationalBankingError.__name__ == "CheckingInternationalBankingError"
-    assert CheckingInvalidRoutingNumberError.__name__ == "CheckingInvalidRoutingNumberError"
+    assert (
+        CheckingInternationalBankingError.__name__
+        == "CheckingInternationalBankingError"
+    )
+    assert (
+        CheckingInvalidRoutingNumberError.__name__
+        == "CheckingInvalidRoutingNumberError"
+    )
     assert CheckingOverdraftError.__name__ == "CheckingOverdraftError"
 
 
@@ -115,13 +108,16 @@ def test_payment_app_account_errors_exported():
     assert PaymentAppLinkedAccountError.__name__ == "PaymentAppLinkedAccountError"
     assert PaymentAppPlatformFeatureError.__name__ == "PaymentAppPlatformFeatureError"
     assert PaymentAppTransferError.__name__ == "PaymentAppTransferError"
-    assert PaymentAppUnsupportedPlatformError.__name__ == "PaymentAppUnsupportedPlatformError"
+    assert (
+        PaymentAppUnsupportedPlatformError.__name__
+        == "PaymentAppUnsupportedPlatformError"
+    )
 
 
 def test_inheritance_relationships():
     """Test that inheritance relationships are properly maintained."""
     from src.errors.accounts import AccountError
-    
+
     # Check that all base account type errors inherit from AccountError
     assert issubclass(CheckingAccountError, AccountError)
     assert issubclass(SavingsAccountError, AccountError)
@@ -129,26 +125,26 @@ def test_inheritance_relationships():
     assert issubclass(BNPLAccountError, AccountError)
     assert issubclass(EWAAccountError, AccountError)
     assert issubclass(PaymentAppAccountError, AccountError)
-    
+
     # Check that specific checking account errors inherit from CheckingAccountError
     assert issubclass(CheckingInsufficientFundsError, CheckingAccountError)
     assert issubclass(CheckingInternationalBankingError, CheckingAccountError)
     assert issubclass(CheckingInvalidRoutingNumberError, CheckingAccountError)
     assert issubclass(CheckingOverdraftError, CheckingAccountError)
-    
+
     # Check that specific savings account errors inherit from SavingsAccountError
     assert issubclass(SavingsCompoundFrequencyError, SavingsAccountError)
     assert issubclass(SavingsInterestRateError, SavingsAccountError)
     assert issubclass(SavingsMinimumBalanceError, SavingsAccountError)
     assert issubclass(SavingsWithdrawalLimitError, SavingsAccountError)
-    
+
     # Check that specific credit account errors inherit from CreditAccountError
     assert issubclass(CreditAPRError, CreditAccountError)
     assert issubclass(CreditAutopayError, CreditAccountError)
     assert issubclass(CreditCreditLimitExceededError, CreditAccountError)
     assert issubclass(CreditPaymentDueError, CreditAccountError)
     assert issubclass(CreditStatementError, CreditAccountError)
-    
+
     # Check that specific BNPL account errors inherit from BNPLAccountError
     assert issubclass(BNPLInstallmentCountError, BNPLAccountError)
     assert issubclass(BNPLInstallmentError, BNPLAccountError)
@@ -156,7 +152,7 @@ def test_inheritance_relationships():
     assert issubclass(BNPLNextPaymentDateError, BNPLAccountError)
     assert issubclass(BNPLPaymentFrequencyError, BNPLAccountError)
     assert issubclass(BNPLProviderError, BNPLAccountError)
-    
+
     # Check that specific EWA account errors inherit from EWAAccountError
     assert issubclass(EWAAdvancePercentageError, EWAAccountError)
     assert issubclass(EWAEarningsValidationError, EWAAccountError)
@@ -164,7 +160,7 @@ def test_inheritance_relationships():
     assert issubclass(EWAPayPeriodError, EWAAccountError)
     assert issubclass(EWAProviderError, EWAAccountError)
     assert issubclass(EWATransactionFeeError, EWAAccountError)
-    
+
     # Check that specific payment app account errors inherit from PaymentAppAccountError
     assert issubclass(PaymentAppCardInformationError, PaymentAppAccountError)
     assert issubclass(PaymentAppLinkedAccountError, PaymentAppAccountError)

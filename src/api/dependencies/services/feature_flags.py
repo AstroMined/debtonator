@@ -17,7 +17,6 @@ from src.repositories.feature_flags import FeatureFlagRepository
 from src.services.feature_flags import FeatureFlagService
 from src.utils.feature_flags.context import EnvironmentContext
 
-
 # Singleton instances for performance reasons
 _context = EnvironmentContext()
 _service_instance = None
@@ -51,8 +50,8 @@ async def get_feature_flag_service(
         )
         # Initialize the service with database values
         await _service_instance.initialize()
-        
+
     # Update the session in the repository (sessions are not thread-safe)
     _service_instance.repository._session = session
-    
+
     return _service_instance

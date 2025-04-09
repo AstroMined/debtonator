@@ -17,7 +17,9 @@ from src.models.liabilities import Liability, LiabilityStatus
 from src.repositories.liabilities import LiabilityRepository
 from src.schemas.liabilities import LiabilityUpdate
 from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
-from tests.helpers.schema_factories.liabilities import create_liability_schema
+from tests.helpers.schema_factories.liabilities_schema_factories import (
+    create_liability_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 

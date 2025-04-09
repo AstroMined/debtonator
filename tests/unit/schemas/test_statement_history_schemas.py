@@ -5,7 +5,6 @@ These tests validate the validation behavior and proper handling of
 statement history data with a focus on account integration.
 """
 
-from datetime import datetime, timezone
 from decimal import Decimal
 
 import pytest
@@ -17,14 +16,14 @@ from src.schemas.statement_history import (
     StatementHistoryUpdate,
     StatementHistoryWithAccount,
 )
-from src.utils.datetime_utils import days_ago, utc_datetime, utc_now, datetime_equals
+from src.utils.datetime_utils import datetime_equals, days_ago, utc_now
 
 
 def test_statement_history_create_valid():
     """Test creating a valid statement history."""
     # Using utc_now for proper timezone handling
     statement_date = utc_now()
-    
+
     history = StatementHistoryCreate(
         account_id=1,
         statement_date=statement_date,
@@ -43,7 +42,7 @@ def test_statement_history_create_valid():
 def test_statement_history_create_validates_balance():
     """Test validation of statement balance."""
     statement_date = utc_now()
-    
+
     # Test negative balance
     history = StatementHistoryCreate(
         account_id=1,
@@ -69,7 +68,7 @@ def test_statement_history_create_validates_balance():
 def test_statement_history_create_validates_minimum_payment():
     """Test validation of minimum payment."""
     statement_date = utc_now()
-    
+
     # Test negative payment
     with pytest.raises(ValidationError) as exc_info:
         StatementHistoryCreate(
@@ -105,7 +104,7 @@ def test_statement_history_create_validates_minimum_payment():
 def test_statement_history_create_validates_dates():
     """Test validation of statement and payment dates."""
     now = utc_now()
-    
+
     # Test due date before statement date
     ten_days_ago = days_ago(10)
     history = StatementHistoryCreate(
@@ -132,7 +131,7 @@ def test_statement_history_update_valid():
     """Test updating a statement history."""
     # Using utc_now for proper timezone handling
     due_date = utc_now()
-    
+
     update = StatementHistoryUpdate(
         minimum_payment=Decimal("35.00"),
         due_date=due_date,
@@ -147,7 +146,7 @@ def test_statement_history_update_partial():
     """Test partial updates with validation."""
     # Using utc_now for proper timezone handling
     due_date = utc_now()
-    
+
     # Update just minimum payment
     update1 = StatementHistoryUpdate(minimum_payment=Decimal("35.00"))
     assert update1.minimum_payment == Decimal("35.00")
@@ -162,7 +161,7 @@ def test_statement_history_update_partial():
 def test_statement_history_with_account_valid():
     """Test StatementHistoryWithAccount schema."""
     now = utc_now()
-    
+
     # Create account response with all required fields including account_type
     account = AccountResponse(
         id=2,
@@ -173,7 +172,7 @@ def test_statement_history_with_account_valid():
         created_at=now,
         updated_at=now,
     )
-    
+
     # Create statement history
     history = StatementHistoryWithAccount(
         id=1,

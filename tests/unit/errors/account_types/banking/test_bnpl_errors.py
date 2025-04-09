@@ -5,20 +5,19 @@ Tests ensure that BNPL account error classes properly handle error details,
 message formatting, and inheritance relationships.
 """
 
-import pytest
 from decimal import Decimal
 
-from src.errors.accounts import AccountError
-from src.utils.datetime_utils import utc_datetime
 from src.errors.account_types.banking.bnpl import (
     BNPLAccountError,
-    BNPLInstallmentError,
     BNPLInstallmentCountError,
-    BNPLPaymentFrequencyError,
-    BNPLNextPaymentDateError,
-    BNPLProviderError,
+    BNPLInstallmentError,
     BNPLLifecycleError,
+    BNPLNextPaymentDateError,
+    BNPLPaymentFrequencyError,
+    BNPLProviderError,
 )
+from src.errors.accounts import AccountError
+from src.utils.datetime_utils import utc_datetime
 
 
 def test_bnpl_account_error_with_message_only():
@@ -77,7 +76,7 @@ def test_bnpl_installment_error_with_all_parameters():
         account_id=123,
         installment_number=2,
         installment_amount=Decimal("50.00"),
-        details={"due_date": "2025-04-15"}
+        details={"due_date": "2025-04-15"},
     )
     assert error.message == "Installment error"
     assert error.details["account_id"] == 123
@@ -108,7 +107,7 @@ def test_bnpl_installment_count_error_with_all_parameters():
         account_id=123,
         installment_count=4,
         installments_paid=2,
-        details={"remaining_amount": Decimal("100.00")}
+        details={"remaining_amount": Decimal("100.00")},
     )
     assert error.message == "Installment count error"
     assert error.details["account_id"] == 123
@@ -139,7 +138,7 @@ def test_bnpl_payment_frequency_error_with_all_parameters():
         account_id=123,
         payment_frequency="invalid",
         valid_frequencies=["weekly", "biweekly", "monthly"],
-        details={"provider": "Affirm"}
+        details={"provider": "Affirm"},
     )
     assert error.message == "Payment frequency error"
     assert error.details["account_id"] == 123
@@ -170,7 +169,7 @@ def test_bnpl_next_payment_date_error_with_all_parameters():
         "Next payment date error",
         account_id=123,
         next_payment_date=next_payment_date,
-        details={"amount_due": Decimal("50.00")}
+        details={"amount_due": Decimal("50.00")},
     )
     assert error.message == "Next payment date error"
     assert error.details["account_id"] == 123
@@ -200,7 +199,7 @@ def test_bnpl_provider_error_with_all_parameters():
         account_id=123,
         provider="Unknown",
         valid_providers=["Affirm", "Klarna", "Afterpay"],
-        details={"integration_status": "failed"}
+        details={"integration_status": "failed"},
     )
     assert error.message == "Provider error"
     assert error.details["account_id"] == 123
@@ -231,7 +230,7 @@ def test_bnpl_lifecycle_error_with_all_parameters():
         account_id=123,
         current_state="active",
         target_state="completed",
-        details={"reason": "payments_incomplete"}
+        details={"reason": "payments_incomplete"},
     )
     assert error.message == "Lifecycle error"
     assert error.details["account_id"] == 123

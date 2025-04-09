@@ -5,20 +5,19 @@ Tests ensure that EWA account error classes properly handle error details,
 message formatting, and inheritance relationships.
 """
 
-import pytest
 from decimal import Decimal
 
-from src.errors.accounts import AccountError
-from src.utils.datetime_utils import utc_datetime
 from src.errors.account_types.banking.ewa import (
     EWAAccountError,
-    EWAProviderError,
     EWAAdvancePercentageError,
-    EWAPayPeriodError,
-    EWANextPaydayError,
-    EWATransactionFeeError,
     EWAEarningsValidationError,
+    EWANextPaydayError,
+    EWAPayPeriodError,
+    EWAProviderError,
+    EWATransactionFeeError,
 )
+from src.errors.accounts import AccountError
+from src.utils.datetime_utils import utc_datetime
 
 
 def test_ewa_account_error_with_message_only():
@@ -59,7 +58,7 @@ def test_ewa_provider_error_with_all_parameters():
         "Provider error",
         provider="Unknown",
         valid_providers=["Payactiv", "DailyPay", "Branch"],
-        details={"account_id": 123, "integration_status": "failed"}
+        details={"account_id": 123, "integration_status": "failed"},
     )
     assert error.message == "Provider error"
     assert error.details["provider"] == "Unknown"
@@ -90,7 +89,7 @@ def test_ewa_advance_percentage_error_with_all_parameters():
         account_id=123,
         max_advance_percentage=50.0,
         requested_percentage=75.0,
-        details={"provider": "Payactiv", "earned_amount": Decimal("1000.00")}
+        details={"provider": "Payactiv", "earned_amount": Decimal("1000.00")},
     )
     assert error.message == "Advance percentage error"
     assert error.details["account_id"] == 123
@@ -124,7 +123,7 @@ def test_ewa_pay_period_error_with_all_parameters():
         account_id=123,
         pay_period_start=pay_period_start,
         pay_period_end=pay_period_end,
-        details={"provider": "DailyPay"}
+        details={"provider": "DailyPay"},
     )
     assert error.message == "Pay period error"
     assert error.details["account_id"] == 123
@@ -155,7 +154,7 @@ def test_ewa_next_payday_error_with_all_parameters():
         "Next payday error",
         account_id=123,
         next_payday=next_payday,
-        details={"provider": "Branch", "pay_frequency": "biweekly"}
+        details={"provider": "Branch", "pay_frequency": "biweekly"},
     )
     assert error.message == "Next payday error"
     assert error.details["account_id"] == 123
@@ -186,7 +185,7 @@ def test_ewa_transaction_fee_error_with_all_parameters():
         account_id=123,
         per_transaction_fee=Decimal("5.99"),
         transaction_amount=Decimal("100.00"),
-        details={"provider": "Payactiv", "fee_type": "flat"}
+        details={"provider": "Payactiv", "fee_type": "flat"},
     )
     assert error.message == "Transaction fee error"
     assert error.details["account_id"] == 123
@@ -218,7 +217,7 @@ def test_ewa_earnings_validation_error_with_all_parameters():
         account_id=123,
         earned_amount=Decimal("500.00"),
         advance_amount=Decimal("600.00"),
-        details={"provider": "DailyPay", "validation_method": "employer_api"}
+        details={"provider": "DailyPay", "validation_method": "employer_api"},
     )
     assert error.message == "Earnings validation error"
     assert error.details["account_id"] == 123

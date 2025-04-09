@@ -15,8 +15,10 @@ import pytest
 from src.models.accounts import Account
 from src.repositories.accounts import AccountRepository
 from src.utils.datetime_utils import datetime_greater_than
-from tests.helpers.schema_factories.account_types.banking.savings import create_savings_account_schema
-from tests.helpers.schema_factories.accounts import (
+from tests.helpers.schema_factories.account_types.banking.savings_schema_factories import (
+    create_savings_account_schema,
+)
+from tests.helpers.schema_factories.accounts_schema_factories import (
     create_account_update_schema,
 )
 
@@ -65,7 +67,9 @@ async def test_get_account(
     assert result is not None
     assert result.id == test_checking_account.id
     assert result.name == test_checking_account.name
-    assert result.account_type == test_checking_account.account_type  # Changed from type to account_type
+    assert (
+        result.account_type == test_checking_account.account_type
+    )  # Changed from type to account_type
     assert result.available_balance == test_checking_account.available_balance
 
 
@@ -96,7 +100,9 @@ async def test_update_account(
     assert result.name == "Updated Account Name"
     assert result.description == "Updated account description"
     # Fields not in update_data should remain unchanged
-    assert result.account_type == test_checking_account.account_type  # Changed from type to account_type
+    assert (
+        result.account_type == test_checking_account.account_type
+    )  # Changed from type to account_type
     assert result.available_balance == test_checking_account.available_balance
     # Compare against stored original timestamp instead of test_checking_account.updated_at
     assert datetime_greater_than(

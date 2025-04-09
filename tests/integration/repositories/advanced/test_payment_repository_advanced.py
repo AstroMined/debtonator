@@ -18,7 +18,7 @@ from src.models.payments import Payment
 from src.repositories.payments import PaymentRepository
 from src.schemas.payments import PaymentCreate, PaymentSourceCreate
 from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
-from tests.helpers.schema_factories.payments import (
+from tests.helpers.schema_factories.payments_schema_factories import (
     create_payment_date_range_schema,
     create_payment_schema,
 )

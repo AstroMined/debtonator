@@ -192,9 +192,7 @@ def test_bnpl_payment_frequency_validation():
         assert bnpl.payment_frequency == frequency
 
     # Test invalid payment frequency
-    with pytest.raises(
-        ValidationError, match="Payment frequency must be one of:"
-    ):
+    with pytest.raises(ValidationError, match="Payment frequency must be one of:"):
         BNPLAccountCreate(
             name="Invalid Frequency",
             account_type="bnpl",
@@ -230,9 +228,7 @@ def test_bnpl_provider_validation():
         assert bnpl.bnpl_provider == provider
 
     # Test invalid provider
-    with pytest.raises(
-        ValidationError, match="BNPL provider must be one of:"
-    ):
+    with pytest.raises(ValidationError, match="BNPL provider must be one of:"):
         BNPLAccountCreate(
             name="Invalid Provider",
             account_type="bnpl",
@@ -281,9 +277,7 @@ def test_bnpl_installment_validation():
         )
 
     # Test invalid (more paid than total) installments
-    with pytest.raises(
-        ValidationError, match="Installments paid cannot exceed"
-    ):
+    with pytest.raises(ValidationError, match="Installments paid cannot exceed"):
         BNPLAccountCreate(
             name="Invalid Installments",
             account_type="bnpl",

@@ -1,8 +1,8 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
-from pydantic import ConfigDict, Field, field_validator, model_validator
+from pydantic import ConfigDict, Field, model_validator
 
 from src.constants import DEFAULT_CATEGORY_ID
 from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
@@ -242,7 +242,7 @@ class LiabilityDateRange(BaseSchemaValidator):
     def validate_date_range(self) -> "LiabilityDateRange":
         """
         Validates that end_date is after start_date.
-        
+
         Uses ensure_utc to ensure both dates have UTC timezone before comparison,
         following ADR-011 requirements for datetime standardization.
 
@@ -255,8 +255,8 @@ class LiabilityDateRange(BaseSchemaValidator):
         # Ensure both dates have UTC timezone before comparison
         start_date = ensure_utc(self.start_date)
         end_date = ensure_utc(self.end_date)
-        
+
         if end_date <= start_date:
             raise ValueError("End date must be after start date")
-            
+
         return self

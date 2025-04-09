@@ -306,7 +306,9 @@ def test_parent_id_self_reference():
 def test_datetime_utc_validation():
     """Test datetime UTC validation per ADR-011"""
     # Test naive datetime
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         Category(
             id=1,
             name="Test Category",
@@ -315,7 +317,9 @@ def test_datetime_utc_validation():
         )
 
     # Test non-UTC timezone
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         Category(
             id=1,
             name="Test Category",

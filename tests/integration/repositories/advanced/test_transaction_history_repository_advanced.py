@@ -25,7 +25,7 @@ from src.utils.datetime_utils import (
     start_of_day,
     utc_now,
 )
-from tests.helpers.schema_factories.transaction_history import (
+from tests.helpers.schema_factories.transaction_history_schema_factories import (
     create_transaction_history_schema,
 )
 

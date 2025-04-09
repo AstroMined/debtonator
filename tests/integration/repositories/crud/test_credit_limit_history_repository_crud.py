@@ -15,7 +15,7 @@ from src.models.accounts import Account
 from src.models.credit_limit_history import CreditLimitHistory
 from src.repositories.credit_limit_history import CreditLimitHistoryRepository
 from src.utils.datetime_utils import datetime_greater_than
-from tests.helpers.schema_factories.credit_limit_history import (
+from tests.helpers.schema_factories.credit_limit_history_schema_factories import (
     create_credit_limit_history_schema,
     create_credit_limit_history_update_schema,
 )

@@ -7,19 +7,14 @@ that pass validation.
 
 # pylint: disable=no-member
 
-import pytest
-from decimal import Decimal
 from datetime import timedelta
+from decimal import Decimal
 
-from src.utils.datetime_utils import utc_now, utc_datetime
-from src.schemas.account_types.banking.ewa import (
-    EWAAccountCreate,
-    EWAAccountResponse,
-)
-
-from tests.helpers.schema_factories.account_types.banking.ewa import (
-    create_ewa_account_schema,
+from src.schemas.account_types.banking.ewa import EWAAccountCreate, EWAAccountResponse
+from src.utils.datetime_utils import utc_now
+from tests.helpers.schema_factories.account_types.banking.ewa_schema_factories import (
     create_ewa_account_response_schema,
+    create_ewa_account_schema,
 )
 
 
@@ -46,7 +41,7 @@ def test_create_ewa_account_schema_with_custom_values():
     pay_period_start = now - timedelta(days=10)
     pay_period_end = now + timedelta(days=4)
     next_payday = pay_period_end + timedelta(days=2)
-    
+
     schema = create_ewa_account_schema(
         name="Early Pay Access",
         provider="Payactiv",

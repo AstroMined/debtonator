@@ -5,19 +5,18 @@ Tests ensure that credit account error classes properly handle error details,
 message formatting, and inheritance relationships.
 """
 
-import pytest
 from decimal import Decimal
 
-from src.errors.accounts import AccountError
-from src.utils.datetime_utils import utc_datetime
 from src.errors.account_types.banking.credit import (
     CreditAccountError,
-    CreditCreditLimitExceededError,
-    CreditPaymentDueError,
     CreditAPRError,
     CreditAutopayError,
+    CreditCreditLimitExceededError,
+    CreditPaymentDueError,
     CreditStatementError,
 )
+from src.errors.accounts import AccountError
+from src.utils.datetime_utils import utc_datetime
 
 
 def test_credit_account_error_with_message_only():
@@ -60,7 +59,7 @@ def test_credit_credit_limit_exceeded_error_with_all_parameters():
         current_balance=Decimal("1500.00"),
         credit_limit=Decimal("1000.00"),
         transaction_amount=Decimal("600.00"),
-        details={"transaction_id": 456}
+        details={"transaction_id": 456},
     )
     assert error.message == "Credit limit exceeded"
     assert error.details["account_id"] == 123
@@ -93,7 +92,7 @@ def test_credit_payment_due_error_with_all_parameters():
         account_id=123,
         due_date=due_date,
         minimum_payment=Decimal("35.00"),
-        details={"days_past_due": 5}
+        details={"days_past_due": 5},
     )
     assert error.message == "Payment past due"
     assert error.details["account_id"] == 123
@@ -122,7 +121,7 @@ def test_credit_apr_error_with_all_parameters():
     error = CreditAPRError(
         "Invalid APR",
         apr=Decimal("30.0"),
-        details={"card_type": "rewards", "max_apr": Decimal("29.99")}
+        details={"card_type": "rewards", "max_apr": Decimal("29.99")},
     )
     assert error.message == "Invalid APR"
     assert error.details["apr"] == Decimal("30.0")
@@ -154,8 +153,8 @@ def test_credit_autopay_error_with_all_parameters():
             "account_id": 123,
             "payment_source_id": 456,
             "autopay_type": "minimum_payment",
-            "reason": "invalid_payment_source"
-        }
+            "reason": "invalid_payment_source",
+        },
     )
     assert error.message == "Autopay setup failed"
     assert error.details["autopay_status"] == "failed"
@@ -176,7 +175,9 @@ def test_credit_statement_error_with_message_only():
 def test_credit_statement_error_with_statement_date():
     """Test initializing CreditStatementError with statement date."""
     statement_date = utc_datetime(2025, 3, 31)
-    error = CreditStatementError("Statement generation failed", statement_date=statement_date)
+    error = CreditStatementError(
+        "Statement generation failed", statement_date=statement_date
+    )
     assert error.message == "Statement generation failed"
     assert error.details == {"statement_date": statement_date.isoformat()}
 
@@ -194,7 +195,7 @@ def test_credit_statement_error_with_all_parameters():
     error = CreditStatementError(
         "Statement generation failed",
         statement_date=statement_date,
-        details={"account_id": 123, "reason": "missing_transactions"}
+        details={"account_id": 123, "reason": "missing_transactions"},
     )
     assert error.message == "Statement generation failed"
     assert error.details["statement_date"] == statement_date.isoformat()

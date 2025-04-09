@@ -5,32 +5,7 @@ Tests ensure that all banking account type error classes are properly exported
 from the banking package.
 """
 
-import pytest
-
-from src.errors.account_types.banking import (
-    # Checking account errors
-    CheckingAccountError,
-    CheckingInsufficientFundsError,
-    CheckingInternationalBankingError,
-    CheckingInvalidRoutingNumberError,
-    CheckingOverdraftError,
-    
-    # Savings account errors
-    SavingsAccountError,
-    SavingsCompoundFrequencyError,
-    SavingsInterestRateError,
-    SavingsMinimumBalanceError,
-    SavingsWithdrawalLimitError,
-    
-    # Credit account errors
-    CreditAccountError,
-    CreditAPRError,
-    CreditAutopayError,
-    CreditCreditLimitExceededError,
-    CreditPaymentDueError,
-    CreditStatementError,
-    
-    # BNPL account errors
+from src.errors.account_types.banking import (  # Checking account errors; Savings account errors; Credit account errors; BNPL account errors; EWA account errors; Payment app account errors
     BNPLAccountError,
     BNPLInstallmentCountError,
     BNPLInstallmentError,
@@ -38,8 +13,17 @@ from src.errors.account_types.banking import (
     BNPLNextPaymentDateError,
     BNPLPaymentFrequencyError,
     BNPLProviderError,
-    
-    # EWA account errors
+    CheckingAccountError,
+    CheckingInsufficientFundsError,
+    CheckingInternationalBankingError,
+    CheckingInvalidRoutingNumberError,
+    CheckingOverdraftError,
+    CreditAccountError,
+    CreditAPRError,
+    CreditAutopayError,
+    CreditCreditLimitExceededError,
+    CreditPaymentDueError,
+    CreditStatementError,
     EWAAccountError,
     EWAAdvancePercentageError,
     EWAEarningsValidationError,
@@ -47,14 +31,17 @@ from src.errors.account_types.banking import (
     EWAPayPeriodError,
     EWAProviderError,
     EWATransactionFeeError,
-    
-    # Payment app account errors
     PaymentAppAccountError,
     PaymentAppCardInformationError,
     PaymentAppLinkedAccountError,
     PaymentAppPlatformFeatureError,
     PaymentAppTransferError,
     PaymentAppUnsupportedPlatformError,
+    SavingsAccountError,
+    SavingsCompoundFrequencyError,
+    SavingsInterestRateError,
+    SavingsMinimumBalanceError,
+    SavingsWithdrawalLimitError,
 )
 
 
@@ -62,8 +49,14 @@ def test_checking_account_errors_exported():
     """Test that checking account errors are properly exported."""
     assert CheckingAccountError.__name__ == "CheckingAccountError"
     assert CheckingInsufficientFundsError.__name__ == "CheckingInsufficientFundsError"
-    assert CheckingInternationalBankingError.__name__ == "CheckingInternationalBankingError"
-    assert CheckingInvalidRoutingNumberError.__name__ == "CheckingInvalidRoutingNumberError"
+    assert (
+        CheckingInternationalBankingError.__name__
+        == "CheckingInternationalBankingError"
+    )
+    assert (
+        CheckingInvalidRoutingNumberError.__name__
+        == "CheckingInvalidRoutingNumberError"
+    )
     assert CheckingOverdraftError.__name__ == "CheckingOverdraftError"
 
 
@@ -115,13 +108,23 @@ def test_payment_app_account_errors_exported():
     assert PaymentAppLinkedAccountError.__name__ == "PaymentAppLinkedAccountError"
     assert PaymentAppPlatformFeatureError.__name__ == "PaymentAppPlatformFeatureError"
     assert PaymentAppTransferError.__name__ == "PaymentAppTransferError"
-    assert PaymentAppUnsupportedPlatformError.__name__ == "PaymentAppUnsupportedPlatformError"
+    assert (
+        PaymentAppUnsupportedPlatformError.__name__
+        == "PaymentAppUnsupportedPlatformError"
+    )
 
 
 def test_module_imports():
     """Test that all modules are properly imported."""
-    from src.errors.account_types.banking import checking, savings, credit, bnpl, ewa, payment_app
-    
+    from src.errors.account_types.banking import (
+        bnpl,
+        checking,
+        credit,
+        ewa,
+        payment_app,
+        savings,
+    )
+
     assert checking.__name__ == "src.errors.account_types.banking.checking"
     assert savings.__name__ == "src.errors.account_types.banking.savings"
     assert credit.__name__ == "src.errors.account_types.banking.credit"

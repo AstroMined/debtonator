@@ -28,7 +28,9 @@ from src.utils.datetime_utils import (
     days_ago,
     days_from_now,
 )
-from tests.helpers.schema_factories.bill_splits import create_bill_split_schema
+from tests.helpers.schema_factories.bill_splits_schema_factories import (
+    create_bill_split_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 

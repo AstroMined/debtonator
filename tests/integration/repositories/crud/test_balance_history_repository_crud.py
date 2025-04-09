@@ -14,7 +14,7 @@ from src.models.accounts import Account
 from src.models.balance_history import BalanceHistory
 from src.repositories.balance_history import BalanceHistoryRepository
 from src.utils.datetime_utils import datetime_equals, datetime_greater_than
-from tests.helpers.schema_factories.balance_history import (
+from tests.helpers.schema_factories.balance_history_schema_factories import (
     create_balance_history_schema,
     create_balance_history_update_schema,
 )

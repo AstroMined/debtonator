@@ -7,19 +7,17 @@ Implements testing for ADR-016 Account Type Expansion.
 """
 
 from decimal import Decimal
-from datetime import datetime
 
 import pytest
 from pydantic import ValidationError
 
 from src.schemas.accounts import (
     AccountBase,
-    AccountUpdate,
-    AccountResponse,
     AccountInDB,
-    StatementBalanceHistory,
     AccountStatementHistoryResponse,
+    AccountUpdate,
     AvailableCreditResponse,
+    StatementBalanceHistory,
     validate_account_type,
     validate_credit_account_field,
 )
@@ -46,7 +44,7 @@ def test_account_update():
         account_type="checking",
     )
     assert update.account_type == "checking"
-    
+
     # Test with invalid account type works at schema level
     # as validation was moved to service layer per code comment:
     # "Removed account_type validator to avoid conflicts with discriminated unions"
@@ -119,24 +117,24 @@ def test_validate_credit_account_field_function():
     """Test the validator for credit account specific fields."""
     # Create a validator for testing
     validator = validate_credit_account_field("test_field")
-    
+
     # Define test validation info with credit account type
     class ValidationInfo:
         def __init__(self, account_type):
             self.data = {"account_type": account_type}
-    
+
     # Test with credit account type and a value
     result = validator(Decimal("100.00"), ValidationInfo("credit"))
     assert result == Decimal("100.00")
-    
+
     # Test with non-credit account type and a value
     with pytest.raises(ValueError):
         validator(Decimal("100.00"), ValidationInfo("checking"))
-    
+
     # Test with None value (should be accepted regardless of account type)
     result = validator(None, ValidationInfo("checking"))
     assert result is None
-    
+
     # Test with credit account type and None value
     result = validator(None, ValidationInfo("credit"))
     assert result is None
@@ -146,7 +144,7 @@ def test_account_in_db_schema():
     """Test the AccountInDB schema."""
     # Create a current datetime for testing
     now = utc_now()
-    
+
     # Test with required fields
     account = AccountInDB(
         id=1,
@@ -180,7 +178,7 @@ def test_statement_balance_history_schema():
     """Test the StatementBalanceHistory schema."""
     # Create a current datetime for testing
     now = utc_now()
-    
+
     # Test with required fields
     history = StatementBalanceHistory(
         statement_date=now,
@@ -190,7 +188,7 @@ def test_statement_balance_history_schema():
     assert history.statement_balance == Decimal("1000.00")
     assert history.minimum_payment is None
     assert history.due_date is None
-    
+
     # Test with all fields
     due_date = utc_now()
     history = StatementBalanceHistory(
@@ -203,7 +201,7 @@ def test_statement_balance_history_schema():
     assert history.statement_balance == Decimal("1000.00")
     assert history.minimum_payment == Decimal("25.00")
     assert history.due_date == due_date
-    
+
     # Test validation of minimum payment
     with pytest.raises(ValidationError):
         StatementBalanceHistory(
@@ -217,7 +215,7 @@ def test_account_statement_history_response_schema():
     """Test the AccountStatementHistoryResponse schema."""
     # Create a current datetime for testing
     now = utc_now()
-    
+
     # Create statement history entries for testing
     statement1 = StatementBalanceHistory(
         statement_date=now,
@@ -229,7 +227,7 @@ def test_account_statement_history_response_schema():
         statement_balance=Decimal("950.00"),
         minimum_payment=Decimal("25.00"),
     )
-    
+
     # Test with required fields
     history_response = AccountStatementHistoryResponse(
         account_id=1,
@@ -238,7 +236,7 @@ def test_account_statement_history_response_schema():
     assert history_response.account_id == 1
     assert history_response.account_name == "Test Account"
     assert history_response.statement_history == []
-    
+
     # Test with statement history
     history_response = AccountStatementHistoryResponse(
         account_id=1,
@@ -271,7 +269,7 @@ def test_available_credit_response_schema():
     assert credit_response.pending_transactions == Decimal("200.00")
     assert credit_response.adjusted_balance == Decimal("1200.00")
     assert credit_response.available_credit == Decimal("3800.00")
-    
+
     # Test validation of total_limit
     with pytest.raises(ValidationError):
         AvailableCreditResponse(
@@ -283,7 +281,7 @@ def test_available_credit_response_schema():
             adjusted_balance=Decimal("1200.00"),
             available_credit=Decimal("3800.00"),
         )
-    
+
     # Test validation of available_credit
     with pytest.raises(ValidationError):
         AvailableCreditResponse(

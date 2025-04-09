@@ -409,7 +409,9 @@ def test_datetime_utc_validation():
     now_utc = datetime.now(timezone.utc)
 
     # Test naive datetime in created_at
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         RecurringBillResponse(
             id=1,
             bill_name="Internet Service",
@@ -424,7 +426,9 @@ def test_datetime_utc_validation():
         )
 
     # Test non-UTC timezone in updated_at
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         non_utc_tz = timezone(timedelta(hours=5))
         RecurringBillResponse(
             id=1,

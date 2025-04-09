@@ -5,18 +5,17 @@ Tests ensure that payment app account error classes properly handle error detail
 message formatting, and inheritance relationships.
 """
 
-import pytest
 from decimal import Decimal
 
-from src.errors.accounts import AccountError
 from src.errors.account_types.banking.payment_app import (
     PaymentAppAccountError,
-    PaymentAppUnsupportedPlatformError,
-    PaymentAppLinkedAccountError,
     PaymentAppCardInformationError,
+    PaymentAppLinkedAccountError,
     PaymentAppPlatformFeatureError,
     PaymentAppTransferError,
+    PaymentAppUnsupportedPlatformError,
 )
+from src.errors.accounts import AccountError
 
 
 def test_payment_app_account_error_with_message_only():
@@ -47,8 +46,7 @@ def test_payment_app_unsupported_platform_error_with_platform_only():
 def test_payment_app_unsupported_platform_error_with_custom_message():
     """Test initializing PaymentAppUnsupportedPlatformError with custom message."""
     error = PaymentAppUnsupportedPlatformError(
-        "Unknown", 
-        message="Custom platform error message"
+        "Unknown", message="Custom platform error message"
     )
     assert error.message == "Custom platform error message"
     assert error.details == {"platform": "Unknown"}
@@ -60,7 +58,7 @@ def test_payment_app_unsupported_platform_error_with_all_parameters():
         "Unknown",
         message="Custom platform error message",
         supported_platforms=["PayPal", "Venmo", "Cash App"],
-        details={"account_id": 123, "integration_status": "failed"}
+        details={"account_id": 123, "integration_status": "failed"},
     )
     assert error.message == "Custom platform error message"
     assert error.details["platform"] == "Unknown"
@@ -90,7 +88,7 @@ def test_payment_app_linked_account_error_with_all_parameters():
         "Linked account error",
         linked_account_ids=[456, 789],
         account_id=123,
-        details={"platform": "PayPal", "link_status": "failed"}
+        details={"platform": "PayPal", "link_status": "failed"},
     )
     assert error.message == "Linked account error"
     assert error.details["linked_account_ids"] == [456, 789]
@@ -109,7 +107,9 @@ def test_payment_app_card_information_error_with_message_only():
 
 def test_payment_app_card_information_error_with_has_debit_card():
     """Test initializing PaymentAppCardInformationError with has_debit_card."""
-    error = PaymentAppCardInformationError("Card information error", has_debit_card=False)
+    error = PaymentAppCardInformationError(
+        "Card information error", has_debit_card=False
+    )
     assert error.message == "Card information error"
     assert error.details == {"has_debit_card": False}
 
@@ -120,7 +120,7 @@ def test_payment_app_card_information_error_with_all_parameters():
         "Card information error",
         has_debit_card=True,
         card_last_four="1234",
-        details={"account_id": 123, "platform": "Venmo"}
+        details={"account_id": 123, "platform": "Venmo"},
     )
     assert error.message == "Card information error"
     assert error.details["has_debit_card"] is True
@@ -140,7 +140,10 @@ def test_payment_app_platform_feature_error_with_feature_only():
 def test_payment_app_platform_feature_error_with_platform():
     """Test initializing PaymentAppPlatformFeatureError with platform."""
     error = PaymentAppPlatformFeatureError("instant_transfer", platform="Cash App")
-    assert error.message == "Feature 'instant_transfer' not supported for platform 'Cash App'"
+    assert (
+        error.message
+        == "Feature 'instant_transfer' not supported for platform 'Cash App'"
+    )
     assert error.details == {"feature": "instant_transfer", "platform": "Cash App"}
 
 
@@ -150,7 +153,7 @@ def test_payment_app_platform_feature_error_with_all_parameters():
         "instant_transfer",
         platform="Cash App",
         message="Custom feature error message",
-        details={"account_id": 123, "alternative_feature": "standard_transfer"}
+        details={"account_id": 123, "alternative_feature": "standard_transfer"},
     )
     assert error.message == "Custom feature error message for platform 'Cash App'"
     assert error.details["feature"] == "instant_transfer"
@@ -182,7 +185,11 @@ def test_payment_app_transfer_error_with_all_parameters():
         source_id=123,
         destination_id=456,
         amount=Decimal("100.00"),
-        details={"platform": "PayPal", "status": "failed", "reason": "insufficient_funds"}
+        details={
+            "platform": "PayPal",
+            "status": "failed",
+            "reason": "insufficient_funds",
+        },
     )
     assert error.message == "Transfer error"
     assert error.details["transfer_type"] == "withdrawal"

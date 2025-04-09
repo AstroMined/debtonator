@@ -14,9 +14,12 @@ from .api.base import api_router
 from .api.response_formatter import format_response
 from .database.base import Base
 from .database.database import engine, get_db
-from .repositories.feature_flags import FeatureFlagRepository
 from .registry.account_registry_init import register_account_types
-from .registry.account_types import RegistryNotInitializedException, account_type_registry
+from .registry.account_types import (
+    RegistryNotInitializedException,
+    account_type_registry,
+)
+from .repositories.feature_flags import FeatureFlagRepository
 from .services.feature_flags import FeatureFlagService
 from .utils.config import settings
 from .utils.feature_flags.feature_flags import get_registry
@@ -31,10 +34,10 @@ async def create_tables():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Initialize registries and database
-    
+
     # Initialize account type registry first (no async dependencies)
     register_account_types()
-    
+
     # Verify account type registry was properly initialized
     try:
         types = account_type_registry.get_all_types()
@@ -42,10 +45,10 @@ async def lifespan(app: FastAPI):
     except RegistryNotInitializedException as e:
         logger.error(f"Account type registry initialization failed: {str(e)}")
         raise RuntimeError("Failed to initialize account type registry") from e
-    
+
     # Create database tables
     await create_tables()
-    
+
     # Initialize feature flag registry from database
     async for db_session in get_db():
         try:
@@ -61,9 +64,9 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.error(f"Failed to initialize feature flags: {e}")
             # Session will be automatically closed when the loop exits
-    
+
     yield  # App runs here
-    
+
     # Shutdown logic could go here if needed
     logger.info("Application shutting down")
 
@@ -169,9 +172,9 @@ async def decimal_precision_middleware(request: Request, call_next):
     # Return the original response for non-JSON responses
     return response
 
+
 # Include API router
 app.include_router(api_router)
-
 
 
 @app.get("/")

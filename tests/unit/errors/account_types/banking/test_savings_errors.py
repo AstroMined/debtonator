@@ -5,17 +5,16 @@ Tests ensure that savings account error classes properly handle error details,
 message formatting, and inheritance relationships.
 """
 
-import pytest
 from decimal import Decimal
 
-from src.errors.accounts import AccountError
 from src.errors.account_types.banking.savings import (
     SavingsAccountError,
-    SavingsWithdrawalLimitError,
-    SavingsMinimumBalanceError,
-    SavingsInterestRateError,
     SavingsCompoundFrequencyError,
+    SavingsInterestRateError,
+    SavingsMinimumBalanceError,
+    SavingsWithdrawalLimitError,
 )
+from src.errors.accounts import AccountError
 
 
 def test_savings_account_error_with_message_only():
@@ -57,7 +56,7 @@ def test_savings_withdrawal_limit_error_with_all_parameters():
         account_id=123,
         withdrawal_limit=6,
         withdrawal_count=5,
-        details={"period": "monthly"}
+        details={"period": "monthly"},
     )
     assert error.message == "Withdrawal limit exceeded"
     assert error.details["account_id"] == 123
@@ -88,7 +87,7 @@ def test_savings_minimum_balance_error_with_all_parameters():
         account_id=123,
         current_balance=Decimal("50.00"),
         minimum_balance=Decimal("100.00"),
-        details={"fee": Decimal("25.00")}
+        details={"fee": Decimal("25.00")},
     )
     assert error.message == "Minimum balance not met"
     assert error.details["account_id"] == 123
@@ -117,7 +116,11 @@ def test_savings_interest_rate_error_with_all_parameters():
     error = SavingsInterestRateError(
         "Invalid interest rate",
         interest_rate=Decimal("5.5"),
-        details={"account_id": 123, "max_rate": Decimal("5.0"), "account_type": "high_yield"}
+        details={
+            "account_id": 123,
+            "max_rate": Decimal("5.0"),
+            "account_type": "high_yield",
+        },
     )
     assert error.message == "Invalid interest rate"
     assert error.details["interest_rate"] == Decimal("5.5")
@@ -146,10 +149,19 @@ def test_savings_compound_frequency_error_with_all_parameters():
     error = SavingsCompoundFrequencyError(
         "invalid",
         message="Custom frequency error",
-        details={"account_id": 123, "valid_frequencies": ["daily", "monthly", "quarterly", "annually"], "account_type": "high_yield"}
+        details={
+            "account_id": 123,
+            "valid_frequencies": ["daily", "monthly", "quarterly", "annually"],
+            "account_type": "high_yield",
+        },
     )
     assert error.message == "Custom frequency error"
     assert error.details["frequency"] == "invalid"
     assert error.details["account_id"] == 123
-    assert error.details["valid_frequencies"] == ["daily", "monthly", "quarterly", "annually"]
+    assert error.details["valid_frequencies"] == [
+        "daily",
+        "monthly",
+        "quarterly",
+        "annually",
+    ]
     assert error.details["account_type"] == "high_yield"

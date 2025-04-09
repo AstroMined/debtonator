@@ -14,7 +14,10 @@ from typing import Any, Callable, List, Optional
 
 from pydantic import ConfigDict, Field, field_validator
 
-from src.registry.account_types import RegistryNotInitializedException, account_type_registry
+from src.registry.account_types import (
+    RegistryNotInitializedException,
+    account_type_registry,
+)
 from src.schemas.base_schema import BaseSchemaValidator, MoneyDecimal
 
 
@@ -38,17 +41,20 @@ def validate_account_type(account_type: str, feature_flag_service=None) -> str:
         # This will raise RegistryNotInitializedException if registry not initialized
         valid_types = account_type_registry.get_all_types(feature_flag_service)
         valid_type_ids = [t["id"] for t in valid_types]
-        
-        if not account_type_registry.is_valid_account_type(account_type, feature_flag_service):
+
+        if not account_type_registry.is_valid_account_type(
+            account_type, feature_flag_service
+        ):
             valid_types_str = ", ".join(valid_type_ids)
             raise ValueError(f"Invalid account type. Must be one of: {valid_types_str}")
-            
+
         return account_type
-        
+
     except RegistryNotInitializedException as e:
         # Propagate the error - this is a system initialization issue that
         # should be caught and handled at a higher level
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"Registry error during account type validation: {str(e)}")
         raise

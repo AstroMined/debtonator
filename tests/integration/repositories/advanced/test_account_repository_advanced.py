@@ -15,7 +15,9 @@ from src.models.accounts import Account
 from src.models.statement_history import StatementHistory
 from src.repositories.accounts import AccountRepository
 from src.utils.datetime_utils import datetime_equals, utc_now
-from tests.helpers.schema_factories.accounts import create_account_schema
+from tests.helpers.schema_factories.accounts_schema_factories import (
+    create_account_schema,
+)
 
 pytestmark = pytest.mark.asyncio
 

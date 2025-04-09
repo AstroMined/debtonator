@@ -18,7 +18,7 @@ from src.schemas.statement_history import StatementHistoryUpdate
 from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
 
 # Import schema factory functions directly
-from tests.helpers.schema_factories.statement_history import (
+from tests.helpers.schema_factories.statement_history_schema_factories import (
     create_statement_history_schema,
 )
 

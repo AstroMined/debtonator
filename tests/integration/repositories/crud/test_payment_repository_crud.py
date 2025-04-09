@@ -15,7 +15,7 @@ from src.models.liabilities import Liability
 from src.models.payments import Payment
 from src.repositories.payments import PaymentRepository
 from src.utils.datetime_utils import datetime_equals, utc_now
-from tests.helpers.schema_factories.payments import (
+from tests.helpers.schema_factories.payments_schema_factories import (
     create_payment_schema,
     create_payment_update_schema,
 )

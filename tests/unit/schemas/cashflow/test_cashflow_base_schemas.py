@@ -5,7 +5,7 @@ This test module ensures proper validation and functionality of cashflow base sc
 including timestamp handling and currency validation.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 from zoneinfo import ZoneInfo  # Only needed for non-UTC timezone tests
 
@@ -22,13 +22,10 @@ from src.schemas.cashflow.cashflow_base import (
     CashflowUpdate,
 )
 from src.utils.datetime_utils import (
-    utc_now,
-    days_ago,
-    days_from_now,
-    ensure_utc,
     datetime_equals,
-    datetime_greater_than,
     datetime_less_than,
+    days_from_now,
+    utc_now,
 )
 
 
@@ -106,14 +103,12 @@ def test_cashflow_base_default_timestamp():
     ), "Default timestamp should be in UTC timezone"
 
     # Verify the timestamp is within the expected range using utility function
-    assert (
-        datetime_less_than(before, cashflow.forecast_date) or 
-        datetime_equals(before, cashflow.forecast_date)
+    assert datetime_less_than(before, cashflow.forecast_date) or datetime_equals(
+        before, cashflow.forecast_date
     ), "Default timestamp should be greater than or equal to 'before'"
-    
-    assert (
-        datetime_less_than(cashflow.forecast_date, after) or 
-        datetime_equals(cashflow.forecast_date, after)
+
+    assert datetime_less_than(cashflow.forecast_date, after) or datetime_equals(
+        cashflow.forecast_date, after
     ), "Default timestamp should be less than or equal to 'after'"
 
 
@@ -433,7 +428,9 @@ def test_datetime_utc_validation():
     now = utc_now()
 
     # Test naive datetime
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         CashflowBase(
             forecast_date=datetime.now(),  # Naive datetime
             total_bills=Decimal("1500.00"),
@@ -453,7 +450,9 @@ def test_datetime_utc_validation():
         )
 
     # Test non-UTC timezone
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         CashflowBase(
             forecast_date=datetime.now(
                 ZoneInfo("America/New_York")
@@ -475,11 +474,15 @@ def test_datetime_utc_validation():
         )
 
     # Test filter with naive datetime
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         CashflowFilters(start_date=datetime.now(), end_date=now)  # Naive datetime
 
     # Test filter with non-UTC timezone
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         CashflowFilters(
             start_date=now,
             end_date=datetime.now(ZoneInfo("America/New_York")),  # Non-UTC timezone
@@ -491,7 +494,9 @@ def test_in_db_timestamps():
     now = utc_now()
 
     # Test naive created_at
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         CashflowInDB(
             id=1,
             created_at=datetime.now(),  # Naive datetime
@@ -514,7 +519,9 @@ def test_in_db_timestamps():
         )
 
     # Test non-UTC updated_at
-    with pytest.raises(ValidationError, match="Please provide datetime with UTC timezone"):
+    with pytest.raises(
+        ValidationError, match="Please provide datetime with UTC timezone"
+    ):
         CashflowInDB(
             id=1,
             created_at=now,

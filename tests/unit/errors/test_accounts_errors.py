@@ -5,14 +5,12 @@ Tests ensure that base account error classes properly handle error details,
 message formatting, and inheritance relationships.
 """
 
-import pytest
-
 from src.errors.accounts import (
     AccountError,
     AccountNotFoundError,
+    AccountOperationError,
     AccountTypeError,
     AccountValidationError,
-    AccountOperationError,
 )
 
 
@@ -37,7 +35,7 @@ def test_account_error_to_dict_with_details():
     details = {"key1": "value1", "key2": 42}
     error = AccountError("Test error message", details)
     error_dict = error.to_dict()
-    
+
     assert error_dict["error"] == "AccountError"
     assert error_dict["message"] == "Test error message"
     assert error_dict["details"] == details
@@ -47,7 +45,7 @@ def test_account_error_to_dict_without_details():
     """Test converting AccountError without details to dictionary."""
     error = AccountError("Test error message")
     error_dict = error.to_dict()
-    
+
     assert error_dict["error"] == "AccountError"
     assert error_dict["message"] == "Test error message"
     assert "details" not in error_dict

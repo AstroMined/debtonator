@@ -154,7 +154,7 @@ def test_credit_account_money_validation():
         apr=Decimal("0.25"),  # 25%
     )
     assert credit.apr == Decimal("0.25")
-    
+
     # Test valid APR above 1.0 (which is now allowed)
     credit = CreditAccountCreate(
         name="High APR",
@@ -167,7 +167,9 @@ def test_credit_account_money_validation():
     assert credit.apr == Decimal("1.5")
 
     # Test negative annual fee
-    with pytest.raises(ValidationError, match="Input should be greater than or equal to 0"):
+    with pytest.raises(
+        ValidationError, match="Input should be greater than or equal to 0"
+    ):
         CreditAccountCreate(
             name="Invalid Fee",
             account_type="credit",
