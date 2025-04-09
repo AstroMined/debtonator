@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from decimal import Decimal
 from typing import List
 
@@ -6,15 +6,24 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.cashflow import CashflowForecast
+from src.utils.datetime_utils import naive_utc_now, utc_now
 
 
 @pytest_asyncio.fixture
 async def test_cashflow_forecast(
     db_session: AsyncSession,
 ) -> CashflowForecast:
-    """Fixture to create a test cashflow forecast."""
+    """
+    Create a test cashflow forecast.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        CashflowForecast: Created cashflow forecast
+    """
     # Create a naive datetime for DB storage
-    forecast_date = datetime.now(timezone.utc).replace(tzinfo=None)
+    forecast_date = naive_utc_now()
 
     # Create model instance directly
     forecast = CashflowForecast(
@@ -47,8 +56,16 @@ async def test_cashflow_forecast(
 async def test_multiple_forecasts(
     db_session: AsyncSession,
 ) -> List[CashflowForecast]:
-    """Fixture to create multiple cashflow forecasts for testing."""
-    now = datetime.now(timezone.utc)
+    """
+    Create multiple cashflow forecasts for testing.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        List[CashflowForecast]: List of created cashflow forecasts
+    """
+    now = utc_now()
 
     # Create multiple forecasts with various dates
     forecast_data = [

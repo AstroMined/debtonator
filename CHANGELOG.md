@@ -7,6 +7,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.89] - 2025-04-09
+
+### Fixed
+
+- Fixed all model fixture files in tests/fixtures/models for UTC datetime compliance
+- Standardized use of naive_utc_now() instead of utc_now().replace(tzinfo=None)
+- Replaced direct use of datetime.now(timezone.utc) with utc_now() from datetime_utils
+- Added proper Args and Returns sections to all fixture docstrings
+- Fixed inconsistent fixture type usage (@pytest vs @pytest_asyncio)
+- Fixed direct model instantiation issues by using proper polymorphic classes
+- Fixed hardcoded account IDs by using fixture references
+- Fixed inconsistent return type annotations
+
+### Changed
+
+- Updated Testing Infrastructure status to COMPLETED (100%)
+- Added Model fixture standardization to testing infrastructure components
+- Enhanced testing strategy documentation with fixture standardization patterns
+
 ## [0.5.88] - 2025-04-09
 
 ### Added

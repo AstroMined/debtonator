@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability, LiabilityStatus
-from src.utils.datetime_utils import utc_now
+from src.utils.datetime_utils import days_from_now, naive_utc_now, utc_now
 
 
 @pytest_asyncio.fixture
@@ -16,9 +16,19 @@ async def test_liability(
     test_checking_account,
     test_category,
 ) -> Liability:
-    """Create a test liability for use in tests."""
-    # Create a naive datetime for DB storage
-    due_date = (utc_now() + timedelta(days=30)).replace(tzinfo=None)
+    """
+    Create a test liability for use in tests.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        test_category: Test category fixture
+        
+    Returns:
+        Liability: Created liability
+    """
+    # Create a naive datetime for DB storage (30 days from now)
+    due_date = days_from_now(30).replace(tzinfo=None)
 
     # Create model instance directly
     liability = Liability(
@@ -44,7 +54,17 @@ async def test_multiple_liabilities(
     test_checking_account,
     test_category,
 ) -> List[Liability]:
-    """Create multiple test liabilities with different due dates."""
+    """
+    Create multiple test liabilities with different due dates.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        test_category: Test category fixture
+        
+    Returns:
+        List[Liability]: List of created liabilities with different due dates
+    """
     # Setup dates for different liabilities
     now = utc_now()
     due_dates = [
@@ -90,7 +110,17 @@ async def test_bill_splits(
     test_liability,
     test_checking_account,
 ) -> List[BillSplit]:
-    """Create test bill splits directly using model instantiation."""
+    """
+    Create test bill splits directly using model instantiation.
+    
+    Args:
+        db_session: Database session fixture
+        test_liability: Test liability fixture
+        test_checking_account: Test checking account fixture
+        
+    Returns:
+        List[BillSplit]: List of created bill splits
+    """
     # Create multiple bill splits
     split_configs = [
         {"amount": Decimal("100.00")},

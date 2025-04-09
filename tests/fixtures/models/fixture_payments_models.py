@@ -6,7 +6,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.payments import Payment, PaymentSource
-from src.utils.datetime_utils import utc_now
+from src.utils.datetime_utils import naive_utc_now, utc_now
 
 
 @pytest_asyncio.fixture
@@ -15,9 +15,19 @@ async def test_payment(
     test_checking_account,
     test_liability,
 ) -> Payment:
-    """Create a test payment for use in tests."""
+    """
+    Create a test payment for use in tests.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        test_liability: Test liability fixture
+        
+    Returns:
+        Payment: Created payment with associated payment source
+    """
     # Create a naive datetime for DB storage
-    payment_date = utc_now().replace(tzinfo=None)
+    payment_date = naive_utc_now()
 
     # Create payment model instance directly
     payment = Payment(
@@ -56,7 +66,18 @@ async def test_multiple_payments(
     test_second_account,
     test_liability,
 ) -> List[Payment]:
-    """Create multiple test payments with different dates and categories."""
+    """
+    Create multiple test payments with different dates and categories.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        test_second_account: Test second account fixture
+        test_liability: Test liability fixture
+        
+    Returns:
+        List[Payment]: List of created payments with various configurations
+    """
     now = utc_now()
     payment_data = [
         # Recent utility payment
@@ -171,9 +192,19 @@ async def test_payment_with_multiple_sources(
     test_checking_account,
     test_second_account,
 ) -> Payment:
-    """Create a test payment with multiple payment sources."""
+    """
+    Create a test payment with multiple payment sources.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        test_second_account: Test second account fixture
+        
+    Returns:
+        Payment: Created payment with multiple payment sources
+    """
     # Create a naive datetime for DB storage
-    payment_date = utc_now().replace(tzinfo=None)
+    payment_date = naive_utc_now()
 
     # Create payment model instance directly
     payment = Payment(

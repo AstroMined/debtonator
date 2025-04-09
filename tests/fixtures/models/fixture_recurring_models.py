@@ -1,9 +1,12 @@
 from decimal import Decimal
-from typing import List
+from typing import List, Tuple
 
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.models.account_types.banking.checking import CheckingAccount
+from src.models.account_types.banking.savings import SavingsAccount
+from src.models.accounts import Account
 from src.models.recurring_bills import RecurringBill
 from src.models.recurring_income import RecurringIncome
 
@@ -14,7 +17,17 @@ async def test_recurring_bill(
     test_checking_account,
     test_category,
 ) -> RecurringBill:
-    """Create a test recurring bill for use in tests."""
+    """
+    Create a test recurring bill for use in tests.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        test_category: Test category fixture
+        
+    Returns:
+        RecurringBill: Created recurring bill
+    """
     # Create model instance directly
     bill = RecurringBill(
         bill_name="Test Recurring Bill",
@@ -40,7 +53,17 @@ async def test_multiple_recurring_bills(
     test_checking_account,
     test_category,
 ) -> List[RecurringBill]:
-    """Create multiple recurring bills for testing."""
+    """
+    Create multiple recurring bills for testing.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        test_category: Test category fixture
+        
+    Returns:
+        List[RecurringBill]: List of created recurring bills with various configurations
+    """
     # Setup bill configurations
     bills_config = [
         ("Active Bill 1", 1, True, True),
@@ -84,7 +107,17 @@ async def test_recurring_income(
     test_checking_account,
     test_income_category,
 ) -> RecurringIncome:
-    """Create a test recurring income entry for use in tests."""
+    """
+    Create a test recurring income entry for use in tests.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        test_income_category: Test income category fixture
+        
+    Returns:
+        RecurringIncome: Created recurring income entry
+    """
     # Create model instance directly
     income = RecurringIncome(
         source="Monthly Salary",
@@ -107,32 +140,34 @@ async def test_recurring_income(
 async def test_bills_by_account(
     db_session: AsyncSession,
     test_category,
-) -> tuple:
+) -> Tuple[CheckingAccount, SavingsAccount, List[RecurringBill]]:
     """
     Create accounts and recurring bills for testing account-specific operations.
 
     This fixture creates two accounts and multiple bills, with specific bills
     assigned to each account, to test repository methods that filter by account.
+    
+    Args:
+        db_session: Database session fixture
+        test_category: Test category fixture
 
     Returns:
-        tuple: A tuple containing (account1, account2, bills)
-               - account1: First test account with two bills
-               - account2: Second test account with one bill
-               - bills: List of all created bills [bill1, bill2, bill3]
+        Tuple[CheckingAccount, SavingsAccount, List[RecurringBill]]: A tuple containing:
+            - account1: First test checking account with two bills
+            - account2: Second test savings account with one bill
+            - bills: List of all created bills [bill1, bill2, bill3]
     """
-    from src.models.accounts import Account
-
-    # Create two accounts directly
-    account1 = Account(
+    # Create two accounts directly using proper polymorphic classes
+    account1 = CheckingAccount(
         name="Account A for Bill Test",
-        type="checking",
         available_balance=Decimal("1000.00"),
+        current_balance=Decimal("1000.00"),
     )
 
-    account2 = Account(
+    account2 = SavingsAccount(
         name="Account B for Bill Test",
-        type="savings",
         available_balance=Decimal("2000.00"),
+        current_balance=Decimal("2000.00"),
     )
 
     # Add accounts to session
@@ -196,7 +231,18 @@ async def test_multiple_recurring_incomes(
     test_second_account,
     test_income_category,
 ) -> List[RecurringIncome]:
-    """Create multiple recurring income entries for testing."""
+    """
+    Create multiple recurring income entries for testing.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        test_second_account: Test second account fixture
+        test_income_category: Test income category fixture
+        
+    Returns:
+        List[RecurringIncome]: List of created recurring income entries with various configurations
+    """
     # Different recurring income configurations
     income_configs = [
         {

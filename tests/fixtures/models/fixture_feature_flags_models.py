@@ -6,9 +6,8 @@ All fixtures follow the Real Objects Testing Philosophy without mocks.
 """
 
 import os
-from typing import List
+from typing import Dict, List, Optional
 
-import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,7 +17,15 @@ from src.utils.datetime_utils import days_ago, days_from_now
 
 @pytest_asyncio.fixture
 async def test_boolean_flag(db_session: AsyncSession) -> FeatureFlag:
-    """Create a boolean feature flag for testing."""
+    """
+    Create a boolean feature flag for testing.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        FeatureFlag: Created boolean feature flag
+    """
     feature_flag = FeatureFlag(
         name="TEST_FEATURE_BOOLEAN",
         description="Test boolean feature flag",
@@ -36,7 +43,15 @@ async def test_boolean_flag(db_session: AsyncSession) -> FeatureFlag:
 
 @pytest_asyncio.fixture
 async def test_percentage_flag(db_session: AsyncSession) -> FeatureFlag:
-    """Create a percentage rollout feature flag for testing."""
+    """
+    Create a percentage rollout feature flag for testing.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        FeatureFlag: Created percentage rollout feature flag
+    """
     feature_flag = FeatureFlag(
         name="TEST_FEATURE_PERCENTAGE",
         description="Test percentage rollout feature flag",
@@ -54,7 +69,15 @@ async def test_percentage_flag(db_session: AsyncSession) -> FeatureFlag:
 
 @pytest_asyncio.fixture
 async def test_environment_flag(db_session: AsyncSession) -> FeatureFlag:
-    """Create an environment-specific feature flag for testing."""
+    """
+    Create an environment-specific feature flag for testing.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        FeatureFlag: Created environment-specific feature flag
+    """
     feature_flag = FeatureFlag(
         name="TEST_FEATURE_ENVIRONMENT",
         description="Test environment-specific feature flag",
@@ -72,7 +95,15 @@ async def test_environment_flag(db_session: AsyncSession) -> FeatureFlag:
 
 @pytest_asyncio.fixture
 async def test_time_based_flag(db_session: AsyncSession) -> FeatureFlag:
-    """Create a time-based feature flag for testing."""
+    """
+    Create a time-based feature flag for testing.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        FeatureFlag: Created time-based feature flag
+    """
     # Set start time to yesterday and end time to tomorrow
     yesterday = days_ago(1).isoformat()
     tomorrow = days_from_now(1).isoformat()
@@ -94,7 +125,15 @@ async def test_time_based_flag(db_session: AsyncSession) -> FeatureFlag:
 
 @pytest_asyncio.fixture
 async def test_multiple_flags(db_session: AsyncSession) -> List[FeatureFlag]:
-    """Create multiple feature flags of different types for testing."""
+    """
+    Create multiple feature flags of different types for testing.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        List[FeatureFlag]: List of created feature flags of different types
+    """
     flags = [
         FeatureFlag(
             name="FEATURE_A",
@@ -138,12 +177,16 @@ async def test_multiple_flags(db_session: AsyncSession) -> List[FeatureFlag]:
     return flags
 
 
-@pytest.fixture
-def env_setup():
-    """Setup and teardown for environment variable tests.
-
+@pytest_asyncio.fixture
+async def env_setup():
+    """
+    Setup and teardown for environment variable tests.
+    
     This fixture preserves the original environment variables and
     restores them after the test completes.
+    
+    Returns:
+        None: This fixture yields control to the test
     """
     # Store original environment
     original_env = os.environ.copy()
@@ -157,11 +200,18 @@ def env_setup():
 
 
 @pytest_asyncio.fixture
-async def environment_context_fixture():
-    """Create an environment context with test data.
-
+async def environment_context_fixture(db_session: AsyncSession):
+    """
+    Create an environment context with test data.
+    
     This fixture creates a context without using mocks by setting
     actual environment variables.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        Dict: Created environment context
     """
     from src.utils.feature_flags.context import create_environment_context
 

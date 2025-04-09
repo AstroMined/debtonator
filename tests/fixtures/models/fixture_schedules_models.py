@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from decimal import Decimal
 from typing import List
 
@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.deposit_schedules import DepositSchedule
 from src.models.payment_schedules import PaymentSchedule
-from src.utils.datetime_utils import utc_now
+from src.utils.datetime_utils import days_from_now, naive_utc_now, utc_now
 
 
 @pytest_asyncio.fixture
@@ -16,9 +16,19 @@ async def test_payment_schedule(
     test_liability,
     test_checking_account,
 ) -> PaymentSchedule:
-    """Fixture to create a test payment schedule."""
+    """
+    Create a test payment schedule.
+    
+    Args:
+        db_session: Database session fixture
+        test_liability: Test liability fixture
+        test_checking_account: Test checking account fixture
+        
+    Returns:
+        PaymentSchedule: Created payment schedule
+    """
     # Create a naive datetime for DB storage
-    scheduled_date = (utc_now() + timedelta(days=7)).replace(tzinfo=None)
+    scheduled_date = days_from_now(7).replace(tzinfo=None)
 
     # Create model instance directly
     schedule = PaymentSchedule(
@@ -45,7 +55,18 @@ async def test_multiple_payment_schedules(
     test_checking_account,
     test_second_account,
 ) -> List[PaymentSchedule]:
-    """Fixture to create multiple payment schedules for testing."""
+    """
+    Create multiple payment schedules for testing.
+    
+    Args:
+        db_session: Database session fixture
+        test_liability: Test liability fixture
+        test_checking_account: Test checking account fixture
+        test_second_account: Test second account fixture
+        
+    Returns:
+        List[PaymentSchedule]: List of created payment schedules
+    """
     now = utc_now()
 
     # Create multiple payment schedules with various attributes
@@ -120,11 +141,19 @@ async def test_deposit_schedule(
     test_income,
     test_checking_account,
 ) -> DepositSchedule:
-    """Fixture to create a test deposit schedule."""
+    """
+    Create a test deposit schedule.
+    
+    Args:
+        db_session: Database session fixture
+        test_income: Test income fixture
+        test_checking_account: Test checking account fixture
+        
+    Returns:
+        DepositSchedule: Created deposit schedule
+    """
     # Create a naive datetime for DB storage
-    schedule_date = (datetime.now(timezone.utc) + timedelta(days=7)).replace(
-        tzinfo=None
-    )
+    schedule_date = days_from_now(7).replace(tzinfo=None)
 
     # Create model instance directly
     schedule = DepositSchedule(
@@ -152,7 +181,19 @@ async def test_multiple_deposit_schedules(
     test_checking_account,
     test_second_account,
 ) -> List[DepositSchedule]:
-    """Fixture to create multiple deposit schedules for testing."""
+    """
+    Create multiple deposit schedules for testing.
+    
+    Args:
+        db_session: Database session fixture
+        test_income: Test income fixture
+        test_additional_income: Test additional income fixture
+        test_checking_account: Test checking account fixture
+        test_second_account: Test second account fixture
+        
+    Returns:
+        List[DepositSchedule]: List of created deposit schedules
+    """
     now = utc_now()
 
     # Create multiple deposit schedules with various attributes

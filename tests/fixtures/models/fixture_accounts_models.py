@@ -13,7 +13,15 @@ from src.utils.datetime_utils import naive_utc_now
 
 @pytest_asyncio.fixture
 async def test_checking_account(db_session: AsyncSession) -> CheckingAccount:
-    """Primary Test Checking for use in various tests"""
+    """
+    Create a primary test checking account for use in various tests.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        CheckingAccount: Created checking account
+    """
     checking_account = CheckingAccount(
         name="Primary Test Checking",
         available_balance=Decimal("1000.00"),
@@ -22,14 +30,22 @@ async def test_checking_account(db_session: AsyncSession) -> CheckingAccount:
         updated_at=naive_utc_now(),
     )
     db_session.add(checking_account)
-    await db_session.commit()
+    await db_session.flush()
     await db_session.refresh(checking_account)
     return checking_account
 
 
 @pytest_asyncio.fixture
 async def test_savings_account(db_session: AsyncSession) -> SavingsAccount:
-    """Fixture to create a second test account for recurring income."""
+    """
+    Create a test savings account for recurring income.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        SavingsAccount: Created savings account
+    """
     # Create model instance directly using SavingsAccount
     account = SavingsAccount(
         name="Test Savings Account",
@@ -47,7 +63,15 @@ async def test_savings_account(db_session: AsyncSession) -> SavingsAccount:
 
 @pytest_asyncio.fixture
 async def test_second_account(db_session: AsyncSession) -> CheckingAccount:
-    """Create a second test account for use in split payment tests."""
+    """
+    Create a second test checking account for use in split payment tests.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        CheckingAccount: Created checking account
+    """
     # Create model instance directly using CheckingAccount
     account = CheckingAccount(
         name="Second Checking Account",
@@ -65,7 +89,15 @@ async def test_second_account(db_session: AsyncSession) -> CheckingAccount:
 
 @pytest_asyncio.fixture
 async def test_multiple_accounts(db_session: AsyncSession) -> List[Account]:
-    """Create multiple test accounts of different types."""
+    """
+    Create multiple test accounts of different types.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        List[Account]: List of created accounts of various types
+    """
     accounts = []
 
     # Create a checking account
@@ -118,7 +150,15 @@ async def test_multiple_accounts(db_session: AsyncSession) -> List[Account]:
 
 @pytest_asyncio.fixture
 async def test_credit_account(db_session: AsyncSession) -> CreditAccount:
-    """Test credit account for use in various tests"""
+    """
+    Create a test credit account for use in various tests.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        CreditAccount: Created credit account
+    """
     credit_account = CreditAccount(
         name="Test Credit Card",
         available_balance=Decimal("-500.00"),
@@ -129,6 +169,6 @@ async def test_credit_account(db_session: AsyncSession) -> CreditAccount:
         updated_at=naive_utc_now(),
     )
     db_session.add(credit_account)
-    await db_session.commit()
+    await db_session.flush()
     await db_session.refresh(credit_account)
     return credit_account

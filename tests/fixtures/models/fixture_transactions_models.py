@@ -6,7 +6,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.transaction_history import TransactionHistory, TransactionType
-from src.utils.datetime_utils import days_ago, utc_now
+from src.utils.datetime_utils import days_ago, naive_utc_now, utc_now
 
 
 @pytest_asyncio.fixture
@@ -14,9 +14,18 @@ async def test_transaction_history(
     db_session: AsyncSession,
     test_checking_account,
 ) -> TransactionHistory:
-    """Create a test transaction for use in tests."""
+    """
+    Create a test transaction for use in tests.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        
+    Returns:
+        TransactionHistory: Created transaction history record
+    """
     # Create a naive datetime for DB storage
-    transaction_date = utc_now().replace(tzinfo=None)
+    transaction_date = naive_utc_now()
 
     # Create model instance directly
     transaction = TransactionHistory(
@@ -41,7 +50,17 @@ async def test_multiple_transactions(
     test_checking_account,
     test_credit_account,
 ) -> List[TransactionHistory]:
-    """Create multiple test transactions for use in tests."""
+    """
+    Create multiple test transactions for use in tests.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        test_credit_account: Test credit account fixture
+        
+    Returns:
+        List[TransactionHistory]: List of created transaction history records
+    """
     now = utc_now()
 
     # Transaction configs for different scenarios
@@ -151,7 +170,7 @@ async def test_multiple_transactions(
             description=config["description"],
             transaction_date=naive_date,
             transaction_type=config["transaction_type"],
-            # Removed balance_after and category as they don't exist in the model
+            # balance_after and category fields are not used in the model
         )
 
         # Add to session manually
@@ -181,6 +200,13 @@ async def test_recurring_transaction_patterns(
     - 2 monthly bill payments (Monthly Internet Bill)
 
     All created directly as models, bypassing repository methods.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        
+    Returns:
+        List[TransactionHistory]: List of created transaction history records with recurring patterns
     """
     transactions = []
 
@@ -234,6 +260,13 @@ async def test_date_range_transactions(
     - 30, 45, 60 days ago (outside common test ranges)
 
     Alternates between CREDIT and DEBIT types for variety.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        
+    Returns:
+        List[TransactionHistory]: List of created transaction history records across date ranges
     """
     transactions = []
 

@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 from decimal import Decimal
 from typing import List
 
@@ -6,6 +5,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.income import Income
+from src.utils.datetime_utils import naive_utc_now
 
 
 @pytest_asyncio.fixture
@@ -13,9 +13,18 @@ async def test_income(
     db_session: AsyncSession,
     test_checking_account,
 ) -> Income:
-    """Fixture to create a test income entry."""
+    """
+    Create a test income entry.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        
+    Returns:
+        Income: Created income entry
+    """
     # Create a naive datetime for DB storage
-    income_date = datetime.now(timezone.utc).replace(tzinfo=None)
+    income_date = naive_utc_now()
 
     # Create model instance directly
     income = Income(
@@ -39,9 +48,18 @@ async def test_additional_income(
     db_session: AsyncSession,
     test_second_account,
 ) -> Income:
-    """Fixture to create a second test income entry."""
+    """
+    Create a second test income entry.
+    
+    Args:
+        db_session: Database session fixture
+        test_second_account: Test second account fixture
+        
+    Returns:
+        Income: Created additional income entry
+    """
     # Create a naive datetime for DB storage
-    income_date = datetime.now(timezone.utc).replace(tzinfo=None)
+    income_date = naive_utc_now()
 
     # Create model instance directly
     income = Income(
@@ -64,8 +82,19 @@ async def test_additional_income(
 async def test_income_entries(
     db_session: AsyncSession,
     test_multiple_categories,
+    test_checking_account,
 ) -> List[Income]:
-    """Fixture to create test income entries associated with categories."""
+    """
+    Create test income entries associated with categories.
+    
+    Args:
+        db_session: Database session fixture
+        test_multiple_categories: Test multiple categories fixture
+        test_checking_account: Test checking account fixture
+        
+    Returns:
+        List[Income]: List of created income entries
+    """
     # Get category IDs for reference
     salary_category_id = test_multiple_categories[0].id
     freelance_category_id = test_multiple_categories[1].id
@@ -76,42 +105,42 @@ async def test_income_entries(
         {
             "source": "Monthly Salary",
             "amount": Decimal("3000.00"),
-            "account_id": 1,  # Using a default account ID
+            "account_id": test_checking_account.id,
             "category_id": salary_category_id,
             "deposited": True,
         },
         {
             "source": "Bonus",
             "amount": Decimal("1000.00"),
-            "account_id": 1,
+            "account_id": test_checking_account.id,
             "category_id": salary_category_id,
             "deposited": True,
         },
         {
             "source": "Website Project",
             "amount": Decimal("800.00"),
-            "account_id": 1,
+            "account_id": test_checking_account.id,
             "category_id": freelance_category_id,
             "deposited": False,
         },
         {
             "source": "Logo Design",
             "amount": Decimal("350.00"),
-            "account_id": 1,
+            "account_id": test_checking_account.id,
             "category_id": freelance_category_id,
             "deposited": True,
         },
         {
             "source": "Stock Dividends",
             "amount": Decimal("420.00"),
-            "account_id": 1,
+            "account_id": test_checking_account.id,
             "category_id": investments_category_id,
             "deposited": False,
         },
     ]
 
     # Create a naive datetime for DB storage
-    income_date = datetime.now(timezone.utc).replace(tzinfo=None)
+    income_date = naive_utc_now()
 
     # Create the income entries using direct model instantiation
     created_incomes = []
@@ -142,8 +171,17 @@ async def test_income_entries(
 
 @pytest_asyncio.fixture
 async def test_income_record(db_session: AsyncSession, test_checking_account) -> Income:
-    """Create a test income record"""
-    income_date = datetime.now(timezone.utc).replace(tzinfo=None)
+    """
+    Create a test income record.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        
+    Returns:
+        Income: Created income record
+    """
+    income_date = naive_utc_now()
 
     income = Income(
         date=income_date,

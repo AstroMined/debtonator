@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.balance_history import BalanceHistory
 from src.models.balance_reconciliation import BalanceReconciliation
-from src.utils.datetime_utils import days_ago, utc_now
+from src.utils.datetime_utils import days_ago, naive_utc_now, utc_now
 
 
 @pytest_asyncio.fixture
@@ -15,9 +15,18 @@ async def test_balance_history(
     db_session: AsyncSession,
     test_checking_account,
 ) -> BalanceHistory:
-    """Create a test balance history record for use in tests."""
-    # Get a UTC timestamp but make it naive for DB storage
-    timestamp = utc_now().replace(tzinfo=None)
+    """
+    Create a test balance history record for use in tests.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        
+    Returns:
+        BalanceHistory: Created balance history record
+    """
+    # Get a naive UTC timestamp for DB storage
+    timestamp = naive_utc_now()
 
     # Create model instance directly
     balance = BalanceHistory(
@@ -41,7 +50,16 @@ async def test_multiple_balances(
     db_session: AsyncSession,
     test_checking_account,
 ) -> List[BalanceHistory]:
-    """Create multiple balance history records for use in tests."""
+    """
+    Create multiple balance history records for use in tests.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        
+    Returns:
+        List[BalanceHistory]: List of created balance history records
+    """
     now = utc_now()
     balance_configs = [
         (now - timedelta(days=20), Decimal("1000.00"), False, "Initial balance"),
@@ -82,9 +100,18 @@ async def test_balance_reconciliation(
     db_session: AsyncSession,
     test_checking_account,
 ) -> BalanceReconciliation:
-    """Create a test balance reconciliation entry for use in tests."""
+    """
+    Create a test balance reconciliation entry for use in tests.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        
+    Returns:
+        BalanceReconciliation: Created balance reconciliation record
+    """
     # Create a naive datetime for DB storage
-    naive_date = utc_now().replace(tzinfo=None)
+    naive_date = naive_utc_now()
 
     # Create model instance directly
     reconciliation = BalanceReconciliation(
@@ -109,7 +136,16 @@ async def test_multiple_reconciliations(
     db_session: AsyncSession,
     test_checking_account,
 ) -> List[BalanceReconciliation]:
-    """Create multiple balance reconciliation entries for testing."""
+    """
+    Create multiple balance reconciliation entries for testing.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        
+    Returns:
+        List[BalanceReconciliation]: List of created balance reconciliation records
+    """
     # Create multiple reconciliation entries with different dates
     entries = []
 
@@ -146,7 +182,16 @@ async def test_balance_history_with_gaps(
     db_session: AsyncSession,
     test_checking_account,
 ) -> List[BalanceHistory]:
-    """Create balance history records with specific gaps for missing days test."""
+    """
+    Create balance history records with specific gaps for missing days test.
+    
+    Args:
+        db_session: Database session fixture
+        test_checking_account: Test checking account fixture
+        
+    Returns:
+        List[BalanceHistory]: List of created balance history records with gaps
+    """
     now = utc_now()
     today = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
@@ -178,8 +223,5 @@ async def test_balance_history_with_gaps(
     for balance in balances:
         await db_session.refresh(balance)
 
-    # Print actual dates for debugging
-    print(
-        f"Created balance entries for dates: {[b.timestamp.date() for b in balances]}"
-    )
+    # Removed print statement as per code review
     return balances
