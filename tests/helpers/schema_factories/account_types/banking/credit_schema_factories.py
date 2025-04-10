@@ -12,6 +12,7 @@ from typing import Any, Dict, Optional
 from src.schemas.account_types.banking.credit import (
     CreditAccountCreate,
     CreditAccountResponse,
+    CreditAccountUpdate,
 )
 from src.utils.datetime_utils import utc_now
 from tests.helpers.schema_factories.base_schema_schema_factories import (
@@ -126,6 +127,93 @@ def create_credit_account_schema(
 
     if autopay_status is not None:
         data["autopay_status"] = autopay_status
+
+    # Add any additional fields from kwargs
+    data.update(kwargs)
+
+    return data
+
+
+@factory_function(CreditAccountUpdate)
+def create_credit_account_update_schema(
+    name: Optional[str] = None,
+    current_balance: Optional[Decimal] = None,
+    available_balance: Optional[Decimal] = None,
+    institution: Optional[str] = None,
+    credit_limit: Optional[Decimal] = None,
+    statement_balance: Optional[Decimal] = None,
+    statement_due_date: Optional[datetime] = None,
+    minimum_payment: Optional[Decimal] = None,
+    apr: Optional[Decimal] = None,
+    annual_fee: Optional[Decimal] = None,
+    rewards_program: Optional[str] = None,
+    autopay_status: Optional[str] = None,
+    last_statement_date: Optional[datetime] = None,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """
+    Create a valid CreditAccountUpdate schema instance.
+
+    Args:
+        name: Account name
+        current_balance: Current account balance (negative for credit accounts)
+        available_balance: Available balance
+        institution: Bank or financial institution name
+        credit_limit: Total credit limit
+        statement_balance: Current statement balance
+        statement_due_date: Payment due date for current statement
+        minimum_payment: Minimum payment due
+        apr: Annual Percentage Rate
+        annual_fee: Annual card fee
+        rewards_program: Rewards program name
+        autopay_status: Autopay status (none, minimum, full_balance, fixed_amount)
+        last_statement_date: Date of last statement
+        **kwargs: Additional fields to override
+
+    Returns:
+        Dict[str, Any]: Data to create CreditAccountUpdate schema
+    """
+    data = {}
+
+    # Only include fields that are provided (not None)
+    if name is not None:
+        data["name"] = name
+
+    if current_balance is not None:
+        data["current_balance"] = current_balance
+
+    if available_balance is not None:
+        data["available_balance"] = available_balance
+
+    if institution is not None:
+        data["institution"] = institution
+
+    if credit_limit is not None:
+        data["credit_limit"] = credit_limit
+
+    if statement_balance is not None:
+        data["statement_balance"] = statement_balance
+
+    if statement_due_date is not None:
+        data["statement_due_date"] = statement_due_date
+
+    if minimum_payment is not None:
+        data["minimum_payment"] = minimum_payment
+
+    if apr is not None:
+        data["apr"] = apr
+
+    if annual_fee is not None:
+        data["annual_fee"] = annual_fee
+
+    if rewards_program is not None:
+        data["rewards_program"] = rewards_program
+
+    if autopay_status is not None:
+        data["autopay_status"] = autopay_status
+
+    if last_statement_date is not None:
+        data["last_statement_date"] = last_statement_date
 
     # Add any additional fields from kwargs
     data.update(kwargs)

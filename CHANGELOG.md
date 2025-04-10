@@ -7,6 +7,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.100] - 2025-04-10
+
+### Fixed
+
+- Fixed repository fixtures for account types to use the new factory method pattern:
+  - Updated fixture_bnpl_repositories.py to use repository_factory(account_type="bnpl")
+  - Updated fixture_ewa_repositories.py to use repository_factory(account_type="ewa")
+  - Updated fixture_payment_app_repositories.py to use repository_factory(account_type="payment_app")
+- Fixed schema validation errors in test files:
+  - Updated test_credit_crud.py to use "minimum" instead of "minimum_payment" for autopay_status
+  - Updated test_savings_crud.py to use 0.0175 and 0.0225 instead of 1.75 and 2.25 for interest_rate
+- Identified remaining issues in create_typed_account tests that need to be addressed in future work
+
+### Changed
+
+- Updated code_review.md to reflect progress on repository test refactoring
+- Enhanced repository test implementation with proper schema validation
+- Improved documentation of repository test patterns
+
 ## [0.5.99] - 2025-04-10
 
 ### Changed

@@ -11,6 +11,7 @@ from typing import Any, Dict, Optional
 from src.schemas.account_types.banking.checking import (
     CheckingAccountCreate,
     CheckingAccountResponse,
+    CheckingAccountUpdate,
 )
 from src.utils.datetime_utils import utc_now
 from tests.helpers.schema_factories.base_schema_schema_factories import (
@@ -108,6 +109,100 @@ def create_checking_account_schema(
 
     if branch_code is not None:
         data["branch_code"] = branch_code
+
+    # Add any additional fields from kwargs
+    data.update(kwargs)
+
+    return data
+
+
+@factory_function(CheckingAccountUpdate)
+def create_checking_account_update_schema(
+    name: Optional[str] = None,
+    current_balance: Optional[Decimal] = None,
+    available_balance: Optional[Decimal] = None,
+    institution: Optional[str] = None,
+    routing_number: Optional[str] = None,
+    has_overdraft_protection: Optional[bool] = None,
+    overdraft_limit: Optional[Decimal] = None,
+    monthly_fee: Optional[Decimal] = None,
+    interest_rate: Optional[Decimal] = None,
+    # International banking fields
+    iban: Optional[str] = None,
+    swift_bic: Optional[str] = None,
+    sort_code: Optional[str] = None,
+    branch_code: Optional[str] = None,
+    account_format: Optional[str] = None,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """
+    Create a valid CheckingAccountUpdate schema instance.
+
+    Args:
+        name: Account name
+        current_balance: Current account balance
+        available_balance: Available balance
+        institution: Bank or financial institution name
+        routing_number: Account routing number
+        has_overdraft_protection: Whether overdraft protection is enabled
+        overdraft_limit: Overdraft limit
+        monthly_fee: Monthly account maintenance fee
+        interest_rate: Annual interest rate (if interest-bearing)
+        iban: International Bank Account Number
+        swift_bic: SWIFT/BIC code for international transfers
+        sort_code: Sort code (used in UK and other countries)
+        branch_code: Branch code (used in various countries)
+        account_format: Account number format (local, iban, etc.)
+        **kwargs: Additional fields to override
+
+    Returns:
+        Dict[str, Any]: Data to create CheckingAccountUpdate schema
+    """
+    data = {}
+
+    # Only include fields that are provided (not None)
+    if name is not None:
+        data["name"] = name
+
+    if current_balance is not None:
+        data["current_balance"] = current_balance
+
+    if available_balance is not None:
+        data["available_balance"] = available_balance
+
+    if institution is not None:
+        data["institution"] = institution
+
+    if routing_number is not None:
+        data["routing_number"] = routing_number
+
+    if has_overdraft_protection is not None:
+        data["has_overdraft_protection"] = has_overdraft_protection
+
+    if overdraft_limit is not None:
+        data["overdraft_limit"] = overdraft_limit
+
+    if monthly_fee is not None:
+        data["monthly_fee"] = monthly_fee
+
+    if interest_rate is not None:
+        data["interest_rate"] = interest_rate
+
+    # Add international banking fields if provided
+    if iban is not None:
+        data["iban"] = iban
+
+    if swift_bic is not None:
+        data["swift_bic"] = swift_bic
+
+    if sort_code is not None:
+        data["sort_code"] = sort_code
+
+    if branch_code is not None:
+        data["branch_code"] = branch_code
+
+    if account_format is not None:
+        data["account_format"] = account_format
 
     # Add any additional fields from kwargs
     data.update(kwargs)

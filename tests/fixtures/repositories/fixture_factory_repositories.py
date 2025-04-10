@@ -12,7 +12,7 @@ from src.repositories.factory import RepositoryFactory
 
 
 @pytest_asyncio.fixture
-async def repository_factory(db_session: AsyncSession) -> RepositoryFactory:
+async def repository_factory(db_session: AsyncSession):
     """
     Create a repository factory for testing.
     
@@ -23,6 +23,23 @@ async def repository_factory(db_session: AsyncSession) -> RepositoryFactory:
         db_session: Database session fixture
         
     Returns:
-        RepositoryFactory: Factory for creating repositories
+        Function: Factory function for creating repositories
     """
-    return RepositoryFactory(db_session)
+    return lambda account_type=None: RepositoryFactory.create_account_repository(db_session, account_type)
+
+@pytest_asyncio.fixture
+async def repository(db_session: AsyncSession):
+    """
+    Alias for account_repository fixture.
+    
+    This fixture provides backward compatibility for tests that use 'repository'
+    instead of 'account_repository'.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        AccountRepository: Repository for account operations
+    """
+    from src.repositories.accounts import AccountRepository
+    return AccountRepository(db_session)

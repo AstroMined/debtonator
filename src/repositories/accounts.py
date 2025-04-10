@@ -385,17 +385,53 @@ class AccountRepository(BaseRepository[Account, int]):
             model_class = account_type_registry.get_model_class(account_type)
             if not model_class:
                 raise ValueError(f"Unknown account type: {account_type}")
-
+        
         # If no model class found, fall back to base Account
         if not model_class:
             model_class = Account
-
+            
         # Ensure account_type is set correctly
         if "account_type" not in data:
             data["account_type"] = account_type
+        
+        # Filter data to only include fields valid for this model class
+        filtered_data = {}
+        
+        # Get all valid columns for this model class and its parent classes
+        valid_columns = set()
+        current_class = model_class
+        
+        # Walk up the inheritance hierarchy to collect all valid columns
+        while current_class is not object:
+            if hasattr(current_class, "__table__"):
+                valid_columns.update(column.key for column in current_class.__table__.columns)
+            
+            # Move to the parent class
+            current_class = current_class.__base__
+            
+            # Stop if we've reached the base SQLAlchemy model
+            if current_class.__name__ == "Base":
+                break
+        
+        # If we couldn't determine columns, use a more direct approach
+        if not valid_columns and hasattr(model_class, "__mapper__"):
+            valid_columns = set(model_class.__mapper__.column_attrs.keys())
+        
+        # Include only valid columns in filtered data
+        if valid_columns:
+            for key, value in data.items():
+                if key in valid_columns:
+                    filtered_data[key] = value
+                
+            # Ensure account_type is set
+            filtered_data["account_type"] = account_type
+        else:
+            # If we still can't determine columns, use the original data
+            filtered_data = data.copy()
+            filtered_data["account_type"] = account_type
 
         # Create the account using the appropriate model class
-        db_obj = model_class(**data)
+        db_obj = model_class(**filtered_data)
         self.session.add(db_obj)
         await self.session.flush()
         await self.session.refresh(db_obj)
@@ -465,7 +501,51 @@ class AccountRepository(BaseRepository[Account, int]):
             if not feature_flag_service.is_enabled("MULTI_CURRENCY_SUPPORT_ENABLED"):
                 # Force USD if multi-currency is disabled
                 data["currency"] = "USD"
+        
+        # Filter data to only include fields valid for this account type
+        filtered_data = data.copy()
+        
+        # Remove account_type if it's None to preserve the existing value
+        if "account_type" in filtered_data and filtered_data["account_type"] is None:
+            del filtered_data["account_type"]
+        
+        # Get model class if registry is provided
+        model_class = None
+        if account_type_registry:
+            model_class = account_type_registry.get_model_class(account_type)
+        
+        # Filter fields if we have a model class
+        if model_class:
+            # Get all valid columns for this model class and its parent classes
+            valid_columns = set()
+            current_class = model_class
+            
+            # Walk up the inheritance hierarchy to collect all valid columns
+            while current_class is not object:
+                if hasattr(current_class, "__table__"):
+                    valid_columns.update(column.key for column in current_class.__table__.columns)
+                
+                # Move to the parent class
+                current_class = current_class.__base__
+                
+                # Stop if we've reached the base SQLAlchemy model
+                if current_class.__name__ == "Base":
+                    break
+            
+            # If we couldn't determine columns, use a more direct approach
+            if not valid_columns and hasattr(model_class, "__mapper__"):
+                valid_columns = set(model_class.__mapper__.column_attrs.keys())
+            
+            # Filter data to only include valid columns
+            if valid_columns:
+                keys_to_remove = []
+                for key in filtered_data:
+                    if key not in valid_columns:
+                        keys_to_remove.append(key)
+                
+                for key in keys_to_remove:
+                    del filtered_data[key]
 
         # Update the entity
-        updated_account = await self.update(account_id, data)
+        updated_account = await self.update(account_id, filtered_data)
         return updated_account

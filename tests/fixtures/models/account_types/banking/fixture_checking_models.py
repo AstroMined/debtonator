@@ -10,6 +10,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.account_types.banking.checking import CheckingAccount
+from src.utils.datetime_utils import naive_utc_now
 
 
 @pytest_asyncio.fixture
@@ -74,4 +75,33 @@ async def test_international_checking(db_session: AsyncSession) -> CheckingAccou
     await db_session.flush()
     await db_session.refresh(account)
 
+    return account
+
+
+@pytest_asyncio.fixture
+async def test_checking_for_module(db_session: AsyncSession) -> CheckingAccount:
+    """
+    Create a checking account for testing module-specific repository methods.
+    
+    This fixture creates a checking account with overdraft protection specifically
+    for testing the dynamic method binding in the repository factory.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        CheckingAccount: Checking account with overdraft protection
+    """
+    account = CheckingAccount(
+        name="Module Test Checking",
+        current_balance=Decimal("1000.00"),
+        available_balance=Decimal("1000.00"),
+        has_overdraft_protection=True,
+        overdraft_limit=Decimal("500.00"),
+        created_at=naive_utc_now(),
+        updated_at=naive_utc_now(),
+    )
+    db_session.add(account)
+    await db_session.flush()
+    await db_session.refresh(account)
     return account

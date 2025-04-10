@@ -249,38 +249,26 @@ Issues:
 
 ### account_types/banking/test_checking.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/account_types/banking/fixture_checking_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests use class-style organization instead of function-style
-- Missing proper docstrings for some test functions
-- Tests should be split between crud and advanced directories
+This file has been refactored and split into:
+- crud/account_types/banking/test_checking_crud.py
+- advanced/account_types/banking/test_checking_advanced.py
 
 ### account_types/banking/test_credit.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/account_types/banking/fixture_credit_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests use class-style organization instead of function-style
-- Missing proper docstrings for some test functions
-- Tests should be split between crud and advanced directories
+This file has been refactored and split into:
+- crud/account_types/banking/test_credit_crud.py
+- advanced/account_types/banking/test_credit_advanced.py
 
 ### account_types/banking/test_savings.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/account_types/banking/fixture_savings_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests use class-style organization instead of function-style
-- Missing proper docstrings for some test functions
-- Tests should be split between crud and advanced directories
+This file has been refactored and split into:
+- crud/account_types/banking/test_savings_crud.py
+- advanced/account_types/banking/test_savings_advanced.py
 
 ### bill_splits/test_bill_splits_with_account_types.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/fixture_bill_splits_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests use repository dependencies instead of model fixtures
-- Tests should be moved to advanced directory
+This file has been refactored and moved to:
+- advanced/bill_splits/test_bill_splits_with_account_types_advanced.py
 
 ## Pylint Configuration
 
@@ -355,6 +343,30 @@ Based on the issues identified, the following actions are recommended:
      - Fixed crud/account_types/banking/test_payment_app_crud.py
      - Verified test_account_repository_advanced.py already complies with standards
      - Fixed test_balance_history_repository_advanced.py
+     - Fixed advanced/account_types/banking/test_bnpl_advanced.py
+     - Fixed advanced/account_types/banking/test_ewa_advanced.py
+     - Fixed advanced/account_types/banking/test_payment_app_advanced.py
+     - Fixed test_base_repository.py
+     - Fixed test_factory.py
+     - Fixed test_feature_flag_repository.py
+     - Split account_types/banking/test_checking.py into:
+       - crud/account_types/banking/test_checking_crud.py
+       - advanced/account_types/banking/test_checking_advanced.py
+     - Split account_types/banking/test_credit.py into:
+       - crud/account_types/banking/test_credit_crud.py
+       - advanced/account_types/banking/test_credit_advanced.py
+     - Added missing schema factory function: create_credit_account_update_schema
+     - Added missing schema class: CreditAccountUpdate
+     - Split account_types/banking/test_savings.py into:
+       - crud/account_types/banking/test_savings_crud.py
+       - advanced/account_types/banking/test_savings_advanced.py
+     - Added missing schema factory function: create_savings_account_update_schema
+     - Added missing schema class: SavingsAccountUpdate
+     - Moved bill_splits/test_bill_splits_with_account_types.py to:
+       - advanced/bill_splits/test_bill_splits_with_account_types_advanced.py
+       - Converted to function-style tests with schema factories
+     - Added missing schema factory function: create_checking_account_update_schema
+     - Added missing schema class: CheckingAccountUpdate
    - Final review to ensure issues are resolved
 
 2. Prioritize fixing remaining issues in this order:

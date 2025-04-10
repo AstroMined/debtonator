@@ -11,6 +11,7 @@ from typing import Any, Dict, Optional
 from src.schemas.account_types.banking.savings import (
     SavingsAccountCreate,
     SavingsAccountResponse,
+    SavingsAccountUpdate,
 )
 from src.utils.datetime_utils import utc_now
 from tests.helpers.schema_factories.base_schema_schema_factories import (
@@ -89,6 +90,73 @@ def create_savings_account_schema(
         data["minimum_balance"] = minimum_balance
     else:
         data["minimum_balance"] = COMMON_AMOUNTS["medium"]  # 100.00
+
+    # Add any additional fields from kwargs
+    data.update(kwargs)
+
+    return data
+
+
+@factory_function(SavingsAccountUpdate)
+def create_savings_account_update_schema(
+    name: Optional[str] = None,
+    current_balance: Optional[Decimal] = None,
+    available_balance: Optional[Decimal] = None,
+    institution: Optional[str] = None,
+    interest_rate: Optional[Decimal] = None,
+    compound_frequency: Optional[str] = None,
+    interest_earned_ytd: Optional[Decimal] = None,
+    withdrawal_limit: Optional[int] = None,
+    minimum_balance: Optional[Decimal] = None,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """
+    Create a valid SavingsAccountUpdate schema instance.
+
+    Args:
+        name: Account name
+        current_balance: Current account balance
+        available_balance: Available balance
+        institution: Bank or financial institution name
+        interest_rate: Annual interest rate as a decimal
+        compound_frequency: Interest compounding frequency (daily, monthly, quarterly, annually)
+        interest_earned_ytd: Interest earned year-to-date
+        withdrawal_limit: Maximum number of withdrawals per period
+        minimum_balance: Minimum balance required to avoid fees
+        **kwargs: Additional fields to override
+
+    Returns:
+        Dict[str, Any]: Data to create SavingsAccountUpdate schema
+    """
+    data = {}
+
+    # Only include fields that are provided (not None)
+    if name is not None:
+        data["name"] = name
+
+    if current_balance is not None:
+        data["current_balance"] = current_balance
+
+    if available_balance is not None:
+        data["available_balance"] = available_balance
+
+    if institution is not None:
+        data["institution"] = institution
+
+    if interest_rate is not None:
+        data["interest_rate"] = interest_rate
+
+    if compound_frequency is not None:
+        data["compound_frequency"] = compound_frequency
+
+    if interest_earned_ytd is not None:
+        data["interest_earned_ytd"] = interest_earned_ytd
+
+    if withdrawal_limit is not None:
+        data["withdrawal_limit"] = withdrawal_limit
+
+    if minimum_balance is not None:
+        data["minimum_balance"] = minimum_balance
 
     # Add any additional fields from kwargs
     data.update(kwargs)

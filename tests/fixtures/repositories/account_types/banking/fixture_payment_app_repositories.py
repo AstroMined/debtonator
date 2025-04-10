@@ -28,6 +28,4 @@ async def payment_app_repository(
     Returns:
         AccountRepository: Repository with payment app-specific operations
     """
-    return repository_factory.create_account_repository(
-        session=db_session, account_type="payment_app"
-    )
+    return repository_factory(account_type="payment_app")

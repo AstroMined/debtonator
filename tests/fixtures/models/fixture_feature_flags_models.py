@@ -178,6 +178,36 @@ async def test_multiple_flags(db_session: AsyncSession) -> List[FeatureFlag]:
 
 
 @pytest_asyncio.fixture
+async def sample_flag(db_session: AsyncSession) -> FeatureFlag:
+    """
+    Create a sample feature flag for repository testing.
+    
+    This fixture creates a boolean feature flag with metadata for
+    testing the feature flag repository.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        FeatureFlag: Created sample feature flag
+    """
+    flag = FeatureFlag(
+        name="TEST_BOOLEAN_FLAG",
+        flag_type="boolean",
+        value=True,
+        description="Test boolean flag",
+        flag_metadata={"test": "metadata"},
+        is_system=False,
+        created_at=days_ago(0),  # today
+        updated_at=days_ago(0),  # today
+    )
+    db_session.add(flag)
+    await db_session.flush()
+    await db_session.refresh(flag)
+    return flag
+
+
+@pytest_asyncio.fixture
 async def env_setup():
     """
     Setup and teardown for environment variable tests.

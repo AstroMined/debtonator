@@ -28,6 +28,4 @@ async def ewa_repository(
     Returns:
         AccountRepository: Repository with EWA-specific operations
     """
-    return repository_factory.create_account_repository(
-        session=db_session, account_type="ewa"
-    )
+    return repository_factory(account_type="ewa")

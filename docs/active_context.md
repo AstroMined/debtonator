@@ -6,7 +6,18 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 
 ### Recent Changes
 
-1. **Completed Repository Test Refactoring for Advanced Tests (April 10, 2025)** ✓
+1. **Fixed Repository Fixtures and Schema Validation (April 10, 2025)** ✓
+   - Fixed repository fixtures for account types to use the new factory method pattern:
+     - Updated fixture_bnpl_repositories.py to use repository_factory(account_type="bnpl")
+     - Updated fixture_ewa_repositories.py to use repository_factory(account_type="ewa")
+     - Updated fixture_payment_app_repositories.py to use repository_factory(account_type="payment_app")
+   - Fixed schema validation errors in test files:
+     - Updated test_credit_crud.py to use "minimum" instead of "minimum_payment" for autopay_status
+     - Updated test_savings_crud.py to use 0.0175 and 0.0225 instead of 1.75 and 2.25 for interest_rate
+   - Identified remaining issues in create_typed_account tests that need to be addressed
+   - Updated code_review.md to reflect progress on repository test refactoring
+
+2. **Completed Repository Test Refactoring for Advanced Tests (April 10, 2025)** ✓
    - Refactored 14 advanced repository test files to comply with project standards:
      - test_balance_history_repository_advanced.py
      - test_bill_split_repository_advanced.py
