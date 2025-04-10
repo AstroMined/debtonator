@@ -1,619 +1,355 @@
-# ADR-024 Implementation Checklist: Feature Flag System (Revised)
+# ADR-024 Implementation Checklist: Database-Driven Feature Flag System (Revised)
 
-This checklist outlines the specific tasks required to implement the Feature Flag System as defined in ADR-024. Each task includes verification criteria and integrated testing to ensure proper implementation at each stage. This revised version aligns with the existing project architecture, incorporating the registry pattern established in ADR-016, and removes requirements for data migration.
+This checklist outlines the tasks required to implement the revised Feature Flag System as defined in ADR-024. This implementation focuses on replacing scattered feature flag checks with a centralized middleware/interceptor pattern that enforces feature flags at well-defined architectural boundaries while storing both flag values AND requirements mapping in the database.
 
-## Current Status (April 5, 2025)
+## Phase 1: Repository Layer Implementation
 
-Overall completion: ~65%
+### 1.1 Update Feature Flag Database Model
 
-Major completed components:
+- [x] Update `src/models/feature_flags.py`:
+  - [x] Add `requirements` column (JSON) to store method requirements
+  - [x] Add docstring explaining the requirements format
+  - [x] ~~Add migration script for database schema update~~ (Database can be recreated)
+  - [x] ~~Add indexes for performance optimization~~ (Not needed for current scale)
 
-- Core Infrastructure (100%)
-- API and Dependency Integration (100%)
-- Repository Layer Integration (100%)
-- Feature Flag Integration for Banking Account Types (85%)
-- Service Layer Integration (40%)
+### 1.2 Feature Flag Repository Proxy
 
-Major remaining components:
+- [x] Create `src/repositories/proxies/feature_flag_proxy.py`:
+  - [x] Implement `FeatureFlagRepositoryProxy` class that takes repository and feature_flag_service
+  - [x] Implement `__getattr__` method to intercept attribute access
+  - [x] Add method wrapping with feature checking logic
+  - [x] Extract account_type from method args/kwargs
+  - [x] Check feature requirements for specific operations
+  - [x] Raise `FeatureDisabledError` with appropriate context
+  - [x] Add logging for successful/failed checks
+  - [x] Add caching mechanism for requirements with TTL
 
-- Complete Service Layer Integration
-- Feature Flag Management Interface
-- Monitoring and Logging
-- Documentation and Training
-- Deployment and Rollout
+### 1.3 Feature Flag Exceptions
 
-## Phase 1: Core Infrastructure
+- [x] Create `src/errors/feature_flags.py`:
+  - [x] Implement base `FeatureFlagError` class
+  - [x] Create `FeatureDisabledError` with feature_name, entity_type, and entity_id properties
+  - [x] Implement `FeatureConfigurationError` for configuration issues
+  - [x] Add clear error message formatting
+  - [x] Maintain backward compatibility with existing error classes
 
-### 1.1 Feature Flag Model and Schema ✅
+### 1.4 Database-Driven Config Provider
 
-- [x] Create `src/models/feature_flags.py`:
-  - [x] Implement `FeatureFlag` model with name, value, created_at, updated_at
-  - [x] Define JSON field for storing complex flag values
-  - [x] Create appropriate indexes
-  - [x] Add relationship to audit log (if applicable)
+- [x] Create `src/config/providers/feature_flags.py`:
+  - [x] Implement `ConfigProvider` base interface
+  - [x] Create `DatabaseConfigProvider` that loads from feature flag repository:
+    - [x] Add methods to get repository requirements
+    - [x] Add methods to get service requirements
+    - [x] Add methods to get API requirements
+    - [x] Implement caching mechanism with TTL
+    - [x] Add cache invalidation on flag changes
+  - [x] Implement fallback to default requirements if database access fails
+  - [x] Implement InMemoryConfigProvider for testing purposes
 
-- [x] Create `src/schemas/feature_flags.py`:
-  - [x] Implement `FeatureFlagBase` schema with base fields
-  - [x] Implement `FeatureFlagCreate` schema for creating flags
-  - [x] Implement `FeatureFlagUpdate` schema for updating flags
-  - [x] Implement `FeatureFlagResponse` schema for API responses
-  - [x] Add validation for different flag types (boolean, percentage, segment, time-based)
-  - [x] Ensure proper JSON schema validation for complex flag values
+### 1.5 Feature Flag Requirements Initialization
 
-- [x] Create `tests/unit/schemas/test_feature_flag_schemas.py`:
-  - [x] Test schema validation for different flag types
-  - [x] Test error handling for invalid inputs
-  - [x] Test serialization/deserialization
-  - [x] Test complex flag value validation
+- [x] Create `src/utils/feature_flags/requirements.py`:
+  - [x] Define initial requirements mapping for repository methods
+  - [x] Define initial requirements mapping for service methods
+  - [x] Define initial requirements mapping for API endpoints
+  - [x] Add utility functions to access requirements by layer
+  - [x] Update feature flag initialization to include requirements
 
-### 1.2 Feature Flag Registry ✅
-
-- [x] Create `src/registry/feature_flags.py`:
-  - [x] Implement `FeatureFlagRegistry` class with empty dictionary
-  - [x] Implement `register()` method for flag registration
-  - [x] Implement `get_value()` method to retrieve flag values
-  - [x] Implement `set_value()` method to update flag values
-  - [x] Implement flag types (boolean, percentage, user segment, time-based)
-  - [x] Add observer pattern for change notifications
-  - [x] Ensure thread safety for concurrent access
-
-- [x] Create `tests/unit/registry/test_feature_flag_registry.py`:
-  - [x] Test registration of feature flags
-  - [x] Test retrieval of flag values
-  - [x] Test updating of flag values
-  - [x] Test boolean flag evaluation
-  - [x] Test percentage rollout flag evaluation
-  - [x] Test user segment flag evaluation
-  - [x] Test time-based flag evaluation
-  - [x] Test observer notification on flag changes
-
-### 1.3 Feature Flag Repository ✅
-
-- [x] Create `src/repositories/feature_flags.py`:
-  - [x] Implement `FeatureFlagRepository` class extending `BaseRepository`
-  - [x] Implement methods to load all flags
-  - [x] Implement methods to get specific flags
-  - [x] Implement methods to create/update flags
-  - [x] Ensure proper transaction handling
-  - [x] Add methods for flag history (if applicable)
-  - [x] Implement bulk operations for efficiency
-
-- [x] Create `tests/integration/repositories/test_feature_flag_repository.py`:
-  - [x] Test loading all flags
-  - [x] Test getting specific flags
-  - [x] Test creating/updating flags
-  - [x] Test transaction handling
-  - [x] Test with real database (no mocks)
-  - [x] Test bulk operations
-
-### 1.4 Feature Flag Service ✅
-
-- [x] Create `src/services/feature_flags.py`:
-  - [x] Implement `FeatureFlagService` class
-  - [x] Implement initialization with registry and repository
-  - [x] Implement `is_enabled()` method for checking flags
-  - [x] Implement `set_enabled()` method for updating flags
-  - [x] Implement `get_all_flags()` method for admin interface
-  - [x] Add context support for user-specific flags
-  - [x] Add logging for flag changes
-  - [x] Implement caching for performance
-
-- [x] Create `tests/integration/services/test_feature_flag_service.py`:
-  - [x] Test initialization with registry and repository
-  - [x] Test checking if flags are enabled
-  - [x] Test updating flag values
-  - [x] Test context-based flag evaluation
-  - [x] Test observer notifications
-  - [x] Test with real dependencies (no mocks)
-  - [x] Test caching behavior
-
-### 1.5 Application Integration ✅
-
-- [x] Create `src/config/feature_flags.py`:
-  - [x] Define configuration function for registering default flags
-  - [x] Define default flags and values
-  - [x] Implement initialization during app startup
-  - [x] Add environment-specific configuration
-
-- [x] Update `src/app.py` to initialize feature flags:
-  - [x] Add feature flag registry to application context
-  - [x] Add feature flag service to application context
-  - [x] Configure registry and service during startup
-  - [x] Ensure proper initialization order with dependencies
-
-- [x] Create `tests/integration/config/test_feature_flag_config.py`:
-  - [x] Test application startup with feature flags
-  - [x] Test default configuration values
-  - [x] Test environment-specific configuration
-  - [x] Test re-initialization after changes
-
-## Phase 2: API and Dependency Integration
-
-### 2.1 API Endpoints ✅
-
-- [x] Create `src/api/v1/feature_flags.py`:
-  - [x] Implement GET endpoint to list all flags
-  - [x] Implement GET endpoint to get specific flag
-  - [x] Implement PUT endpoint to update flag value
-  - [x] Implement POST endpoint to create new flags
-  - [x] Implement endpoint for bulk updates
-  - [x] Add comprehensive error handling
-  - [x] Implement proper HTTP status codes
-
-- [x] Update `src/api/v1/__init__.py` to include feature flag routes:
-  - [x] Add feature flag router to API
-  - [x] Apply admin-only middleware to routes
-  - [x] Configure route prefix and tags
-
-- [x] Create `tests/integration/api/v1/test_feature_flags_api.py`:
-  - [x] Test listing all flags
-  - [x] Test getting specific flag
-  - [x] Test updating flag value
-  - [x] Test bulk updates
-  - [x] Test error handling and status codes
-
-### 2.2 Dependency Injection ✅
-
-- [x] Create `src/dependencies/feature_flags.py`:
-  - [x] Implement `get_feature_flag_service()` dependency
-  - [x] Add context building from request
-  - [x] Ensure proper scoping and lifecycle
-
-- [x] Update existing dependencies:
-  - [x] Create `get_repository()` in `src/api/dependencies/repositories.py`
-  - [x] Enable dynamic repository creation through dependency injection
-  - [x] Add proper dependency injection for feature flag repository
-
-- [x] Create `tests/integration/api/dependencies/test_feature_flags_dependencies.py`:
-  - [x] Test dependency injection
-  - [x] Test context building
-  - [x] Test with various request scenarios
-
-### 2.3 Request Context Integration ✅
-
-- [x] Create `src/utils/feature_flags/context.py`:
-  - [x] Implement context building from request data
-  - [x] Add user context extraction
-  - [x] Add request metadata extraction
-  - [x] Handle errors gracefully
-
-- [x] Update `src/dependencies/feature_flags.py` to use context utilities:
-  - [x] Add context building to flag service dependency
-  - [x] Ensure proper error handling
-
-- [x] Update `src/services/feature_flags.py` to use context:
-  - [x] Add context parameter to constructor
-  - [x] Store context for use in flag evaluation
-
-## Phase 3: Repository and Service Layer Integration
-
-### 3.1 Repository Layer Integration ✅
-
-- [x] Update `src/repositories/accounts.py`:
-  - [x] Add feature flag service to constructor
-  - [x] Add flag checks for account type availability
-  - [x] Add flag checks for multi-currency support
-  - [x] Add flag checks for international account fields
-  - [x] Update existing methods to respect flags
-  - [x] Update query filters based on flags
+### 1.6 Repository Factory Integration
 
 - [x] Update `src/repositories/factory.py`:
-  - [x] Update factory to include feature flag service
-  - [x] Implement dynamic module loading with feature flag integration
-  - [x] Add modular repository pattern support
-  - [x] Ensure proper dependency injection
+  - [x] Modify `create_account_repository` to wrap repository with FeatureFlagRepositoryProxy
+  - [x] Update factory to pass feature_flag_service to proxy
+  - [x] Add config provider creation and dependency injection
+  - [x] Maintain backward compatibility with existing code
 
-- [x] Implement Repository Module Pattern:
-  - [x] Create modular directory structure for account types
-  - [x] Add feature flag checks in module loading
-  - [x] Integrate with account type registry
-  - [x] Document module pattern in README
+### 1.7 Remove Feature Flag Checks from Repositories
 
-- [x] Create `tests/integration/repositories/test_feature_flags_repository_integration.py`:
-  - [x] Test repository with flags enabled
-  - [x] Test repository with flags disabled
-  - [x] Test flag-specific behavior
-  - [x] Test with feature transitions
+- [ ] Update `src/repositories/accounts.py`:
+  - [ ] Remove manual feature flag checks from `create_typed_account`
+  - [ ] Remove manual feature flag checks from `update_typed_account`
+  - [ ] Remove manual feature flag checks from `get_by_type`
+  - [ ] Remove feature_flag_service parameter if no longer needed
+  - [ ] Update method docstrings
 
-### 3.2 Service Layer Integration ⚠️
+- [ ] Update account type repositories:
+  - [ ] Clean up `src/repositories/account_types/banking/ewa.py`
+  - [ ] Clean up `src/repositories/account_types/banking/bnpl.py`
+  - [ ] Clean up `src/repositories/account_types/banking/payment_app.py`
+  - [ ] Remove feature flag parameters from methods
 
-- [x] Update `src/services/accounts.py`:
-  - [x] Add feature flag service to constructor
-  - [x] Add flag checks for business logic
-  - [x] Implement conditional logic based on flags
-  - [x] Clean input data based on enabled flags
-  - [x] Update validation logic for flag-specific fields
-  - [x] Add feature flag context to operations
+### 1.8 Repository Integration Tests
 
-- [x] Update `src/services/factory.py`:
-  - [x] Update factory to include feature flag service
-  - [x] Ensure proper dependency injection
+- [x] Create integration tests for the feature flag repository proxy:
+  - [x] Create fixtures directory with test repositories and config providers
+  - [x] Create `tests/integration/repositories/proxies/test_feature_flag_proxy_integration.py`
+  - [x] Test basic proxy functionality (passing through methods)
+  - [x] Test feature flag enforcement (allowing/blocking based on flags)
+  - [x] Test account type extraction (from different parameter patterns)
+  - [x] Test caching behavior (performance optimization)
+  - [x] Document test patterns in README.md
 
-- [ ] Complete service layer integration:
-  - [ ] Add feature flag integration to remaining services
-  - [ ] Implement conditional behavior based on flag state
+- [ ] Update existing repository tests to work with proxied repositories:
+  - [ ] Update `test_ewa_repository.py`
+  - [ ] Update `test_bnpl_repository.py`
+  - [ ] Update `test_payment_app_repository.py`
+
+## Phase 2: Service Layer Implementation
+
+### 2.1 Service Interceptor
+
+- [ ] Create `src/services/interceptors/feature_flag_interceptor.py`:
+  - [ ] Implement `ServiceInterceptor` class with feature_flag_service and config_provider
+  - [ ] Add `intercept` method for checking method calls against feature flags
+  - [ ] Implement pattern matching for method names
+  - [ ] Add logging for interceptor operations
+  - [ ] Add caching mechanism with TTL
+  - [ ] Create comprehensive tests
+
+### 2.2 Service Proxy
+
+- [ ] Create `src/services/proxies/feature_flag_proxy.py`:
+  - [ ] Implement `ServiceProxy` class that wraps service objects
+  - [ ] Add `__getattr__` method to intercept method calls
+  - [ ] Use the ServiceInterceptor to check feature flags
+  - [ ] Wrap methods to enforce feature requirements
   - [ ] Add proper error handling for disabled features
-  - [ ] Standardize flag checking patterns across services
+  - [ ] Create comprehensive tests
 
-- [x] Create `tests/integration/services/test_feature_flags_service_integration.py`:
-  - [x] Test service with flags enabled
-  - [x] Test service with flags disabled
-  - [x] Test flag-specific behavior
-  - [x] Test with feature transitions
+### 2.3 Service Factory Integration
 
-## Phase 4: Feature Flag Management Interface
+- [ ] Update `src/services/factory.py`:
+  - [ ] Add feature flag interceptor and proxy support
+  - [ ] Update service creation methods to use proxies
+  - [ ] Create tests with proxied services
 
-### 4.1 Admin Dashboard API
+### 2.4 Remove Feature Flag Checks from Services
+
+- [ ] Update `src/services/accounts.py`:
+  - [ ] Remove manual feature flag checks
+  - [ ] Remove feature_flag_service parameter if no longer needed
+  - [ ] Update method docstrings
+
+- [ ] Update `src/services/banking.py`:
+  - [ ] Remove manual feature flag checks
+  - [ ] Refactor service methods to focus on business logic
+  - [ ] Update method docstrings
+
+- [ ] Update other services with feature flag checks:
+  - [ ] Identify and clean up remaining feature flag checks
+  - [ ] Ensure consistent method signatures
+
+### 2.5 Service Integration Tests
+
+- [ ] Create `tests/integration/services/test_service_interceptor_integration.py`:
+  - [ ] Test account service with banking account types flags enabled/disabled
+  - [ ] Test error handling with disabled features
+  - [ ] Test database-driven requirements configuration
+  - [ ] Test caching behavior and TTL
+
+- [ ] Update existing service tests:
+  - [ ] Update to work with proxied services
+  - [ ] Test both enabled and disabled feature scenarios
+
+## Phase 3: API Layer Implementation
+
+### 3.1 Feature Flag Middleware
+
+- [ ] Create `src/api/middleware/feature_flags.py`:
+  - [ ] Implement `FeatureFlagMiddleware` ASGI middleware
+  - [ ] Add pattern matching for URL paths
+  - [ ] Check feature requirements from ConfigProvider
+  - [ ] Return appropriate HTTP responses for disabled features
+  - [ ] Add logging for middleware operations
+  - [ ] Add caching mechanism with TTL
+  - [ ] Create comprehensive tests
+
+### 3.2 Exception Handlers
+
+- [ ] Create `src/api/handlers/feature_flags.py`:
+  - [ ] Implement exception handler for `FeatureDisabledError`
+  - [ ] Format JSON responses with error details
+  - [ ] Add appropriate HTTP status codes
+  - [ ] Create comprehensive tests
+
+### 3.3 FastAPI Integration
+
+- [ ] Update `src/app.py`:
+  - [ ] Add FeatureFlagMiddleware to FastAPI app
+  - [ ] Register exception handlers
+  - [ ] Configure middleware with feature_flag_service
+  - [ ] Create tests for FastAPI integration
+
+### 3.4 Remove Feature Flag Checks from API Layer
+
+- [ ] Update `src/api/v1/accounts.py`:
+  - [ ] Remove manual feature flag checks from endpoints
+  - [ ] Remove feature_flag_service dependency if no longer needed
+  - [ ] Update endpoint docstrings
+
+- [ ] Update `src/api/v1/banking.py`:
+  - [ ] Remove manual feature flag checks from endpoints
+  - [ ] Refactor endpoints to focus on request/response handling
+  - [ ] Update endpoint docstrings
+
+- [ ] Update other API routes with feature flag checks:
+  - [ ] Identify and clean up remaining feature flag checks
+  - [ ] Ensure consistent endpoint signatures
+
+### 3.5 API Integration Tests
+
+- [ ] Create `tests/integration/api/test_feature_flag_middleware_integration.py`:
+  - [ ] Test API endpoints with banking account types flags enabled/disabled
+  - [ ] Test HTTP responses for disabled features
+  - [ ] Test database-driven requirements configuration
+  - [ ] Test caching behavior and TTL
+
+- [ ] Update existing API tests:
+  - [ ] Update to work with middleware
+  - [ ] Test both enabled and disabled feature scenarios
+
+## Phase 4: Management API Implementation
+
+### 4.1 Feature Flag Management API
 
 - [ ] Create `src/api/admin/feature_flags.py`:
-  - [ ] Implement comprehensive admin API
-  - [ ] Add endpoints for flag history
-  - [ ] Add endpoints for analytics
-  - [ ] Implement bulk operations
-  - [ ] Add feature flag scheduling
-  - [ ] Implement user segment management
+  - [ ] Implement GET `/api/admin/feature-flags` endpoint (list all flags)
+  - [ ] Implement GET `/api/admin/feature-flags/{flag_name}` endpoint (get flag details)
+  - [ ] Implement PUT `/api/admin/feature-flags/{flag_name}` endpoint (update flag value)
+  - [ ] Implement GET `/api/admin/feature-flags/{flag_name}/requirements` endpoint
+  - [ ] Implement PUT `/api/admin/feature-flags/{flag_name}/requirements` endpoint
+  - [ ] Implement GET `/api/admin/feature-flags/{flag_name}/history` endpoint
+  - [ ] Implement GET `/api/admin/feature-flags/{flag_name}/metrics` endpoint
+  - [ ] Add proper validation for all inputs
+  - [ ] Add authorization checks for admin routes
+  - [ ] Create comprehensive tests
 
-- [ ] Create `tests/integration/api/admin/test_feature_flag_admin_api.py`:
-  - [ ] Test all admin endpoints
-  - [ ] Test bulk operations
-  - [ ] Test scheduling functionality
-  - [ ] Test analytics endpoints
+### 4.2 API Documentation and Contracts
 
-### 4.2 Admin Frontend Integration
-
-- [ ] Create frontend components for feature flag management:
-  - [ ] Create flag listing page
-  - [ ] Create flag detail page
-  - [ ] Create flag editing interface
-  - [ ] Implement toggle controls
-  - [ ] Add percentage rollout controls
-  - [ ] Add segment management
-  - [ ] Implement scheduling interface
-  - [ ] Add history visualization
-
-- [ ] Create frontend tests:
-  - [ ] Test component rendering
-  - [ ] Test user interactions
-  - [ ] Test form validation
-  - [ ] Test API integration
-
-## Phase 5: Monitoring and Logging
-
-### 5.1 Logging Integration
-
-- [ ] Create `src/utils/feature_flags/logging.py`:
-  - [ ] Implement structured logging for flag changes
-  - [ ] Add context information to logs
-  - [ ] Implement audit logging for flag operations
-  - [ ] Add performance logging
-  - [ ] Create log formatters for feature flags
-
-- [ ] Update existing logging:
-  - [ ] Add feature flag context to all logs
-  - [ ] Tag logs with relevant flag information
-  - [ ] Ensure proper log levels
-
-- [ ] Create `tests/unit/utils/feature_flags/test_logging.py`:
-  - [ ] Test logging of flag changes
-  - [ ] Test context in logs
-  - [ ] Test audit logs
-  - [ ] Test performance logs
-
-### 5.2 Monitoring Integration
-
-- [ ] Create `src/utils/feature_flags/metrics.py`:
-  - [ ] Implement metrics for flag checks
-  - [ ] Add metrics for flag changes
-  - [ ] Implement performance tracking
-  - [ ] Add user impact metrics
-  - [ ] Create flag status metrics
-
-- [ ] Update `src/app.py` to include metrics:
-  - [ ] Initialize metrics during startup
-  - [ ] Configure collection interval
-  - [ ] Add metrics endpoint if needed
-
-- [ ] Create `tests/unit/utils/feature_flags/test_metrics.py`:
-  - [ ] Test metrics collection
-  - [ ] Test metrics accuracy
-  - [ ] Test performance impact
-
-### 5.3 Analytics and Dashboards
-
-- [ ] Create analytics queries:
-  - [ ] Implement flag usage analysis
-  - [ ] Create user impact analysis
-  - [ ] Implement flag transition analysis
-  - [ ] Add rollout progress tracking
-  - [ ] Create anomaly detection
-
-- [ ] Create monitoring dashboards:
-  - [ ] Create flag status dashboard
-  - [ ] Implement usage dashboard
-  - [ ] Create impact analysis dashboard
-  - [ ] Add performance dashboard
-  - [ ] Create admin overview
-
-## Phase 6: Feature Flag Integration for Specific Features
-
-### 6.1 Banking Account Types Flag Integration ✅
-
-- [x] Create `BANKING_ACCOUNT_TYPES_ENABLED` flag:
-  - [x] Register flag in configuration
-  - [x] Configure default values per environment
-  - [x] Document purpose and usage
-
-- [x] Integrate with account type registry:
-  - [x] Add flag check to account type registration
-  - [x] Update available types based on flag
-  - [x] Add flag check to account creation
-  - [x] Update account type validation
-
-- [ ] Update API behavior:
-  - [ ] Filter available account types based on flag
-  - [ ] Add proper error messages for disabled types
-  - [ ] Update OpenAPI documentation
-
-- [x] Create `tests/integration/features/test_banking_account_types_flag.py`:
-  - [x] Test behavior with flag enabled
-  - [x] Test behavior with flag disabled
-  - [x] Test transitions between states
-  - [x] Test error handling
-  - [x] Ensure ADR-011 compliance for datetime handling in tests
-
-### 6.2 Multi-Currency Support Flag Integration ✅
-
-- [x] Create `MULTI_CURRENCY_SUPPORT_ENABLED` flag:
-  - [x] Register flag in configuration
-  - [x] Configure default values per environment
-  - [x] Document purpose and usage
-
-- [x] Integrate with account models:
-  - [x] Add flag check to account schema validation
-  - [x] Update model behavior based on flag
-  - [ ] Add flag check to currency operations
-  - [ ] Update repository queries
-
-- [ ] Update API behavior:
-  - [ ] Filter currency fields based on flag
-  - [ ] Add proper error messages for disabled features
-  - [ ] Update OpenAPI documentation
-
-- [x] Create `tests/integration/features/test_multi_currency_flag.py`:
-  - [x] Test behavior with flag enabled
-  - [x] Test behavior with flag disabled
-  - [x] Test transitions between states
-  - [x] Test error handling
-
-### 6.3 International Account Support Flag Integration ✅
-
-- [x] Create `INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED` flag:
-  - [x] Register flag in configuration
-  - [x] Configure default values per environment
-  - [x] Document purpose and usage
-
-- [x] Integrate with account models:
-  - [x] Add flag check to account schema validation
-  - [x] Update model behavior based on flag
-  - [ ] Add flag check to international field operations
-  - [ ] Update repository queries
-
-- [ ] Update API behavior:
-  - [ ] Filter international fields based on flag
-  - [ ] Add proper error messages for disabled features
-  - [ ] Update OpenAPI documentation
-
-- [x] Create `tests/integration/features/test_international_account_flag.py`:
-  - [x] Test behavior with flag enabled
-  - [x] Test behavior with flag disabled
-  - [x] Test transitions between states
-  - [x] Test error handling
-
-## Phase 7: Documentation and Training
-
-### 7.1 Developer Documentation
-
-- [ ] Create developer documentation:
-  - [ ] Document feature flag system architecture
-  - [ ] Add usage guidelines and best practices
-  - [ ] Create integration examples
-  - [ ] Document available flags
-  - [ ] Add troubleshooting guide
-  - [ ] Include performance considerations
+- [ ] Create OpenAPI schema definitions:
+  - [ ] Define FeatureFlagResponse schema
+  - [ ] Define FeatureFlagDetailResponse schema
+  - [ ] Define FeatureFlagUpdate schema
+  - [ ] Define RequirementsResponse schema
+  - [ ] Define RequirementsUpdate schema
+  - [ ] Define FlagHistoryResponse schema
+  - [ ] Define FlagMetricsResponse schema
 
 - [ ] Update API documentation:
-  - [ ] Document feature flag endpoints
-  - [ ] Update endpoint documentation with flag dependencies
-  - [ ] Add feature flag context to examples
-  - [ ] Document conditional behavior
+  - [ ] Document proper error responses
+  - [ ] Define authorization requirements
+  - [ ] Document pagination parameters
+  - [ ] Provide example requests and responses
 
-### 7.2 Admin Documentation
+### 4.3 API Integration Tests
 
-- [ ] Create admin documentation:
-  - [ ] Document feature flag management interface
-  - [ ] Add guidelines for flag changes
-  - [ ] Create rollout strategy templates
-  - [ ] Document monitoring and alerts
-  - [ ] Add troubleshooting steps
-  - [ ] Include best practices
+- [ ] Create `tests/integration/api/admin/test_feature_flag_admin_api.py`:
+  - [ ] Test flag listing and filtering
+  - [ ] Test flag detail retrieval
+  - [ ] Test flag value updates
+  - [ ] Test requirements management
+  - [ ] Test history retrieval
+  - [ ] Test metrics retrieval
+  - [ ] Test authorization behavior
+  - [ ] Test validation behavior
 
-### 7.3 Team Training
+## Phase 5: Cross-Layer Integration and Testing
 
-- [ ] Develop training materials:
-  - [ ] Create feature flag overview presentation
-  - [ ] Develop coding examples and workshops
-  - [ ] Create rollout strategy guidelines
-  - [ ] Build troubleshooting scenarios
-  - [ ] Document anti-patterns
+### 5.1 End-to-End Integration Tests
 
-- [ ] Conduct training sessions:
-  - [ ] Development team training
-  - [ ] Operations team training
-  - [ ] Product management training
-  - [ ] QA team training
-  - [ ] Support team training
+- [ ] Create `tests/integration/feature_flags/test_e2e_integration.py`:
+  - [ ] Test the entire feature flag stack from API to repository
+  - [ ] Test feature flag changes propagate correctly
+  - [ ] Test requirements changes propagate correctly
+  - [ ] Test cache invalidation works properly
+  - [ ] Test performance with many flags and requirements
 
-## Next Steps (Prioritized)
+### 5.2 Performance Testing
 
-1. **Complete service layer integration**
-   - Add feature flag integration to remaining services
-   - Implement conditional behavior based on flag state
-   - Add proper error handling for disabled features
-   - Standardize flag checking patterns across services
+- [ ] Create `tests/performance/test_feature_flag_performance.py`:
+  - [ ] Benchmark repository proxy overhead
+  - [ ] Benchmark service interceptor overhead
+  - [ ] Benchmark middleware overhead
+  - [ ] Test caching effectiveness
+  - [ ] Compare with direct feature flag checking
+  - [ ] Ensure performance meets requirements (under 1ms per request)
 
-2. **Update API behavior for feature flags**
-   - Filter available account types based on flag
-   - Add proper error messages for disabled features
-   - Filter currency fields based on flag status
-   - Filter international fields based on flag status
-   - Update OpenAPI documentation with flag dependencies
+## Phase 6: Documentation and Finalization
 
-3. **Implement Feature Flag Management Interface**
-   - Create admin dashboard API endpoints
-   - Implement bulk operations and scheduling
-   - Create admin dashboard frontend components
-   - Add proper security and access controls
+### 6.1 Update Documentation
 
-4. **Add Monitoring and Logging**
-   - Implement structured logging for flag changes
-   - Add context information to logs
-   - Create metrics for flag checks and changes
-   - Implement performance tracking
+- [ ] Update `docs/adr/backend/024-feature-flags.md`:
+  - [ ] Mark as implemented
+  - [ ] Add implementation notes
+  - [ ] Document the database-driven approach
 
-5. **Create Developer Documentation**
-   - Document feature flag system architecture
-   - Add usage guidelines and best practices
-   - Create integration examples
-   - Document available flags
+- [ ] Update Memory Bank:
+  - [ ] Update `docs/active_context.md` with implementation details
+  - [ ] Update `docs/progress.md` with completion status
+  - [ ] Update `docs/system_patterns.md` with new pattern
 
-## Updated Testing Strategy (April 3, 2025)
+### 6.2 Pattern Documentation
 
-Following Debtonator's "Real Objects Testing Philosophy," we'll implement a structured, progressive testing approach for the Feature Flag System. This strategy ensures thorough validation of each layer before moving to the next, mirrors the codebase structure, and requires no mocks or monkeypatching.
+- [ ] Create `docs/guides/feature_flags.md`:
+  - [ ] Document how to use the repository proxy
+  - [ ] Document how to use the service interceptor
+  - [ ] Document how to use the middleware
+  - [ ] Document how to define and update requirements
+  - [ ] Add examples of configuration
+  - [ ] Document common patterns and anti-patterns
 
-### Testing Sequence and Structure
+## Implementation Order
 
-- Testing progression: models → schemas → registry → repository → service → API 
-- Mirror the exact source code directory structure in test files
-- Create modular test files to keep tests focused and maintainable
-- All dependencies should be real objects, not mocks
+1. Repository Layer:
+   - Update feature flag database model
+   - Implement FeatureFlagRepositoryProxy
+   - Create FeatureFlagError hierarchy
+   - Implement DatabaseConfigProvider
+   - Define initial requirements mapping
+   - Update RepositoryFactory
+   - Remove scattered feature flag checks from repositories
 
-### Models and Schemas Testing
+2. Service Layer:
+   - Implement ServiceInterceptor
+   - Implement ServiceProxy
+   - Update ServiceFactory
+   - Remove scattered feature flag checks from services
 
-- [x] Feature Flag Model Tests (`tests/unit/models/test_feature_flags.py`):
-  - [x] Test table definition and columns
-  - [x] Verify field types and constraints
-  - [x] Test JSON field for complex values
-  - [x] Validate indexes for performance
-  - [x] Test UTC awareness of datetime fields
+3. API Layer:
+   - Implement FeatureFlagMiddleware
+   - Create exception handlers
+   - Update FastAPI application
+   - Remove scattered feature flag checks from API
 
-- [x] Feature Flag Schema Tests (`tests/unit/schemas/test_feature_flags.py`):
-  - [x] Test FeatureFlagBase field validation
-  - [x] Test FeatureFlagCreate with different flag types
-  - [x] Test FeatureFlagUpdate validation rules
-  - [x] Test FeatureFlagResponse serialization
-  - [x] Test validation for boolean, percentage, segment, and time-based flags
-  - [x] Test error message clarity for validation failures
+4. Management API:
+   - Implement management API endpoints
+   - Create API documentation
+   - Implement API tests
 
-### Registry Testing
+5. Cross-Layer Integration and Testing:
+   - Create end-to-end tests
+   - Perform performance testing
 
-- [x] Feature Flag Registry Tests (`tests/unit/registry/test_feature_flags.py`):
-  - [x] Test flag registration
-  - [x] Test flag value retrieval
-  - [x] Test flag value updates
-  - [x] Test boolean flag evaluation
-  - [x] Test percentage rollout flag evaluation with different contexts
-  - [x] Test user segment flag evaluation with different user types
-  - [x] Test time-based flag evaluation with different dates
-  - [x] Test observer notification when flag values change
-  - [x] Test thread safety for concurrent access
+6. Documentation and Finalization:
+   - Update ADR
+   - Update Memory Bank
+   - Create pattern documentation
 
-### Repository Testing
+## Verification Checklist
 
-- [x] Feature Flag Repository Tests (`tests/integration/repositories/test_feature_flags.py`):
-  - [x] Test CRUD operations with real database
-  - [x] Test loading all flags
-  - [x] Test getting single flag by name
-  - [x] Test transaction handling with multiple operations
-  - [x] Test bulk operations for performance
-  - [x] Test error handling for database failures
-  - [x] Test serialization/deserialization of complex flag values
+Before marking the implementation as complete, verify:
 
-### Service Testing
+- [ ] Feature flag model updated with requirements column
+- [ ] All feature flag checks are centralized in middleware/interceptors
+- [ ] No scattered feature flag checks remain in the codebase
+- [ ] Database-driven configuration provider implemented and tested
+- [ ] Requirements can be updated at runtime through management API
+- [ ] Caching mechanism implemented with proper TTL and invalidation
+- [ ] All tests pass with both enabled and disabled features
+- [ ] Performance meets the requirements specified in the ADR
+- [ ] Documentation is complete and accurate
+- [ ] Memory Bank reflects the current implementation state
 
-- [x] Feature Flag Service Tests (`tests/integration/services/test_feature_flags.py`):
-  - [x] Test flag evaluation with different contexts
-  - [x] Test value updates with database persistence
-  - [x] Test caching behavior for performance
-  - [x] Test service initialization and configuration
-  - [x] Test flag value transitions
-  - [x] Test complex flag evaluations (time + percentage, etc.)
+## Note on Frontend Implementation
 
-### API Testing
-
-- [x] Feature Flag API Tests (`tests/integration/api/v1/test_feature_flags.py`):
-  - [x] Test GET endpoints return correct data
-  - [x] Test POST/PUT endpoints properly validate and store data
-  - [x] Test authentication and authorization rules
-  - [x] Test error responses for invalid inputs
-  - [x] Test API with different flag contexts
-  - [x] Test bulk update endpoints
-
-### Integration Testing
-
-- [x] Cross-Component Tests (`tests/integration/feature_flags/test_integration.py`):
-  - [x] Test end-to-end flow from API to database and back
-  - [x] Test registry synchronization with repository
-  - [x] Test context propagation through layers
-  - [x] Test performance with many flags
-
-- [x] Feature Flag Integration Tests:
-  - [x] `tests/integration/features/test_banking_account_types_flag.py`:
-    - [x] Test repository and service behavior with flag enabled/disabled
-    - [x] Test account type availability changes with flag toggle
-    - [x] Test error handling for disabled features
-  - [x] `tests/integration/features/test_multi_currency_flag.py`
-  - [x] `tests/integration/features/test_international_account_flag.py`
-
-### System Tests
-
-- [x] Application Startup Tests (`tests/integration/config/test_feature_flag_config.py`):
-  - [x] Test system startup with default flags
-  - [x] Test configuration loading from different environments
-  - [x] Test registry initialization at startup
-  - [x] Test error handling during initialization
-
-- [ ] Performance Tests:
-  - [ ] Test flag evaluation performance under load
-  - [ ] Test system behavior with many concurrent flag checks
-  - [ ] Test memory usage with large number of flags
-  - [ ] Test database operations under concurrent load
-
-## Final Verification
-
-Before closing the implementation, verify:
-
-1. **Core Functionality**:
-   - [x] All feature flags work as expected
-   - [x] Flag changes propagate correctly
-   - [x] Persistence works across restarts
-   - [ ] Admin interface functions properly
-   - [ ] Performance meets requirements
-
-2. **Integration**:
-   - [x] All dependent systems respect feature flags
-   - [ ] Error handling is comprehensive
-   - [ ] Rollbacks work when needed
-   - [ ] Monitoring provides visibility
-   - [ ] Logging captures necessary information
-
-3. **Documentation**:
-   - [ ] Developer documentation is complete
-   - [ ] Admin documentation is comprehensive
-   - [ ] API documentation includes flag dependencies
-   - [ ] Training materials are effective
-   - [ ] Best practices are documented
-
-4. **Security**:
-   - [ ] Admin interface is properly secured
-   - [ ] Audit logging captures all changes
-   - [ ] No sensitive data is exposed
+The frontend implementation for the feature flag management interface will be handled separately as defined in [ADR-028: Feature Flag Management Frontend](/code/debtonator/docs/adr/frontend/028-feature-flag-management-frontend.md). This implementation checklist focuses only on the backend components required to support that frontend.

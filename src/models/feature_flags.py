@@ -26,7 +26,7 @@ class FeatureFlag(BaseDBModel):
 
     Feature flags control the visibility and availability of features
     across the application. Each flag has a name (identifier), type,
-    value, description, and optional metadata.
+    value, description, optional metadata, and method requirements.
 
     Attributes:
         name (str): Unique identifier for the feature flag (primary key)
@@ -35,6 +35,8 @@ class FeatureFlag(BaseDBModel):
         description (str): Human-readable description of the feature flag
         flag_metadata (JSON): Additional configuration data for the flag
         is_system (bool): Whether this is a system-defined flag (protected)
+        requirements (JSON): Method requirements for repository, service, and API methods
+                             that should be enforced by the feature flag system
     """
 
     __tablename__ = "feature_flags"
@@ -77,6 +79,12 @@ class FeatureFlag(BaseDBModel):
         nullable=False,
         default=False,
         doc="Whether this is a system-defined flag (protected)",
+    )
+    
+    requirements: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSON,
+        nullable=True,
+        doc="Method requirements mapping for repository, service, and API layers",
     )
 
     def __repr__(self) -> str:

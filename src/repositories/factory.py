@@ -5,7 +5,11 @@ This module provides a factory for creating repositories with specialized functi
 based on account types. It dynamically loads type-specific repository modules and
 binds their functions to the base repository instance.
 
-Implemented as part of ADR-016 Account Type Expansion and ADR-019 Banking Account Types.
+It also handles feature flag enforcement through proxies that intercept repository
+method calls and apply feature flag restrictions based on centralized configuration.
+
+Implemented as part of ADR-016 Account Type Expansion, ADR-019 Banking Account Types,
+and ADR-024 Feature Flag System.
 """
 
 import importlib
@@ -15,9 +19,11 @@ from typing import Any, Dict, Optional, Set
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.config.providers.feature_flags import DatabaseConfigProvider, InMemoryConfigProvider
 from src.registry.account_types import account_type_registry
 from src.repositories.accounts import AccountRepository
 from src.repositories.base_repository import BaseRepository
+from src.repositories.proxies.feature_flag_proxy import FeatureFlagRepositoryProxy
 from src.services.feature_flags import FeatureFlagService
 
 logger = logging.getLogger(__name__)
@@ -41,6 +47,7 @@ class RepositoryFactory:
         session: AsyncSession,
         account_type: Optional[str] = None,
         feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None,
     ) -> AccountRepository:
         """
         Create an account repository with specialized functionality based on account type.
@@ -49,32 +56,85 @@ class RepositoryFactory:
             session: SQLAlchemy async session
             account_type: Optional account type to determine specialized functionality
             feature_flag_service: Optional feature flag service for feature validation
+            config_provider: Optional config provider for feature requirements
 
         Returns:
-            AccountRepository with specialized functionality for the given type
+            AccountRepository with specialized functionality for the given type,
+            wrapped with FeatureFlagRepositoryProxy if feature_flag_service is provided
         """
         # Create the base repository
         base_repo = AccountRepository(session)
 
         # If no account type is specified, return the base repository
         if not account_type:
+            # Wrap with proxy if feature flag service is provided
+            if feature_flag_service:
+                return cls._wrap_with_proxy(base_repo, feature_flag_service, session, config_provider)
             return base_repo
 
         # If account type is specified but registry is not available,
         # try to load the module using default path structure
         module_path = cls._get_module_path(account_type)
         if not module_path:
+            # Wrap with proxy if feature flag service is provided
+            if feature_flag_service:
+                return cls._wrap_with_proxy(base_repo, feature_flag_service, session, config_provider)
             return base_repo
 
         # Get the specialized module
         module = cls._get_or_load_module(module_path)
         if not module:
+            # Wrap with proxy if feature flag service is provided
+            if feature_flag_service:
+                return cls._wrap_with_proxy(base_repo, feature_flag_service, session, config_provider)
             return base_repo
 
         # Bind specialized functions to the base repository
         cls._bind_module_functions(base_repo, module, session)
 
+        # Wrap with proxy if feature flag service is provided
+        if feature_flag_service:
+            return cls._wrap_with_proxy(base_repo, feature_flag_service, session, config_provider)
+        
         return base_repo
+
+    @classmethod
+    def _wrap_with_proxy(
+        cls,
+        repository: Any,
+        feature_flag_service: FeatureFlagService,
+        session: AsyncSession,
+        config_provider: Optional[Any] = None,
+    ) -> Any:
+        """
+        Wrap a repository with the FeatureFlagRepositoryProxy.
+        
+        Args:
+            repository: Repository instance to wrap
+            feature_flag_service: Feature flag service for checking flag values
+            session: SQLAlchemy async session
+            config_provider: Optional config provider for feature requirements
+            
+        Returns:
+            Wrapped repository
+        """
+        # Create config provider if not provided
+        if config_provider is None:
+            # Try to use database config provider
+            try:
+                config_provider = DatabaseConfigProvider(session)
+                logger.debug("Using DatabaseConfigProvider for feature flag requirements")
+            except Exception as e:
+                # Fall back to in-memory provider if database provider fails
+                logger.warning(f"Could not create DatabaseConfigProvider: {e}. Using InMemoryConfigProvider")
+                config_provider = InMemoryConfigProvider()
+        
+        # Create and return the proxy
+        return FeatureFlagRepositoryProxy(
+            repository=repository,
+            feature_flag_service=feature_flag_service,
+            config_provider=config_provider,
+        )
 
     @classmethod
     def _get_module_path(cls, account_type: str) -> Optional[str]:

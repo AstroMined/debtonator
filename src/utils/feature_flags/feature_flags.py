@@ -4,9 +4,15 @@ Feature Flag Configuration
 This module provides functions for initializing the feature flag system with
 default flag values. It registers the standard feature flags defined in ADR-024
 and provides a function to configure the feature flag system during app startup.
+
+This implementation includes the database-driven feature flag requirements as
+defined in ADR-024 implementation.
 """
 
 import logging
+from typing import Dict, List, Any
+
+from src.utils.feature_flags.requirements import get_default_requirements
 
 from src.registry.feature_flags_registry import FeatureFlagRegistry
 from src.repositories.feature_flags import FeatureFlagRepository
@@ -38,6 +44,9 @@ def get_registry() -> FeatureFlagRegistry:
     return _REGISTRY
 
 
+# Get the default requirements for feature flags
+DEFAULT_REQUIREMENTS = get_default_requirements()
+
 # Default feature flags as defined in ADR-024
 DEFAULT_FEATURE_FLAGS = [
     {
@@ -47,6 +56,7 @@ DEFAULT_FEATURE_FLAGS = [
         "description": "Enable new banking account types from ADR-019",
         "is_system": True,
         "flag_metadata": {"adr": "019", "owner": "backend-team"},
+        "requirements": DEFAULT_REQUIREMENTS.get("BANKING_ACCOUNT_TYPES_ENABLED", {}),
     },
     {
         "name": "MULTI_CURRENCY_SUPPORT_ENABLED",
@@ -55,6 +65,7 @@ DEFAULT_FEATURE_FLAGS = [
         "description": "Enable multi-currency support for accounts",
         "is_system": True,
         "flag_metadata": {"adr": "019", "owner": "backend-team"},
+        "requirements": DEFAULT_REQUIREMENTS.get("MULTI_CURRENCY_SUPPORT_ENABLED", {}),
     },
     {
         "name": "INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED",
@@ -63,6 +74,34 @@ DEFAULT_FEATURE_FLAGS = [
         "description": "Enable international account support (IBAN, SWIFT, etc.)",
         "is_system": True,
         "flag_metadata": {"adr": "019", "owner": "backend-team"},
+        "requirements": DEFAULT_REQUIREMENTS.get("INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED", {}),
+    },
+    {
+        "name": "BNPL_ACCOUNTS_ENABLED",
+        "flag_type": FeatureFlagType.BOOLEAN,
+        "value": False,
+        "description": "Enable Buy Now Pay Later account type",
+        "is_system": True,
+        "flag_metadata": {"adr": "019", "owner": "backend-team"},
+        "requirements": DEFAULT_REQUIREMENTS.get("BNPL_ACCOUNTS_ENABLED", {}),
+    },
+    {
+        "name": "EWA_ACCOUNTS_ENABLED",
+        "flag_type": FeatureFlagType.BOOLEAN,
+        "value": False,
+        "description": "Enable Early Wage Access account type",
+        "is_system": True,
+        "flag_metadata": {"adr": "019", "owner": "backend-team"},
+        "requirements": DEFAULT_REQUIREMENTS.get("EWA_ACCOUNTS_ENABLED", {}),
+    },
+    {
+        "name": "PAYMENT_APP_ACCOUNTS_ENABLED",
+        "flag_type": FeatureFlagType.BOOLEAN,
+        "value": False,
+        "description": "Enable Payment App account type",
+        "is_system": True,
+        "flag_metadata": {"adr": "019", "owner": "backend-team"},
+        "requirements": DEFAULT_REQUIREMENTS.get("PAYMENT_APP_ACCOUNTS_ENABLED", {}),
     },
 ]
 
@@ -119,6 +158,9 @@ async def configure_development_defaults(service: FeatureFlagService) -> None:
         "BANKING_ACCOUNT_TYPES_ENABLED": True,
         "MULTI_CURRENCY_SUPPORT_ENABLED": True,
         "INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED": True,
+        "BNPL_ACCOUNTS_ENABLED": True,
+        "EWA_ACCOUNTS_ENABLED": True,
+        "PAYMENT_APP_ACCOUNTS_ENABLED": True,
     }
 
     for flag_name, enabled in dev_flags.items():

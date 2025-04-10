@@ -2,31 +2,26 @@
 
 ## Status
 
-Proposed (Revision 1)
+Proposed (Revision 2)
 
 ## Context
 
-During the implementation planning for ADR-019 (Banking Account Types Expansion), we identified a need for a feature flag system to control the rollout of new account types, including multi-currency and international account support. Currently, Debtonator lacks a structured way to manage feature releases, which creates challenges when deploying new functionality:
+During the implementation planning for ADR-019 (Banking Account Types Expansion), we identified a need for a feature flag system to control the rollout of new account types, including multi-currency and international account support. Currently, Debtonator lacks a structured way to manage feature releases, which creates challenges when deploying new functionality.
 
-1. New features must be fully deployed or not deployed at all, without a middle ground
-2. No ability to gradually roll out features to specific user segments
-3. Limited options for testing features in production environments
-4. Difficult to quickly disable problematic features without a full rollback
-5. No standardized approach to feature lifecycle management
-
-As we expand Debtonator with more sophisticated functionality like polymorphic account types, multi-currency support, and international banking features, we need a robust feature flag system to manage these changes safely and systematically.
+Our initial design for the feature flag system (Revision 1) proposed a middleware/interceptor pattern to centralize feature flag enforcement at well-defined boundaries in our application architecture, with feature flag requirements defined in JSON configuration files. However, upon further consideration, we've determined that a fully database-driven approach would be more sustainable and better aligned with our existing implementation that already uses database storage for feature flag values.
 
 ## Decision
 
 We will implement a comprehensive feature flag system for Debtonator that provides:
 
-1. A flexible, configuration-driven approach to enabling/disabling features
+1. A flexible, database-driven approach to enabling/disabling features
 2. Support for different flag types: boolean, percentage rollout, user-segment based
 3. Runtime toggling of features without application restart
 4. Proper persistence of flag states across application restarts
-5. Administrative interface for managing feature flags
+5. Database storage for both flag values AND requirements mapping
+6. Well-defined API for frontend management (detailed in ADR-028)
 
-**Key Architectural Change:** Rather than scattering feature flag checks throughout the codebase, we will implement a layered middleware/interceptor pattern that centralizes feature flag enforcement at well-defined boundaries in our application architecture.
+**Key Architectural Change:** Rather than scattering feature flag checks throughout the codebase, we will implement a layered middleware/interceptor pattern that centralizes feature flag enforcement at well-defined boundaries in our application architecture. Both feature flag values and the mapping of which methods require which flags will be stored in the database, allowing for runtime configuration without application restarts.
 
 ### Feature Flag Types
 
@@ -41,72 +36,216 @@ The system will support the following types of feature flags:
 
 #### Core Components
 
-1. **Feature Flag Registry**
+1. **Feature Flag Model Update**
 
-The registry remains largely unchanged from the original design:
+We will update the existing `FeatureFlag` model to store both flag values and requirements:
 
 ```python
-class FeatureFlagRegistry:
-    """Central registry for feature flags and their current state."""
+class FeatureFlag(Base):
+    """Database model for feature flags."""
     
-    def __init__(self):
-        self._flags = {}
-        self._observers = []
+    __tablename__ = "feature_flags"
     
-    def register(self, flag_name, flag_type, default_value, description, metadata=None):
-        """Register a new feature flag."""
-        if flag_name in self._flags:
-            raise ValueError(f"Feature flag {flag_name} already registered")
-        
-        self._flags[flag_name] = {
-            "type": flag_type,
-            "value": default_value,
-            "description": description,
-            "metadata": metadata or {},
-        }
+    name = Column(String, primary_key=True)
+    value = Column(JSON, nullable=False)
+    requirements = Column(JSON, nullable=True)  # Which methods require this flag
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
     
-    def get_value(self, flag_name, context=None):
-        """Get the current value of a feature flag."""
-        if flag_name not in self._flags:
-            raise ValueError(f"Unknown feature flag: {flag_name}")
-        
-        flag = self._flags[flag_name]
-        
-        # Evaluation logic for different flag types
-        # (Same implementation as original)
-        
-        return flag["value"]
-    
-    # Other registry methods remain unchanged
+    def __repr__(self):
+        return f"<FeatureFlag name={self.name} value={self.value} requirements={self.requirements}>"
 ```
 
-2. **Feature Flag Service**
+2. **Feature Flag Repository**
 
-The service remains similar to allow checking of flags:
+The repository will provide methods for both flag values and requirements:
 
 ```python
-class FeatureFlagService:
-    """Service for managing feature flags."""
+class FeatureFlagRepository(BaseRepository):
+    """Repository for feature flag operations."""
     
-    def __init__(self, registry, storage):
-        self.registry = registry
-        self.storage = storage
-        self._initialize()
+    def __init__(self, db_session):
+        super().__init__(db_session)
+        self.model_class = FeatureFlag
     
-    def is_enabled(self, flag_name, context=None):
-        """Check if a feature flag is enabled."""
+    async def get_requirements(self, flag_name):
+        """Get the requirements for a specific feature flag."""
+        flag = await self.get_by_id(flag_name)
+        if flag and flag.requirements:
+            return flag.requirements
+        return {}
+    
+    async def update_requirements(self, flag_name, requirements):
+        """Update the requirements for a feature flag."""
+        flag = await self.get_by_id(flag_name)
+        if not flag:
+            raise ValueError(f"Feature flag {flag_name} does not exist")
+        
+        flag.requirements = requirements
+        await self.session.commit()
+        return flag
+        
+    async def get_all_requirements(self):
+        """Get requirements for all feature flags."""
+        flags = await self.get_all()
+        return {flag.name: flag.requirements for flag in flags if flag.requirements}
+```
+
+3. **Database-Driven Config Provider**
+
+Component to load configuration from the database with caching:
+
+```python
+class DatabaseConfigProvider(ConfigProvider):
+    """
+    Configuration provider that loads requirements from the database.
+    Includes caching for performance optimization.
+    """
+    
+    def __init__(self, feature_flag_repository):
+        self.repository = feature_flag_repository
+        self._cache = {}
+        self._cache_expiry = 0
+        self._cache_ttl = 30  # Cache TTL in seconds
+    
+    async def get_repository_requirements(self):
+        """Get repository method requirements with caching."""
+        await self._refresh_cache_if_needed()
+        return self._cache.get("repository", {})
+        
+    async def get_service_requirements(self):
+        """Get service method requirements with caching."""
+        await self._refresh_cache_if_needed()
+        return self._cache.get("service", {})
+        
+    async def get_api_requirements(self):
+        """Get API endpoint requirements with caching."""
+        await self._refresh_cache_if_needed()
+        return self._cache.get("api", {})
+    
+    async def _refresh_cache_if_needed(self):
+        """Refresh the cache if it's expired."""
+        current_time = time.time()
+        if current_time > self._cache_expiry:
+            await self._load_requirements()
+            self._cache_expiry = current_time + self._cache_ttl
+    
+    async def _load_requirements(self):
+        """Load all requirements from the database."""
         try:
-            value = self.registry.get_value(flag_name, context)
-            return bool(value)
-        except ValueError:
-            return False
-    
-    # Other service methods remain unchanged
+            all_requirements = await self.repository.get_all_requirements()
+            
+            # Organize by layer
+            repository_reqs = {}
+            service_reqs = {}
+            api_reqs = {}
+            
+            # Process requirements by type
+            for flag_name, requirements in all_requirements.items():
+                if "repository" in requirements:
+                    repository_reqs[flag_name] = requirements["repository"]
+                if "service" in requirements:
+                    service_reqs[flag_name] = requirements["service"]
+                if "api" in requirements:
+                    api_reqs[flag_name] = requirements["api"]
+            
+            # Update cache
+            self._cache = {
+                "repository": repository_reqs,
+                "service": service_reqs,
+                "api": api_reqs
+            }
+        except Exception as e:
+            logger.error(f"Error loading requirements: {e}")
+            # Keep existing cache if available
+            if not self._cache:
+                self._cache = {"repository": {}, "service": {}, "api": {}}
 ```
 
-3. **Domain-Specific Exceptions**
+4. **Repository Layer Interceptor**
 
-New standardized exceptions for feature flag errors:
+The proxy pattern for repository layer enforcement:
+
+```python
+class FeatureFlagRepositoryProxy:
+    """
+    Proxy that wraps repository objects to enforce feature flag requirements.
+    This provides a clean separation between repository logic and feature flag enforcement.
+    """
+    
+    def __init__(self, repository, feature_flag_service, config_provider):
+        self.repository = repository
+        self.feature_flag_service = feature_flag_service
+        self.config_provider = config_provider
+        
+        # Log initialization for debugging
+        self._log_initialization()
+    
+    def __getattr__(self, name):
+        """
+        Intercept attribute access to wrap methods with feature checking.
+        Returns the original attribute for non-methods or methods without requirements.
+        """
+        original_attr = getattr(self.repository, name)
+        
+        # If not a method, return as-is
+        if not callable(original_attr):
+            return original_attr
+            
+        # Create a wrapped method with feature checking
+        @functools.wraps(original_attr)
+        async def wrapped_method(*args, **kwargs):
+            # Get requirements for all flags
+            requirements = await self.config_provider.get_repository_requirements()
+            
+            # Get the account type from args or kwargs
+            account_type = None
+            if args and len(args) > 0:
+                account_type = args[0]
+            elif 'account_type' in kwargs:
+                account_type = kwargs['account_type']
+            
+            # Check if any flags have requirements for this method
+            for flag_name, flag_requirements in requirements.items():
+                if name in flag_requirements:
+                    # Check if this account type is affected
+                    if account_type and isinstance(flag_requirements[name], dict):
+                        if account_type in flag_requirements[name]:
+                            # Check if the flag is enabled
+                            if not await self.feature_flag_service.is_enabled(flag_name):
+                                # Raise domain-specific exception
+                                raise FeatureDisabledError(
+                                    flag_name, 
+                                    entity_type="account_type", 
+                                    entity_id=account_type
+                                )
+                    else:
+                        # General method requirement
+                        if not await self.feature_flag_service.is_enabled(flag_name):
+                            raise FeatureDisabledError(flag_name, entity_type="method", entity_id=name)
+            
+            # If we get here, all required flags are enabled
+            logger.debug(
+                f"Feature flag check passed for {name}({account_type if account_type else ''})",
+                extra={
+                    "repository": self.repository.__class__.__name__,
+                    "method": name,
+                    "account_type": account_type
+                }
+            )
+            return await original_attr(*args, **kwargs)
+            
+        return wrapped_method
+        
+    def _log_initialization(self):
+        """Log proxy initialization for debugging."""
+        logger.debug(
+            f"FeatureFlagRepositoryProxy initialized for {self.repository.__class__.__name__}",
+            extra={"repository": self.repository.__class__.__name__}
+        )
+```
+
+5. **Domain-Specific Exceptions**
 
 ```python
 class FeatureFlagError(Exception):
@@ -131,143 +270,6 @@ class FeatureDisabledError(FeatureFlagError):
         super().__init__(message)
 ```
 
-4. **Repository Layer Interceptor**
-
-New component that enforces feature flags at the repository layer:
-
-```python
-class FeatureFlagRepositoryProxy:
-    """
-    Proxy that wraps repository objects to enforce feature flag requirements.
-    This provides a clean separation between repository logic and feature flag enforcement.
-    """
-    
-    def __init__(self, repository, feature_flag_service, config_provider=None):
-        self.repository = repository
-        self.feature_flag_service = feature_flag_service
-        self.config_provider = config_provider or DefaultConfigProvider()
-        self.operation_requirements = self.config_provider.get_repository_requirements()
-        
-        # Log configuration on initialization for debugging
-        self._log_configuration()
-    
-    def __getattr__(self, name):
-        """
-        Intercept attribute access to wrap methods with feature checking.
-        Returns the original attribute for non-methods or methods without requirements.
-        """
-        original_attr = getattr(self.repository, name)
-        
-        # If not a method or no requirements, return as-is
-        if not callable(original_attr) or name not in self.operation_requirements:
-            return original_attr
-            
-        # Create a wrapped method with feature checking
-        @functools.wraps(original_attr)
-        async def wrapped_method(*args, **kwargs):
-            requirements = self.operation_requirements[name]
-            
-            # Get the account type from args or kwargs
-            account_type = None
-            if args and len(args) > 0:
-                account_type = args[0]
-            elif 'account_type' in kwargs:
-                account_type = kwargs['account_type']
-                
-            # Check if we have requirements for this account type
-            if isinstance(requirements, dict) and account_type in requirements:
-                flags = requirements[account_type]
-                for flag in flags:
-                    if not self.feature_flag_service.is_enabled(flag):
-                        # Raise domain-specific exception
-                        raise FeatureDisabledError(
-                            flag, 
-                            entity_type="account_type", 
-                            entity_id=account_type
-                        )
-            
-            # If we get here, either no flags needed or all required flags are enabled
-            logger.debug(
-                f"Feature flag check passed for {name}({account_type})",
-                extra={
-                    "repository": self.repository.__class__.__name__,
-                    "method": name,
-                    "account_type": account_type
-                }
-            )
-            return await original_attr(*args, **kwargs)
-            
-        return wrapped_method
-        
-    def _log_configuration(self):
-        """Log the proxy configuration for debugging."""
-        logger.debug(
-            f"FeatureFlagRepositoryProxy initialized for {self.repository.__class__.__name__}",
-            extra={"requirements": self.operation_requirements}
-        )
-```
-
-5. **Configuration Provider**
-
-New component to externalize feature requirements configuration:
-
-```python
-class ConfigProvider:
-    """Base class for configuration providers."""
-    
-    def get_repository_requirements(self):
-        """Get the repository method requirements."""
-        raise NotImplementedError()
-        
-    def get_service_requirements(self):
-        """Get the service method requirements."""
-        raise NotImplementedError()
-        
-    def get_api_requirements(self):
-        """Get the API endpoint requirements."""
-        raise NotImplementedError()
-        
-class DefaultConfigProvider(ConfigProvider):
-    """Default in-memory configuration provider."""
-    
-    def get_repository_requirements(self):
-        """Get the repository method requirements."""
-        return {
-            "create_typed_account": {
-                "ewa": ["BANKING_ACCOUNT_TYPES_ENABLED"],
-                "bnpl": ["BANKING_ACCOUNT_TYPES_ENABLED"],
-                "payment_app": ["BANKING_ACCOUNT_TYPES_ENABLED"]
-            },
-            "update_typed_account": {
-                "ewa": ["BANKING_ACCOUNT_TYPES_ENABLED"],
-                "bnpl": ["BANKING_ACCOUNT_TYPES_ENABLED"],
-                "payment_app": ["BANKING_ACCOUNT_TYPES_ENABLED"]
-            },
-            "get_by_type": {
-                "ewa": ["BANKING_ACCOUNT_TYPES_ENABLED"],
-                "bnpl": ["BANKING_ACCOUNT_TYPES_ENABLED"],
-                "payment_app": ["BANKING_ACCOUNT_TYPES_ENABLED"]
-            }
-        }
-        
-class JsonFileConfigProvider(ConfigProvider):
-    """Configuration provider that loads from JSON files."""
-    
-    def __init__(self, config_path):
-        self.config_path = config_path
-        self._config = None
-        self._load_config()
-        
-    def _load_config(self):
-        """Load configuration from JSON file."""
-        with open(self.config_path) as f:
-            self._config = json.load(f)
-            
-    def get_repository_requirements(self):
-        """Get the repository method requirements."""
-        return self._config.get("repository_requirements", {})
-```
-
 6. **Service Layer Interceptor** (Future Phase)
 
 ```python
@@ -277,21 +279,24 @@ class ServiceInterceptor:
     This separates service business logic from feature gating.
     """
     
-    def __init__(self, feature_flag_service, config_provider=None):
+    def __init__(self, feature_flag_service, config_provider):
         self.feature_flag_service = feature_flag_service
-        self.config_provider = config_provider or DefaultConfigProvider()
-        self.method_requirements = self.config_provider.get_service_requirements()
+        self.config_provider = config_provider
     
     async def intercept(self, service, method_name, args, kwargs):
         """
         Intercept service method calls to check feature flags.
         Raises FeatureDisabledError if a required feature is disabled.
         """
-        for pattern, flags in self.method_requirements.items():
-            if self._matches_pattern(method_name, pattern):
-                for flag in flags:
-                    if not self.feature_flag_service.is_enabled(flag):
-                        raise FeatureDisabledError(flag)
+        # Get requirements for all flags
+        requirements = await self.config_provider.get_service_requirements()
+        
+        # Check if any flags have requirements for this method
+        for flag_name, flag_requirements in requirements.items():
+            for pattern, methods in flag_requirements.items():
+                if self._matches_pattern(method_name, pattern) and method_name in methods:
+                    if not await self.feature_flag_service.is_enabled(flag_name):
+                        raise FeatureDisabledError(flag_name, entity_type="service", entity_id=method_name)
                         
         # Log successful check
         logger.debug(
@@ -302,6 +307,15 @@ class ServiceInterceptor:
             }
         )
         return True
+        
+    def _matches_pattern(self, method_name, pattern):
+        """Check if a method name matches a pattern."""
+        # Simple exact match
+        if pattern == method_name:
+            return True
+            
+        # Glob-style pattern matching
+        return fnmatch.fnmatch(method_name, pattern)
 ```
 
 7. **API Middleware** (Final Phase)
@@ -317,24 +331,27 @@ class FeatureFlagMiddleware:
         self, 
         app, 
         feature_flag_service,
-        config_provider=None
+        config_provider
     ):
         self.app = app
         self.feature_flag_service = feature_flag_service
-        self.config_provider = config_provider or DefaultConfigProvider()
-        self.feature_requirements = self.config_provider.get_api_requirements()
+        self.config_provider = config_provider
         
     async def __call__(self, request, call_next):
         """ASGI middleware entry point."""
-        for pattern, required_flags in self.feature_requirements.items():
-            if re.match(pattern, request.url.path):
-                for flag in required_flags:
-                    if not self.feature_flag_service.is_enabled(flag):
+        # Get requirements for all flags
+        requirements = await self.config_provider.get_api_requirements()
+        
+        # Check if any flags have requirements for this path
+        for flag_name, flag_requirements in requirements.items():
+            for pattern, paths in flag_requirements.items():
+                if re.match(pattern, request.url.path):
+                    if not await self.feature_flag_service.is_enabled(flag_name):
                         # Translate domain exception to HTTP response
                         return JSONResponse(
                             status_code=403,
                             content={
-                                "detail": f"Feature '{flag}' is not enabled",
+                                "detail": f"Feature '{flag_name}' is not enabled",
                                 "code": "FEATURE_DISABLED",
                                 "path": request.url.path
                             }
@@ -348,6 +365,158 @@ class FeatureFlagMiddleware:
         return await call_next(request)
 ```
 
+### API Endpoints for Feature Flag Management
+
+To support the frontend management interface (detailed in ADR-028), we will implement the following API endpoints:
+
+#### Flag Values Management
+
+```python
+@router.get("/api/admin/feature-flags", response_model=List[FeatureFlagResponse])
+async def get_feature_flags(
+    feature_flag_repository: FeatureFlagRepository = Depends(get_feature_flag_repository),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Get all feature flags."""
+    flags = await feature_flag_repository.get_all()
+    return [
+        FeatureFlagResponse(
+            name=flag.name,
+            value=flag.value,
+            created_at=flag.created_at,
+            updated_at=flag.updated_at
+        ) for flag in flags
+    ]
+
+@router.get("/api/admin/feature-flags/{flag_name}", response_model=FeatureFlagDetailResponse)
+async def get_feature_flag(
+    flag_name: str,
+    feature_flag_repository: FeatureFlagRepository = Depends(get_feature_flag_repository),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Get a specific feature flag."""
+    flag = await feature_flag_repository.get_by_id(flag_name)
+    if not flag:
+        raise HTTPException(status_code=404, detail=f"Feature flag {flag_name} not found")
+    
+    return FeatureFlagDetailResponse(
+        name=flag.name,
+        value=flag.value,
+        requirements=flag.requirements,
+        created_at=flag.created_at,
+        updated_at=flag.updated_at
+    )
+
+@router.put("/api/admin/feature-flags/{flag_name}", response_model=FeatureFlagResponse)
+async def update_feature_flag(
+    flag_name: str,
+    flag_update: FeatureFlagUpdate,
+    feature_flag_service: FeatureFlagService = Depends(get_feature_flag_service),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Update a feature flag value."""
+    success = await feature_flag_service.set_enabled(flag_name, flag_update.value)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Feature flag {flag_name} not found")
+    
+    # Get updated flag
+    flag = await feature_flag_service.get_flag(flag_name)
+    return FeatureFlagResponse(
+        name=flag.name,
+        value=flag.value,
+        created_at=flag.created_at,
+        updated_at=flag.updated_at
+    )
+```
+
+#### Requirements Management
+
+```python
+@router.get("/api/admin/feature-flags/{flag_name}/requirements", response_model=RequirementsResponse)
+async def get_flag_requirements(
+    flag_name: str,
+    feature_flag_repository: FeatureFlagRepository = Depends(get_feature_flag_repository),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Get requirements for a specific feature flag."""
+    try:
+        requirements = await feature_flag_repository.get_requirements(flag_name)
+        return RequirementsResponse(
+            flag_name=flag_name,
+            requirements=requirements
+        )
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router.put("/api/admin/feature-flags/{flag_name}/requirements", response_model=RequirementsResponse)
+async def update_flag_requirements(
+    flag_name: str,
+    requirements: RequirementsUpdate,
+    feature_flag_repository: FeatureFlagRepository = Depends(get_feature_flag_repository),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Update requirements for a specific feature flag."""
+    try:
+        updated_flag = await feature_flag_repository.update_requirements(
+            flag_name, 
+            requirements.requirements
+        )
+        return RequirementsResponse(
+            flag_name=flag_name,
+            requirements=updated_flag.requirements
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+```
+
+#### History and Metrics
+
+```python
+@router.get("/api/admin/feature-flags/{flag_name}/history", response_model=List[FlagHistoryResponse])
+async def get_flag_history(
+    flag_name: str,
+    feature_flag_repository: FeatureFlagRepository = Depends(get_feature_flag_repository),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Get history for a specific feature flag."""
+    try:
+        history = await feature_flag_repository.get_history(flag_name)
+        return [
+            FlagHistoryResponse(
+                flag_name=flag_name,
+                user=entry.user,
+                timestamp=entry.timestamp,
+                change_type=entry.change_type,
+                old_value=entry.old_value,
+                new_value=entry.new_value
+            ) for entry in history
+        ]
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router.get("/api/admin/feature-flags/{flag_name}/metrics", response_model=FlagMetricsResponse)
+async def get_flag_metrics(
+    flag_name: str,
+    feature_flag_service: FeatureFlagService = Depends(get_feature_flag_service),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Get usage metrics for a specific feature flag."""
+    try:
+        metrics = await feature_flag_service.get_metrics(flag_name)
+        return FlagMetricsResponse(
+            flag_name=flag_name,
+            check_count=metrics.check_count,
+            layers={
+                "repository": metrics.repository_count,
+                "service": metrics.service_count,
+                "api": metrics.api_count
+            },
+            last_checked=metrics.last_checked
+        )
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+```
+
 ### Integration with Existing Codebase
 
 #### Repository Factory Integration
@@ -357,7 +526,7 @@ class RepositoryFactory:
     """Factory for creating repositories with specialized functionality."""
     
     @classmethod
-    def create_account_repository(
+    async def create_account_repository(
         cls,
         session: AsyncSession,
         account_type: Optional[str] = None,
@@ -387,22 +556,17 @@ class RepositoryFactory:
         
         # If we have a feature flag service, wrap with the proxy
         if feature_flag_service:
-            # Use environment-specific config provider
-            config_provider = cls._get_config_provider()
+            # Create database-driven config provider
+            config_provider = await cls._get_config_provider(session)
             return FeatureFlagRepositoryProxy(base_repo, feature_flag_service, config_provider)
             
         return base_repo
         
     @classmethod
-    def _get_config_provider(cls):
-        """Get the configuration provider based on environment."""
-        env = os.getenv("APP_ENV", "development")
-        config_path = f"config/feature_flags_{env}.json"
-        
-        if os.path.exists(config_path):
-            return JsonFileConfigProvider(config_path)
-        else:
-            return DefaultConfigProvider()
+    async def _get_config_provider(cls, session):
+        """Get the database-driven configuration provider."""
+        feature_flag_repository = FeatureFlagRepository(session)
+        return DatabaseConfigProvider(feature_flag_repository)
 ```
 
 ### Before and After Examples
@@ -469,6 +633,33 @@ async def create_account(account_data: AccountCreate):
 # 1. FeatureFlagRepositoryProxy for repository methods
 # 2. ServiceInterceptor for service methods
 # 3. FeatureFlagMiddleware for API endpoints
+
+# Requirements stored in database under BANKING_ACCOUNT_TYPES_ENABLED flag:
+# {
+#   "repository": {
+#     "create_typed_account": {
+#       "ewa": true,
+#       "bnpl": true,
+#       "payment_app": true
+#     },
+#     "update_typed_account": {
+#       "ewa": true,
+#       "bnpl": true,
+#       "payment_app": true
+#     },
+#     "get_by_type": {
+#       "ewa": true,
+#       "bnpl": true,
+#       "payment_app": true
+#     }
+#   },
+#   "service": {
+#     "create_account": true
+#   },
+#   "api": {
+#     "/api/v1/accounts": true
+#   }
+# }
 ```
 
 ### Error Handling Strategy
@@ -488,10 +679,6 @@ Each layer will handle these exceptions appropriately:
 Example:
 
 ```python
-# Repository raises domain exception
-raise FeatureDisabledError("BANKING_ACCOUNT_TYPES_ENABLED", "account_type", "ewa")
-
-# API exception handler
 @app.exception_handler(FeatureDisabledError)
 async def feature_disabled_exception_handler(request, exc):
     return JSONResponse(
@@ -512,7 +699,7 @@ The system will handle runtime flag changes as follows:
 2. **No Impact on In-Progress Operations**: Operations that have already passed feature checks will complete
 3. **Observability**: Flag change events will be logged and can trigger notifications
 4. **Caching Strategy**: 
-   - Flag values are cached in memory for performance
+   - Flag values and requirements are cached in memory for performance
    - Cache has a short TTL (e.g., 30 seconds) to balance performance and freshness
    - Explicit cache invalidation on flag changes
 
@@ -520,36 +707,43 @@ The system will handle runtime flag changes as follows:
 
 We will implement the feature flag system in a bottom-up approach, aligning with our current refactoring strategy:
 
-1. **Phase 1: Repository Layer Implementation** (1-2 weeks)
-   - Specific Tasks:
-     - Implement `FeatureFlagError` exception hierarchy
-     - Create `ConfigProvider` interface and implementations
-     - Implement `FeatureFlagRepositoryProxy`
-     - Update `RepositoryFactory` to use the proxy
-     - Create configuration for EWA, BNPL, and PaymentApp repositories
-   - Priority Repositories:
-     - `AccountRepository` (specifically `create_typed_account` method)
-     - Fix affected tests in `test_ewa_crud.py` and `test_payment_app_crud.py`
-   - Validation:
-     - Existing feature flag tests pass with new implementation
-     - No scattered feature flag checks in repository methods
+1. **Phase 1: Repository Layer Implementation**
+   - Update feature flag model with requirements column
+   - Implement FeatureFlagError exception hierarchy
+   - Create DatabaseConfigProvider
+   - Implement FeatureFlagRepositoryProxy
+   - Update RepositoryFactory to use the proxy
+   - Seed initial requirements in the database
+   - Fix affected tests
 
-2. **Phase 2: Service Layer Implementation** (2-3 weeks)
+2. **Phase 2: Service Layer Implementation**
    - Build on foundation from Phase 1
    - Implement service interceptor pattern
    - Migrate service-layer feature flag checks to interceptor
 
-3. **Phase 3: API Layer Implementation** (1-2 weeks)
+3. **Phase 3: API Layer Implementation**
    - Add middleware for API-level feature flag enforcement
    - Create consistent HTTP responses for feature flag violations
+   - Implement management API endpoints
 
 ### Default Feature Flags
 
-The system will be initialized with the following feature flags:
+The system will be initialized with the following feature flags and requirements:
 
 1. `BANKING_ACCOUNT_TYPES_ENABLED`: Controls access to new banking account types (Payment App, BNPL, EWA)
+   - Repository requirements: create_typed_account, update_typed_account, get_by_type for ewa, bnpl, payment_app
+   - Service requirements: create_account, update_account for ewa, bnpl, payment_app
+   - API requirements: /api/v1/accounts, /api/v1/accounts/*
+
 2. `MULTI_CURRENCY_SUPPORT_ENABLED`: Controls support for multiple currencies in accounts
+   - Repository requirements: create_account, update_account with currency fields
+   - Service requirements: create_account, update_account with currency operations
+   - API requirements: /api/v1/accounts with currency fields
+
 3. `INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED`: Controls support for international banking fields (IBAN, SWIFT, etc.)
+   - Repository requirements: create_account, update_account with international fields
+   - Service requirements: create_account, update_account with international operations
+   - API requirements: /api/v1/accounts with international fields
 
 These flags will default to `false` in all environments except development, where they may be enabled for testing purposes.
 
@@ -580,47 +774,37 @@ async def feature_flag_service(db_session):
     return service
 
 @pytest_asyncio.fixture
+async def feature_flag_repository(db_session):
+    """Create a feature flag repository for testing."""
+    repository = FeatureFlagRepository(db_session)
+    
+    # Seed test requirements
+    await repository.create({
+        "name": "BANKING_ACCOUNT_TYPES_ENABLED",
+        "value": True,
+        "requirements": {
+            "repository": {
+                "create_typed_account": {
+                    "ewa": True,
+                    "bnpl": True,
+                    "payment_app": True
+                }
+            }
+        }
+    })
+    
+    return repository
+
+@pytest_asyncio.fixture
 async def disabled_banking_types_feature_flag_service(feature_flag_service):
     """Feature flag service with banking types disabled."""
     await feature_flag_service.set_enabled("BANKING_ACCOUNT_TYPES_ENABLED", False)
     return feature_flag_service
 ```
 
-3. **Test Cases**:
-```python
-async def test_feature_flag_controls_account_creation(
-    ewa_repository, 
-    disabled_banking_types_feature_flag_service
-):
-    """Test that feature flags control EWA account creation."""
-    # Create schema
-    account_schema = create_ewa_account_schema()
-    validated_data = account_schema.model_dump()
-    
-    # Should fail when flag is disabled
-    with pytest.raises(FeatureDisabledError) as excinfo:
-        await ewa_repository.create_typed_account("ewa", validated_data)
-    
-    assert "BANKING_ACCOUNT_TYPES_ENABLED" in str(excinfo.value)
-```
+## Frontend Management Interface
 
-### Developer Experience
-
-1. **Logging Strategy**:
-   - Each proxy/interceptor logs feature checks with structured data
-   - Successful checks logged at DEBUG level
-   - Failed checks logged at INFO level
-   - Configuration loading logged at INFO level
-
-2. **Developer Tooling**:
-   - Add admin endpoint to show current feature flag configuration
-   - Create CLI tool to toggle feature flags for development
-   - Add debugging headers in responses indicating which feature flags were checked
-
-3. **Troubleshooting Guide**:
-   - Specific error messages that indicate which feature is disabled
-   - Log correlation between feature checks and repository/service operations
-   - Configuration validation on application startup
+The frontend management interface for feature flags will be implemented as described in [ADR-028: Feature Flag Management Frontend](/code/debtonator/docs/adr/frontend/028-feature-flag-management-frontend.md). The backend API endpoints defined in this ADR will support the frontend requirements.
 
 ## Consequences
 
@@ -631,38 +815,42 @@ async def test_feature_flag_controls_account_creation(
 3. **Easier Maintenance**: Feature requirements are defined in one place for each layer
 4. **Simpler Testing**: Tests can focus on business logic with clear feature flag configurations
 5. **Consistent Enforcement**: Feature flags are enforced uniformly at each layer
-6. **Externalized Configuration**: Feature requirements can be updated without code changes
+6. **Runtime Configuration**: Both flag values and requirements can be updated at runtime without application restarts
+7. **Database Consistency**: Using the database for both flag values and requirements ensures data consistency
 
 ### Negative
 
 1. **Learning Curve**: Proxy and interceptor patterns may be less intuitive initially
 2. **Debugging Complexity**: Issues might be harder to diagnose when enforcement happens in proxies
-3. **Configuration Management**: Need careful management of feature requirements across layers
+3. **Database Dependency**: Both flag values and requirements now depend on database availability
+4. **Performance Considerations**: Database access for requirements may impact performance without proper caching
 
 ### Neutral
 
-1. **Performance Impact**: Slight overhead from proxy method wrapping and pattern matching
+1. **Cache Management**: Need for proper cache invalidation and TTL settings
 2. **Clear Boundaries Required**: Features must align well with architectural boundaries
 3. **Documentation Need**: Requires clear documentation for future reference
 
 ## Performance Impact
 
-The middleware/interceptor approach has a performance profile similar to the original design:
+The database-driven middleware/interceptor approach introduces additional performance considerations:
 
-1. **Proxy Wrapping**: Small overhead for method wrapping (typically microseconds)
-2. **Pattern Matching**: Minor cost for URL and method pattern matching 
-3. **In-Memory Checks**: Flag checking itself remains a fast in-memory operation
+1. **Database Access**: Reading requirements from the database adds overhead
+2. **Caching Mitigation**: Short-term caching (30-second TTL) mitigates most database overhead
+3. **Proxy Wrapping**: Small overhead for method wrapping (typically microseconds)
+4. **Pattern Matching**: Minor cost for URL and method pattern matching
 
-The overall impact should remain under 1ms per request, which is negligible compared to database operations.
+With proper caching, the overall impact should remain under 1ms per request, which is negligible compared to database operations.
 
 ## Migration Strategy
 
 Since we are only partially through implementing the original design, switching to the new approach has minimal migration cost:
 
-1. **Repository Layer**: Implement proxy pattern and update tests
-2. **Remove In-line Checks**: Gradually remove scattered feature flag checks
-3. **Documentation**: Update memory bank with the new pattern
-4. **Configuration**: Create initial feature flag configuration files
+1. **Database Schema Update**: Add requirements column to feature_flags table
+2. **Repository Layer**: Implement proxy pattern and update tests
+3. **Remove In-line Checks**: Gradually remove scattered feature flag checks
+4. **Documentation**: Update memory bank with the new pattern
+5. **Configuration**: Seed initial feature flag requirements in the database
 
 ## Success Metrics
 
@@ -672,9 +860,11 @@ We'll measure the success of the feature flag system by:
 2. **Test Simplification**: Cleaner integration tests for feature flag behavior
 3. **Deployment Reliability**: Fewer incidents related to improperly enforced feature flags
 4. **Code Quality**: Less duplication of feature flag checking logic
+5. **Configuration Flexibility**: Ability to update requirements at runtime without code changes
 
 ## Related Documents
 
 - [ADR-016: Account Type Expansion - Foundation](/code/debtonator/docs/adr/backend/016-account-type-expansion.md)
 - [ADR-019: Banking Account Types Expansion](/code/debtonator/docs/adr/backend/019-banking-account-types-expansion.md)
 - [ADR-027: Dynamic Pay Period Rules](/code/debtonator/docs/adr/backend/027-dynamic-pay-period-rules.md)
+- [ADR-028: Feature Flag Management Frontend](/code/debtonator/docs/adr/frontend/028-feature-flag-management-frontend.md)
