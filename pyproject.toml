@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "debtonator"
-version = "0.5.95"
+version = "0.5.96"
 authors = [
   { name = "Debtonator Team" },
 ]
@@ -64,3 +64,8 @@ remove-all-unused-imports = true
 remove-unused-variables = false
 ignore-init-module-imports = true
 recursive = true
+
+[tool.pylint.messages_control]
+disable = [
+    "no-member",  # Disable no-member warnings globally (for schema factory decorator magic)
+]

@@ -335,6 +335,27 @@ When refactoring existing tests to follow this pattern:
 6. Replace direct dictionary creation with schema factories
 7. Use model fixtures for dependencies instead of repositories
 
+## Pylint Configuration
+
+When using schema factories, you may encounter Pylint errors related to the `model_dump()` method not being recognized on objects returned by factory functions. This is because Pylint cannot see through the decorator magic used in the schema factories.
+
+To address this issue, we've added a global Pylint configuration in `pyproject.toml` to disable the "no-member" warning:
+
+```toml
+[tool.pylint.messages_control]
+disable = [
+    "no-member",  # Disable no-member warnings globally (for schema factory decorator magic)
+]
+```
+
+This configuration disables the "no-member" warning globally, allowing Pylint to ignore the false positives related to schema factory return values.
+
+If for some reason the global configuration doesn't work in your environment, you can still add the following directive at the top of your test files:
+
+```python
+# pylint: disable=no-member
+```
+
 ## Conclusion
 
 Following this repository test pattern ensures our tests accurately reflect the application's validation flow, catching issues early and making our tests more effective. All repository tests should be updated to follow this pattern for consistency and reliability.

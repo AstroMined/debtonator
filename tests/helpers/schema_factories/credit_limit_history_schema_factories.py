@@ -15,7 +15,7 @@ from src.schemas.credit_limit_history import (
     CreditLimitHistoryInDB,
     CreditLimitHistoryUpdate,
 )
-from src.utils.datetime_utils import utc_now
+from src.utils.datetime_utils import utc_datetime, utc_now
 from tests.helpers.schema_factories.base_schema_schema_factories import factory_function
 
 
@@ -139,21 +139,21 @@ def create_account_credit_limit_history_response_schema(
                 id=1,
                 account_id=account_id,
                 credit_limit=Decimal("5000.00"),
-                effective_date=datetime(2024, 1, 15, tzinfo=utc_now().tzinfo),
+                effective_date=utc_datetime(2024, 1, 15),
                 reason="Current limit",
             ),
             create_credit_limit_history_in_db_schema(
                 id=2,
                 account_id=account_id,
                 credit_limit=Decimal("4000.00"),
-                effective_date=datetime(2023, 7, 10, tzinfo=utc_now().tzinfo),
+                effective_date=utc_datetime(2023, 7, 10),
                 reason="Limit increase due to good payment history",
             ),
             create_credit_limit_history_in_db_schema(
                 id=3,
                 account_id=account_id,
                 credit_limit=Decimal("3000.00"),
-                effective_date=datetime(2023, 1, 5, tzinfo=utc_now().tzinfo),
+                effective_date=utc_datetime(2023, 1, 5),
                 reason="Initial credit limit",
             ),
         ]

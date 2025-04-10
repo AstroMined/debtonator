@@ -9,21 +9,22 @@ These tests verify CRUD operations and specialized methods for the
 DepositScheduleRepository, ensuring proper validation flow and data integrity.
 """
 
-from datetime import datetime, timedelta, timezone
+# pylint: disable=no-member
+
 from decimal import Decimal
 
 import pytest
 
-from src.models.accounts import Account
+from src.models.account_types.banking.checking import CheckingAccount
 from src.models.deposit_schedules import DepositSchedule
 from src.models.income import Income
 from src.repositories.deposit_schedules import DepositScheduleRepository
 
 # Import schemas and schema factories - essential part of the validation pattern
-from src.schemas.deposit_schedules import DepositScheduleUpdate
-from src.utils.datetime_utils import datetime_greater_than
+from src.utils.datetime_utils import datetime_equals, datetime_greater_than, days_from_now, utc_now
 from tests.helpers.schema_factories.deposit_schedules_schema_factories import (
     create_deposit_schedule_schema,
+    create_deposit_schedule_update_schema,
 )
 
 pytestmark = pytest.mark.asyncio
@@ -32,13 +33,13 @@ pytestmark = pytest.mark.asyncio
 async def test_create_deposit_schedule(
     deposit_schedule_repository: DepositScheduleRepository,
     test_income: Income,
-    test_checking_account: Account,
+    test_checking_account: CheckingAccount,
 ):
     """Test creating a deposit schedule with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
 
     # 2. SCHEMA: Create and validate through Pydantic schema
-    schedule_date = datetime.now(timezone.utc) + timedelta(days=5)
+    schedule_date = days_from_now(5)
     schedule_schema = create_deposit_schedule_schema(
         income_id=test_income.id,
         account_id=test_checking_account.id,
@@ -68,9 +69,9 @@ async def test_create_deposit_schedule(
     assert result.updated_at is not None
 
     # Verify date is correct (accounting for potential timezone issues)
-    result_date = result.schedule_date.replace(tzinfo=None)
-    expected_date = schedule_date.replace(tzinfo=None)
-    assert abs((result_date - expected_date).total_seconds()) < 60  # Within a minute
+    result_date = result.schedule_date
+    expected_date = schedule_date
+    assert datetime_equals(result_date, expected_date, ignore_timezone=True, ignore_microseconds=True)
 
 
 async def test_get_deposit_schedule(
@@ -103,16 +104,13 @@ async def test_update_deposit_schedule(
     original_updated_at = test_deposit_schedule.updated_at
 
     # 2. SCHEMA: Create and validate update data through Pydantic schema
-    new_schedule_date = datetime.now(timezone.utc) + timedelta(days=10)
-    update_schema = DepositScheduleUpdate(
-        schedule_date=new_schedule_date,
-        amount=Decimal("3500.00"),
-        recurring=True,
-        recurrence_pattern={"frequency": "monthly", "day": 1},
-    )
-
-    # Convert validated schema to dict for repository
-    update_data = update_schema.model_dump()
+    new_schedule_date = days_from_now(10)
+    update_data = {
+        "schedule_date": new_schedule_date,
+        "amount": Decimal("3500.00"),
+        "recurring": True,
+        "recurrence_pattern": {"frequency": "monthly", "day": 1},
+    }
 
     # 3. ACT: Pass validated data to repository
     result = await deposit_schedule_repository.update(
@@ -127,9 +125,9 @@ async def test_update_deposit_schedule(
     assert result.recurrence_pattern == {"frequency": "monthly", "day": 1}
 
     # Verify date is updated correctly
-    result_date = result.schedule_date.replace(tzinfo=None)
-    expected_date = new_schedule_date.replace(tzinfo=None)
-    assert abs((result_date - expected_date).total_seconds()) < 60  # Within a minute
+    result_date = result.schedule_date
+    expected_date = new_schedule_date
+    assert datetime_equals(result_date, expected_date, ignore_timezone=True, ignore_microseconds=True)
 
     assert datetime_greater_than(
         result.updated_at, original_updated_at, ignore_timezone=True

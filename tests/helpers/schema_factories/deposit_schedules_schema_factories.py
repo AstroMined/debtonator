@@ -9,7 +9,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from src.schemas.deposit_schedules import DepositScheduleCreate
+from src.schemas.deposit_schedules import DepositScheduleCreate, DepositScheduleUpdate
 from src.utils.datetime_utils import utc_now
 from tests.helpers.schema_factories.base_schema_schema_factories import factory_function
 
@@ -63,5 +63,50 @@ def create_deposit_schedule_schema(
 
     if recurrence_pattern is not None:
         data["recurrence_pattern"] = recurrence_pattern
+
+    return data
+
+
+@factory_function(DepositScheduleUpdate)
+def create_deposit_schedule_update_schema(
+    schedule_date: Optional[datetime] = None,
+    amount: Optional[Decimal] = None,
+    recurring: Optional[bool] = None,
+    recurrence_pattern: Optional[Dict] = None,
+    status: Optional[str] = None,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """
+    Create a valid DepositScheduleUpdate schema instance.
+
+    Args:
+        schedule_date: Updated scheduled date for the deposit
+        amount: Updated deposit amount
+        recurring: Updated recurring status
+        recurrence_pattern: Updated pattern details for recurring deposits
+        status: Updated deposit status (pending, completed, or canceled)
+        **kwargs: Additional fields to override
+
+    Returns:
+        Dict[str, Any]: Data to create DepositScheduleUpdate schema
+    """
+    data = {**kwargs}
+
+    if schedule_date is not None:
+        data["schedule_date"] = schedule_date
+
+    if amount is not None:
+        data["amount"] = amount
+
+    if recurring is not None:
+        data["recurring"] = recurring
+
+    if recurrence_pattern is not None:
+        data["recurrence_pattern"] = recurrence_pattern
+
+    if status is not None:
+        # Ensure status is valid
+        if status in ["pending", "completed", "canceled"]:
+            data["status"] = status
 
     return data

@@ -32,6 +32,11 @@
    - Naive datetime functions for direct database operations ✓
    - Repository fixtures decomposed into individual files ✓
    - Repository fixture organization mirroring source code structure ✓
+   - Repository test pattern guide with schema factory validation ✓
+   - Repository test code review process with three-pass approach ✓
+   - Function-style test standardization across repository tests ✓
+   - Fixture organization guidelines based on fixture type ✓
+   - Global Pylint configuration for schema factory decorator magic ✓
 
 4. __Service Layer__: IN PROGRESS (75%)
    - Service refactoring to use repositories (90%)

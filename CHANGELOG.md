@@ -7,6 +7,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.96] - 2025-04-10
+
+### Added
+
+- Added global Pylint configuration to address schema factory decorator issues:
+  - Added `[tool.pylint.messages_control]` section to pyproject.toml
+  - Disabled "no-member" warnings globally to fix schema factory decorator magic
+  - Updated documentation in both README.md and code_review.md to reflect this change
+  - Eliminated need for per-file pylint directives
+
+### Fixed
+
+- Fixed repository tests to use proper datetime utility functions:
+  - Updated test_credit_limit_history_repository_crud.py to use utc_now() instead of datetime.now(timezone.utc)
+  - Updated test_deposit_schedule_repository_crud.py to use days_from_now() instead of datetime arithmetic
+  - Fixed credit_limit_history_schema_factories.py to use utc_datetime() for consistent timezone handling
+  - Improved datetime comparison with datetime_equals() for better timezone handling
+  - Ensured all repository tests follow ADR-011 datetime standardization
+
+### Improved
+
+- Enhanced repository test documentation:
+  - Updated Pylint configuration section in README.md with global configuration approach
+  - Updated code review document with completed file status
+  - Improved documentation for datetime utility usage in repository tests
+
 ## [0.5.95] - 2025-04-09
 
 ### Added

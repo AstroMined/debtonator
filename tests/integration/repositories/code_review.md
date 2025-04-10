@@ -20,6 +20,7 @@ The standards used for this review are defined in:
 - `tests/fixtures/repositories/README.md`: Repository fixture guidelines
 - `tests/fixtures/models/README.md`: Model fixture guidelines
 - `tests/fixtures/services/README.md`: Service fixture guidelines
+- `docs/guides/utc_datetime_compliance.md`: Datetime utilities guidelines
 
 These documents should be consulted for detailed information about the standards and best practices:
 
@@ -42,6 +43,7 @@ Files were reviewed against the following criteria:
 6. **Circular Dependency Prevention**: Tests must use model fixtures for non-tested data access
 7. **Test Scope**: CRUD tests must only test basic operations; all other operations belong in advanced tests
 8. **Function-Style Tests**: All tests must use function-style tests, not class-style tests
+9. **Proper Datetime Utilities Usage**: All tests must use utility functions from `src/utils/datetime_utils.py` to ensure compliance with ADR-011
 
 ## CRUD Tests
 
@@ -59,38 +61,23 @@ This file has been refactored and now complies with all project standards.
 
 ### test_cashflow_forecast_repository_crud.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/fixture_cashflow_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests include advanced operations that should be in advanced tests
+This file has been refactored and now complies with all project standards.
 
 ### test_category_repository_crud.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/fixture_categories_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests use class-style organization instead of function-style
+This file has been refactored and now complies with all project standards.
 
 ### test_credit_limit_history_repository_crud.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/fixture_credit_limit_history_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Missing proper validation flow in some tests
+This file has been refactored and now complies with all project standards.
 
 ### test_deposit_schedule_repository_crud.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/fixture_deposit_schedules_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests use repository dependencies instead of model fixtures
+This file has been refactored and now complies with all project standards.
 
 ### test_income_category_repository_crud.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/fixture_income_categories_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests use class-style organization instead of function-style
+This file has been refactored and now complies with all project standards.
 
 ### test_liability_repository_crud.py
 
@@ -375,6 +362,27 @@ Issues:
 - Direct dictionary creation instead of using schema factories
 - Some tests use repository dependencies instead of model fixtures
 - Tests should be moved to advanced directory
+
+## Pylint Configuration
+
+When using schema factories, you may encounter Pylint errors related to the `model_dump()` method not being recognized on objects returned by factory functions. This is because Pylint cannot see through the decorator magic used in the schema factories.
+
+To address this issue, we've added a global Pylint configuration in `pyproject.toml` to disable the "no-member" warning:
+
+```toml
+[tool.pylint.messages_control]
+disable = [
+    "no-member",  # Disable no-member warnings globally (for schema factory decorator magic)
+]
+```
+
+This configuration disables the "no-member" warning globally, allowing Pylint to ignore the false positives related to schema factory return values.
+
+If for some reason the global configuration doesn't work in your environment, you can still add the following directive at the top of your test files:
+
+```python
+# pylint: disable=no-member
+```
 
 ## Recommendations
 

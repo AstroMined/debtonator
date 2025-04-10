@@ -9,16 +9,18 @@ These tests verify CRUD operations and specialized methods for the
 IncomeCategoryRepository, ensuring proper validation flow and data integrity.
 """
 
+# pylint: disable=no-member
+
 import pytest
 
 from src.models.income_categories import IncomeCategory
 from src.repositories.income_categories import IncomeCategoryRepository
 
 # Import schemas and schema factories - essential part of the validation pattern
-from src.schemas.income_categories import IncomeCategoryUpdate
 from src.utils.datetime_utils import datetime_greater_than
 from tests.helpers.schema_factories.income_categories_schema_factories import (
     create_income_category_schema,
+    create_income_category_update_schema,
 )
 
 pytestmark = pytest.mark.asyncio
@@ -79,7 +81,7 @@ async def test_update_income_category(
     original_updated_at = test_income_category.updated_at
 
     # 2. SCHEMA: Create and validate update data through Pydantic schema
-    update_schema = IncomeCategoryUpdate(
+    update_schema = create_income_category_update_schema(
         name="Updated Category Name",
         description="Updated category description",
     )
