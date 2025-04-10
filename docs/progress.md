@@ -39,7 +39,7 @@
    - Global Pylint configuration for schema factory decorator magic ✓
    - Repository test refactoring for 16 CRUD test files completed ✓
    - Repository test refactoring for 3 account type CRUD test files completed ✓
-   - Repository test refactoring for 2 advanced test files completed ✓
+   - Repository test refactoring for 14 advanced test files completed ✓
 
 4. __Service Layer__: IN PROGRESS (75%)
    - Service refactoring to use repositories (90%)
@@ -225,21 +225,6 @@
    - Add training materials for feature flag usage
 
 5. __Continue Repository Test Refactoring (40%)__
-   - Refactor remaining advanced repository test files:
-     - test_bill_split_repository_advanced.py
-     - test_cashflow_forecast_repository_advanced.py
-     - test_category_repository_advanced.py
-     - test_credit_limit_history_repository_advanced.py
-     - test_deposit_schedule_repository_advanced.py
-     - test_income_category_repository_advanced.py
-     - test_liability_repository_advanced.py
-     - test_payment_repository_advanced.py
-     - test_payment_schedule_repository_advanced.py
-     - test_payment_source_repository_advanced.py
-     - test_recurring_bill_repository_advanced.py
-     - test_recurring_income_repository_advanced.py
-     - test_statement_history_repository_advanced.py
-     - test_transaction_history_repository_advanced.py
    - Refactor account type advanced tests:
      - advanced/account_types/banking/test_bnpl_advanced.py
      - advanced/account_types/banking/test_ewa_advanced.py

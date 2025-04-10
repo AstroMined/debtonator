@@ -330,22 +330,11 @@ async def test_validation_error_handling():
     """Test handling invalid data that would normally be caught by schema validation."""
     # Try creating a schema with invalid data and expect it to fail validation
     try:
-        invalid_schema = CashflowCreate(
-            forecast_date=utc_now(),
+        # Use schema factory with invalid amount
+        from tests.helpers.schema_factories.cashflow.base_schema_factories import create_cashflow_schema
+        
+        invalid_schema = create_cashflow_schema(
             total_bills=Decimal("-100.00"),  # Invalid negative amount
-            total_income=Decimal("1500.00"),
-            balance=Decimal("2000.00"),
-            forecast=Decimal("2500.00"),
-            min_14_day=Decimal("500.00"),
-            min_30_day=Decimal("1000.00"),
-            min_60_day=Decimal("2000.00"),
-            min_90_day=Decimal("3000.00"),
-            daily_deficit=Decimal("25.00"),
-            yearly_deficit=Decimal("9125.00"),
-            required_income=Decimal("12000.00"),
-            hourly_rate_40=Decimal("20.00"),
-            hourly_rate_30=Decimal("26.67"),
-            hourly_rate_20=Decimal("40.00"),
         )
         assert False, "Schema should have raised a validation error for negative amount"
     except ValueError as e:

@@ -250,9 +250,12 @@ async def test_get_categories_with_stats(
 
 async def test_validation_error_handling():
     """Test handling invalid data that would normally be caught by schema validation."""
+    # Import the schema factory
+    from tests.helpers.schema_factories.income_categories_schema_factories import create_income_category_schema
+    
     # Try creating a schema with invalid data and expect it to fail validation
     try:
-        invalid_schema = IncomeCategoryCreate(
+        invalid_schema = create_income_category_schema(
             name="",  # Invalid empty name
             description="Test description",
         )
@@ -263,7 +266,7 @@ async def test_validation_error_handling():
 
     # Try with too long name
     try:
-        invalid_schema = IncomeCategoryCreate(
+        invalid_schema = create_income_category_schema(
             name="A" * 101,  # 101 characters, exceeding max length of 100
             description="Test description",
         )

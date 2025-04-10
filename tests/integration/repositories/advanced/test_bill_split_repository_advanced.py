@@ -15,6 +15,7 @@ from decimal import Decimal
 from typing import List
 
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.bill_splits import BillSplit
@@ -319,12 +320,13 @@ async def test_get_splits_with_liability_details_paid_only(
     bill_split_repository: BillSplitRepository,
     test_bill_splits: List[BillSplit],
     test_checking_account: Account,
-    liability_repository: LiabilityRepository,
+    db_session: AsyncSession,
     test_liability: Liability,
 ):
     """Test getting splits with liability details, filtered to paid only."""
     # 1. ARRANGE: Mark the liability as paid
-    await liability_repository.update(test_liability.id, {"paid": True})
+    test_liability.paid = True
+    await db_session.flush()
 
     # 2. ACT: Get paid splits with liability details
     results = await bill_split_repository.get_splits_with_liability_details(
@@ -361,7 +363,8 @@ async def test_validation_error_handling():
     """Test handling invalid data that would normally be caught by schema validation."""
     # Try creating a schema with invalid data and expect it to fail validation
     try:
-        invalid_schema = BillSplitCreate(
+        # Use schema factory with invalid amount
+        invalid_schema = create_bill_split_schema(
             liability_id=1,
             account_id=1,
             amount=Decimal("-50.00"),  # Invalid negative amount

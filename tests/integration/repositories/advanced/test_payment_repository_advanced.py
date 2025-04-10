@@ -283,18 +283,24 @@ async def test_get_recent_payments(
 
 async def test_validation_error_handling():
     """Test handling of validation errors that would be caught by the Pydantic schema."""
+    # Import the schema factories
+    from tests.helpers.schema_factories.payments_schema_factories import (
+        create_payment_schema,
+        create_payment_source_schema,
+    )
+    
     # Try creating a schema with invalid data
     try:
         # Sources don't add up to total amount
-        invalid_schema = PaymentCreate(
+        invalid_schema = create_payment_schema(
             amount=Decimal("100.00"),
             payment_date=utc_now(),
             category="Utilities",
             sources=[
-                PaymentSourceCreate(
+                create_payment_source_schema(
                     account_id=1,
                     amount=Decimal("50.00"),  # Only 50 of 100 total
-                )
+                ).model_dump()
             ],
         )
         assert False, "Schema should have raised a validation error"
@@ -306,15 +312,15 @@ async def test_validation_error_handling():
     # Try another invalid case
     try:
         # Negative amount
-        invalid_schema = PaymentCreate(
+        invalid_schema = create_payment_schema(
             amount=Decimal("-50.00"),
             payment_date=utc_now(),
             category="Utilities",
             sources=[
-                PaymentSourceCreate(
+                create_payment_source_schema(
                     account_id=1,
                     amount=Decimal("-50.00"),
-                )
+                ).model_dump()
             ],
         )
         assert False, "Schema should have raised a validation error"

@@ -347,7 +347,7 @@ async def test_validation_error_handling():
     """
     # Try creating a schema with invalid data
     try:
-        invalid_schema = TransactionHistoryCreate(
+        invalid_schema = create_transaction_history_schema(
             account_id=999,
             amount=Decimal("-10.00"),  # Negative amount
             transaction_type=TransactionType.CREDIT,

@@ -263,8 +263,10 @@ async def test_validation_error_handling(test_credit_account: Account):
     """Test handling of validation errors that would be caught by the Pydantic schema."""
     # Try creating a schema with invalid data
     try:
-        # Use direct schema construction to test validation error
-        invalid_schema = CreditLimitHistoryCreate(
+        # Use schema factory with invalid credit limit
+        from tests.helpers.schema_factories.credit_limit_history_schema_factories import create_credit_limit_history_schema
+        
+        invalid_schema = create_credit_limit_history_schema(
             account_id=test_credit_account.id,
             credit_limit=Decimal("-5000.00"),  # Invalid negative credit limit
             effective_date=datetime.now(timezone.utc),

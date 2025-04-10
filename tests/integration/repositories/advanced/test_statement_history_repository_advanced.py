@@ -340,7 +340,7 @@ async def test_validation_error_handling():
     """Test handling of validation errors that would be caught by the Pydantic schema."""
     # Try creating a schema with invalid data
     try:
-        invalid_schema = StatementHistoryCreate(
+        invalid_schema = create_statement_history_schema(
             account_id=-1,  # Invalid negative ID
             statement_date=utc_now(),
             statement_balance=Decimal(

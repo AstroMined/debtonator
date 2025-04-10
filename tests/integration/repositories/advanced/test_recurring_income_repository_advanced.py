@@ -327,9 +327,12 @@ async def test_validation_error_handling(
     test_checking_account: Account,
 ):
     """Test handling invalid data that would normally be caught by schema validation."""
+    # Import the schema factory
+    from tests.helpers.schema_factories.recurring_income_schema_factories import create_recurring_income_schema
+    
     # Try creating a schema with invalid data and expect it to fail validation
     try:
-        invalid_schema = RecurringIncomeCreate(
+        invalid_schema = create_recurring_income_schema(
             source="Invalid Income",
             amount=Decimal("-50.00"),  # Invalid negative amount
             day_of_month=15,
@@ -343,7 +346,7 @@ async def test_validation_error_handling(
 
     # Try with invalid day_of_month
     try:
-        invalid_schema = RecurringIncomeCreate(
+        invalid_schema = create_recurring_income_schema(
             source="Invalid Income",
             amount=Decimal("50.00"),
             day_of_month=32,  # Invalid day

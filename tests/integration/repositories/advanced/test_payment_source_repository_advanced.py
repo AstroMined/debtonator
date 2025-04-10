@@ -211,10 +211,13 @@ async def test_delete_sources_for_payment(
 
 async def test_validation_error_handling():
     """Test that schema validation catches invalid data."""
+    # Import the schema factory
+    from tests.helpers.schema_factories.payment_sources_schema_factories import create_payment_source_schema
+    
     # Try creating a schema with invalid data
     try:
         # Using PaymentSourceCreate since it doesn't require payment_id
-        invalid_schema = PaymentSourceCreate(
+        invalid_schema = create_payment_source_schema(
             account_id=-1,  # Invalid negative ID
             amount=Decimal("-50.00"),  # Invalid negative amount
         )

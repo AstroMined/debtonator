@@ -7,6 +7,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.99] - 2025-04-10
+
+### Changed
+
+- Refactored 14 advanced repository test files to comply with project standards:
+  - Replaced direct schema creation with schema factory usage in validation tests
+  - Implemented consistent 4-step pattern (Arrange-Schema-Act-Assert) across all tests
+  - Updated code_review.md to mark all refactored files as compliant
+  - Improved datetime handling using proper utility functions
+  - Implemented proper validation flow in all advanced repository tests
+
+### Fixed
+
+- Fixed validation flow in advanced repository tests:
+  - Updated test_deposit_schedule_repository_advanced.py to use schema factories
+  - Updated test_income_category_repository_advanced.py with proper validation
+  - Updated test_liability_repository_advanced.py with schema factory usage
+  - Updated test_payment_repository_advanced.py with consistent validation
+  - Updated test_payment_schedule_repository_advanced.py with schema factories
+  - Updated test_payment_source_repository_advanced.py with proper validation
+  - Updated test_recurring_bill_repository_advanced.py with schema factories
+  - Updated test_recurring_income_repository_advanced.py with schema factories
+  - Updated test_statement_history_repository_advanced.py with schema factories
+  - Updated test_transaction_history_repository_advanced.py with schema factories
+  - Fixed test_bill_split_repository_advanced.py validation flow
+  - Fixed test_cashflow_forecast_repository_advanced.py validation flow
+  - Fixed test_category_repository_advanced.py validation flow
+  - Fixed test_credit_limit_history_repository_advanced.py validation flow
+
 ## [0.5.98] - 2025-04-10
 
 ### Added

@@ -301,14 +301,15 @@ async def test_get_monthly_liability_amount(
 
 async def test_validation_error_handling():
     """Test handling of validation errors that would be caught by the Pydantic schema."""
+    # Import the schema factory
+    from tests.helpers.schema_factories.liabilities_schema_factories import create_liability_schema
+    
     # Try creating a schema with invalid data
     try:
-        invalid_schema = LiabilityCreate(
+        invalid_schema = create_liability_schema(
             name="",  # Invalid empty name
             amount=Decimal("-10.00"),  # Invalid negative amount
-            due_date=days_ago(
-                10
-            ),  # Past date is actually valid per ADR-002 for historical data
+            due_date=days_ago(10),  # Past date is actually valid per ADR-002 for historical data
             category_id=1,
             primary_account_id=1,
         )

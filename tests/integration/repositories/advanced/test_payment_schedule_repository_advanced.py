@@ -353,9 +353,12 @@ async def test_validation_error_handling(
     test_checking_account: Account,
 ):
     """Test handling invalid data that would normally be caught by schema validation."""
+    # Import the schema factory
+    from tests.helpers.schema_factories.payment_schedules_schema_factories import create_payment_schedule_schema
+    
     # Try creating a schema with invalid data and expect it to fail validation
     try:
-        _ = PaymentScheduleCreate(
+        _ = create_payment_schedule_schema(
             liability_id=test_liability.id,
             account_id=test_checking_account.id,
             scheduled_date=utc_now(),

@@ -292,9 +292,12 @@ async def test_get_upcoming_bills(
 
 async def test_validation_error_handling():
     """Test handling of validation errors that would be caught by the Pydantic schema."""
+    # Import the schema factory
+    from tests.helpers.schema_factories.recurring_bills_schema_factories import create_recurring_bill_schema
+    
     # Try creating a schema with invalid data
     try:
-        invalid_schema = RecurringBillCreate(
+        invalid_schema = create_recurring_bill_schema(
             bill_name="",  # Invalid empty name
             amount=Decimal("-50.00"),  # Invalid negative amount
             day_of_month=32,  # Invalid day of month
