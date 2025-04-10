@@ -37,8 +37,8 @@ async def test_create_account(account_repository: AccountRepository):
         description="Test savings account created through repository",
     )
 
-    # account_schema is already a model, so we can use it directly
-    validated_data = account_schema
+    # Convert validated schema to dict for repository
+    validated_data = account_schema.model_dump()
 
     # 3. ACT: Pass validated data to repository
     result = await account_repository.create(validated_data)

@@ -6,7 +6,20 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 
 ### Recent Changes
 
-1. **Achieved 100% Test Coverage for Decimal Precision Module (April 9, 2025)** ✓
+1. **Created Repository Test Pattern Guide and Code Review Document (April 9, 2025)** ✓
+   - Created comprehensive repository test pattern guide in tests/integration/repositories/README.md
+   - Moved guide from docs/guides/repository_test_pattern.md to tests/integration/repositories/README.md
+   - Added explicit instructions on using schema factories for validation
+   - Clarified that fixtures should be moved to appropriate fixture directories based on type
+   - Emphasized function-style tests over class-style tests
+   - Created detailed code review document in tests/integration/repositories/code_review.md
+   - Performed initial review of repository test files to identify issues
+   - Fixed issues in test_account_repository_crud.py and test_bill_split_repository_crud.py
+   - Verified test_balance_history_repository_crud.py already complies with standards
+   - Established three-pass code review process for repository tests
+   - Updated documentation with clear fixture organization guidelines
+
+2. **Achieved 100% Test Coverage for Decimal Precision Module (April 9, 2025)** ✓
    - Combined tests from tests/unit/core/test_decimal_precision.py and tests/unit/utils/test_decimal_precision.py
    - Created a comprehensive test file that covers all branches in the distribute_by_percentage method
    - Added specific tests for positive and negative remainder distribution scenarios

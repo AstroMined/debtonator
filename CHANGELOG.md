@@ -7,6 +7,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.95] - 2025-04-09
+
+### Added
+
+- Created comprehensive repository test pattern guide:
+  - Moved guide from docs/guides/repository_test_pattern.md to tests/integration/repositories/README.md
+  - Added explicit instructions on using schema factories for validation
+  - Clarified that fixtures should be moved to appropriate fixture directories based on type
+  - Emphasized function-style tests over class-style tests
+  - Added detailed examples of proper validation flow
+  - Created clear directory structure guidelines with examples
+  - Specified naming conventions for files and functions
+  - Added comprehensive fixture organization guidelines
+
+- Created repository test code review document:
+  - Added detailed code review document in tests/integration/repositories/code_review.md
+  - Established three-pass code review process for repository tests
+  - Provided file-by-file review of existing repository tests
+  - Identified common issues that need to be addressed
+  - Created detailed recommendations for fixing issues
+  - Outlined next steps for the code review process
+
+### Fixed
+
+- Fixed schema validation in test_account_repository_crud.py:
+  - Updated to use model_dump() on schema factories
+  - Improved validation flow in create operations
+
+- Fixed schema factory usage in test_bill_split_repository_crud.py:
+  - Replaced direct BillSplitUpdate usage with create_bill_split_update_schema factory
+  - Updated imports to use schema factories consistently
+
 ## [0.5.94] - 2025-04-09
 
 ### Improved

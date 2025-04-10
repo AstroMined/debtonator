@@ -20,10 +20,10 @@ from src.models.accounts import Account
 from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability
 from src.repositories.bill_splits import BillSplitRepository
-from src.schemas.bill_splits import BillSplitUpdate
 from src.utils.datetime_utils import datetime_greater_than
 from tests.helpers.schema_factories.bill_splits_schema_factories import (
     create_bill_split_schema,
+    create_bill_split_update_schema,
 )
 
 pytestmark = pytest.mark.asyncio
@@ -92,7 +92,8 @@ async def test_update_bill_split(
     bill_split_id = test_bill_splits[0].id
     new_amount = Decimal("175.00")
 
-    update_schema = BillSplitUpdate(id=bill_split_id, amount=new_amount)
+    # Create schema with factory function
+    update_schema = create_bill_split_update_schema(id=bill_split_id, amount=new_amount)
 
     # Convert validated schema to dict for repository
     update_data = update_schema.model_dump(exclude={"id"})

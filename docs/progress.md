@@ -174,6 +174,10 @@
    - Repository fixture organization mirroring source code structure ✓
    - 100% test coverage for decimal_precision module with targeted tests ✓
    - Test consolidation approach for complementary test files ✓
+   - Repository test pattern guide with schema factory validation ✓
+   - Repository test code review process with three-pass approach ✓
+   - Function-style test standardization across repository tests ✓
+   - Fixture organization guidelines based on fixture type ✓
 
 ## What's Left to Build
 
