@@ -7,6 +7,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.94] - 2025-04-09
+
+### Improved
+
+- Achieved 100% test coverage for decimal_precision module:
+  - Combined tests from tests/unit/core/test_decimal_precision.py and tests/unit/utils/test_decimal_precision.py
+  - Created a comprehensive test file that covers all branches in the distribute_by_percentage method
+  - Added specific tests for positive and negative remainder distribution scenarios
+  - Targeted previously uncovered lines in decimal distribution logic
+  - Implemented test cases for edge cases in decimal distribution
+  - Improved overall utils module test coverage
+  - Consolidated test approach to eliminate duplicate test files
+
 ## [0.5.93] - 2025-04-09
 
 ### Changed

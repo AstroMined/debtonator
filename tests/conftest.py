@@ -27,7 +27,8 @@ pytest_plugins = [
     # Add repository fixtures
     "tests.fixtures.repositories.fixture_factory_repositories",
     "tests.fixtures.repositories.fixture_account_repositories",
-    "tests.fixtures.repositories.fixture_balance_repositories",
+    "tests.fixtures.repositories.fixture_balance_history_repositories",
+    "tests.fixtures.repositories.fixture_balance_reconciliation_repositories",
     "tests.fixtures.repositories.fixture_bill_splits_repositories",
     "tests.fixtures.repositories.fixture_cashflow_repositories",
     "tests.fixtures.repositories.fixture_categories_repositories",
@@ -53,7 +54,7 @@ pytest_plugins = [
     "tests.fixtures.repositories.account_types.banking.fixture_payment_app_repositories",
     "tests.fixtures.repositories.account_types.banking.fixture_ewa_repositories",
     # Add service fixtures
-    "tests.fixtures.services.fixture_services",
+    "tests.fixtures.services.fixture_feature_flags_services",
     # Add model fixtures
     "tests.fixtures.models.fixture_accounts_models",
     "tests.fixtures.models.fixture_categories_models",
