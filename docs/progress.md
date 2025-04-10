@@ -37,6 +37,7 @@
    - Function-style test standardization across repository tests ✓
    - Fixture organization guidelines based on fixture type ✓
    - Global Pylint configuration for schema factory decorator magic ✓
+   - Repository test refactoring for 9 CRUD test files completed ✓
 
 4. __Service Layer__: IN PROGRESS (75%)
    - Service refactoring to use repositories (90%)
@@ -120,6 +121,8 @@
    - Standardized model fixtures for all repository tests ✓
    - Repository fixtures decomposed into individual files ✓
    - Repository fixture organization mirroring source code structure ✓
+   - Schema factory usage in repository tests ✓
+   - Consistent 4-step pattern in repository tests ✓
 
 2. __Schema Layer__
    - Complete validation for all model types ✓
@@ -216,6 +219,13 @@
    - Add admin tools for controlling feature flags
    - Create documentation for feature flag system
    - Add training materials for feature flag usage
+
+5. __Continue Repository Test Refactoring__
+   - Fix remaining CRUD test files (test_payment_repository_crud.py)
+   - Refactor advanced repository test files
+   - Refactor account type repository test files
+   - Refactor other repository test files (base, factory, feature flag)
+   - Split account type tests between crud and advanced directories
 
 ## Known Issues
 

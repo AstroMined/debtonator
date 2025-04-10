@@ -4,13 +4,10 @@ Integration tests for the PaymentScheduleRepository.
 This module contains tests for the PaymentScheduleRepository using the
 standard 4-step pattern (Arrange-Schema-Act-Assert) to properly simulate
 the validation flow from services to repositories.
-
-These tests verify CRUD operations and specialized methods for the
-PaymentScheduleRepository, ensuring proper validation flow and relationship
-loading.
 """
 
-from datetime import datetime, timedelta, timezone
+# pylint: disable=no-member
+
 from decimal import Decimal
 
 import pytest
@@ -19,9 +16,7 @@ from src.models.accounts import Account
 from src.models.liabilities import Liability
 from src.models.payment_schedules import PaymentSchedule
 from src.repositories.payment_schedules import PaymentScheduleRepository
-
-# Import schemas and schema factories - essential part of the validation pattern
-from src.utils.datetime_utils import datetime_greater_than
+from src.utils.datetime_utils import datetime_greater_than, days_from_now
 from tests.helpers.schema_factories.payment_schedules_schema_factories import (
     create_payment_schedule_schema,
     create_payment_schedule_update_schema,
@@ -37,9 +32,9 @@ async def test_create_payment_schedule(
 ):
     """Test creating a payment schedule with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
+    scheduled_date = days_from_now(10)
 
     # 2. SCHEMA: Create and validate through Pydantic schema
-    scheduled_date = datetime.now(timezone.utc) + timedelta(days=10)
     schedule_schema = create_payment_schedule_schema(
         liability_id=test_liability.id,
         account_id=test_checking_account.id,
@@ -74,7 +69,9 @@ async def test_get_payment_schedule(
     test_payment_schedule: PaymentSchedule,
 ):
     """Test retrieving a payment schedule by ID."""
-    # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
+    # 1. ARRANGE: Setup is already done with fixtures
+
+    # 2. SCHEMA: No schema needed for get operation
 
     # 3. ACT: Get the payment schedule
     result = await payment_schedule_repository.get(test_payment_schedule.id)
@@ -95,12 +92,11 @@ async def test_update_payment_schedule(
 ):
     """Test updating a payment schedule with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
-
     # Store original timestamp before update
     original_updated_at = test_payment_schedule.updated_at
+    new_scheduled_date = days_from_now(15)
 
     # 2. SCHEMA: Create and validate update data through Pydantic schema
-    new_scheduled_date = datetime.now(timezone.utc) + timedelta(days=15)
     update_schema = create_payment_schedule_update_schema(
         scheduled_date=new_scheduled_date,
         amount=Decimal("225.00"),
@@ -121,7 +117,7 @@ async def test_update_payment_schedule(
     assert result.amount == Decimal("225.00")
     assert result.description == "Updated payment description"
 
-    # Convert the timezone-aware date to naive for comparison with database result
+    # Compare dates with proper timezone handling
     db_date = result.scheduled_date.replace(tzinfo=None)
     expected_date = new_scheduled_date.replace(tzinfo=None)
     assert abs((db_date - expected_date).total_seconds()) < 60  # Within a minute
@@ -136,7 +132,9 @@ async def test_delete_payment_schedule(
     test_payment_schedule: PaymentSchedule,
 ):
     """Test deleting a payment schedule."""
-    # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
+    # 1. ARRANGE: Setup is already done with fixtures
+
+    # 2. SCHEMA: No schema needed for delete operation
 
     # 3. ACT: Delete the payment schedule
     result = await payment_schedule_repository.delete(test_payment_schedule.id)

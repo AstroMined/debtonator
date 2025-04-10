@@ -6,7 +6,8 @@ standard 4-step pattern (Arrange-Schema-Act-Assert) to properly simulate
 the validation flow from services to repositories.
 """
 
-from datetime import timedelta
+# pylint: disable=no-member
+
 from decimal import Decimal
 
 import pytest
@@ -15,10 +16,10 @@ from src.models.accounts import Account
 from src.models.categories import Category
 from src.models.liabilities import Liability, LiabilityStatus
 from src.repositories.liabilities import LiabilityRepository
-from src.schemas.liabilities import LiabilityUpdate
-from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
+from src.utils.datetime_utils import datetime_equals, datetime_greater_than, days_from_now
 from tests.helpers.schema_factories.liabilities_schema_factories import (
     create_liability_schema,
+    create_liability_update_schema,
 )
 
 pytestmark = pytest.mark.asyncio
@@ -31,7 +32,7 @@ async def test_create_liability(
 ):
     """Test creating a liability with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
-    due_date = utc_now() + timedelta(days=30)
+    due_date = days_from_now(30)
 
     # 2. SCHEMA: Create and validate through Pydantic schema
     liability_schema = create_liability_schema(
@@ -95,7 +96,7 @@ async def test_update_liability(
     original_updated_at = test_liability.updated_at
 
     # 2. SCHEMA: Create and validate update data through Pydantic schema
-    update_schema = LiabilityUpdate(
+    update_schema = create_liability_update_schema(
         id=test_liability.id,
         name="Updated Bill Name",
         amount=Decimal("150.00"),

@@ -7,6 +7,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.97] - 2025-04-10
+
+### Changed
+
+- Refactored repository test files to comply with project standards:
+  - Updated 7 CRUD test files to use schema factories consistently
+  - Added missing schema factory function for statement history updates
+  - Ensured consistent 4-step pattern (Arrange-Schema-Act-Assert) across all tests
+  - Replaced direct schema creation with schema factory usage
+  - Added missing delete test for transaction history repository
+  - Added pylint disable=no-member directive to all refactored files
+  - Improved datetime handling using proper utility functions
+
+### Fixed
+
+- Fixed repository tests to use proper validation flow:
+  - Updated test_liability_repository_crud.py with consistent validation pattern
+  - Fixed test_payment_schedule_repository_crud.py to separate ARRANGE and SCHEMA steps
+  - Updated test_payment_source_repository_crud.py with explicit SCHEMA step comments
+  - Fixed test_recurring_bill_repository_crud.py to use schema factories
+  - Updated test_recurring_income_repository_crud.py with proper validation flow
+  - Fixed test_statement_history_repository_crud.py to use schema factories
+  - Updated test_transaction_history_repository_crud.py with proper datetime handling
+
 ## [0.5.96] - 2025-04-10
 
 ### Added

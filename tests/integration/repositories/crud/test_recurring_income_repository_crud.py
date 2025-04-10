@@ -4,11 +4,9 @@ Integration tests for the RecurringIncomeRepository.
 This module contains tests for the RecurringIncomeRepository using the
 standard 4-step pattern (Arrange-Schema-Act-Assert) to properly simulate
 the validation flow from services to repositories.
-
-These tests verify CRUD operations and specialized methods for the
-RecurringIncomeRepository, ensuring proper validation flow and relationship
-loading.
 """
+
+# pylint: disable=no-member
 
 from decimal import Decimal
 
@@ -17,8 +15,6 @@ import pytest
 from src.models.accounts import Account
 from src.models.recurring_income import RecurringIncome
 from src.repositories.recurring_income import RecurringIncomeRepository
-
-# Import schema and schema factories - essential part of the validation pattern
 from src.utils.datetime_utils import datetime_greater_than
 from tests.helpers.schema_factories.recurring_income_schema_factories import (
     create_recurring_income_schema,
@@ -68,7 +64,9 @@ async def test_get_recurring_income(
     test_recurring_income: RecurringIncome,
 ):
     """Test retrieving a recurring income by ID."""
-    # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
+    # 1. ARRANGE: Setup is already done with fixtures
+
+    # 2. SCHEMA: No schema needed for get operation
 
     # 3. ACT: Get the recurring income
     result = await recurring_income_repository.get(test_recurring_income.id)
@@ -90,7 +88,6 @@ async def test_update_recurring_income(
 ):
     """Test updating a recurring income with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
-
     # Store original timestamp before update
     original_updated_at = test_recurring_income.updated_at
 
@@ -127,7 +124,9 @@ async def test_delete_recurring_income(
     test_recurring_income: RecurringIncome,
 ):
     """Test deleting a recurring income."""
-    # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
+    # 1. ARRANGE: Setup is already done with fixtures
+
+    # 2. SCHEMA: No schema needed for delete operation
 
     # 3. ACT: Delete the recurring income
     result = await recurring_income_repository.delete(test_recurring_income.id)

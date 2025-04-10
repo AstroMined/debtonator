@@ -1,10 +1,12 @@
 """
 Integration tests for the PaymentSourceRepository.
 
-This module contains tests for the PaymentSourceRepository using a real
-test database to verify CRUD operations and specialized methods.
-These tests follow the Arrange-Schema-Act-Assert pattern for repository testing.
+This module contains tests for the PaymentSourceRepository using the
+standard 4-step pattern (Arrange-Schema-Act-Assert) to properly simulate
+the validation flow from services to repositories.
 """
+
+# pylint: disable=no-member
 
 from decimal import Decimal
 
@@ -38,7 +40,6 @@ async def test_create_payment_with_source(
     # 1. ARRANGE: Setup is already done with fixtures
 
     # 2. SCHEMA: Create and validate through Pydantic schema
-    # Create a payment with a single source
     payment_schema = create_payment_schema(
         amount=Decimal("50.00"),
         payment_date=utc_now(),
@@ -81,13 +82,14 @@ async def test_get_payment_source(
 ):
     """Test retrieving a payment source by ID with proper validation flow."""
     # 1. ARRANGE: Setup is already done with fixtures
-    # Ensure test_payment_source is treated as a SQLAlchemy model instance
     payment_source_id = test_payment_source.id
 
-    # 2. ACT: Get the payment source by ID
+    # 2. SCHEMA: No schema needed for get operation
+
+    # 3. ACT: Get the payment source by ID
     result = await payment_source_repository.get(payment_source_id)
 
-    # 3. ASSERT: Verify the operation results
+    # 4. ASSERT: Verify the operation results
     assert result is not None
     assert result.id == payment_source_id
     assert result.payment_id == test_payment_source.payment_id
@@ -107,7 +109,6 @@ async def test_update_payment_source(
     initial_updated_at = test_payment_source.updated_at
 
     # 2. SCHEMA: Create and validate through Pydantic schema
-    # Create a validated schema using the factory, explicitly including the payment_id to preserve it
     update_schema = create_payment_source_update_schema(
         id=payment_source_id,
         amount=Decimal("125.00"),
@@ -139,10 +140,12 @@ async def test_delete_payment_source(
     # 1. ARRANGE: Setup is already done with fixtures
     payment_source_id = test_payment_source.id
 
-    # 2. ACT: Delete the payment source
+    # 2. SCHEMA: No schema needed for delete operation
+
+    # 3. ACT: Delete the payment source
     result = await payment_source_repository.delete(payment_source_id)
 
-    # 3. ASSERT: Verify the operation results
+    # 4. ASSERT: Verify the operation results
     assert result is True
 
     # Verify the payment source is actually deleted

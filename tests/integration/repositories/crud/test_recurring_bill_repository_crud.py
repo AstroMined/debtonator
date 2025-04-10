@@ -6,6 +6,8 @@ standard 4-step pattern (Arrange-Schema-Act-Assert) to properly simulate
 the validation flow from services to repositories.
 """
 
+# pylint: disable=no-member
+
 from decimal import Decimal
 
 import pytest
@@ -14,10 +16,10 @@ from src.models.accounts import Account
 from src.models.categories import Category
 from src.models.recurring_bills import RecurringBill
 from src.repositories.recurring_bills import RecurringBillRepository
-from src.schemas.recurring_bills import RecurringBillUpdate
 from src.utils.datetime_utils import datetime_greater_than
 from tests.helpers.schema_factories.recurring_bills_schema_factories import (
     create_recurring_bill_schema,
+    create_recurring_bill_update_schema,
 )
 
 pytestmark = pytest.mark.asyncio
@@ -68,10 +70,12 @@ async def test_get_recurring_bill(
     """Test retrieving a recurring bill by ID."""
     # 1. ARRANGE: Setup is already done with fixtures
 
-    # 2. ACT: Get the recurring bill by ID
+    # 2. SCHEMA: No schema needed for get operation
+
+    # 3. ACT: Get the recurring bill by ID
     result = await recurring_bill_repository.get(test_recurring_bill.id)
 
-    # 3. ASSERT: Verify the operation results
+    # 4. ASSERT: Verify the operation results
     assert result is not None
     assert result.id == test_recurring_bill.id
     assert result.bill_name == test_recurring_bill.bill_name
@@ -93,14 +97,15 @@ async def test_update_recurring_bill(
     original_updated_at = test_recurring_bill.updated_at
 
     # 2. SCHEMA: Create and validate update data through Pydantic schema
-    update_schema = RecurringBillUpdate(
+    update_schema = create_recurring_bill_update_schema(
+        id=test_recurring_bill.id,
         bill_name="Updated Bill Name",
         amount=Decimal("125.00"),
         day_of_month=20,
     )
 
     # Convert validated schema to dict for repository
-    update_data = update_schema.model_dump(exclude_unset=True)
+    update_data = update_schema.model_dump(exclude={"id"})
 
     # 3. ACT: Pass validated data to repository
     result = await recurring_bill_repository.update(test_recurring_bill.id, update_data)
@@ -129,10 +134,12 @@ async def test_delete_recurring_bill(
     """Test deleting a recurring bill."""
     # 1. ARRANGE: Setup is already done with fixtures
 
-    # 2. ACT: Delete the recurring bill
+    # 2. SCHEMA: No schema needed for delete operation
+
+    # 3. ACT: Delete the recurring bill
     result = await recurring_bill_repository.delete(test_recurring_bill.id)
 
-    # 3. ASSERT: Verify the operation results
+    # 4. ASSERT: Verify the operation results
     assert result is True
 
     # Verify the bill is actually deleted

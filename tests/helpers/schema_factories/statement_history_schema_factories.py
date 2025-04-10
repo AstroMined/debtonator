@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from src.schemas.statement_history import StatementHistoryCreate
+from src.schemas.statement_history import StatementHistoryCreate, StatementHistoryUpdate
 from src.utils.datetime_utils import utc_now
 from tests.helpers.schema_factories.base_schema_schema_factories import factory_function
 
@@ -58,5 +58,38 @@ def create_statement_history_schema(
     elif minimum_payment is not None:
         # If minimum_payment is set but due_date is not, default to 25 days after statement
         data["due_date"] = statement_date + timedelta(days=25)
+
+    return data
+
+
+@factory_function(StatementHistoryUpdate)
+def create_statement_history_update_schema(
+    statement_balance: Optional[Decimal] = None,
+    minimum_payment: Optional[Decimal] = None,
+    due_date: Optional[datetime] = None,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """
+    Create a valid StatementHistoryUpdate schema instance.
+
+    Args:
+        statement_balance: Updated balance on statement date (optional)
+        minimum_payment: Updated minimum payment due (optional)
+        due_date: Updated payment due date (optional)
+        **kwargs: Additional fields to override
+
+    Returns:
+        Dict[str, Any]: Data to create StatementHistoryUpdate schema
+    """
+    data = {**kwargs}
+
+    if statement_balance is not None:
+        data["statement_balance"] = statement_balance
+
+    if minimum_payment is not None:
+        data["minimum_payment"] = minimum_payment
+
+    if due_date is not None:
+        data["due_date"] = due_date
 
     return data

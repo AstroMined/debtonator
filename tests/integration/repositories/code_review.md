@@ -81,10 +81,7 @@ This file has been refactored and now complies with all project standards.
 
 ### test_liability_repository_crud.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/fixture_liabilities_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests include advanced operations that should be in advanced tests
+This file has been refactored and now complies with all project standards.
 
 ### test_payment_repository_crud.py
 
@@ -95,45 +92,27 @@ Issues:
 
 ### test_payment_schedule_repository_crud.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/fixture_payment_schedules_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Missing proper validation flow in some tests
+This file has been refactored and now complies with all project standards.
 
 ### test_payment_source_repository_crud.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/fixture_payment_sources_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests use class-style organization instead of function-style
+This file has been refactored and now complies with all project standards.
 
 ### test_recurring_bill_repository_crud.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/fixture_recurring_bills_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests use repository dependencies instead of model fixtures
+This file has been refactored and now complies with all project standards.
 
 ### test_recurring_income_repository_crud.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/fixture_recurring_income_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Missing proper validation flow in some tests
+This file has been refactored and now complies with all project standards.
 
 ### test_statement_history_repository_crud.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/fixture_statement_history_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests use class-style organization instead of function-style
+This file has been refactored and now complies with all project standards.
 
 ### test_transaction_history_repository_crud.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/fixture_transaction_history_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests include advanced operations that should be in advanced tests
+This file has been refactored and now complies with all project standards.
 
 ## Account Type CRUD Tests
 
