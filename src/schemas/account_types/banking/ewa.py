@@ -15,6 +15,7 @@ from pydantic import Field, field_validator
 
 from src.schemas.accounts import AccountBase, AccountResponse
 from src.schemas.base_schema import MoneyDecimal, PercentageDecimal
+from src.utils.datetime_utils import ensure_utc, datetime_less_than
 
 
 class EWAAccountBase(AccountBase):
@@ -162,7 +163,17 @@ class EWAAccountBase(AccountBase):
         """
         pay_period_end = info.data.get("pay_period_end")
 
-        if pay_period_end is not None and value is not None and value < pay_period_end:
+        # Skip validation if either date is missing
+        if pay_period_end is None or value is None:
+            return value
+        
+        # Use project's datetime utilities to properly handle timezone awareness
+        # and ensure consistent comparison according to ADR-011
+        normalized_value = ensure_utc(value)
+        normalized_end = ensure_utc(pay_period_end)
+        
+        # Use the project's safe comparison function
+        if datetime_less_than(normalized_value, normalized_end):
             raise ValueError("Next payday must be on or after pay period end date")
 
         return value

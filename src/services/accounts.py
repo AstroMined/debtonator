@@ -717,6 +717,35 @@ class AccountService:
             adjusted_balance=adjusted_balance,
             available_credit=available_credit,
         )
+        
+    async def get_available_credit_amount(self, credit_account: AccountModel) -> Decimal:
+        """
+        Calculate and return just the available credit amount for a CreditAccount.
+        
+        Use this method to access credit availability without requiring a database lookup,
+        when you already have the account instance (follows ADR-012).
+        
+        Args:
+            credit_account: Credit account to calculate available credit for
+            
+        Returns:
+            Decimal: Available credit amount
+            
+        Raises:
+            ValueError: If account is not a credit account
+        """
+        if credit_account.type != "credit":
+            raise ValueError("Available credit calculation only available for credit accounts")
+            
+        if not hasattr(credit_account, "credit_limit") or credit_account.credit_limit is None:
+            return Decimal("0")
+            
+        if credit_account.available_balance >= 0:
+            # If balance is positive (credit), all credit is available
+            return credit_account.credit_limit
+            
+        # If balance is negative (debit), subtract from limit  
+        return credit_account.credit_limit - abs(credit_account.available_balance)
 
     async def _get_pending_transactions(self, account_id: int) -> Decimal:
         """

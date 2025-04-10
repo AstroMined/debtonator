@@ -15,7 +15,7 @@ from src.registry.account_registry_init import register_account_types
 
 
 # Ensure account type registry is initialized for testing
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def initialize_account_registry():
     """Initialize the account type registry before any tests run."""
     register_account_types()
@@ -55,6 +55,7 @@ pytest_plugins = [
     "tests.fixtures.repositories.account_types.banking.fixture_ewa_repositories",
     # Add service fixtures
     "tests.fixtures.services.fixture_feature_flags_services",
+    "tests.fixtures.services.fixture_accounts_services",
     # Add model fixtures
     "tests.fixtures.models.fixture_accounts_models",
     "tests.fixtures.models.fixture_categories_models",

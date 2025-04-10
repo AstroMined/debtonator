@@ -43,6 +43,18 @@ class AccountRepository(BaseRepository[Account, int]):
             session (AsyncSession): SQLAlchemy async session
         """
         super().__init__(session, Account)
+        
+    def _needs_polymorphic_loading(self) -> bool:
+        """
+        Override to enable polymorphic loading for Account entities.
+        
+        Account is a polymorphic base class with multiple derived types,
+        so we need to ensure all entities load correctly with their polymorphic identity.
+        
+        Returns:
+            bool: True to enable polymorphic loading
+        """
+        return True
 
     async def get_by_name(self, name: str) -> Optional[Account]:
         """
@@ -167,16 +179,31 @@ class AccountRepository(BaseRepository[Account, int]):
             ValueError: If the account type is unavailable due to disabled feature flags
         """
         # Check if this type is available based on feature flags
-        if feature_flag_service and account_type in ["payment_app", "bnpl", "ewa"]:
-            if not feature_flag_service.is_enabled("BANKING_ACCOUNT_TYPES_ENABLED"):
-                raise ValueError(
-                    f"Account type {account_type} is not currently enabled"
-                )
+        if feature_flag_service:
+            self._check_account_type_feature_flag(account_type, feature_flag_service)
 
         # Query for the specific account type
         query = select(Account).where(Account.account_type == account_type)
         result = await self.session.execute(query)
         return result.scalars().all()
+    
+    def _check_account_type_feature_flag(self, account_type: str, feature_flag_service) -> None:
+        """
+        Check if an account type is available based on feature flags.
+        
+        Args:
+            account_type (str): Account type to check
+            feature_flag_service: Feature flag service for validation
+            
+        Raises:
+            ValueError: If the account type is not enabled by feature flags
+        """
+        # Check banking account types
+        if account_type in ["payment_app", "bnpl", "ewa", "credit", "savings", "checking"]:
+            # Force evaluation to ensure the flag is checked properly
+            is_enabled = feature_flag_service.is_enabled("BANKING_ACCOUNT_TYPES_ENABLED")
+            if not is_enabled:
+                raise ValueError(f"Account type '{account_type}' is not available due to feature flags")
 
     async def get_with_type(self, account_id: int) -> Optional[Account]:
         """
@@ -347,6 +374,32 @@ class AccountRepository(BaseRepository[Account, int]):
 
         result = await self.session.execute(query)
         return result.scalars().all()
+        
+    async def delete(self, id: int) -> bool:
+        """
+        Soft delete an account by marking it as closed.
+        
+        This overrides the base repository's delete method to implement
+        soft deletion for accounts, maintaining data integrity while
+        allowing "deletion" functionality.
+
+        Args:
+            id (int): Account ID
+
+        Returns:
+            bool: True if soft deleted, False if not found
+        """
+        # Get the account
+        account = await self.get(id)
+        if not account:
+            return False
+            
+        # Mark as closed (soft delete)
+        account.is_closed = True
+        self.session.add(account)
+        await self.session.flush()
+        
+        return True
 
     async def create_typed_account(
         self,
@@ -365,77 +418,69 @@ class AccountRepository(BaseRepository[Account, int]):
             account_type_registry: Optional registry to get model class
 
         Returns:
-            Account: Created account
+            Account: Created account - will be the specific subclass instance
 
         Raises:
             ValueError: If account type is invalid or unavailable due to feature flags
         """
         # Check if this account type is available based on feature flags
-        if feature_flag_service and account_type_registry:
-            type_info = account_type_registry._registry.get(account_type, {})
-            feature_flag = type_info.get("feature_flag")
-            if feature_flag and not feature_flag_service.is_enabled(feature_flag):
-                raise ValueError(
-                    f"Account type {account_type} is not currently enabled"
-                )
+        if feature_flag_service:
+            self._check_account_type_feature_flag(account_type, feature_flag_service)
 
-        # Get model class if registry is provided
-        model_class = None
-        if account_type_registry:
-            model_class = account_type_registry.get_model_class(account_type)
-            if not model_class:
-                raise ValueError(f"Unknown account type: {account_type}")
+        # Use global registry if none provided
+        if account_type_registry is None:
+            from src.registry.account_types import account_type_registry as global_registry
+            account_type_registry = global_registry
+            
+        # Get model class from registry
+        model_class = account_type_registry.get_model_class(account_type)
         
-        # If no model class found, fall back to base Account
+        # Raise error if no model class found - registry should be source of truth
         if not model_class:
-            model_class = Account
-            
-        # Ensure account_type is set correctly
-        if "account_type" not in data:
-            data["account_type"] = account_type
+            raise ValueError(f"No model class registered for account type '{account_type}'")
         
-        # Filter data to only include fields valid for this model class
-        filtered_data = {}
+        # Start with a clean data copy
+        data_copy = data.copy()
+        data_copy["account_type"] = account_type
         
-        # Get all valid columns for this model class and its parent classes
-        valid_columns = set()
+        # For specialized types, inspect the model to get valid fields
+        valid_fields = set()
+        
+        # Get fields from the model class hierarchy
         current_class = model_class
-        
-        # Walk up the inheritance hierarchy to collect all valid columns
-        while current_class is not object:
+        while hasattr(current_class, "__table__") and current_class != object:
             if hasattr(current_class, "__table__"):
-                valid_columns.update(column.key for column in current_class.__table__.columns)
-            
-            # Move to the parent class
+                for column in current_class.__table__.columns:
+                    valid_fields.add(column.key)
+                    
             current_class = current_class.__base__
-            
-            # Stop if we've reached the base SQLAlchemy model
-            if current_class.__name__ == "Base":
+            if not hasattr(current_class, "__table__"):
                 break
-        
-        # If we couldn't determine columns, use a more direct approach
-        if not valid_columns and hasattr(model_class, "__mapper__"):
-            valid_columns = set(model_class.__mapper__.column_attrs.keys())
-        
-        # Include only valid columns in filtered data
-        if valid_columns:
-            for key, value in data.items():
-                if key in valid_columns:
-                    filtered_data[key] = value
                 
-            # Ensure account_type is set
-            filtered_data["account_type"] = account_type
-        else:
-            # If we still can't determine columns, use the original data
-            filtered_data = data.copy()
-            filtered_data["account_type"] = account_type
-
-        # Create the account using the appropriate model class
+        filtered_data = {
+            k: v for k, v in data_copy.items()
+            if k in valid_fields or k == "account_type"  # Always include account_type
+        }
+        
+        # Create the instance with filtered data
         db_obj = model_class(**filtered_data)
         self.session.add(db_obj)
+        
+        # Flush to get an ID but don't refresh yet - will get a fresh instance 
         await self.session.flush()
-        await self.session.refresh(db_obj)
-        return db_obj
+        
+        # Get ID for later query
+        created_id = db_obj.id
+        
+        # Detach the object to ensure we get a fresh instance
+        self.session.expunge(db_obj)
+        
+        # Query using the specific model class to ensure correct type loading
+        stmt = select(model_class).where(model_class.id == created_id)
+        result = await self.session.execute(stmt)
+        typed_account = result.scalars().first()
+        
+        return typed_account
 
     async def update_typed_account(
         self,
@@ -462,90 +507,107 @@ class AccountRepository(BaseRepository[Account, int]):
             ValueError: If account type is invalid or unavailable due to feature flags
         """
         # Check if this account type is available based on feature flags
-        if feature_flag_service and account_type_registry:
-            type_info = account_type_registry._registry.get(account_type, {})
-            feature_flag = type_info.get("feature_flag")
-            if feature_flag and not feature_flag_service.is_enabled(feature_flag):
-                raise ValueError(
-                    f"Account type {account_type} is not currently enabled"
-                )
+        if feature_flag_service:
+            self._check_account_type_feature_flag(account_type, feature_flag_service)
 
-        # Get the account
-        account = await self.get(account_id)
+        # Get the account using polymorphic loading to ensure correct type
+        poly_account = with_polymorphic(Account, "*")
+        result = await self.session.execute(
+            select(poly_account).where(poly_account.id == account_id)
+        )
+        account = result.scalars().first()
+        
         if not account:
             return None
 
-        # Check if updating international fields and if they're allowed
-        if feature_flag_service:
-            international_fields = [
-                "iban",
-                "swift_bic",
-                "sort_code",
-                "branch_code",
-                "account_format",
-            ]
-            has_international_fields = any(
-                field in data for field in international_fields
+        # Verify account_type matches expected type
+        if account.account_type != account_type:
+            raise ValueError(
+                f"Account ID {account_id} is of type {account.account_type}, not {account_type}"
             )
 
-            if has_international_fields and not feature_flag_service.is_enabled(
+        # Handle feature flag restrictions on fields
+        if feature_flag_service:
+            # Check international fields
+            international_fields = [
+                "iban", "swift_bic", "sort_code", "branch_code", "account_format"
+            ]
+            
+            if any(field in data for field in international_fields) and not feature_flag_service.is_enabled(
                 "INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED"
             ):
-                # Remove international fields from update data
+                # Remove international fields
                 for field in international_fields:
                     if field in data:
                         del data[field]
 
-        # Check if updating currency and if it's allowed
-        if feature_flag_service and "currency" in data and data["currency"] != "USD":
-            if not feature_flag_service.is_enabled("MULTI_CURRENCY_SUPPORT_ENABLED"):
-                # Force USD if multi-currency is disabled
+            # Check currency field
+            if "currency" in data and data["currency"] != "USD" and not feature_flag_service.is_enabled(
+                "MULTI_CURRENCY_SUPPORT_ENABLED"
+            ):
                 data["currency"] = "USD"
-        
-        # Filter data to only include fields valid for this account type
+
+        # Ensure account_type is preserved
         filtered_data = data.copy()
+        filtered_data["account_type"] = account_type
         
-        # Remove account_type if it's None to preserve the existing value
-        if "account_type" in filtered_data and filtered_data["account_type"] is None:
-            del filtered_data["account_type"]
-        
-        # Get model class if registry is provided
+        # Get model class for validation (if registry is provided)
         model_class = None
         if account_type_registry:
             model_class = account_type_registry.get_model_class(account_type)
         
-        # Filter fields if we have a model class
-        if model_class:
-            # Get all valid columns for this model class and its parent classes
-            valid_columns = set()
-            current_class = model_class
-            
-            # Walk up the inheritance hierarchy to collect all valid columns
-            while current_class is not object:
-                if hasattr(current_class, "__table__"):
-                    valid_columns.update(column.key for column in current_class.__table__.columns)
+        # Use global registry if none provided
+        if model_class is None and account_type_registry is None:
+            from src.registry.account_types import account_type_registry as global_registry
+            model_class = global_registry.get_model_class(account_type)
+        
+        # Get required fields that should not be set to NULL
+        required_fields = {}
+        if model_class and hasattr(model_class, "__table__"):
+            for column in model_class.__table__.columns:
+                if not column.nullable:
+                    required_fields[column.key] = True
+                    
+            # Also check parent classes for required fields
+            parent_class = model_class.__bases__[0]
+            while hasattr(parent_class, "__table__") and parent_class != object:
+                for column in parent_class.__table__.columns:
+                    if not column.nullable:
+                        required_fields[column.key] = True
+                parent_class = parent_class.__bases__[0]
+        
+        # Log debug info
+        print(f"DEBUG: Account before update: {account!r}")
+        print(f"DEBUG: Filtered data: {filtered_data}")
+        print(f"DEBUG: Required fields that cannot be NULL: {list(required_fields.keys())}")
+        
+        # Update entity fields, preserving required fields if NULL value provided
+        updated_fields = []
+        for key, value in filtered_data.items():
+            if hasattr(account, key):
+                before_value = getattr(account, key)
                 
-                # Move to the parent class
-                current_class = current_class.__base__
+                # Special handling for required fields
+                if key in required_fields and value is None:
+                    # Skip setting required fields to NULL
+                    print(f"DEBUG: Skipping NULL update for required field: {key}, keeping value: {before_value}")
+                    continue
+                    
+                # Handle special default values (like account_format="local")
+                if key == "account_format" and value is None and hasattr(account, "account_format"):
+                    # This field has a database default, preserve it
+                    print(f"DEBUG: Preserving account_format default: {before_value}")
+                    continue
                 
-                # Stop if we've reached the base SQLAlchemy model
-                if current_class.__name__ == "Base":
-                    break
-            
-            # If we couldn't determine columns, use a more direct approach
-            if not valid_columns and hasattr(model_class, "__mapper__"):
-                valid_columns = set(model_class.__mapper__.column_attrs.keys())
-            
-            # Filter data to only include valid columns
-            if valid_columns:
-                keys_to_remove = []
-                for key in filtered_data:
-                    if key not in valid_columns:
-                        keys_to_remove.append(key)
+                setattr(account, key, value)
+                after_value = getattr(account, key)
+                updated_fields.append(f"{key}: {before_value} -> {after_value}")
                 
-                for key in keys_to_remove:
-                    del filtered_data[key]
+        print(f"DEBUG: Updated fields: {updated_fields}")
 
-        # Update the entity
-        updated_account = await self.update(account_id, filtered_data)
-        return updated_account
+        # Save changes
+        self.session.add(account)
+        await self.session.flush()
+        await self.session.refresh(account)
+
+        return account

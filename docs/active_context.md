@@ -6,6 +6,27 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 
 ### Recent Changes
 
+1. **Identified Critical Account Type Repository Issues (April 10, 2025)** 🔄
+   - Identified major polymorphic identity issues in account type repositories:
+     - SQLAlchemy warnings: "Flushing object with incompatible polymorphic identity"
+     - Repository methods creating base `Account` objects instead of specialized types like `BNPLAccount`
+     - Type assertion failures (`isinstance`) in tests due to incorrect object instantiation
+     - Feature flag validation bypassed in some test flows
+     - Timezone inconsistency causing "can't compare offset-naive and offset-aware datetimes" errors
+   - Analyzed root causes in repository implementation:
+     - Found issues in `create_typed_account` method relying on general polymorphic loading
+     - Identified incorrect SQLAlchemy session handling (not detaching objects)
+     - Determined account type registry is not being used properly in repository methods
+     - Found incorrect datetime handling in account type schema validation
+   - Devised solution approach but implementation requires careful consideration:
+     - Improve type-specific loading in repository methods
+     - Ensure proper use of account type registry as source of truth
+     - Fix polymorphic query patterns to ensure correct object instantiation
+     - Standardize timezone handling for all datetime fields
+     - Update tests to use service layer for business logic validation
+   - Created test case in `test_credit_crud.py` that demonstrates proper pattern using service layer
+   - Updated knowledge base with findings to inform future work
+
 1. **Fixed Repository Fixtures and Schema Validation (April 10, 2025)** ✓
    - Fixed repository fixtures for account types to use the new factory method pattern:
      - Updated fixture_bnpl_repositories.py to use repository_factory(account_type="bnpl")

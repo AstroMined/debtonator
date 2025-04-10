@@ -247,7 +247,19 @@
 
 ## Known Issues
 
-1. __Pydantic v2 Discriminator Field Validator Conflict__
+1. __Critical Polymorphic Identity Issues in Account Type Repositories__
+   - SQLAlchemy warnings: "Flushing object with incompatible polymorphic identity"
+   - Repository methods creating base `Account` objects instead of specialized types
+   - Tests failing with incorrect `isinstance()` checks against returned objects
+   - Incorrect SQLAlchemy session handling not detaching objects properly
+   - Account type registry not being used as source of truth
+   - Improper polymorphic loading in `create_typed_account` and `update_typed_account`
+   - Feature flag validation bypassed in some test flows
+   - Timezone inconsistency with offset-naive vs offset-aware datetimes
+   - Solution requires careful refactoring of repository layer methods with proper polymorphic identity handling
+   - Need to ensure proper use of model classes from registry with explicit model class querying
+
+2. __Pydantic v2 Discriminator Field Validator Conflict__
    - Some account type response models still have validators on the discriminator field
    - This causes validation errors with Pydantic v2's discriminated union implementation
    - Need to move those validators to the service layer following the established pattern

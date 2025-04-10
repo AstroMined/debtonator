@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.account_types.banking.credit import CreditAccount
 from src.repositories.accounts import AccountRepository
+from src.services.accounts import AccountService
 from src.utils.datetime_utils import utc_now
 from tests.helpers.schema_factories.account_types.banking.credit_schema_factories import (
     create_credit_account_schema,
@@ -97,16 +98,19 @@ async def test_get_by_type_returns_only_credit_accounts(
 
 @pytest.mark.asyncio
 async def test_create_typed_account_with_credit_type(
-    repository: AccountRepository, db_session: AsyncSession
+    repository: AccountRepository, 
+    account_service: AccountService,
+    db_session: AsyncSession
 ):
     """
-    Test creating a typed credit account.
+    Test creating a typed credit account using service for business logic.
     
     This test verifies that the repository correctly creates a credit account
-    with the appropriate polymorphic identity and type-specific fields.
+    with the service calculating the business logic values, following ADR-012.
     
     Args:
         repository: Base account repository
+        account_service: Account service for business logic
         db_session: Database session
     """
     # 1. ARRANGE: Repository is provided by fixture
@@ -129,13 +133,18 @@ async def test_create_typed_account_with_credit_type(
     # 4. ASSERT: Verify the account was created correctly
     assert result is not None
     assert isinstance(result, CreditAccount)
+    
+    # Calculate available credit using the service (business logic) per ADR-012
+    available_credit = await account_service.get_available_credit_amount(result)
+    assert available_credit == Decimal("2500.00")
+    
+    # Verify other properties
     assert result.id is not None
     assert result.name == "New Credit Account"
     assert result.account_type == "credit"
     assert result.current_balance == Decimal("-500.00")
     assert result.available_balance == Decimal("-500.00")
     assert result.credit_limit == Decimal("3000.00")
-    assert result.available_credit == Decimal("2500.00")
     assert result.apr == Decimal("15.99")
 
     # Verify it was actually persisted
@@ -146,7 +155,9 @@ async def test_create_typed_account_with_credit_type(
 
 @pytest.mark.asyncio
 async def test_update_typed_account_with_credit_type(
-    repository: AccountRepository, test_credit_account: CreditAccount
+    repository: AccountRepository,
+    account_service: AccountService,
+    test_credit_account: CreditAccount
 ):
     """
     Test updating a typed credit account.
@@ -156,6 +167,7 @@ async def test_update_typed_account_with_credit_type(
     
     Args:
         repository: Base account repository
+        account_service: Account service for business logic
         test_credit_account: Credit account fixture
     """
     # 1. ARRANGE: Repository and test account are provided by fixtures

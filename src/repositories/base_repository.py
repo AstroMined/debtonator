@@ -69,6 +69,17 @@ class BaseRepository(Generic[ModelType, PKType]):
         await self.session.refresh(db_obj)
         return db_obj
 
+    def _needs_polymorphic_loading(self) -> bool:
+        """
+        Determine if this repository's model requires polymorphic loading.
+        
+        Can be overridden by subclasses to enable polymorphic loading.
+        
+        Returns:
+            bool: True if polymorphic loading should be used, False otherwise
+        """
+        return False
+
     async def get(self, id: PKType) -> Optional[ModelType]:
         """
         Get a single record by primary key.
@@ -79,9 +90,19 @@ class BaseRepository(Generic[ModelType, PKType]):
         Returns:
             Optional[ModelType]: Found object or None
         """
-        result = await self.session.execute(
-            select(self.model_class).where(self.model_class.id == id)
-        )
+        if self._needs_polymorphic_loading():
+            # Use polymorphic loading for models with inheritance
+            from sqlalchemy.orm import with_polymorphic
+            poly_model = with_polymorphic(self.model_class, "*")
+            result = await self.session.execute(
+                select(poly_model).where(poly_model.id == id)
+            )
+        else:
+            # Standard loading for non-polymorphic models
+            result = await self.session.execute(
+                select(self.model_class).where(self.model_class.id == id)
+            )
+        
         return result.scalars().first()
 
     async def get_with_joins(
@@ -161,7 +182,7 @@ class BaseRepository(Generic[ModelType, PKType]):
         # Get total count
         count_query = select(func.count()).select_from(
             self.model_class
-        )  # This is correct SQLAlchemy usage, ignore Pylint
+        )  # Use func.count() for SQL COUNT(*) function
         if filters:
             for field, value in filters.items():
                 if hasattr(self.model_class, field):

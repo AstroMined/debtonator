@@ -7,6 +7,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.101] - 2025-04-10
+
+### Fixed
+
+- Identified critical issues in account type repositories causing polymorphic identity problems
+- Updated test_credit_crud.py to demonstrate proper pattern using account_service for business logic validation
+- Fixed SQLAlchemy warnings for incompatible polymorphic identity in repository operations
+
+### Changed
+
+- Updated documentation in active_context.md and progress.md with detailed findings on account type repository issues
+- Added new known issue in progress.md documenting polymorphic identity problems
+
+### Technical
+
+- Diagnosed root cause of polymorphic identity issues related to SQLAlchemy session handling and account type registry usage
+- Improved understanding of proper polymorphic loading patterns for SQLAlchemy inherited models
+
 ## [0.5.100] - 2025-04-10
 
 ### Fixed
