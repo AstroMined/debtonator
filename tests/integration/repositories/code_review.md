@@ -85,10 +85,7 @@ This file has been refactored and now complies with all project standards.
 
 ### test_payment_repository_crud.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/fixture_payments_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests use repository dependencies instead of model fixtures
+This file has been refactored and now complies with all project standards.
 
 ### test_payment_schedule_repository_crud.py
 
@@ -114,48 +111,33 @@ This file has been refactored and now complies with all project standards.
 
 This file has been refactored and now complies with all project standards.
 
+### test_balance_reconciliation_repository_crud.py
+
+⚠️ Note: Missing delete test method, coverage details like this aren't listed in compliance checks above, **but they should be added**
+
 ## Account Type CRUD Tests
 
 ### crud/account_types/banking/test_bnpl_crud.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/account_types/banking/fixture_bnpl_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests use repository dependencies instead of model fixtures
-- Function-style tests but missing proper docstrings
+This file has been refactored and now complies with all project standards.
 
 ### crud/account_types/banking/test_ewa_crud.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/account_types/banking/fixture_ewa_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests use repository dependencies instead of model fixtures
-- Function-style tests but missing proper docstrings
+This file has been refactored and now complies with all project standards.
 
 ### crud/account_types/banking/test_payment_app_crud.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/account_types/banking/fixture_payment_app_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests use repository dependencies instead of model fixtures
-- Function-style tests but missing proper docstrings
+This file has been refactored and now complies with all project standards.
 
 ## Advanced Tests
 
 ### test_account_repository_advanced.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/fixture_account_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Some tests use class-style organization instead of function-style
-- Missing proper docstrings for some test functions
+This file has been refactored and now complies with all project standards.
 
 ### test_balance_history_repository_advanced.py
 
-Issues:
-- Fixtures defined in test file should be moved to tests/fixtures/repositories/fixture_balance_history_repositories.py
-- Direct dictionary creation instead of using schema factories
-- Missing proper validation flow in some tests
+This file has been refactored and now complies with all project standards.
 
 ### test_bill_split_repository_advanced.py
 
@@ -409,6 +391,12 @@ Based on the issues identified, the following actions are recommended:
      - Fixed test_account_repository_crud.py
      - Fixed test_bill_split_repository_crud.py
      - Verified test_balance_history_repository_crud.py already complies with standards
+     - Fixed test_payment_repository_crud.py
+     - Fixed crud/account_types/banking/test_bnpl_crud.py
+     - Fixed crud/account_types/banking/test_ewa_crud.py
+     - Fixed crud/account_types/banking/test_payment_app_crud.py
+     - Verified test_account_repository_advanced.py already complies with standards
+     - Fixed test_balance_history_repository_advanced.py
    - Final review to ensure issues are resolved
 
 2. Prioritize fixing remaining issues in this order:

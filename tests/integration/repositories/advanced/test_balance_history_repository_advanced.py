@@ -1,3 +1,4 @@
+# pylint: disable=no-member
 """
 Integration tests for the BalanceHistoryRepository.
 
@@ -15,7 +16,6 @@ import pytest
 from src.models.accounts import Account
 from src.models.balance_history import BalanceHistory
 from src.repositories.balance_history import BalanceHistoryRepository
-from src.schemas.balance_history import BalanceHistoryCreate
 from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
 from tests.helpers.schema_factories.balance_history_schema_factories import (
     create_balance_history_schema,
@@ -29,7 +29,14 @@ async def test_get_by_account(
     test_multiple_balances: List[BalanceHistory],
     test_checking_account: Account,
 ):
-    """Test retrieving balance history records for an account."""
+    """
+    Test retrieving balance history records for an account.
+    
+    Args:
+        balance_history_repository: Repository fixture for balance history
+        test_multiple_balances: Test balance history records fixture
+        test_checking_account: Test checking account fixture
+    """
     # 1. ARRANGE: Setup is already done with fixtures
 
     # 2. ACT: Get balances by account ID
@@ -56,7 +63,14 @@ async def test_get_latest_balance(
     test_multiple_balances: List[BalanceHistory],
     test_checking_account: Account,
 ):
-    """Test retrieving the latest balance for an account."""
+    """
+    Test retrieving the latest balance for an account.
+    
+    Args:
+        balance_history_repository: Repository fixture for balance history
+        test_multiple_balances: Test balance history records fixture
+        test_checking_account: Test checking account fixture
+    """
     # 1. ARRANGE: Setup is already done with fixtures
     latest_balance = test_multiple_balances[-1]  # Last in list (most recent)
 
@@ -77,7 +91,14 @@ async def test_get_with_account(
     test_balance_history: BalanceHistory,
     test_checking_account: Account,
 ):
-    """Test retrieving a balance history with its associated account."""
+    """
+    Test retrieving a balance history with its associated account.
+    
+    Args:
+        balance_history_repository: Repository fixture for balance history
+        test_balance_history: Test balance history record fixture
+        test_checking_account: Test checking account fixture
+    """
     # 1. ARRANGE: Setup is already done with fixtures
 
     # 2. ACT: Get balance with account
@@ -97,7 +118,14 @@ async def test_get_by_date_range(
     test_multiple_balances: List[BalanceHistory],
     test_checking_account: Account,
 ):
-    """Test retrieving balance history within a date range."""
+    """
+    Test retrieving balance history within a date range.
+    
+    Args:
+        balance_history_repository: Repository fixture for balance history
+        test_multiple_balances: Test balance history records fixture
+        test_checking_account: Test checking account fixture
+    """
     # 1. ARRANGE: Setup date range parameters
     now = utc_now()
     start_date = now - timedelta(days=15)
@@ -128,7 +156,14 @@ async def test_get_reconciled_balances(
     test_multiple_balances: List[BalanceHistory],
     test_checking_account: Account,
 ):
-    """Test retrieving reconciled balance records."""
+    """
+    Test retrieving reconciled balance records.
+    
+    Args:
+        balance_history_repository: Repository fixture for balance history
+        test_multiple_balances: Test balance history records fixture
+        test_checking_account: Test checking account fixture
+    """
     # 1. ARRANGE: Setup is already done with fixtures
 
     # 2. ACT: Get reconciled balances
@@ -150,7 +185,14 @@ async def test_get_min_max_balance(
     test_multiple_balances: List[BalanceHistory],
     test_checking_account: Account,
 ):
-    """Test retrieving minimum and maximum balance records."""
+    """
+    Test retrieving minimum and maximum balance records.
+    
+    Args:
+        balance_history_repository: Repository fixture for balance history
+        test_multiple_balances: Test balance history records fixture
+        test_checking_account: Test checking account fixture
+    """
     # 1. ARRANGE: Setup is already done with fixtures
 
     # 2. ACT: Get min and max balances
@@ -170,7 +212,14 @@ async def test_get_balance_trend(
     test_multiple_balances: List[BalanceHistory],
     test_checking_account: Account,
 ):
-    """Test retrieving balance trend data."""
+    """
+    Test retrieving balance trend data.
+    
+    Args:
+        balance_history_repository: Repository fixture for balance history
+        test_multiple_balances: Test balance history records fixture
+        test_checking_account: Test checking account fixture
+    """
     # 1. ARRANGE: Setup is already done with fixtures
 
     # 2. ACT: Get balance trend
@@ -194,7 +243,14 @@ async def test_get_average_balance(
     test_multiple_balances: List[BalanceHistory],
     test_checking_account: Account,
 ):
-    """Test calculating average balance."""
+    """
+    Test calculating average balance.
+    
+    Args:
+        balance_history_repository: Repository fixture for balance history
+        test_multiple_balances: Test balance history records fixture
+        test_checking_account: Test checking account fixture
+    """
     # 1. ARRANGE: Setup is already done with fixtures
     # Our test_multiple_balances has balances of 1000, 1500, and 2000
     expected_average = Decimal("1500.00")  # (1000 + 1500 + 2000) / 3
@@ -219,7 +275,13 @@ async def test_get_balance_history_with_notes(
     balance_history_repository: BalanceHistoryRepository,
     test_checking_account: Account,
 ):
-    """Test retrieving balance history records with notes."""
+    """
+    Test retrieving balance history records with notes.
+    
+    Args:
+        balance_history_repository: Repository fixture for balance history
+        test_checking_account: Test checking account fixture
+    """
     # 1. ARRANGE: Create balances with different note configurations
     now = utc_now()
 
@@ -252,18 +314,24 @@ async def test_get_balance_history_with_notes(
         timestamp=now,
     )
 
-    # Convert and create balance entries
-    with_note1 = await balance_history_repository.create(with_note1_schema.model_dump())
-    no_note = await balance_history_repository.create(no_note_schema.model_dump())
-    empty_note = await balance_history_repository.create(empty_note_schema.model_dump())
-    with_note2 = await balance_history_repository.create(with_note2_schema.model_dump())
+    # 2. SCHEMA: Convert schemas to dictionaries
+    with_note1_data = with_note1_schema.model_dump()
+    no_note_data = no_note_schema.model_dump()
+    empty_note_data = empty_note_schema.model_dump()
+    with_note2_data = with_note2_schema.model_dump()
 
-    # 2. ACT: Get balances with notes
+    # 3. ACT: Create balance entries
+    with_note1 = await balance_history_repository.create(with_note1_data)
+    no_note = await balance_history_repository.create(no_note_data)
+    empty_note = await balance_history_repository.create(empty_note_data)
+    with_note2 = await balance_history_repository.create(with_note2_data)
+
+    # Get balances with notes
     results = await balance_history_repository.get_balance_history_with_notes(
         test_checking_account.id
     )
 
-    # 3. ASSERT: Verify the operation results
+    # 4. ASSERT: Verify the operation results
     assert len(results) >= 2  # At least the two with notes
     assert any(bal.id == with_note1.id for bal in results)
     assert any(bal.id == with_note2.id for bal in results)
@@ -280,7 +348,13 @@ async def test_mark_as_reconciled(
     balance_history_repository: BalanceHistoryRepository,
     test_balance_history: BalanceHistory,
 ):
-    """Test marking a balance record as reconciled."""
+    """
+    Test marking a balance record as reconciled.
+    
+    Args:
+        balance_history_repository: Repository fixture for balance history
+        test_balance_history: Test balance history record fixture
+    """
     # 1. ARRANGE: Setup is already done with fixtures
     # Make sure it's not already reconciled
     assert test_balance_history.is_reconciled is False
@@ -308,7 +382,13 @@ async def test_add_balance_note(
     balance_history_repository: BalanceHistoryRepository,
     test_balance_history: BalanceHistory,
 ):
-    """Test adding a note to a balance record."""
+    """
+    Test adding a note to a balance record.
+    
+    Args:
+        balance_history_repository: Repository fixture for balance history
+        test_balance_history: Test balance history record fixture
+    """
     # 1. ARRANGE: Setup is already done with fixtures
 
     # 2. ACT: Add note to balance record
@@ -337,28 +417,26 @@ async def test_get_missing_days(
     test_balance_history_with_gaps: List[BalanceHistory],
     test_checking_account: Account,
 ):
-    """Test finding days with no balance records using fixed test data."""
+    """
+    Test finding days with no balance records using fixed test data.
+    
+    Args:
+        balance_history_repository: Repository fixture for balance history
+        test_balance_history_with_gaps: Test balance history records with gaps fixture
+        test_checking_account: Test checking account fixture
+    """
     # 1. ARRANGE: Setup is done with fixture
     # Get the actual dates from our test fixture
     entry_dates = [entry.timestamp.date() for entry in test_balance_history_with_gaps]
-    print(f"Test fixture dates: {entry_dates}")
 
     # Get today's date from the most recent entry
     most_recent = max(test_balance_history_with_gaps, key=lambda x: x.timestamp)
     today = most_recent.timestamp.replace(hour=0, minute=0, second=0, microsecond=0)
-    print(f"Today's reference date: {today.date()}")
 
     # 2. ACT: Get missing days
     missing_days = await balance_history_repository.get_missing_days(
         test_checking_account.id, days=10
     )
-
-    # Print date ranges and missing days for debugging
-    date_range = [(today - timedelta(days=i)).date() for i in range(11)]
-    print(f"Date range being checked: {date_range}")
-    print(f"Entry dates in database: {entry_dates}")
-    print(f"Expected missing dates: {[d for d in date_range if d not in entry_dates]}")
-    print(f"Actual missing dates found: {missing_days}")
 
     # 3. ASSERT: Verify there are exactly 8 missing days
     # Should find days 1-4 and 6-9 as missing (8 total)
@@ -387,13 +465,19 @@ async def test_get_available_credit_trend(
     balance_history_repository: BalanceHistoryRepository,
     test_credit_account: Account,
 ):
-    """Test retrieving available credit trend for a credit account."""
+    """
+    Test retrieving available credit trend for a credit account.
+    
+    Args:
+        balance_history_repository: Repository fixture for balance history
+        test_credit_account: Test credit account fixture
+    """
     # 1. ARRANGE: Create balance history records with available credit
     ten_days_ago = utc_now() - timedelta(days=10)
     five_days_ago = utc_now() - timedelta(days=5)
     now = utc_now()
 
-    # Create schemas with available credit
+    # 2. SCHEMA: Create schemas with available credit
     day1_schema = create_balance_history_schema(
         account_id=test_credit_account.id,
         balance=Decimal("-500.00"),
@@ -415,17 +499,21 @@ async def test_get_available_credit_trend(
         timestamp=now,
     )
 
-    # Convert and create balance records
-    await balance_history_repository.create(day1_schema.model_dump())
-    await balance_history_repository.create(day2_schema.model_dump())
-    await balance_history_repository.create(day3_schema.model_dump())
+    # Convert schemas to dictionaries
+    day1_data = day1_schema.model_dump()
+    day2_data = day2_schema.model_dump()
+    day3_data = day3_schema.model_dump()
 
-    # 2. ACT: Get available credit trend
+    # 3. ACT: Create balance records and get available credit trend
+    await balance_history_repository.create(day1_data)
+    await balance_history_repository.create(day2_data)
+    await balance_history_repository.create(day3_data)
+
     trend = await balance_history_repository.get_available_credit_trend(
         test_credit_account.id
     )
 
-    # 3. ASSERT: Verify the operation results
+    # 4. ASSERT: Verify the operation results
     assert len(trend) >= 3
 
     # Check that the trend contains timestamp and credit pairs
@@ -445,10 +533,13 @@ async def test_get_available_credit_trend(
 
 
 async def test_validation_error_handling():
-    """Test handling of validation errors that would be caught by the Pydantic schema."""
-    # Try creating a schema with invalid data
+    """
+    Test handling of validation errors that would be caught by the Pydantic schema.
+    """
+    # 1. ARRANGE & ACT & ASSERT: Try creating a schema with invalid data
     try:
-        _ = BalanceHistoryCreate(
+        # Use schema factory with invalid data
+        create_balance_history_schema(
             account_id=0,  # Invalid account ID
             balance=Decimal("-100.00"),  # Valid but negative
             is_reconciled="not_a_boolean",  # Invalid type for boolean field

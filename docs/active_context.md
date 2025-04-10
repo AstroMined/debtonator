@@ -7,7 +7,7 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 ### Recent Changes
 
 1. **Continued Repository Test Refactoring (April 10, 2025)** ✓
-   - Refactored 7 additional repository test files to comply with project standards:
+   - Refactored 11 additional repository test files to comply with project standards:
      - test_liability_repository_crud.py
      - test_payment_schedule_repository_crud.py
      - test_payment_source_repository_crud.py
@@ -15,13 +15,20 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
      - test_recurring_income_repository_crud.py
      - test_statement_history_repository_crud.py
      - test_transaction_history_repository_crud.py
-   - Added missing schema factory function create_statement_history_update_schema
+     - test_payment_repository_crud.py
+     - crud/account_types/banking/test_bnpl_crud.py
+     - crud/account_types/banking/test_ewa_crud.py
+     - crud/account_types/banking/test_payment_app_crud.py
+     - test_balance_history_repository_advanced.py
+   - Verified test_account_repository_advanced.py already complies with standards
    - Ensured consistent 4-step pattern (Arrange-Schema-Act-Assert) across all tests
    - Replaced direct schema creation with schema factory usage
-   - Added missing delete test for transaction history repository
+   - Converted class-style tests to function-style tests with proper docstrings
+   - Moved fixtures to appropriate fixture files
    - Updated code_review.md to reflect completed refactoring work
    - Added pylint disable=no-member directive to all refactored files
    - Improved datetime handling using proper utility functions
+   - Implemented proper validation flow in advanced repository tests
 
 2. **Created Repository Test Pattern Guide and Code Review Document (April 9, 2025)** ✓
    - Created comprehensive repository test pattern guide in tests/integration/repositories/README.md
@@ -36,7 +43,7 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Established three-pass code review process for repository tests
    - Updated documentation with clear fixture organization guidelines
 
-2. **Achieved 100% Test Coverage for Decimal Precision Module (April 9, 2025)** ✓
+3. **Achieved 100% Test Coverage for Decimal Precision Module (April 9, 2025)** ✓
    - Combined tests from tests/unit/core/test_decimal_precision.py and tests/unit/utils/test_decimal_precision.py
    - Created a comprehensive test file that covers all branches in the distribute_by_percentage method
    - Added specific tests for positive and negative remainder distribution scenarios
@@ -48,7 +55,7 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Improved overall utils module test coverage to 100% for decimal_precision.py
    - Consolidated test approach to eliminate duplicate test files
 
-2. **Completed Comprehensive Repository Fixtures Refactoring (April 9, 2025)** ✓
+4. **Completed Comprehensive Repository Fixtures Refactoring (April 9, 2025)** ✓
    - Decomposed monolithic fixture_repositories.py into individual domain-specific files
    - Created separate fixture files for each repository type following naming conventions
    - Implemented account type repository fixtures for all banking account types
@@ -60,7 +67,7 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Ensured proper docstrings with Args and Returns sections
    - Maintained consistent formatting across all fixture files
 
-3. **Completed Comprehensive Code Review and Refactoring of Model Fixtures (April 9, 2025)** ✓
+5. **Completed Comprehensive Code Review and Refactoring of Model Fixtures (April 9, 2025)** ✓
    - Performed comprehensive code review of all files in tests/fixtures/models directory
    - Fixed inconsistent datetime handling across all fixture files using naive_utc_now() and naive_days_from_now()
    - Standardized docstring format with Args and Returns sections in all fixture files
@@ -73,64 +80,64 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Verified all files now comply with project standards and best practices
    - Updated code review documentation with compliance status for all files
 
-4. **Improved Utils Module Test Coverage (April 9, 2025)** ✓
-   - Refactored datetime_utils tests into logical groupings (comparison, conversion, range operations)
-   - Fixed date_range function to enforce ADR-011 compliance by checking for non-UTC timezones
-   - Added comprehensive tests for decimal_precision module with 97% coverage
-   - Created documentation for integration test candidates in feature_flags and db modules
-   - Updated db.py docstring to reflect cross-layer concerns between database and HTTP
-   - Improved test organization with modular test files for better maintainability
-   - Enhanced test coverage for datetime utility functions from 71% to 93%
-   - Implemented proper timezone validation in datetime comparison functions
-   - Added tests for date range operations with proper timezone handling
-   - Increased overall utils module test coverage from 67% to 88%
-
-5. **Implemented Comprehensive Naive Datetime Functions (April 9, 2025)** ✓
-   - Added naive counterparts for all timezone-aware datetime functions in datetime_utils.py
-   - Created naive_days_from_now() and naive_days_ago() functions for database storage
-   - Added naive_first_day_of_month() and naive_last_day_of_month() functions
-   - Implemented naive_start_of_day() and naive_end_of_day() functions
-   - Added naive_utc_datetime_from_str() for string parsing to naive datetimes
-   - Created naive_date_range() for generating lists of naive dates
-   - Implemented naive_safe_end_date() for month boundary handling
-   - Updated documentation in both ADR-011 and UTC datetime compliance guide
-   - Added repository method patterns for both naive and timezone-aware approaches
-   - Improved database compatibility with direct naive datetime functions
-
 ## Next Steps
 
-1. **Complete Error Handling System Implementation**
+1. **Continue Repository Test Refactoring**
+   - Refactor remaining advanced repository test files:
+     - test_bill_split_repository_advanced.py
+     - test_cashflow_forecast_repository_advanced.py
+     - test_category_repository_advanced.py
+     - test_credit_limit_history_repository_advanced.py
+     - test_deposit_schedule_repository_advanced.py
+     - test_income_category_repository_advanced.py
+     - test_liability_repository_advanced.py
+     - test_payment_repository_advanced.py
+     - test_payment_schedule_repository_advanced.py
+     - test_payment_source_repository_advanced.py
+     - test_recurring_bill_repository_advanced.py
+     - test_recurring_income_repository_advanced.py
+     - test_statement_history_repository_advanced.py
+     - test_transaction_history_repository_advanced.py
+   - Refactor account type advanced tests:
+     - advanced/account_types/banking/test_bnpl_advanced.py
+     - advanced/account_types/banking/test_ewa_advanced.py
+     - advanced/account_types/banking/test_payment_app_advanced.py
+   - Refactor other repository tests:
+     - test_base_repository.py
+     - test_factory.py
+     - test_feature_flag_repository.py
+     - account_types/banking/test_checking.py
+     - account_types/banking/test_credit.py
+     - account_types/banking/test_savings.py
+     - bill_splits/test_bill_splits_with_account_types.py
+
+2. **Complete Error Handling System Implementation**
    - Implement remaining error classes for account types
    - Create consistent error translation between layers
    - Add user-friendly error messages to API responses
    - Implement error handling middleware for API endpoints
    - Add comprehensive documentation for error handling patterns
 
-2. **Complete Schema Factory Test Coverage**
+3. **Complete Schema Factory Test Coverage**
    - Implement remaining tests for account_types schema factories
    - Increase test coverage for specific schema factory components with < 90% coverage
    - Improve test coverage for complex edge cases in nested structures
    - Add cross-factory integration testing for complex relationships
    - Implement tests for additional service-level schema validations
 
-3. **Fix Remaining Schema Factory Implementation Issues**
+4. **Fix Remaining Schema Factory Implementation Issues**
    - Address validator conflict with discriminator fields in response models
    - Ensure proper handling of field validators in discriminated unions
    - Move complex validation logic to service layer where needed
    - Add robust handling for nested discriminated union validation
    - Document proper schema-service validation patterns
 
-4. **Complete API Layer Integration**
+5. **Complete API Layer Integration**
    - Implement GET /banking/overview endpoint
    - Create GET /banking/upcoming-payments endpoint
    - Add POST /accounts/banking endpoint
    - Implement POST /accounts/bnpl/{account_id}/update-status endpoint
    - Create endpoints to retrieve available account types
-
-5. **Update Test Cases for Polymorphic Validation**
-   - Extend test coverage for the new Pydantic v2 discriminated union pattern
-   - Create comprehensive test cases for all account types
-   - Test proper handling of inheritance and discriminator fields
 
 ## Implementation Lessons
 
@@ -202,3 +209,15 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
    - Use dependency injection for related repositories
    - Register all fixture files in conftest.py
    - Maintain consistent formatting across all fixture files
+
+8. **Repository Test Pattern Implementation**
+   - Follow the four-step pattern (Arrange-Schema-Act-Assert) in all repository tests
+   - Use schema factories for data validation to simulate service layer validation
+   - Convert class-style tests to function-style tests with proper docstrings
+   - Move fixtures to appropriate fixture files based on their type
+   - Use model fixtures for dependencies instead of repositories
+   - Ensure proper validation flow in all tests
+   - Add pylint disable=no-member directive to handle schema factory decorator magic
+   - Use proper datetime utilities for timezone-aware and naive datetime handling
+   - Organize tests in the correct directories (crud or advanced)
+   - Follow naming conventions for files and functions

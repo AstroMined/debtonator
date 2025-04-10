@@ -37,7 +37,9 @@
    - Function-style test standardization across repository tests ✓
    - Fixture organization guidelines based on fixture type ✓
    - Global Pylint configuration for schema factory decorator magic ✓
-   - Repository test refactoring for 9 CRUD test files completed ✓
+   - Repository test refactoring for 16 CRUD test files completed ✓
+   - Repository test refactoring for 3 account type CRUD test files completed ✓
+   - Repository test refactoring for 2 advanced test files completed ✓
 
 4. __Service Layer__: IN PROGRESS (75%)
    - Service refactoring to use repositories (90%)
@@ -123,6 +125,8 @@
    - Repository fixture organization mirroring source code structure ✓
    - Schema factory usage in repository tests ✓
    - Consistent 4-step pattern in repository tests ✓
+   - Function-style tests with proper docstrings ✓
+   - Proper validation flow in advanced repository tests ✓
 
 2. __Schema Layer__
    - Complete validation for all model types ✓
@@ -220,12 +224,34 @@
    - Create documentation for feature flag system
    - Add training materials for feature flag usage
 
-5. __Continue Repository Test Refactoring__
-   - Fix remaining CRUD test files (test_payment_repository_crud.py)
-   - Refactor advanced repository test files
-   - Refactor account type repository test files
-   - Refactor other repository test files (base, factory, feature flag)
-   - Split account type tests between crud and advanced directories
+5. __Continue Repository Test Refactoring (40%)__
+   - Refactor remaining advanced repository test files:
+     - test_bill_split_repository_advanced.py
+     - test_cashflow_forecast_repository_advanced.py
+     - test_category_repository_advanced.py
+     - test_credit_limit_history_repository_advanced.py
+     - test_deposit_schedule_repository_advanced.py
+     - test_income_category_repository_advanced.py
+     - test_liability_repository_advanced.py
+     - test_payment_repository_advanced.py
+     - test_payment_schedule_repository_advanced.py
+     - test_payment_source_repository_advanced.py
+     - test_recurring_bill_repository_advanced.py
+     - test_recurring_income_repository_advanced.py
+     - test_statement_history_repository_advanced.py
+     - test_transaction_history_repository_advanced.py
+   - Refactor account type advanced tests:
+     - advanced/account_types/banking/test_bnpl_advanced.py
+     - advanced/account_types/banking/test_ewa_advanced.py
+     - advanced/account_types/banking/test_payment_app_advanced.py
+   - Refactor other repository tests:
+     - test_base_repository.py
+     - test_factory.py
+     - test_feature_flag_repository.py
+     - account_types/banking/test_checking.py
+     - account_types/banking/test_credit.py
+     - account_types/banking/test_savings.py
+     - bill_splits/test_bill_splits_with_account_types.py
 
 ## Known Issues
 

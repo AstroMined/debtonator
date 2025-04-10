@@ -7,6 +7,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.98] - 2025-04-10
+
+### Added
+
+- Implemented repository test pattern with schema factory validation for advanced tests:
+  - Added proper validation flow in test_balance_history_repository_advanced.py
+  - Converted direct dictionary creation to schema factory usage
+  - Implemented consistent 4-step pattern (Arrange-Schema-Act-Assert) across tests
+  - Added comprehensive docstrings with proper parameter documentation
+
+### Changed
+
+- Updated repository test code review document:
+  - Added tracking for completed test refactoring work
+  - Updated "Next Steps" section with remaining files to refactor
+  - Marked test_balance_history_repository_advanced.py as compliant
+  - Marked test_account_repository_advanced.py as already compliant
+
+### Fixed
+
+- Fixed validation flow in advanced repository tests:
+  - Replaced direct dictionary creation with schema factory usage
+  - Added explicit SCHEMA step comments for clarity
+  - Fixed datetime handling using proper utility functions
+  - Added pylint disable=no-member directive to handle schema factory decorator magic
+
 ## [0.5.97] - 2025-04-10
 
 ### Changed
