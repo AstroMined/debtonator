@@ -13,7 +13,9 @@ from src.repositories.factory import RepositoryFactory
 
 @pytest_asyncio.fixture
 async def ewa_repository(
-    db_session: AsyncSession, repository_factory: RepositoryFactory
+    db_session: AsyncSession, 
+    repository_factory: RepositoryFactory,
+    feature_flag_service=None
 ) -> RepositoryFactory:
     """
     Create an EWA account repository for testing.
@@ -24,8 +26,10 @@ async def ewa_repository(
     Args:
         db_session: Database session fixture
         repository_factory: Repository factory fixture
+        feature_flag_service: Optional feature flag service fixture
         
     Returns:
         AccountRepository: Repository with EWA-specific operations
     """
+    # Repository factory will use the feature_flag_service parameter we fixed earlier
     return repository_factory(account_type="ewa")

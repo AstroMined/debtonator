@@ -6,7 +6,27 @@ Account Type Expansion, Service Layer Implementation, Feature Flag System, Banki
 
 ### Recent Changes
 
-1. **Identified Critical Account Type Repository Issues (April 10, 2025)** 🔄
+1. **Revised Feature Flag System Architecture (ADR-024) (April 10, 2025)** ✓
+   - Identified critical issues with current scattered feature flag implementation:
+     - Feature flag checks duplicated across repositories, services, and API layers
+     - Inconsistent error handling for feature flag violations
+     - Feature flag validation bypassed in some code paths
+     - Difficult to maintain as features grow
+   - Designed new middleware/interceptor-based architecture:
+     - Created `FeatureFlagRepositoryProxy` to centralize repository-level feature checks
+     - Designed `ServiceInterceptor` for service-layer feature enforcement
+     - Designed `FeatureFlagMiddleware` for API-level feature enforcement
+     - Added `ConfigProvider` for externalized feature configuration
+     - Created standardized `FeatureDisabledError` exception hierarchy
+   - Implemented bottom-up migration strategy aligned with current refactoring:
+     - Start at repository layer (current focus)
+     - Move to service layer next
+     - Complete with API layer
+   - Updated ADR-024 with comprehensive implementation plan
+   - Created clear before/after examples showing benefits of centralized approach
+   - Documented testing approach aligned with "no mocks" philosophy
+
+2. **Identified Critical Account Type Repository Issues (April 10, 2025)** 🔄
    - Identified major polymorphic identity issues in account type repositories:
      - SQLAlchemy warnings: "Flushing object with incompatible polymorphic identity"
      - Repository methods creating base `Account` objects instead of specialized types like `BNPLAccount`

@@ -149,34 +149,28 @@ class EWAAccountBase(AccountBase):
         cls, value: Optional[datetime], info: dict
     ) -> Optional[datetime]:
         """
-        Validate the next payday is after the pay period end date.
+        Normalize the next payday datetime to UTC.
+        
+        Note: Previously included validation that required next payday to be after 
+        pay period end date, but this was removed as per ADR-027. Different employers
+        have various payment schedules that may not align with this constraint.
 
         Args:
             value: The next payday date
             info: The validation context
 
         Returns:
-            The validated next payday date
-
-        Raises:
-            ValueError: If next payday is before pay period end date
+            The validated next payday date with proper timezone handling
         """
-        pay_period_end = info.data.get("pay_period_end")
-
-        # Skip validation if either date is missing
-        if pay_period_end is None or value is None:
+        # Skip normalization if value is missing
+        if value is None:
             return value
         
         # Use project's datetime utilities to properly handle timezone awareness
-        # and ensure consistent comparison according to ADR-011
+        # and ensure consistent UTC representation according to ADR-011
         normalized_value = ensure_utc(value)
-        normalized_end = ensure_utc(pay_period_end)
         
-        # Use the project's safe comparison function
-        if datetime_less_than(normalized_value, normalized_end):
-            raise ValueError("Next payday must be on or after pay period end date")
-
-        return value
+        return normalized_value
 
 
 class EWAAccountCreate(EWAAccountBase):

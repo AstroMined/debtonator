@@ -12,7 +12,7 @@ from src.repositories.factory import RepositoryFactory
 
 
 @pytest_asyncio.fixture
-async def repository_factory(db_session: AsyncSession):
+async def repository_factory(db_session: AsyncSession, feature_flag_service=None):
     """
     Create a repository factory for testing.
     
@@ -21,11 +21,16 @@ async def repository_factory(db_session: AsyncSession):
     
     Args:
         db_session: Database session fixture
+        feature_flag_service: Optional feature flag service fixture
         
     Returns:
         Function: Factory function for creating repositories
     """
-    return lambda account_type=None: RepositoryFactory.create_account_repository(db_session, account_type)
+    return lambda account_type=None: RepositoryFactory.create_account_repository(
+        db_session, 
+        account_type,
+        feature_flag_service
+    )
 
 @pytest_asyncio.fixture
 async def repository(db_session: AsyncSession):

@@ -83,7 +83,7 @@ class AccountService:
         Returns:
             Tuple of (is_valid, error_message)
         """
-        if account.type == "credit":
+        if account.account_type == "credit":
             # For credit accounts, check against available credit
             if account.total_limit is None:
                 return False, "Credit account has no limit set"
@@ -145,7 +145,7 @@ class AccountService:
         Returns:
             Tuple of (is_valid, error_message)
         """
-        if account.type != "credit":
+        if account.account_type != "credit":
             return False, "Credit limit can only be set for credit accounts"
 
         if new_limit <= Decimal(0):
@@ -182,7 +182,7 @@ class AccountService:
             return False, f"Account with ID {account_id} not found"
 
         # Check if account is a credit account
-        if account.type != "credit":
+        if account.account_type != "credit":
             return False, "Credit limit history can only be created for credit accounts"
 
         return True, None
@@ -225,7 +225,7 @@ class AccountService:
 
     def _update_available_credit(self, account: AccountModel) -> None:
         """Update available credit based on total limit and current balance"""
-        if account.type == "credit" and account.total_limit is not None:
+        if account.account_type == "credit" and account.total_limit is not None:
             # Use 4 decimal places for internal calculation
             balance_abs = DecimalPrecision.round_for_calculation(
                 abs(account.available_balance)
@@ -417,7 +417,7 @@ class AccountService:
 
         # For credit accounts, check statement balance
         if (
-            account.type == "credit"
+            account.account_type == "credit"
             and account.last_statement_balance
             and account.last_statement_balance != Decimal(0)
         ):
@@ -497,7 +497,7 @@ class AccountService:
             return False, "Due date cannot be before statement date"
 
         # For credit accounts, validate against credit limit
-        if account.type == "credit":
+        if account.account_type == "credit":
             if account.total_limit is None:
                 return False, "Credit account has no limit set"
             if statement_balance > account.total_limit:
@@ -734,7 +734,7 @@ class AccountService:
         Raises:
             ValueError: If account is not a credit account
         """
-        if credit_account.type != "credit":
+        if credit_account.account_type != "credit":
             raise ValueError("Available credit calculation only available for credit accounts")
             
         if not hasattr(credit_account, "credit_limit") or credit_account.credit_limit is None:
@@ -955,7 +955,7 @@ class AccountService:
 
             # Apply type-specific overview update function if available
             type_specific_update = await self._apply_type_specific_function(
-                account.type, "update_overview", account, overview
+                account.account_type, "update_overview", account, overview
             )
 
             # If there was a type-specific handler, continue to next account
@@ -963,24 +963,24 @@ class AccountService:
                 continue
 
             # Apply basic categorization if no type-specific function was found
-            if account.type == "checking":
+            if account.account_type == "checking":
                 overview["checking_balance"] += account.available_balance
                 overview["total_cash"] += account.available_balance
-            elif account.type == "savings":
+            elif account.account_type == "savings":
                 overview["savings_balance"] += account.available_balance
                 overview["total_cash"] += account.available_balance
-            elif account.type == "payment_app":
+            elif account.account_type == "payment_app":
                 overview["payment_app_balance"] += account.available_balance
                 overview["total_cash"] += account.available_balance
-            elif account.type == "credit":
+            elif account.account_type == "credit":
                 overview["credit_used"] += abs(account.current_balance)
                 if account.total_limit:
                     overview["credit_limit"] += account.total_limit
                     overview["total_debt"] += abs(account.current_balance)
-            elif account.type == "bnpl":
+            elif account.account_type == "bnpl":
                 overview["bnpl_balance"] += abs(account.current_balance)
                 overview["total_debt"] += abs(account.current_balance)
-            elif account.type == "ewa":
+            elif account.account_type == "ewa":
                 overview["ewa_balance"] += abs(account.current_balance)
                 overview["total_debt"] += abs(account.current_balance)
 
@@ -1020,7 +1020,7 @@ class AccountService:
 
             # Get upcoming payments for this account type if supported
             account_payments = await self._apply_type_specific_function(
-                account.type, "get_upcoming_payments", account.id, days
+                account.account_type, "get_upcoming_payments", account.id, days
             )
 
             # Add to the list if we got payments

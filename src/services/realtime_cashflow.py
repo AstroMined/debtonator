@@ -36,7 +36,7 @@ class RealtimeCashflowService:
             AccountBalance(
                 account_id=account.id,
                 name=account.name,
-                type=account.type,
+                type=account.account_type,
                 current_balance=account.available_balance,
                 available_credit=account.available_credit,
                 total_limit=account.total_limit,
@@ -263,7 +263,7 @@ class RealtimeCashflowService:
                     category_preferences={},
                     utilization_rate=(
                         abs(account.available_balance) / account.total_limit
-                        if account.type == "credit" and account.total_limit
+                        if account.account_type == "credit" and account.total_limit
                         else None
                     ),
                 )
@@ -286,7 +286,7 @@ class RealtimeCashflowService:
 
             # Calculate utilization rate for credit accounts
             utilization_rate = None
-            if account.type == "credit" and account.total_limit:
+            if account.account_type == "credit" and account.total_limit:
                 utilization_rate = abs(account.available_balance) / account.total_limit
 
             patterns[account.id] = AccountUsagePattern(
@@ -379,7 +379,7 @@ class RealtimeCashflowService:
                 ),
                 percentage_of_total=(
                     abs(account.available_balance) / total_balance
-                    if total_balance > 0 and account.type != "credit"
+                    if total_balance > 0 and account.account_type != "credit"
                     else Decimal(0)
                 ),
             )
@@ -415,7 +415,7 @@ class RealtimeCashflowService:
 
             # Calculate overdraft risk
             overdraft_risk = Decimal(0)
-            if account.type != "credit":
+            if account.account_type != "credit":
                 min_balance = min(balances)
                 overdraft_risk = (
                     Decimal("1")
@@ -425,7 +425,7 @@ class RealtimeCashflowService:
 
             # Calculate credit utilization risk
             credit_utilization_risk = None
-            if account.type == "credit" and account.total_limit:
+            if account.account_type == "credit" and account.total_limit:
                 utilization = abs(account.available_balance) / account.total_limit
                 credit_utilization_risk = min(utilization, Decimal("1"))
 

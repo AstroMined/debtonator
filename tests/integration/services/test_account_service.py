@@ -36,7 +36,7 @@ class TestAccountService:
 
         account = await service.create_account(account_data)
         assert account.name == "Test Checking"
-        assert account.type == "checking"
+        assert account.account_type == "checking"
         assert account.available_balance == Decimal("1000.00")
         assert account.total_limit is None
         assert account.available_credit is None
@@ -52,7 +52,7 @@ class TestAccountService:
 
         account = await service.create_account(account_data)
         assert account.name == "Test Credit"
-        assert account.type == "credit"
+        assert account.account_type == "credit"
         assert account.available_balance == Decimal("0.00")
         assert account.total_limit == Decimal("5000.00")
         assert account.available_credit == Decimal("5000.00")

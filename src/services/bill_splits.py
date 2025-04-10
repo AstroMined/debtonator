@@ -104,7 +104,7 @@ class BillSplitService:
             )
 
         # Validate account has sufficient balance/credit
-        if account.type == "credit":
+        if account.account_type == "credit":
             available_credit = (
                 account.total_limit + account.available_balance
                 if account.total_limit
@@ -148,7 +148,7 @@ class BillSplitService:
             result = await self.db.execute(stmt)
             account = result.unique().scalar_one()
 
-            if account.type == "credit":
+            if account.account_type == "credit":
                 available_credit = (
                     account.total_limit + account.available_balance
                     if account.total_limit
@@ -237,7 +237,7 @@ class BillSplitService:
                 account = accounts[split.account_id]
 
                 # Validate account has sufficient balance/credit
-                if account.type == "credit":
+                if account.account_type == "credit":
                     available_credit = (
                         account.total_limit + account.available_balance
                         if account.total_limit
@@ -603,7 +603,7 @@ class BillSplitService:
 
             # Calculate available funds for each account
             def get_available_funds(account):
-                if account.type == "credit" and account.total_limit:
+                if account.account_type == "credit" and account.total_limit:
                     return account.total_limit + account.available_balance
                 return account.available_balance
 
@@ -633,7 +633,7 @@ class BillSplitService:
 
                 available = (
                     account.total_limit + account.available_balance
-                    if account.type == "credit" and account.total_limit
+                    if account.account_type == "credit" and account.total_limit
                     else account.available_balance
                 )
 
@@ -771,7 +771,7 @@ class BillSplitService:
             account = accounts[split.account_id]
 
             # Calculate credit utilization for credit accounts
-            if account.type == "credit" and account.total_limit:
+            if account.account_type == "credit" and account.total_limit:
                 current_balance = abs(account.available_balance)
                 new_balance = current_balance + split.amount
                 utilization = (new_balance / account.total_limit) * 100
@@ -784,7 +784,7 @@ class BillSplitService:
                 total_risk_score += risk_factor
 
             # Calculate balance impact for all accounts
-            if account.type == "credit":
+            if account.account_type == "credit":
                 balance_impact[account.id] = -split.amount
             else:
                 balance_impact[account.id] = -split.amount
@@ -875,7 +875,7 @@ class BillSplitService:
 
         for account_id, impact in short_term_impact.items():
             account = accounts[account_id]
-            if account.type != "credit" and abs(impact) > account.available_balance:
+            if account.account_type != "credit" and abs(impact) > account.available_balance:
                 risk_factors.append(
                     f"Insufficient 30-day funds in account {account.name}"
                 )

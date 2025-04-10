@@ -146,13 +146,13 @@ async def test_get_by_type(
     # 3. ASSERT: Verify the operation results
     assert len(results) >= 1
     for account in results:
-        assert account.type == "checking"
+        assert account.account_type == "checking"
 
     # Also test with credit type
     credit_results = await account_repository.get_by_type("credit")
     assert len(credit_results) >= 1
     for account in credit_results:
-        assert account.type == "credit"
+        assert account.account_type == "credit"
 
 
 async def test_update_balance(
@@ -261,7 +261,7 @@ async def test_find_credit_accounts_near_limit(
         if account.id == test_credit_account.id:
             found_account = True
             # Verify it's actually near limit
-            assert account.type == "credit"
+            assert account.account_type == "credit"
             assert account.total_limit is not None
             assert account.available_credit is not None
             assert account.available_credit <= (account.total_limit * Decimal("0.1"))

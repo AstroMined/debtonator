@@ -115,7 +115,7 @@ class ImpactAnalysisService:
             # Calculate credit utilization for credit accounts
             current_utilization = None
             projected_utilization = None
-            if account.type == "credit" and account.total_limit:
+            if account.account_type == "credit" and account.total_limit:
                 total_limit = DecimalPrecision.round_for_calculation(
                     account.total_limit
                 )
@@ -222,7 +222,7 @@ class ImpactAnalysisService:
 
         # Check for high credit utilization
         for account in accounts:
-            if account.type == "credit" and account.total_limit:
+            if account.account_type == "credit" and account.total_limit:
                 # Calculate split amount with 4 decimal precision
                 split_amount = DecimalPrecision.round_for_calculation(
                     sum(
@@ -277,7 +277,7 @@ class ImpactAnalysisService:
 
         # Check for low account balances
         for account in accounts:
-            if account.type == "checking":
+            if account.account_type == "checking":
                 # Calculate split amount and projected balance with 4 decimal precision
                 split_amount = DecimalPrecision.round_for_calculation(
                     sum(
@@ -343,7 +343,7 @@ class ImpactAnalysisService:
         """Calculate a risk score for a specific account."""
         risk_score = 0
 
-        if account.type == "credit":
+        if account.account_type == "credit":
             # Higher risk for high credit utilization
             if projected_utilization:
                 util = DecimalPrecision.round_for_calculation(projected_utilization)

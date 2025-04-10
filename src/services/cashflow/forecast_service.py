@@ -210,7 +210,7 @@ class ForecastService(BaseService):
 
         # Calculate credit utilization for credit accounts
         credit_utilization = None
-        if account.type == "credit" and account.total_limit:
+        if account.account_type == "credit" and account.total_limit:
             if daily_balances:
                 credit_utilization = abs(min(daily_balances)) / account.total_limit
             else:
@@ -294,7 +294,7 @@ class ForecastService(BaseService):
             warning_flags = []
             if current_balance < self._warning_thresholds.LOW_BALANCE:
                 warning_flags.append("low_balance")
-            if account.type == "credit" and account.total_limit:
+            if account.account_type == "credit" and account.total_limit:
                 utilization = abs(current_balance) / account.total_limit
                 if utilization > self._warning_thresholds.HIGH_CREDIT_UTILIZATION:
                     warning_flags.append("high_credit_utilization")
@@ -348,7 +348,7 @@ class ForecastService(BaseService):
         avg_confidence = mean(f.confidence_score for f in daily_forecasts)
 
         # Adjust for account type specific factors
-        if account.type == "credit":
+        if account.account_type == "credit":
             # Lower confidence if projected to exceed credit limit
             if metrics.credit_utilization and metrics.credit_utilization > Decimal(
                 "0.9"

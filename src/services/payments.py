@@ -35,7 +35,7 @@ class PaymentService:
             # Round for internal calculation to ensure consistency
             source_amount = DecimalPrecision.round_for_calculation(source_amount)
 
-            if account.type == "credit":
+            if account.account_type == "credit":
                 available_credit = DecimalPrecision.round_for_calculation(
                     account.available_credit
                 )
