@@ -25,8 +25,33 @@ def initialize_account_registry():
 # List of fixture modules to load
 pytest_plugins = [
     # Add repository fixtures
-    "tests.fixtures.repositories.fixture_repositories",
+    "tests.fixtures.repositories.fixture_factory_repositories",
+    "tests.fixtures.repositories.fixture_account_repositories",
+    "tests.fixtures.repositories.fixture_balance_repositories",
+    "tests.fixtures.repositories.fixture_bill_splits_repositories",
+    "tests.fixtures.repositories.fixture_cashflow_repositories",
+    "tests.fixtures.repositories.fixture_categories_repositories",
+    "tests.fixtures.repositories.fixture_credit_limit_history_repositories",
+    "tests.fixtures.repositories.fixture_deposit_schedules_repositories",
+    "tests.fixtures.repositories.fixture_feature_flags_repositories",
+    "tests.fixtures.repositories.fixture_income_repositories",
+    "tests.fixtures.repositories.fixture_income_categories_repositories",
+    "tests.fixtures.repositories.fixture_liabilities_repositories",
+    "tests.fixtures.repositories.fixture_payment_schedules_repositories",
+    "tests.fixtures.repositories.fixture_payment_sources_repositories",
+    "tests.fixtures.repositories.fixture_payments_repositories",
+    "tests.fixtures.repositories.fixture_recurring_bills_repositories",
+    "tests.fixtures.repositories.fixture_recurring_income_repositories",
+    "tests.fixtures.repositories.fixture_statement_history_repositories",
+    "tests.fixtures.repositories.fixture_transaction_history_repositories",
     "tests.fixtures.repositories.fixture_basic_test_repositories",
+    # Add account type repository fixtures
+    "tests.fixtures.repositories.account_types.banking.fixture_checking_repositories",
+    "tests.fixtures.repositories.account_types.banking.fixture_savings_repositories",
+    "tests.fixtures.repositories.account_types.banking.fixture_credit_repositories",
+    "tests.fixtures.repositories.account_types.banking.fixture_bnpl_repositories",
+    "tests.fixtures.repositories.account_types.banking.fixture_payment_app_repositories",
+    "tests.fixtures.repositories.account_types.banking.fixture_ewa_repositories",
     # Add service fixtures
     "tests.fixtures.services.fixture_services",
     # Add model fixtures

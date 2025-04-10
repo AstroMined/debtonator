@@ -7,6 +7,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.93] - 2025-04-09
+
+### Changed
+
+- Refactored repository fixtures for better organization:
+  - Decomposed monolithic fixture_repositories.py into individual domain-specific files
+  - Created separate fixture files for each repository type following naming conventions
+  - Implemented account type repository fixtures for all banking account types
+  - Created proper directory structure mirroring src/repositories
+  - Added __init__.py files to maintain proper Python package structure
+  - Updated conftest.py to register all new fixture files
+  - Improved feature_flag_service fixture to use feature_flag_repository
+  - Verified all fixtures follow the project's best practices
+  - Ensured proper docstrings with Args and Returns sections
+  - Maintained consistent formatting across all fixture files
+
+### Fixed
+
+- Fixed feature_flag_service fixture to use feature_flag_repository instead of creating its own repository instance
+- Fixed repository fixture organization to mirror source code structure
+- Fixed conftest.py to register all new fixture files
+
 ## [0.5.92] - 2025-04-09
 
 ### Fixed

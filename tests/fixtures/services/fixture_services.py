@@ -14,24 +14,31 @@ from src.utils.feature_flags.feature_flags import DEFAULT_FEATURE_FLAGS, get_reg
 
 
 @pytest_asyncio.fixture
-async def feature_flag_service(db_session: AsyncSession) -> FeatureFlagService:
+async def feature_flag_service(
+    feature_flag_repository: FeatureFlagRepository,
+) -> FeatureFlagService:
     """
     Create and initialize a feature flag service for testing.
 
     This fixture creates a real feature flag service, initializes it with
     default flags, and enables banking account types for testing.
+    
+    Args:
+        feature_flag_repository: Repository for feature flags
+        
+    Returns:
+        FeatureFlagService: Service for managing feature flags
     """
-    # Create repository and get registry singleton
-    repository = FeatureFlagRepository(db_session)
+    # Get registry singleton
     registry = get_registry()
 
     # Create service
-    service = FeatureFlagService(registry, repository)
+    service = FeatureFlagService(registry, feature_flag_repository)
 
     # Create default flags in database
     for flag_config in DEFAULT_FEATURE_FLAGS:
         # Check if flag exists in database to avoid duplicates
-        flag = await repository.get(flag_config["name"])
+        flag = await feature_flag_repository.get(flag_config["name"])
         if not flag:
             await service.create_flag(flag_config)
 
