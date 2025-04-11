@@ -7,6 +7,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.106] - 2025-04-11
+
+### Added
+
+- Implemented Feature Flag Middleware for API layer enforcement
+- Created exception handlers for feature flag errors
+- Added API integration tests for feature flag middleware
+- Added URL path pattern matching with support for path parameters and wildcards
+- Implemented caching mechanism with TTL for API middleware
+
+### Changed
+
+- Updated FastAPI application with middleware integration
+- Enhanced error responses with detailed context about disabled features
+- Centralized feature flag enforcement at API layer
+- Integrated feature flag error handling with existing error utilities
+- Updated implementation checklist for Phase 3 completion
+
+### Fixed
+
+- Addressed pylint errors in middleware test fixtures
+- Ensured proper fixture organization in test files
+- Fixed middleware initialization in test application
+
 ## [0.5.105] - 2025-04-11
 
 ### Added

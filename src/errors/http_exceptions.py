@@ -5,7 +5,7 @@ This module provides HTTP exceptions that can be used directly in API endpoints
 or converted from regular account errors.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 from fastapi import HTTPException, status
 
@@ -86,8 +86,87 @@ class AccountOperationHTTPException(AccountHTTPException):
         )
 
 
-class FeatureFlagAccountHTTPException(AccountHTTPException):
-    """HTTP exception for feature flag restrictions."""
+# Feature Flag HTTP Exceptions
+
+class FeatureFlagHTTPException(HTTPException):
+    """Base HTTP exception for feature flag errors."""
+    
+    def __init__(
+        self,
+        status_code: int,
+        detail: str,
+        feature_name: str,
+        headers: Optional[Dict[str, str]] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
+        combined_details = {"message": detail}
+        if details:
+            combined_details.update(details)
+        combined_details["feature_flag"] = feature_name
+        super().__init__(status_code=status_code, detail=combined_details, headers=headers)
+
+
+class FeatureDisabledHTTPException(FeatureFlagHTTPException):
+    """HTTP exception for disabled features."""
+    
+    def __init__(
+        self,
+        feature_name: str,
+        entity_type: Optional[str] = None,
+        entity_id: Optional[Union[str, int]] = None,
+        message: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
+        if not message:
+            message = f"Operation not available: feature '{feature_name}' is disabled"
+            if entity_type:
+                message += f" for {entity_type}"
+                if entity_id:
+                    message += f" (id: {entity_id})"
+                    
+        combined_details = details or {}
+        if entity_type:
+            combined_details["entity_type"] = entity_type
+        if entity_id:
+            combined_details["entity_id"] = entity_id
+            
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=message,
+            feature_name=feature_name,
+            details=combined_details,
+        )
+
+
+class FeatureConfigurationHTTPException(FeatureFlagHTTPException):
+    """HTTP exception for feature configuration issues."""
+    
+    def __init__(
+        self,
+        feature_name: Optional[str] = None,
+        config_issue: str = "Invalid configuration",
+        message: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
+        if not message:
+            message = f"Feature flag configuration error: {config_issue}"
+            if feature_name:
+                message += f" for feature '{feature_name}'"
+                
+        combined_details = details or {}
+        combined_details["config_issue"] = config_issue
+        
+        super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=message,
+            feature_name=feature_name or "unknown",
+            details=combined_details,
+        )
+
+
+# Update existing FeatureFlagAccountHTTPException to use multiple inheritance
+class FeatureFlagAccountHTTPException(FeatureDisabledHTTPException, AccountHTTPException):
+    """HTTP exception for feature flag restrictions on accounts."""
 
     def __init__(
         self,
@@ -95,13 +174,14 @@ class FeatureFlagAccountHTTPException(AccountHTTPException):
         message: Optional[str] = None,
         details: Optional[Dict[str, Any]] = None,
     ):
-        message = (
-            message or f"Operation not available: feature '{flag_name}' is disabled"
-        )
+        message = message or f"Operation not available: feature '{flag_name}' is disabled for account"
         combined_details = details or {}
-        combined_details["feature_flag"] = flag_name
-        super().__init__(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=message,
+        
+        # Initialize FeatureDisabledHTTPException
+        FeatureDisabledHTTPException.__init__(
+            self,
+            feature_name=flag_name,
+            entity_type="account",
+            message=message,
             details=combined_details,
         )

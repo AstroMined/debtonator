@@ -7,6 +7,7 @@ provide consistent error handling for feature flag violations.
 """
 
 from typing import Any, Dict, Optional, Union
+from src.errors.accounts import AccountError  # Import base account error
 
 
 class FeatureFlagError(Exception):
@@ -110,13 +111,14 @@ class FeatureConfigurationError(FeatureFlagError):
         super().__init__(message, combined_details)
 
 
-# Maintain backward compatibility with existing code
-class FeatureFlagAccountError(FeatureDisabledError):
+# Account-specific feature flag errors with multiple inheritance
+class FeatureFlagAccountError(FeatureDisabledError, AccountError):
     """
     Error raised when a feature flag prevents an account operation.
     
     This class maintains backward compatibility with existing code while
     providing the enhanced functionality of FeatureDisabledError.
+    Multiple inheritance ensures it works with both error handling systems.
     """
 
     def __init__(
@@ -125,9 +127,18 @@ class FeatureFlagAccountError(FeatureDisabledError):
         message: Optional[str] = None,
         details: Optional[Dict[str, Any]] = None,
     ):
-        super().__init__(
+        # Initialize FeatureDisabledError
+        FeatureDisabledError.__init__(
+            self,
             feature_name=flag_name,
             entity_type="account",
             message=message,
             details=details,
+        )
+        
+        # Also initialize AccountError to ensure proper MRO
+        AccountError.__init__(
+            self,
+            message=self.message,
+            details=self.details
         )

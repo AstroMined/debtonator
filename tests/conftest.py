@@ -24,6 +24,7 @@ def initialize_account_registry():
 
 # List of fixture modules to load
 pytest_plugins = [
+    "tests.fixtures.api.middleware.fixture_feature_flag_middleware",
     # Add service interceptor/proxy fixtures
     "tests.fixtures.services.interceptors.fixture_feature_flag_interceptors",
     "tests.fixtures.services.proxies.fixture_feature_flag_proxies",

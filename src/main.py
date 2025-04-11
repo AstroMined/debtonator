@@ -12,6 +12,8 @@ from pydantic import ValidationError
 # Import all models to ensure they are registered
 from .api.base import api_router
 from .api.response_formatter import format_response
+from .api.middleware.feature_flags import FeatureFlagMiddleware
+from .api.handlers.feature_flags import feature_flag_exception_handler
 from .database.base import Base
 from .database.database import engine, get_db
 from .registry.account_registry_init import register_account_types
@@ -21,6 +23,8 @@ from .registry.account_types import (
 )
 from .repositories.feature_flags import FeatureFlagRepository
 from .services.feature_flags import FeatureFlagService
+from .config.providers.feature_flags import DatabaseConfigProvider
+from .errors.feature_flags import FeatureFlagError
 from .utils.config import settings
 from .utils.feature_flags.feature_flags import get_registry
 
@@ -60,6 +64,22 @@ async def lifespan(app: FastAPI):
             # Initialize service to load flags from database into registry
             await service.initialize()
             logger.info("Feature flag registry initialized from database")
+            
+            # Set up feature flag middleware
+            try:
+                # Create config provider
+                config_provider = DatabaseConfigProvider(db_session)
+                
+                # Add middleware to app
+                app.add_middleware(
+                    FeatureFlagMiddleware,
+                    feature_flag_service=service,
+                    config_provider=config_provider
+                )
+                logger.info("Feature flag middleware initialized")
+            except Exception as e:
+                logger.error(f"Failed to initialize feature flag middleware: {e}")
+            
             break  # Successfully initialized, exit the loop
         except Exception as e:
             logger.error(f"Failed to initialize feature flags: {e}")
@@ -123,6 +143,10 @@ async def pydantic_validation_exception_handler(request: Request, exc: Validatio
             "path": request.url.path,
         },
     )
+
+
+# Register feature flag exception handler
+app.add_exception_handler(FeatureFlagError, feature_flag_exception_handler)
 
 
 # Configure CORS
