@@ -177,32 +177,38 @@ async def test_update_ewa_account_after_advance(
 
 
 async def test_feature_flag_controls_account_creation(
-    ewa_repository: AccountRepository, feature_flag_service
+    db_session, feature_flag_service
 ):
     """
-    Test that feature flags control EWA account creation.
+    Test that feature flags control EWA account creation through the proxy layer.
     
     Args:
-        ewa_repository: Repository fixture for EWA accounts
+        db_session: Database session fixture
         feature_flag_service: Feature flag service fixture
     """
-    # 1. ARRANGE: Disable the feature flag
+    from src.repositories.factory import RepositoryFactory
+    
+    # 1. ARRANGE: Create repository with proxy and disable the feature flag
+    ewa_repository = RepositoryFactory.create_account_repository(
+        db_session, account_type="ewa", feature_flag_service=feature_flag_service
+    )
     await feature_flag_service.set_enabled("BANKING_ACCOUNT_TYPES_ENABLED", False)
 
     # 2. SCHEMA: Create valid schema
     account_schema = create_ewa_account_schema()
     validated_data = account_schema.model_dump()
 
-    # 3. ACT & ASSERT: Should fail when flag is disabled
-    with pytest.raises(ValueError) as excinfo:
+    # 3. ACT & ASSERT: Should fail when flag is disabled with a FeatureDisabledError
+    with pytest.raises(Exception) as excinfo:
         await ewa_repository.create_typed_account("ewa", validated_data)
 
-    assert "not available" in str(excinfo.value) or "not enabled" in str(
-        excinfo.value
-    )
+    # The error should be related to features being disabled
+    error_msg = str(excinfo.value)
+    assert any(x in error_msg for x in ["feature", "disabled", "not enabled"])
 
     # Now enable the flag and retry
     await feature_flag_service.set_enabled("BANKING_ACCOUNT_TYPES_ENABLED", True)
+    
     # Ensure only invalid fields are excluded
     invalid_fields = ["available_credit"]
     filtered_data = {

@@ -65,18 +65,18 @@ This checklist outlines the tasks required to implement the revised Feature Flag
 
 ### 1.7 Remove Feature Flag Checks from Repositories
 
-- [ ] Update `src/repositories/accounts.py`:
-  - [ ] Remove manual feature flag checks from `create_typed_account`
-  - [ ] Remove manual feature flag checks from `update_typed_account`
-  - [ ] Remove manual feature flag checks from `get_by_type`
-  - [ ] Remove feature_flag_service parameter if no longer needed
-  - [ ] Update method docstrings
+- [x] Update `src/repositories/accounts.py`:
+  - [x] Remove manual feature flag checks from `create_typed_account`
+  - [x] Remove manual feature flag checks from `update_typed_account`
+  - [x] Remove manual feature flag checks from `get_by_type`
+  - [x] Remove feature_flag_service parameter if no longer needed
+  - [x] Update method docstrings
 
-- [ ] Update account type repositories:
-  - [ ] Clean up `src/repositories/account_types/banking/ewa.py`
-  - [ ] Clean up `src/repositories/account_types/banking/bnpl.py`
-  - [ ] Clean up `src/repositories/account_types/banking/payment_app.py`
-  - [ ] Remove feature flag parameters from methods
+- [x] Update account type repositories:
+  - [x] Clean up `src/repositories/account_types/banking/ewa.py` (No changes needed - no feature flag checks found)
+  - [x] Clean up `src/repositories/account_types/banking/bnpl.py` (No changes needed - no feature flag checks found)
+  - [x] Clean up `src/repositories/account_types/banking/payment_app.py` (No changes needed - no feature flag checks found)
+  - [x] Remove feature flag parameters from methods
 
 ### 1.8 Repository Integration Tests
 
@@ -89,10 +89,10 @@ This checklist outlines the tasks required to implement the revised Feature Flag
   - [x] Test caching behavior (performance optimization)
   - [x] Document test patterns in README.md
 
-- [ ] Update existing repository tests to work with proxied repositories:
-  - [ ] Update `test_ewa_repository.py`
-  - [ ] Update `test_bnpl_repository.py`
-  - [ ] Update `test_payment_app_repository.py`
+- [x] Update existing repository tests to work with proxied repositories:
+  - [x] Update `test_ewa_repository.py`
+  - [x] Update `test_bnpl_repository.py`
+  - [x] Update `test_payment_app_repository.py`
 
 ## Phase 2: Service Layer Implementation
 

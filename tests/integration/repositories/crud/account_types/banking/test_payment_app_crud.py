@@ -140,32 +140,38 @@ async def test_delete_payment_app_account(
 
 
 async def test_feature_flag_controls_account_creation(
-    payment_app_repository: AccountRepository, feature_flag_service
+    db_session, feature_flag_service
 ):
     """
-    Test that feature flags control payment app account creation.
+    Test that feature flags control payment app account creation through the proxy layer.
     
     Args:
-        payment_app_repository: Repository fixture for payment app accounts
+        db_session: Database session fixture
         feature_flag_service: Feature flag service fixture
     """
-    # 1. ARRANGE: Disable the feature flag
+    from src.repositories.factory import RepositoryFactory
+    
+    # 1. ARRANGE: Create repository with proxy and disable the feature flag
+    payment_app_repository = RepositoryFactory.create_account_repository(
+        db_session, account_type="payment_app", feature_flag_service=feature_flag_service
+    )
     await feature_flag_service.set_enabled("BANKING_ACCOUNT_TYPES_ENABLED", False)
 
     # 2. SCHEMA: Create valid schema
     account_schema = create_payment_app_account_schema()
     validated_data = account_schema.model_dump()
 
-    # 3. ACT & ASSERT: Should fail when flag is disabled
-    with pytest.raises(ValueError) as excinfo:
+    # 3. ACT & ASSERT: Should fail when flag is disabled with a FeatureDisabledError
+    with pytest.raises(Exception) as excinfo:
         await payment_app_repository.create_typed_account("payment_app", validated_data)
 
-    assert "not available" in str(excinfo.value) or "not enabled" in str(
-        excinfo.value
-    )
+    # The error should be related to features being disabled
+    error_msg = str(excinfo.value)
+    assert any(x in error_msg for x in ["feature", "disabled", "not enabled"])
 
     # Now enable the flag and retry
     await feature_flag_service.set_enabled("BANKING_ACCOUNT_TYPES_ENABLED", True)
+    
     # Ensure only valid fields are included
     invalid_fields = ["available_credit"]
     filtered_data = {

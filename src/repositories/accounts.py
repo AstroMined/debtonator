@@ -163,48 +163,25 @@ class AccountRepository(BaseRepository[Account, int]):
         return result.scalars().all()
 
     async def get_by_type(
-        self, account_type: str, feature_flag_service=None
+        self, account_type: str
     ) -> List[Account]:
         """
         Get accounts by type.
 
         Args:
             account_type (str): Account type to filter by
-            feature_flag_service: Optional feature flag service for feature validation
 
         Returns:
             List[Account]: List of accounts matching the specified type
 
-        Raises:
-            ValueError: If the account type is unavailable due to disabled feature flags
+        Note:
+            Feature flag validation is now handled by the FeatureFlagRepositoryProxy layer.
         """
-        # Check if this type is available based on feature flags
-        if feature_flag_service:
-            self._check_account_type_feature_flag(account_type, feature_flag_service)
-
         # Query for the specific account type
         query = select(Account).where(Account.account_type == account_type)
         result = await self.session.execute(query)
         return result.scalars().all()
     
-    def _check_account_type_feature_flag(self, account_type: str, feature_flag_service) -> None:
-        """
-        Check if an account type is available based on feature flags.
-        
-        Args:
-            account_type (str): Account type to check
-            feature_flag_service: Feature flag service for validation
-            
-        Raises:
-            ValueError: If the account type is not enabled by feature flags
-        """
-        # Check banking account types
-        if account_type in ["payment_app", "bnpl", "ewa", "credit", "savings", "checking"]:
-            # Force evaluation to ensure the flag is checked properly
-            is_enabled = feature_flag_service.is_enabled("BANKING_ACCOUNT_TYPES_ENABLED")
-            if not is_enabled:
-                raise ValueError(f"Account type '{account_type}' is not available due to feature flags")
-
     async def get_with_type(self, account_id: int) -> Optional[Account]:
         """
         Get account by ID, ensuring type-specific data is loaded.
@@ -301,7 +278,7 @@ class AccountRepository(BaseRepository[Account, int]):
         return result.scalars().all()
 
     async def get_accounts_by_currency(
-        self, currency: str, include_closed: bool = False, feature_flag_service=None
+        self, currency: str, include_closed: bool = False
     ) -> List[Account]:
         """
         Get accounts with a specific currency.
@@ -309,19 +286,14 @@ class AccountRepository(BaseRepository[Account, int]):
         Args:
             currency (str): ISO 4217 currency code (e.g., USD, EUR)
             include_closed (bool): Whether to include closed accounts
-            feature_flag_service: Optional feature flag service for feature validation
 
         Returns:
             List[Account]: Accounts with the specified currency
 
         Note:
-            This method respects the MULTI_CURRENCY_SUPPORT_ENABLED feature flag if provided.
+            Feature flag validation for MULTI_CURRENCY_SUPPORT_ENABLED is now handled 
+            by the FeatureFlagRepositoryProxy layer.
         """
-        # Check if multi-currency support is enabled
-        if feature_flag_service and currency != "USD":
-            if not feature_flag_service.is_enabled("MULTI_CURRENCY_SUPPORT_ENABLED"):
-                # If multi-currency is disabled, only return USD accounts
-                currency = "USD"
 
         query = select(Account).where(Account.currency == currency)
 
@@ -332,28 +304,21 @@ class AccountRepository(BaseRepository[Account, int]):
         return result.scalars().all()
 
     async def get_accounts_with_international_fields(
-        self, include_closed: bool = False, feature_flag_service=None
+        self, include_closed: bool = False
     ) -> List[Account]:
         """
         Get accounts that have international banking fields set.
 
         Args:
             include_closed (bool): Whether to include closed accounts
-            feature_flag_service: Optional feature flag service for feature validation
 
         Returns:
             List[Account]: Accounts with international banking fields
 
         Note:
-            This method respects the INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED feature flag
-            if provided.
+            Feature flag validation for INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED is now handled
+            by the FeatureFlagRepositoryProxy layer.
         """
-        # Check if international account support is enabled
-        if feature_flag_service:
-            if not feature_flag_service.is_enabled(
-                "INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED"
-            ):
-                return []
 
         # Use with_polymorphic to query across all account types
         PolyAccount = with_polymorphic(Account, "*")
@@ -405,7 +370,6 @@ class AccountRepository(BaseRepository[Account, int]):
         self,
         account_type: str,
         data: Dict,
-        feature_flag_service=None,
         account_type_registry=None,
     ) -> Account:
         """
@@ -414,18 +378,17 @@ class AccountRepository(BaseRepository[Account, int]):
         Args:
             account_type (str): Account type to create
             data (Dict): Account data dictionary
-            feature_flag_service: Optional feature flag service for feature validation
             account_type_registry: Optional registry to get model class
 
         Returns:
             Account: Created account - will be the specific subclass instance
 
         Raises:
-            ValueError: If account type is invalid or unavailable due to feature flags
+            ValueError: If account type is invalid
+
+        Note:
+            Feature flag validation is now handled by the FeatureFlagRepositoryProxy layer.
         """
-        # Check if this account type is available based on feature flags
-        if feature_flag_service:
-            self._check_account_type_feature_flag(account_type, feature_flag_service)
 
         # Use global registry if none provided
         if account_type_registry is None:
@@ -487,7 +450,6 @@ class AccountRepository(BaseRepository[Account, int]):
         account_id: int,
         account_type: str,
         data: Dict,
-        feature_flag_service=None,
         account_type_registry=None,
     ) -> Optional[Account]:
         """
@@ -497,18 +459,17 @@ class AccountRepository(BaseRepository[Account, int]):
             account_id (int): Account ID
             account_type (str): Account type
             data (Dict): Update data
-            feature_flag_service: Optional feature flag service for feature validation
             account_type_registry: Optional registry to get model class
 
         Returns:
             Optional[Account]: Updated account or None if not found
 
         Raises:
-            ValueError: If account type is invalid or unavailable due to feature flags
+            ValueError: If account type is invalid
+
+        Note:
+            Feature flag validation is now handled by the FeatureFlagRepositoryProxy layer.
         """
-        # Check if this account type is available based on feature flags
-        if feature_flag_service:
-            self._check_account_type_feature_flag(account_type, feature_flag_service)
 
         # Get the account using polymorphic loading to ensure correct type
         poly_account = with_polymorphic(Account, "*")
@@ -526,26 +487,6 @@ class AccountRepository(BaseRepository[Account, int]):
                 f"Account ID {account_id} is of type {account.account_type}, not {account_type}"
             )
 
-        # Handle feature flag restrictions on fields
-        if feature_flag_service:
-            # Check international fields
-            international_fields = [
-                "iban", "swift_bic", "sort_code", "branch_code", "account_format"
-            ]
-            
-            if any(field in data for field in international_fields) and not feature_flag_service.is_enabled(
-                "INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED"
-            ):
-                # Remove international fields
-                for field in international_fields:
-                    if field in data:
-                        del data[field]
-
-            # Check currency field
-            if "currency" in data and data["currency"] != "USD" and not feature_flag_service.is_enabled(
-                "MULTI_CURRENCY_SUPPORT_ENABLED"
-            ):
-                data["currency"] = "USD"
 
         # Ensure account_type is preserved
         filtered_data = data.copy()

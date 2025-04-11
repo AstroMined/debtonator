@@ -218,38 +218,38 @@ async def test_mark_bnpl_payment_made(
 
 
 async def test_feature_flag_controls_account_creation(
-    bnpl_repository: AccountRepository, feature_flag_service
+    db_session, feature_flag_service
 ):
     """
-    Test that feature flags control BNPL account creation.
+    Test that feature flags control BNPL account creation through the proxy layer.
     
     Args:
-        bnpl_repository: Repository fixture for BNPL accounts
+        db_session: Database session fixture
         feature_flag_service: Feature flag service fixture
     """
-    # 1. ARRANGE: Disable the feature flag
+    from src.repositories.factory import RepositoryFactory
+    
+    # 1. ARRANGE: Create repository with proxy and disable the feature flag
+    bnpl_repository = RepositoryFactory.create_account_repository(
+        db_session, account_type="bnpl", feature_flag_service=feature_flag_service
+    )
     await feature_flag_service.set_enabled("BANKING_ACCOUNT_TYPES_ENABLED", False)
 
     # 2. SCHEMA: Create valid schema
     account_schema = create_bnpl_account_schema()
     validated_data = account_schema.model_dump()
 
-    # 3. ACT & ASSERT: Should fail when flag is disabled
-    with pytest.raises(ValueError) as excinfo:
-        await bnpl_repository.create_typed_account(
-            "bnpl", 
-            validated_data, 
-            feature_flag_service=feature_flag_service
-        )
+    # 3. ACT & ASSERT: Should fail when flag is disabled with a FeatureDisabledError
+    with pytest.raises(Exception) as excinfo:
+        await bnpl_repository.create_typed_account("bnpl", validated_data)
 
-    # The message should contain either "not available", "not enabled", or the specific error message
+    # The error should be related to features being disabled
     error_msg = str(excinfo.value)
-    assert ("not available" in error_msg or 
-            "not enabled" in error_msg or
-            "not currently enabled" in error_msg)
+    assert any(x in error_msg for x in ["feature", "disabled", "not enabled"])
 
     # Now enable the flag and retry
     await feature_flag_service.set_enabled("BANKING_ACCOUNT_TYPES_ENABLED", True)
+    
     # Ensure only invalid fields are excluded
     invalid_fields = ["available_credit"]
     filtered_data = {

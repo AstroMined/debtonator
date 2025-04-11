@@ -19,22 +19,11 @@ from src.errors.feature_flags import FeatureDisabledError
 from src.repositories.proxies.feature_flag_proxy import FeatureFlagRepositoryProxy
 from src.schemas.feature_flags import FeatureFlagCreate, FeatureFlagType
 
-from tests.fixtures.repositories.proxies.fixture_feature_flag_proxies import (
-    feature_flag_registry,
-    feature_flag_repository,
-    feature_flag_service,
-    test_repository,
-    typed_test_repository,
-    config_provider,
-    in_memory_config_provider,
-    feature_flag_proxy,
-    typed_feature_flag_proxy,
-    memory_config_proxy,
-)
+
+pytestmark = pytest.mark.asyncio
 
 
 # Basic proxy functionality tests
-@pytest.mark.asyncio
 async def test_proxy_passes_through_allowed_methods(feature_flag_proxy):
     """
     Test that the proxy correctly passes through allowed method calls.
