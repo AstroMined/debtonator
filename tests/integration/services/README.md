@@ -101,6 +101,111 @@ async def account_service(account_repository):
     return AccountService(account_repository)
 ```
 
+## Feature Flag System Testing
+
+Testing the Feature Flag System (ADR-024) components requires special attention:
+
+### Interceptor and Proxy Testing
+
+The Feature Flag Service Proxy and Interceptor enforce feature flag requirements at architectural boundaries:
+
+```python
+async def test_feature_flag_enforcement(
+    account_service, 
+    feature_flag_repository, 
+    db_session
+):
+    """Test service proxy blocks operations when feature is disabled."""
+    # Set up test data
+    schema = AccountCreateSchema(
+        name="Test Account",
+        account_type="ewa",  # Feature-controlled account type
+        # Other required fields...
+    )
+    
+    # CASE 1: Feature disabled
+    # Disable the feature flag in the database
+    await feature_flag_repository.update(
+        "BANKING_ACCOUNT_TYPES_ENABLED", 
+        {"value": False}
+    )
+    
+    # Attempt should be blocked with appropriate error
+    with pytest.raises(FeatureDisabledError) as excinfo:
+        await account_service.create_account(schema)
+    
+    # Verify error details
+    assert excinfo.value.feature_name == "BANKING_ACCOUNT_TYPES_ENABLED"
+    assert excinfo.value.entity_type == "account_type"
+    assert excinfo.value.entity_id == "ewa"
+    
+    # CASE 2: Feature enabled
+    # Enable the feature flag in the database
+    await feature_flag_repository.update(
+        "BANKING_ACCOUNT_TYPES_ENABLED", 
+        {"value": True}
+    )
+    
+    # Operation should now succeed
+    result = await account_service.create_account(schema)
+    assert result.account_type == "ewa"
+```
+
+### Testing at Different Layers
+
+The Feature Flag System operates at multiple architectural boundaries:
+
+1. **Repository Layer Tests**: Test that proxied repositories enforce feature flags
+2. **Service Layer Tests**: Test service interceptors enforce feature flags
+3. **Cross-Layer Tests**: Test that changes to feature flags propagate correctly
+
+### Testing Caching Behavior
+
+Feature flag requirements use caching for performance:
+
+```python
+async def test_feature_flag_caching(
+    account_service, 
+    feature_flag_repository, 
+    db_session
+):
+    """Test caching behavior of feature flag system."""
+    # Set up test data
+    schema = AccountCreateSchema(
+        name="Test Account",
+        account_type="ewa",
+        # Other required fields...
+    )
+    
+    # Enable the feature
+    await feature_flag_repository.update(
+        "BANKING_ACCOUNT_TYPES_ENABLED", 
+        {"value": True}
+    )
+    
+    # First call should work and cache the result
+    result1 = await account_service.create_account(schema)
+    
+    # Disable feature in database
+    await feature_flag_repository.update(
+        "BANKING_ACCOUNT_TYPES_ENABLED", 
+        {"value": False}
+    )
+    
+    # Second call should still work if cache hasn't expired
+    # This demonstrates the caching behavior
+    schema.name = "Test Account 2"
+    result2 = await account_service.create_account(schema)
+    
+    # Force cache invalidation
+    await service._proxy.invalidate_cache()
+    
+    # Now the operation should be blocked
+    with pytest.raises(FeatureDisabledError):
+        schema.name = "Test Account 3"
+        await account_service.create_account(schema)
+```
+
 ## Best Practices
 
 1. **Use Real Repositories**: Follow ADR-014 by using real repositories instead of mocks
@@ -108,7 +213,11 @@ async def account_service(account_repository):
 3. **Test Error Handling**: Verify that services handle errors appropriately
 4. **Test Transaction Boundaries**: Verify that transactions are properly managed
 5. **Follow UTC Datetime Compliance**: Use proper timezone-aware datetime functions
-6. **Test Feature Flag Integration**: Verify feature flag integration when applicable
+6. **Test Feature Flag Integration**: Verify feature flag enforcement at service boundaries
+   - Test both enabled and disabled states for each feature flag
+   - Test with account-type-specific requirements
+   - Test caching behavior and cache invalidation
+   - Test propagation of feature flag changes
 
 ## Test Organization
 
@@ -118,9 +227,15 @@ Tests are organized to mirror the structure of the `src/services` directory:
 services/
 ├── test_account_service.py
 ├── test_bill_service.py
+├── interceptors/
+│   └── test_feature_flag_interceptor.py
+├── proxies/
+│   └── test_feature_flag_proxy.py
 └── account_types/
     └── banking/
         ├── test_checking_service.py
         ├── test_savings_service.py
         └── test_credit_service.py
 ```
+
+In accordance with ADR-024, the new test files verify that feature flags are correctly enforced at service layer boundaries.

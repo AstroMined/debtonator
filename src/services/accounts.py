@@ -251,6 +251,8 @@ class AccountService:
 
         Raises:
             ValueError: If validation fails
+            FeatureDisabledError: If the account type feature is disabled
+                                 (enforced by ServiceProxy)
         """
         # Get the account type from the discriminated union
         account_type = account_data.account_type
@@ -267,11 +269,8 @@ class AccountService:
                 f"Invalid account type '{account_type}'. Must be one of: {valid_types_str}"
             )
 
-        # Check if account type is enabled through feature flags
-        if self.feature_flag_service and not self._is_account_type_enabled(
-            account_type
-        ):
-            raise ValueError(f"Account type '{account_type}' is currently disabled")
+        # NOTE: Feature flag checks have been moved to the ServiceProxy layer
+        # The proxy will intercept this method call and check if the account type is enabled
 
         # Apply type-specific validation if available
         await self._apply_type_specific_validation(
@@ -814,31 +813,6 @@ class AccountService:
 
     # Dynamic service module loading methods
 
-    def _is_account_type_enabled(self, account_type: str) -> bool:
-        """
-        Check if an account type is currently enabled by feature flags.
-
-        Args:
-            account_type: Account type to check
-
-        Returns:
-            True if the account type is enabled, False otherwise
-        """
-        # If no feature flag service, assume all types are enabled
-        if not self.feature_flag_service:
-            return True
-
-        # Get feature flag name for the account type from registry
-        type_info = account_type_registry._registry.get(account_type, {})
-        flag_name = type_info.get("feature_flag")
-
-        # If no feature flag specified for this type, it's always enabled
-        if not flag_name:
-            return True
-
-        # Check if the feature flag is enabled
-        return self.feature_flag_service.is_enabled(flag_name)
-
     async def _apply_type_specific_validation(
         self,
         account_type: str,
@@ -858,8 +832,7 @@ class AccountService:
         Raises:
             ValueError: If validation fails
         """
-        if not self._is_account_type_enabled(account_type):
-            return
+        # The feature flag check has been moved to the ServiceProxy layer
 
         # Use the ServiceFactory to dynamically bind service modules
         from src.services.factory import ServiceFactory
@@ -896,9 +869,11 @@ class AccountService:
 
         Returns:
             Result of the function call, or None if function not found
+            
+        Note:
+            Feature flag checks are handled by the ServiceProxy layer
         """
-        if not self._is_account_type_enabled(account_type):
-            return None
+        # The feature flag check has been moved to the ServiceProxy layer
 
         # Use the ServiceFactory to dynamically bind service modules
         from src.services.factory import ServiceFactory

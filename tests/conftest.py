@@ -24,6 +24,10 @@ def initialize_account_registry():
 
 # List of fixture modules to load
 pytest_plugins = [
+    # Add service interceptor/proxy fixtures
+    "tests.fixtures.services.interceptors.fixture_feature_flag_interceptors",
+    "tests.fixtures.services.proxies.fixture_feature_flag_proxies",
+    "tests.fixtures.services.fixture_service_factory",
     # Add proxy fixtures
     "tests.fixtures.repositories.proxies.fixture_feature_flag_proxies",
     # Add repository fixtures

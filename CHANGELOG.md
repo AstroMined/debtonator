@@ -7,6 +7,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.105] - 2025-04-11
+
+### Added
+
+- Implemented Service Layer for Feature Flag System (ADR-024)
+- Created ServiceInterceptor for enforcing feature flags at service boundaries
+- Implemented ServiceProxy for wrapping service objects
+- Added support for both async and sync methods in proxy implementation
+- Removed direct feature flag checks from AccountService
+
+### Changed
+
+- Updated service factory to use feature flag interceptor/proxy
+- Restructured testing fixtures to follow project patterns
+- Improved feature flag enforcement with caching and account type detection
+
+### Fixed
+
+- Fixed manual feature flag checks that bypassed centralized enforcement
+- Improved error context for feature flag violations
+
+### Test
+
+- Created integration tests for service interceptor
+- Added tests for service proxy
+- Implemented tests for service factory integration with feature flags
+
 ## [0.5.104] - 2025-04-10
 
 ### Changed

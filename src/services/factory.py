@@ -6,18 +6,22 @@ based on account types. It dynamically loads type-specific service modules and
 binds their functions to the base service instance.
 
 Implemented as part of ADR-016 Account Type Expansion and ADR-019 Banking Account Types.
+Updated for ADR-024 Feature Flag System to support service proxies for feature enforcement.
 """
 
 import importlib
 import inspect
 import logging
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, Optional, Set, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.config.providers.feature_flags import ConfigProvider, DatabaseConfigProvider
 from src.registry.account_types import account_type_registry
 from src.repositories.factory import RepositoryFactory
+from src.repositories.feature_flags import FeatureFlagRepository
 from src.services.feature_flags import FeatureFlagService
+from src.services.proxies.feature_flag_proxy import ServiceProxy
 
 logger = logging.getLogger(__name__)
 
@@ -35,10 +39,11 @@ class ServiceFactory:
     _module_cache: Dict[str, Any] = {}
 
     @classmethod
-    def create_account_service(
+    async def create_account_service(
         cls,
         session: AsyncSession,
         feature_flag_service: Optional[FeatureFlagService] = None,
+        apply_proxy: bool = True,
     ):
         """
         Create an account service with the ability to handle all account types.
@@ -46,9 +51,11 @@ class ServiceFactory:
         Args:
             session: SQLAlchemy async session
             feature_flag_service: Optional feature flag service for feature validation
+            apply_proxy: Whether to apply the feature flag proxy (defaults to True when feature_flag_service is provided)
 
         Returns:
-            AccountService with ability to load specialized functionality for different types
+            AccountService with ability to load specialized functionality for different types,
+            wrapped in a ServiceProxy if feature_flag_service is provided and apply_proxy is True
         """
         # Import here to avoid circular imports
         from src.repositories.credit_limit_history import CreditLimitHistoryRepository
@@ -74,10 +81,37 @@ class ServiceFactory:
             feature_flag_service=feature_flag_service,
         )
 
+        # Apply the feature flag proxy if requested and available
+        if feature_flag_service and apply_proxy:
+            # Get a config provider
+            config_provider = await cls._get_config_provider(session)
+            
+            # Create a proxied service with feature flag enforcement
+            logger.debug(f"Applying ServiceProxy to AccountService")
+            return ServiceProxy(
+                service=base_service,
+                feature_flag_service=feature_flag_service,
+                config_provider=config_provider,
+            )
+        
         return base_service
 
     @classmethod
-    def bind_account_type_service(
+    async def _get_config_provider(cls, session: AsyncSession) -> ConfigProvider:
+        """
+        Get the database-driven configuration provider.
+        
+        Args:
+            session: SQLAlchemy async session
+            
+        Returns:
+            DatabaseConfigProvider instance
+        """
+        feature_flag_repository = FeatureFlagRepository(session)
+        return DatabaseConfigProvider(session)
+    
+    @classmethod
+    async def bind_account_type_service(
         cls,
         service: Any,
         account_type: str,
