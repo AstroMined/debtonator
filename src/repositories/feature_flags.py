@@ -304,3 +304,72 @@ class FeatureFlagRepository(BaseRepository[FeatureFlag, str]):
                 counts[flag_type.value] = 0
 
         return counts
+        
+    async def get_requirements(self, flag_name: str) -> Dict[str, Any]:
+        """
+        Get the requirements for a specific feature flag.
+        
+        Args:
+            flag_name: Name of the feature flag
+            
+        Returns:
+            Requirements mapping for the flag (empty dict if not found or no requirements)
+            
+        Raises:
+            ValueError: If the feature flag does not exist
+        """
+        flag = await self.get(flag_name)
+        if not flag:
+            raise ValueError(f"Feature flag '{flag_name}' does not exist")
+            
+        return flag.requirements or {}
+    
+    async def update_requirements(
+        self, flag_name: str, requirements: Dict[str, Any]
+    ) -> FeatureFlag:
+        """
+        Update the requirements for a feature flag.
+        
+        Args:
+            flag_name: Name of the feature flag
+            requirements: New requirements mapping
+            
+        Returns:
+            Updated feature flag
+            
+        Raises:
+            ValueError: If the feature flag does not exist
+        """
+        flag = await self.get(flag_name)
+        if not flag:
+            raise ValueError(f"Feature flag '{flag_name}' does not exist")
+        
+        # Update requirements
+        flag.requirements = requirements
+        
+        # Ensure updated_at is set to current UTC time
+        flag.updated_at = utc_now()
+        
+        # Add to session and flush
+        self.session.add(flag)
+        await self.session.flush()
+        await self.session.refresh(flag)
+        
+        return flag
+    
+    async def get_all_requirements(self) -> Dict[str, Dict[str, Any]]:
+        """
+        Get requirements for all feature flags.
+        
+        Returns:
+            Dictionary mapping flag names to their requirements
+        """
+        flags = await self.get_all()
+        
+        # Create a dictionary of flag_name -> requirements
+        requirements = {}
+        for flag in flags:
+            if flag.requirements:
+                requirements[flag.name] = flag.requirements
+                
+        return requirements

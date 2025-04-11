@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from src.api.response_formatter import format_response
 from src.api.v1 import api_v1_router
+from src.api.admin import admin_router
 from src.utils.config import settings
 
 api_router = APIRouter()
@@ -28,3 +29,6 @@ def get_decimal_formatter():
 
 # Include versioned routers
 api_router.include_router(api_v1_router, prefix=settings.API_V1_PREFIX)
+
+# Include admin router
+api_router.include_router(admin_router)
