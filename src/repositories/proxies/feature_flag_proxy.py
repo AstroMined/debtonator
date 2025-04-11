@@ -303,16 +303,18 @@ class FeatureFlagRepositoryProxy:
             
             # Feature is enabled - check account type whitelist if applicable
             if account_type:
-                whitelist = await self._feature_flag_service.get_account_types_whitelist(
-                    feature_name
-                )
+                if hasattr(self._feature_flag_service, 'get_account_types_whitelist'):
+                    whitelist = await self._feature_flag_service.get_account_types_whitelist(feature_name)
                 
-                # If whitelist is empty, all account types are allowed
-                if not whitelist:
+                    # If whitelist is empty, all account types are allowed
+                    if not whitelist:
+                        return True
+                    
+                    # Check if account type is in whitelist
+                    return account_type in whitelist
+                else:
+                    # Whitelist functionality not implemented, allow all types
                     return True
-                
-                # Check if account type is in whitelist
-                return account_type in whitelist
             
             # No account type - feature is enabled
             return True

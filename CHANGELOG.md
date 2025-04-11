@@ -7,6 +7,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.108] - 2025-04-11
+
+### Fixed
+
+- Fixed critical issues in Feature Flag System implementation:
+  - Resolved async/sync mismatch in feature flag service and proxy implementation
+  - Fixed `is_enabled()` method to be properly async, resolving await errors
+  - Addressed caching issues in tests causing inconsistent test failures
+  - Implemented `ZeroTTLConfigProvider` for immediate feature flag changes in tests
+  - Updated all banking account type tests to use cache-aware testing pattern
+
+### Added
+
+- Added comprehensive documentation for feature flag system:
+  - Created detailed guide in docs/guides/feature_flag_system.md
+  - Documented proper async/await patterns for the feature flag system
+  - Added section on cache awareness for testing
+  - Provided solutions for handling caching in tests
+  - Documented common issues and their solutions
+
 ## [0.5.107] - 2025-04-11
 
 ### Added

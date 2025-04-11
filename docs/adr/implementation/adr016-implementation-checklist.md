@@ -106,10 +106,12 @@ Major remaining components:
 
 ## Feature Flag Integration
 
-- [x] Integrate with feature flag system from ADR-024:
-  - [x] Add feature flag support to AccountRepository
-  - [x] Add feature flag support to AccountService
-  - [ ] Add feature flag checks to API endpoints
+- [x] Integrate with centralized feature flag system from ADR-024:
+  - [x] Integrate AccountRepository with FeatureFlagRepositoryProxy
+  - [x] Integrate AccountService with Service Interceptor pattern
+  - [ ] Register account type endpoints in feature flag requirements database
+  - [x] Remove direct feature flag checks from repositories
+  - [x] Remove direct feature flag checks from services
   - [x] Configure feature flags for account type expansion features
 
 - [x] Add specific feature flags:
@@ -285,8 +287,8 @@ Major remaining components:
   - [ ] Implement proper error handling and status codes
   - [ ] Update OpenAPI documentation for type schemas
   - [ ] Update response models to support polymorphic responses
-  - [ ] Add feature flag service dependency
-  - [ ] Filter available types based on feature flags
+  - [ ] Register endpoints in feature flag requirements database
+  - [ ] Remove any direct feature flag checks
   - [ ] Add currency information to responses
   - [ ] Include international fields based on feature flags
 
@@ -295,7 +297,7 @@ Major remaining components:
   - [ ] Verify proper error status codes
   - [ ] Test polymorphic request validation
   - [ ] Test polymorphic response models
-  - [ ] Test feature flag integration
+  - [ ] Test with FeatureFlagMiddleware (enabled/disabled flags)
   - [ ] Test multi-currency support
   - [ ] Test international banking fields
 

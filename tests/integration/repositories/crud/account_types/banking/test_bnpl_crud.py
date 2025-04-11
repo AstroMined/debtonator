@@ -9,8 +9,12 @@ from decimal import Decimal
 
 import pytest
 
+from src.config.providers.feature_flags import InMemoryConfigProvider
+from tests.helpers.feature_flag_utils import ZeroTTLConfigProvider
+from src.errors.feature_flags import FeatureDisabledError
 from src.models.account_types.banking.bnpl import BNPLAccount
 from src.repositories.accounts import AccountRepository
+from src.repositories.factory import RepositoryFactory
 from tests.helpers.schema_factories.account_types.banking.bnpl_schema_factories import (
     create_bnpl_account_schema,
 )
@@ -227,20 +231,33 @@ async def test_feature_flag_controls_account_creation(
         db_session: Database session fixture
         feature_flag_service: Feature flag service fixture
     """
-    from src.repositories.factory import RepositoryFactory
     
-    # 1. ARRANGE: Create repository with proxy and disable the feature flag
+    # 1. ARRANGE: Create a zero-TTL config provider with specific requirements
+    config_provider = ZeroTTLConfigProvider({
+        "BNPL_ACCOUNTS_ENABLED": {
+            "repository": {
+                "create_typed_account": ["bnpl"],
+            }
+        }
+    })
+    
+    # Create repository with proxy and configure feature flags
     bnpl_repository = RepositoryFactory.create_account_repository(
-        db_session, account_type="bnpl", feature_flag_service=feature_flag_service
+        db_session, 
+        account_type="bnpl", 
+        feature_flag_service=feature_flag_service,
+        config_provider=config_provider
     )
-    await feature_flag_service.set_enabled("BANKING_ACCOUNT_TYPES_ENABLED", False)
+    
+    # Disable the BNPL account feature flag
+    await feature_flag_service.set_enabled("BNPL_ACCOUNTS_ENABLED", False)
 
     # 2. SCHEMA: Create valid schema
     account_schema = create_bnpl_account_schema()
     validated_data = account_schema.model_dump()
 
     # 3. ACT & ASSERT: Should fail when flag is disabled with a FeatureDisabledError
-    with pytest.raises(Exception) as excinfo:
+    with pytest.raises(FeatureDisabledError) as excinfo:
         await bnpl_repository.create_typed_account("bnpl", validated_data)
 
     # The error should be related to features being disabled
@@ -248,7 +265,7 @@ async def test_feature_flag_controls_account_creation(
     assert any(x in error_msg for x in ["feature", "disabled", "not enabled"])
 
     # Now enable the flag and retry
-    await feature_flag_service.set_enabled("BANKING_ACCOUNT_TYPES_ENABLED", True)
+    await feature_flag_service.set_enabled("BNPL_ACCOUNTS_ENABLED", True)
     
     # Ensure only invalid fields are excluded
     invalid_fields = ["available_credit"]

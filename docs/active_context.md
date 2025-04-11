@@ -6,7 +6,30 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
 
 ### Recent Changes
 
-1. **Implemented Cross-Layer Integration and Management API for Feature Flag System (ADR-024) (April 11, 2025)** ✓
+1. **Fixed Critical Feature Flag System Issues (ADR-024) (April 11, 2025)** ✓
+   - Identified and resolved major issues with feature flag implementation:
+     - Fixed async/sync mismatch in feature flag service and proxy implementation
+     - Modified `is_enabled()` method to be properly async, resolving await errors
+     - Identified caching issues in tests causing inconsistent test failures
+     - Implemented `ZeroTTLConfigProvider` to ensure immediate feature flag changes in tests
+     - Updated all banking account type tests to use cache-aware testing pattern
+     - Created demo test file that demonstrates the caching challenges and solutions
+   - Added comprehensive documentation for feature flag system:
+     - Created detailed guide in docs/guides/feature_flag_system.md
+     - Documented proper async/await patterns for the feature flag system
+     - Added section on cache awareness for testing
+     - Provided three solutions for handling caching in tests
+     - Documented common issues and their solutions
+   - Updated all affected banking account type tests:
+     - test_bnpl_crud.py
+     - test_ewa_crud.py
+     - test_payment_app_crud.py
+   - Next steps:
+     - Complete error handling system implementation
+     - Continue repository test refactoring
+     - Fix remaining Pydantic v2 discriminator issues
+
+2. **Implemented Cross-Layer Integration and Management API for Feature Flag System (ADR-024) (April 11, 2025)** ✓
    - Implemented Feature Flag Management API (Phase 4):
      - Created administrative API endpoints for feature flag management
      - Implemented endpoints for retrieving and updating flag requirements
@@ -28,7 +51,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Complete Memory Bank updates with implementation details
      - Mark implementation checklist as complete
 
-2. **Completed API Layer for Feature Flag System (ADR-024) (April 11, 2025)** ✓
+3. **Completed API Layer for Feature Flag System (ADR-024) (April 11, 2025)** ✓
    - Implemented middleware for API-level feature flag enforcement:
      - Created `FeatureFlagMiddleware` ASGI middleware for intercepting HTTP requests
      - Implemented URL path pattern matching for feature requirements
@@ -62,7 +85,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Create end-to-end integration tests in Phase 5
      - Update documentation in Phase 6
 
-2. **Completed Service Layer for Feature Flag System (ADR-024) (April 11, 2025)** ✓
+4. **Completed Service Layer for Feature Flag System (ADR-024) (April 11, 2025)** ✓
    - Implemented service interceptor and proxy components:
      - Created `ServiceInterceptor` class that enforces feature flag requirements at service boundaries
      - Implemented `ServiceProxy` class that wraps service objects and intercepts method calls
@@ -92,7 +115,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Create exception handlers for feature flag errors
      - Complete implementation with management API in Phase 4
 
-3. **Completed Repository Layer for Feature Flag System (ADR-024) (April 10, 2025)** ✓
+5. **Completed Repository Layer for Feature Flag System (ADR-024) (April 10, 2025)** ✓
    - Removed all feature flag checks from repository methods:
      - Eliminated all direct feature flag checks in accounts.py repository
      - Removed _check_account_type_feature_flag helper method
@@ -114,65 +137,14 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Implement API middleware in Phase 3
      - Complete implementation with management API in Phase 4
 
-4. **Implemented Repository Layer for Feature Flag System (ADR-024) (April 10, 2025)** ✓
-   - Implemented database-driven feature flag requirements:
-     - Added requirements column to FeatureFlag model to store method requirements
-     - Created comprehensive feature flag error hierarchy
-     - Implemented ConfigProvider interface with database and in-memory implementations
-     - Created default requirements mapping for all feature flags
-     - Updated feature flag initialization to include requirements
-   - Created FeatureFlagRepositoryProxy to centralize repository-level feature enforcement:
-     - Implemented method interception to check feature requirements
-     - Added account type extraction from different parameter patterns
-     - Added caching mechanism for performance optimization
-     - Implemented wildcard matching for account types
-   - Integrated proxy with repository factory:
-     - Updated create_account_repository to support proxied repositories
-     - Added config provider creation and dependency injection
-     - Maintained backward compatibility with existing code
-   - Added comprehensive integration tests for proxy implementation:
-     - Created test fixtures that mirror source code structure
-     - Implemented 15+ test cases covering all proxy behaviors
-     - Followed four-step pattern (Arrange-Act-Assert-Reset)
-     - Documented repository proxy testing patterns
-
-5. **Revised Feature Flag System Architecture (ADR-024) (April 10, 2025)** ✓
-   - Identified critical issues with current scattered feature flag implementation:
-     - Feature flag checks duplicated across repositories, services, and API layers
-     - Inconsistent error handling for feature flag violations
-     - Feature flag validation bypassed in some code paths
-     - Difficult to maintain as features grow
-   - Designed new middleware/interceptor-based architecture:
-     - Created `FeatureFlagRepositoryProxy` to centralize repository-level feature checks
-     - Designed `ServiceInterceptor` for service-layer feature enforcement
-     - Designed `FeatureFlagMiddleware` for API-level feature enforcement
-     - Added `ConfigProvider` for externalized feature configuration
-     - Created standardized `FeatureDisabledError` exception hierarchy
-   - Implemented bottom-up migration strategy aligned with current refactoring:
-     - Start at repository layer (current focus)
-     - Move to service layer next
-     - Complete with API layer
-   - Updated ADR-024 with comprehensive implementation plan
-   - Created clear before/after examples showing benefits of centralized approach
-   - Documented testing approach aligned with "no mocks" philosophy
-
 ## Next Steps
 
-1. **Complete Feature Flag System Implementation**
-   - Implement Management API (Phase 4):
-     - Create admin API endpoints for feature flag management
-     - Add endpoints for retrieving and updating flag requirements
-     - Implement history and metrics endpoints
-     - Add proper authorization checks
-     - Create comprehensive tests
-   - Implement Cross-Layer Integration (Phase 5):
-     - Create end-to-end integration tests
-     - Perform performance testing
-     - Verify propagation of flag changes across all layers
-   - Complete Documentation (Phase 6):
-     - Update ADR-024 to mark as implemented
-     - Update memory bank with implementation details
-     - Create pattern documentation for feature flags
+1. **Complete Error Handling System Implementation**
+   - Implement remaining error classes for account types
+   - Create consistent error translation between layers
+   - Add user-friendly error messages to API responses
+   - Implement error handling middleware for API endpoints
+   - Add comprehensive documentation for error handling patterns
 
 2. **Continue Repository Test Refactoring**
    - Refactor account type advanced tests:
@@ -219,6 +191,11 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
    - Use caching with appropriate TTL for performance optimization
    - Implement account type extraction to support feature flags for specific account types
    - Follow bottom-up implementation approach starting at repository layer
+   - Ensure consistent async/await patterns throughout the system
+   - Use cache-aware testing strategies to handle TTL caching effects
+   - Provide zero-TTL options for testing environments to avoid race conditions
+   - Add helper utilities for clear cache invalidation when needed
+   - Implement proper inspection of async methods to avoid mismatches
 
 2. **Test Consolidation for Complete Coverage**
    - Analyze coverage reports to identify specific uncovered lines and branches
@@ -300,3 +277,13 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
    - Use proper datetime utilities for timezone-aware and naive datetime handling
    - Organize tests in the correct directories (crud or advanced)
    - Follow naming conventions for files and functions
+
+10. **Feature Flag Testing Strategy**
+    - Use zero-TTL configuration for immediate flag state changes
+    - Implement both enabled and disabled state tests for every feature
+    - Verify errors are raised properly when features are disabled
+    - Ensure proper account type detection in feature flag system
+    - Verify proper caching invalidation after flag state changes
+    - Implement manual cache clearing utilities when needed
+    - Add explicit waiting for cache expiry in time-sensitive tests
+    - Document caching behavior in test comments

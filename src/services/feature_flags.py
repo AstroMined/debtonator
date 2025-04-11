@@ -99,7 +99,7 @@ class FeatureFlagService(FeatureFlagObserver):
         self._initialized = True
         logger.info(f"Feature flag service initialized with {len(flags)} flags")
 
-    def is_enabled(
+    async def is_enabled(
         self, flag_name: str, context: Optional[Dict[str, Any]] = None
     ) -> bool:
         """
@@ -123,16 +123,16 @@ class FeatureFlagService(FeatureFlagObserver):
 
         Examples:
             # Check a simple boolean flag
-            is_feature_enabled = service.is_enabled("NEW_DASHBOARD_ENABLED")
+            is_feature_enabled = await service.is_enabled("NEW_DASHBOARD_ENABLED")
 
             # Check a percentage rollout flag with user context
-            is_enabled_for_user = service.is_enabled(
+            is_enabled_for_user = await service.is_enabled(
                 "GRADUAL_ROLLOUT_FEATURE",
                 context={"user_id": "user-123"}
             )
 
             # Check a user segment flag
-            is_enabled_for_admin = service.is_enabled(
+            is_enabled_for_admin = await service.is_enabled(
                 "ADMIN_ONLY_FEATURE",
                 context={"is_admin": True}
             )

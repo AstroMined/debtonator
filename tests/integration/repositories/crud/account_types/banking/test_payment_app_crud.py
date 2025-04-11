@@ -9,8 +9,12 @@ from decimal import Decimal
 
 import pytest
 
+from src.config.providers.feature_flags import InMemoryConfigProvider
+from tests.helpers.feature_flag_utils import ZeroTTLConfigProvider
+from src.errors.feature_flags import FeatureDisabledError
 from src.models.account_types.banking.payment_app import PaymentAppAccount
 from src.repositories.accounts import AccountRepository
+from src.repositories.factory import RepositoryFactory
 from tests.helpers.schema_factories.account_types.banking.payment_app_schema_factories import (
     create_payment_app_account_schema,
 )
@@ -99,8 +103,12 @@ async def test_update_payment_app_account(
 
     validated_data = update_schema.model_dump()
 
-    # 3. ACT: Update the account
-    result = await payment_app_repository.update(account_id, validated_data)
+    # 3. ACT: Update the account using typed update method
+    result = await payment_app_repository.update_typed_account(
+        account_id=account_id,
+        account_type="payment_app",
+        data=validated_data
+    )
 
     # 4. ASSERT: Verify the operation results
     assert result is not None
@@ -149,20 +157,33 @@ async def test_feature_flag_controls_account_creation(
         db_session: Database session fixture
         feature_flag_service: Feature flag service fixture
     """
-    from src.repositories.factory import RepositoryFactory
     
-    # 1. ARRANGE: Create repository with proxy and disable the feature flag
+    # 1. ARRANGE: Create a zero-TTL config provider with specific requirements
+    config_provider = ZeroTTLConfigProvider({
+        "PAYMENT_APP_ACCOUNTS_ENABLED": {
+            "repository": {
+                "create_typed_account": ["payment_app"],
+            }
+        }
+    })
+    
+    # Create repository with proxy and configure feature flags
     payment_app_repository = RepositoryFactory.create_account_repository(
-        db_session, account_type="payment_app", feature_flag_service=feature_flag_service
+        db_session, 
+        account_type="payment_app", 
+        feature_flag_service=feature_flag_service,
+        config_provider=config_provider
     )
-    await feature_flag_service.set_enabled("BANKING_ACCOUNT_TYPES_ENABLED", False)
+    
+    # Disable the Payment App account feature flag
+    await feature_flag_service.set_enabled("PAYMENT_APP_ACCOUNTS_ENABLED", False)
 
     # 2. SCHEMA: Create valid schema
     account_schema = create_payment_app_account_schema()
     validated_data = account_schema.model_dump()
 
     # 3. ACT & ASSERT: Should fail when flag is disabled with a FeatureDisabledError
-    with pytest.raises(Exception) as excinfo:
+    with pytest.raises(FeatureDisabledError) as excinfo:
         await payment_app_repository.create_typed_account("payment_app", validated_data)
 
     # The error should be related to features being disabled
@@ -170,7 +191,7 @@ async def test_feature_flag_controls_account_creation(
     assert any(x in error_msg for x in ["feature", "disabled", "not enabled"])
 
     # Now enable the flag and retry
-    await feature_flag_service.set_enabled("BANKING_ACCOUNT_TYPES_ENABLED", True)
+    await feature_flag_service.set_enabled("PAYMENT_APP_ACCOUNTS_ENABLED", True)
     
     # Ensure only valid fields are included
     invalid_fields = ["available_credit"]

@@ -29,29 +29,35 @@ Major remaining components:
 
 ### 1.1 Banking Account Types Feature Flag
 
-- [x] Integrate with the feature flag system from ADR-024:
-  - [x] Add dependency on feature flag service in relevant components
-  - [x] Implement conditional logic for banking account types
-  - [x] Add feature flag checks before exposing new account types
-  - [x] Add proper error handling for disabled features
+- [x] Integrate with the centralized feature flag system from ADR-024:
+  - [x] Ensure banking repositories work with FeatureFlagRepositoryProxy
+  - [x] Ensure banking services work with Service Interceptor pattern
+  - [ ] Register banking endpoints in feature flag requirements database
+  - [x] Remove direct feature flag checks from repository methods
+  - [x] Remove direct feature flag checks from service methods
+  - [x] Add proper error handling for FeatureDisabledError exceptions
 
 - [x] Add specific feature flag for banking account types:
   - [x] Use `BANKING_ACCOUNT_TYPES_ENABLED` flag from feature flag registry
   - [x] Configure default value (false in production)
+  - [x] Define requirements mapping for banking operations in database
   - [x] Document feature flag usage in code
 
 **Verification:**
 
-- ✅ Integration with feature flag system is working correctly
+- ✅ Integration with centralized feature flag system is working correctly
 - ✅ New account types are only exposed when flag is enabled
+- ✅ Proxy/interceptor pattern enforces feature flags at architectural boundaries
 - ✅ Error handling provides appropriate messages when features are disabled
-- ✅ Documentation explains feature flag usage
+- ✅ Documentation explains feature flag usage and requirements mapping
 
 **Testing:**
 
-- [x] Test with feature flag enabled and disabled
-- [x] Verify behavior changes correctly when flag is toggled
+- [x] Test repository proxy with feature flag enabled and disabled
+- [x] Test service interceptor with feature flag enabled and disabled
+- [ ] Test API middleware with feature flag enabled and disabled 
 - [x] Test error handling when attempting to access disabled features
+- [x] Test cache invalidation behavior across architectural boundaries
 - [ ] Test feature flag persistence across application restarts
 
 ## Phase 2: Database Schema and Model Implementation
@@ -408,7 +414,8 @@ Major remaining components:
 - [ ] Implement POST /accounts/banking endpoint
 - [ ] Implement POST /accounts/bnpl/{account_id}/update-status endpoint
 - [ ] Ensure proper response models and status codes
-- [ ] Integrate with feature flag system
+- [ ] Register endpoints in feature flag requirements database
+- [ ] Remove any direct feature flag checks
 - [ ] Create OpenAPI documentation alongside endpoints
 
 **Verification:**
@@ -418,13 +425,15 @@ Major remaining components:
 - ❓ Input validation needs to use Pydantic schemas
 - ❓ Endpoints need to include appropriate OpenAPI documentation
 - ❓ Authentication and authorization need to be properly enforced
+- ❓ Feature flag enforcement through middleware needs verification
 
 **Testing:**
 
 - [ ] Write integration tests for each API endpoint
 - [ ] Test authentication and authorization scenarios
 - [ ] Test with valid and invalid input data
-- [ ] Test with feature flags enabled and disabled
+- [ ] Test with FeatureFlagMiddleware (enabled/disabled flags)
+- [ ] Verify proper handling of FeatureDisabledError exceptions
 - [ ] Verify error responses match expected format
 - [ ] Load test endpoints with realistic traffic volumes
 
