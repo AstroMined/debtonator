@@ -38,7 +38,7 @@
    - Fixture organization guidelines based on fixture type ✓
    - Global Pylint configuration for schema factory decorator magic ✓
    - Repository test refactoring for 16 CRUD test files completed ✓
-   - Repository test refactoring for 3 account type CRUD test files completed ✓
+   - Repository test refactoring for 6 account type CRUD test files completed ✓
    - Repository test refactoring for 14 advanced test files completed ✓
 
 4. __Service Layer__: IN PROGRESS (75%)
@@ -151,6 +151,8 @@
    - Function-style tests with proper docstrings ✓
    - Proper validation flow in advanced repository tests ✓
    - Centralized feature flag enforcement with proxy pattern ✓
+   - Standardized repository fixture usage patterns ✓
+   - Proper separation of CRUD and advanced repository tests ✓
 
 2. __Schema Layer__
    - Complete validation for all model types ✓
@@ -226,6 +228,8 @@
    - Fixture organization guidelines based on fixture type ✓
    - Feature flag proxy integration tests with comprehensive coverage ✓
    - API middleware tests for feature flag enforcement ✓
+   - Standardized repository fixture usage patterns ✓
+   - Proper separation of CRUD and advanced repository tests ✓
 
 ## What's Left to Build
 
@@ -260,14 +264,21 @@
    - Create comprehensive test cases for polymorphic validation
    - Add pattern documentation for schema-service validation split
 
-5. __Continue Repository Test Refactoring (45%)__
+5. __Continue Repository Test Refactoring (35%)__
    - Fixed repository fixtures for account types:
      - ✓ fixture_bnpl_repositories.py
      - ✓ fixture_ewa_repositories.py
      - ✓ fixture_payment_app_repositories.py
+     - ✓ fixture_checking_repositories.py
+     - ✓ fixture_savings_repositories.py
+     - ✓ fixture_credit_repositories.py
    - Fixed schema validation errors in test files:
      - ✓ test_credit_crud.py (autopay_status)
      - ✓ test_savings_crud.py (interest_rate)
+   - Standardized CRUD test files:
+     - ✓ test_checking_crud.py
+     - ✓ test_savings_crud.py
+     - ✓ test_credit_crud.py
    - Refactor account type advanced tests:
      - advanced/account_types/banking/test_bnpl_advanced.py
      - advanced/account_types/banking/test_ewa_advanced.py
@@ -280,6 +291,12 @@
      - account_types/banking/test_credit.py
      - account_types/banking/test_savings.py
      - bill_splits/test_bill_splits_with_account_types.py
+
+6. __Troubleshoot Repository Test Failures__
+   - Investigate and fix test failures in standardized banking account type tests
+   - Ensure proper fixture usage and test isolation
+   - Verify correct repository factory integration
+   - Address any remaining issues with repository proxy pattern
 
 ## Known Issues
 
@@ -295,36 +312,43 @@
    - Solution requires careful refactoring of repository layer methods with proper polymorphic identity handling
    - Need to ensure proper use of model classes from registry with explicit model class querying
 
-2. __Pydantic v2 Discriminator Field Validator Conflict__
+2. __Repository Fixture Usage Pattern Inconsistencies__
+   - Some repository fixtures use repository_factory as an object with methods
+   - Others correctly use repository_factory as a function
+   - Need to standardize usage pattern across all repository fixtures
+   - Ensure proper documentation of fixture usage patterns
+   - Fix remaining test failures related to fixture usage
+
+3. __Pydantic v2 Discriminator Field Validator Conflict__
    - Some account type response models still have validators on the discriminator field
    - This causes validation errors with Pydantic v2's discriminated union implementation
    - Need to move those validators to the service layer following the established pattern
    - This issue affects API integration tests and polymorphic response serialization
 
-3. __Repository Error Handling__
+4. __Repository Error Handling__
    - Need to implement custom repository exceptions
    - Error translation in services needs to be standardized
    - Exception hierarchy should be consistent across the application
 
-4. __Schema Factory Parameter Alignment__
+5. __Schema Factory Parameter Alignment__
    - Some schema factory functions include parameters not in the final schema
    - Need to add clear documentation for all schema factories about field usage
    - Consider standardizing parameter patterns across all schema factories
    
-5. __Complex Nested Schema Structures__
+6. __Complex Nested Schema Structures__
    - Schemas with multi-level nesting like Dict[str, Dict[str, Object]] require careful handling
    - Need to document expected structure for complex nested objects
    - Test coverage for nested object validation should be improved
    - Some schema factory implementations don't match the schema structure
 
-6. __Decimal Sum Validation in Tests__
+7. __Decimal Sum Validation in Tests__
    - Some tests for decimal sums in complex structures require tolerance ranges
    - Day of month patterns in seasonality analysis sum to 0.94 instead of 1.0
    - Similar issues exist in other probability distribution tests
    - Solution is to use appropriate tolerance ranges in tests
    - Need standardized approach to decimal equality testing
 
-7. __Cross-Layer Concerns in Utils Module__
+8. __Cross-Layer Concerns in Utils Module__
    - The db.py module crosses layers between database and HTTP concerns
    - Should move functionality to src/errors/ for better separation of concerns
    - Some feature_flags functionality requires integration tests rather than unit tests

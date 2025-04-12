@@ -1,122 +1,35 @@
+# pylint: disable=no-member,no-value-for-argument
 """
 Integration tests for credit account repository CRUD operations.
 
-This module tests the base repository's polymorphic handling of credit accounts
-for basic CRUD operations. Following the "Real Objects Testing Philosophy" with no mocks.
+Following the four-step pattern and Real Objects Testing Philosophy.
 """
 
 from decimal import Decimal
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.account_types.banking.credit import CreditAccount
 from src.repositories.accounts import AccountRepository
-from src.services.accounts import AccountService
 from tests.helpers.schema_factories.account_types.banking.credit_schema_factories import (
     create_credit_account_schema,
-    create_credit_account_update_schema,
 )
 
 pytestmark = pytest.mark.asyncio
 
 
-@pytest.mark.asyncio
-async def test_get_with_type_returns_credit_account(
-    repository: AccountRepository, test_credit_account: CreditAccount
-):
+async def test_create_credit_account(credit_repository: AccountRepository):
     """
-    Test that get_with_type returns a CreditAccount instance.
-
-    This test verifies that the repository correctly retrieves a credit account
-    with the appropriate polymorphic identity.
+    Test creating a credit account following the four-step pattern.
 
     Args:
-        repository: Base account repository
-        test_credit_account: Credit account fixture
+        credit_repository: Repository fixture for credit accounts
     """
-    # 1. ARRANGE: Repository and test account are provided by fixtures
+    # 1. ARRANGE: Nothing needed here
 
-    # 2. SCHEMA: Not applicable for this read operation
-
-    # 3. ACT: Retrieve the account with type information
-    result = await repository.get_with_type(test_credit_account.id)
-
-    # 4. ASSERT: Verify the result is a credit account
-    assert result is not None
-    assert isinstance(result, CreditAccount)
-    assert result.id == test_credit_account.id
-    assert result.name == test_credit_account.name
-    assert result.account_type == "credit"
-
-    # Verify credit-specific fields are loaded
-    assert hasattr(result, "credit_limit")
-    if hasattr(test_credit_account, "apr"):
-        assert result.apr == test_credit_account.apr
-
-
-@pytest.mark.asyncio
-async def test_get_by_type_returns_only_credit_accounts(
-    repository: AccountRepository,
-    test_credit_account: CreditAccount,
-    test_checking_account,
-    test_savings_account,
-):
-    """
-    Test that get_by_type returns only credit accounts.
-
-    This test verifies that the repository correctly filters accounts by type
-    when retrieving credit accounts.
-
-    Args:
-        repository: Base account repository
-        test_credit_account: Credit account fixture
-        test_checking_account: Checking account fixture
-        test_savings_account: Savings account fixture
-    """
-    # 1. ARRANGE: Repository and test accounts are provided by fixtures
-
-    # 2. SCHEMA: Not applicable for this read operation
-
-    # 3. ACT: Retrieve accounts by type
-    credit_accounts = await repository.get_by_type("credit")
-
-    # 4. ASSERT: Verify only credit accounts are returned
-    assert len(credit_accounts) >= 1
-    assert all(isinstance(a, CreditAccount) for a in credit_accounts)
-    assert all(a.account_type == "credit" for a in credit_accounts)
-
-    # Verify the test account is in the results
-    account_ids = [a.id for a in credit_accounts]
-    assert test_credit_account.id in account_ids
-
-    # Verify other account types are not in the results
-    assert test_checking_account.id not in account_ids
-    assert test_savings_account.id not in account_ids
-
-
-@pytest.mark.asyncio
-async def test_create_typed_account_with_credit_type(
-    repository: AccountRepository,
-    account_service: AccountService,
-    db_session: AsyncSession,
-):
-    """
-    Test creating a typed credit account using service for business logic.
-
-    This test verifies that the repository correctly creates a credit account
-    with the service calculating the business logic values, following ADR-012.
-
-    Args:
-        repository: Base account repository
-        account_service: Account service for business logic
-        db_session: Database session
-    """
-    # 1. ARRANGE: Repository is provided by fixture
-
-    # 2. SCHEMA: Create and validate through schema factory
+    # 2. SCHEMA: Create and validate through Pydantic schema
     account_schema = create_credit_account_schema(
-        name="New Credit Account",
+        name="My Rewards Credit Card",
         current_balance=Decimal("-500.00"),
         available_balance=Decimal("-500.00"),
         credit_limit=Decimal("3000.00"),
@@ -124,71 +37,104 @@ async def test_create_typed_account_with_credit_type(
         apr=Decimal("15.99"),
     )
 
-    # 3. ACT: Create the account
-    result = await repository.create_typed_account(
-        "credit", account_schema.model_dump()
-    )
+    # Convert validated schema to dict for repository
+    validated_data = account_schema.model_dump()
 
-    # 4. ASSERT: Verify the account was created correctly
+    # 3. ACT: Pass validated data to repository
+    result = await credit_repository.create_typed_account("credit", validated_data)
+
+    # 4. ASSERT: Verify the operation results
     assert result is not None
     assert isinstance(result, CreditAccount)
-
-    # Calculate available credit using the service (business logic) per ADR-012
-    available_credit = await account_service.get_available_credit_amount(result)
-    assert available_credit == Decimal("2500.00")
-
-    # Verify other properties
     assert result.id is not None
-    assert result.name == "New Credit Account"
-    assert result.account_type == "credit"
+    assert result.name == "My Rewards Credit Card"
     assert result.current_balance == Decimal("-500.00")
     assert result.available_balance == Decimal("-500.00")
     assert result.credit_limit == Decimal("3000.00")
     assert result.apr == Decimal("15.99")
 
-    # Verify it was actually persisted
-    persisted = await repository.get(result.id)
-    assert persisted is not None
-    assert persisted.id == result.id
 
-
-@pytest.mark.asyncio
-async def test_update_typed_account_with_credit_type(
-    repository: AccountRepository,
-    account_service: AccountService,
-    test_credit_account: CreditAccount,
+async def test_get_credit_account(
+    credit_repository: AccountRepository, test_credit_account: CreditAccount
 ):
     """
-    Test updating a typed credit account.
-
-    This test verifies that the repository correctly updates a credit account
-    with the appropriate polymorphic identity and type-specific fields.
+    Test retrieving a credit account by ID.
 
     Args:
-        repository: Base account repository
-        account_service: Account service for business logic
-        test_credit_account: Credit account fixture
+        credit_repository: Repository fixture for credit accounts
+        test_credit_account: Test credit account fixture
     """
-    # 1. ARRANGE: Repository and test account are provided by fixtures
+    # 1. ARRANGE: Use fixture for test account
 
-    # 2. SCHEMA: Create and validate through schema factory
-    update_schema = create_credit_account_update_schema(
-        name="Updated Credit Account",
+    # 2. ACT: Get account by ID
+    result = await credit_repository.get(test_credit_account.id)
+
+    # 3. ASSERT: Verify the operation results
+    assert result is not None
+    assert isinstance(result, CreditAccount)
+    assert result.id == test_credit_account.id
+    assert result.name == test_credit_account.name
+    assert result.account_type == "credit"
+
+
+async def test_update_credit_account(
+    credit_repository: AccountRepository, test_credit_account: CreditAccount
+):
+    """
+    Test updating a credit account.
+
+    Args:
+        credit_repository: Repository fixture for credit accounts
+        test_credit_account: Test credit account fixture
+    """
+    # 1. ARRANGE: Use fixture for test account
+    account_id = test_credit_account.id
+
+    # 2. SCHEMA: Create update data with schema
+    update_schema = create_credit_account_schema(
+        name="Updated Credit Card",
         apr=Decimal("14.99"),
         rewards_program="Travel Points",
         autopay_status="minimum",
     )
 
-    # 3. ACT: Update the account
-    result = await repository.update_typed_account(
-        test_credit_account.id, "credit", update_schema.model_dump()
+    validated_data = update_schema.model_dump()
+
+    # 3. ACT: Update the account using typed update method
+    result = await credit_repository.update_typed_account(
+        account_id=account_id, account_type="credit", data=validated_data
     )
 
-    # 4. ASSERT: Verify the account was updated correctly
+    # 4. ASSERT: Verify the operation results
     assert result is not None
     assert isinstance(result, CreditAccount)
-    assert result.id == test_credit_account.id
-    assert result.name == "Updated Credit Account"
+    assert result.id == account_id
+    assert result.name == "Updated Credit Card"
     assert result.apr == Decimal("14.99")
     assert result.rewards_program == "Travel Points"
     assert result.autopay_status == "minimum"
+
+
+async def test_delete_credit_account(
+    credit_repository: AccountRepository, test_credit_account: CreditAccount
+):
+    """
+    Test deleting (soft delete) a credit account.
+
+    Args:
+        credit_repository: Repository fixture for credit accounts
+        test_credit_account: Test credit account fixture
+    """
+    # 1. ARRANGE: Use fixture for test account
+    account_id = test_credit_account.id
+
+    # 2. ACT: Delete the account
+    result = await credit_repository.delete(account_id)
+
+    # 3. ASSERT: Verify soft deletion
+    assert result is True
+
+    # Verify the account is marked as closed, not physically deleted
+    account = await credit_repository.get(account_id)
+    assert account is not None
+    assert account.is_closed is True

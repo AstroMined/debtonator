@@ -28,6 +28,4 @@ async def checking_repository(
     Returns:
         AccountRepository: Repository with checking-specific operations
     """
-    return repository_factory.create_account_repository(
-        session=db_session, account_type="checking"
-    )
+    return repository_factory(account_type="checking")

@@ -28,6 +28,4 @@ async def credit_repository(
     Returns:
         AccountRepository: Repository with credit-specific operations
     """
-    return repository_factory.create_account_repository(
-        session=db_session, account_type="credit"
-    )
+    return repository_factory(account_type="credit")
