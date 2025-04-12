@@ -235,17 +235,17 @@ Major remaining components:
   - [ ] Test field filtering and validation
   - [ ] Test error handling for invalid entity types
 
-- [ ] Update existing repository tests:
-  - [ ] Update `tests/integration/repositories/test_account_repository.py`
-  - [ ] Replace `create_typed_account` calls with `create_typed_entity`
-  - [ ] Replace `update_typed_account` calls with `update_typed_entity`
-  - [ ] Test polymorphic identity handling
-  - [ ] Verify proper error messages for invalid operations
+- [x] Update existing repository tests:
+  - [x] Update `tests/integration/repositories/test_account_repository.py`
+  - [x] Replace `create_typed_account` calls with `create_typed_entity`
+  - [x] Replace `update_typed_account` calls with `update_typed_entity`
+  - [x] Test polymorphic identity handling
+  - [x] Verify proper error messages for invalid operations
 
-- [ ] Update service layer to use new methods:
-  - [ ] Update `src/services/accounts.py` to use `create_typed_entity`
-  - [ ] Update `src/services/accounts.py` to use `update_typed_entity`
-  - [ ] Test service layer with new repository methods
+- [x] Update service layer to use new methods:
+  - [x] Update `src/services/accounts.py` to use `create_typed_entity`
+  - [x] Update `src/services/accounts.py` to use `update_typed_entity`
+  - [x] Test service layer with new repository methods
 
 - [ ] Remove redundant tests in `tests/integration/repositories/crud/test_account_repository_crud.py`:
   - [ ] Identify tests that create base Account objects directly

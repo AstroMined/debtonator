@@ -332,8 +332,8 @@ class RequirementsBase(BaseSchemaValidator):
         examples=[
             {
                 "repository": {
-                    "create_typed_account": ["bnpl", "ewa", "payment_app"],
-                    "update_typed_account": ["bnpl", "ewa", "payment_app"]
+                    "create_typed_entity": ["bnpl", "ewa", "payment_app"],
+                    "update_typed_entity": ["bnpl", "ewa", "payment_app"]
                 },
                 "service": {
                     "create_account": ["bnpl", "ewa", "payment_app"]

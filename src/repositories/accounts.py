@@ -39,6 +39,10 @@ class AccountRepository(PolymorphicBaseRepository[Account, int]):
 
     Implements ADR-016 (Account Type Expansion), ADR-019 (Banking Account Types),
     and ADR-024 (Feature Flag System).
+
+    NOTE: This repository uses the create_typed_entity and update_typed_entity
+    methods from PolymorphicBaseRepository to ensure proper handling of
+    polymorphic identities.
     """
 
     def __init__(self, session: AsyncSession):
@@ -368,6 +372,3 @@ class AccountRepository(PolymorphicBaseRepository[Account, int]):
         await self.session.flush()
         
         return True
-
-    # Note: The create_typed_account and update_typed_account methods have been 
-    # replaced by create_typed_entity and update_typed_entity from PolymorphicBaseRepository

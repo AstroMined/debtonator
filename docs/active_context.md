@@ -119,19 +119,20 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
 
 ## Next Steps
 
-1. **Create Unit Tests for PolymorphicBaseRepository**
+1. **Complete Method Name Transition**
+   - Verify no remaining references to create_typed_account and update_typed_account
+   - Update any documentation outside of test and implementation files
+   - Ensure API documentation reflects new method names
+   - Add comprehensive docstrings for the new methods
+   - Add examples of using the new methods to system_patterns.md
+
+2. **Create Unit Tests for PolymorphicBaseRepository**
    - Implement test_polymorphic_base_repository.py to verify core functionality
    - Test disabled base methods raise proper exceptions
    - Test proper field filtering and validation
    - Create test scenarios for error handling cases
    - Verify proper registry integration
    - Create tests for update handling with type validation
-
-2. **Troubleshoot Repository Test Failures**
-   - Investigate and fix test failures in standardized banking account type tests
-   - Ensure proper fixture usage and test isolation
-   - Verify correct repository factory integration
-   - Address any remaining issues with repository proxy pattern
 
 3. **Complete Error Handling System Implementation**
    - Implement remaining error classes for account types

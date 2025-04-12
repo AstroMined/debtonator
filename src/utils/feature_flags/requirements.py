@@ -31,8 +31,8 @@ def get_default_requirements() -> Requirements:
         "BANKING_ACCOUNT_TYPES_ENABLED": {
             "repository": {
                 # Account repository methods
-                "create_typed_account": ["bnpl", "ewa", "payment_app"],
-                "update_typed_account": ["bnpl", "ewa", "payment_app"],
+                "create_typed_entity": ["bnpl", "ewa", "payment_app"],
+                "update_typed_entity": ["bnpl", "ewa", "payment_app"],
                 "get_by_type": ["bnpl", "ewa", "payment_app"],
                 
                 # Account type-specific repository methods
@@ -63,8 +63,8 @@ def get_default_requirements() -> Requirements:
         "BNPL_ACCOUNTS_ENABLED": {
             "repository": {
                 # BNPL account type repository methods
-                "create_typed_account": ["bnpl"],
-                "update_typed_account": ["bnpl"],
+                "create_typed_entity": ["bnpl"],
+                "update_typed_entity": ["bnpl"],
                 "get_by_type": ["bnpl"],
                 
                 # BNPL-specific repository methods
@@ -95,8 +95,8 @@ def get_default_requirements() -> Requirements:
         "EWA_ACCOUNTS_ENABLED": {
             "repository": {
                 # EWA account type repository methods
-                "create_typed_account": ["ewa"],
-                "update_typed_account": ["ewa"],
+                "create_typed_entity": ["ewa"],
+                "update_typed_entity": ["ewa"],
                 "get_by_type": ["ewa"],
                 
                 # EWA-specific repository methods
@@ -127,8 +127,8 @@ def get_default_requirements() -> Requirements:
         "PAYMENT_APP_ACCOUNTS_ENABLED": {
             "repository": {
                 # Payment App account type repository methods
-                "create_typed_account": ["payment_app"],
-                "update_typed_account": ["payment_app"],
+                "create_typed_entity": ["payment_app"],
+                "update_typed_entity": ["payment_app"],
                 "get_by_type": ["payment_app"],
                 
                 # Payment App-specific repository methods

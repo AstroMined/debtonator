@@ -98,7 +98,7 @@ async def test_get_by_type_returns_only_credit_accounts(
 
 
 @pytest.mark.asyncio
-async def test_create_typed_account_with_credit_type(
+async def test_create_typed_entity_with_credit_type(
     repository: AccountRepository,
     account_service: AccountService,
     db_session: AsyncSession,
@@ -155,7 +155,7 @@ async def test_create_typed_account_with_credit_type(
 
 
 @pytest.mark.asyncio
-async def test_update_typed_account_with_credit_type(
+async def test_update_typed_entity_with_credit_type(
     repository: AccountRepository,
     account_service: AccountService,
     test_credit_account: CreditAccount,

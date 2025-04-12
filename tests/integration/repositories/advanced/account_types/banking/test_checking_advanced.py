@@ -96,7 +96,7 @@ async def test_get_by_type_returns_only_checking_accounts(
 
 
 @pytest.mark.asyncio
-async def test_create_typed_account_with_checking_type(
+async def test_create_typed_entity_with_checking_type(
     account_repository: AccountRepository, db_session: AsyncSession
 ):
     """
@@ -145,7 +145,7 @@ async def test_create_typed_account_with_checking_type(
 
 
 @pytest.mark.asyncio
-async def test_update_typed_account_with_checking_type(
+async def test_update_typed_entity_with_checking_type(
     account_repository: AccountRepository, test_checking_account: CheckingAccount
 ):
     """

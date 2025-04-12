@@ -7,6 +7,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.112] - 2025-04-12
+
+### Changed
+
+- Renamed polymorphic repository methods for better clarity and consistency:
+  - Renamed `create_typed_account` to `create_typed_entity` in all repository implementations
+  - Renamed `update_typed_account` to `update_typed_entity` in all repository implementations
+  - Updated all references in tests, services, and feature flag system
+  - Added docstrings explaining the new method naming pattern
+
+### Fixed
+
+- Fixed test repositories to use consistent method names
+- Updated all feature flag requirements to use the new method names
+- Ensured comment documentation consistently uses new method names
+- Addressed remaining inconsistencies in repository test organization
+- Fixed references to old method names in documentation
+
+### Technical
+
+- Updated ADR-016 implementation checklist to reflect completed method name transition
+- Updated Memory Bank files (active_context.md and progress.md) with latest changes
+
 ## [0.5.111] - 2025-04-12
 
 ### Added

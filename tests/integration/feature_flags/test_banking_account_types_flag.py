@@ -47,7 +47,7 @@ async def test_feature_flag_controls_ewa_account_creation(
         {
             "EWA_ACCOUNTS_ENABLED": {
                 "repository": {
-                    "create_typed_account": ["ewa"],
+                    "create_typed_entity": ["ewa"],
                 }
             }
         }
@@ -72,7 +72,7 @@ async def test_feature_flag_controls_ewa_account_creation(
 
     # 3. ACT & ASSERT: Should fail when flag is disabled with a FeatureDisabledError
     with pytest.raises(FeatureDisabledError) as excinfo:
-        await ewa_repository.create_typed_account("ewa", validated_data)
+        await ewa_repository.create_typed_entity("ewa", validated_data)
 
     # The error should be related to features being disabled
     error_msg = str(excinfo.value)
@@ -84,7 +84,7 @@ async def test_feature_flag_controls_ewa_account_creation(
     # Ensure only invalid fields are excluded
     invalid_fields = ["available_credit"]
     filtered_data = {k: v for k, v in validated_data.items() if k not in invalid_fields}
-    result = await ewa_repository.create_typed_account("ewa", filtered_data)
+    result = await ewa_repository.create_typed_entity("ewa", filtered_data)
 
     # 4. ASSERT: Should succeed when flag is enabled
     assert result is not None
@@ -107,7 +107,7 @@ async def test_feature_flag_controls_bnpl_account_creation(
         {
             "BNPL_ACCOUNTS_ENABLED": {
                 "repository": {
-                    "create_typed_account": ["bnpl"],
+                    "create_typed_entity": ["bnpl"],
                 }
             }
         }
@@ -132,7 +132,7 @@ async def test_feature_flag_controls_bnpl_account_creation(
 
     # 3. ACT & ASSERT: Should fail when flag is disabled with a FeatureDisabledError
     with pytest.raises(FeatureDisabledError) as excinfo:
-        await bnpl_repository.create_typed_account("bnpl", validated_data)
+        await bnpl_repository.create_typed_entity("bnpl", validated_data)
 
     # The error should be related to features being disabled
     error_msg = str(excinfo.value)
@@ -144,7 +144,7 @@ async def test_feature_flag_controls_bnpl_account_creation(
     # Ensure only invalid fields are excluded
     invalid_fields = ["available_credit"]
     filtered_data = {k: v for k, v in validated_data.items() if k not in invalid_fields}
-    result = await bnpl_repository.create_typed_account("bnpl", filtered_data)
+    result = await bnpl_repository.create_typed_entity("bnpl", filtered_data)
 
     # 4. ASSERT: Should succeed when flag is enabled
     assert result is not None
@@ -167,7 +167,7 @@ async def test_feature_flag_controls_payment_app_account_creation(
         {
             "PAYMENT_APP_ACCOUNTS_ENABLED": {
                 "repository": {
-                    "create_typed_account": ["payment_app"],
+                    "create_typed_entity": ["payment_app"],
                 }
             }
         }
@@ -192,7 +192,7 @@ async def test_feature_flag_controls_payment_app_account_creation(
 
     # 3. ACT & ASSERT: Should fail when flag is disabled with a FeatureDisabledError
     with pytest.raises(FeatureDisabledError) as excinfo:
-        await payment_app_repository.create_typed_account("payment_app", validated_data)
+        await payment_app_repository.create_typed_entity("payment_app", validated_data)
 
     # The error should be related to features being disabled
     error_msg = str(excinfo.value)
@@ -204,7 +204,7 @@ async def test_feature_flag_controls_payment_app_account_creation(
     # Ensure only valid fields are included
     invalid_fields = ["available_credit"]
     filtered_data = {k: v for k, v in validated_data.items() if k not in invalid_fields}
-    result = await payment_app_repository.create_typed_account(
+    result = await payment_app_repository.create_typed_entity(
         "payment_app", filtered_data
     )
 
@@ -282,7 +282,7 @@ async def test_create_account_respects_feature_flag(
 
     # ACT & ASSERT - With flag enabled (this may fail if payment_app model isn't implemented)
     try:
-        account = await repository.create_typed_account(
+        account = await repository.create_typed_entity(
             "payment_app", payment_app_data, feature_flag_service
         )
         assert account is not None
@@ -294,7 +294,7 @@ async def test_create_account_respects_feature_flag(
 
         # Attempt to create another payment app account
         with pytest.raises(ValueError, match="not currently enabled"):
-            await repository.create_typed_account(
+            await repository.create_typed_entity(
                 "payment_app", payment_app_data, feature_flag_service
             )
     except (ModuleNotFoundError, ImportError, ValueError) as e:
@@ -312,7 +312,7 @@ async def test_create_account_respects_feature_flag(
         "updated_at": utc_now(),
     }
 
-    checking_account = await repository.create_typed_account(
+    checking_account = await repository.create_typed_entity(
         "checking", checking_data, feature_flag_service
     )
     assert checking_account is not None
@@ -386,7 +386,7 @@ async def test_multi_currency_support_feature_flag(
 
     # ACT & ASSERT - Creating non-USD account should force USD currency
     try:
-        account = await repository.create_typed_account(
+        account = await repository.create_typed_entity(
             "checking", euro_data.copy(), feature_flag_service
         )
         # Either the account was created with USD currency
@@ -412,7 +412,7 @@ async def test_multi_currency_support_feature_flag(
         feature_flag_service.set_enabled("MULTI_CURRENCY_SUPPORT_ENABLED", True)
 
         # Now try creating a EUR account again
-        account = await repository.create_typed_account(
+        account = await repository.create_typed_entity(
             "checking", euro_data.copy(), feature_flag_service
         )
         assert account.currency == "EUR"
@@ -449,7 +449,7 @@ async def test_international_banking_feature_flag(
     feature_flag_service.set_enabled("INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED", False)
 
     # ACT & ASSERT - Creating account with international fields should strip those fields
-    account = await repository.create_typed_account(
+    account = await repository.create_typed_entity(
         "checking", international_data.copy(), feature_flag_service
     )
     assert account.name == "International Account"
@@ -473,7 +473,7 @@ async def test_international_banking_feature_flag(
         feature_flag_service.set_enabled("INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED", True)
 
         # Now try creating an account with international fields again
-        account = await repository.create_typed_account(
+        account = await repository.create_typed_entity(
             "checking", international_data.copy(), feature_flag_service
         )
         assert account.name == "International Account"

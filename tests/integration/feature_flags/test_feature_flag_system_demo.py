@@ -24,7 +24,7 @@ pytestmark = pytest.mark.asyncio
 class TestAccountRepository(AccountRepository):
     """Minimal repository implementation for demo purposes."""
 
-    async def create_typed_account(
+    async def create_typed_entity(
         self, account_type: str, data: Dict[str, Any]
     ) -> Any:
         """Create a typed account - demo method."""
@@ -58,7 +58,7 @@ async def test_feature_flag_caching_demo(
 
     # Step 2: Configure requirements for our demo feature flag
     # Note: This structure must match the expected format in feature_flag_proxy.py
-    requirements = {FLAG_NAME: {"repository": {"create_typed_account": [ACCOUNT_TYPE]}}}
+    requirements = {FLAG_NAME: {"repository": {"create_typed_entity": [ACCOUNT_TYPE]}}}
 
     # Step 3: Create a config provider with the standard 30s TTL (default)
     standard_config = InMemoryConfigProvider(requirements)
@@ -89,7 +89,7 @@ async def test_feature_flag_caching_demo(
     print(f"Created or enabled flag '{FLAG_NAME}'")
 
     # Step 6: Verify operation succeeds when flag is enabled
-    result = await standard_repo.create_typed_account(
+    result = await standard_repo.create_typed_entity(
         ACCOUNT_TYPE, {"name": "Test Account"}
     )
     print(f"Operation succeeded with flag enabled: {result}")
@@ -100,7 +100,7 @@ async def test_feature_flag_caching_demo(
 
     # Step 8: THIS MIGHT STILL WORK DUE TO CACHING! (demonstrating the issue)
     try:
-        result2 = await standard_repo.create_typed_account(
+        result2 = await standard_repo.create_typed_entity(
             ACCOUNT_TYPE, {"name": "Test Account 2"}
         )
         print(
@@ -127,7 +127,7 @@ async def test_feature_flag_caching_demo(
 
     # Step 12: Verify operation fails immediately (no cache delay)
     try:
-        await zero_ttl_repo.create_typed_account(
+        await zero_ttl_repo.create_typed_entity(
             ACCOUNT_TYPE, {"name": "Zero TTL Test"}
         )
         print("ERROR: Operation succeeded when it should have failed")
@@ -139,7 +139,7 @@ async def test_feature_flag_caching_demo(
     print(f"Enabled flag '{FLAG_NAME}' again")
 
     # Step 14: Verify operation succeeds again immediately
-    result3 = await zero_ttl_repo.create_typed_account(
+    result3 = await zero_ttl_repo.create_typed_entity(
         ACCOUNT_TYPE, {"name": "Zero TTL Test 2"}
     )
     print(f"Operation succeeded again: {result3}")
@@ -170,7 +170,7 @@ async def test_feature_flag_caching_demo(
 
     # Step 19: Verify operation fails after manual cache clear
     try:
-        await manual_repo.create_typed_account(
+        await manual_repo.create_typed_entity(
             ACCOUNT_TYPE, {"name": "Manual Clear Test"}
         )
         print("ERROR: Operation succeeded when it should have failed")
@@ -196,7 +196,7 @@ async def test_feature_flag_caching_demo(
     print(f"Enabled flag '{FLAG_NAME}' again")
 
     # Step 23: Operation succeeds with flag enabled
-    result4 = await wait_repo.create_typed_account(
+    result4 = await wait_repo.create_typed_entity(
         ACCOUNT_TYPE, {"name": "Wait Test 1"}
     )
     print(f"Operation succeeded: {result4}")
@@ -207,7 +207,7 @@ async def test_feature_flag_caching_demo(
 
     # Step 25: This might still work due to 2-second caching
     try:
-        result5 = await wait_repo.create_typed_account(
+        result5 = await wait_repo.create_typed_entity(
             ACCOUNT_TYPE, {"name": "Wait Test 2"}
         )
         print(f"Operation still succeeded due to caching: {result5}")
@@ -220,7 +220,7 @@ async def test_feature_flag_caching_demo(
 
     # Step 27: This should fail now as cache has expired
     try:
-        await wait_repo.create_typed_account(ACCOUNT_TYPE, {"name": "Wait Test 3"})
+        await wait_repo.create_typed_entity(ACCOUNT_TYPE, {"name": "Wait Test 3"})
         print("ERROR: Operation succeeded when it should have failed")
     except FeatureDisabledError as e:
         print(f"Success! Operation failed after cache expired: {e}")
@@ -255,12 +255,12 @@ class FeatureFlagRepositoryProxy:
         """
         Intercept attribute access to wrap method calls.
 
-        For demo, we only implement special handling for create_typed_account
+        For demo, we only implement special handling for create_typed_entity
         """
         # Get the original attribute
         attr = getattr(self._repository, name)
 
-        if name == "create_typed_account" and callable(attr):
+        if name == "create_typed_entity" and callable(attr):
             # Create a wrapper for this specific method
             async def wrapped(*args, **kwargs):
                 # Check if this method is restricted by any feature flags

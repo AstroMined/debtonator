@@ -95,7 +95,7 @@ async def test_get_by_type_returns_only_savings_accounts(
 
 
 @pytest.mark.asyncio
-async def test_create_typed_account_with_savings_type(
+async def test_create_typed_entity_with_savings_type(
     repository: AccountRepository, db_session: AsyncSession
 ):
     """
@@ -142,7 +142,7 @@ async def test_create_typed_account_with_savings_type(
 
 
 @pytest.mark.asyncio
-async def test_update_typed_account_with_savings_type(
+async def test_update_typed_entity_with_savings_type(
     repository: AccountRepository, test_savings_account: SavingsAccount
 ):
     """

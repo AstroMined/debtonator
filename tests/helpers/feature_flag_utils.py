@@ -57,8 +57,8 @@ def create_test_requirements(flag_name: str, account_type: str) -> Dict[str, Any
     return {
         flag_name: {
             "repository": {
-                "create_typed_account": [account_type],
-                "update_typed_account": [account_type],
+                "create_typed_entity": [account_type],
+                "update_typed_entity": [account_type],
                 "get_by_type": [account_type],
             }
         }

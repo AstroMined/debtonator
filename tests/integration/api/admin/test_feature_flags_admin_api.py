@@ -100,7 +100,7 @@ async def test_get_flag_requirements(
 
     test_requirements = {
         "repository": {
-            "create_typed_account": ["bnpl", "ewa", "payment_app"],
+            "create_typed_entity": ["bnpl", "ewa", "payment_app"],
         },
         "service": {
             "create_account": ["bnpl", "ewa", "payment_app"],
@@ -121,7 +121,7 @@ async def test_get_flag_requirements(
     assert result["flag_name"] == test_boolean_flag.name
     assert "repository" in result["requirements"]
     assert "service" in result["requirements"]
-    assert result["requirements"]["repository"]["create_typed_account"] == [
+    assert result["requirements"]["repository"]["create_typed_entity"] == [
         "bnpl",
         "ewa",
         "payment_app",
@@ -150,8 +150,8 @@ async def test_update_flag_requirements(
     update_data = {
         "requirements": {
             "repository": {
-                "create_typed_account": ["bnpl", "ewa", "payment_app"],
-                "update_typed_account": ["bnpl", "ewa", "payment_app"],
+                "create_typed_entity": ["bnpl", "ewa", "payment_app"],
+                "update_typed_entity": ["bnpl", "ewa", "payment_app"],
             },
             "service": {
                 "create_account": ["bnpl", "ewa", "payment_app"],
@@ -183,7 +183,7 @@ async def test_update_flag_requirements(
     assert "repository" in flag.requirements
     assert "service" in flag.requirements
     assert "api" in flag.requirements
-    assert flag.requirements["repository"]["create_typed_account"] == [
+    assert flag.requirements["repository"]["create_typed_entity"] == [
         "bnpl",
         "ewa",
         "payment_app",
@@ -199,7 +199,7 @@ async def test_update_flag_requirements_invalid_structure(
     update_data = {
         "requirements": {
             "invalid_layer": {  # Invalid layer
-                "create_typed_account": ["bnpl", "ewa", "payment_app"],
+                "create_typed_entity": ["bnpl", "ewa", "payment_app"],
             },
         }
     }
@@ -222,7 +222,7 @@ async def test_update_flag_requirements_not_found(client: AsyncClient):
     update_data = {
         "requirements": {
             "repository": {
-                "create_typed_account": ["bnpl", "ewa", "payment_app"],
+                "create_typed_entity": ["bnpl", "ewa", "payment_app"],
             },
         }
     }

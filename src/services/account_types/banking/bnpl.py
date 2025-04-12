@@ -270,7 +270,7 @@ async def update_bnpl_status(session: AsyncSession, account_id: int) -> Optional
             update_data["current_balance"] = account.installment_amount * remaining
 
         # Update the account
-        return await account_repo.update_typed_account(account_id, "bnpl", update_data)
+        return await account_repo.update_typed_entity(account_id, "bnpl", update_data)
 
     return account
 
