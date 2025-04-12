@@ -28,14 +28,14 @@ async def account_service(
 
     This fixture creates a real account service instance with all required repositories
     to follow ADR-012 (Validation Layer Standardization) and the Real Objects Testing Philosophy.
-    
+
     Args:
         account_repository: Repository for account operations
         statement_history_repository: Repository for statement history
         credit_limit_history_repository: Repository for credit limit history
         transaction_history_repository: Repository for transaction history
         feature_flag_service: Service for feature flags
-        
+
     Returns:
         AccountService: Service for account operations
     """

@@ -17,14 +17,14 @@ async def checking_repository(
 ) -> RepositoryFactory:
     """
     Create a checking account repository for testing.
-    
+
     This fixture provides a specialized repository for checking accounts
     with all checking-specific operations available.
-    
+
     Args:
         db_session: Database session fixture
         repository_factory: Repository factory fixture
-        
+
     Returns:
         AccountRepository: Repository with checking-specific operations
     """

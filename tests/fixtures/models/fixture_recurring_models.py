@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.account_types.banking.checking import CheckingAccount
 from src.models.account_types.banking.savings import SavingsAccount
-from src.models.accounts import Account
 from src.models.recurring_bills import RecurringBill
 from src.models.recurring_income import RecurringIncome
 
@@ -19,12 +18,12 @@ async def test_recurring_bill(
 ) -> RecurringBill:
     """
     Create a test recurring bill for use in tests.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
         test_category: Test category fixture
-        
+
     Returns:
         RecurringBill: Created recurring bill
     """
@@ -55,12 +54,12 @@ async def test_multiple_recurring_bills(
 ) -> List[RecurringBill]:
     """
     Create multiple recurring bills for testing.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
         test_category: Test category fixture
-        
+
     Returns:
         List[RecurringBill]: List of created recurring bills with various configurations
     """
@@ -109,12 +108,12 @@ async def test_recurring_income(
 ) -> RecurringIncome:
     """
     Create a test recurring income entry for use in tests.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
         test_income_category: Test income category fixture
-        
+
     Returns:
         RecurringIncome: Created recurring income entry
     """
@@ -146,7 +145,7 @@ async def test_bills_by_account(
 
     This fixture creates two accounts and multiple bills, with specific bills
     assigned to each account, to test repository methods that filter by account.
-    
+
     Args:
         db_session: Database session fixture
         test_category: Test category fixture
@@ -233,13 +232,13 @@ async def test_multiple_recurring_incomes(
 ) -> List[RecurringIncome]:
     """
     Create multiple recurring income entries for testing.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
         test_second_account: Test second account fixture
         test_income_category: Test income category fixture
-        
+
     Returns:
         List[RecurringIncome]: List of created recurring income entries with various configurations
     """

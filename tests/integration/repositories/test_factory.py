@@ -21,14 +21,14 @@ pytestmark = pytest.mark.asyncio
 
 @pytest.mark.asyncio
 async def test_create_account_repository_with_type(
-    repository_factory: RepositoryFactory
+    repository_factory: RepositoryFactory,
 ):
     """
     Test creating repository for specific account type.
-    
+
     This test verifies that the RepositoryFactory correctly creates specialized
     repositories for different account types with type-specific methods.
-    
+
     Args:
         repository_factory: Repository factory fixture
     """
@@ -37,9 +37,15 @@ async def test_create_account_repository_with_type(
     # 2. SCHEMA: Not applicable for this test
 
     # 3. ACT: Create repositories for different account types
-    checking_repo = await repository_factory.create_account_repository(account_type="checking")
-    savings_repo = await repository_factory.create_account_repository(account_type="savings")
-    credit_repo = await repository_factory.create_account_repository(account_type="credit")
+    checking_repo = await repository_factory.create_account_repository(
+        account_type="checking"
+    )
+    savings_repo = await repository_factory.create_account_repository(
+        account_type="savings"
+    )
+    credit_repo = await repository_factory.create_account_repository(
+        account_type="credit"
+    )
 
     # 4. ASSERT: Verify the repositories were created with type-specific methods
     assert checking_repo is not None
@@ -58,10 +64,10 @@ async def test_dynamic_method_binding(
 ):
     """
     Test that dynamically bound methods work correctly.
-    
+
     This test verifies that the methods dynamically bound to repositories
     by the RepositoryFactory work correctly when called.
-    
+
     Args:
         repository_factory: Repository factory fixture
         test_checking_for_module: Checking account with overdraft protection
@@ -71,7 +77,9 @@ async def test_dynamic_method_binding(
     # 2. SCHEMA: Not applicable for this test
 
     # 3. ACT: Create checking repository and use a dynamically bound method
-    checking_repo = await repository_factory.create_account_repository(account_type="checking")
+    checking_repo = await repository_factory.create_account_repository(
+        account_type="checking"
+    )
     accounts_with_overdraft = await checking_repo.get_checking_accounts_with_overdraft()
 
     # 4. ASSERT: Verify the method works correctly
@@ -82,13 +90,15 @@ async def test_dynamic_method_binding(
 
 
 @pytest.mark.asyncio
-async def test_fallback_behavior_for_unknown_type(repository_factory: RepositoryFactory):
+async def test_fallback_behavior_for_unknown_type(
+    repository_factory: RepositoryFactory,
+):
     """
     Test graceful fallback when module not found.
-    
+
     This test verifies that the RepositoryFactory gracefully falls back to
     the base repository when a module for an unknown account type is not found.
-    
+
     Args:
         repository_factory: Repository factory fixture
     """
@@ -97,7 +107,9 @@ async def test_fallback_behavior_for_unknown_type(repository_factory: Repository
     # 2. SCHEMA: Not applicable for this test
 
     # 3. ACT: Create repository for unknown account type
-    repo = await repository_factory.create_account_repository(account_type="unknown_type")
+    repo = await repository_factory.create_account_repository(
+        account_type="unknown_type"
+    )
 
     # 4. ASSERT: Verify fallback behavior
     assert repo is not None
@@ -113,10 +125,10 @@ async def test_feature_flag_integration(
 ):
     """
     Test that factory respects feature flags for banking account types.
-    
+
     This test verifies that the RepositoryFactory respects feature flags
     when creating repositories for different account types.
-    
+
     Args:
         repository_factory: Repository factory fixture
         feature_flag_service: Feature flag service fixture
@@ -127,28 +139,28 @@ async def test_feature_flag_integration(
     # 2. SCHEMA: Not applicable for this test
 
     # 3. ACT & ASSERT: Standard types should still work
-    checking_repo = await repository_factory.create_account_repository(account_type="checking")
-    savings_repo = await repository_factory.create_account_repository(account_type="savings")
-    credit_repo = await repository_factory.create_account_repository(account_type="credit")
+    checking_repo = await repository_factory.create_account_repository(
+        account_type="checking"
+    )
+    savings_repo = await repository_factory.create_account_repository(
+        account_type="savings"
+    )
+    credit_repo = await repository_factory.create_account_repository(
+        account_type="credit"
+    )
 
     assert checking_repo is not None
     assert savings_repo is not None
     assert credit_repo is not None
 
     # Modern financial types should be rejected when flag is disabled
-    with pytest.raises(
-        ValueError, match="account type .* is not currently enabled"
-    ):
+    with pytest.raises(ValueError, match="account type .* is not currently enabled"):
         await repository_factory.create_account_repository(account_type="payment_app")
 
-    with pytest.raises(
-        ValueError, match="account type .* is not currently enabled"
-    ):
+    with pytest.raises(ValueError, match="account type .* is not currently enabled"):
         await repository_factory.create_account_repository(account_type="bnpl")
 
-    with pytest.raises(
-        ValueError, match="account type .* is not currently enabled"
-    ):
+    with pytest.raises(ValueError, match="account type .* is not currently enabled"):
         await repository_factory.create_account_repository(account_type="ewa")
 
     # Re-enable feature flag and try again
@@ -172,10 +184,10 @@ async def test_session_propagation(
 ):
     """
     Test that session is properly propagated to created repositories.
-    
+
     This test verifies that the database session is properly propagated
     to repositories created by the RepositoryFactory.
-    
+
     Args:
         repository_factory: Repository factory fixture
         db_session: Database session fixture
@@ -185,7 +197,9 @@ async def test_session_propagation(
     # 2. SCHEMA: Not applicable for this test
 
     # 3. ACT: Create repository and verify session propagation
-    checking_repo = await repository_factory.create_account_repository(account_type="checking")
+    checking_repo = await repository_factory.create_account_repository(
+        account_type="checking"
+    )
 
     # 4. ASSERT: Verify session propagation
     assert checking_repo.session is db_session

@@ -30,10 +30,10 @@ async def test_get_payment_app_accounts_by_platform(
 ):
     """
     Test getting payment app accounts by platform.
-    
+
     This test verifies that the specialized repository method correctly
     filters payment app accounts by their platform.
-    
+
     Args:
         db_session: Database session for repository operations
         test_payment_app_account: Payment app account with PayPal platform
@@ -60,9 +60,7 @@ async def test_get_payment_app_accounts_by_platform(
     # 2. SCHEMA: Used for creating the test accounts
 
     # 3. ACT: Call the specialized repository method
-    paypal_accounts = await get_payment_app_accounts_by_platform(
-        db_session, "PayPal"
-    )
+    paypal_accounts = await get_payment_app_accounts_by_platform(db_session, "PayPal")
     venmo_accounts = await get_payment_app_accounts_by_platform(db_session, "Venmo")
 
     # 4. ASSERT: Verify the results
@@ -81,10 +79,10 @@ async def test_get_payment_app_accounts_with_debit_cards(
 ):
     """
     Test getting payment app accounts with debit cards.
-    
+
     This test verifies that the specialized repository method correctly
     identifies payment app accounts that have debit cards.
-    
+
     Args:
         db_session: Database session for repository operations
         test_payment_app_account: Payment app account with debit card
@@ -119,10 +117,10 @@ async def test_get_payment_app_accounts_with_linked_accounts(
 ):
     """
     Test getting payment app accounts with linked accounts.
-    
+
     This test verifies that the specialized repository method correctly
     identifies payment app accounts that have linked accounts.
-    
+
     Args:
         db_session: Database session for repository operations
         test_payment_app_account: Payment app account without linked accounts
@@ -157,10 +155,10 @@ async def test_get_payment_app_accounts_with_direct_deposit(
 ):
     """
     Test getting payment app accounts with direct deposit enabled.
-    
+
     This test verifies that the specialized repository method correctly
     identifies payment app accounts that support direct deposit.
-    
+
     Args:
         db_session: Database session for repository operations
         test_payment_app_account: Payment app account without direct deposit
@@ -171,8 +169,8 @@ async def test_get_payment_app_accounts_with_direct_deposit(
     # 2. SCHEMA: Not applicable for this read operation
 
     # 3. ACT: Call the specialized repository method
-    accounts_with_direct_deposit = (
-        await get_payment_app_accounts_with_direct_deposit(db_session)
+    accounts_with_direct_deposit = await get_payment_app_accounts_with_direct_deposit(
+        db_session
     )
 
     # 4. ASSERT: Verify the results
@@ -191,14 +189,14 @@ async def test_get_payment_app_accounts_with_direct_deposit(
 
 @pytest.mark.asyncio
 async def test_repository_has_specialized_methods(
-    payment_app_repository: AccountRepository
+    payment_app_repository: AccountRepository,
 ):
     """
     Test that the repository has the specialized payment app methods.
-    
+
     This test verifies that the payment app repository correctly includes
     all the specialized methods for payment app account operations.
-    
+
     Args:
         payment_app_repository: Payment app account repository from fixture
     """
@@ -208,19 +206,25 @@ async def test_repository_has_specialized_methods(
 
     # 3. ACT & ASSERT: Verify the repository has specialized payment app methods
     assert hasattr(payment_app_repository, "get_payment_app_accounts_by_platform")
-    assert callable(getattr(payment_app_repository, "get_payment_app_accounts_by_platform"))
+    assert callable(
+        getattr(payment_app_repository, "get_payment_app_accounts_by_platform")
+    )
 
     assert hasattr(payment_app_repository, "get_payment_app_accounts_with_debit_cards")
     assert callable(
         getattr(payment_app_repository, "get_payment_app_accounts_with_debit_cards")
     )
 
-    assert hasattr(payment_app_repository, "get_payment_app_accounts_with_linked_accounts")
+    assert hasattr(
+        payment_app_repository, "get_payment_app_accounts_with_linked_accounts"
+    )
     assert callable(
         getattr(payment_app_repository, "get_payment_app_accounts_with_linked_accounts")
     )
 
-    assert hasattr(payment_app_repository, "get_payment_app_accounts_with_direct_deposit")
+    assert hasattr(
+        payment_app_repository, "get_payment_app_accounts_with_direct_deposit"
+    )
     assert callable(
         getattr(payment_app_repository, "get_payment_app_accounts_with_direct_deposit")
     )

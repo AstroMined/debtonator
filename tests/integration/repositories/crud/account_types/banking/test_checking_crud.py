@@ -13,7 +13,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.account_types.banking.checking import CheckingAccount
 from src.registry.account_types import account_type_registry
 from src.repositories.accounts import AccountRepository
-from src.utils.datetime_utils import utc_now
 from tests.helpers.schema_factories.account_types.banking.checking_schema_factories import (
     create_checking_account_schema,
     create_checking_account_update_schema,
@@ -28,10 +27,10 @@ async def test_get_with_type_returns_checking_account(
 ):
     """
     Test that get_with_type returns a CheckingAccount instance.
-    
+
     This test verifies that the repository correctly retrieves a checking account
     with the appropriate polymorphic identity.
-    
+
     Args:
         account_repository: Base account repository
         test_checking_account: Checking account fixture
@@ -65,10 +64,10 @@ async def test_get_by_type_returns_only_checking_accounts(
 ):
     """
     Test that get_by_type returns only checking accounts.
-    
+
     This test verifies that the repository correctly filters accounts by type
     when retrieving checking accounts.
-    
+
     Args:
         account_repository: Base account repository
         test_checking_account: Checking account fixture
@@ -102,10 +101,10 @@ async def test_create_typed_account_with_checking_type(
 ):
     """
     Test creating a typed checking account.
-    
+
     This test verifies that the repository correctly creates a checking account
     with the appropriate polymorphic identity and type-specific fields.
-    
+
     Args:
         account_repository: Base account repository
         db_session: Database session
@@ -123,7 +122,9 @@ async def test_create_typed_account_with_checking_type(
 
     # 3. ACT: Create the account
     result = await account_repository.create_typed_account(
-        "checking", account_schema.model_dump(), account_type_registry=account_type_registry
+        "checking",
+        account_schema.model_dump(),
+        account_type_registry=account_type_registry,
     )
 
     # 4. ASSERT: Verify the account was created correctly
@@ -149,10 +150,10 @@ async def test_update_typed_account_with_checking_type(
 ):
     """
     Test updating a typed checking account.
-    
+
     This test verifies that the repository correctly updates a checking account
     with the appropriate polymorphic identity and type-specific fields.
-    
+
     Args:
         account_repository: Base account repository
         test_checking_account: Checking account fixture
@@ -169,8 +170,10 @@ async def test_update_typed_account_with_checking_type(
 
     # 3. ACT: Update the account
     result = await account_repository.update_typed_account(
-        test_checking_account.id, "checking", update_schema.model_dump(), 
-        account_type_registry=account_type_registry
+        test_checking_account.id,
+        "checking",
+        update_schema.model_dump(),
+        account_type_registry=account_type_registry,
     )
 
     # 4. ASSERT: Verify the account was updated correctly

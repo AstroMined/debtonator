@@ -17,14 +17,14 @@ async def credit_repository(
 ) -> RepositoryFactory:
     """
     Create a credit account repository for testing.
-    
+
     This fixture provides a specialized repository for credit accounts
     with all credit-specific operations available.
-    
+
     Args:
         db_session: Database session fixture
         repository_factory: Repository factory fixture
-        
+
     Returns:
         AccountRepository: Repository with credit-specific operations
     """

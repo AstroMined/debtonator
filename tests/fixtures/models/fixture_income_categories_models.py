@@ -8,10 +8,10 @@ from src.models.income_categories import IncomeCategory
 async def test_income_category(db_session: AsyncSession) -> IncomeCategory:
     """
     Create a test income category.
-    
+
     Args:
         db_session: The database session to use for creating the income category.
-        
+
     Returns:
         IncomeCategory: A test income category instance.
     """

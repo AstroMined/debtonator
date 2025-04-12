@@ -12,7 +12,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.account_types.banking.savings import SavingsAccount
 from src.repositories.accounts import AccountRepository
-from src.utils.datetime_utils import utc_now
 from tests.helpers.schema_factories.account_types.banking.savings_schema_factories import (
     create_savings_account_schema,
 )
@@ -30,10 +29,10 @@ async def test_get_accounts_by_interest_rate_threshold(
 ):
     """
     Test getting savings accounts with interest rate above threshold.
-    
+
     This test verifies that the specialized repository method correctly
     identifies savings accounts with interest rates above a specified threshold.
-    
+
     Args:
         savings_repository: Savings account repository
         test_savings_with_interest: Savings account with high interest rate
@@ -85,10 +84,10 @@ async def test_get_accounts_with_minimum_balance(
 ):
     """
     Test getting savings accounts with minimum balance requirements.
-    
+
     This test verifies that the specialized repository method correctly
     identifies savings accounts that have minimum balance requirements.
-    
+
     Args:
         savings_repository: Savings account repository
         test_savings_with_min_balance: Savings account with minimum balance
@@ -128,10 +127,10 @@ async def test_get_accounts_below_minimum_balance(
 ):
     """
     Test getting savings accounts with balance below their minimum requirement.
-    
+
     This test verifies that the specialized repository method correctly
     identifies savings accounts with balances below their minimum requirements.
-    
+
     Args:
         savings_repository: Savings account repository
         db_session: Database session
@@ -143,7 +142,7 @@ async def test_get_accounts_below_minimum_balance(
         available_balance=Decimal("800.00"),
         minimum_balance=Decimal("1000.00"),
     )
-    
+
     above_min_schema = create_savings_account_schema(
         name="Above Minimum",
         current_balance=Decimal("2000.00"),
@@ -186,10 +185,10 @@ async def test_get_highest_yield_accounts(
 ):
     """
     Test getting highest yield savings accounts with limit.
-    
+
     This test verifies that the specialized repository method correctly
     returns savings accounts sorted by interest rate with a specified limit.
-    
+
     Args:
         savings_repository: Savings account repository
         test_savings_with_interest: Savings account with high interest rate
@@ -219,14 +218,14 @@ async def test_get_highest_yield_accounts(
 
 @pytest.mark.asyncio
 async def test_repository_has_specialized_methods(
-    savings_repository: AccountRepository
+    savings_repository: AccountRepository,
 ):
     """
     Test that the repository has the specialized savings methods.
-    
+
     This test verifies that the savings repository correctly includes
     all the specialized methods for savings account operations.
-    
+
     Args:
         savings_repository: Savings account repository
     """
@@ -236,7 +235,9 @@ async def test_repository_has_specialized_methods(
 
     # 3. ACT & ASSERT: Verify the repository has specialized savings methods
     assert hasattr(savings_repository, "get_accounts_by_interest_rate_threshold")
-    assert callable(getattr(savings_repository, "get_accounts_by_interest_rate_threshold"))
+    assert callable(
+        getattr(savings_repository, "get_accounts_by_interest_rate_threshold")
+    )
 
     assert hasattr(savings_repository, "get_accounts_with_minimum_balance")
     assert callable(getattr(savings_repository, "get_accounts_with_minimum_balance"))

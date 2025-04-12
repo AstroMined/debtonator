@@ -15,10 +15,10 @@ from src.repositories.income import IncomeRepository
 async def income_repository(db_session: AsyncSession) -> IncomeRepository:
     """
     Fixture for IncomeRepository with test database session.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         IncomeRepository: Repository for income operations
     """

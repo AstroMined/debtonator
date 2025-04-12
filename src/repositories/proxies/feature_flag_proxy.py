@@ -276,6 +276,16 @@ class FeatureFlagRepositoryProxy:
         
         return None
     
+    def clear_feature_check_cache(self) -> None:
+        """
+        Clear the internal feature check cache.
+        
+        This method should be called after feature flag values are changed
+        to ensure the proxy immediately reflects the new values.
+        """
+        self._feature_check_cache = {}
+        logger.debug(f"Cleared feature check cache for {self._repository_class_name}")
+    
     async def _is_feature_enabled(
         self, feature_name: str, account_type: Optional[str] = None
     ) -> bool:

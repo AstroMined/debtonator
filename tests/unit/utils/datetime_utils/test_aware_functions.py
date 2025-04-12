@@ -4,7 +4,7 @@ Tests for timezone-aware datetime functions in the datetime_utils module.
 This module contains tests for functions that work with timezone-aware datetimes.
 """
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 import pytest
 

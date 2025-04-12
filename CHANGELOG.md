@@ -7,6 +7,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.109] - 2025-04-12
+
+### Changed
+
+- Consolidated feature flag test fixtures:
+  - Created a unified fixture file at tests/fixtures/fixture_feature_flags.py
+  - Implemented proper async fixtures with pytest_asyncio.fixture decorators
+  - Added timestamp-based unique identifiers to prevent name collisions
+  - Fixed transaction management for more reliable tests
+  - Updated conftest.py to reference the new consolidated fixture file
+  - Simplified test file to use the new consolidated fixtures
+
+### Fixed
+
+- Fixed transaction rollback issues in feature flag tests
+- Fixed async/sync fixture handling inconsistencies
+- Resolved UNIQUE constraint violations causing cascading test failures
+- Fixed test isolation issues between feature flag tests
+
 ## [0.5.108] - 2025-04-11
 
 ### Fixed

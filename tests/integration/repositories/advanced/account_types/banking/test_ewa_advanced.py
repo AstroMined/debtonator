@@ -33,10 +33,10 @@ async def test_get_ewa_accounts_approaching_payday(
 ):
     """
     Test getting EWA accounts with approaching paydays.
-    
+
     This test verifies that the specialized repository method correctly
     identifies EWA accounts with paydays approaching within a specified window.
-    
+
     Args:
         db_session: Database session for repository operations
         test_ewa_account: EWA account with payday in 7 days
@@ -79,10 +79,10 @@ async def test_get_ewa_accounts_by_provider(
 ):
     """
     Test getting EWA accounts by provider.
-    
+
     This test verifies that the specialized repository method correctly
     filters EWA accounts by their provider.
-    
+
     Args:
         db_session: Database session for repository operations
         test_ewa_account: EWA account with PayActiv provider
@@ -113,8 +113,7 @@ async def test_get_ewa_accounts_by_provider(
 
     assert len(employer_direct_accounts) >= 1
     assert all(
-        account.provider == "Employer Direct"
-        for account in employer_direct_accounts
+        account.provider == "Employer Direct" for account in employer_direct_accounts
     )
     assert test_ewa_account_no_transaction_fee.id in [
         account.id for account in employer_direct_accounts
@@ -130,10 +129,10 @@ async def test_get_ewa_accounts_by_advance_percentage(
 ):
     """
     Test getting EWA accounts with a specific advance percentage range.
-    
+
     This test verifies that the specialized repository method correctly
     filters EWA accounts based on their maximum advance percentage.
-    
+
     Args:
         db_session: Database session for repository operations
         test_ewa_account: EWA account with 50% max advance
@@ -195,10 +194,10 @@ async def test_get_ewa_accounts_with_no_transaction_fee(
 ):
     """
     Test getting EWA accounts with no transaction fee.
-    
+
     This test verifies that the specialized repository method correctly
     identifies EWA accounts that don't charge transaction fees.
-    
+
     Args:
         db_session: Database session for repository operations
         test_ewa_account: EWA account with $5.00 transaction fee
@@ -224,16 +223,45 @@ async def test_get_ewa_accounts_with_no_transaction_fee(
     assert test_ewa_account_approaching_payday.id not in no_fee_ids
 
 
-@pytest.mark.asyncio
-async def test_repository_has_specialized_methods(
-    ewa_repository: AccountRepository
+async def test_update_ewa_account_after_advance(
+    ewa_repository: AccountRepository, test_ewa_account: EWAAccount
 ):
     """
+    Test updating an EWA account after taking an advance.
+
+    Args:
+        ewa_repository: Repository fixture for EWA accounts
+        test_ewa_account: Test EWA account fixture
+    """
+    # 1. ARRANGE: Use fixture for test account
+    account_id = test_ewa_account.id
+    original_balance = test_ewa_account.current_balance
+    advance_amount = Decimal("50.00")
+
+    # 2. SCHEMA: Create update data to record an advance
+    update_schema = create_ewa_account_schema(
+        current_balance=original_balance + advance_amount,  # Advance increases balance
+        next_payday=test_ewa_account.next_payday,  # Keep the same payday
+    )
+
+    validated_data = update_schema.model_dump()
+
+    # 3. ACT: Update the account
+    result = await ewa_repository.update(account_id, validated_data)
+
+    # 4. ASSERT: Verify the operation results
+    assert result is not None
+    assert result.current_balance == original_balance + advance_amount
+
+
+@pytest.mark.asyncio
+async def test_repository_has_specialized_methods(ewa_repository: AccountRepository):
+    """
     Test that the repository has the specialized EWA methods.
-    
+
     This test verifies that the EWA repository correctly includes
     all the specialized methods for EWA account operations.
-    
+
     Args:
         ewa_repository: EWA account repository from fixture
     """

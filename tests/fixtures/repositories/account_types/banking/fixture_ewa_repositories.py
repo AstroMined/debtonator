@@ -13,21 +13,21 @@ from src.repositories.factory import RepositoryFactory
 
 @pytest_asyncio.fixture
 async def ewa_repository(
-    db_session: AsyncSession, 
+    db_session: AsyncSession,
     repository_factory: RepositoryFactory,
-    feature_flag_service=None
+    feature_flag_service=None,
 ) -> RepositoryFactory:
     """
     Create an EWA account repository for testing.
-    
+
     This fixture provides a specialized repository for Earned Wage Access (EWA) accounts
     with all EWA-specific operations available.
-    
+
     Args:
         db_session: Database session fixture
         repository_factory: Repository factory fixture
         feature_flag_service: Optional feature flag service fixture
-        
+
     Returns:
         AccountRepository: Repository with EWA-specific operations
     """

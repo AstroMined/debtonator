@@ -276,6 +276,28 @@ class FeatureFlagRegistry:
                 self._observers.remove(observer)
                 logger.debug(f"Removed feature flag observer: {observer}")
 
+    def reset(self) -> None:
+        """
+        Reset the registry to its initial state.
+        
+        This method is primarily intended for testing scenarios where
+        registry state needs to be cleaned between tests.
+        """
+        with self._lock:
+            self._flags = {}
+            self._observers = []
+            logger.info("Feature flag registry reset to initial state")
+    
+    def get_all_flag_names(self) -> List[str]:
+        """
+        Get a list of all registered feature flag names.
+        
+        Returns:
+            List of flag names
+        """
+        with self._lock:
+            return list(self._flags.keys())
+    
     def _is_user_in_percentage(
         self, user_id: str, flag_name: str, percentage: float
     ) -> bool:

@@ -16,13 +16,13 @@ from tests.helpers.models.test_basic_db_model import TestBasicDBModel
 async def test_item_repository(db_session: AsyncSession) -> BaseRepository:
     """
     Create a repository for TestBasicDBModel instances.
-    
+
     This fixture provides a real BaseRepository connected to the test
     database session for integration testing without mocks.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         BaseRepository: Repository for TestBasicDBModel instances
     """

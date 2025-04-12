@@ -11,12 +11,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.feature_flags import FeatureFlag
 from src.repositories.feature_flags import FeatureFlagRepository
-from src.schemas.feature_flags import FeatureFlagType
 from src.utils.feature_flags.requirements import get_default_requirements
 
 
 @pytest.mark.asyncio
-async def test_list_feature_flags(client: AsyncClient, test_multiple_flags: list[FeatureFlag]):
+async def test_list_feature_flags(
+    client: AsyncClient, test_multiple_flags: list[FeatureFlag]
+):
     """Test listing all feature flags through the admin API."""
     # Make request to list flags
     response = await client.get("/api/admin/feature-flags")
@@ -96,7 +97,7 @@ async def test_get_flag_requirements(
     """Test getting requirements for a feature flag."""
     # Set up initial requirements
     repository = FeatureFlagRepository(db_session)
-    
+
     test_requirements = {
         "repository": {
             "create_typed_account": ["bnpl", "ewa", "payment_app"],
@@ -105,15 +106,15 @@ async def test_get_flag_requirements(
             "create_account": ["bnpl", "ewa", "payment_app"],
         },
     }
-    
+
     await repository.update_requirements(test_boolean_flag.name, test_requirements)
     await db_session.commit()
-    
+
     # Make request to get requirements
     response = await client.get(
         f"/api/admin/feature-flags/{test_boolean_flag.name}/requirements"
     )
-    
+
     # Verify response
     assert response.status_code == 200
     result = response.json()
@@ -121,7 +122,9 @@ async def test_get_flag_requirements(
     assert "repository" in result["requirements"]
     assert "service" in result["requirements"]
     assert result["requirements"]["repository"]["create_typed_account"] == [
-        "bnpl", "ewa", "payment_app"
+        "bnpl",
+        "ewa",
+        "payment_app",
     ]
 
 
@@ -132,7 +135,7 @@ async def test_get_flag_requirements_not_found(client: AsyncClient):
     response = await client.get(
         "/api/admin/feature-flags/NON_EXISTENT_FLAG/requirements"
     )
-    
+
     # Verify response
     assert response.status_code == 404
     assert "not found" in response.json()["detail"].lower()
@@ -158,13 +161,13 @@ async def test_update_flag_requirements(
             },
         }
     }
-    
+
     # Make request to update requirements
     response = await client.put(
         f"/api/admin/feature-flags/{test_boolean_flag.name}/requirements",
         json=update_data,
     )
-    
+
     # Verify response
     assert response.status_code == 200
     result = response.json()
@@ -172,7 +175,7 @@ async def test_update_flag_requirements(
     assert "repository" in result["requirements"]
     assert "service" in result["requirements"]
     assert "api" in result["requirements"]
-    
+
     # Verify database was updated
     repository = FeatureFlagRepository(db_session)
     flag = await repository.get(test_boolean_flag.name)
@@ -181,7 +184,9 @@ async def test_update_flag_requirements(
     assert "service" in flag.requirements
     assert "api" in flag.requirements
     assert flag.requirements["repository"]["create_typed_account"] == [
-        "bnpl", "ewa", "payment_app"
+        "bnpl",
+        "ewa",
+        "payment_app",
     ]
 
 
@@ -198,13 +203,13 @@ async def test_update_flag_requirements_invalid_structure(
             },
         }
     }
-    
+
     # Make request to update requirements
     response = await client.put(
         f"/api/admin/feature-flags/{test_boolean_flag.name}/requirements",
         json=update_data,
     )
-    
+
     # Verify response
     assert response.status_code == 422  # Validation error
     assert "invalid" in response.json()["detail"][0]["msg"].lower()
@@ -221,13 +226,13 @@ async def test_update_flag_requirements_not_found(client: AsyncClient):
             },
         }
     }
-    
+
     # Make request to update requirements for a non-existent flag
     response = await client.put(
         "/api/admin/feature-flags/NON_EXISTENT_FLAG/requirements",
         json=update_data,
     )
-    
+
     # Verify response
     assert response.status_code == 404
     assert "not found" in response.json()["detail"].lower()
@@ -240,7 +245,7 @@ async def test_get_flag_history(client: AsyncClient, test_boolean_flag: FeatureF
     response = await client.get(
         f"/api/admin/feature-flags/{test_boolean_flag.name}/history"
     )
-    
+
     # Verify response (should be not implemented)
     assert response.status_code == 501
     assert "not implemented" in response.json()["detail"].lower()
@@ -253,7 +258,7 @@ async def test_get_flag_metrics(client: AsyncClient, test_boolean_flag: FeatureF
     response = await client.get(
         f"/api/admin/feature-flags/{test_boolean_flag.name}/metrics"
     )
-    
+
     # Verify response (should be not implemented)
     assert response.status_code == 501
     assert "not implemented" in response.json()["detail"].lower()
@@ -263,18 +268,16 @@ async def test_get_flag_metrics(client: AsyncClient, test_boolean_flag: FeatureF
 async def test_get_default_requirements(client: AsyncClient):
     """Test getting default requirements."""
     # Make request to get default requirements
-    response = await client.get(
-        "/api/admin/feature-flags/default-requirements"
-    )
-    
+    response = await client.get("/api/admin/feature-flags/default-requirements")
+
     # Verify response
     assert response.status_code == 200
     default_requirements = response.json()
-    
+
     # Check structure matches the utility function
     expected_requirements = get_default_requirements()
     assert default_requirements == expected_requirements
-    
+
     # Check basic structure for key flags
     assert "BANKING_ACCOUNT_TYPES_ENABLED" in default_requirements
     assert "repository" in default_requirements["BANKING_ACCOUNT_TYPES_ENABLED"]

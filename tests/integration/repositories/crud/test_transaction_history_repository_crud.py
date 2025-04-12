@@ -84,7 +84,7 @@ async def test_update_transaction_history(
     # 1. ARRANGE: Setup is already done with fixtures
     # Store original timestamp before update
     original_updated_at = test_transaction_history.updated_at
-    
+
     # Make the naive transaction_date timezone-aware by adding UTC timezone info
     utc_transaction_date = ensure_utc(test_transaction_history.transaction_date)
 
@@ -130,5 +130,7 @@ async def test_delete_transaction_history(
     assert result is True
 
     # Verify the transaction history is actually deleted
-    deleted_check = await transaction_history_repository.get(test_transaction_history.id)
+    deleted_check = await transaction_history_repository.get(
+        test_transaction_history.id
+    )
     assert deleted_check is None

@@ -30,10 +30,10 @@ async def test_get_credit_accounts_with_upcoming_payments(
 ):
     """
     Test getting credit accounts with payments due in the next X days.
-    
+
     This test verifies that the specialized repository method correctly
     identifies credit accounts with upcoming payment due dates.
-    
+
     Args:
         credit_repository: Credit account repository
         test_credit_with_due_date: Credit account with upcoming due date
@@ -48,7 +48,9 @@ async def test_get_credit_accounts_with_upcoming_payments(
     # 2. SCHEMA: Not applicable for this test
 
     # 3. ACT: Call the specialized repository method
-    upcoming_payments = await credit_repository.get_credit_accounts_with_upcoming_payments(days=20)
+    upcoming_payments = (
+        await credit_repository.get_credit_accounts_with_upcoming_payments(days=20)
+    )
 
     # 4. ASSERT: Verify the results
     assert len(upcoming_payments) >= 1
@@ -74,10 +76,10 @@ async def test_get_credit_accounts_by_utilization(
 ):
     """
     Test getting credit accounts by utilization range.
-    
+
     This test verifies that the specialized repository method correctly
     filters credit accounts based on their credit utilization percentage.
-    
+
     Args:
         credit_repository: Credit account repository
         db_session: Database session
@@ -90,7 +92,7 @@ async def test_get_credit_accounts_by_utilization(
         credit_limit=Decimal("5000.00"),
         available_credit=Decimal("4500.00"),
     )
-    
+
     mid_util_schema = create_credit_account_schema(
         name="Mid Utilization",
         current_balance=Decimal("-3000.00"),  # 30% utilization
@@ -98,7 +100,7 @@ async def test_get_credit_accounts_by_utilization(
         credit_limit=Decimal("10000.00"),
         available_credit=Decimal("7000.00"),
     )
-    
+
     high_util_schema = create_credit_account_schema(
         name="High Utilization",
         current_balance=Decimal("-8000.00"),  # 80% utilization
@@ -144,10 +146,10 @@ async def test_get_credit_accounts_by_statement_status(
 ):
     """
     Test getting credit accounts with or without open statements.
-    
+
     This test verifies that the specialized repository methods correctly
     identify credit accounts based on their statement status.
-    
+
     Args:
         credit_repository: Credit account repository
         test_credit_with_due_date: Credit account with statement
@@ -161,12 +163,12 @@ async def test_get_credit_accounts_by_statement_status(
         credit_limit=Decimal("5000.00"),
         available_credit=Decimal("3500.00"),
     )
-    
+
     # Modify the schema data to set statement fields to None
     no_statement_data = no_statement_schema.model_dump()
     no_statement_data["statement_balance"] = None
     no_statement_data["statement_due_date"] = None
-    
+
     no_statement = CreditAccount(**no_statement_data)
     db_session.add(no_statement)
     await db_session.flush()
@@ -196,9 +198,7 @@ async def test_get_credit_accounts_by_statement_status(
 
     # All accounts should have no statement balance or due date
     for account in without_statement:
-        assert (
-            account.statement_balance is None or account.statement_due_date is None
-        )
+        assert account.statement_balance is None or account.statement_due_date is None
 
 
 @pytest.mark.asyncio
@@ -209,10 +209,10 @@ async def test_get_credit_accounts_with_autopay(
 ):
     """
     Test getting credit accounts with autopay enabled.
-    
+
     This test verifies that the specialized repository method correctly
     identifies credit accounts that have autopay enabled.
-    
+
     Args:
         credit_repository: Credit account repository
         test_credit_with_rewards: Credit account with autopay
@@ -226,11 +226,11 @@ async def test_get_credit_accounts_with_autopay(
         credit_limit=Decimal("5000.00"),
         available_credit=Decimal("4000.00"),
     )
-    
+
     # Modify the schema data to set autopay_status to "none"
     no_autopay_data = no_autopay_schema.model_dump()
     no_autopay_data["autopay_status"] = "none"
-    
+
     no_autopay = CreditAccount(**no_autopay_data)
     db_session.add(no_autopay)
     await db_session.flush()
@@ -257,15 +257,13 @@ async def test_get_credit_accounts_with_autopay(
 
 
 @pytest.mark.asyncio
-async def test_repository_has_specialized_methods(
-    credit_repository: AccountRepository
-):
+async def test_repository_has_specialized_methods(credit_repository: AccountRepository):
     """
     Test that the repository has the specialized credit methods.
-    
+
     This test verifies that the credit repository correctly includes
     all the specialized methods for credit account operations.
-    
+
     Args:
         credit_repository: Credit account repository
     """
@@ -275,16 +273,22 @@ async def test_repository_has_specialized_methods(
 
     # 3. ACT & ASSERT: Verify the repository has specialized credit methods
     assert hasattr(credit_repository, "get_credit_accounts_with_upcoming_payments")
-    assert callable(getattr(credit_repository, "get_credit_accounts_with_upcoming_payments"))
+    assert callable(
+        getattr(credit_repository, "get_credit_accounts_with_upcoming_payments")
+    )
 
     assert hasattr(credit_repository, "get_credit_accounts_by_utilization")
     assert callable(getattr(credit_repository, "get_credit_accounts_by_utilization"))
 
     assert hasattr(credit_repository, "get_credit_accounts_with_open_statements")
-    assert callable(getattr(credit_repository, "get_credit_accounts_with_open_statements"))
+    assert callable(
+        getattr(credit_repository, "get_credit_accounts_with_open_statements")
+    )
 
     assert hasattr(credit_repository, "get_credit_accounts_without_statements")
-    assert callable(getattr(credit_repository, "get_credit_accounts_without_statements"))
+    assert callable(
+        getattr(credit_repository, "get_credit_accounts_without_statements")
+    )
 
     assert hasattr(credit_repository, "get_credit_accounts_with_autopay")
     assert callable(getattr(credit_repository, "get_credit_accounts_with_autopay"))

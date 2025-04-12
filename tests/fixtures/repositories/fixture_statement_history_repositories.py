@@ -17,10 +17,10 @@ async def statement_history_repository(
 ) -> StatementHistoryRepository:
     """
     Fixture for StatementHistoryRepository with test database session.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         StatementHistoryRepository: Repository for statement history operations
     """

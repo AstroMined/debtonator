@@ -15,7 +15,6 @@ import pytest
 from src.models.accounts import Account
 from src.models.credit_limit_history import CreditLimitHistory
 from src.repositories.credit_limit_history import CreditLimitHistoryRepository
-from src.schemas.credit_limit_history import CreditLimitHistoryCreate
 
 pytestmark = pytest.mark.asyncio
 
@@ -264,8 +263,10 @@ async def test_validation_error_handling(test_credit_account: Account):
     # Try creating a schema with invalid data
     try:
         # Use schema factory with invalid credit limit
-        from tests.helpers.schema_factories.credit_limit_history_schema_factories import create_credit_limit_history_schema
-        
+        from tests.helpers.schema_factories.credit_limit_history_schema_factories import (
+            create_credit_limit_history_schema,
+        )
+
         invalid_schema = create_credit_limit_history_schema(
             account_id=test_credit_account.id,
             credit_limit=Decimal("-5000.00"),  # Invalid negative credit limit

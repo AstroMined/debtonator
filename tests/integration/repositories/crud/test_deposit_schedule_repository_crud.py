@@ -21,10 +21,13 @@ from src.models.income import Income
 from src.repositories.deposit_schedules import DepositScheduleRepository
 
 # Import schemas and schema factories - essential part of the validation pattern
-from src.utils.datetime_utils import datetime_equals, datetime_greater_than, days_from_now, utc_now
+from src.utils.datetime_utils import (
+    datetime_equals,
+    datetime_greater_than,
+    days_from_now,
+)
 from tests.helpers.schema_factories.deposit_schedules_schema_factories import (
     create_deposit_schedule_schema,
-    create_deposit_schedule_update_schema,
 )
 
 pytestmark = pytest.mark.asyncio
@@ -71,7 +74,9 @@ async def test_create_deposit_schedule(
     # Verify date is correct (accounting for potential timezone issues)
     result_date = result.schedule_date
     expected_date = schedule_date
-    assert datetime_equals(result_date, expected_date, ignore_timezone=True, ignore_microseconds=True)
+    assert datetime_equals(
+        result_date, expected_date, ignore_timezone=True, ignore_microseconds=True
+    )
 
 
 async def test_get_deposit_schedule(
@@ -127,7 +132,9 @@ async def test_update_deposit_schedule(
     # Verify date is updated correctly
     result_date = result.schedule_date
     expected_date = new_schedule_date
-    assert datetime_equals(result_date, expected_date, ignore_timezone=True, ignore_microseconds=True)
+    assert datetime_equals(
+        result_date, expected_date, ignore_timezone=True, ignore_microseconds=True
+    )
 
     assert datetime_greater_than(
         result.updated_at, original_updated_at, ignore_timezone=True

@@ -15,11 +15,11 @@ async def test_income(
 ) -> Income:
     """
     Create a test income entry.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
-        
+
     Returns:
         Income: Created income entry
     """
@@ -50,11 +50,11 @@ async def test_additional_income(
 ) -> Income:
     """
     Create a second test income entry.
-    
+
     Args:
         db_session: Database session fixture
         test_second_account: Test second account fixture
-        
+
     Returns:
         Income: Created additional income entry
     """
@@ -86,12 +86,12 @@ async def test_income_entries(
 ) -> List[Income]:
     """
     Create test income entries associated with categories.
-    
+
     Args:
         db_session: Database session fixture
         test_multiple_categories: Test multiple categories fixture
         test_checking_account: Test checking account fixture
-        
+
     Returns:
         List[Income]: List of created income entries
     """
@@ -173,11 +173,11 @@ async def test_income_entries(
 async def test_income_record(db_session: AsyncSession, test_checking_account) -> Income:
     """
     Create a test income record.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
-        
+
     Returns:
         Income: Created income record
     """

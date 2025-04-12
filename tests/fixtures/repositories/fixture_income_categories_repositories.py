@@ -17,10 +17,10 @@ async def income_category_repository(
 ) -> IncomeCategoryRepository:
     """
     Fixture for IncomeCategoryRepository with test database session.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         IncomeCategoryRepository: Repository for income category operations
     """

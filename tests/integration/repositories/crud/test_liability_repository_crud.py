@@ -16,7 +16,11 @@ from src.models.accounts import Account
 from src.models.categories import Category
 from src.models.liabilities import Liability, LiabilityStatus
 from src.repositories.liabilities import LiabilityRepository
-from src.utils.datetime_utils import datetime_equals, datetime_greater_than, days_from_now
+from src.utils.datetime_utils import (
+    datetime_equals,
+    datetime_greater_than,
+    days_from_now,
+)
 from tests.helpers.schema_factories.liabilities_schema_factories import (
     create_liability_schema,
     create_liability_update_schema,

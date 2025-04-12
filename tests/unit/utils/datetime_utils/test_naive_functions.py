@@ -4,7 +4,7 @@ Tests for naive datetime functions in the datetime_utils module.
 This module contains tests for functions that work with naive datetimes (without timezone).
 """
 
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import date, datetime, time, timezone
 
 import pytest
 

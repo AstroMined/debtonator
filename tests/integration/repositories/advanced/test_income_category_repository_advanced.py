@@ -17,7 +17,6 @@ import pytest
 from src.models.income import Income
 from src.models.income_categories import IncomeCategory
 from src.repositories.income_categories import IncomeCategoryRepository
-from src.schemas.income_categories import IncomeCategoryCreate
 
 pytestmark = pytest.mark.asyncio
 
@@ -251,8 +250,10 @@ async def test_get_categories_with_stats(
 async def test_validation_error_handling():
     """Test handling invalid data that would normally be caught by schema validation."""
     # Import the schema factory
-    from tests.helpers.schema_factories.income_categories_schema_factories import create_income_category_schema
-    
+    from tests.helpers.schema_factories.income_categories_schema_factories import (
+        create_income_category_schema,
+    )
+
     # Try creating a schema with invalid data and expect it to fail validation
     try:
         invalid_schema = create_income_category_schema(

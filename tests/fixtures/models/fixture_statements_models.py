@@ -18,11 +18,11 @@ async def test_statement_history(
 ) -> StatementHistory:
     """
     Create a test statement history entry for a credit account.
-    
+
     Args:
         db_session: Database session fixture
         test_credit_account: Test credit account fixture
-        
+
     Returns:
         StatementHistory: Created statement history entry
     """
@@ -54,11 +54,11 @@ async def test_multiple_statements(
 ) -> List[StatementHistory]:
     """
     Create multiple statement history records for use in tests.
-    
+
     Args:
         db_session: Database session fixture
         test_credit_account: Test credit account fixture
-        
+
     Returns:
         List[StatementHistory]: List of created statement history records
     """
@@ -115,10 +115,10 @@ async def test_multiple_accounts_with_statements(
 ) -> Tuple[List[CreditAccount], List[StatementHistory]]:
     """
     Create multiple accounts with statements for testing.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         Tuple[List[CreditAccount], List[StatementHistory]]: Tuple containing:
             - List of created credit accounts
@@ -210,11 +210,11 @@ async def test_credit_limit_history(
 ) -> CreditLimitHistory:
     """
     Create a test credit limit history entry for use in tests.
-    
+
     Args:
         db_session: Database session fixture
         test_credit_account: Test credit account fixture
-        
+
     Returns:
         CreditLimitHistory: Created credit limit history entry
     """
@@ -244,11 +244,11 @@ async def test_credit_limit_changes(
 ) -> List[CreditLimitHistory]:
     """
     Create multiple credit limit history entries for testing.
-    
+
     Args:
         db_session: Database session fixture
         test_credit_account: Test credit account fixture
-        
+
     Returns:
         List[CreditLimitHistory]: List of created credit limit history entries
     """

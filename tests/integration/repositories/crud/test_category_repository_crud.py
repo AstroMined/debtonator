@@ -9,10 +9,9 @@ These tests verify CRUD operations for the CategoryRepository, ensuring
 proper validation flow and data integrity.
 """
 
-#pylint: disable=no-member
+# pylint: disable=no-member
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.categories import Category
 from src.repositories.categories import CategoryRepository
@@ -30,8 +29,7 @@ async def test_create_category(category_repository: CategoryRepository):
 
     # 2. SCHEMA: Create and validate through Pydantic schema
     category_schema = create_category_schema(
-        name="Test Category",
-        description="Test category description"
+        name="Test Category", description="Test category description"
     )
 
     # Convert validated schema to dict for repository
@@ -74,8 +72,7 @@ async def test_update_category(
 
     # 2. SCHEMA: Create and validate update data through Pydantic schema
     update_schema = create_category_update_schema(
-        name="Updated Category",
-        description="Updated description"
+        name="Updated Category", description="Updated description"
     )
 
     # Convert validated schema to dict for repository

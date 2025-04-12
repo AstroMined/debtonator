@@ -15,7 +15,6 @@ from src.models.accounts import Account
 from src.models.categories import Category
 from src.models.recurring_bills import RecurringBill
 from src.repositories.recurring_bills import RecurringBillRepository
-from src.schemas.recurring_bills import RecurringBillCreate
 from src.utils.datetime_utils import days_from_now, utc_now
 
 pytestmark = pytest.mark.asyncio
@@ -293,8 +292,10 @@ async def test_get_upcoming_bills(
 async def test_validation_error_handling():
     """Test handling of validation errors that would be caught by the Pydantic schema."""
     # Import the schema factory
-    from tests.helpers.schema_factories.recurring_bills_schema_factories import create_recurring_bill_schema
-    
+    from tests.helpers.schema_factories.recurring_bills_schema_factories import (
+        create_recurring_bill_schema,
+    )
+
     # Try creating a schema with invalid data
     try:
         invalid_schema = create_recurring_bill_schema(

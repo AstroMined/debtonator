@@ -18,7 +18,6 @@ from src.models.cashflow import CashflowForecast
 from src.repositories.cashflow import CashflowForecastRepository
 
 # Import schemas and schema factories - essential part of the validation pattern
-from src.schemas.cashflow.cashflow_base import CashflowCreate
 from src.utils.datetime_utils import (
     datetime_equals,
     datetime_greater_than,
@@ -26,7 +25,6 @@ from src.utils.datetime_utils import (
     days_from_now,
     ensure_utc,
     start_of_day,
-    utc_now,
 )
 
 pytestmark = pytest.mark.asyncio
@@ -331,8 +329,10 @@ async def test_validation_error_handling():
     # Try creating a schema with invalid data and expect it to fail validation
     try:
         # Use schema factory with invalid amount
-        from tests.helpers.schema_factories.cashflow.base_schema_factories import create_cashflow_schema
-        
+        from tests.helpers.schema_factories.cashflow.base_schema_factories import (
+            create_cashflow_schema,
+        )
+
         invalid_schema = create_cashflow_schema(
             total_bills=Decimal("-100.00"),  # Invalid negative amount
         )

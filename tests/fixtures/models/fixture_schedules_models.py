@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.deposit_schedules import DepositSchedule
 from src.models.payment_schedules import PaymentSchedule
-from src.utils.datetime_utils import days_from_now, naive_utc_now, utc_now
+from src.utils.datetime_utils import days_from_now, utc_now
 
 
 @pytest_asyncio.fixture
@@ -18,12 +18,12 @@ async def test_payment_schedule(
 ) -> PaymentSchedule:
     """
     Create a test payment schedule.
-    
+
     Args:
         db_session: Database session fixture
         test_liability: Test liability fixture
         test_checking_account: Test checking account fixture
-        
+
     Returns:
         PaymentSchedule: Created payment schedule
     """
@@ -57,13 +57,13 @@ async def test_multiple_payment_schedules(
 ) -> List[PaymentSchedule]:
     """
     Create multiple payment schedules for testing.
-    
+
     Args:
         db_session: Database session fixture
         test_liability: Test liability fixture
         test_checking_account: Test checking account fixture
         test_second_account: Test second account fixture
-        
+
     Returns:
         List[PaymentSchedule]: List of created payment schedules
     """
@@ -143,12 +143,12 @@ async def test_deposit_schedule(
 ) -> DepositSchedule:
     """
     Create a test deposit schedule.
-    
+
     Args:
         db_session: Database session fixture
         test_income: Test income fixture
         test_checking_account: Test checking account fixture
-        
+
     Returns:
         DepositSchedule: Created deposit schedule
     """
@@ -183,14 +183,14 @@ async def test_multiple_deposit_schedules(
 ) -> List[DepositSchedule]:
     """
     Create multiple deposit schedules for testing.
-    
+
     Args:
         db_session: Database session fixture
         test_income: Test income fixture
         test_additional_income: Test additional income fixture
         test_checking_account: Test checking account fixture
         test_second_account: Test second account fixture
-        
+
     Returns:
         List[DepositSchedule]: List of created deposit schedules
     """

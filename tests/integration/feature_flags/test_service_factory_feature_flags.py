@@ -5,7 +5,6 @@ These tests verify that the ServiceFactory correctly creates services with
 feature flag proxy applied when needed.
 """
 
-import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.providers.feature_flags import DatabaseConfigProvider
@@ -28,11 +27,11 @@ class TestServiceFactoryFeatureFlags:
             feature_flag_service=factory_feature_flag_service,
             apply_proxy=True,  # explicitly request proxy
         )
-        
+
         # Assert - service should be wrapped in a proxy
         assert isinstance(account_service, ServiceProxy)
         assert account_service._feature_flag_service == factory_feature_flag_service
-        
+
     async def test_factory_creates_regular_service_without_feature_flags(
         self,
         db_session: AsyncSession,
@@ -43,10 +42,10 @@ class TestServiceFactoryFeatureFlags:
             session=db_session,
             feature_flag_service=None,
         )
-        
+
         # Assert - service should not be a proxy
         assert not isinstance(account_service, ServiceProxy)
-        
+
     async def test_factory_respects_apply_proxy_flag(
         self,
         db_session: AsyncSession,
@@ -59,10 +58,10 @@ class TestServiceFactoryFeatureFlags:
             feature_flag_service=factory_feature_flag_service,
             apply_proxy=False,  # disable proxy
         )
-        
+
         # Assert - service should not be a proxy despite having feature flags
         assert not isinstance(account_service, ServiceProxy)
-        
+
     async def test_factory_creates_config_provider(
         self,
         db_session: AsyncSession,
@@ -70,6 +69,6 @@ class TestServiceFactoryFeatureFlags:
         """Test that factory correctly creates config provider."""
         # Directly test the _get_config_provider method
         config_provider = await ServiceFactory._get_config_provider(db_session)
-        
+
         # Assert - should be a DatabaseConfigProvider
         assert isinstance(config_provider, DatabaseConfigProvider)

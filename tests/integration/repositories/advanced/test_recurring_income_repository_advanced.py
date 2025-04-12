@@ -20,7 +20,6 @@ from src.models.recurring_income import RecurringIncome
 from src.repositories.recurring_income import RecurringIncomeRepository
 
 # Import schema and schema factories - essential part of the validation pattern
-from src.schemas.recurring_income import RecurringIncomeCreate
 from src.utils.datetime_utils import datetime_equals, datetime_greater_than, utc_now
 
 pytestmark = pytest.mark.asyncio
@@ -328,8 +327,10 @@ async def test_validation_error_handling(
 ):
     """Test handling invalid data that would normally be caught by schema validation."""
     # Import the schema factory
-    from tests.helpers.schema_factories.recurring_income_schema_factories import create_recurring_income_schema
-    
+    from tests.helpers.schema_factories.recurring_income_schema_factories import (
+        create_recurring_income_schema,
+    )
+
     # Try creating a schema with invalid data and expect it to fail validation
     try:
         invalid_schema = create_recurring_income_schema(

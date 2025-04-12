@@ -13,21 +13,21 @@ from src.repositories.factory import RepositoryFactory
 
 @pytest_asyncio.fixture
 async def payment_app_repository(
-    db_session: AsyncSession, 
+    db_session: AsyncSession,
     repository_factory: RepositoryFactory,
-    feature_flag_service=None
+    feature_flag_service=None,
 ) -> RepositoryFactory:
     """
     Create a Payment App account repository for testing.
-    
+
     This fixture provides a specialized repository for Payment App accounts
     with all payment app-specific operations available.
-    
+
     Args:
         db_session: Database session fixture
         repository_factory: Repository factory fixture
         feature_flag_service: Optional feature flag service fixture
-        
+
     Returns:
         AccountRepository: Repository with Payment App-specific operations
     """

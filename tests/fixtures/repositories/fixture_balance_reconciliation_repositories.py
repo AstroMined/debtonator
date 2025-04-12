@@ -17,10 +17,10 @@ async def balance_reconciliation_repository(
 ) -> BalanceReconciliationRepository:
     """
     Fixture for BalanceReconciliationRepository with test database session.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         BalanceReconciliationRepository: Repository for balance reconciliation operations
     """

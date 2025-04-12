@@ -17,10 +17,10 @@ async def balance_history_repository(
 ) -> BalanceHistoryRepository:
     """
     Fixture for BalanceHistoryRepository with test database session.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         BalanceHistoryRepository: Repository for balance history operations
     """

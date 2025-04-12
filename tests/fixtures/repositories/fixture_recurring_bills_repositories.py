@@ -17,10 +17,10 @@ async def recurring_bill_repository(
 ) -> RecurringBillRepository:
     """
     Fixture for RecurringBillRepository with test database session.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         RecurringBillRepository: Repository for recurring bill operations
     """

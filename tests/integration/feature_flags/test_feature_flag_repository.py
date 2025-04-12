@@ -6,12 +6,10 @@ the database, storing and retrieving feature flags as expected.
 """
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.feature_flags import FeatureFlag
 from src.repositories.feature_flags import FeatureFlagRepository
 from src.schemas.feature_flags import FeatureFlagType
-from src.utils.datetime_utils import utc_now
 
 pytestmark = pytest.mark.asyncio
 
@@ -20,10 +18,10 @@ pytestmark = pytest.mark.asyncio
 async def test_create_flag(feature_flag_repository: FeatureFlagRepository):
     """
     Test creating a new feature flag.
-    
+
     This test verifies that the FeatureFlagRepository correctly creates
     a new feature flag with the provided data.
-    
+
     Args:
         feature_flag_repository: Feature flag repository fixture
     """
@@ -59,10 +57,10 @@ async def test_get_flag(
 ):
     """
     Test retrieving a feature flag by name.
-    
+
     This test verifies that the FeatureFlagRepository correctly retrieves
     a feature flag by its name.
-    
+
     Args:
         feature_flag_repository: Feature flag repository fixture
         sample_flag: Sample feature flag fixture
@@ -88,10 +86,10 @@ async def test_get_flag(
 async def test_get_nonexistent_flag(feature_flag_repository: FeatureFlagRepository):
     """
     Test retrieving a nonexistent feature flag.
-    
+
     This test verifies that the FeatureFlagRepository correctly returns None
     when attempting to retrieve a nonexistent feature flag.
-    
+
     Args:
         feature_flag_repository: Feature flag repository fixture
     """
@@ -112,10 +110,10 @@ async def test_get_all(
 ):
     """
     Test retrieving all feature flags.
-    
+
     This test verifies that the FeatureFlagRepository correctly retrieves
     all feature flags from the database.
-    
+
     Args:
         feature_flag_repository: Feature flag repository fixture
         sample_flag: Sample feature flag fixture
@@ -156,10 +154,10 @@ async def test_update_flag(
 ):
     """
     Test updating a feature flag.
-    
+
     This test verifies that the FeatureFlagRepository correctly updates
     a feature flag with the provided data.
-    
+
     Args:
         feature_flag_repository: Feature flag repository fixture
         sample_flag: Sample feature flag fixture
@@ -197,10 +195,10 @@ async def test_update_flag(
 async def test_update_nonexistent_flag(feature_flag_repository: FeatureFlagRepository):
     """
     Test updating a nonexistent feature flag.
-    
+
     This test verifies that the FeatureFlagRepository correctly returns None
     when attempting to update a nonexistent feature flag.
-    
+
     Args:
         feature_flag_repository: Feature flag repository fixture
     """
@@ -222,10 +220,10 @@ async def test_delete_flag(
 ):
     """
     Test deleting a feature flag.
-    
+
     This test verifies that the FeatureFlagRepository correctly deletes
     a feature flag from the database.
-    
+
     Args:
         feature_flag_repository: Feature flag repository fixture
         sample_flag: Sample feature flag fixture
@@ -249,10 +247,10 @@ async def test_delete_flag(
 async def test_delete_nonexistent_flag(feature_flag_repository: FeatureFlagRepository):
     """
     Test deleting a nonexistent feature flag.
-    
+
     This test verifies that the FeatureFlagRepository correctly returns False
     when attempting to delete a nonexistent feature flag.
-    
+
     Args:
         feature_flag_repository: Feature flag repository fixture
     """
@@ -271,10 +269,10 @@ async def test_delete_nonexistent_flag(feature_flag_repository: FeatureFlagRepos
 async def test_get_all_by_type(feature_flag_repository: FeatureFlagRepository):
     """
     Test retrieving feature flags by type.
-    
+
     This test verifies that the FeatureFlagRepository correctly retrieves
     feature flags filtered by their type.
-    
+
     Args:
         feature_flag_repository: Feature flag repository fixture
     """
@@ -306,8 +304,12 @@ async def test_get_all_by_type(feature_flag_repository: FeatureFlagRepository):
     # 2. SCHEMA: Not applicable for this read operation
 
     # 3. ACT: Get flags by type
-    boolean_flags = await feature_flag_repository.get_all_by_type(FeatureFlagType.BOOLEAN)
-    percentage_flags = await feature_flag_repository.get_all_by_type(FeatureFlagType.PERCENTAGE)
+    boolean_flags = await feature_flag_repository.get_all_by_type(
+        FeatureFlagType.BOOLEAN
+    )
+    percentage_flags = await feature_flag_repository.get_all_by_type(
+        FeatureFlagType.PERCENTAGE
+    )
     user_segment_flags = await feature_flag_repository.get_all_by_type(
         FeatureFlagType.USER_SEGMENT
     )
@@ -329,10 +331,10 @@ async def test_get_all_by_type(feature_flag_repository: FeatureFlagRepository):
 async def test_get_system_flags(feature_flag_repository: FeatureFlagRepository):
     """
     Test retrieving system-defined feature flags.
-    
+
     This test verifies that the FeatureFlagRepository correctly retrieves
     feature flags that are marked as system flags.
-    
+
     Args:
         feature_flag_repository: Feature flag repository fixture
     """
@@ -380,10 +382,10 @@ async def test_get_system_flags(feature_flag_repository: FeatureFlagRepository):
 async def test_bulk_create(feature_flag_repository: FeatureFlagRepository):
     """
     Test creating multiple feature flags in a single transaction.
-    
+
     This test verifies that the FeatureFlagRepository correctly creates
     multiple feature flags in a single transaction.
-    
+
     Args:
         feature_flag_repository: Feature flag repository fixture
     """
@@ -424,10 +426,10 @@ async def test_bulk_create(feature_flag_repository: FeatureFlagRepository):
 async def test_bulk_update(feature_flag_repository: FeatureFlagRepository):
     """
     Test updating multiple feature flags in a single transaction.
-    
+
     This test verifies that the FeatureFlagRepository correctly updates
     multiple feature flags in a single transaction.
-    
+
     Args:
         feature_flag_repository: Feature flag repository fixture
     """
@@ -475,10 +477,10 @@ async def test_bulk_update(feature_flag_repository: FeatureFlagRepository):
 async def test_count_by_type(feature_flag_repository: FeatureFlagRepository):
     """
     Test counting feature flags by type.
-    
+
     This test verifies that the FeatureFlagRepository correctly counts
     feature flags grouped by their type.
-    
+
     Args:
         feature_flag_repository: Feature flag repository fixture
     """

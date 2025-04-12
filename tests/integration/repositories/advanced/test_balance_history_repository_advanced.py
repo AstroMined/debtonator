@@ -31,7 +31,7 @@ async def test_get_by_account(
 ):
     """
     Test retrieving balance history records for an account.
-    
+
     Args:
         balance_history_repository: Repository fixture for balance history
         test_multiple_balances: Test balance history records fixture
@@ -65,7 +65,7 @@ async def test_get_latest_balance(
 ):
     """
     Test retrieving the latest balance for an account.
-    
+
     Args:
         balance_history_repository: Repository fixture for balance history
         test_multiple_balances: Test balance history records fixture
@@ -93,7 +93,7 @@ async def test_get_with_account(
 ):
     """
     Test retrieving a balance history with its associated account.
-    
+
     Args:
         balance_history_repository: Repository fixture for balance history
         test_balance_history: Test balance history record fixture
@@ -120,7 +120,7 @@ async def test_get_by_date_range(
 ):
     """
     Test retrieving balance history within a date range.
-    
+
     Args:
         balance_history_repository: Repository fixture for balance history
         test_multiple_balances: Test balance history records fixture
@@ -158,7 +158,7 @@ async def test_get_reconciled_balances(
 ):
     """
     Test retrieving reconciled balance records.
-    
+
     Args:
         balance_history_repository: Repository fixture for balance history
         test_multiple_balances: Test balance history records fixture
@@ -187,7 +187,7 @@ async def test_get_min_max_balance(
 ):
     """
     Test retrieving minimum and maximum balance records.
-    
+
     Args:
         balance_history_repository: Repository fixture for balance history
         test_multiple_balances: Test balance history records fixture
@@ -214,7 +214,7 @@ async def test_get_balance_trend(
 ):
     """
     Test retrieving balance trend data.
-    
+
     Args:
         balance_history_repository: Repository fixture for balance history
         test_multiple_balances: Test balance history records fixture
@@ -245,7 +245,7 @@ async def test_get_average_balance(
 ):
     """
     Test calculating average balance.
-    
+
     Args:
         balance_history_repository: Repository fixture for balance history
         test_multiple_balances: Test balance history records fixture
@@ -277,7 +277,7 @@ async def test_get_balance_history_with_notes(
 ):
     """
     Test retrieving balance history records with notes.
-    
+
     Args:
         balance_history_repository: Repository fixture for balance history
         test_checking_account: Test checking account fixture
@@ -350,7 +350,7 @@ async def test_mark_as_reconciled(
 ):
     """
     Test marking a balance record as reconciled.
-    
+
     Args:
         balance_history_repository: Repository fixture for balance history
         test_balance_history: Test balance history record fixture
@@ -384,7 +384,7 @@ async def test_add_balance_note(
 ):
     """
     Test adding a note to a balance record.
-    
+
     Args:
         balance_history_repository: Repository fixture for balance history
         test_balance_history: Test balance history record fixture
@@ -419,7 +419,7 @@ async def test_get_missing_days(
 ):
     """
     Test finding days with no balance records using fixed test data.
-    
+
     Args:
         balance_history_repository: Repository fixture for balance history
         test_balance_history_with_gaps: Test balance history records with gaps fixture
@@ -467,7 +467,7 @@ async def test_get_available_credit_trend(
 ):
     """
     Test retrieving available credit trend for a credit account.
-    
+
     Args:
         balance_history_repository: Repository fixture for balance history
         test_credit_account: Test credit account fixture

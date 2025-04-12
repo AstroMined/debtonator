@@ -124,5 +124,7 @@ async def test_delete_credit_limit_history(
     assert result is True
 
     # Verify it's actually deleted
-    deleted_history = await credit_limit_history_repository.get(test_credit_limit_history.id)
+    deleted_history = await credit_limit_history_repository.get(
+        test_credit_limit_history.id
+    )
     assert deleted_history is None

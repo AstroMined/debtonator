@@ -16,11 +16,11 @@ async def test_transaction_history(
 ) -> TransactionHistory:
     """
     Create a test transaction for use in tests.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
-        
+
     Returns:
         TransactionHistory: Created transaction history record
     """
@@ -52,12 +52,12 @@ async def test_multiple_transactions(
 ) -> List[TransactionHistory]:
     """
     Create multiple test transactions for use in tests.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
         test_credit_account: Test credit account fixture
-        
+
     Returns:
         List[TransactionHistory]: List of created transaction history records
     """
@@ -200,11 +200,11 @@ async def test_recurring_transaction_patterns(
     - 2 monthly bill payments (Monthly Internet Bill)
 
     All created directly as models, bypassing repository methods.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
-        
+
     Returns:
         List[TransactionHistory]: List of created transaction history records with recurring patterns
     """
@@ -260,11 +260,11 @@ async def test_date_range_transactions(
     - 30, 45, 60 days ago (outside common test ranges)
 
     Alternates between CREDIT and DEBIT types for variety.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
-        
+
     Returns:
         List[TransactionHistory]: List of created transaction history records across date ranges
     """

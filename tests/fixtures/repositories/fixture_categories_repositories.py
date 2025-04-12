@@ -15,10 +15,10 @@ from src.repositories.categories import CategoryRepository
 async def category_repository(db_session: AsyncSession) -> CategoryRepository:
     """
     Fixture for CategoryRepository with test database session.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         CategoryRepository: Repository for category operations
     """

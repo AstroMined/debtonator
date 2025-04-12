@@ -12,7 +12,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.account_types.banking.checking import CheckingAccount
 from src.repositories.accounts import AccountRepository
-from src.utils.datetime_utils import utc_now
 from tests.helpers.schema_factories.account_types.banking.checking_schema_factories import (
     create_checking_account_schema,
 )
@@ -28,10 +27,10 @@ async def test_get_checking_accounts_with_overdraft(
 ):
     """
     Test getting checking accounts with overdraft protection.
-    
+
     This test verifies that the specialized repository method correctly
     identifies checking accounts that have overdraft protection enabled.
-    
+
     Args:
         checking_repository: Checking account repository
         test_checking_account: Checking account fixture
@@ -45,7 +44,7 @@ async def test_get_checking_accounts_with_overdraft(
         has_overdraft_protection=True,
         overdraft_limit=Decimal("500.00"),
     )
-    
+
     overdraft_account = CheckingAccount(**overdraft_schema.model_dump())
     db_session.add(overdraft_account)
     await db_session.flush()
@@ -78,10 +77,10 @@ async def test_get_checking_accounts_by_balance_range(
 ):
     """
     Test getting checking accounts within a balance range.
-    
+
     This test verifies that the specialized repository method correctly
     filters checking accounts based on their available balance.
-    
+
     Args:
         checking_repository: Checking account repository
         db_session: Database session
@@ -92,13 +91,13 @@ async def test_get_checking_accounts_by_balance_range(
         current_balance=Decimal("100.00"),
         available_balance=Decimal("100.00"),
     )
-    
+
     mid_balance_schema = create_checking_account_schema(
         name="Mid Balance",
         current_balance=Decimal("500.00"),
         available_balance=Decimal("500.00"),
     )
-    
+
     high_balance_schema = create_checking_account_schema(
         name="High Balance",
         current_balance=Decimal("1500.00"),
@@ -115,8 +114,10 @@ async def test_get_checking_accounts_by_balance_range(
     # 2. SCHEMA: Used for creating the test accounts
 
     # 3. ACT: Call the specialized repository method
-    between_400_and_1000 = await checking_repository.get_checking_accounts_by_balance_range(
-        Decimal("400.00"), Decimal("1000.00")
+    between_400_and_1000 = (
+        await checking_repository.get_checking_accounts_by_balance_range(
+            Decimal("400.00"), Decimal("1000.00")
+        )
     )
 
     # 4. ASSERT: Verify the results
@@ -143,10 +144,10 @@ async def test_get_checking_accounts_with_international_features(
 ):
     """
     Test getting checking accounts with international features.
-    
+
     This test verifies that the specialized repository method correctly
     identifies checking accounts that have international banking features.
-    
+
     Args:
         checking_repository: Checking account repository
         test_international_checking: International checking account fixture
@@ -157,7 +158,9 @@ async def test_get_checking_accounts_with_international_features(
     # 2. SCHEMA: Not applicable for this read operation
 
     # 3. ACT: Call the specialized repository method
-    international_accounts = await checking_repository.get_checking_accounts_with_international_features()
+    international_accounts = (
+        await checking_repository.get_checking_accounts_with_international_features()
+    )
 
     # 4. ASSERT: Verify the results
     assert len(international_accounts) >= 1
@@ -187,10 +190,10 @@ async def test_get_checking_accounts_without_fees(
 ):
     """
     Test getting checking accounts without monthly fees.
-    
+
     This test verifies that the specialized repository method correctly
     identifies checking accounts that don't have monthly fees.
-    
+
     Args:
         checking_repository: Checking account repository
         db_session: Database session
@@ -202,14 +205,14 @@ async def test_get_checking_accounts_without_fees(
         available_balance=Decimal("1000.00"),
         monthly_fee=Decimal("10.00"),
     )
-    
+
     no_fee_schema = create_checking_account_schema(
         name="No Fee",
         current_balance=Decimal("1000.00"),
         available_balance=Decimal("1000.00"),
         monthly_fee=Decimal("0.00"),
     )
-    
+
     null_fee_schema = create_checking_account_schema(
         name="Null Fee",
         current_balance=Decimal("1000.00"),
@@ -247,14 +250,14 @@ async def test_get_checking_accounts_without_fees(
 
 @pytest.mark.asyncio
 async def test_repository_has_specialized_methods(
-    checking_repository: AccountRepository
+    checking_repository: AccountRepository,
 ):
     """
     Test that the repository has the specialized checking methods.
-    
+
     This test verifies that the checking repository correctly includes
     all the specialized methods for checking account operations.
-    
+
     Args:
         checking_repository: Checking account repository
     """
@@ -264,13 +267,23 @@ async def test_repository_has_specialized_methods(
 
     # 3. ACT & ASSERT: Verify the repository has specialized checking methods
     assert hasattr(checking_repository, "get_checking_accounts_with_overdraft")
-    assert callable(getattr(checking_repository, "get_checking_accounts_with_overdraft"))
+    assert callable(
+        getattr(checking_repository, "get_checking_accounts_with_overdraft")
+    )
 
     assert hasattr(checking_repository, "get_checking_accounts_by_balance_range")
-    assert callable(getattr(checking_repository, "get_checking_accounts_by_balance_range"))
+    assert callable(
+        getattr(checking_repository, "get_checking_accounts_by_balance_range")
+    )
 
-    assert hasattr(checking_repository, "get_checking_accounts_with_international_features")
-    assert callable(getattr(checking_repository, "get_checking_accounts_with_international_features"))
+    assert hasattr(
+        checking_repository, "get_checking_accounts_with_international_features"
+    )
+    assert callable(
+        getattr(
+            checking_repository, "get_checking_accounts_with_international_features"
+        )
+    )
 
     assert hasattr(checking_repository, "get_checking_accounts_without_fees")
     assert callable(getattr(checking_repository, "get_checking_accounts_without_fees"))

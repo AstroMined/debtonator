@@ -17,10 +17,10 @@ async def cashflow_forecast_repository(
 ) -> CashflowForecastRepository:
     """
     Fixture for CashflowForecastRepository with test database session.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         CashflowForecastRepository: Repository for cashflow forecast operations
     """

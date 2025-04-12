@@ -15,10 +15,10 @@ from src.repositories.liabilities import LiabilityRepository
 async def liability_repository(db_session: AsyncSession) -> LiabilityRepository:
     """
     Fixture for LiabilityRepository with test database session.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         LiabilityRepository: Repository for liability operations
     """

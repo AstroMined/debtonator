@@ -15,10 +15,10 @@ from src.repositories.bill_splits import BillSplitRepository
 async def bill_split_repository(db_session: AsyncSession) -> BillSplitRepository:
     """
     Fixture for BillSplitRepository with test database session.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         BillSplitRepository: Repository for bill split operations
     """

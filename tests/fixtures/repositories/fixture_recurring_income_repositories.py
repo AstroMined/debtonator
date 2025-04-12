@@ -17,10 +17,10 @@ async def recurring_income_repository(
 ) -> RecurringIncomeRepository:
     """
     Fixture for RecurringIncomeRepository with test database session.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         RecurringIncomeRepository: Repository for recurring income operations
     """

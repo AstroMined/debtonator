@@ -20,7 +20,6 @@ from src.repositories.liabilities import LiabilityRepository
 from src.utils.datetime_utils import utc_datetime
 from tests.helpers.schema_factories.categories_schema_factories import (
     create_category_schema,
-    create_category_update_schema,
 )
 
 pytestmark = pytest.mark.asyncio
@@ -30,10 +29,9 @@ async def test_get_by_name(category_repository: CategoryRepository):
     """Test retrieving a category by name."""
     # 1. ARRANGE: Create schema with factory
     category_schema = create_category_schema(
-        name="Unique Category Name", 
-        description="Test category description"
+        name="Unique Category Name", description="Test category description"
     )
-    
+
     # 2. ACT: Create category and get by name
     await category_repository.create(category_schema.model_dump())
 
@@ -54,26 +52,24 @@ async def test_get_root_categories(category_repository: CategoryRepository):
     """Test retrieving all root categories."""
     # 1. ARRANGE: Create schemas with factory
     root1_schema = create_category_schema(
-        name="Root Category 1", 
-        description="First root category"
+        name="Root Category 1", description="First root category"
     )
-    
+
     root2_schema = create_category_schema(
-        name="Root Category 2", 
-        description="Second root category"
+        name="Root Category 2", description="Second root category"
     )
-    
+
     # 2. ACT: Create categories
     root1 = await category_repository.create(root1_schema.model_dump())
     root2 = await category_repository.create(root2_schema.model_dump())
-    
+
     # Create a child category
     child_schema = create_category_schema(
         name="Child Category",
         description="Child of Root Category 1",
-        parent_id=root1.id
+        parent_id=root1.id,
     )
-    
+
     child = await category_repository.create(child_schema.model_dump())
 
     # Test get_root_categories
@@ -90,26 +86,23 @@ async def test_get_with_children(category_repository: CategoryRepository):
     """Test retrieving a category with its children."""
     # 1. ARRANGE: Create schemas with factory
     parent_schema = create_category_schema(
-        name="Parent Category", 
-        description="Parent category"
+        name="Parent Category", description="Parent category"
     )
-    
+
     # 2. ACT: Create categories
     parent = await category_repository.create(parent_schema.model_dump())
-    
+
     # Create child categories
     child1_schema = create_category_schema(
-        name="Child Category 1",
-        description="First child category",
-        parent_id=parent.id
+        name="Child Category 1", description="First child category", parent_id=parent.id
     )
-    
+
     child2_schema = create_category_schema(
         name="Child Category 2",
         description="Second child category",
-        parent_id=parent.id
+        parent_id=parent.id,
     )
-    
+
     child1 = await category_repository.create(child1_schema.model_dump())
     child2 = await category_repository.create(child2_schema.model_dump())
 
@@ -129,20 +122,17 @@ async def test_get_with_parent(category_repository: CategoryRepository):
     """Test retrieving a category with its parent."""
     # 1. ARRANGE: Create schemas with factory
     parent_schema = create_category_schema(
-        name="Parent For Child", 
-        description="Parent category"
+        name="Parent For Child", description="Parent category"
     )
-    
+
     # 2. ACT: Create categories
     parent = await category_repository.create(parent_schema.model_dump())
-    
+
     # Create child category
     child_schema = create_category_schema(
-        name="Child With Parent",
-        description="Child category",
-        parent_id=parent.id
+        name="Child With Parent", description="Child category", parent_id=parent.id
     )
-    
+
     child = await category_repository.create(child_schema.model_dump())
 
     # Test get_with_parent
@@ -159,39 +149,40 @@ async def test_get_with_parent(category_repository: CategoryRepository):
 async def test_get_with_bills(
     category_repository: CategoryRepository,
     liability_repository: LiabilityRepository,
-    test_checking_account
+    test_checking_account,
 ):
     """Test retrieving a category with its bills."""
     # 1. ARRANGE: Create schemas with factory
     category_schema = create_category_schema(
-        name="Bills Category", 
-        description="Category with bills"
+        name="Bills Category", description="Category with bills"
     )
-    
+
     # 2. ACT: Create category
     category = await category_repository.create(category_schema.model_dump())
-    
+
     # Create bills (liabilities)
     # Note: We should ideally use a liability schema factory here, but for now
     # we'll continue with the direct dictionary approach for liabilities
-    from tests.helpers.schema_factories.liabilities_schema_factories import create_liability_schema
-    
+    from tests.helpers.schema_factories.liabilities_schema_factories import (
+        create_liability_schema,
+    )
+
     bill1_schema = create_liability_schema(
         name="Bill 1",
         amount=Decimal("100.00"),
         due_date=utc_datetime(2025, 4, 15),
         category_id=category.id,
-        primary_account_id=test_checking_account.id
+        primary_account_id=test_checking_account.id,
     )
-    
+
     bill2_schema = create_liability_schema(
         name="Bill 2",
         amount=Decimal("200.00"),
         due_date=utc_datetime(2025, 4, 30),
         category_id=category.id,
-        primary_account_id=test_checking_account.id
+        primary_account_id=test_checking_account.id,
     )
-    
+
     bill1 = await liability_repository.create(bill1_schema.model_dump())
     bill2 = await liability_repository.create(bill2_schema.model_dump())
 
@@ -210,37 +201,36 @@ async def test_get_with_bills(
 async def test_get_with_relationships(
     category_repository: CategoryRepository,
     liability_repository: LiabilityRepository,
-    test_checking_account
+    test_checking_account,
 ):
     """Test retrieving a category with specified relationships."""
     # 1. ARRANGE: Create schemas with factory
     parent_schema = create_category_schema(
-        name="Relationships Parent", 
-        description="Parent category"
+        name="Relationships Parent", description="Parent category"
     )
-    
+
     # 2. ACT: Create categories
     parent = await category_repository.create(parent_schema.model_dump())
-    
+
     child_schema = create_category_schema(
-        name="Relationships Child",
-        description="Child category",
-        parent_id=parent.id
+        name="Relationships Child", description="Child category", parent_id=parent.id
     )
-    
+
     child = await category_repository.create(child_schema.model_dump())
-    
+
     # Create bill for child category
-    from tests.helpers.schema_factories.liabilities_schema_factories import create_liability_schema
-    
+    from tests.helpers.schema_factories.liabilities_schema_factories import (
+        create_liability_schema,
+    )
+
     bill_schema = create_liability_schema(
         name="Relationship Bill",
         amount=Decimal("150.00"),
         due_date=utc_datetime(2025, 5, 15),
         category_id=child.id,
-        primary_account_id=test_checking_account.id
+        primary_account_id=test_checking_account.id,
     )
-    
+
     bill = await liability_repository.create(bill_schema.model_dump())
 
     # Test get_with_relationships with different combinations
@@ -289,36 +279,35 @@ async def test_get_children(category_repository: CategoryRepository):
     """Test retrieving immediate children of a category."""
     # 1. ARRANGE: Create schemas with factory
     parent_schema = create_category_schema(
-        name="Get Children Parent", 
-        description="Parent category"
+        name="Get Children Parent", description="Parent category"
     )
-    
+
     # 2. ACT: Create categories
     parent = await category_repository.create(parent_schema.model_dump())
-    
+
     # Create child categories
     child1_schema = create_category_schema(
         name="Get Children Child 1",
         description="First child category",
-        parent_id=parent.id
+        parent_id=parent.id,
     )
-    
+
     child2_schema = create_category_schema(
         name="Get Children Child 2",
         description="Second child category",
-        parent_id=parent.id
+        parent_id=parent.id,
     )
-    
+
     child1 = await category_repository.create(child1_schema.model_dump())
     child2 = await category_repository.create(child2_schema.model_dump())
-    
+
     # Create grandchild category
     grandchild_schema = create_category_schema(
         name="Get Children Grandchild",
         description="Grandchild category",
-        parent_id=child1.id
+        parent_id=child1.id,
     )
-    
+
     grandchild = await category_repository.create(grandchild_schema.model_dump())
 
     # Test get_children
@@ -335,29 +324,24 @@ async def test_get_ancestors(category_repository: CategoryRepository):
     """Test retrieving all ancestors of a category."""
     # 1. ARRANGE: Create schemas with factory
     grandparent_schema = create_category_schema(
-        name="Ancestor Grandparent", 
-        description="Grandparent category"
+        name="Ancestor Grandparent", description="Grandparent category"
     )
-    
+
     # 2. ACT: Create category hierarchy
     grandparent = await category_repository.create(grandparent_schema.model_dump())
-    
+
     parent_schema = create_category_schema(
-        name="Ancestor Parent",
-        description="Parent category",
-        parent_id=grandparent.id
+        name="Ancestor Parent", description="Parent category", parent_id=grandparent.id
     )
-    
+
     parent = await category_repository.create(parent_schema.model_dump())
-    
+
     child_schema = create_category_schema(
-        name="Ancestor Child",
-        description="Child category",
-        parent_id=parent.id
+        name="Ancestor Child", description="Child category", parent_id=parent.id
     )
-    
+
     child = await category_repository.create(child_schema.model_dump())
-    
+
     # Test get_ancestors
     ancestors = await category_repository.get_ancestors(child.id)
 
@@ -371,43 +355,42 @@ async def test_get_descendants(category_repository: CategoryRepository):
     """Test retrieving all descendants of a category."""
     # 1. ARRANGE: Create schemas with factory
     grandparent_schema = create_category_schema(
-        name="Descendant Grandparent", 
-        description="Grandparent category"
+        name="Descendant Grandparent", description="Grandparent category"
     )
-    
+
     # 2. ACT: Create category hierarchy
     grandparent = await category_repository.create(grandparent_schema.model_dump())
-    
+
     parent1_schema = create_category_schema(
         name="Descendant Parent 1",
         description="First parent category",
-        parent_id=grandparent.id
+        parent_id=grandparent.id,
     )
-    
+
     parent2_schema = create_category_schema(
         name="Descendant Parent 2",
         description="Second parent category",
-        parent_id=grandparent.id
+        parent_id=grandparent.id,
     )
-    
+
     parent1 = await category_repository.create(parent1_schema.model_dump())
     parent2 = await category_repository.create(parent2_schema.model_dump())
-    
+
     child1_schema = create_category_schema(
         name="Descendant Child 1",
         description="First child category",
-        parent_id=parent1.id
+        parent_id=parent1.id,
     )
-    
+
     child2_schema = create_category_schema(
         name="Descendant Child 2",
         description="Second child category",
-        parent_id=parent2.id
+        parent_id=parent2.id,
     )
-    
+
     child1 = await category_repository.create(child1_schema.model_dump())
     child2 = await category_repository.create(child2_schema.model_dump())
-    
+
     # Test get_descendants
     descendants = await category_repository.get_descendants(grandparent.id)
 
@@ -423,43 +406,45 @@ async def test_is_ancestor_of(category_repository: CategoryRepository):
     """Test checking if a category is an ancestor of another category."""
     # 1. ARRANGE: Create schemas with factory
     grandparent_schema = create_category_schema(
-        name="Is Ancestor Grandparent", 
-        description="Grandparent category"
+        name="Is Ancestor Grandparent", description="Grandparent category"
     )
-    
+
     # 2. ACT: Create category hierarchy
     grandparent = await category_repository.create(grandparent_schema.model_dump())
-    
+
     parent_schema = create_category_schema(
         name="Is Ancestor Parent",
         description="Parent category",
-        parent_id=grandparent.id
+        parent_id=grandparent.id,
     )
-    
+
     parent = await category_repository.create(parent_schema.model_dump())
-    
+
     child_schema = create_category_schema(
-        name="Is Ancestor Child",
-        description="Child category",
-        parent_id=parent.id
+        name="Is Ancestor Child", description="Child category", parent_id=parent.id
     )
-    
+
     child = await category_repository.create(child_schema.model_dump())
-    
+
     unrelated_schema = create_category_schema(
-        name="Is Ancestor Unrelated",
-        description="Unrelated category"
+        name="Is Ancestor Unrelated", description="Unrelated category"
     )
-    
+
     unrelated = await category_repository.create(unrelated_schema.model_dump())
-    
+
     # Test is_ancestor_of
     is_grandparent_ancestor_of_child = await category_repository.is_ancestor_of(
         grandparent.id, child.id
     )
-    is_parent_ancestor_of_child = await category_repository.is_ancestor_of(parent.id, child.id)
-    is_child_ancestor_of_parent = await category_repository.is_ancestor_of(child.id, parent.id)
-    is_unrelated_ancestor_of_child = await category_repository.is_ancestor_of(unrelated.id, child.id)
+    is_parent_ancestor_of_child = await category_repository.is_ancestor_of(
+        parent.id, child.id
+    )
+    is_child_ancestor_of_parent = await category_repository.is_ancestor_of(
+        child.id, parent.id
+    )
+    is_unrelated_ancestor_of_child = await category_repository.is_ancestor_of(
+        unrelated.id, child.id
+    )
     is_self_ancestor = await category_repository.is_ancestor_of(child.id, child.id)
 
     # Assert
@@ -474,27 +459,25 @@ async def test_move_category(category_repository: CategoryRepository):
     """Test moving a category to a new parent."""
     # 1. ARRANGE: Create schemas with factory
     original_parent_schema = create_category_schema(
-        name="Move Original Parent", 
-        description="Original parent category"
+        name="Move Original Parent", description="Original parent category"
     )
-    
+
     new_parent_schema = create_category_schema(
-        name="Move New Parent", 
-        description="New parent category"
+        name="Move New Parent", description="New parent category"
     )
-    
+
     # 2. ACT: Create categories
-    original_parent = await category_repository.create(original_parent_schema.model_dump())
-    new_parent = await category_repository.create(new_parent_schema.model_dump())
-    
-    child_schema = create_category_schema(
-        name="Move Child",
-        description="Child category",
-        parent_id=original_parent.id
+    original_parent = await category_repository.create(
+        original_parent_schema.model_dump()
     )
-    
+    new_parent = await category_repository.create(new_parent_schema.model_dump())
+
+    child_schema = create_category_schema(
+        name="Move Child", description="Child category", parent_id=original_parent.id
+    )
+
     child = await category_repository.create(child_schema.model_dump())
-    
+
     # Test move_category
     moved_child = await category_repository.move_category(child.id, new_parent.id)
 
@@ -515,29 +498,24 @@ async def test_get_category_path(category_repository: CategoryRepository):
     """Test getting the full path of a category."""
     # 1. ARRANGE: Create schemas with factory
     grandparent_schema = create_category_schema(
-        name="Path Grandparent", 
-        description="Grandparent category"
+        name="Path Grandparent", description="Grandparent category"
     )
-    
+
     # 2. ACT: Create category hierarchy
     grandparent = await category_repository.create(grandparent_schema.model_dump())
-    
+
     parent_schema = create_category_schema(
-        name="Path Parent",
-        description="Parent category",
-        parent_id=grandparent.id
+        name="Path Parent", description="Parent category", parent_id=grandparent.id
     )
-    
+
     parent = await category_repository.create(parent_schema.model_dump())
-    
+
     child_schema = create_category_schema(
-        name="Path Child",
-        description="Child category",
-        parent_id=parent.id
+        name="Path Child", description="Child category", parent_id=parent.id
     )
-    
+
     child = await category_repository.create(child_schema.model_dump())
-    
+
     # Test get_category_path
     child_path = await category_repository.get_category_path(child.id)
     parent_path = await category_repository.get_category_path(parent.id)
@@ -553,25 +531,22 @@ async def test_find_categories_by_prefix(category_repository: CategoryRepository
     """Test finding categories whose names start with a given prefix."""
     # 1. ARRANGE: Create schemas with factory
     prefix1_schema = create_category_schema(
-        name="Prefix Test One", 
-        description="First test category"
+        name="Prefix Test One", description="First test category"
     )
-    
+
     prefix2_schema = create_category_schema(
-        name="Prefix Test Two", 
-        description="Second test category"
+        name="Prefix Test Two", description="Second test category"
     )
-    
+
     other_schema = create_category_schema(
-        name="Other Category", 
-        description="Other category"
+        name="Other Category", description="Other category"
     )
-    
+
     # 2. ACT: Create categories
     await category_repository.create(prefix1_schema.model_dump())
     await category_repository.create(prefix2_schema.model_dump())
     await category_repository.create(other_schema.model_dump())
-    
+
     # Test find_categories_by_prefix
     prefix_matches = await category_repository.find_categories_by_prefix("Prefix")
 
@@ -585,43 +560,44 @@ async def test_find_categories_by_prefix(category_repository: CategoryRepository
 async def test_get_category_with_bill_count(
     category_repository: CategoryRepository,
     liability_repository: LiabilityRepository,
-    test_checking_account
+    test_checking_account,
 ):
     """Test getting a category with the count of bills assigned to it."""
     # 1. ARRANGE: Create schemas with factory
     category_schema = create_category_schema(
-        name="Bill Count Category", 
-        description="Category for bill count test"
+        name="Bill Count Category", description="Category for bill count test"
     )
-    
+
     # 2. ACT: Create category
     category = await category_repository.create(category_schema.model_dump())
-    
+
     # Create bills
-    from tests.helpers.schema_factories.liabilities_schema_factories import create_liability_schema
-    
+    from tests.helpers.schema_factories.liabilities_schema_factories import (
+        create_liability_schema,
+    )
+
     bill1_schema = create_liability_schema(
         name="Bill Count Bill 1",
         amount=Decimal("100.00"),
         due_date=utc_datetime(2025, 6, 15),
         category_id=category.id,
-        primary_account_id=test_checking_account.id
+        primary_account_id=test_checking_account.id,
     )
-    
+
     bill2_schema = create_liability_schema(
         name="Bill Count Bill 2",
         amount=Decimal("200.00"),
         due_date=utc_datetime(2025, 6, 30),
         category_id=category.id,
-        primary_account_id=test_checking_account.id
+        primary_account_id=test_checking_account.id,
     )
-    
+
     await liability_repository.create(bill1_schema.model_dump())
     await liability_repository.create(bill2_schema.model_dump())
-    
+
     # Test get_category_with_bill_count
-    category_with_count, bill_count = await category_repository.get_category_with_bill_count(
-        category.id
+    category_with_count, bill_count = (
+        await category_repository.get_category_with_bill_count(category.id)
     )
 
     # Assert
@@ -633,63 +609,63 @@ async def test_get_category_with_bill_count(
 async def test_get_categories_with_bill_counts(
     category_repository: CategoryRepository,
     liability_repository: LiabilityRepository,
-    test_checking_account
+    test_checking_account,
 ):
     """Test getting all categories with bill counts."""
     # 1. ARRANGE: Create schemas with factory
     category1_schema = create_category_schema(
-        name="Bill Counts Category 1", 
-        description="First category for bill counts test"
+        name="Bill Counts Category 1", description="First category for bill counts test"
     )
-    
+
     category2_schema = create_category_schema(
-        name="Bill Counts Category 2", 
-        description="Second category for bill counts test"
+        name="Bill Counts Category 2",
+        description="Second category for bill counts test",
     )
-    
+
     category3_schema = create_category_schema(
-        name="Bill Counts Category 3", 
-        description="Third category for bill counts test"
+        name="Bill Counts Category 3", description="Third category for bill counts test"
     )
-    
+
     # 2. ACT: Create categories
     category1 = await category_repository.create(category1_schema.model_dump())
     category2 = await category_repository.create(category2_schema.model_dump())
     category3 = await category_repository.create(category3_schema.model_dump())
-    
+
     # Create bills
-    from tests.helpers.schema_factories.liabilities_schema_factories import create_liability_schema
-    
+    from tests.helpers.schema_factories.liabilities_schema_factories import (
+        create_liability_schema,
+    )
+
     bill1_schema = create_liability_schema(
         name="Bill Counts Bill 1",
         amount=Decimal("100.00"),
         due_date=utc_datetime(2025, 7, 15),
         category_id=category1.id,
-        primary_account_id=test_checking_account.id
+        primary_account_id=test_checking_account.id,
     )
-    
+
     bill2_schema = create_liability_schema(
         name="Bill Counts Bill 2",
         amount=Decimal("200.00"),
         due_date=utc_datetime(2025, 7, 30),
         category_id=category1.id,
-        primary_account_id=test_checking_account.id
+        primary_account_id=test_checking_account.id,
     )
-    
+
     bill3_schema = create_liability_schema(
         name="Bill Counts Bill 3",
         amount=Decimal("300.00"),
         due_date=utc_datetime(2025, 8, 15),
         category_id=category2.id,
-        primary_account_id=test_checking_account.id
+        primary_account_id=test_checking_account.id,
     )
-    
+
     await liability_repository.create(bill1_schema.model_dump())
     await liability_repository.create(bill2_schema.model_dump())
     await liability_repository.create(bill3_schema.model_dump())
-    
+
     # Category3 has no bills
-    
+
     # Test get_categories_with_bill_counts
     categories_with_counts = await category_repository.get_categories_with_bill_counts()
 
@@ -720,53 +696,50 @@ async def test_get_categories_with_bill_counts(
 async def test_delete_if_unused(
     category_repository: CategoryRepository,
     liability_repository: LiabilityRepository,
-    test_checking_account
+    test_checking_account,
 ):
     """Test deleting a category only if it has no children and no bills."""
     # 1. ARRANGE: Create schemas with factory
     parent_schema = create_category_schema(
-        name="Delete Parent", 
-        description="Parent category"
+        name="Delete Parent", description="Parent category"
     )
-    
+
     # 2. ACT: Create categories
     parent = await category_repository.create(parent_schema.model_dump())
-    
+
     child_schema = create_category_schema(
-        name="Delete Child",
-        description="Child category",
-        parent_id=parent.id
+        name="Delete Child", description="Child category", parent_id=parent.id
     )
-    
+
     child = await category_repository.create(child_schema.model_dump())
-    
+
     with_bill_schema = create_category_schema(
-        name="Delete With Bill", 
-        description="Category with bill"
+        name="Delete With Bill", description="Category with bill"
     )
-    
+
     with_bill = await category_repository.create(with_bill_schema.model_dump())
-    
+
     empty_schema = create_category_schema(
-        name="Delete Empty", 
-        description="Empty category"
+        name="Delete Empty", description="Empty category"
     )
-    
+
     empty = await category_repository.create(empty_schema.model_dump())
-    
+
     # Create bill
-    from tests.helpers.schema_factories.liabilities_schema_factories import create_liability_schema
-    
+    from tests.helpers.schema_factories.liabilities_schema_factories import (
+        create_liability_schema,
+    )
+
     bill_schema = create_liability_schema(
         name="Delete Bill",
         amount=Decimal("100.00"),
         due_date=utc_datetime(2025, 8, 15),
         category_id=with_bill.id,
-        primary_account_id=test_checking_account.id
+        primary_account_id=test_checking_account.id,
     )
-    
+
     await liability_repository.create(bill_schema.model_dump())
-    
+
     # Test delete_if_unused
     parent_deleted = await category_repository.delete_if_unused(parent.id)
     with_bill_deleted = await category_repository.delete_if_unused(with_bill.id)

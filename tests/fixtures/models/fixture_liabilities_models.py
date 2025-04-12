@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability, LiabilityStatus
-from src.utils.datetime_utils import days_from_now, naive_utc_now, utc_now
+from src.utils.datetime_utils import days_from_now, utc_now
 
 
 @pytest_asyncio.fixture
@@ -18,12 +18,12 @@ async def test_liability(
 ) -> Liability:
     """
     Create a test liability for use in tests.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
         test_category: Test category fixture
-        
+
     Returns:
         Liability: Created liability
     """
@@ -56,12 +56,12 @@ async def test_multiple_liabilities(
 ) -> List[Liability]:
     """
     Create multiple test liabilities with different due dates.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
         test_category: Test category fixture
-        
+
     Returns:
         List[Liability]: List of created liabilities with different due dates
     """
@@ -112,12 +112,12 @@ async def test_bill_splits(
 ) -> List[BillSplit]:
     """
     Create test bill splits directly using model instantiation.
-    
+
     Args:
         db_session: Database session fixture
         test_liability: Test liability fixture
         test_checking_account: Test checking account fixture
-        
+
     Returns:
         List[BillSplit]: List of created bill splits
     """

@@ -10,9 +10,9 @@ import pytest
 
 from src.utils.datetime_utils import (
     ensure_utc,
+    naive_utc_datetime_from_str,
     normalize_db_date,
     utc_datetime_from_str,
-    naive_utc_datetime_from_str,
 )
 
 
@@ -65,6 +65,7 @@ def test_ensure_utc_with_utc_and_naive():
 
     # Test with already UTC datetime
     from src.utils.datetime_utils import utc_datetime
+
     original = utc_datetime(2025, 3, 15, 14, 30)
     result = ensure_utc(original)
 
@@ -76,6 +77,7 @@ def test_ensure_utc_with_utc_and_naive():
 def test_ensure_utc_with_already_utc():
     """Test ensure_utc with already UTC datetime."""
     from src.utils.datetime_utils import utc_datetime
+
     original = utc_datetime(2025, 3, 15, 14, 30)
     result = ensure_utc(original)
 

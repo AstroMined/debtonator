@@ -13,7 +13,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.account_types.banking.credit import CreditAccount
 from src.repositories.accounts import AccountRepository
 from src.services.accounts import AccountService
-from src.utils.datetime_utils import utc_now
 from tests.helpers.schema_factories.account_types.banking.credit_schema_factories import (
     create_credit_account_schema,
     create_credit_account_update_schema,
@@ -28,10 +27,10 @@ async def test_get_with_type_returns_credit_account(
 ):
     """
     Test that get_with_type returns a CreditAccount instance.
-    
+
     This test verifies that the repository correctly retrieves a credit account
     with the appropriate polymorphic identity.
-    
+
     Args:
         repository: Base account repository
         test_credit_account: Credit account fixture
@@ -65,10 +64,10 @@ async def test_get_by_type_returns_only_credit_accounts(
 ):
     """
     Test that get_by_type returns only credit accounts.
-    
+
     This test verifies that the repository correctly filters accounts by type
     when retrieving credit accounts.
-    
+
     Args:
         repository: Base account repository
         test_credit_account: Credit account fixture
@@ -98,16 +97,16 @@ async def test_get_by_type_returns_only_credit_accounts(
 
 @pytest.mark.asyncio
 async def test_create_typed_account_with_credit_type(
-    repository: AccountRepository, 
+    repository: AccountRepository,
     account_service: AccountService,
-    db_session: AsyncSession
+    db_session: AsyncSession,
 ):
     """
     Test creating a typed credit account using service for business logic.
-    
+
     This test verifies that the repository correctly creates a credit account
     with the service calculating the business logic values, following ADR-012.
-    
+
     Args:
         repository: Base account repository
         account_service: Account service for business logic
@@ -133,11 +132,11 @@ async def test_create_typed_account_with_credit_type(
     # 4. ASSERT: Verify the account was created correctly
     assert result is not None
     assert isinstance(result, CreditAccount)
-    
+
     # Calculate available credit using the service (business logic) per ADR-012
     available_credit = await account_service.get_available_credit_amount(result)
     assert available_credit == Decimal("2500.00")
-    
+
     # Verify other properties
     assert result.id is not None
     assert result.name == "New Credit Account"
@@ -157,14 +156,14 @@ async def test_create_typed_account_with_credit_type(
 async def test_update_typed_account_with_credit_type(
     repository: AccountRepository,
     account_service: AccountService,
-    test_credit_account: CreditAccount
+    test_credit_account: CreditAccount,
 ):
     """
     Test updating a typed credit account.
-    
+
     This test verifies that the repository correctly updates a credit account
     with the appropriate polymorphic identity and type-specific fields.
-    
+
     Args:
         repository: Base account repository
         account_service: Account service for business logic

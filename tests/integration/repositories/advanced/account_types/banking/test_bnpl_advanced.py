@@ -31,10 +31,10 @@ async def test_get_bnpl_accounts_with_upcoming_payments(
 ):
     """
     Test getting BNPL accounts with upcoming payments.
-    
+
     This test verifies that the specialized repository method correctly
     identifies BNPL accounts with payments due within a specified window.
-    
+
     Args:
         db_session: Database session for repository operations
         test_bnpl_account: BNPL account with payment in 14 days
@@ -45,8 +45,8 @@ async def test_get_bnpl_accounts_with_upcoming_payments(
     # 2. SCHEMA: Not applicable for this read operation
 
     # 3. ACT: Call the specialized repository method with 7-day window
-    accounts_with_upcoming_payments = (
-        await get_bnpl_accounts_with_upcoming_payments(db_session, 7)
+    accounts_with_upcoming_payments = await get_bnpl_accounts_with_upcoming_payments(
+        db_session, 7
     )
 
     # 4. ASSERT: Verify the results
@@ -77,10 +77,10 @@ async def test_get_bnpl_accounts_by_provider(
 ):
     """
     Test getting BNPL accounts by provider.
-    
+
     This test verifies that the specialized repository method correctly
     filters BNPL accounts by their provider.
-    
+
     Args:
         db_session: Database session for repository operations
         test_bnpl_account: BNPL account with Affirm provider
@@ -114,6 +114,70 @@ async def test_get_bnpl_accounts_by_provider(
     ]
 
 
+async def test_mark_bnpl_payment_made(
+    bnpl_repository: AccountRepository, test_bnpl_account: BNPLAccount
+):
+    """
+    Test updating a BNPL account to mark a payment as made.
+
+    This test demonstrates the proper fetch-update-refetch pattern that should be used
+    in real application code when working with SQLAlchemy entities.
+
+    Args:
+        bnpl_repository: Repository fixture for BNPL accounts
+        test_bnpl_account: Test BNPL account fixture
+    """
+    # NOTE: We deliberately use a fetch-update-refetch pattern here to properly
+    # validate state changes. Due to SQLAlchemy's identity map, holding a reference
+    # to an entity and then updating that same entity will update all references
+    # to the object. Real application code should follow this pattern of refetching
+    # entities after updates to ensure the latest state is observed.
+
+    # 1. ARRANGE: Fetch initial state directly from database
+    account_id = test_bnpl_account.id
+
+    # Get the original values directly from the database
+    account_before = await bnpl_repository.get(account_id)
+    original_installments_paid = account_before.installments_paid
+    original_balance = account_before.current_balance
+    installment_amount = account_before.installment_amount
+
+    # 2. SCHEMA: Create update data to record a payment
+    update_schema = create_bnpl_account_schema(
+        # Include required fields to ensure a complete update
+        name=account_before.name,
+        account_type="bnpl",
+        bnpl_provider=account_before.bnpl_provider,
+        installment_count=account_before.installment_count,
+        installment_amount=account_before.installment_amount,
+        payment_frequency=account_before.payment_frequency,
+        original_amount=account_before.original_amount,
+        # The values we want to update
+        current_balance=original_balance - installment_amount,
+        installments_paid=original_installments_paid + 1,
+    )
+
+    validated_data = update_schema.model_dump()
+
+    # 3. ACT: Perform the update operation
+    await bnpl_repository.update_typed_account(
+        account_id=account_id, account_type="bnpl", data=validated_data
+    )
+
+    # 4. VERIFY: Get a fresh instance from DB to verify changes
+    account_after = await bnpl_repository.get(account_id)
+
+    # 5. ASSERT: Verify against the freshly loaded instance
+    assert account_after is not None
+    assert account_after.current_balance == original_balance - installment_amount
+    assert account_after.installments_paid == original_installments_paid + 1
+
+    # Document additional identity map behavior:
+    # Due to SQLAlchemy's identity map, the original reference will also show the updates
+    # This is EXPECTED behavior and can be verified:
+    assert test_bnpl_account.installments_paid == original_installments_paid + 1
+
+
 @pytest.mark.asyncio
 async def test_get_bnpl_accounts_with_remaining_installments(
     db_session: AsyncSession,
@@ -123,10 +187,10 @@ async def test_get_bnpl_accounts_with_remaining_installments(
 ):
     """
     Test getting BNPL accounts with specified remaining installments.
-    
+
     This test verifies that the specialized repository method correctly
     filters BNPL accounts based on their remaining installments.
-    
+
     Args:
         db_session: Database session for repository operations
         test_bnpl_account: BNPL account with 4 installments, 0 paid
@@ -138,14 +202,14 @@ async def test_get_bnpl_accounts_with_remaining_installments(
     # 2. SCHEMA: Not applicable for this read operation
 
     # 3. ACT: Call the specialized repository method with different thresholds
-    accounts_3_or_more_remaining = (
-        await get_bnpl_accounts_with_remaining_installments(db_session, 3)
+    accounts_3_or_more_remaining = await get_bnpl_accounts_with_remaining_installments(
+        db_session, 3
     )
-    accounts_2_or_more_remaining = (
-        await get_bnpl_accounts_with_remaining_installments(db_session, 2)
+    accounts_2_or_more_remaining = await get_bnpl_accounts_with_remaining_installments(
+        db_session, 2
     )
-    accounts_1_or_more_remaining = (
-        await get_bnpl_accounts_with_remaining_installments(db_session, 1)
+    accounts_1_or_more_remaining = await get_bnpl_accounts_with_remaining_installments(
+        db_session, 1
     )
 
     # 4. ASSERT: Verify the results
@@ -184,10 +248,10 @@ async def test_get_bnpl_accounts_by_payment_frequency(
 ):
     """
     Test getting BNPL accounts by payment frequency.
-    
+
     This test verifies that the specialized repository method correctly
     filters BNPL accounts based on their payment frequency.
-    
+
     Args:
         db_session: Database session for repository operations
         test_bnpl_account: BNPL account with biweekly payment frequency
@@ -216,31 +280,25 @@ async def test_get_bnpl_accounts_by_payment_frequency(
 
     # 4. ASSERT: Verify the results
     assert len(biweekly_accounts) >= 3
-    assert all(
-        account.payment_frequency == "biweekly" for account in biweekly_accounts
-    )
+    assert all(account.payment_frequency == "biweekly" for account in biweekly_accounts)
     biweekly_ids = [account.id for account in biweekly_accounts]
     assert test_bnpl_account.id in biweekly_ids
     assert test_bnpl_account_with_upcoming_payment.id in biweekly_ids
     assert test_bnpl_account_nearly_paid.id in biweekly_ids
 
     assert len(monthly_accounts) >= 1
-    assert all(
-        account.payment_frequency == "monthly" for account in monthly_accounts
-    )
+    assert all(account.payment_frequency == "monthly" for account in monthly_accounts)
     assert monthly_account.id in [account.id for account in monthly_accounts]
 
 
 @pytest.mark.asyncio
-async def test_repository_has_specialized_methods(
-    bnpl_repository: AccountRepository
-):
+async def test_repository_has_specialized_methods(bnpl_repository: AccountRepository):
     """
     Test that the repository has the specialized BNPL methods.
-    
+
     This test verifies that the BNPL repository correctly includes
     all the specialized methods for BNPL account operations.
-    
+
     Args:
         bnpl_repository: BNPL account repository from fixture
     """
@@ -250,7 +308,9 @@ async def test_repository_has_specialized_methods(
 
     # 3. ACT & ASSERT: Verify the repository has specialized BNPL methods
     assert hasattr(bnpl_repository, "get_bnpl_accounts_with_upcoming_payments")
-    assert callable(getattr(bnpl_repository, "get_bnpl_accounts_with_upcoming_payments"))
+    assert callable(
+        getattr(bnpl_repository, "get_bnpl_accounts_with_upcoming_payments")
+    )
 
     assert hasattr(bnpl_repository, "get_bnpl_accounts_by_provider")
     assert callable(getattr(bnpl_repository, "get_bnpl_accounts_by_provider"))

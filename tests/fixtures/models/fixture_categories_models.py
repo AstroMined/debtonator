@@ -11,10 +11,10 @@ from src.models.income_categories import IncomeCategory
 async def test_category(db_session: AsyncSession) -> Category:
     """
     Create a test category for use in tests.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         Category: Created category
     """
@@ -36,10 +36,10 @@ async def test_category(db_session: AsyncSession) -> Category:
 async def test_income_category(db_session: AsyncSession) -> IncomeCategory:
     """
     Create a test income category for use in tests.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         IncomeCategory: Created income category
     """
@@ -61,10 +61,10 @@ async def test_income_category(db_session: AsyncSession) -> IncomeCategory:
 async def test_multiple_categories(db_session: AsyncSession) -> List[IncomeCategory]:
     """
     Create multiple income categories for testing.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         List[IncomeCategory]: List of created income categories
     """
@@ -115,10 +115,10 @@ async def test_multiple_categories(db_session: AsyncSession) -> List[IncomeCateg
 async def test_recurring_category(db_session: AsyncSession) -> Category:
     """
     Create a test category specifically for recurring bills.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         Category: Created recurring category
     """

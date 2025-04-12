@@ -17,10 +17,10 @@ async def payment_source_repository(
 ) -> PaymentSourceRepository:
     """
     Fixture for PaymentSourceRepository with test database session.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         PaymentSourceRepository: Repository for payment source operations
     """

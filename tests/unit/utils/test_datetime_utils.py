@@ -19,7 +19,6 @@ from src.utils.datetime_utils import (
     date_range,
     datetime_equals,
     datetime_greater_than,
-    datetime_less_than,
     days_ago,
     days_from_now,
     end_of_day,
@@ -28,13 +27,11 @@ from src.utils.datetime_utils import (
     is_adr011_compliant,
     is_month_boundary,
     last_day_of_month,
-    naive_date_range,
     naive_days_ago,
     naive_days_from_now,
     naive_end_of_day,
     naive_first_day_of_month,
     naive_last_day_of_month,
-    naive_safe_end_date,
     naive_start_of_day,
     naive_utc_datetime_from_str,
     naive_utc_from_date,
@@ -47,8 +44,8 @@ from src.utils.datetime_utils import (
     utc_now,
 )
 
-
 # Creation Functions Tests
+
 
 def test_utc_now():
     """Test utc_now returns current UTC time with timezone."""
@@ -455,6 +452,7 @@ def test_naive_end_of_day():
 
 # Conversion Functions Tests
 
+
 def test_ensure_utc_with_naive():
     """Test ensure_utc correctly handles naive datetime."""
     naive = datetime(2025, 3, 15, 14, 30)
@@ -641,6 +639,7 @@ def test_normalize_db_date():
 
 # Comparison Functions Tests
 
+
 def test_datetime_equals_with_same_timezone():
     """Test datetime_equals with same timezone."""
     dt1 = utc_datetime(2025, 3, 15, 14, 30)
@@ -727,6 +726,7 @@ def test_datetime_greater_than():
     # Comparing with ignore_timezone works too
     assert datetime_greater_than(dt1, naive_dt, ignore_timezone=True)
 
+
 def test_date_equals():
     """Test date_equals correctly compares dates of different types."""
     # Python date object
@@ -745,6 +745,7 @@ def test_date_equals():
     assert not date_equals(py_date, "not a date")
     assert date_equals("not a date", "not a date")  # String equality
 
+
 def test_date_in_collection():
     """Test date_in_collection checks membership correctly."""
     # Collection with mixed types
@@ -760,6 +761,7 @@ def test_date_in_collection():
     assert not date_in_collection(date(2025, 3, 18), dates)
     assert not date_in_collection("2025-03-18", dates)
 
+
 def test_is_adr011_compliant():
     """Test is_adr011_compliant checks for UTC timezone-awareness."""
     # Compliant: UTC timezone-aware
@@ -773,7 +775,6 @@ def test_is_adr011_compliant():
     # Non-compliant: non-UTC timezone
     eastern = timezone(timedelta(hours=-5))
     assert not is_adr011_compliant(datetime(2025, 3, 15, tzinfo=eastern))
-
 
 
 def test_date_range():
@@ -811,6 +812,7 @@ def test_date_range():
     # Test with invalid range
     with pytest.raises(ValueError):
         date_range(end, start)  # End before start
+
 
 def test_safe_end_date():
     """Test safe_end_date handles month transitions correctly."""
@@ -850,6 +852,7 @@ def test_safe_end_date():
 
     assert end.tzinfo == eastern
 
+
 def test_is_month_boundary():
     """Test is_month_boundary detects month transitions."""
     # Same month
@@ -871,7 +874,6 @@ def test_is_month_boundary():
     dt7 = utc_datetime(2024, 12, 31)
     dt8 = utc_datetime(2025, 1, 1)
     assert is_month_boundary(dt7, dt8)
-
 
 
 def test_inclusive_date_range_pattern():

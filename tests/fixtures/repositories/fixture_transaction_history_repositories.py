@@ -17,10 +17,10 @@ async def transaction_history_repository(
 ) -> TransactionHistoryRepository:
     """
     Fixture for TransactionHistoryRepository with test database session.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         TransactionHistoryRepository: Repository for transaction history operations
     """

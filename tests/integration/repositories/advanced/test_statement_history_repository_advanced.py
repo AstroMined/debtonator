@@ -15,7 +15,6 @@ import pytest
 from src.models.accounts import Account
 from src.models.statement_history import StatementHistory
 from src.repositories.statement_history import StatementHistoryRepository
-from src.schemas.statement_history import StatementHistoryCreate
 from src.utils.datetime_utils import (
     datetime_equals,
     datetime_greater_than,

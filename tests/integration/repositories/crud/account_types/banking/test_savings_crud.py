@@ -12,7 +12,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.account_types.banking.savings import SavingsAccount
 from src.repositories.accounts import AccountRepository
-from src.utils.datetime_utils import utc_now
 from tests.helpers.schema_factories.account_types.banking.savings_schema_factories import (
     create_savings_account_schema,
     create_savings_account_update_schema,
@@ -27,10 +26,10 @@ async def test_get_with_type_returns_savings_account(
 ):
     """
     Test that get_with_type returns a SavingsAccount instance.
-    
+
     This test verifies that the repository correctly retrieves a savings account
     with the appropriate polymorphic identity.
-    
+
     Args:
         repository: Base account repository
         test_savings_account: Savings account fixture
@@ -64,10 +63,10 @@ async def test_get_by_type_returns_only_savings_accounts(
 ):
     """
     Test that get_by_type returns only savings accounts.
-    
+
     This test verifies that the repository correctly filters accounts by type
     when retrieving savings accounts.
-    
+
     Args:
         repository: Base account repository
         test_savings_account: Savings account fixture
@@ -101,10 +100,10 @@ async def test_create_typed_account_with_savings_type(
 ):
     """
     Test creating a typed savings account.
-    
+
     This test verifies that the repository correctly creates a savings account
     with the appropriate polymorphic identity and type-specific fields.
-    
+
     Args:
         repository: Base account repository
         db_session: Database session
@@ -148,10 +147,10 @@ async def test_update_typed_account_with_savings_type(
 ):
     """
     Test updating a typed savings account.
-    
+
     This test verifies that the repository correctly updates a savings account
     with the appropriate polymorphic identity and type-specific fields.
-    
+
     Args:
         repository: Base account repository
         test_savings_account: Savings account fixture

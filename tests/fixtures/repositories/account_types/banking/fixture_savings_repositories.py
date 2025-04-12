@@ -17,14 +17,14 @@ async def savings_repository(
 ) -> RepositoryFactory:
     """
     Create a savings account repository for testing.
-    
+
     This fixture provides a specialized repository for savings accounts
     with all savings-specific operations available.
-    
+
     Args:
         db_session: Database session fixture
         repository_factory: Repository factory fixture
-        
+
     Returns:
         AccountRepository: Repository with savings-specific operations
     """

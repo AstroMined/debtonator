@@ -17,10 +17,10 @@ async def credit_limit_history_repository(
 ) -> CreditLimitHistoryRepository:
     """
     Fixture for CreditLimitHistoryRepository with test database session.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         CreditLimitHistoryRepository: Repository for credit limit history operations
     """

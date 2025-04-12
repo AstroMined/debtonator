@@ -15,10 +15,10 @@ from src.repositories.payments import PaymentRepository
 async def payment_repository(db_session: AsyncSession) -> PaymentRepository:
     """
     Fixture for PaymentRepository with test database session.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         PaymentRepository: Repository for payment operations
     """

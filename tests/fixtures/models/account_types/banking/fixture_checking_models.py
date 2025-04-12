@@ -82,13 +82,13 @@ async def test_international_checking(db_session: AsyncSession) -> CheckingAccou
 async def test_checking_for_module(db_session: AsyncSession) -> CheckingAccount:
     """
     Create a checking account for testing module-specific repository methods.
-    
+
     This fixture creates a checking account with overdraft protection specifically
     for testing the dynamic method binding in the repository factory.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         CheckingAccount: Checking account with overdraft protection
     """

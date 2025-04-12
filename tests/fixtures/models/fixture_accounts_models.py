@@ -15,10 +15,10 @@ from src.utils.datetime_utils import naive_utc_now
 async def test_checking_account(db_session: AsyncSession) -> CheckingAccount:
     """
     Create a primary test checking account for use in various tests.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         CheckingAccount: Created checking account
     """
@@ -39,10 +39,10 @@ async def test_checking_account(db_session: AsyncSession) -> CheckingAccount:
 async def test_savings_account(db_session: AsyncSession) -> SavingsAccount:
     """
     Create a test savings account for recurring income.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         SavingsAccount: Created savings account
     """
@@ -65,10 +65,10 @@ async def test_savings_account(db_session: AsyncSession) -> SavingsAccount:
 async def test_second_account(db_session: AsyncSession) -> CheckingAccount:
     """
     Create a second test checking account for use in split payment tests.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         CheckingAccount: Created checking account
     """
@@ -91,10 +91,10 @@ async def test_second_account(db_session: AsyncSession) -> CheckingAccount:
 async def test_multiple_accounts(db_session: AsyncSession) -> List[Account]:
     """
     Create multiple test accounts of different types.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         List[Account]: List of created accounts of various types
     """
@@ -152,10 +152,10 @@ async def test_multiple_accounts(db_session: AsyncSession) -> List[Account]:
 async def test_credit_account(db_session: AsyncSession) -> CreditAccount:
     """
     Create a test credit account for use in various tests.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         CreditAccount: Created credit account
     """

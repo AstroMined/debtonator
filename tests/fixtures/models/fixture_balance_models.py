@@ -17,11 +17,11 @@ async def test_balance_history(
 ) -> BalanceHistory:
     """
     Create a test balance history record for use in tests.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
-        
+
     Returns:
         BalanceHistory: Created balance history record
     """
@@ -52,11 +52,11 @@ async def test_multiple_balances(
 ) -> List[BalanceHistory]:
     """
     Create multiple balance history records for use in tests.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
-        
+
     Returns:
         List[BalanceHistory]: List of created balance history records
     """
@@ -102,11 +102,11 @@ async def test_balance_reconciliation(
 ) -> BalanceReconciliation:
     """
     Create a test balance reconciliation entry for use in tests.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
-        
+
     Returns:
         BalanceReconciliation: Created balance reconciliation record
     """
@@ -138,11 +138,11 @@ async def test_multiple_reconciliations(
 ) -> List[BalanceReconciliation]:
     """
     Create multiple balance reconciliation entries for testing.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
-        
+
     Returns:
         List[BalanceReconciliation]: List of created balance reconciliation records
     """
@@ -184,11 +184,11 @@ async def test_balance_history_with_gaps(
 ) -> List[BalanceHistory]:
     """
     Create balance history records with specific gaps for missing days test.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
-        
+
     Returns:
         List[BalanceHistory]: List of created balance history records with gaps
     """

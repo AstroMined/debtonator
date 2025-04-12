@@ -16,7 +16,6 @@ import pytest
 from src.models.accounts import Account
 from src.models.transaction_history import TransactionHistory, TransactionType
 from src.repositories.transaction_history import TransactionHistoryRepository
-from src.schemas.transaction_history import TransactionHistoryCreate
 from src.utils.datetime_utils import (
     datetime_equals,
     datetime_greater_than,

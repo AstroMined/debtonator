@@ -17,12 +17,12 @@ async def test_payment(
 ) -> Payment:
     """
     Create a test payment for use in tests.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
         test_liability: Test liability fixture
-        
+
     Returns:
         Payment: Created payment with associated payment source
     """
@@ -68,13 +68,13 @@ async def test_multiple_payments(
 ) -> List[Payment]:
     """
     Create multiple test payments with different dates and categories.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
         test_second_account: Test second account fixture
         test_liability: Test liability fixture
-        
+
     Returns:
         List[Payment]: List of created payments with various configurations
     """
@@ -194,12 +194,12 @@ async def test_payment_with_multiple_sources(
 ) -> Payment:
     """
     Create a test payment with multiple payment sources.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
         test_second_account: Test second account fixture
-        
+
     Returns:
         Payment: Created payment with multiple payment sources
     """

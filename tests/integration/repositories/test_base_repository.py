@@ -27,10 +27,10 @@ pytestmark = pytest.mark.integration
 async def test_create(db_session: AsyncSession):
     """
     Test creating a new record using a repository.
-    
+
     This test verifies that the BaseRepository.create method correctly
     creates a new record in the database with the provided data.
-    
+
     Args:
         db_session: Database session for repository operations
     """
@@ -58,10 +58,10 @@ async def test_create(db_session: AsyncSession):
 async def test_get(test_item_repository: BaseRepository, test_item: TestBasicDBModel):
     """
     Test retrieving a record by ID.
-    
+
     This test verifies that the BaseRepository.get method correctly
     retrieves a record from the database by its ID.
-    
+
     Args:
         test_item_repository: Repository for TestBasicDBModel
         test_item: Test item fixture
@@ -83,10 +83,10 @@ async def test_get(test_item_repository: BaseRepository, test_item: TestBasicDBM
 async def test_get_nonexistent(test_item_repository: BaseRepository):
     """
     Test retrieving a nonexistent record returns None.
-    
+
     This test verifies that the BaseRepository.get method correctly
     returns None when attempting to retrieve a nonexistent record.
-    
+
     Args:
         test_item_repository: Repository for TestBasicDBModel
     """
@@ -107,10 +107,10 @@ async def test_update(
 ):
     """
     Test updating a record.
-    
+
     This test verifies that the BaseRepository.update method correctly
     updates a record in the database with the provided data.
-    
+
     Args:
         test_item_repository: Repository for TestBasicDBModel
         test_item: Test item fixture
@@ -139,10 +139,10 @@ async def test_update(
 async def test_update_nonexistent(test_item_repository: BaseRepository):
     """
     Test updating a nonexistent record returns None.
-    
+
     This test verifies that the BaseRepository.update method correctly
     returns None when attempting to update a nonexistent record.
-    
+
     Args:
         test_item_repository: Repository for TestBasicDBModel
     """
@@ -166,10 +166,10 @@ async def test_update_nonexistent(test_item_repository: BaseRepository):
 async def test_delete(db_session: AsyncSession):
     """
     Test deleting a record.
-    
+
     This test verifies that the BaseRepository.delete method correctly
     deletes a record from the database.
-    
+
     Args:
         db_session: Database session for repository operations
     """
@@ -182,7 +182,7 @@ async def test_delete(db_session: AsyncSession):
         description="Item to delete",
         numeric_value=Decimal("100.00"),
     )
-    
+
     # Create item to delete
     created_item = await repo.create(item_data.model_dump())
 
@@ -201,10 +201,10 @@ async def test_delete(db_session: AsyncSession):
 async def test_delete_nonexistent(test_item_repository: BaseRepository):
     """
     Test deleting a nonexistent record returns False.
-    
+
     This test verifies that the BaseRepository.delete method correctly
     returns False when attempting to delete a nonexistent record.
-    
+
     Args:
         test_item_repository: Repository for TestBasicDBModel
     """
@@ -223,10 +223,10 @@ async def test_delete_nonexistent(test_item_repository: BaseRepository):
 async def test_get_multi(db_session: AsyncSession):
     """
     Test retrieving multiple records with filtering.
-    
+
     This test verifies that the BaseRepository.get_multi method correctly
     retrieves multiple records from the database with filtering.
-    
+
     Args:
         db_session: Database session for repository operations
     """
@@ -272,10 +272,10 @@ async def test_get_multi_with_skip_and_limit(
 ):
     """
     Test pagination with skip and limit parameters.
-    
+
     This test verifies that the BaseRepository.get_multi method correctly
     implements pagination with skip and limit parameters.
-    
+
     Args:
         test_item_repository: Repository for TestBasicDBModel
         test_items: List of test items
@@ -295,10 +295,10 @@ async def test_get_multi_with_skip_and_limit(
 async def test_get_paginated(db_session: AsyncSession):
     """
     Test paginated results with total count.
-    
+
     This test verifies that the BaseRepository.get_paginated method correctly
     returns paginated results with a total count.
-    
+
     Args:
         db_session: Database session for repository operations
     """
@@ -330,10 +330,10 @@ async def test_get_paginated(db_session: AsyncSession):
 async def test_bulk_create(db_session: AsyncSession):
     """
     Test creating multiple records in a batch.
-    
+
     This test verifies that the BaseRepository.bulk_create method correctly
     creates multiple records in the database in a single operation.
-    
+
     Args:
         db_session: Database session for repository operations
     """
@@ -377,10 +377,10 @@ async def test_bulk_create(db_session: AsyncSession):
 async def test_bulk_update(db_session: AsyncSession):
     """
     Test updating multiple records in a batch.
-    
+
     This test verifies that the BaseRepository.bulk_update method correctly
     updates multiple records in the database in a single operation.
-    
+
     Args:
         db_session: Database session for repository operations
     """
@@ -416,10 +416,10 @@ async def test_bulk_update(db_session: AsyncSession):
 async def test_transaction_commit(db_session: AsyncSession):
     """
     Test transaction context manager with successful commit.
-    
+
     This test verifies that the BaseRepository.transaction context manager
     correctly commits changes to the database when no exceptions are raised.
-    
+
     Args:
         db_session: Database session for repository operations
     """
@@ -447,10 +447,10 @@ async def test_transaction_commit(db_session: AsyncSession):
 async def test_transaction_rollback(db_session: AsyncSession):
     """
     Test transaction context manager with rollback on exception.
-    
+
     This test verifies that the BaseRepository.transaction context manager
     correctly rolls back changes to the database when an exception is raised.
-    
+
     Args:
         db_session: Database session for repository operations
     """

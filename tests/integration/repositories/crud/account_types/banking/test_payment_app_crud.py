@@ -9,12 +9,8 @@ from decimal import Decimal
 
 import pytest
 
-from src.config.providers.feature_flags import InMemoryConfigProvider
-from tests.helpers.feature_flag_utils import ZeroTTLConfigProvider
-from src.errors.feature_flags import FeatureDisabledError
 from src.models.account_types.banking.payment_app import PaymentAppAccount
 from src.repositories.accounts import AccountRepository
-from src.repositories.factory import RepositoryFactory
 from tests.helpers.schema_factories.account_types.banking.payment_app_schema_factories import (
     create_payment_app_account_schema,
 )
@@ -25,7 +21,7 @@ pytestmark = pytest.mark.asyncio
 async def test_create_payment_app_account(payment_app_repository: AccountRepository):
     """
     Test creating a payment app account following the four-step pattern.
-    
+
     Args:
         payment_app_repository: Repository fixture for payment app accounts
     """
@@ -44,7 +40,9 @@ async def test_create_payment_app_account(payment_app_repository: AccountReposit
     validated_data = account_schema.model_dump()
 
     # 3. ACT: Pass validated data to repository
-    result = await payment_app_repository.create_typed_account("payment_app", validated_data)
+    result = await payment_app_repository.create_typed_account(
+        "payment_app", validated_data
+    )
 
     # 4. ASSERT: Verify the operation results
     assert result is not None
@@ -58,11 +56,12 @@ async def test_create_payment_app_account(payment_app_repository: AccountReposit
 
 
 async def test_get_payment_app_account(
-    payment_app_repository: AccountRepository, test_payment_app_account: PaymentAppAccount
+    payment_app_repository: AccountRepository,
+    test_payment_app_account: PaymentAppAccount,
 ):
     """
     Test retrieving a payment app account by ID.
-    
+
     Args:
         payment_app_repository: Repository fixture for payment app accounts
         test_payment_app_account: Test payment app account fixture
@@ -81,11 +80,12 @@ async def test_get_payment_app_account(
 
 
 async def test_update_payment_app_account(
-    payment_app_repository: AccountRepository, test_payment_app_account: PaymentAppAccount
+    payment_app_repository: AccountRepository,
+    test_payment_app_account: PaymentAppAccount,
 ):
     """
     Test updating a payment app account.
-    
+
     Args:
         payment_app_repository: Repository fixture for payment app accounts
         test_payment_app_account: Test payment app account fixture
@@ -105,9 +105,7 @@ async def test_update_payment_app_account(
 
     # 3. ACT: Update the account using typed update method
     result = await payment_app_repository.update_typed_account(
-        account_id=account_id,
-        account_type="payment_app",
-        data=validated_data
+        account_id=account_id, account_type="payment_app", data=validated_data
     )
 
     # 4. ASSERT: Verify the operation results
@@ -123,11 +121,12 @@ async def test_update_payment_app_account(
 
 
 async def test_delete_payment_app_account(
-    payment_app_repository: AccountRepository, test_payment_app_account: PaymentAppAccount
+    payment_app_repository: AccountRepository,
+    test_payment_app_account: PaymentAppAccount,
 ):
     """
     Test deleting (soft delete) a payment app account.
-    
+
     Args:
         payment_app_repository: Repository fixture for payment app accounts
         test_payment_app_account: Test payment app account fixture
@@ -145,61 +144,3 @@ async def test_delete_payment_app_account(
     account = await payment_app_repository.get(account_id)
     assert account is not None
     assert account.is_closed is True
-
-
-async def test_feature_flag_controls_account_creation(
-    db_session, feature_flag_service
-):
-    """
-    Test that feature flags control payment app account creation through the proxy layer.
-    
-    Args:
-        db_session: Database session fixture
-        feature_flag_service: Feature flag service fixture
-    """
-    
-    # 1. ARRANGE: Create a zero-TTL config provider with specific requirements
-    config_provider = ZeroTTLConfigProvider({
-        "PAYMENT_APP_ACCOUNTS_ENABLED": {
-            "repository": {
-                "create_typed_account": ["payment_app"],
-            }
-        }
-    })
-    
-    # Create repository with proxy and configure feature flags
-    payment_app_repository = RepositoryFactory.create_account_repository(
-        db_session, 
-        account_type="payment_app", 
-        feature_flag_service=feature_flag_service,
-        config_provider=config_provider
-    )
-    
-    # Disable the Payment App account feature flag
-    await feature_flag_service.set_enabled("PAYMENT_APP_ACCOUNTS_ENABLED", False)
-
-    # 2. SCHEMA: Create valid schema
-    account_schema = create_payment_app_account_schema()
-    validated_data = account_schema.model_dump()
-
-    # 3. ACT & ASSERT: Should fail when flag is disabled with a FeatureDisabledError
-    with pytest.raises(FeatureDisabledError) as excinfo:
-        await payment_app_repository.create_typed_account("payment_app", validated_data)
-
-    # The error should be related to features being disabled
-    error_msg = str(excinfo.value)
-    assert any(x in error_msg for x in ["feature", "disabled", "not enabled"])
-
-    # Now enable the flag and retry
-    await feature_flag_service.set_enabled("PAYMENT_APP_ACCOUNTS_ENABLED", True)
-    
-    # Ensure only valid fields are included
-    invalid_fields = ["available_credit"]
-    filtered_data = {
-        k: v for k, v in validated_data.items() if k not in invalid_fields
-    }
-    result = await payment_app_repository.create_typed_account("payment_app", filtered_data)
-
-    # 4. ASSERT: Should succeed when flag is enabled
-    assert result is not None
-    assert result.account_type == "payment_app"

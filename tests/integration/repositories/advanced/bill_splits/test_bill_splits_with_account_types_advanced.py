@@ -35,10 +35,10 @@ async def test_create_bill_split_with_different_account_types(
 ):
     """
     Test creating bill splits with different account types.
-    
+
     This test verifies that bill splits can be created with different account types
     and that the primary account split is calculated correctly.
-    
+
     Args:
         bill_split_repository: Bill split repository
         db_session: Database session
@@ -52,12 +52,12 @@ async def test_create_bill_split_with_different_account_types(
         due_date=utc_now().replace(day=15),  # Due on the 15th
         primary_account_id=test_checking_account.id,
     )
-    
+
     bill = Liability(**bill_schema.model_dump())
     db_session.add(bill)
     await db_session.flush()
     await db_session.refresh(bill)
-    
+
     # Create one of each account type for splits
     checking = CheckingAccount(
         name="Split Test Checking",
@@ -98,13 +98,13 @@ async def test_create_bill_split_with_different_account_types(
         account_id=credit.id,
         amount=Decimal("40.00"),
     )
-    
+
     savings_split_schema = create_bill_split_schema(
         bill_id=bill.id,
         account_id=savings.id,
         amount=Decimal("30.00"),
     )
-    
+
     splits = [
         credit_split_schema.model_dump(),
         savings_split_schema.model_dump(),
@@ -121,7 +121,9 @@ async def test_create_bill_split_with_different_account_types(
     assert len(all_splits) == 3
 
     # Find each split by account type
-    primary_split = next(s for s in all_splits if s.account_id == test_checking_account.id)
+    primary_split = next(
+        s for s in all_splits if s.account_id == test_checking_account.id
+    )
     credit_split = next(s for s in all_splits if s.account_id == credit.id)
     savings_split = next(s for s in all_splits if s.account_id == savings.id)
 
@@ -143,10 +145,10 @@ async def test_bill_split_validation_with_account_types(
 ):
     """
     Test bill split validation with different account types.
-    
+
     This test verifies that bill splits are validated correctly and that
     validation errors are raised when appropriate.
-    
+
     Args:
         bill_split_repository: Bill split repository
         db_session: Database session
@@ -160,12 +162,12 @@ async def test_bill_split_validation_with_account_types(
         due_date=utc_now().replace(day=15),  # Due on the 15th
         primary_account_id=test_checking_account.id,
     )
-    
+
     bill = Liability(**bill_schema.model_dump())
     db_session.add(bill)
     await db_session.flush()
     await db_session.refresh(bill)
-    
+
     # Create accounts for splits
     credit = CreditAccount(
         name="Split Test Credit",
@@ -196,13 +198,13 @@ async def test_bill_split_validation_with_account_types(
         account_id=credit.id,
         amount=Decimal("60.00"),
     )
-    
+
     savings_split_schema = create_bill_split_schema(
         bill_id=bill.id,
         account_id=savings.id,
         amount=Decimal("50.00"),
     )
-    
+
     invalid_splits = [
         credit_split_schema.model_dump(),
         savings_split_schema.model_dump(),
@@ -225,10 +227,10 @@ async def test_transaction_rollback_on_validation_failure(
 ):
     """
     Test that failed validation causes transaction rollback.
-    
+
     This test verifies that when a validation error occurs during bill split creation,
     the transaction is rolled back and no splits are created.
-    
+
     Args:
         bill_split_repository: Bill split repository
         db_session: Database session
@@ -241,7 +243,7 @@ async def test_transaction_rollback_on_validation_failure(
         due_date=utc_now().replace(day=15),  # Due on the 15th
         primary_account_id=test_checking_account.id,
     )
-    
+
     bill = Liability(**bill_schema.model_dump())
     db_session.add(bill)
     await db_session.flush()
@@ -253,7 +255,7 @@ async def test_transaction_rollback_on_validation_failure(
         account_id=9999,  # Non-existent account ID
         amount=Decimal("40.00"),
     )
-    
+
     invalid_account_splits = [invalid_split_schema.model_dump()]
 
     # 3. ACT & ASSERT: Verify validation fails
@@ -273,10 +275,10 @@ async def test_updating_bill_splits_with_account_types(
 ):
     """
     Test updating bill splits with different account types.
-    
+
     This test verifies that bill splits can be updated with different account types
     and that the primary account split is recalculated correctly.
-    
+
     Args:
         bill_split_repository: Bill split repository
         db_session: Database session
@@ -290,12 +292,12 @@ async def test_updating_bill_splits_with_account_types(
         due_date=utc_now().replace(day=15),  # Due on the 15th
         primary_account_id=test_checking_account.id,
     )
-    
+
     bill = Liability(**bill_schema.model_dump())
     db_session.add(bill)
     await db_session.flush()
     await db_session.refresh(bill)
-    
+
     # Create accounts for splits
     credit = CreditAccount(
         name="Split Test Credit",
@@ -326,10 +328,12 @@ async def test_updating_bill_splits_with_account_types(
         account_id=credit.id,
         amount=Decimal("30.00"),
     )
-    
+
     initial_splits = [initial_split_schema.model_dump()]
 
-    created_splits = await bill_split_repository.create_bill_splits(bill.id, initial_splits)
+    created_splits = await bill_split_repository.create_bill_splits(
+        bill.id, initial_splits
+    )
     assert len(created_splits) == 2  # 1 explicit + 1 primary account split
 
     # 2. SCHEMA: Create updated bill split schemas
@@ -338,20 +342,22 @@ async def test_updating_bill_splits_with_account_types(
         account_id=credit.id,
         amount=Decimal("40.00"),
     )
-    
+
     savings_split_schema = create_bill_split_schema(
         bill_id=bill.id,
         account_id=savings.id,
         amount=Decimal("35.00"),
     )
-    
+
     updated_splits = [
         credit_split_schema.model_dump(),
         savings_split_schema.model_dump(),
     ]
 
     # 3. ACT: Update the bill splits
-    updated_result = await bill_split_repository.update_bill_splits(bill.id, updated_splits)
+    updated_result = await bill_split_repository.update_bill_splits(
+        bill.id, updated_splits
+    )
 
     # 4. ASSERT: Verify the results
     # Should have 3 splits now
@@ -359,7 +365,9 @@ async def test_updating_bill_splits_with_account_types(
     assert len(all_splits) == 3
 
     # Find each split by account type
-    primary_split = next(s for s in all_splits if s.account_id == test_checking_account.id)
+    primary_split = next(
+        s for s in all_splits if s.account_id == test_checking_account.id
+    )
     credit_split = next(s for s in all_splits if s.account_id == credit.id)
     savings_split = next(s for s in all_splits if s.account_id == savings.id)
 
@@ -381,10 +389,10 @@ async def test_creating_primary_account_split_automatically(
 ):
     """
     Test that primary account split is created automatically with correct amount.
-    
+
     This test verifies that when bill splits are created, a split for the primary account
     is automatically created with the correct amount (bill amount - sum of other splits).
-    
+
     Args:
         bill_split_repository: Bill split repository
         db_session: Database session
@@ -398,12 +406,12 @@ async def test_creating_primary_account_split_automatically(
         due_date=utc_now().replace(day=15),  # Due on the 15th
         primary_account_id=test_checking_account.id,
     )
-    
+
     bill = Liability(**bill_schema.model_dump())
     db_session.add(bill)
     await db_session.flush()
     await db_session.refresh(bill)
-    
+
     # Create account for split
     credit = CreditAccount(
         name="Split Test Credit",
@@ -425,7 +433,7 @@ async def test_creating_primary_account_split_automatically(
         account_id=credit.id,
         amount=Decimal("75.00"),
     )
-    
+
     splits = [credit_split_schema.model_dump()]
 
     # 3. ACT: Create the bill splits
@@ -436,7 +444,9 @@ async def test_creating_primary_account_split_automatically(
     assert len(created_splits) == 2
 
     # The primary account split should have been created automatically
-    primary_splits = [s for s in created_splits if s.account_id == test_checking_account.id]
+    primary_splits = [
+        s for s in created_splits if s.account_id == test_checking_account.id
+    ]
     assert len(primary_splits) == 1
 
     # The primary account split amount should be the remainder

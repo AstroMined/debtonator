@@ -174,17 +174,17 @@ def test_date_range_with_timezone_preservation():
     # Create dates with UTC timezone
     start = utc_datetime(2025, 3, 15)
     end = utc_datetime(2025, 3, 17)
-    
+
     dates = date_range(start, end)
-    
+
     # Verify all dates have UTC timezone
     assert all(d.tzinfo == timezone.utc for d in dates)
-    
+
     # Create dates with a different timezone
     eastern = timezone(timedelta(hours=-5))
     start_eastern = datetime(2025, 3, 15, tzinfo=eastern)
     end_eastern = datetime(2025, 3, 17, tzinfo=eastern)
-    
+
     # This should raise ValueError due to ADR-011 compliance
     with pytest.raises(ValueError):
         date_range(start_eastern, end_eastern)
@@ -194,18 +194,19 @@ def test_naive_date_range_with_no_timezone():
     """Test naive_date_range ensures no timezone information."""
     # Create dates with no timezone
     from src.utils.datetime_utils import naive_utc_from_date
+
     start = naive_utc_from_date(2025, 3, 15)
     end = naive_utc_from_date(2025, 3, 17)
-    
+
     dates = naive_date_range(start, end)
-    
+
     # Verify all dates have no timezone
     assert all(d.tzinfo is None for d in dates)
-    
+
     # Create dates with UTC timezone
     start_utc = utc_datetime(2025, 3, 15)
     end_utc = utc_datetime(2025, 3, 17)
-    
+
     # This should work but strip timezone
     dates_from_utc = naive_date_range(start_utc, end_utc)
     assert all(d.tzinfo is None for d in dates_from_utc)

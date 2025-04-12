@@ -15,10 +15,10 @@ async def test_cashflow_forecast(
 ) -> CashflowForecast:
     """
     Create a test cashflow forecast.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         CashflowForecast: Created cashflow forecast
     """
@@ -58,10 +58,10 @@ async def test_multiple_forecasts(
 ) -> List[CashflowForecast]:
     """
     Create multiple cashflow forecasts for testing.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         List[CashflowForecast]: List of created cashflow forecasts
     """

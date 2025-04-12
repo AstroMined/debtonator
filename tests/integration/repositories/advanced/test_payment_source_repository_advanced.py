@@ -14,7 +14,6 @@ from src.models.accounts import Account
 from src.models.payments import Payment, PaymentSource
 from src.repositories.payment_sources import PaymentSourceRepository
 from src.repositories.payments import PaymentRepository
-from src.schemas.payments import PaymentSourceCreate
 from src.utils.datetime_utils import utc_now
 from tests.helpers.schema_factories.payments_schema_factories import (
     create_payment_schema,
@@ -212,8 +211,10 @@ async def test_delete_sources_for_payment(
 async def test_validation_error_handling():
     """Test that schema validation catches invalid data."""
     # Import the schema factory
-    from tests.helpers.schema_factories.payment_sources_schema_factories import create_payment_source_schema
-    
+    from tests.helpers.schema_factories.payment_sources_schema_factories import (
+        create_payment_source_schema,
+    )
+
     # Try creating a schema with invalid data
     try:
         # Using PaymentSourceCreate since it doesn't require payment_id

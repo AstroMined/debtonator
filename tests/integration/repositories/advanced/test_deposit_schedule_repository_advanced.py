@@ -19,7 +19,6 @@ from src.models.accounts import Account
 from src.models.deposit_schedules import DepositSchedule
 from src.models.income import Income
 from src.repositories.deposit_schedules import DepositScheduleRepository
-from src.schemas.deposit_schedules import DepositScheduleCreate
 from src.utils.datetime_utils import (
     datetime_equals,
     datetime_greater_than,
@@ -352,8 +351,10 @@ async def test_validation_error_handling(
 ):
     """Test handling invalid data that would normally be caught by schema validation."""
     # Import the schema factory
-    from tests.helpers.schema_factories.deposit_schedules_schema_factories import create_deposit_schedule_schema
-    
+    from tests.helpers.schema_factories.deposit_schedules_schema_factories import (
+        create_deposit_schedule_schema,
+    )
+
     # Try creating a schema with invalid data and expect it to fail validation
     try:
         invalid_schema = create_deposit_schedule_schema(
