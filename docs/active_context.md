@@ -6,7 +6,37 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
 
 ### Recent Changes
 
-1. **Standardized Banking Account Type Repository Tests (April 12, 2025)** ✓
+1. **Created and Implemented PolymorphicBaseRepository Class (April 12, 2025)** ✓
+   - Designed and implemented a specialized base repository for polymorphic entities:
+     - Created `PolymorphicBaseRepository` class that extends `BaseRepository`
+     - Disabled base `create` and `update` methods with `NotImplementedError`
+     - Implemented `create_typed_entity` and `update_typed_entity` methods
+     - Added automatic field validation and filtering based on model class
+     - Integrated with type registries for proper model class lookup
+   - Addressed critical technical debt in polymorphic entity handling:
+     - Eliminated SQLAlchemy warnings about "Flushing object with incompatible polymorphic identity"
+     - Provided clear separation between repositories for simple and polymorphic entities
+     - Created consistent interface for all polymorphic repositories
+     - Ensured proper type handling and identity management
+     - Prevented setting invalid fields that don't exist on specific model classes
+   - Updated documentation and implementation plans:
+     - Added pattern to system_patterns.md with detailed explanation and examples
+     - Updated ADR-016 with the new polymorphic repository pattern
+     - Updated implementation checklist with new tasks
+     - Prioritized implementation in next steps
+   - Future-proofed design for upcoming entity types:
+     - Pattern will support statement types described in ADR-025
+     - Scales to support any number of polymorphic entity types
+     - Simplifies adding new polymorphic entity types
+     - Provides consistent interface across all polymorphic repositories
+   - Implementation includes:
+     - Proper registry integration with account_type_registry
+     - Field filtering to prevent invalid fields
+     - Type verification during updates
+     - Detailed error messages for troubleshooting
+     - Comprehensive documentation with example usage
+
+2. **Standardized Banking Account Type Repository Tests (April 12, 2025)** ✓
    - Identified inconsistencies in repository test patterns across banking account types:
      - Found that ewa, bnpl, and payment_app tests followed proper CRUD pattern
      - Discovered checking, credit, and savings tests mixed CRUD and advanced operations
@@ -23,12 +53,13 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Relocated polymorphic identity tests (get_with_type, get_by_type)
      - Moved specialized create/update tests (create_typed_account, update_typed_account)
      - Maintained all existing test functionality when moving tests
-   - Next steps:
-     - Troubleshoot remaining test failures in a future session
-     - Apply similar standardization to other repository test files
-     - Document the standardized repository test pattern for team members
+   - Updated method calls across all test files:
+     - Changed create_typed_account to create_typed_entity
+     - Changed update_typed_account to update_typed_entity
+     - Updated method parameter order to match new interface
+     - Standardized parameter naming across all files
 
-2. **Consolidated Feature Flag Test Fixtures (April 12, 2025)** ✓
+3. **Consolidated Feature Flag Test Fixtures (April 12, 2025)** ✓
    - Identified and resolved issues with scattered feature flag fixtures:
      - Found 7 overlapping fixture files with duplicate functionality
      - Identified transaction rollback issues causing cascading test failures
@@ -48,12 +79,8 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Updated conftest.py to reference the new consolidated fixture file
      - Removed obsolete fixture files to prevent confusion
      - Verified tests pass with the new consolidated approach
-   - Next steps:
-     - Add more test cases to expand coverage with the new fixture system
-     - Apply similar consolidation pattern to other scattered fixtures
-     - Document the fixture consolidation pattern for other team members
 
-3. **Fixed Critical Feature Flag System Issues (ADR-024) (April 11, 2025)** ✓
+4. **Fixed Critical Feature Flag System Issues (ADR-024) (April 11, 2025)** ✓
    - Identified and resolved major issues with feature flag implementation:
      - Fixed async/sync mismatch in feature flag service and proxy implementation
      - Modified `is_enabled()` method to be properly async, resolving await errors
@@ -71,12 +98,8 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - test_bnpl_crud.py
      - test_ewa_crud.py
      - test_payment_app_crud.py
-   - Next steps:
-     - Complete error handling system implementation
-     - Continue repository test refactoring
-     - Fix remaining Pydantic v2 discriminator issues
 
-4. **Implemented Cross-Layer Integration and Management API for Feature Flag System (ADR-024) (April 11, 2025)** ✓
+5. **Implemented Cross-Layer Integration and Management API for Feature Flag System (ADR-024) (April 11, 2025)** ✓
    - Implemented Feature Flag Management API (Phase 4):
      - Created administrative API endpoints for feature flag management
      - Implemented endpoints for retrieving and updating flag requirements
@@ -93,61 +116,31 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Marked ADR-024 as fully implemented
      - Added implementation notes with lessons learned
      - Updated status from Proposed to Implemented
-   - Next steps:
-     - Document feature flag patterns in guides (Phase 6)
-     - Complete Memory Bank updates with implementation details
-     - Mark implementation checklist as complete
-
-5. **Completed API Layer for Feature Flag System (ADR-024) (April 11, 2025)** ✓
-   - Implemented middleware for API-level feature flag enforcement:
-     - Created `FeatureFlagMiddleware` ASGI middleware for intercepting HTTP requests
-     - Implemented URL path pattern matching for feature requirements
-     - Added account type extraction from request parameters
-     - Created caching mechanism with TTL for performance optimization
-     - Added comprehensive logging for feature flag decisions
-   - Implemented exception handling for feature flag errors:
-     - Created centralized exception handler for `FeatureDisabledError`
-     - Enhanced error responses with detailed context about disabled features
-     - Integrated error handling with existing error utilities
-     - Ensured backward compatibility with existing error patterns
-   - Updated FastAPI application with middleware integration:
-     - Added middleware initialization during application startup
-     - Registered exception handlers for feature flag errors
-     - Configured dependencies for feature flag service and config provider
-   - Created comprehensive tests for API layer integration:
-     - Created fixtures directory following project patterns
-     - Implemented tests for feature flag enforcement at API boundaries
-     - Tested both enabled and disabled feature scenarios
-     - Added caching behavior tests with TTL verification
-     - Maintained "Real Objects Testing Philosophy" from ADR-014
-   - Verified no scattered feature flag checks in API layer:
-     - Examined all API endpoints for manual feature flag checks
-     - Confirmed feature flag enforcement is now centralized at middleware level
-   - Updated implementation checklist for Phase 3 completion:
-     - Marked all Phase 3 tasks as completed (5/5 sections)
-     - API Layer Implementation is now 100% complete
-     - Updated progress tracking to reflect completed work
-   - Next steps:
-     - Implement Management API in Phase 4
-     - Create end-to-end integration tests in Phase 5
-     - Update documentation in Phase 6
 
 ## Next Steps
 
-1. **Troubleshoot Repository Test Failures**
+1. **Create Unit Tests for PolymorphicBaseRepository**
+   - Implement test_polymorphic_base_repository.py to verify core functionality
+   - Test disabled base methods raise proper exceptions
+   - Test proper field filtering and validation
+   - Create test scenarios for error handling cases
+   - Verify proper registry integration
+   - Create tests for update handling with type validation
+
+2. **Troubleshoot Repository Test Failures**
    - Investigate and fix test failures in standardized banking account type tests
    - Ensure proper fixture usage and test isolation
    - Verify correct repository factory integration
    - Address any remaining issues with repository proxy pattern
 
-2. **Complete Error Handling System Implementation**
+3. **Complete Error Handling System Implementation**
    - Implement remaining error classes for account types
    - Create consistent error translation between layers
    - Add user-friendly error messages to API responses
    - Implement error handling middleware for API endpoints
    - Add comprehensive documentation for error handling patterns
 
-3. **Continue Repository Test Refactoring**
+4. **Continue Repository Test Refactoring**
    - Refactor account type advanced tests:
      - advanced/account_types/banking/test_bnpl_advanced.py
      - advanced/account_types/banking/test_ewa_advanced.py
@@ -161,37 +154,42 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - account_types/banking/test_savings.py
      - bill_splits/test_bill_splits_with_account_types.py
 
-4. **Complete Schema Factory Test Coverage**
+5. **Complete Schema Factory Test Coverage**
    - Implement remaining tests for account_types schema factories
    - Increase test coverage for specific schema factory components with < 90% coverage
    - Improve test coverage for complex edge cases in nested structures
    - Add cross-factory integration testing for complex relationships
    - Implement tests for additional service-level schema validations
 
-5. **Fix Remaining Schema Factory Implementation Issues**
-   - Address validator conflict with discriminator fields in response models
-   - Ensure proper handling of field validators in discriminated unions
-   - Move complex validation logic to service layer where needed
-   - Add robust handling for nested discriminated union validation
-   - Document proper schema-service validation patterns
-
 ## Implementation Lessons
 
-1. **Repository Fixture Usage Patterns**
+1. **Polymorphic Repository Pattern**
+   - Use specialized base repository for polymorphic entities (`PolymorphicBaseRepository`)
+   - Disable base `create` and `update` methods with `NotImplementedError` to prevent incorrect usage
+   - Implement type-specific creation and update methods (`create_typed_entity`, `update_typed_entity`)
+   - Always use concrete subclasses that match the intended polymorphic type
+   - Integrate with type registries for proper model class lookup
+   - Implement automatic field validation and filtering based on model class
+   - Ensure proper type handling and identity management
+   - Prevent setting invalid fields that don't exist on specific model classes
+   - Use consistent interface for all polymorphic repositories
+   - Design for future expansion to support any number of polymorphic entity types
+
+2. **Repository Fixture Usage Patterns**
    - Use repository_factory as a function, not as an object with methods
    - Understand the difference between class-based and function-based fixtures
    - Ensure consistent fixture usage patterns across similar repository types
    - Verify fixture implementation matches usage in tests
    - Document fixture usage patterns for team reference
 
-2. **Repository Test Organization**
+3. **Repository Test Organization**
    - Separate CRUD tests from advanced repository tests
    - Place basic CRUD operations (create, get, update, delete) in crud/ directory
    - Place specialized operations in advanced/ directory
    - Maintain consistent test naming across similar repository types
    - Follow established patterns from working test files
 
-3. **Feature Flag System Architecture**
+4. **Feature Flag System Architecture**
    - Centralize feature flag enforcement at architectural boundaries instead of scattering checks
    - Use proxy/interceptor patterns to separate business logic from feature gating
    - Implement domain-specific exceptions for better error handling and clarity
@@ -205,7 +203,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
    - Add helper utilities for clear cache invalidation when needed
    - Implement proper inspection of async methods to avoid mismatches
 
-4. **Test Consolidation for Complete Coverage**
+5. **Test Consolidation for Complete Coverage**
    - Analyze coverage reports to identify specific uncovered lines and branches
    - Combine complementary test files that cover different parts of the same functionality
    - Create targeted tests for specific edge cases that are missed by existing tests
@@ -215,7 +213,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
    - Test both positive and negative scenarios for complete coverage
    - Verify coverage with specific coverage reports after changes
 
-5. **Model Fixture Standardization**
+6. **Model Fixture Standardization**
    - Use naive_utc_now() for all database datetime fields instead of utc_now().replace(tzinfo=None)
    - Always use db_session.flush() instead of db_session.commit() in fixtures
    - Add comprehensive Args and Returns sections to all fixture docstrings
@@ -228,7 +226,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
    - Organize fixtures by model type for better maintainability
    - Follow consistent patterns for relationship handling
 
-6. **Utils Module Test Organization**
+7. **Utils Module Test Organization**
    - Organize tests into logical groupings based on functionality
    - Create separate test files for different aspects of a module (e.g., comparison, conversion, range operations)
    - Use descriptive test names that clearly indicate what's being tested
@@ -238,7 +236,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
    - Focus on behavior testing rather than implementation details
    - Document when integration tests are needed instead of using mocks
 
-7. **Naive vs. Timezone-Aware Datetime Functions**
+8. **Naive vs. Timezone-Aware Datetime Functions**
    - Use naive_* functions for database operations (e.g., naive_utc_now(), naive_days_ago())
    - Use timezone-aware functions for business logic (e.g., utc_now(), days_ago())
    - Convert between naive and aware only at the database boundary
@@ -248,7 +246,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
    - Use timezone-aware functions when testing business logic
    - Be explicit about which type of datetime is expected in assertions
 
-8. **Schema Factory Test Determinism**
+9. **Schema Factory Test Determinism**
    - Avoid random behavior in tests that can lead to intermittent failures
    - Use explicit parameters to control test behavior (e.g., include_seasonality)
    - Create separate test cases for different scenarios instead of random behavior
@@ -256,15 +254,15 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
    - Use random behavior tests only for verifying distribution, not for functional testing
    - Add clear parameter documentation to make test control obvious
 
-9. **Repository Test Decoupling**
-   - Create test-specific models and schemas for testing generic functionality
-   - Avoid using business models in tests for generic components
-   - Use schema factories to simplify test data creation
-   - Follow the Arrange-Schema-Act-Assert pattern consistently
-   - Create reusable test fixtures for common test scenarios
-   - Implement proper validation flow in all repository tests
+10. **Repository Test Decoupling**
+    - Create test-specific models and schemas for testing generic functionality
+    - Avoid using business models in tests for generic components
+    - Use schema factories to simplify test data creation
+    - Follow the Arrange-Schema-Act-Assert pattern consistently
+    - Create reusable test fixtures for common test scenarios
+    - Implement proper validation flow in all repository tests
 
-10. **Repository Fixture Organization**
+11. **Repository Fixture Organization**
     - Mirror source code directory structure in test fixtures
     - Use consistent naming convention with fixture_ prefix and _repositories suffix
     - Create separate fixture files for each repository type

@@ -127,7 +127,7 @@ async def test_create_typed_account_with_credit_type(
     )
 
     # 3. ACT: Create the account
-    result = await repository.create_typed_account(
+    result = await repository.create_typed_entity(
         "credit", account_schema.model_dump()
     )
 
@@ -182,7 +182,7 @@ async def test_update_typed_account_with_credit_type(
     )
 
     # 3. ACT: Update the account
-    result = await repository.update_typed_account(
+    result = await repository.update_typed_entity(
         test_credit_account.id, "credit", update_schema.model_dump()
     )
 

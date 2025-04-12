@@ -46,7 +46,7 @@ async def test_create_bnpl_account(bnpl_repository: AccountRepository):
     # Ensure only invalid fields are excluded
     invalid_fields = ["available_credit"]
     filtered_data = {k: v for k, v in validated_data.items() if k not in invalid_fields}
-    result = await bnpl_repository.create_typed_account("bnpl", filtered_data)
+    result = await bnpl_repository.create_typed_entity("bnpl", filtered_data)
 
     # 4. ASSERT: Verify the operation results
     assert result is not None
@@ -106,8 +106,8 @@ async def test_update_bnpl_account(
     validated_data = update_schema.model_dump()
 
     # 3. ACT: Update the account using typed update method
-    result = await bnpl_repository.update_typed_account(
-        account_id=account_id, account_type="bnpl", data=validated_data
+    result = await bnpl_repository.update_typed_entity(
+        account_id, "bnpl", validated_data
     )
 
     # 4. ASSERT: Verify the operation results

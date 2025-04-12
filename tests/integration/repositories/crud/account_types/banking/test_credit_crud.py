@@ -41,7 +41,7 @@ async def test_create_credit_account(credit_repository: AccountRepository):
     validated_data = account_schema.model_dump()
 
     # 3. ACT: Pass validated data to repository
-    result = await credit_repository.create_typed_account("credit", validated_data)
+    result = await credit_repository.create_typed_entity("credit", validated_data)
 
     # 4. ASSERT: Verify the operation results
     assert result is not None
@@ -101,8 +101,8 @@ async def test_update_credit_account(
     validated_data = update_schema.model_dump()
 
     # 3. ACT: Update the account using typed update method
-    result = await credit_repository.update_typed_account(
-        account_id=account_id, account_type="credit", data=validated_data
+    result = await credit_repository.update_typed_entity(
+        account_id, "credit", validated_data
     )
 
     # 4. ASSERT: Verify the operation results

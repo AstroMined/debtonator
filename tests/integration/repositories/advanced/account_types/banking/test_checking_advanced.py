@@ -121,10 +121,10 @@ async def test_create_typed_account_with_checking_type(
     )
 
     # 3. ACT: Create the account
-    result = await account_repository.create_typed_account(
+    result = await account_repository.create_typed_entity(
         "checking",
         account_schema.model_dump(),
-        account_type_registry=account_type_registry,
+        registry=account_type_registry,
     )
 
     # 4. ASSERT: Verify the account was created correctly
@@ -169,11 +169,11 @@ async def test_update_typed_account_with_checking_type(
     )
 
     # 3. ACT: Update the account
-    result = await account_repository.update_typed_account(
+    result = await account_repository.update_typed_entity(
         test_checking_account.id,
         "checking",
         update_schema.model_dump(),
-        account_type_registry=account_type_registry,
+        registry=account_type_registry,
     )
 
     # 4. ASSERT: Verify the account was updated correctly

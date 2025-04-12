@@ -129,6 +129,104 @@ The Repository Module Pattern allows for specialized repository functionality to
    - Type-specific operations are only available when features are enabled
    - Graceful degradation when features are disabled
 
+### Polymorphic Repository Pattern
+
+```mermaid
+graph TD
+    A[BaseRepository] --> B[PolymorphicBaseRepository]
+    B --> C[AccountRepository]
+    B --> D[StatementRepository]
+    B --> E[Other Polymorphic Repositories]
+    
+    F[Registry] --> B
+    G[Discriminator Field] --> B
+    
+    H[create] --> I[Disabled]
+    J[update] --> I
+    
+    K[create_typed_entity] --> L[Enabled]
+    M[update_typed_entity] --> L
+    
+    N[Field Validation] --> B
+    O[Type Safety] --> B
+```
+
+The Polymorphic Repository Pattern provides a specialized base repository for polymorphic entities that enforces proper type handling and identity management. Key aspects include:
+
+1. **Enforced Polymorphic Identity**:
+   - Base `create` and `update` methods are disabled with `NotImplementedError`
+   - Only type-specific creation and updates are allowed through specialized methods
+   - Prevents SQLAlchemy warnings about "Flushing object with incompatible polymorphic identity"
+   - Example:
+
+   ```python
+   # ✅ Correct: Using typed entity creation
+   account = await account_repository.create_typed_entity("checking", account_data)
+   
+   # ❌ Incorrect: Using base create method (raises NotImplementedError)
+   account = await account_repository.create(account_data)
+   ```
+
+2. **Clear Separation of Concerns**:
+   - `PolymorphicBaseRepository` provides a clear distinction between repositories for simple and polymorphic entities
+   - Consistent interface for all polymorphic repositories
+   - Type-specific validation and field filtering
+   - Example implementation:
+
+   ```python
+   class PolymorphicBaseRepository(BaseRepository[PolyModelType, PKType]):
+       """Base repository for polymorphic entities."""
+       
+       # Class variable to store the discriminator field name
+       discriminator_field: ClassVar[str] = "type"
+       
+       # Registry to use for model class lookup
+       registry = None
+       
+       async def create(self, obj_in: Dict[str, Any]) -> PolyModelType:
+           """Disabled for polymorphic repositories."""
+           raise NotImplementedError(
+               "Direct creation through base repository is disabled for polymorphic entities. "
+               "Use create_typed_entity() instead to ensure proper polymorphic identity."
+           )
+       
+       async def create_typed_entity(
+           self, 
+           entity_type: str, 
+           data: Dict[str, Any]
+       ) -> PolyModelType:
+           """Create a new entity with the specified polymorphic type."""
+           # Implementation details...
+   ```
+
+3. **Registry Integration**:
+   - Built-in support for type registries ensures proper model class lookup
+   - Automatic field filtering based on model class
+   - Preserves required fields and prevents setting them to NULL
+   - Example usage:
+
+   ```python
+   class AccountRepository(PolymorphicBaseRepository[Account, int]):
+       """Repository for account operations."""
+       
+       # Set the discriminator field for accounts
+       discriminator_field = "account_type"
+       
+       # Set the registry for account types
+       registry = account_type_registry
+   ```
+
+4. **Field Validation and Filtering**:
+   - Automatically filters input data to include only valid fields for the specific model class
+   - Prevents setting invalid fields that don't exist on the model
+   - Preserves required fields during updates
+   - Ensures discriminator field is always set correctly
+
+5. **Future-Proof Design**:
+   - Scales to support any number of polymorphic entity types (accounts, statements, etc.)
+   - Consistent interface across all polymorphic repositories
+   - Simplifies adding new polymorphic entity types
+
 ## Validation Patterns
 
 ### Multi-Layer Validation Approach

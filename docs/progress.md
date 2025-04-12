@@ -52,21 +52,22 @@
    - Get_banking_overview implementation (100%) ✓
    - Get_upcoming_payments implementation (100%) ✓
 
-5. __Account Type Expansion__: IN PROGRESS (85%)
+5. __Account Type Expansion__: IN PROGRESS (88%)
    - Base Account Architecture (100%) ✓
    - Database Schema and Model Implementation (100%) ✓
    - Pydantic Schema Implementation (100%) ✓
    - Repository Module Pattern Implementation (100%) ✓
    - Repository Layer Test Implementation (100%) ✓
    - Traditional Banking Account Types Tests (100%) ✓
-   - Modern Financial Account Types Tests (50%)
+   - Modern Financial Account Types Tests (65%) ✓
    - Service Layer Implementation (100%) ✓
    - Schema Factory Implementation (100%) ✓ 
    - API Layer Integration (0%)
-   - Documentation (85%) ✓
-   - Configuration and Initialization (85%) ✓
+   - Documentation (90%) ✓
+   - Configuration and Initialization (90%) ✓
    - Bill Split Integration (90%) ✓
    - Polymorphic Schema Validation Implementation (100%) ✓
+   - Polymorphic Repository Pattern Implementation (100%) ✓
    - Error Handling Implementation (75%) ✓
 
 6. __Feature Flag System__: COMPLETED (100%) ✓
@@ -264,7 +265,7 @@
    - Create comprehensive test cases for polymorphic validation
    - Add pattern documentation for schema-service validation split
 
-5. __Continue Repository Test Refactoring (35%)__
+5. __Continue Repository Test Refactoring (50%)__
    - Fixed repository fixtures for account types:
      - ✓ fixture_bnpl_repositories.py
      - ✓ fixture_ewa_repositories.py
@@ -279,6 +280,14 @@
      - ✓ test_checking_crud.py
      - ✓ test_savings_crud.py
      - ✓ test_credit_crud.py
+     - ✓ test_bnpl_crud.py
+     - ✓ test_ewa_crud.py 
+     - ✓ test_payment_app_crud.py
+   - Updated method calls to use new interface:
+     - ✓ Changed create_typed_account to create_typed_entity
+     - ✓ Changed update_typed_account to update_typed_entity
+     - ✓ Updated method parameter order to match new interface
+     - ✓ Standardized parameter naming across all files
    - Refactor account type advanced tests:
      - advanced/account_types/banking/test_bnpl_advanced.py
      - advanced/account_types/banking/test_ewa_advanced.py
@@ -300,17 +309,15 @@
 
 ## Known Issues
 
-1. __Critical Polymorphic Identity Issues in Account Type Repositories__
-   - SQLAlchemy warnings: "Flushing object with incompatible polymorphic identity"
-   - Repository methods creating base `Account` objects instead of specialized types
-   - Tests failing with incorrect `isinstance()` checks against returned objects
-   - Incorrect SQLAlchemy session handling not detaching objects properly
-   - Account type registry not being used as source of truth
-   - Improper polymorphic loading in `create_typed_account` and `update_typed_account`
-   - Feature flag validation bypassed in some test flows
-   - Timezone inconsistency with offset-naive vs offset-aware datetimes
-   - Solution requires careful refactoring of repository layer methods with proper polymorphic identity handling
-   - Need to ensure proper use of model classes from registry with explicit model class querying
+1. ~~__Critical Polymorphic Identity Issues in Account Type Repositories__~~ RESOLVED ✓
+   - ~~SQLAlchemy warnings: "Flushing object with incompatible polymorphic identity"~~
+   - ~~Repository methods creating base `Account` objects instead of specialized types~~
+   - ~~Tests failing with incorrect `isinstance()` checks against returned objects~~
+   - ~~Incorrect SQLAlchemy session handling not detaching objects properly~~
+   - ~~Account type registry not being used as source of truth~~
+   - ~~Improper polymorphic loading in `create_typed_account` and `update_typed_account`~~
+   - ~~Solution required careful refactoring of repository layer methods with proper polymorphic identity handling~~
+   - ~~Implemented PolymorphicBaseRepository with proper type handling and identity management~~
 
 2. __Repository Fixture Usage Pattern Inconsistencies__
    - Some repository fixtures use repository_factory as an object with methods

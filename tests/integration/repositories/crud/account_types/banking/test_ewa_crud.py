@@ -43,7 +43,7 @@ async def test_create_ewa_account(ewa_repository: AccountRepository):
     # Ensure only invalid fields are excluded
     invalid_fields = ["available_credit"]
     filtered_data = {k: v for k, v in validated_data.items() if k not in invalid_fields}
-    result = await ewa_repository.create_typed_account("ewa", filtered_data)
+    result = await ewa_repository.create_typed_entity("ewa", filtered_data)
 
     # 4. ASSERT: Verify the operation results
     assert result is not None
@@ -103,8 +103,8 @@ async def test_update_ewa_account(
     validated_data = update_schema.model_dump()
 
     # 3. ACT: Update the account using typed update method
-    result = await ewa_repository.update_typed_account(
-        account_id=account_id, account_type="ewa", data=validated_data
+    result = await ewa_repository.update_typed_entity(
+        account_id, "ewa", validated_data
     )
 
     # 4. ASSERT: Verify the operation results

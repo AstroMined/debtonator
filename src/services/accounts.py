@@ -308,8 +308,8 @@ class AccountService:
             self._update_available_credit(account_obj)
             account_dict["available_credit"] = account_obj.available_credit
 
-        # Use repository to create account
-        db_account = await self.account_repo.create(account_dict)
+        # Use repository to create account with typed entity
+        db_account = await self.account_repo.create_typed_entity(account_type, account_dict)
 
         # Convert to appropriate response type based on account type
         # This will work with a discriminated union because all the response types
@@ -379,8 +379,9 @@ class AccountService:
             self._update_available_credit(db_account)
             update_data["available_credit"] = db_account.available_credit
 
-        # Use repository to update account
-        updated_account = await self.account_repo.update(account_id, update_data)
+        # Use repository to update account with proper type
+        account_type = db_account.account_type
+        updated_account = await self.account_repo.update_typed_entity(account_id, account_type, update_data)
         return AccountInDB.model_validate(updated_account) if updated_account else None
 
     async def validate_account_deletion(
@@ -547,7 +548,14 @@ class AccountService:
             "last_statement_balance": statement_balance,
             "last_statement_date": statement_date,
         }
-        updated_account = await self.account_repo.update(account_id, account_update)
+        
+        # Use typed entity update
+        account_type = db_account.account_type
+        updated_account = await self.account_repo.update_typed_entity(
+            account_id, 
+            account_type, 
+            account_update
+        )
 
         # Create statement history entry using the statement repository
         statement_data = StatementHistoryCreate(
@@ -602,7 +610,14 @@ class AccountService:
             "total_limit": credit_limit_data.credit_limit,
             "available_credit": db_account.available_credit,
         }
-        updated_account = await self.account_repo.update(account_id, account_update)
+        
+        # Use typed entity update
+        account_type = db_account.account_type
+        updated_account = await self.account_repo.update_typed_entity(
+            account_id, 
+            account_type, 
+            account_update
+        )
 
         # Create credit limit history entry using the credit limit repository
         history_data = CreditLimitHistoryCreate(

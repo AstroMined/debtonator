@@ -40,7 +40,7 @@ async def test_create_savings_account(savings_repository: AccountRepository):
     validated_data = account_schema.model_dump()
 
     # 3. ACT: Pass validated data to repository
-    result = await savings_repository.create_typed_account("savings", validated_data)
+    result = await savings_repository.create_typed_entity("savings", validated_data)
 
     # 4. ASSERT: Verify the operation results
     assert result is not None
@@ -100,8 +100,8 @@ async def test_update_savings_account(
     validated_data = update_schema.model_dump()
 
     # 3. ACT: Update the account using typed update method
-    result = await savings_repository.update_typed_account(
-        account_id=account_id, account_type="savings", data=validated_data
+    result = await savings_repository.update_typed_entity(
+        account_id, "savings", validated_data
     )
 
     # 4. ASSERT: Verify the operation results

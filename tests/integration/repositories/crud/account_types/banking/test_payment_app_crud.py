@@ -40,7 +40,7 @@ async def test_create_payment_app_account(payment_app_repository: AccountReposit
     validated_data = account_schema.model_dump()
 
     # 3. ACT: Pass validated data to repository
-    result = await payment_app_repository.create_typed_account(
+    result = await payment_app_repository.create_typed_entity(
         "payment_app", validated_data
     )
 
@@ -104,8 +104,8 @@ async def test_update_payment_app_account(
     validated_data = update_schema.model_dump()
 
     # 3. ACT: Update the account using typed update method
-    result = await payment_app_repository.update_typed_account(
-        account_id=account_id, account_type="payment_app", data=validated_data
+    result = await payment_app_repository.update_typed_entity(
+        account_id, "payment_app", validated_data
     )
 
     # 4. ASSERT: Verify the operation results

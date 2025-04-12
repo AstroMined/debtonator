@@ -106,31 +106,31 @@ Major remaining components:
 
 ## Feature Flag Integration
 
-- [x] Integrate with centralized feature flag system from ADR-024:
-  - [x] Integrate AccountRepository with FeatureFlagRepositoryProxy
-  - [x] Integrate AccountService with Service Interceptor pattern
+- [ ] Integrate with centralized feature flag system from ADR-024:
+  - [ ] Integrate AccountRepository with FeatureFlagRepositoryProxy
+  - [ ] Integrate AccountService with Service Interceptor pattern
   - [ ] Register account type endpoints in feature flag requirements database
-  - [x] Remove direct feature flag checks from repositories
-  - [x] Remove direct feature flag checks from services
-  - [x] Configure feature flags for account type expansion features
+  - [ ] Remove direct feature flag checks from repositories
+  - [ ] Remove direct feature flag checks from services
+  - [ ] Configure feature flags for account type expansion features
 
-- [x] Add specific feature flags:
-  - [x] Create `MULTI_CURRENCY_SUPPORT_ENABLED` flag
-  - [x] Create `INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED` flag
-  - [x] Configure default values (disabled in production)
-  - [x] Document flag behavior in code
+- [ ] Add specific feature flags:
+  - [ ] Create `MULTI_CURRENCY_SUPPORT_ENABLED` flag
+  - [ ] Create `INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED` flag
+  - [ ] Configure default values (disabled in production)
+  - [ ] Document flag behavior in code
 
-- [x] Update model behavior with feature flags:
-  - [x] Add conditional validation based on feature flags
-  - [x] Filter fields based on enabled features
-  - [x] Add graceful degradation for disabled features
-  - [x] Ensure backward compatibility when flags are disabled
+- [ ] Update model behavior with feature flags:
+  - [ ] Add conditional validation based on feature flags
+  - [ ] Filter fields based on enabled features
+  - [ ] Add graceful degradation for disabled features
+  - [ ] Ensure backward compatibility when flags are disabled
 
-- [x] Create feature flag tests:
-  - [x] Test behavior with flags enabled
-  - [x] Test behavior with flags disabled
-  - [x] Test transitions between states
-  - [x] Test error handling for disabled features
+- [ ] Create feature flag tests:
+  - [ ] Test behavior with flags enabled
+  - [ ] Test behavior with flags disabled
+  - [ ] Test transitions between states
+  - [ ] Test error handling for disabled features
 
 ## Account Type Registry
 
@@ -206,6 +206,52 @@ Major remaining components:
   - [x] Test behavior with flags enabled/disabled
   - [x] Test currency-specific operations
   - [x] Test international field handling
+
+## Enhanced Polymorphic Repository Pattern
+
+- [x] Implement `PolymorphicBaseRepository` class:
+  - [x] Create `src/repositories/polymorphic_base_repository.py`
+  - [x] Implement `__init__` with discriminator field and registry support
+  - [x] Override `_needs_polymorphic_loading` to always return True
+  - [x] Disable base `create` and `update` methods with NotImplementedError
+  - [x] Implement `create_typed_entity` method for polymorphic creation
+  - [x] Implement `update_typed_entity` method for polymorphic updates
+  - [x] Add helper methods for field validation and filtering
+  - [x] Add comprehensive docstrings and type annotations
+
+- [x] Refactor `AccountRepository` to use `PolymorphicBaseRepository`:
+  - [x] Update inheritance to use `PolymorphicBaseRepository[Account, int]`
+  - [x] Set discriminator_field to "account_type"
+  - [x] Set registry to account_type_registry
+  - [x] Remove `create_typed_account` method (replaced by `create_typed_entity`)
+  - [x] Remove `update_typed_account` method (replaced by `update_typed_entity`)
+  - [x] Update any references to these methods in other code
+
+- [ ] Update tests for the new repository pattern:
+  - [ ] Create `tests/unit/repositories/test_polymorphic_base_repository.py`
+  - [ ] Test disabled base methods raise NotImplementedError
+  - [ ] Test `create_typed_entity` with various entity types
+  - [ ] Test `update_typed_entity` with various entity types
+  - [ ] Test field filtering and validation
+  - [ ] Test error handling for invalid entity types
+
+- [ ] Update existing repository tests:
+  - [ ] Update `tests/integration/repositories/test_account_repository.py`
+  - [ ] Replace `create_typed_account` calls with `create_typed_entity`
+  - [ ] Replace `update_typed_account` calls with `update_typed_entity`
+  - [ ] Test polymorphic identity handling
+  - [ ] Verify proper error messages for invalid operations
+
+- [ ] Update service layer to use new methods:
+  - [ ] Update `src/services/accounts.py` to use `create_typed_entity`
+  - [ ] Update `src/services/accounts.py` to use `update_typed_entity`
+  - [ ] Test service layer with new repository methods
+
+- [ ] Remove redundant tests in `tests/integration/repositories/crud/test_account_repository_crud.py`:
+  - [ ] Identify tests that create base Account objects directly
+  - [ ] Remove these tests or refactor to use typed entities
+  - [ ] Create new test file for non-CRUD generic repository methods
+  - [ ] Ensure all functionality is still properly tested
 
 ## Service Layer
 
@@ -441,7 +487,7 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
 
 ### Repository Testing
 
-- [x] Base Repository Tests (`tests/integration/repositories/test_accounts.py`):
+- [ ] Base Repository Tests (`tests/integration/repositories/test_accounts.py`):
   - [x] Basic CRUD operations:
     - [x] Create account with all account types
     - [x] Retrieve accounts with polymorphic identities
@@ -466,7 +512,7 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
 - [x] Repository Factory Tests (`tests/integration/repositories/test_factory.py`):
   - [x] Test dynamic module loading
   - [x] Test binding of specialized methods to base repository
-  - [x] Verify feature flag integration in module loading
+  - [ ] Verify feature flag integration in module loading
   - [x] Test fallback behavior when modules are missing
 
 ### Registry Testing
@@ -520,34 +566,42 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
   - [x] Handle currency-specific operations
   - [x] Support international banking fields
 
-- [x] Apply feature flag integration (ADR-024):
-  - [x] Integrate with FeatureFlagService
-  - [x] Add conditional logic based on feature flags
-  - [x] Handle graceful degradation for disabled features
-  - [x] Test with feature flags enabled/disabled
-  - [x] Document feature flag requirements
+- [ ] Apply feature flag integration (ADR-024):
+  - [ ] Integrate with FeatureFlagService
+  - [ ] Add conditional logic based on feature flags
+  - [ ] Handle graceful degradation for disabled features
+  - [ ] Test with feature flags enabled/disabled
+  - [ ] Document feature flag requirements
 
 ## Next Steps (Prioritized)
 
-1. __Fix Repository Test Infrastructure for Modern Banking Types__
+1. __Create Unit Tests for PolymorphicBaseRepository__
+   - Implement test_polymorphic_base_repository.py to verify core functionality
+   - Test disabled base methods raise proper exceptions
+   - Test proper field filtering and validation
+   - Create test scenarios for error handling cases
+   - Verify proper registry integration
+   - Create tests for update handling with type validation
+
+2. __Fix Repository Test Infrastructure for Modern Banking Types__
    - Address constructor argument errors in account models
    - Implement consistent field filtering for schema-to-model conversion
    - Fix method name discrepancies between tests and implementation
    - Create helper utility for repository test data preparation
 
-2. __Update all existing code to use `account_type` instead of `type`__
+3. __Update all existing code to use `account_type` instead of `type`__
    - Scan codebase for references to account.type
    - Update API references to use account_type
    - Update service layer to use account_type
    - Fix any remaining test fixtures using type instead of account_type
 
-3. __Update API endpoints__
+4. __Update API endpoints__
    - Add polymorphic support to existing endpoints
    - Implement endpoint to list available account types
    - Add proper error handling and status codes
    - Create comprehensive API tests
 
-4. __Complete multi-currency and internationalization support__
+5. __Complete multi-currency and internationalization support__
    - Implement currency-related utilities
    - Create international banking validation functions
    - Update schemas with appropriate validation
@@ -561,7 +615,8 @@ Before completing ADR-016 implementation, verify:
    - [x] Registry mechanism works as designed
    - [x] Schema validation is consistent
    - [x] Repository layer handles polymorphic queries properly
-   - [x] Feature flag integration works correctly
+   - [x] Enhanced Polymorphic Repository Pattern is implemented
+   - [ ] Feature flag integration works correctly
    - [x] Multi-currency support is implemented
    - [x] International banking fields are supported
 

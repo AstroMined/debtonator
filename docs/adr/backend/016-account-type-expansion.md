@@ -302,82 +302,299 @@ class BaseRepository:
         return True
 ```
 
-### Polymorphic Account Repository
+### Enhanced Polymorphic Repository Pattern
+
+To better support the polymorphic account model structure and prepare for future polymorphic entity types (as described in ADR-025), we will implement a specialized `PolymorphicBaseRepository` that properly handles polymorphic identities:
 
 ```python
-class AccountRepository(BaseRepository):
-    """Repository for Account entities with polymorphic operations."""
+class PolymorphicBaseRepository(BaseRepository[PolyModelType, PKType]):
+    """
+    Base repository for polymorphic entities.
     
-    def __init__(self, session: Session, account_type_registry: AccountTypeRegistry):
-        super().__init__(session)
-        self.model_class = Account
-        self.account_type_registry = account_type_registry
+    This repository extends the BaseRepository with specialized handling for
+    polymorphic entities, ensuring proper type handling and identity management.
+    It enforces the use of concrete subclasses rather than the base class.
+    """
     
-    def get_with_type(self, id: int) -> Optional[Account]:
-        """Get account by ID, ensuring type-specific data is loaded."""
-        return self.session.query(Account).options(
-            with_polymorphic('*')
-        ).filter(Account.id == id).first()
+    # Class variable to store the discriminator field name
+    discriminator_field: ClassVar[str] = "type"
     
-    def get_by_type(self, account_type: str) -> List[Account]:
-        """Get all accounts of a specific type."""
-        model_class = self.account_type_registry.get_model_class(account_type)
-        if not model_class:
-            raise ValueError(f"Unknown account type: {account_type}")
+    # Registry to use for model class lookup
+    registry = None
+    
+    def __init__(
+        self, 
+        session: AsyncSession, 
+        model_class: Type[PolyModelType],
+        discriminator_field: str = None,
+        registry: Any = None
+    ):
+        """Initialize repository with session, model class, and polymorphic configuration."""
+        super().__init__(session, model_class)
         
-        return self.session.query(model_class).all()
+        if discriminator_field:
+            self.discriminator_field = discriminator_field
+            
+        if registry:
+            self.registry = registry
     
-    def get_by_user(self, user_id: int) -> List[Account]:
-        """Get all accounts for a specific user."""
-        return self.session.query(Account).options(
-            with_polymorphic('*')
-        ).filter(Account.user_id == user_id).all()
+    def _needs_polymorphic_loading(self) -> bool:
+        """Override to always enable polymorphic loading."""
+        return True
     
-    def get_by_user_and_type(self, user_id: int, account_type: str) -> List[Account]:
-        """Get all accounts of a specific type for a specific user."""
-        model_class = self.account_type_registry.get_model_class(account_type)
-        if not model_class:
-            raise ValueError(f"Unknown account type: {account_type}")
+    async def create(self, obj_in: Dict[str, Any]) -> PolyModelType:
+        """
+        Create method is disabled for polymorphic base repository.
         
-        return self.session.query(model_class).filter(model_class.user_id == user_id).all()
+        This method is intentionally disabled to prevent creating instances
+        with incorrect polymorphic identity. Use create_typed_entity instead.
+        """
+        raise NotImplementedError(
+            "Direct creation through base repository is disabled for polymorphic entities. "
+            "Use create_typed_entity() instead to ensure proper polymorphic identity."
+        )
     
-    def create_typed_account(self, account_type: str, data: dict) -> Account:
-        """Create a new account of the specified type."""
-        model_class = self.account_type_registry.get_model_class(account_type)
-        if not model_class:
-            raise ValueError(f"Unknown account type: {account_type}")
+    async def update(self, id: PKType, obj_in: Dict[str, Any]) -> Optional[PolyModelType]:
+        """
+        Update method is disabled for polymorphic base repository.
         
-        entity = model_class(**data)
-        self.session.add(entity)
-        self.session.commit()
-        self.session.refresh(entity)
-        return entity
+        This method is intentionally disabled to prevent updating instances
+        with incorrect polymorphic identity. Use update_typed_entity instead.
+        """
+        raise NotImplementedError(
+            "Direct update through base repository is disabled for polymorphic entities. "
+            "Use update_typed_entity() instead to ensure proper polymorphic identity."
+        )
     
-    def update_typed_account(self, id: int, account_type: str, data: dict) -> Optional[Account]:
-        """Update an account of the specified type."""
-        model_class = self.account_type_registry.get_model_class(account_type)
-        if not model_class:
-            raise ValueError(f"Unknown account type: {account_type}")
+    async def create_typed_entity(
+        self, 
+        entity_type: str, 
+        data: Dict[str, Any],
+        registry: Any = None
+    ) -> PolyModelType:
+        """Create a new entity with the specified polymorphic type."""
+        # Use provided registry or fall back to class registry
+        registry_to_use = registry or self.registry
         
-        entity = self.session.query(model_class).get(id)
+        if not registry_to_use:
+            raise ValueError(
+                "No registry provided for polymorphic type lookup. "
+                "Either provide a registry or set the class registry."
+            )
+        
+        # Get model class from registry
+        model_class = registry_to_use.get_model_class(entity_type)
+        
+        if not model_class:
+            raise ValueError(f"No model class registered for entity type '{entity_type}'")
+        
+        # Ensure discriminator field is set correctly
+        data_copy = data.copy()
+        data_copy[self.discriminator_field] = entity_type
+        
+        # Filter data to include only valid fields for this model class
+        valid_fields = self._get_valid_fields_for_model(model_class)
+        filtered_data = {
+            k: v for k, v in data_copy.items() 
+            if k in valid_fields.get("all", set()) or k == self.discriminator_field
+        }
+        
+        # Create instance with filtered data
+        db_obj = model_class(**filtered_data)
+        self.session.add(db_obj)
+        
+        # Flush to get an ID
+        await self.session.flush()
+        
+        # Get ID for later query
+        created_id = db_obj.id
+        
+        # Detach the object to ensure we get a fresh instance
+        self.session.expunge(db_obj)
+        
+        # Query using the specific model class
+        stmt = select(model_class).where(model_class.id == created_id)
+        result = await self.session.execute(stmt)
+        typed_entity = result.scalars().first()
+        
+        return typed_entity
+    
+    async def update_typed_entity(
+        self,
+        id: PKType,
+        entity_type: str,
+        data: Dict[str, Any],
+        registry: Any = None
+    ) -> Optional[PolyModelType]:
+        """Update an entity with the specified polymorphic type."""
+        # Use provided registry or fall back to class registry
+        registry_to_use = registry or self.registry
+        
+        if not registry_to_use:
+            raise ValueError(
+                "No registry provided for polymorphic type lookup. "
+                "Either provide a registry or set the class registry."
+            )
+        
+        # Get model class from registry
+        model_class = registry_to_use.get_model_class(entity_type)
+        
+        if not model_class:
+            raise ValueError(f"No model class registered for entity type '{entity_type}'")
+        
+        # Get the entity using polymorphic loading
+        poly_entity = with_polymorphic(self.model_class, "*")
+        result = await self.session.execute(
+            select(poly_entity).where(poly_entity.id == id)
+        )
+        entity = result.scalars().first()
+        
         if not entity:
             return None
         
-        for key, value in data.items():
-            setattr(entity, key, value)
+        # Verify entity_type matches expected type
+        if getattr(entity, self.discriminator_field) != entity_type:
+            raise ValueError(
+                f"Entity ID {id} is of type {getattr(entity, self.discriminator_field)}, "
+                f"not {entity_type}"
+            )
         
-        self.session.commit()
-        self.session.refresh(entity)
+        # Ensure discriminator field is preserved
+        filtered_data = data.copy()
+        filtered_data[self.discriminator_field] = entity_type
+        
+        # Get valid fields for this model class
+        valid_fields = self._get_valid_fields_for_model(model_class)
+        
+        # Update entity fields, preserving required fields
+        for key, value in filtered_data.items():
+            if hasattr(entity, key):
+                # Skip setting required fields to NULL
+                if key in valid_fields.get("required", set()) and value is None:
+                    continue
+                    
+                setattr(entity, key, value)
+        
+        # Save changes
+        self.session.add(entity)
+        await self.session.flush()
+        await self.session.refresh(entity)
+        
         return entity
+    
+    def _get_valid_fields_for_model(self, model_class: Type) -> Dict[str, set]:
+        """
+        Get valid fields for a model class, including required fields.
+        
+        Args:
+            model_class: SQLAlchemy model class
+            
+        Returns:
+            Dict[str, set]: Dictionary with 'all' and 'required' field sets
+        """
+        all_fields = set()
+        required_fields = set()
+        
+        # Get fields from the model class hierarchy
+        current_class = model_class
+        while hasattr(current_class, "__table__") and current_class != object:
+            if hasattr(current_class, "__table__"):
+                for column in current_class.__table__.columns:
+                    all_fields.add(column.key)
+                    if not column.nullable:
+                        required_fields.add(column.key)
+                    
+            current_class = current_class.__bases__[0]
+            if not hasattr(current_class, "__table__"):
+                break
+        
+        return {
+            "all": all_fields,
+            "required": required_fields
+        }
+```
+
+This enhanced pattern provides several key benefits:
+
+1. **Enforced Polymorphic Identity**: By disabling the base `create` and `update` methods, we prevent the creation of entities with incorrect polymorphic identities, eliminating a common source of SQLAlchemy warnings and errors.
+
+2. **Clear Separation of Concerns**: The `PolymorphicBaseRepository` provides a clear distinction between repositories for simple entities and those for polymorphic entities, making the codebase more maintainable.
+
+3. **Future-Proof Design**: This pattern scales to support any number of polymorphic entity types beyond accounts, such as the statement types described in ADR-025.
+
+4. **Consistent Interface**: By standardizing on `create_typed_entity` and `update_typed_entity` methods, we provide a consistent interface for all polymorphic repositories.
+
+5. **Registry Integration**: Built-in support for type registries ensures proper model class lookup and validation.
+
+### Polymorphic Account Repository
+
+With the enhanced polymorphic repository pattern, the `AccountRepository` would be refactored to use this new base class:
+
+```python
+class AccountRepository(PolymorphicBaseRepository[Account, int]):
+    """Repository for account operations."""
+    
+    # Set the discriminator field for accounts
+    discriminator_field = "account_type"
+    
+    # Set the registry for account types
+    registry = account_type_registry
+    
+    def __init__(self, session: AsyncSession):
+        """Initialize repository with database session."""
+        super().__init__(
+            session=session, 
+            model_class=Account,
+            discriminator_field="account_type",
+            registry=account_type_registry
+        )
+    
+    # Account-specific methods would remain, but create_typed_account and update_typed_account
+    # would be replaced by the inherited create_typed_entity and update_typed_entity methods
+    
+    def get_with_type(self, id: int) -> Optional[Account]:
+        """Get account by ID, ensuring type-specific data is loaded."""
+        # This method is now redundant since _needs_polymorphic_loading() always returns True,
+        # but kept for backward compatibility
+        return super().get(id)
+    
+    def get_by_type(self, account_type: str) -> List[Account]:
+        """Get all accounts of a specific type."""
+        model_class = self.registry.get_model_class(account_type)
+        if not model_class:
+            raise ValueError(f"Unknown account type: {account_type}")
+        
+        result = await self.session.execute(select(model_class))
+        return result.scalars().all()
+    
+    def get_by_user(self, user_id: int) -> List[Account]:
+        """Get all accounts for a specific user."""
+        result = await self.session.execute(
+            select(Account).where(Account.user_id == user_id)
+        )
+        return result.scalars().all()
+    
+    def get_by_user_and_type(self, user_id: int, account_type: str) -> List[Account]:
+        """Get all accounts of a specific type for a specific user."""
+        model_class = self.registry.get_model_class(account_type)
+        if not model_class:
+            raise ValueError(f"Unknown account type: {account_type}")
+        
+        result = await self.session.execute(
+            select(model_class).where(model_class.user_id == user_id)
+        )
+        return result.scalars().all()
     
     def get_available_types(self) -> List[dict]:
         """Get all available account types."""
-        return self.account_type_registry.get_all_types()
+        return self.registry.get_all_types()
     
     def get_types_by_category(self, category: str) -> List[dict]:
         """Get all account types in a specific category."""
-        return self.account_type_registry.get_types_by_category(category)
+        return self.registry.get_types_by_category(category)
 ```
+
+This approach eliminates the need for account-specific `create_typed_account` and `update_typed_account` methods, replacing them with the more generic `create_typed_entity` and `update_typed_entity` methods that can be used for any polymorphic entity type.
 
 ## Service Layer Architecture
 

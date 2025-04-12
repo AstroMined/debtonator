@@ -7,6 +7,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.111] - 2025-04-12
+
+### Added
+
+- Created `PolymorphicBaseRepository` class that extends `BaseRepository`
+- Implemented `create_typed_entity` and `update_typed_entity` methods for polymorphic entities
+- Added automatic field validation and filtering based on model class
+- Integrated with type registries for proper model class lookup
+
+### Changed
+
+- Updated all create_typed_account/update_typed_account method calls to use the new interface
+- Standardized parameter naming and order across all test files
+- Refactored `AccountRepository` to use the new PolymorphicBaseRepository base class
+
+### Fixed
+
+- Fixed SQLAlchemy warnings about "Flushing object with incompatible polymorphic identity"
+- Fixed issues with repository methods creating base Account objects instead of specialized types
+- Fixed test failures with incorrect isinstance() checks against returned objects
+- Prevented setting invalid fields that don't exist on specific model classes
+
+### Technical
+
+- Disabled base create and update methods with NotImplementedError for polymorphic repositories
+- Implemented proper field filtering to prevent invalid field errors
+- Added type verification during updates to prevent type mismatches
+
 ## [0.5.110] - 2025-04-12
 
 ### Changed
