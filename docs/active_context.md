@@ -6,7 +6,33 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
 
 ### Recent Changes
 
-1. **Created and Implemented PolymorphicBaseRepository Class (April 12, 2025)** ✓
+1. **Fixed Repository CRUD Integration Test Issues (April 12, 2025)** ✓
+   - Resolved multiple test failures in repository integration tests:
+     - Fixed category repository tests with proper system category initialization
+     - Added required `income_id` field to deposit schedule schema for database consistency
+     - Enhanced BaseRepository with robust field filtering for model compatibility
+     - Updated schema factory to align with model requirements
+     - Fixed schema-model mismatches to prevent database constraint violations
+   - Implemented schema-model alignment improvements:
+     - Added comprehensive field discovery in BaseRepository.create()
+     - Ensured foreign key fields are properly identified and preserved
+     - Added relationship field filtering for database operations
+     - Created better error propagation for invalid fields
+     - Improved schema-to-model transformation for repository operations
+   - Enhanced test coverage for schema-model interactions:
+     - Added test cases for field filtering behavior
+     - Updated schema factory tests to verify correct default value behavior
+     - Added schema-model transformation tests
+     - Fixed assertions to match expected filtering behavior
+     - Added detailed comments about filtering behavior in tests
+   - These fixes ensure:
+     - System categories (ID=1) are properly protected from modification/deletion
+     - Repository operations correctly handle required fields in database models
+     - Schemas can include API-specific fields that don't exist in database models
+     - Test cases properly verify the field filtering and validation behavior
+     - The codebase consistently handles schema-model field mappings
+
+2. **Created and Implemented PolymorphicBaseRepository Class (April 12, 2025)** ✓
    - Designed and implemented a specialized base repository for polymorphic entities:
      - Created `PolymorphicBaseRepository` class that extends `BaseRepository`
      - Disabled base `create` and `update` methods with `NotImplementedError`

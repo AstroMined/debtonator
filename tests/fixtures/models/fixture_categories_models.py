@@ -22,6 +22,7 @@ async def test_category(db_session: AsyncSession) -> Category:
     category = Category(
         name="Test Bill Category",
         description="Test category for bill tests",
+        system=False,  # Explicitly set as non-system category
     )
 
     # Add to session manually

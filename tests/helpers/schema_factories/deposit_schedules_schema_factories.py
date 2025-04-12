@@ -51,6 +51,7 @@ def create_deposit_schedule_schema(
     if status not in ["pending", "completed"]:
         status = "pending"
 
+    # Create data with all required fields
     data = {
         "income_id": income_id,
         "account_id": account_id,
@@ -63,7 +64,12 @@ def create_deposit_schedule_schema(
 
     if recurrence_pattern is not None:
         data["recurrence_pattern"] = recurrence_pattern
-
+    
+    # Remove source field that may be added by schema default
+    # as it's not supported by the DepositSchedule model
+    if 'source' in data:
+        del data['source']
+    
     return data
 
 

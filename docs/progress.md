@@ -303,61 +303,52 @@
      - account_types/banking/test_savings.py
      - bill_splits/test_bill_splits_with_account_types.py
 
-6. __Troubleshoot Repository Test Failures__
-   - Investigate and fix test failures in standardized banking account type tests
-   - Ensure proper fixture usage and test isolation
-   - Verify correct repository factory integration
-   - Address any remaining issues with repository proxy pattern
+6. ~~__Troubleshoot Repository Test Failures__~~ COMPLETED ✓
+   - ~~Fixed repository integration test failures in category repository~~ ✓
+   - ~~Improved schema-model compatibility with required field handling~~ ✓
+   - ~~Enhanced BaseRepository with robust field filtering for model compatibility~~ ✓
+   - ~~Added schema factory tests to verify correct default value behavior~~ ✓
+   - ~~Fixed deposit schedule schema tests with proper income_id field~~ ✓
 
 ## Known Issues
 
-1. ~~__Critical Polymorphic Identity Issues in Account Type Repositories__~~ RESOLVED ✓
-   - ~~SQLAlchemy warnings: "Flushing object with incompatible polymorphic identity"~~
-   - ~~Repository methods creating base `Account` objects instead of specialized types~~
-   - ~~Tests failing with incorrect `isinstance()` checks against returned objects~~
-   - ~~Incorrect SQLAlchemy session handling not detaching objects properly~~
-   - ~~Account type registry not being used as source of truth~~
-   - ~~Improper polymorphic loading in `create_typed_account` and `update_typed_account`~~
-   - ~~Solution required careful refactoring of repository layer methods with proper polymorphic identity handling~~
-   - ~~Implemented PolymorphicBaseRepository with proper type handling and identity management~~
-
-2. __Repository Fixture Usage Pattern Inconsistencies__
+1. __Repository Fixture Usage Pattern Inconsistencies__
    - Some repository fixtures use repository_factory as an object with methods
    - Others correctly use repository_factory as a function
    - Need to standardize usage pattern across all repository fixtures
    - Ensure proper documentation of fixture usage patterns
    - Fix remaining test failures related to fixture usage
 
-3. __Pydantic v2 Discriminator Field Validator Conflict__
+2. __Pydantic v2 Discriminator Field Validator Conflict__
    - Some account type response models still have validators on the discriminator field
    - This causes validation errors with Pydantic v2's discriminated union implementation
    - Need to move those validators to the service layer following the established pattern
    - This issue affects API integration tests and polymorphic response serialization
 
-4. __Repository Error Handling__
+3. __Repository Error Handling__
    - Need to implement custom repository exceptions
    - Error translation in services needs to be standardized
    - Exception hierarchy should be consistent across the application
 
-5. __Schema Factory Parameter Alignment__
+4. __Schema Factory Parameter Alignment__
    - Some schema factory functions include parameters not in the final schema
    - Need to add clear documentation for all schema factories about field usage
    - Consider standardizing parameter patterns across all schema factories
    
-6. __Complex Nested Schema Structures__
+5. __Complex Nested Schema Structures__
    - Schemas with multi-level nesting like Dict[str, Dict[str, Object]] require careful handling
    - Need to document expected structure for complex nested objects
    - Test coverage for nested object validation should be improved
    - Some schema factory implementations don't match the schema structure
 
-7. __Decimal Sum Validation in Tests__
+6. __Decimal Sum Validation in Tests__
    - Some tests for decimal sums in complex structures require tolerance ranges
    - Day of month patterns in seasonality analysis sum to 0.94 instead of 1.0
    - Similar issues exist in other probability distribution tests
    - Solution is to use appropriate tolerance ranges in tests
    - Need standardized approach to decimal equality testing
 
-8. __Cross-Layer Concerns in Utils Module__
+7. __Cross-Layer Concerns in Utils Module__
    - The db.py module crosses layers between database and HTTP concerns
    - Should move functionality to src/errors/ for better separation of concerns
    - Some feature_flags functionality requires integration tests rather than unit tests

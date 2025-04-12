@@ -15,6 +15,9 @@ class DepositScheduleBase(BaseSchemaValidator):
     All datetime fields are stored in UTC timezone.
     """
 
+    income_id: int = Field(
+        ..., gt=0, description="ID of the income entry associated with this deposit"
+    )
     account_id: int = Field(
         ..., gt=0, description="ID of the account where the deposit will be made"
     )

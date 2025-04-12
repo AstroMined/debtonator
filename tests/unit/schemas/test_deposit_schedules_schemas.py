@@ -24,6 +24,7 @@ def test_deposit_schedule_create_valid():
     schedule_date = utc_now()
 
     deposit_schedule = DepositScheduleCreate(
+        income_id=1,
         schedule_date=schedule_date,
         amount=Decimal("750.00"),
         account_id=1,
@@ -54,6 +55,7 @@ def test_deposit_schedule_create_minimum_fields():
     schedule_date = utc_datetime(2025, 4, 15, 14, 0, 0)
 
     deposit_schedule = DepositScheduleCreate(
+        income_id=1,
         schedule_date=schedule_date,
         amount=Decimal("500.00"),
         account_id=1,
@@ -74,6 +76,7 @@ def test_deposit_schedule_create_invalid_amount():
     # Test negative amount
     with pytest.raises(ValidationError) as exc_info:
         DepositScheduleCreate(
+            income_id=1,
             schedule_date=schedule_date,
             amount=Decimal("-100.00"),
             account_id=1,
@@ -83,6 +86,7 @@ def test_deposit_schedule_create_invalid_amount():
     # Test zero amount
     with pytest.raises(ValidationError) as exc_info:
         DepositScheduleCreate(
+            income_id=1,
             schedule_date=schedule_date,
             amount=Decimal("0.00"),
             account_id=1,
@@ -92,6 +96,7 @@ def test_deposit_schedule_create_invalid_amount():
     # Test too many decimal places
     with pytest.raises(ValidationError) as exc_info:
         DepositScheduleCreate(
+            income_id=1,
             schedule_date=schedule_date,
             amount=Decimal("100.001"),
             account_id=1,
@@ -106,6 +111,7 @@ def test_deposit_schedule_create_invalid_source():
     # Test empty source
     with pytest.raises(ValidationError) as exc_info:
         DepositScheduleCreate(
+            income_id=1,
             schedule_date=schedule_date,
             amount=Decimal("100.00"),
             account_id=1,
@@ -116,6 +122,7 @@ def test_deposit_schedule_create_invalid_source():
     # Test too long source
     with pytest.raises(ValidationError) as exc_info:
         DepositScheduleCreate(
+            income_id=1,
             schedule_date=schedule_date,
             amount=Decimal("100.00"),
             account_id=1,
@@ -168,6 +175,7 @@ def test_deposit_schedule_recurring_validation():
     # Test missing recurrence_pattern when recurring=True
     with pytest.raises(ValidationError) as exc_info:
         DepositScheduleCreate(
+            income_id=1,
             schedule_date=schedule_date,
             amount=Decimal("750.00"),
             account_id=1,
@@ -180,6 +188,7 @@ def test_deposit_schedule_recurring_validation():
     # Test with recurrence_pattern when recurring=False
     with pytest.raises(ValidationError) as exc_info:
         DepositScheduleCreate(
+            income_id=1,
             schedule_date=schedule_date,
             amount=Decimal("750.00"),
             account_id=1,
@@ -205,6 +214,7 @@ def test_deposit_schedule_response_format():
     # Create a response object
     response = DepositScheduleResponse(
         id=1,
+        income_id=1,
         schedule_date=schedule_date,
         amount=Decimal("750.00"),
         account_id=1,
@@ -230,6 +240,7 @@ def test_deposit_schedule_response_format():
 
     # Check other fields
     assert response_dict["id"] == 1
+    assert response_dict["income_id"] == 1
     assert response_dict["amount"] == 750.00  # Converted to float for JSON
     assert response_dict["account_id"] == 1
     assert response_dict["source"] == "Direct Deposit"

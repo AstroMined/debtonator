@@ -7,6 +7,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.113] - 2025-04-12
+
+### Fixed
+
+- Fixed repository CRUD integration test failures:
+  - Fixed category repository tests with proper system category protection
+  - Added required `income_id` field to deposit schedule schema for database consistency
+  - Enhanced BaseRepository with robust field filtering for model compatibility
+  - Added schema-model transformation tests to verify field filtering
+  - Fixed schema factory tests to reflect field filtering behavior
+
+### Changed
+
+- Enhanced schema test infrastructure:
+  - Updated deposit schedule schema tests to include income_id field
+  - Improved schema factory tests to validate model transformation
+  - Added test for field filtering in schema-to-model conversion
+  - Enhanced documentation for schema-model field mapping
+
+### Technical
+
+- Marked "Troubleshoot Repository Test Failures" task as completed in progress tracking
+- Updated Memory Bank files with recent changes
+
 ## [0.5.112] - 2025-04-12
 
 ### Changed

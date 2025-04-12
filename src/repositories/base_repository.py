@@ -63,7 +63,38 @@ class BaseRepository(Generic[ModelType, PKType]):
         Returns:
             ModelType: Created database object
         """
-        db_obj = self.model_class(**obj_in)
+        # Filter input to only include valid model attributes
+        model_fields = set()
+        
+        # Add column attributes (including foreign keys)
+        if hasattr(self.model_class, "__table__") and hasattr(self.model_class.__table__, "columns"):
+            model_fields.update(c.key for c in self.model_class.__table__.columns)
+            
+        # Add relationship attributes
+        if hasattr(self.model_class, "__mapper__") and hasattr(self.model_class.__mapper__, "relationships"):
+            model_fields.update(self.model_class.__mapper__.relationships.keys())
+            
+        # Add foreign key fields explicitly
+        if hasattr(self.model_class, "__mapper__") and hasattr(self.model_class.__mapper__, "relationships"):
+            for relationship in self.model_class.__mapper__.relationships.values():
+                # Extract foreign key column names if available
+                if hasattr(relationship, "local_columns"):
+                    for column in relationship.local_columns:
+                        if hasattr(column, "key"):
+                            model_fields.add(column.key)
+                            
+        # Add any fields that start with valid column names (for foreign keys that might be named differently)
+        column_prefixes = {c.key.replace('_id', '') for c in self.model_class.__table__.columns 
+                          if c.key.endswith('_id')}
+        for key in obj_in.keys():
+            if key.endswith('_id') and key.replace('_id', '') in column_prefixes:
+                model_fields.add(key)
+                            
+        # Filter out fields that don't exist in the model
+        filtered_obj_in = {k: v for k, v in obj_in.items() if k in model_fields}
+        
+        # Create the object with filtered data
+        db_obj = self.model_class(**filtered_obj_in)
         self.session.add(db_obj)
         await self.session.flush()
         await self.session.refresh(db_obj)
@@ -180,9 +211,9 @@ class BaseRepository(Generic[ModelType, PKType]):
         skip = (page - 1) * items_per_page
 
         # Get total count
-        count_query = select(func.count()).select_from(
+        count_query = select(func.count(1)).select_from(
             self.model_class
-        )  # Use func.count() for SQL COUNT(*) function
+        )  # Use func.count(1) for SQL COUNT(*) equivalent
         if filters:
             for field, value in filters.items():
                 if hasattr(self.model_class, field):

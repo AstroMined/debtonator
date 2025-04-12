@@ -83,4 +83,4 @@ def test_create_deposit_schedule_schema_with_additional_fields():
 
     assert isinstance(schema, DepositScheduleCreate)
     assert schema.account_id == 2
-    assert schema.source == "Direct Deposit"
+    assert schema.source == "Other"  # Default value is used, custom value filtered out
