@@ -7,6 +7,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.117] - 2025-04-13
+
+### Changed
+
+- Refactored feature flag registry tests to use function-based approach instead of class-based tests
+- Added registry_with_predefined_flags fixture to centralize test setup
+- Improved test organization with logical grouping by functionality
+- Enhanced test documentation with clear section comments
+
+### Fixed
+
+- Fixed datetime format handling in time-based feature flag tests
+- Resolved env_setup fixture not found errors in context utils tests
+- Improved test isolation with proper fixture usage
+
 ## [0.5.116] - 2025-04-13
 
 ### Added

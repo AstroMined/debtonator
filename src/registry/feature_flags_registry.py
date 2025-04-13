@@ -25,7 +25,6 @@ class FeatureFlagObserver(Protocol):
 
     def flag_changed(self, flag_name: str, old_value: Any, new_value: Any) -> None:
         """Called when a feature flag's value changes."""
-        ...
 
 
 class FeatureFlagRegistry:
@@ -95,7 +94,7 @@ class FeatureFlagRegistry:
                 "registered_at": utc_now(),
             }
 
-            logger.info(f"Feature flag registered: {flag_name} ({flag_type})")
+            logger.info("Feature flag registered: %s (%s)", flag_name, flag_type)
 
     def get_flag(self, flag_name: str) -> Optional[Dict[str, Any]]:
         """
@@ -182,12 +181,12 @@ class FeatureFlagRegistry:
                 if isinstance(start_time, str):
                     start_time = utc_datetime_from_str(
                         start_time.replace("Z", "+00:00"),
-                        "%Y-%m-%dT%H:%M:%S%z"
+                        "%Y-%m-%dT%H:%M:%S.%f%z"
                     )
                 if isinstance(end_time, str):
                     end_time = utc_datetime_from_str(
                         end_time.replace("Z", "+00:00"),
-                        "%Y-%m-%dT%H:%M:%S%z"
+                        "%Y-%m-%dT%H:%M:%S.%f%z"
                     )
 
                 # Ensure datetimes are UTC-compliant per ADR-011
@@ -232,7 +231,7 @@ class FeatureFlagRegistry:
 
             # Notify observers if value changed
             if old_value != value:
-                logger.info(f"Feature flag value changed: {flag_name} = {value}")
+                logger.info("Feature flag value changed: %s = %s", flag_name, value)
                 observers = (
                     self._observers.copy()
                 )  # Copy to avoid issues if observers modify the list
@@ -240,9 +239,10 @@ class FeatureFlagRegistry:
                 for observer in observers:
                     try:
                         observer.flag_changed(flag_name, old_value, value)
-                    except Exception as e:
+                    except (TypeError, ValueError, AttributeError, RuntimeError) as e:
                         logger.error(
-                            f"Error notifying observer about flag change: {e}",
+                            "Error notifying observer about flag change: %s",
+                            e,
                             exc_info=True,  # Include stack trace for better debugging
                             extra={
                                 "flag_name": flag_name,
@@ -272,7 +272,7 @@ class FeatureFlagRegistry:
         with self._lock:
             if observer not in self._observers:
                 self._observers.append(observer)
-                logger.debug(f"Added feature flag observer: {observer}")
+                logger.debug("Added feature flag observer: %s", observer)
 
     def remove_observer(self, observer: FeatureFlagObserver) -> None:
         """
@@ -284,7 +284,7 @@ class FeatureFlagRegistry:
         with self._lock:
             if observer in self._observers:
                 self._observers.remove(observer)
-                logger.debug(f"Removed feature flag observer: {observer}")
+                logger.debug("Removed feature flag observer: %s", observer)
 
     def reset(self) -> None:
         """

@@ -21,6 +21,8 @@ def initialize_account_registry():
 
 # List of fixture modules to load
 pytest_plugins = [
+    # Environment fixtures
+    "tests.fixtures.fixture_environment",
     # Consolidated feature flag fixtures
     "tests.fixtures.fixture_feature_flags",
     # Other service fixtures

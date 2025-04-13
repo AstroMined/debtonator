@@ -81,11 +81,16 @@ def test_feature_flag_account_error_conversion():
 
     assert isinstance(exception, FeatureFlagAccountHTTPException)
     assert exception.status_code == status.HTTP_403_FORBIDDEN
-    assert (
-        exception.detail["message"]
-        == "Operation not available: feature 'TEST_FLAG' is disabled"
-    )
-    assert exception.detail["feature_flag"] == "TEST_FLAG"
+    
+    # The detail field has a nested structure
+    assert "message" in exception.detail
+    assert isinstance(exception.detail["message"], dict)
+    
+    # Check the nested message dictionary
+    message_dict = exception.detail["message"]
+    assert message_dict["message"] == "Operation not available: feature 'TEST_FLAG' is disabled for account"
+    assert message_dict["feature_flag"] == "TEST_FLAG"
+    assert message_dict["entity_type"] == "account"
 
 
 def test_unknown_account_error_conversion():

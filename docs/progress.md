@@ -245,6 +245,9 @@
    - Standardized repository fixture usage patterns ✓
    - Proper separation of CRUD and advanced repository tests ✓
    - Improved schema validation tests with proper field and model validation coverage ✓
+   - Function-based feature flag registry tests with logical organization ✓
+   - Standardized test fixtures for feature flag testing ✓
+   - Improved datetime handling in time-based feature flag tests ✓
 
 ## What's Left to Build
 
@@ -279,7 +282,7 @@
    - Create comprehensive test cases for polymorphic validation
    - Add pattern documentation for schema-service validation split
 
-5. __Continue Repository Test Refactoring (50%)__
+5. __Continue Repository Test Refactoring (55%)__
    - Fixed repository fixtures for account types:
      - ✓ fixture_bnpl_repositories.py
      - ✓ fixture_ewa_repositories.py
@@ -302,6 +305,8 @@
      - ✓ Changed update_typed_account to update_typed_entity
      - ✓ Updated method parameter order to match new interface
      - ✓ Standardized parameter naming across all files
+   - Refactored other repository tests:
+     - ✓ test_feature_flag_registry.py
    - Refactor account type advanced tests:
      - advanced/account_types/banking/test_bnpl_advanced.py
      - advanced/account_types/banking/test_ewa_advanced.py
@@ -309,7 +314,6 @@
    - Refactor other repository tests:
      - test_base_repository.py
      - test_factory.py
-     - test_feature_flag_repository.py
      - account_types/banking/test_checking.py
      - account_types/banking/test_credit.py
      - account_types/banking/test_savings.py
