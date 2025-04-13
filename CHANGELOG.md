@@ -7,6 +7,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.116] - 2025-04-13
+
+### Added
+
+- Comprehensive feature flag schema test suite with specialized test modules
+- Boolean field validation for FeatureFlagContext schema
+- IP address format validation for FeatureFlagContext schema
+
+### Fixed
+
+- Feature flag toggle validation test failures
+- Regex patterns in tests to match actual Pydantic v2 error messages
+
+### Improved
+
+- Test organization for feature flag schemas with dedicated package structure
+- Test coverage for feature_flags.py from 90% to 97%
+- Validation error messages for feature flag context fields
+
 ## [0.5.115] - 2025-04-12
 
 ### Fixed

@@ -269,6 +269,14 @@ class FeatureFlagToggle(BaseSchemaValidator):
         description="Whether the feature flag should be enabled",
     )
 
+    @field_validator("enabled", mode="before")
+    @classmethod
+    def validate_enabled_type(cls, v: Any) -> bool:
+        """Validate that enabled is a boolean value."""
+        if not isinstance(v, bool):
+            raise ValueError("enabled must be a boolean value")
+        return v
+
 
 class FeatureFlagContext(BaseSchemaValidator):
     """
@@ -308,6 +316,28 @@ class FeatureFlagContext(BaseSchemaValidator):
         None,
         description="Client IP address for geo-based flags",
     )
+
+    @field_validator("is_admin", "is_beta_tester", mode="before")
+    @classmethod
+    def validate_boolean_fields(cls, v: Any, info: Any) -> bool:
+        """Validate that boolean fields are actually booleans."""
+        if v is not None and not isinstance(v, bool):
+            raise ValueError(f"{info.field_name} must be a boolean value")
+        return v
+
+    @field_validator("client_ip")
+    @classmethod
+    def validate_ip_address(cls, v: Optional[str]) -> Optional[str]:
+        """Validate that client_ip is a valid IP address format."""
+        if v is not None:
+            # Simple regex for IPv4 and IPv6 validation
+            import re
+            ipv4_pattern = r"^(\d{1,3}\.){3}\d{1,3}$"
+            ipv6_pattern = r"^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$"
+            
+            if not (re.match(ipv4_pattern, v) or re.match(ipv6_pattern, v)):
+                raise ValueError("client_ip must be a valid IP address")
+        return v
 
 
 # Schemas for feature flag requirements management API

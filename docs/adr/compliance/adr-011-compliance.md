@@ -13,7 +13,7 @@
 - [X] src/repositories/payment_schedules.py
 - [X] src/repositories/payments.py
 - [X] src/repositories/recurring_income.py
-- [ ] src/repositories/transaction_history.py
+- [X] src/repositories/transaction_history.py
 - [ ] src/schemas/accounts.py
 - [ ] src/schemas/account_types/banking/bnpl.py
 - [ ] src/schemas/account_types/banking/credit.py

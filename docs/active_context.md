@@ -6,7 +6,25 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
 
 ### Recent Changes
 
-1. **Fixed Schema Validation in Payment App Account Type (April 12, 2025)** ✓
+1. **Improved Feature Flag Schema Test Coverage (April 13, 2025)** ✓
+   - Reorganized feature flag tests into a more logical structure:
+     - Created dedicated feature_flags/ package with specialized test modules
+     - Separated tests by functionality: base, flag types, operations, requirements, history/metrics, context
+     - Improved test organization for better maintainability and understanding
+   - Enhanced FeatureFlagContext schema validation:
+     - Added boolean field validation for is_admin and is_beta_tester
+     - Added IP address format validation for client_ip
+     - Implemented proper validators with clear error messages
+   - Fixed test failures in feature flag toggle validation:
+     - Updated regex patterns to match actual Pydantic v2 error messages
+     - Added comprehensive tests for various input types
+     - Ensured proper validation of boolean values and IP addresses
+   - Improved overall test coverage:
+     - Increased feature_flags.py coverage from 90% to 97%
+     - Added targeted tests for edge cases and validation rules
+     - Reduced uncovered code to minimal defensive code sections
+
+2. **Fixed Schema Validation in Payment App Account Type (April 12, 2025)** ✓
    - Resolved validation issues in payment app schema:
      - Modified field validators to only check the format of card_last_four, removing cross-field validation
      - Added model validators to handle the relationship between has_debit_card and card_last_four
