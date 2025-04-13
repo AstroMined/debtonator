@@ -7,6 +7,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.118] - 2025-04-13
+
+### Fixed
+
+- Fixed partial update field preservation in PolymorphicBaseRepository:
+  - Modified `update_typed_entity` method to preserve optional fields with existing values
+  - Added check to skip setting optional fields to NULL if they already have a value
+  - Maintained existing behavior for required fields (never setting them to NULL)
+  - Fixed failing test `test_partial_update_preserves_fields` in polymorphic repository tests
+  - Enhanced field handling logic to properly distinguish between required and optional fields
+
+### Changed
+
+- Enhanced Implementation Lessons for Polymorphic Repository Pattern:
+  - Added guidance on preserving optional fields during partial updates
+  - Updated documentation with field preservation best practices
+  - Added test verification for field preservation behavior
+
 ## [0.5.117] - 2025-04-13
 
 ### Changed

@@ -9,7 +9,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.repositories.base_repository import BaseRepository
-from tests.helpers.models.test_basic_db_model import TestBasicDBModel
+from tests.helpers.models.basic_test_models import TestBasicDBModel
 
 
 @pytest_asyncio.fixture

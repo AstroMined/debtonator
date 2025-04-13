@@ -6,7 +6,25 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
 
 ### Recent Changes
 
-1. **Refactored Feature Flag Registry Tests (April 13, 2025)** ✓
+1. **Fixed Partial Update Field Preservation in PolymorphicBaseRepository (April 13, 2025)** ✓
+   - Fixed issue with optional fields not being preserved during partial updates:
+     - Modified `update_typed_entity` method to preserve optional fields with existing values
+     - Added check to skip setting optional fields to NULL if they already have a value
+     - Maintained existing behavior for required fields (never setting them to NULL)
+     - Fixed failing test `test_partial_update_preserves_fields` in polymorphic repository tests
+   - Enhanced field handling logic in polymorphic repositories:
+     - Improved distinction between required and optional fields
+     - Added proper handling for fields not explicitly included in update data
+     - Maintained type safety with proper field validation
+     - Ensured backward compatibility with existing code
+   - This fix ensures:
+     - Partial updates only modify fields explicitly included in the update data
+     - Optional fields with existing values are preserved when not explicitly set to NULL
+     - Required fields continue to be protected from NULL values
+     - The repository behaves as expected for both complete and partial updates
+     - Tests properly verify field preservation behavior
+
+2. **Refactored Feature Flag Registry Tests (April 13, 2025)** ✓
    - Converted class-based tests to function-based approach:
      - Transformed TestFeatureFlagRegistry class into standalone test functions
      - Maintained same test logic and assertions to ensure equivalent coverage
@@ -28,7 +46,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - More reliable time-based feature flag testing
      - Consistent fixture usage across feature flag tests
 
-2. **Improved Feature Flag Schema Test Coverage (April 13, 2025)** ✓
+3. **Improved Feature Flag Schema Test Coverage (April 13, 2025)** ✓
    - Reorganized feature flag tests into a more logical structure:
      - Created dedicated feature_flags/ package with specialized test modules
      - Separated tests by functionality: base, flag types, operations, requirements, history/metrics, context
@@ -46,7 +64,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Added targeted tests for edge cases and validation rules
      - Reduced uncovered code to minimal defensive code sections
 
-2. **Fixed Schema Validation in Payment App Account Type (April 12, 2025)** ✓
+4. **Fixed Schema Validation in Payment App Account Type (April 12, 2025)** ✓
    - Resolved validation issues in payment app schema:
      - Modified field validators to only check the format of card_last_four, removing cross-field validation
      - Added model validators to handle the relationship between has_debit_card and card_last_four
@@ -68,7 +86,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Clear error messages for validation failures
      - Improved test coverage for edge cases
 
-2. **Fixed Repository CRUD Integration Test Issues (April 12, 2025)** ✓
+5. **Fixed Repository CRUD Integration Test Issues (April 12, 2025)** ✓
    - Resolved multiple test failures in repository integration tests:
      - Fixed category repository tests with proper system category initialization
      - Added required `income_id` field to deposit schedule schema for database consistency
@@ -93,80 +111,6 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Schemas can include API-specific fields that don't exist in database models
      - Test cases properly verify the field filtering and validation behavior
      - The codebase consistently handles schema-model field mappings
-
-3. **Created and Implemented PolymorphicBaseRepository Class (April 12, 2025)** ✓
-   - Designed and implemented a specialized base repository for polymorphic entities:
-     - Created `PolymorphicBaseRepository` class that extends `BaseRepository`
-     - Disabled base `create` and `update` methods with `NotImplementedError`
-     - Implemented `create_typed_entity` and `update_typed_entity` methods
-     - Added automatic field validation and filtering based on model class
-     - Integrated with type registries for proper model class lookup
-   - Addressed critical technical debt in polymorphic entity handling:
-     - Eliminated SQLAlchemy warnings about "Flushing object with incompatible polymorphic identity"
-     - Provided clear separation between repositories for simple and polymorphic entities
-     - Created consistent interface for all polymorphic repositories
-     - Ensured proper type handling and identity management
-     - Prevented setting invalid fields that don't exist on specific model classes
-   - Updated documentation and implementation plans:
-     - Added pattern to system_patterns.md with detailed explanation and examples
-     - Updated ADR-016 with the new polymorphic repository pattern
-     - Updated implementation checklist with new tasks
-     - Prioritized implementation in next steps
-   - Future-proofed design for upcoming entity types:
-     - Pattern will support statement types described in ADR-025
-     - Scales to support any number of polymorphic entity types
-     - Simplifies adding new polymorphic entity types
-     - Provides consistent interface across all polymorphic repositories
-   - Implementation includes:
-     - Proper registry integration with account_type_registry
-     - Field filtering to prevent invalid fields
-     - Type verification during updates
-     - Detailed error messages for troubleshooting
-     - Comprehensive documentation with example usage
-
-4. **Standardized Banking Account Type Repository Tests (April 12, 2025)** ✓
-   - Identified inconsistencies in repository test patterns across banking account types:
-     - Found that ewa, bnpl, and payment_app tests followed proper CRUD pattern
-     - Discovered checking, credit, and savings tests mixed CRUD and advanced operations
-     - Identified repository fixture usage issues in checking, credit, and savings repositories
-   - Fixed repository fixture usage in checking, credit, and savings repositories:
-     - Updated to use repository_factory as a function rather than trying to call a method on it
-     - Aligned with the pattern used in the working ewa, bnpl, and payment_app repositories
-     - Fixed `AttributeError: 'function' object has no attribute 'create_account_repository'` errors
-   - Standardized CRUD test files to include only basic CRUD operations:
-     - Implemented consistent test_create_*_account, test_get_*_account, test_update_*_account, test_delete_*_account pattern
-     - Ensured consistent naming across all banking account types
-     - Applied the four-step pattern (Arrange-Schema-Act-Assert) consistently
-   - Moved advanced repository tests to the appropriate advanced test files:
-     - Relocated polymorphic identity tests (get_with_type, get_by_type)
-     - Moved specialized create/update tests (create_typed_account, update_typed_entity)
-     - Maintained all existing test functionality when moving tests
-   - Updated method calls across all test files:
-     - Changed create_typed_account to create_typed_entity
-     - Changed update_typed_account to update_typed_entity
-     - Updated method parameter order to match new interface
-     - Standardized parameter naming across all files
-
-5. **Consolidated Feature Flag Test Fixtures (April 12, 2025)** ✓
-   - Identified and resolved issues with scattered feature flag fixtures:
-     - Found 7 overlapping fixture files with duplicate functionality
-     - Identified transaction rollback issues causing cascading test failures
-     - Resolved unique constraint violations in database operations
-     - Fixed async/sync handling inconsistencies in fixture functions
-   - Created a consolidated feature flag fixture system:
-     - Created a single canonical fixture file at tests/fixtures/fixture_feature_flags.py
-     - Implemented proper async fixtures with pytest_asyncio.fixture decorators
-     - Added timestamp-based unique identifiers to prevent name collisions
-     - Fixed transaction management for more reliable tests
-   - Updated test file to use the new consolidated fixtures:
-     - Modified test_feature_flag_service.py to use the new fixture pattern
-     - Simplified test approach with direct database model creation
-     - Implemented proper service reinitialization between tests
-     - Ensured tests are properly isolated from each other
-   - Related improvements:
-     - Updated conftest.py to reference the new consolidated fixture file
-     - Removed obsolete fixture files to prevent confusion
-     - Verified tests pass with the new consolidated approach
 
 ## Next Steps
 
@@ -226,6 +170,8 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
    - Prevent setting invalid fields that don't exist on specific model classes
    - Use consistent interface for all polymorphic repositories
    - Design for future expansion to support any number of polymorphic entity types
+   - Preserve optional fields with existing values during partial updates
+   - Skip setting optional fields to NULL if they already have a value
 
 2. **Repository Fixture Usage Patterns**
    - Use repository_factory as a function, not as an object with methods

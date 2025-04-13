@@ -43,6 +43,7 @@ pytest_plugins = [
     "tests.fixtures.repositories.fixture_payment_schedules_repositories",
     "tests.fixtures.repositories.fixture_payment_sources_repositories",
     "tests.fixtures.repositories.fixture_payments_repositories",
+    "tests.fixtures.repositories.fixture_polymorphic_test_repositories",
     "tests.fixtures.repositories.fixture_recurring_bills_repositories",
     "tests.fixtures.repositories.fixture_recurring_income_repositories",
     "tests.fixtures.repositories.fixture_statement_history_repositories",

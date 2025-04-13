@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.repositories.base_repository import BaseRepository
 from src.utils.datetime_utils import utc_now
-from tests.helpers.models.test_basic_db_model import TestBasicDBModel
+from tests.helpers.models.basic_test_models import TestBasicDBModel
 from tests.helpers.schema_factories.basic_test_schema_factories import (
     create_test_item_schema,
     create_test_item_update_schema,

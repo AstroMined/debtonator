@@ -242,11 +242,16 @@ class PolymorphicBaseRepository(BaseRepository[PolyModelType, PKType]):
         # Get valid fields for this model class
         valid_fields = self._get_valid_fields_for_model(model_class)
 
-        # Update entity fields, preserving required fields
+        # Update entity fields, preserving both required fields and optional fields with values
         for key, value in filtered_data.items():
             if hasattr(entity, key):
                 # Skip setting required fields to NULL
                 if key in valid_fields.get("required", set()) and value is None:
+                    continue
+                
+                # Skip setting optional fields to NULL if they already have a value
+                current_value = getattr(entity, key)
+                if value is None and current_value is not None and key not in valid_fields.get("required", set()):
                     continue
 
                 setattr(entity, key, value)

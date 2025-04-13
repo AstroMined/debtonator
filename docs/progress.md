@@ -48,6 +48,7 @@
    - Repository test refactoring for 14 advanced test files completed ✓
    - Method name transition from create/update_typed_account to create/update_typed_entity completed ✓
    - Polymorphic repository pattern implementation with proper type handling ✓
+   - Partial update field preservation in polymorphic repositories ✓
 
 4. __Service Layer__: IN PROGRESS (75%)
    - Service refactoring to use repositories (90%)
@@ -163,6 +164,7 @@
    - Centralized feature flag enforcement with proxy pattern ✓
    - Standardized repository fixture usage patterns ✓
    - Proper separation of CRUD and advanced repository tests ✓
+   - Partial update field preservation for optional fields with existing values ✓
 
 2. __Schema Layer__
    - Complete validation for all model types ✓
@@ -248,6 +250,7 @@
    - Function-based feature flag registry tests with logical organization ✓
    - Standardized test fixtures for feature flag testing ✓
    - Improved datetime handling in time-based feature flag tests ✓
+   - Partial update field preservation tests for polymorphic repositories ✓
 
 ## What's Left to Build
 

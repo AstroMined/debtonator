@@ -10,7 +10,7 @@ from decimal import Decimal
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from tests.helpers.models.test_basic_db_model import TestBasicDBModel
+from tests.helpers.models.basic_test_models import TestBasicDBModel
 
 
 @pytest_asyncio.fixture
