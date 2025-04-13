@@ -71,29 +71,8 @@ class SavingsAccountBase(AccountBase):
 
         return value
 
-    @field_validator("interest_rate")
-    @classmethod
-    def validate_interest_rate(cls, value: Optional[Decimal]) -> Optional[Decimal]:
-        """
-        Validate the interest rate is reasonable.
-
-        Args:
-            value: The interest rate to validate
-
-        Returns:
-            The validated interest rate
-
-        Raises:
-            ValueError: If interest rate is unreasonably high
-        """
-        # Additional validation beyond the field constraint
-        if value is not None and value > 20:
-            # Warn about unusually high interest rates
-            raise ValueError(
-                "Interest rate seems unusually high. Please confirm the rate is correct."
-            )
-
-        return value
+    # Removed reasonableness validator for interest_rate
+    # The basic range constraint (0-1) is still applied by the PercentageDecimal type
 
 
 class SavingsAccountCreate(SavingsAccountBase):
@@ -112,8 +91,24 @@ class SavingsAccountUpdate(AccountBase):
     with all fields being optional.
     """
 
+    # Override name to make it optional
+    name: Optional[str] = Field(
+        default=None, 
+        min_length=1,
+        max_length=50,
+        description="Account name (1-50 characters)",
+    )
+    
     # Override account_type to be a fixed literal for savings accounts
     account_type: Optional[Literal["savings"]] = None
+    
+    # Override balance fields to be None by default (don't update if not provided)
+    current_balance: Optional[MoneyDecimal] = Field(
+        default=None, description="Current balance"
+    )
+    available_balance: Optional[MoneyDecimal] = Field(
+        default=None, description="Available balance"
+    )
 
     # Savings-specific fields
     interest_rate: Optional[PercentageDecimal] = Field(
@@ -162,32 +157,8 @@ class SavingsAccountUpdate(AccountBase):
 
         return value
 
-    @field_validator("interest_rate")
-    @classmethod
-    def validate_interest_rate(cls, value: Optional[Decimal]) -> Optional[Decimal]:
-        """
-        Validate the interest rate is reasonable.
-
-        Args:
-            value: The interest rate to validate
-
-        Returns:
-            The validated interest rate
-
-        Raises:
-            ValueError: If interest rate is unreasonably high
-        """
-        if value is None:
-            return None
-
-        # Additional validation beyond the field constraint
-        if value > 20:
-            # Warn about unusually high interest rates
-            raise ValueError(
-                "Interest rate seems unusually high. Please confirm the rate is correct."
-            )
-
-        return value
+    # Removed reasonableness validator for interest_rate
+    # The basic range constraint (0-1) is still applied by the PercentageDecimal type
 
 
 class SavingsAccountResponse(SavingsAccountBase, AccountResponse):

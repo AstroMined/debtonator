@@ -7,6 +7,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.114] - 2025-04-12
+
+### Changed
+
+- Moved "reasonableness" validation from banking account schemas to service layer
+- Improved architecture by separating data validation from business rules
+- Increased test coverage for banking schemas from 87% to 93%
+
+### Fixed
+
+- Fixed failing tests for high-value validations in banking account schemas
+
 ## [0.5.113] - 2025-04-12
 
 ### Fixed

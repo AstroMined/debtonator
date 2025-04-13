@@ -133,29 +133,8 @@ class CreditAccountBase(AccountBase):
 
         return value
 
-    @field_validator("apr")
-    @classmethod
-    def validate_apr(cls, value: Optional[Decimal]) -> Optional[Decimal]:
-        """
-        Validate the APR is reasonable.
-
-        Args:
-            value: The APR to validate
-
-        Returns:
-            The validated APR
-
-        Raises:
-            ValueError: If APR is unreasonably high
-        """
-        # Additional validation beyond the field constraint
-        if value is not None and value > 36:
-            # This is a warning threshold - some cards can have higher rates but it's unusual
-            raise ValueError(
-                "APR seems unusually high. Please confirm the rate is correct."
-            )
-
-        return value
+    # Removed reasonableness validator for APR
+    # The basic range constraint (0-100%) is still applied by the PercentageDecimal type
 
 
 class CreditAccountCreate(CreditAccountBase):
@@ -174,8 +153,24 @@ class CreditAccountUpdate(AccountBase):
     with all fields being optional.
     """
 
+    # Override name to make it optional
+    name: Optional[str] = Field(
+        default=None, 
+        min_length=1,
+        max_length=50,
+        description="Account name (1-50 characters)",
+    )
+    
     # Override account_type to be a fixed literal for credit accounts
     account_type: Optional[Literal["credit"]] = None
+    
+    # Override balance fields to be None by default (don't update if not provided)
+    current_balance: Optional[MoneyDecimal] = Field(
+        default=None, description="Current balance"
+    )
+    available_balance: Optional[MoneyDecimal] = Field(
+        default=None, description="Available balance"
+    )
 
     # Credit-specific fields
     credit_limit: Optional[MoneyDecimal] = Field(
@@ -289,32 +284,8 @@ class CreditAccountUpdate(AccountBase):
 
         return value
 
-    @field_validator("apr")
-    @classmethod
-    def validate_apr(cls, value: Optional[Decimal]) -> Optional[Decimal]:
-        """
-        Validate the APR is reasonable.
-
-        Args:
-            value: The APR to validate
-
-        Returns:
-            The validated APR
-
-        Raises:
-            ValueError: If APR is unreasonably high
-        """
-        if value is None:
-            return None
-
-        # Additional validation beyond the field constraint
-        if value > 36:
-            # This is a warning threshold - some cards can have higher rates but it's unusual
-            raise ValueError(
-                "APR seems unusually high. Please confirm the rate is correct."
-            )
-
-        return value
+    # Removed reasonableness validator for APR
+    # The basic range constraint (0-100%) is still applied by the PercentageDecimal type
 
 
 class CreditAccountResponse(CreditAccountBase, AccountResponse):

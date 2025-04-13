@@ -12,6 +12,7 @@ from typing import Literal, Optional
 from pydantic import Field, field_validator
 
 from src.schemas.accounts import AccountBase, AccountResponse
+from src.schemas.base_schema import MoneyDecimal
 
 
 class PaymentAppAccountBase(AccountBase):
@@ -156,6 +157,171 @@ class PaymentAppAccountCreate(PaymentAppAccountBase):
 
     Extends the base payment app account schema for creation operations.
     """
+
+
+class PaymentAppAccountUpdate(AccountBase):
+    """
+    Schema for updating an existing payment app account.
+
+    Contains all fields that can be updated for a payment app account,
+    with all fields being optional.
+    """
+
+    # Override name to make it optional
+    name: Optional[str] = Field(
+        default=None, 
+        min_length=1,
+        max_length=50,
+        description="Account name (1-50 characters)",
+    )
+    
+    # Override account_type to be a fixed literal for payment app accounts
+    account_type: Optional[Literal["payment_app"]] = None
+    
+    # Override balance fields to be None by default (don't update if not provided)
+    current_balance: Optional[MoneyDecimal] = Field(
+        default=None, description="Current balance"
+    )
+    available_balance: Optional[MoneyDecimal] = Field(
+        default=None, description="Available balance"
+    )
+
+    # Payment app-specific fields
+    platform: Optional[str] = Field(
+        default=None,
+        max_length=50,
+        description="Payment platform (PayPal, Venmo, Cash App, etc.)",
+    )
+    has_debit_card: Optional[bool] = Field(
+        default=None, description="Whether account has an associated debit card"
+    )
+    card_last_four: Optional[str] = Field(
+        default=None,
+        max_length=4,
+        min_length=4,
+        description="Last four digits of associated card (if any)",
+    )
+    linked_account_ids: Optional[str] = Field(
+        default=None,
+        max_length=255,
+        description="Comma-separated list of linked account IDs",
+    )
+    supports_direct_deposit: Optional[bool] = Field(
+        default=None, description="Whether account supports direct deposit"
+    )
+    supports_crypto: Optional[bool] = Field(
+        default=None, description="Whether account supports cryptocurrency"
+    )
+
+    @field_validator("platform")
+    @classmethod
+    def validate_platform(cls, value: Optional[str]) -> Optional[str]:
+        """
+        Validate the payment platform is a recognized value.
+
+        Args:
+            value: The payment platform to validate
+
+        Returns:
+            The validated payment platform
+
+        Raises:
+            ValueError: If payment platform is not recognized
+        """
+        if value is None:
+            return None
+            
+        valid_platforms = [
+            "PayPal",
+            "Venmo",
+            "Cash App",
+            "Zelle",
+            "Apple Pay",
+            "Google Pay",
+            "Revolut",
+            "Wise",
+            "Square",
+            "Stripe",
+            "Other",
+        ]
+
+        if value not in valid_platforms:
+            raise ValueError(f"Platform must be one of: {', '.join(valid_platforms)}")
+
+        return value
+
+    @field_validator("card_last_four")
+    @classmethod
+    def validate_card_last_four(cls, value: Optional[str], info: dict) -> Optional[str]:
+        """
+        Validate the card last four digits are provided when debit card is enabled.
+
+        Args:
+            value: The card last four digits
+            info: The validation context
+
+        Returns:
+            The validated card last four digits
+
+        Raises:
+            ValueError: If debit card is enabled but last four digits are not provided
+                       or if last four digits are provided but debit card is not enabled
+        """
+        if value is None:
+            return None
+            
+        has_debit_card = info.data.get("has_debit_card")
+
+        # Skip validation if has_debit_card is not being updated
+        if has_debit_card is None:
+            # Only validate format if value is provided
+            if not value.isdigit():
+                raise ValueError("Card last four digits must contain only numbers")
+            return value
+
+        if has_debit_card and not value:
+            raise ValueError(
+                "Card last four digits are required when debit card is enabled"
+            )
+
+        if not has_debit_card and value:
+            raise ValueError(
+                "Card last four digits cannot be provided when debit card is not enabled"
+            )
+
+        if not value.isdigit():
+            raise ValueError("Card last four digits must contain only numbers")
+
+        return value
+
+    @field_validator("linked_account_ids")
+    @classmethod
+    def validate_linked_account_ids(cls, value: Optional[str]) -> Optional[str]:
+        """
+        Validate the linked account IDs format.
+
+        Args:
+            value: The linked account IDs to validate
+
+        Returns:
+            The validated linked account IDs
+
+        Raises:
+            ValueError: If linked account IDs are not in the correct format
+        """
+        if value is None:
+            return None
+            
+        # Verify format is comma-separated integers
+        try:
+            ids = [int(id_str.strip()) for id_str in value.split(",")]
+
+            # Rebuilt clean comma-separated list
+            return ",".join(str(id) for id in ids)
+        except ValueError:
+            raise ValueError(
+                "Linked account IDs must be a comma-separated list of integers"
+            )
 
 
 class PaymentAppAccountResponse(PaymentAppAccountBase, AccountResponse):

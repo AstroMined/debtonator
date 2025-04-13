@@ -16,6 +16,12 @@ from src.schemas.feature_flags import (
     FeatureFlagToggle,
     FeatureFlagType,
     FeatureFlagUpdate,
+    RequirementsBase,
+    RequirementsResponse,
+    RequirementsUpdate,
+    FlagHistoryEntry,
+    FlagHistoryResponse,
+    FlagMetricsResponse,
 )
 from src.utils.datetime_utils import utc_now
 
@@ -27,6 +33,7 @@ def test_valid_flag_types():
     assert FeatureFlagType.PERCENTAGE == "percentage"
     assert FeatureFlagType.USER_SEGMENT == "user_segment"
     assert FeatureFlagType.TIME_BASED == "time_based"
+    assert FeatureFlagType.ENVIRONMENT == "environment"
 
 
 def test_enum_from_string():
@@ -35,6 +42,7 @@ def test_enum_from_string():
     assert FeatureFlagType("percentage") == FeatureFlagType.PERCENTAGE
     assert FeatureFlagType("user_segment") == FeatureFlagType.USER_SEGMENT
     assert FeatureFlagType("time_based") == FeatureFlagType.TIME_BASED
+    assert FeatureFlagType("environment") == FeatureFlagType.ENVIRONMENT
 
 
 def test_invalid_flag_type():
@@ -143,6 +151,57 @@ def test_valid_time_based_flag():
     assert flag.flag_type == FeatureFlagType.TIME_BASED
     assert flag.value["start_time"] == start_time.isoformat()
     assert flag.description == "Test time-based flag"
+
+
+def test_valid_environment_flag():
+    """Test creating a valid environment flag."""
+    flag = FeatureFlagCreate(
+        name="TEST_ENVIRONMENT_FLAG",
+        flag_type=FeatureFlagType.ENVIRONMENT,
+        value={
+            "environments": ["dev", "staging", "prod"],
+            "default": False
+        },
+        description="Test environment flag",
+    )
+    assert flag.name == "TEST_ENVIRONMENT_FLAG"
+    assert flag.flag_type == FeatureFlagType.ENVIRONMENT
+    assert flag.value["environments"] == ["dev", "staging", "prod"]
+    assert flag.value["default"] is False
+    assert flag.description == "Test environment flag"
+
+
+def test_invalid_environment_flag_missing_keys():
+    """Test that environment flags must have required keys."""
+    with pytest.raises(ValidationError) as exc:
+        FeatureFlagCreate(
+            name="TEST_ENVIRONMENT_FLAG",
+            flag_type=FeatureFlagType.ENVIRONMENT,
+            value={"environments": ["dev", "staging"]},  # Missing 'default' key
+        )
+    assert "Environment flag value must contain 'environments' and 'default' keys" in str(exc.value)
+
+    with pytest.raises(ValidationError) as exc:
+        FeatureFlagCreate(
+            name="TEST_ENVIRONMENT_FLAG",
+            flag_type=FeatureFlagType.ENVIRONMENT,
+            value={"default": True},  # Missing 'environments' key
+        )
+    assert "Environment flag value must contain 'environments' and 'default' keys" in str(exc.value)
+
+
+def test_invalid_environment_flag_wrong_type():
+    """Test that environment flags must have the correct value types."""
+    with pytest.raises(ValidationError) as exc:
+        FeatureFlagCreate(
+            name="TEST_ENVIRONMENT_FLAG",
+            flag_type=FeatureFlagType.ENVIRONMENT,
+            value={
+                "environments": "dev,staging",  # String instead of list
+                "default": False
+            },
+        )
+    assert "'environments' must be a list of environment names" in str(exc.value)
 
 
 def test_create_with_metadata():
@@ -291,6 +350,39 @@ def test_validate_value_for_type():
     assert "Boolean flag value must be a boolean" in str(exc.value)
 
 
+def test_update_environment_flag():
+    """Test updating an environment flag."""
+    update = FeatureFlagUpdate(
+        flag_type=FeatureFlagType.ENVIRONMENT,
+        value={
+            "environments": ["dev", "staging"],
+            "default": True
+        }
+    )
+    assert update.flag_type == FeatureFlagType.ENVIRONMENT
+    assert update.value["environments"] == ["dev", "staging"]
+    assert update.value["default"] is True
+
+    # Invalid update - missing required keys
+    with pytest.raises(ValidationError) as exc:
+        FeatureFlagUpdate(
+            flag_type=FeatureFlagType.ENVIRONMENT,
+            value={"environments": ["dev"]}  # Missing 'default' key
+        )
+    assert "Environment flag value must contain 'environments' and 'default' keys" in str(exc.value)
+
+    # Invalid update - wrong type for environments
+    with pytest.raises(ValidationError) as exc:
+        FeatureFlagUpdate(
+            flag_type=FeatureFlagType.ENVIRONMENT,
+            value={
+                "environments": "all",  # Should be a list
+                "default": False
+            }
+        )
+    assert "'environments' must be a list of environment names" in str(exc.value)
+
+
 # Tests for FeatureFlagResponse schema
 def test_valid_response():
     """Test a valid feature flag response."""
@@ -331,6 +423,27 @@ def test_response_with_minimal_fields():
     assert response.description is None
     assert response.flag_metadata is None
     assert response.is_system is False
+    assert response.created_at == now
+    assert response.updated_at == now
+
+
+def test_environment_flag_response():
+    """Test a response with an environment flag."""
+    now = utc_now()
+    response = FeatureFlagResponse(
+        name="ENV_FLAG",
+        flag_type=FeatureFlagType.ENVIRONMENT,
+        value={
+            "environments": ["dev", "staging", "prod"],
+            "default": False
+        },
+        created_at=now,
+        updated_at=now,
+    )
+    assert response.name == "ENV_FLAG"
+    assert response.flag_type == FeatureFlagType.ENVIRONMENT
+    assert response.value["environments"] == ["dev", "staging", "prod"]
+    assert response.value["default"] is False
     assert response.created_at == now
     assert response.updated_at == now
 
@@ -403,3 +516,321 @@ def test_full_context():
     assert context.is_beta_tester is True
     assert context.request_path == "/api/v1/accounts"
     assert context.client_ip == "192.168.1.1"
+
+
+# Tests for feature flag requirements schemas
+def test_requirements_base_schema():
+    """Test the base requirements schema."""
+    req = RequirementsBase(
+        flag_name="TEST_FLAG",
+        requirements={
+            "repository": {
+                "create_typed_entity": ["bnpl", "ewa"],
+                "update_typed_entity": ["bnpl", "ewa"],
+            },
+            "service": {
+                "create_account": ["bnpl", "ewa"],
+            },
+            "api": {
+                "/api/v1/accounts": ["bnpl", "ewa"],
+            },
+        },
+    )
+    assert req.flag_name == "TEST_FLAG"
+    assert "repository" in req.requirements
+    assert "create_typed_entity" in req.requirements["repository"]
+    assert req.requirements["repository"]["create_typed_entity"] == ["bnpl", "ewa"]
+    assert "service" in req.requirements
+    assert "api" in req.requirements
+
+
+def test_requirements_response_schema():
+    """Test the requirements response schema."""
+    resp = RequirementsResponse(
+        flag_name="TEST_FLAG",
+        requirements={
+            "repository": {
+                "create_typed_entity": ["bnpl", "ewa"],
+            },
+            "service": {
+                "create_account": ["bnpl", "ewa"],
+            },
+        },
+    )
+    assert resp.flag_name == "TEST_FLAG"
+    assert "repository" in resp.requirements
+    assert "service" in resp.requirements
+
+
+def test_requirements_update_schema_valid():
+    """Test the requirements update schema with valid input."""
+    update = RequirementsUpdate(
+        requirements={
+            "repository": {
+                "create_typed_entity": ["bnpl", "ewa", "payment_app"],
+            },
+            "service": {
+                "create_account": ["bnpl", "ewa", "payment_app"],
+            },
+        },
+    )
+    assert "repository" in update.requirements
+    assert "service" in update.requirements
+    assert update.requirements["repository"]["create_typed_entity"] == ["bnpl", "ewa", "payment_app"]
+
+
+def test_requirements_update_invalid_layer():
+    """Test the requirements update schema with an invalid layer."""
+    with pytest.raises(ValidationError) as exc:
+        RequirementsUpdate(
+            requirements={
+                "invalid_layer": {  # Not a valid layer
+                    "method": ["bnpl"],
+                },
+            },
+        )
+    assert "Invalid layers in requirements" in str(exc.value)
+
+
+def test_requirements_update_invalid_repository_format():
+    """Test the requirements update schema with invalid repository format."""
+    with pytest.raises(ValidationError) as exc:
+        RequirementsUpdate(
+            requirements={
+                "repository": "not_a_dict",  # Should be a dict
+            },
+        )
+    assert "Repository requirements must be a dictionary" in str(exc.value)
+
+
+def test_requirements_update_invalid_method_name():
+    """Test the requirements update schema with an invalid method name."""
+    with pytest.raises(ValidationError) as exc:
+        RequirementsUpdate(
+            requirements={
+                "repository": {
+                    123: ["bnpl"],  # Method name should be a string
+                },
+            },
+        )
+    assert "Repository method names must be strings" in str(exc.value)
+
+
+def test_requirements_update_invalid_account_types():
+    """Test the requirements update schema with invalid account types."""
+    with pytest.raises(ValidationError) as exc:
+        RequirementsUpdate(
+            requirements={
+                "repository": {
+                    "create_typed_entity": "bnpl",  # Should be a list or dict
+                },
+            },
+        )
+    assert "Account types for method 'create_typed_entity' must be a list or dictionary" in str(exc.value)
+
+
+def test_requirements_update_non_string_account_types():
+    """Test the requirements update schema with non-string account types."""
+    with pytest.raises(ValidationError) as exc:
+        RequirementsUpdate(
+            requirements={
+                "repository": {
+                    "create_typed_entity": [123, "ewa"],  # All should be strings
+                },
+            },
+        )
+    assert "Account types for method 'create_typed_entity' must be strings" in str(exc.value)
+
+
+def test_requirements_update_service_validation():
+    """Test the requirements update schema with service validation."""
+    # Valid service requirements
+    update = RequirementsUpdate(
+        requirements={
+            "service": {
+                "create_account": ["bnpl", "ewa"],
+            },
+        },
+    )
+    assert "service" in update.requirements
+    assert update.requirements["service"]["create_account"] == ["bnpl", "ewa"]
+
+    # Invalid service method type
+    with pytest.raises(ValidationError) as exc:
+        RequirementsUpdate(
+            requirements={
+                "service": {
+                    "create_account": 123,  # Should be a list or dict
+                },
+            },
+        )
+    assert "Account types for method 'create_account' must be a list or dictionary" in str(exc.value)
+
+
+def test_requirements_update_api_validation():
+    """Test the requirements update schema with API validation."""
+    # Valid API requirements
+    update = RequirementsUpdate(
+        requirements={
+            "api": {
+                "/api/v1/accounts": ["bnpl", "ewa"],
+            },
+        },
+    )
+    assert "api" in update.requirements
+    assert update.requirements["api"]["/api/v1/accounts"] == ["bnpl", "ewa"]
+
+    # Invalid API endpoint type
+    with pytest.raises(ValidationError) as exc:
+        RequirementsUpdate(
+            requirements={
+                "api": {
+                    123: ["bnpl"],  # Endpoint should be a string
+                },
+            },
+        )
+    assert "API endpoint paths must be strings" in str(exc.value)
+
+    # Invalid account types format
+    with pytest.raises(ValidationError) as exc:
+        RequirementsUpdate(
+            requirements={
+                "api": {
+                    "/api/v1/accounts": "all",  # Should be a list or dict
+                },
+            },
+        )
+    assert "Account types for endpoint '/api/v1/accounts' must be a list or dictionary" in str(exc.value)
+
+
+# Tests for flag history schemas
+def test_flag_history_entry_schema():
+    """Test the flag history entry schema."""
+    now = utc_now()
+    entry = FlagHistoryEntry(
+        flag_name="TEST_FLAG",
+        timestamp=now,
+        change_type="update",
+        old_value=False,
+        new_value=True,
+    )
+    assert entry.flag_name == "TEST_FLAG"
+    assert entry.timestamp == now
+    assert entry.change_type == "update"
+    assert entry.old_value is False
+    assert entry.new_value is True
+
+
+def test_flag_history_entry_create():
+    """Test a history entry for flag creation."""
+    now = utc_now()
+    entry = FlagHistoryEntry(
+        flag_name="TEST_FLAG",
+        timestamp=now,
+        change_type="create",
+        new_value=True,
+    )
+    assert entry.flag_name == "TEST_FLAG"
+    assert entry.timestamp == now
+    assert entry.change_type == "create"
+    assert entry.old_value is None
+    assert entry.new_value is True
+
+
+def test_flag_history_entry_delete():
+    """Test a history entry for flag deletion."""
+    now = utc_now()
+    entry = FlagHistoryEntry(
+        flag_name="TEST_FLAG",
+        timestamp=now,
+        change_type="delete",
+        old_value=True,
+    )
+    assert entry.flag_name == "TEST_FLAG"
+    assert entry.timestamp == now
+    assert entry.change_type == "delete"
+    assert entry.old_value is True
+    assert entry.new_value is None
+
+
+def test_flag_history_response_schema():
+    """Test the flag history response schema."""
+    now = utc_now()
+    entry1 = FlagHistoryEntry(
+        flag_name="TEST_FLAG",
+        timestamp=now,
+        change_type="create",
+        new_value=False,
+    )
+    entry2 = FlagHistoryEntry(
+        flag_name="TEST_FLAG",
+        timestamp=now,
+        change_type="update",
+        old_value=False,
+        new_value=True,
+    )
+    
+    response = FlagHistoryResponse(
+        flag_name="TEST_FLAG",
+        history=[entry1, entry2],
+    )
+    assert response.flag_name == "TEST_FLAG"
+    assert len(response.history) == 2
+    assert response.history[0].change_type == "create"
+    assert response.history[1].change_type == "update"
+
+
+# Tests for flag metrics schema
+def test_flag_metrics_response_schema():
+    """Test the flag metrics response schema."""
+    now = utc_now()
+    metrics = FlagMetricsResponse(
+        flag_name="TEST_FLAG",
+        check_count=2500,
+        layers={
+            "repository": 1250,
+            "service": 980,
+            "api": 270,
+        },
+        last_checked=now,
+    )
+    assert metrics.flag_name == "TEST_FLAG"
+    assert metrics.check_count == 2500
+    assert metrics.layers["repository"] == 1250
+    assert metrics.layers["service"] == 980
+    assert metrics.layers["api"] == 270
+    assert metrics.last_checked == now
+
+
+def test_flag_metrics_without_last_checked():
+    """Test flag metrics response without last_checked."""
+    metrics = FlagMetricsResponse(
+        flag_name="TEST_FLAG",
+        check_count=0,
+        layers={
+            "repository": 0,
+            "service": 0,
+            "api": 0,
+        },
+    )
+    assert metrics.flag_name == "TEST_FLAG"
+    assert metrics.check_count == 0
+    assert metrics.last_checked is None
+
+
+def test_flag_metrics_with_missing_layer():
+    """Test flag metrics response with a missing layer."""
+    metrics = FlagMetricsResponse(
+        flag_name="TEST_FLAG",
+        check_count=1000,
+        layers={
+            "repository": 500,
+            "api": 500,
+            # 'service' layer is missing
+        },
+    )
+    assert metrics.flag_name == "TEST_FLAG"
+    assert metrics.check_count == 1000
+    assert "repository" in metrics.layers
+    assert "api" in metrics.layers
+    assert "service" not in metrics.layers
