@@ -5,7 +5,6 @@ This module provides a repository for managing credit limit history records,
 with specialized methods for tracking credit limit changes over time.
 """
 
-from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
@@ -14,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.credit_limit_history import CreditLimitHistory
 from src.repositories.base_repository import BaseRepository
+from src.utils.datetime_utils import ensure_utc, naive_end_of_day, naive_start_of_day
 
 
 class CreditLimitHistoryRepository(BaseRepository[CreditLimitHistory, int]):
@@ -91,25 +91,30 @@ class CreditLimitHistoryRepository(BaseRepository[CreditLimitHistory, int]):
         return await self.get_with_joins(id, relationships=["account"])
 
     async def get_by_date_range(
-        self, account_id: int, start_date: datetime, end_date: datetime
+        self, account_id: int, start_date, end_date
     ) -> List[CreditLimitHistory]:
         """
         Get credit limit history entries within a date range.
 
         Args:
             account_id (int): Account ID to get history for
-            start_date (datetime): Start date for range (inclusive)
-            end_date (datetime): End date for range (inclusive)
+            start_date: Start date for range (inclusive)
+            end_date: End date for range (inclusive)
 
         Returns:
             List[CreditLimitHistory]: List of credit limit history entries
         """
+        # Following ADR-011, convert to naive datetimes for database queries
+        # and ensure inclusive range semantics
+        naive_start = naive_start_of_day(start_date)
+        naive_end = naive_end_of_day(end_date)
+        
         query = (
             select(CreditLimitHistory)
             .where(
                 CreditLimitHistory.account_id == account_id,
-                CreditLimitHistory.effective_date >= start_date,
-                CreditLimitHistory.effective_date <= end_date,
+                CreditLimitHistory.effective_date >= naive_start,
+                CreditLimitHistory.effective_date <= naive_end,
             )
             .order_by(CreditLimitHistory.effective_date)
         )
@@ -136,23 +141,29 @@ class CreditLimitHistoryRepository(BaseRepository[CreditLimitHistory, int]):
         return result.scalars().first()
 
     async def get_limit_at_date(
-        self, account_id: int, target_date: datetime
+        self, account_id: int, target_date
     ) -> Optional[CreditLimitHistory]:
         """
         Get the credit limit that was effective at a specific date.
 
         Args:
             account_id (int): Account ID to get limit for
-            target_date (datetime): Date to get limit at
+            target_date: Date to get limit at
 
         Returns:
             Optional[CreditLimitHistory]: History entry or None
         """
+        # Ensure target_date is UTC-compliant per ADR-011
+        target_date = ensure_utc(target_date)
+        
+        # Convert to naive for database query
+        naive_target = target_date.replace(tzinfo=None)
+        
         query = (
             select(CreditLimitHistory)
             .where(
                 CreditLimitHistory.account_id == account_id,
-                CreditLimitHistory.effective_date <= target_date,
+                CreditLimitHistory.effective_date <= naive_target,
             )
             .order_by(CreditLimitHistory.effective_date.desc())
             .limit(1)
@@ -161,14 +172,14 @@ class CreditLimitHistoryRepository(BaseRepository[CreditLimitHistory, int]):
         return result.scalars().first()
 
     async def get_limit_increases(
-        self, account_id: int, since_date: Optional[datetime] = None
+        self, account_id: int, since_date = None
     ) -> List[CreditLimitHistory]:
         """
         Get credit limit increases for an account.
 
         Args:
             account_id (int): Account ID to get increases for
-            since_date (datetime, optional): Only get increases since this date
+            since_date (optional): Only get increases since this date
 
         Returns:
             List[CreditLimitHistory]: List of credit limit increases
@@ -201,20 +212,22 @@ class CreditLimitHistoryRepository(BaseRepository[CreditLimitHistory, int]):
         )
 
         if since_date:
-            query = query.where(CreditLimitHistory.effective_date >= since_date)
+            # Following ADR-011, using naive datetime for database query
+            naive_since = naive_start_of_day(since_date)
+            query = query.where(CreditLimitHistory.effective_date >= naive_since)
 
         result = await self.session.execute(query)
         return result.scalars().all()
 
     async def get_limit_decreases(
-        self, account_id: int, since_date: Optional[datetime] = None
+        self, account_id: int, since_date = None
     ) -> List[CreditLimitHistory]:
         """
         Get credit limit decreases for an account.
 
         Args:
             account_id (int): Account ID to get decreases for
-            since_date (datetime, optional): Only get decreases since this date
+            since_date (optional): Only get decreases since this date
 
         Returns:
             List[CreditLimitHistory]: List of credit limit decreases
@@ -247,7 +260,9 @@ class CreditLimitHistoryRepository(BaseRepository[CreditLimitHistory, int]):
         )
 
         if since_date:
-            query = query.where(CreditLimitHistory.effective_date >= since_date)
+            # Following ADR-011, using naive datetime for database query
+            naive_since = naive_start_of_day(since_date)
+            query = query.where(CreditLimitHistory.effective_date >= naive_since)
 
         result = await self.session.execute(query)
         return result.scalars().all()
@@ -295,15 +310,15 @@ class CreditLimitHistoryRepository(BaseRepository[CreditLimitHistory, int]):
         return trend_data
 
     async def calculate_average_credit_limit(
-        self, account_id: int, start_date: datetime, end_date: datetime
+        self, account_id: int, start_date, end_date
     ) -> Optional[Decimal]:
         """
         Calculate the average credit limit over a period.
 
         Args:
             account_id (int): Account ID to calculate for
-            start_date (datetime): Start date for period
-            end_date (datetime): End date for period
+            start_date: Start date for period
+            end_date: End date for period
 
         Returns:
             Optional[Decimal]: Average credit limit or None if no data

@@ -9,7 +9,7 @@ Implemented as part of ADR-019 Banking Account Types Expansion.
 
 from typing import Literal, Optional
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 
 from src.schemas.accounts import AccountBase, AccountResponse
 from src.schemas.base_schema import MoneyDecimal
@@ -91,7 +91,7 @@ class PaymentAppAccountBase(AccountBase):
     @classmethod
     def validate_card_last_four(cls, value: Optional[str], info: dict) -> Optional[str]:
         """
-        Validate the card last four digits are provided when debit card is enabled.
+        Validate the card last four digits format.
 
         Args:
             value: The card last four digits
@@ -101,21 +101,9 @@ class PaymentAppAccountBase(AccountBase):
             The validated card last four digits
 
         Raises:
-            ValueError: If debit card is enabled but last four digits are not provided
-                       or if last four digits are provided but debit card is not enabled
+            ValueError: If card last four digits are not in the correct format
         """
-        has_debit_card = info.data.get("has_debit_card", False)
-
-        if has_debit_card and not value:
-            raise ValueError(
-                "Card last four digits are required when debit card is enabled"
-            )
-
-        if not has_debit_card and value:
-            raise ValueError(
-                "Card last four digits cannot be provided when debit card is not enabled"
-            )
-
+        # Only validate format if value is provided
         if value is not None and not value.isdigit():
             raise ValueError("Card last four digits must contain only numbers")
 
@@ -143,12 +131,43 @@ class PaymentAppAccountBase(AccountBase):
 
                 # Rebuilt clean comma-separated list
                 return ",".join(str(id) for id in ids)
-            except ValueError:
+            except ValueError as exc:
                 raise ValueError(
                     "Linked account IDs must be a comma-separated list of integers"
-                )
+                ) from exc
 
         return value
+        
+    @model_validator(mode="after")
+    def validate_card_last_four_with_debit_card(self) -> "PaymentAppAccountBase":
+        """
+        Validate that card_last_four is provided when has_debit_card is True,
+        and not provided when has_debit_card is False.
+        
+        This cross-field validation ensures consistency between the two fields.
+        If card_last_four is provided without has_debit_card being explicitly set,
+        has_debit_card is implicitly set to True.
+        """
+        # If card_last_four is provided, implicitly set has_debit_card to True
+        # This handles the case where card_last_four is provided without explicitly setting has_debit_card
+        if self.card_last_four is not None:
+            # Check if has_debit_card was explicitly set to False
+            if "__pydantic_fields_set__" in self.__dict__:
+                fields_set = self.__dict__["__pydantic_fields_set__"]
+                if "has_debit_card" not in fields_set:
+                    # Implicitly set has_debit_card to True
+                    object.__setattr__(self, "has_debit_card", True)
+                    return self
+        
+        # If has_debit_card is True, card_last_four must be provided
+        if self.has_debit_card and not self.card_last_four:
+            raise ValueError("Card last four digits are required when debit card is enabled")
+            
+        # If has_debit_card is False, card_last_four must not be provided
+        if not self.has_debit_card and self.card_last_four:
+            raise ValueError("Card last four digits cannot be provided when debit card is not enabled")
+            
+        return self
 
 
 class PaymentAppAccountCreate(PaymentAppAccountBase):
@@ -169,15 +188,15 @@ class PaymentAppAccountUpdate(AccountBase):
 
     # Override name to make it optional
     name: Optional[str] = Field(
-        default=None, 
+        default=None,
         min_length=1,
         max_length=50,
         description="Account name (1-50 characters)",
     )
-    
+
     # Override account_type to be a fixed literal for payment app accounts
     account_type: Optional[Literal["payment_app"]] = None
-    
+
     # Override balance fields to be None by default (don't update if not provided)
     current_balance: Optional[MoneyDecimal] = Field(
         default=None, description="Current balance"
@@ -230,7 +249,7 @@ class PaymentAppAccountUpdate(AccountBase):
         """
         if value is None:
             return None
-            
+
         valid_platforms = [
             "PayPal",
             "Venmo",
@@ -254,7 +273,7 @@ class PaymentAppAccountUpdate(AccountBase):
     @classmethod
     def validate_card_last_four(cls, value: Optional[str], info: dict) -> Optional[str]:
         """
-        Validate the card last four digits are provided when debit card is enabled.
+        Validate the card last four digits format.
 
         Args:
             value: The card last four digits
@@ -264,31 +283,12 @@ class PaymentAppAccountUpdate(AccountBase):
             The validated card last four digits
 
         Raises:
-            ValueError: If debit card is enabled but last four digits are not provided
-                       or if last four digits are provided but debit card is not enabled
+            ValueError: If card last four digits are not in the correct format
         """
         if value is None:
             return None
-            
-        has_debit_card = info.data.get("has_debit_card")
 
-        # Skip validation if has_debit_card is not being updated
-        if has_debit_card is None:
-            # Only validate format if value is provided
-            if not value.isdigit():
-                raise ValueError("Card last four digits must contain only numbers")
-            return value
-
-        if has_debit_card and not value:
-            raise ValueError(
-                "Card last four digits are required when debit card is enabled"
-            )
-
-        if not has_debit_card and value:
-            raise ValueError(
-                "Card last four digits cannot be provided when debit card is not enabled"
-            )
-
+        # Only validate format if value is provided
         if not value.isdigit():
             raise ValueError("Card last four digits must contain only numbers")
 
@@ -311,17 +311,47 @@ class PaymentAppAccountUpdate(AccountBase):
         """
         if value is None:
             return None
-            
+
         # Verify format is comma-separated integers
         try:
             ids = [int(id_str.strip()) for id_str in value.split(",")]
 
             # Rebuilt clean comma-separated list
             return ",".join(str(id) for id in ids)
-        except ValueError:
+        except ValueError as exc:
             raise ValueError(
                 "Linked account IDs must be a comma-separated list of integers"
-            )
+            ) from exc
+            
+    @model_validator(mode="after")
+    def validate_card_last_four_with_debit_card(self) -> "PaymentAppAccountUpdate":
+        """
+        Validate that card_last_four is provided when has_debit_card is True,
+        and not provided when has_debit_card is False.
+        
+        This cross-field validation ensures consistency between the two fields.
+        If card_last_four is provided without has_debit_card being explicitly set,
+        has_debit_card is implicitly set to True.
+        """
+        # If card_last_four is provided, implicitly set has_debit_card to True
+        # This handles the case where card_last_four is provided without explicitly setting has_debit_card
+        if self.card_last_four is not None:
+            # Check if has_debit_card was explicitly set to False
+            if "__pydantic_fields_set__" in self.__dict__:
+                fields_set = self.__dict__["__pydantic_fields_set__"]
+                if "has_debit_card" not in fields_set:
+                    # Implicitly set has_debit_card to True
+                    object.__setattr__(self, "has_debit_card", True)
+                    return self
+        
+        # Only validate if has_debit_card is explicitly set
+        if self.has_debit_card is True and not self.card_last_four:
+            raise ValueError("Card last four digits are required when debit card is enabled")
+            
+        if self.has_debit_card is False and self.card_last_four:
+            raise ValueError("Card last four digits cannot be provided when debit card is not enabled")
+            
+        return self
 
 
 class PaymentAppAccountResponse(PaymentAppAccountBase, AccountResponse):

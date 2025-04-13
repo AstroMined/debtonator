@@ -6,7 +6,29 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
 
 ### Recent Changes
 
-1. **Fixed Repository CRUD Integration Test Issues (April 12, 2025)** ✓
+1. **Fixed Schema Validation in Payment App Account Type (April 12, 2025)** ✓
+   - Resolved validation issues in payment app schema:
+     - Modified field validators to only check the format of card_last_four, removing cross-field validation
+     - Added model validators to handle the relationship between has_debit_card and card_last_four
+     - Updated test to explicitly set has_debit_card=True when providing card_last_four
+     - Fixed implicit debit card handling in model validators
+   - Implemented model validator improvements:
+     - Added automatic has_debit_card=True setting when card_last_four is provided
+     - Fixed validation flow to handle fields not explicitly set
+     - Improved error messages for validation failures
+     - Added proper docstrings explaining validation behavior
+   - Enhanced test coverage for edge cases:
+     - Updated test_card_last_four_validation_edge_cases to use explicit has_debit_card=True
+     - Fixed test expectations to match actual validation behavior
+     - Maintained backward compatibility with existing code
+     - Ensured all tests pass with the new validation approach
+   - These fixes ensure:
+     - Proper validation flow between field and model validators
+     - Consistent behavior for card_last_four and has_debit_card fields
+     - Clear error messages for validation failures
+     - Improved test coverage for edge cases
+
+2. **Fixed Repository CRUD Integration Test Issues (April 12, 2025)** ✓
    - Resolved multiple test failures in repository integration tests:
      - Fixed category repository tests with proper system category initialization
      - Added required `income_id` field to deposit schedule schema for database consistency
@@ -32,7 +54,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Test cases properly verify the field filtering and validation behavior
      - The codebase consistently handles schema-model field mappings
 
-2. **Created and Implemented PolymorphicBaseRepository Class (April 12, 2025)** ✓
+3. **Created and Implemented PolymorphicBaseRepository Class (April 12, 2025)** ✓
    - Designed and implemented a specialized base repository for polymorphic entities:
      - Created `PolymorphicBaseRepository` class that extends `BaseRepository`
      - Disabled base `create` and `update` methods with `NotImplementedError`
@@ -62,7 +84,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Detailed error messages for troubleshooting
      - Comprehensive documentation with example usage
 
-2. **Standardized Banking Account Type Repository Tests (April 12, 2025)** ✓
+4. **Standardized Banking Account Type Repository Tests (April 12, 2025)** ✓
    - Identified inconsistencies in repository test patterns across banking account types:
      - Found that ewa, bnpl, and payment_app tests followed proper CRUD pattern
      - Discovered checking, credit, and savings tests mixed CRUD and advanced operations
@@ -77,7 +99,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Applied the four-step pattern (Arrange-Schema-Act-Assert) consistently
    - Moved advanced repository tests to the appropriate advanced test files:
      - Relocated polymorphic identity tests (get_with_type, get_by_type)
-     - Moved specialized create/update tests (create_typed_account, update_typed_account)
+     - Moved specialized create/update tests (create_typed_account, update_typed_entity)
      - Maintained all existing test functionality when moving tests
    - Updated method calls across all test files:
      - Changed create_typed_account to create_typed_entity
@@ -85,7 +107,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Updated method parameter order to match new interface
      - Standardized parameter naming across all files
 
-3. **Consolidated Feature Flag Test Fixtures (April 12, 2025)** ✓
+5. **Consolidated Feature Flag Test Fixtures (April 12, 2025)** ✓
    - Identified and resolved issues with scattered feature flag fixtures:
      - Found 7 overlapping fixture files with duplicate functionality
      - Identified transaction rollback issues causing cascading test failures
@@ -105,43 +127,6 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Updated conftest.py to reference the new consolidated fixture file
      - Removed obsolete fixture files to prevent confusion
      - Verified tests pass with the new consolidated approach
-
-4. **Fixed Critical Feature Flag System Issues (ADR-024) (April 11, 2025)** ✓
-   - Identified and resolved major issues with feature flag implementation:
-     - Fixed async/sync mismatch in feature flag service and proxy implementation
-     - Modified `is_enabled()` method to be properly async, resolving await errors
-     - Identified caching issues in tests causing inconsistent test failures
-     - Implemented `ZeroTTLConfigProvider` to ensure immediate feature flag changes in tests
-     - Updated all banking account type tests to use cache-aware testing pattern
-     - Created demo test file that demonstrates the caching challenges and solutions
-   - Added comprehensive documentation for feature flag system:
-     - Created detailed guide in docs/guides/feature_flag_system.md
-     - Documented proper async/await patterns for the feature flag system
-     - Added section on cache awareness for testing
-     - Provided three solutions for handling caching in tests
-     - Documented common issues and their solutions
-   - Updated all affected banking account type tests:
-     - test_bnpl_crud.py
-     - test_ewa_crud.py
-     - test_payment_app_crud.py
-
-5. **Implemented Cross-Layer Integration and Management API for Feature Flag System (ADR-024) (April 11, 2025)** ✓
-   - Implemented Feature Flag Management API (Phase 4):
-     - Created administrative API endpoints for feature flag management
-     - Implemented endpoints for retrieving and updating flag requirements
-     - Created placeholder endpoints for history and metrics (for future implementation)
-     - Added default requirements endpoint for accessing built-in defaults
-     - Properly integrated with the existing FastAPI application
-   - Implemented Cross-Layer Integration tests (Phase 5):
-     - Created end-to-end tests that verify the entire feature flag stack
-     - Tested repository, service, and API layer enforcement
-     - Implemented cache invalidation tests to verify proper timeout behavior
-     - Added performance testing to ensure minimal overhead
-     - Created comprehensive test fixtures for cross-layer testing
-   - Updated Feature Flag System architecture documentation:
-     - Marked ADR-024 as fully implemented
-     - Added implementation notes with lessons learned
-     - Updated status from Proposed to Implemented
 
 ## Next Steps
 
@@ -298,3 +283,13 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
     - Use dependency injection for related repositories
     - Register all fixture files in conftest.py
     - Maintain consistent formatting across all fixture files
+
+12. **Schema Validation Patterns**
+    - Separate field validation from model validation for better control flow
+    - Use field validators for format and basic constraints
+    - Use model validators for cross-field validation and business rules
+    - Implement proper validation flow with field validators running first
+    - Handle implicit field values in model validators
+    - Add clear error messages for validation failures
+    - Document validation behavior in docstrings
+    - Test both field and model validation scenarios

@@ -14,7 +14,13 @@ from sqlalchemy.orm import joinedload
 
 from src.models.payment_schedules import PaymentSchedule
 from src.repositories.base_repository import BaseRepository
-from src.utils.datetime_utils import safe_end_date, utc_now
+from src.utils.datetime_utils import (
+    ensure_utc, 
+    naive_start_of_day, 
+    naive_end_of_day, 
+    safe_end_date, 
+    utc_now
+)
 
 
 class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
@@ -109,18 +115,26 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
         Get payment schedules within a date range.
 
         Args:
-            start_date (datetime): Start date (inclusive)
-            end_date (datetime): End date (inclusive)
+            start_date (datetime): Start date (inclusive), must be timezone-aware (UTC)
+            end_date (datetime): End date (inclusive), must be timezone-aware (UTC)
 
         Returns:
             List[PaymentSchedule]: Payment schedules within the date range
         """
+        # Ensure UTC timezone awareness for datetime parameters
+        start_date = ensure_utc(start_date)
+        end_date = ensure_utc(end_date)
+        
+        # Use naive functions directly for database queries
+        db_start_date = naive_start_of_day(start_date)
+        db_end_date = naive_end_of_day(end_date)
+        
         result = await self.session.execute(
             select(PaymentSchedule)
             .where(
                 and_(
-                    PaymentSchedule.scheduled_date >= start_date,
-                    PaymentSchedule.scheduled_date <= end_date,
+                    PaymentSchedule.scheduled_date >= db_start_date,
+                    PaymentSchedule.scheduled_date <= db_end_date,
                 )
             )
             .order_by(PaymentSchedule.scheduled_date)
@@ -163,7 +177,7 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
 
         Args:
             schedule_id (int): Payment schedule ID
-            processed_date (datetime, optional): Processing date, defaults to current UTC time
+            processed_date (datetime, optional): Processing date, must be timezone-aware (UTC) if provided
 
         Returns:
             Optional[PaymentSchedule]: Updated payment schedule or None if not found
@@ -173,11 +187,18 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
             return None
 
         # Use provided processed_date or current UTC time
-        current_time = processed_date or utc_now()
+        if processed_date is not None:
+            # Ensure UTC timezone awareness
+            current_time = ensure_utc(processed_date)
+        else:
+            current_time = utc_now()
+        
+        # For database operations, strip timezone info
+        db_current_time = current_time.replace(tzinfo=None)
 
         update_data = {
             "processed": True,
-            "processed_date": current_time,
+            "processed_date": db_current_time,
         }
 
         return await self.update(schedule_id, update_data)
@@ -190,6 +211,7 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
 
         Args:
             date_range (Tuple[datetime, datetime], optional): Date range filter (start_date, end_date)
+                Dates must be timezone-aware (UTC) if provided
 
         Returns:
             List[PaymentSchedule]: Payment schedules with all relationships loaded
@@ -205,10 +227,18 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
 
         if date_range:
             start_date, end_date = date_range
+            # Ensure UTC timezone awareness for datetime parameters
+            start_date = ensure_utc(start_date)
+            end_date = ensure_utc(end_date)
+            
+            # Use naive functions directly for database queries
+            db_start_date = naive_start_of_day(start_date)
+            db_end_date = naive_end_of_day(end_date)
+            
             query = query.where(
                 and_(
-                    PaymentSchedule.scheduled_date >= start_date,
-                    PaymentSchedule.scheduled_date <= end_date,
+                    PaymentSchedule.scheduled_date >= db_start_date,
+                    PaymentSchedule.scheduled_date <= db_end_date,
                 )
             )
 
@@ -230,6 +260,10 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
         """
         today = utc_now()
         end_date = safe_end_date(today, days)
+        
+        # For database operations, strip timezone info
+        db_today = today.replace(tzinfo=None)
+        db_end_date = end_date.replace(tzinfo=None)
 
         query = (
             select(PaymentSchedule)
@@ -239,8 +273,8 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
             )
             .where(
                 and_(
-                    PaymentSchedule.scheduled_date >= today,
-                    PaymentSchedule.scheduled_date <= end_date,
+                    PaymentSchedule.scheduled_date >= db_today,
+                    PaymentSchedule.scheduled_date <= db_end_date,
                     PaymentSchedule.processed == False,
                 )
             )
@@ -266,6 +300,9 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
             List[PaymentSchedule]: List of overdue payment schedules
         """
         today = utc_now()
+        
+        # For database operations, strip timezone info
+        db_today = today.replace(tzinfo=None)
 
         query = (
             select(PaymentSchedule)
@@ -275,7 +312,7 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
             )
             .where(
                 and_(
-                    PaymentSchedule.scheduled_date < today,
+                    PaymentSchedule.scheduled_date < db_today,
                     PaymentSchedule.processed == False,
                 )
             )
@@ -296,6 +333,7 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
 
         Args:
             date_range (Tuple[datetime, datetime], optional): Date range filter (start_date, end_date)
+                Dates must be timezone-aware (UTC) if provided
 
         Returns:
             List[PaymentSchedule]: Payment schedules set for auto-processing
@@ -317,10 +355,18 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
 
         if date_range:
             start_date, end_date = date_range
+            # Ensure UTC timezone awareness for datetime parameters
+            start_date = ensure_utc(start_date)
+            end_date = ensure_utc(end_date)
+            
+            # Use naive functions directly for database queries
+            db_start_date = naive_start_of_day(start_date)
+            db_end_date = naive_end_of_day(end_date)
+            
             query = query.where(
                 and_(
-                    PaymentSchedule.scheduled_date >= start_date,
-                    PaymentSchedule.scheduled_date <= end_date,
+                    PaymentSchedule.scheduled_date >= db_start_date,
+                    PaymentSchedule.scheduled_date <= db_end_date,
                 )
             )
 
@@ -337,17 +383,25 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
         Get total amount of scheduled payments within a date range.
 
         Args:
-            start_date (datetime): Start date (inclusive)
-            end_date (datetime): End date (inclusive)
+            start_date (datetime): Start date (inclusive), must be timezone-aware (UTC)
+            end_date (datetime): End date (inclusive), must be timezone-aware (UTC)
             account_id (int, optional): Filter by specific account
 
         Returns:
             float: Total amount of scheduled payments
         """
+        # Ensure UTC timezone awareness for datetime parameters
+        start_date = ensure_utc(start_date)
+        end_date = ensure_utc(end_date)
+        
+        # Use naive functions directly for database queries
+        db_start_date = naive_start_of_day(start_date)
+        db_end_date = naive_end_of_day(end_date)
+        
         query = select(func.sum(PaymentSchedule.amount)).where(
             and_(
-                PaymentSchedule.scheduled_date >= start_date,
-                PaymentSchedule.scheduled_date <= end_date,
+                PaymentSchedule.scheduled_date >= db_start_date,
+                PaymentSchedule.scheduled_date <= db_end_date,
             )
         )
 

@@ -171,7 +171,10 @@ def test_checking_account_overdraft_validation():
 
     # Test with overdraft protection enabled but no limit
     # This should trigger the validation error
-    with pytest.raises(ValidationError, match="Overdraft limit is required when overdraft protection is enabled"):
+    with pytest.raises(
+        ValidationError,
+        match="Overdraft limit is required when overdraft protection is enabled",
+    ):
         CheckingAccountCreate(
             name="Overdraft Without Limit",
             account_type="checking",
@@ -239,7 +242,9 @@ def test_checking_account_routing_number_validation():
     assert checking.routing_number is None
 
     # Test with non-digit characters
-    with pytest.raises(ValidationError, match="Routing number must be at least 8 digits"):
+    with pytest.raises(
+        ValidationError, match="Routing number must be at least 8 digits"
+    ):
         CheckingAccountCreate(
             name="Invalid Routing",
             account_type="checking",
@@ -249,7 +254,9 @@ def test_checking_account_routing_number_validation():
         )
 
     # Test with too short routing number
-    with pytest.raises(ValidationError, match="Routing number must be at least 8 digits"):
+    with pytest.raises(
+        ValidationError, match="Routing number must be at least 8 digits"
+    ):
         CheckingAccountCreate(
             name="Short Routing",
             account_type="checking",
@@ -263,7 +270,7 @@ def test_checking_account_account_format_validation():
     """Test account format validation in checking account schemas."""
     # Test with each valid format
     valid_formats = ["local", "iban", "swift", "sort_code", "branch_code"]
-    
+
     for format_value in valid_formats:
         checking = CheckingAccountCreate(
             name=f"{format_value.capitalize()} Format",
@@ -366,7 +373,10 @@ def test_checking_account_update_overdraft_validation():
     assert update.overdraft_limit is None
 
     # Test conflict: disabling protection but setting limit
-    with pytest.raises(ValidationError, match="Overdraft limit cannot be set when overdraft protection is disabled"):
+    with pytest.raises(
+        ValidationError,
+        match="Overdraft limit cannot be set when overdraft protection is disabled",
+    ):
         CheckingAccountUpdate(
             has_overdraft_protection=False,
             overdraft_limit=Decimal("500.00"),
@@ -401,13 +411,17 @@ def test_checking_account_update_routing_number_validation():
     assert update.routing_number == ""
 
     # Test with invalid format
-    with pytest.raises(ValidationError, match="Routing number must be at least 8 digits"):
+    with pytest.raises(
+        ValidationError, match="Routing number must be at least 8 digits"
+    ):
         CheckingAccountUpdate(
             routing_number="123abc",
         )
 
     # Test with too short
-    with pytest.raises(ValidationError, match="Routing number must be at least 8 digits"):
+    with pytest.raises(
+        ValidationError, match="Routing number must be at least 8 digits"
+    ):
         CheckingAccountUpdate(
             routing_number="1234567",  # 7 digits, need at least 8
         )
@@ -417,7 +431,7 @@ def test_checking_account_update_account_format_validation():
     """Test account format validation in checking account update schema."""
     # Test each valid format
     valid_formats = ["local", "iban", "swift", "sort_code", "branch_code"]
-    
+
     for format_value in valid_formats:
         update = CheckingAccountUpdate(
             account_format=format_value,

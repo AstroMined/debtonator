@@ -13,14 +13,14 @@ from sqlalchemy.exc import IntegrityError
 def handle_db_error(error: IntegrityError) -> None:
     """
     Handle database errors and raise appropriate HTTP exceptions.
-    
+
     This function crosses layers between database and HTTP concerns.
     It would be more appropriate to move this functionality to src/errors/
     to maintain proper separation of concerns.
-    
+
     Args:
         error: The database integrity error to handle
-        
+
     Raises:
         HTTPException: With appropriate status code based on the error
     """

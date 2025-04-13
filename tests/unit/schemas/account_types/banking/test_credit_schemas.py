@@ -6,17 +6,17 @@ as part of ADR-016 Account Type Expansion and ADR-019 Banking Account Types Expa
 """
 
 from decimal import Decimal
-from datetime import datetime, timedelta
 
 import pytest
 from pydantic import ValidationError
 
 from src.schemas.account_types.banking.credit import (
+    CreditAccountBase,
     CreditAccountCreate,
     CreditAccountResponse,
     CreditAccountUpdate,
 )
-from src.utils.datetime_utils import utc_now
+from src.utils.datetime_utils import days_from_now, utc_now
 
 
 def test_credit_account_create_schema():
@@ -248,7 +248,9 @@ def test_minimum_payment_validation():
     assert credit.minimum_payment == Decimal("500.00")
 
     # Test invalid: minimum payment greater than statement balance
-    with pytest.raises(ValidationError, match="Minimum payment cannot exceed statement balance"):
+    with pytest.raises(
+        ValidationError, match="Minimum payment cannot exceed statement balance"
+    ):
         CreditAccountCreate(
             name="Invalid Minimum Payment",
             account_type="credit",
@@ -307,7 +309,9 @@ def test_minimum_payment_validation():
     assert update.minimum_payment == Decimal("30.00")
 
     # Test update: invalid minimum payment
-    with pytest.raises(ValidationError, match="Minimum payment cannot exceed statement balance"):
+    with pytest.raises(
+        ValidationError, match="Minimum payment cannot exceed statement balance"
+    ):
         CreditAccountUpdate(
             statement_balance=Decimal("600.00"),
             minimum_payment=Decimal("650.00"),  # Exceeds statement balance
@@ -341,7 +345,9 @@ def test_statement_balance_validation():
     assert credit.statement_balance == Decimal("2000.00")
 
     # Test invalid: statement balance greater than credit limit
-    with pytest.raises(ValidationError, match="Statement balance cannot exceed credit limit"):
+    with pytest.raises(
+        ValidationError, match="Statement balance cannot exceed credit limit"
+    ):
         CreditAccountCreate(
             name="Invalid Statement Balance",
             account_type="credit",
@@ -385,7 +391,9 @@ def test_statement_balance_validation():
     assert update.statement_balance == Decimal("3000.00")
 
     # Test update: invalid statement balance
-    with pytest.raises(ValidationError, match="Statement balance cannot exceed credit limit"):
+    with pytest.raises(
+        ValidationError, match="Statement balance cannot exceed credit limit"
+    ):
         CreditAccountUpdate(
             credit_limit=Decimal("5000.00"),
             statement_balance=Decimal("6000.00"),  # Exceeds credit limit
@@ -396,7 +404,7 @@ def test_autopay_status_validation():
     """Test autopay status validation in credit account schemas."""
     # Test all valid autopay statuses
     valid_statuses = ["none", "minimum", "full_balance", "fixed_amount"]
-    
+
     for status in valid_statuses:
         credit = CreditAccountCreate(
             name=f"{status.capitalize()} Autopay",
@@ -494,7 +502,7 @@ def test_apr_validation():
         apr=Decimal("0.4999"),  # 49.99%
     )
     assert credit.apr == Decimal("0.4999")
-    
+
     # Test extremely high APR - still allowed, enforcement moved to service layer
     credit = CreditAccountCreate(
         name="Extremely High APR",
@@ -528,9 +536,9 @@ def test_apr_validation():
 def test_dates_in_credit_account():
     """Test date fields in credit account schemas."""
     now = utc_now()
-    due_date = now + timedelta(days=25)
-    statement_date = now - timedelta(days=5)
-    
+    due_date = days_from_now(25)
+    statement_date = days_from_now(-5)
+
     # Test valid dates
     credit = CreditAccountCreate(
         name="Credit With Dates",
@@ -545,9 +553,211 @@ def test_dates_in_credit_account():
     assert credit.last_statement_date == statement_date
 
     # Test update with date fields
-    new_due_date = now + timedelta(days=30)
+    new_due_date = days_from_now(30)
     update = CreditAccountUpdate(
         statement_due_date=new_due_date,
     )
     assert update.statement_due_date == new_due_date
     assert update.last_statement_date is None
+
+
+def test_credit_account_base_instantiation():
+    """Test direct instantiation of CreditAccountBase."""
+    # Test with minimum required fields
+    credit_base = CreditAccountBase(
+        name="Base Credit Card",
+        account_type="credit",
+        current_balance=Decimal("500.00"),
+        available_balance=Decimal("500.00"),
+        credit_limit=Decimal("2000.00"),
+    )
+    assert credit_base.name == "Base Credit Card"
+    assert credit_base.account_type == "credit"
+    assert credit_base.current_balance == Decimal("500.00")
+    assert credit_base.available_balance == Decimal("500.00")
+    assert credit_base.credit_limit == Decimal("2000.00")
+    assert credit_base.statement_balance is None
+    assert credit_base.statement_due_date is None
+    assert credit_base.minimum_payment is None
+    assert credit_base.apr is None
+    assert credit_base.annual_fee is None
+    assert credit_base.rewards_program is None
+    assert credit_base.autopay_status is None
+    assert credit_base.last_statement_date is None
+
+    # Test with all fields
+    now = utc_now()
+    due_date = days_from_now(25)
+
+    credit_base = CreditAccountBase(
+        name="Full Base Credit Card",
+        account_type="credit",
+        current_balance=Decimal("750.00"),
+        available_balance=Decimal("750.00"),
+        institution="Test Bank",
+        currency="USD",
+        account_number="5432-1098-7654-3210",
+        credit_limit=Decimal("3000.00"),
+        statement_balance=Decimal("750.00"),
+        statement_due_date=due_date,
+        minimum_payment=Decimal("35.00"),
+        apr=Decimal("0.1999"),  # 19.99%
+        annual_fee=Decimal("95.00"),
+        rewards_program="Cash Back Plus",
+        autopay_status="minimum",
+        last_statement_date=now,
+    )
+    assert credit_base.name == "Full Base Credit Card"
+    assert credit_base.account_type == "credit"
+    assert credit_base.credit_limit == Decimal("3000.00")
+    assert credit_base.statement_balance == Decimal("750.00")
+    assert credit_base.statement_due_date == due_date
+    assert credit_base.minimum_payment == Decimal("35.00")
+    assert credit_base.apr == Decimal("0.1999")
+    assert credit_base.annual_fee == Decimal("95.00")
+    assert credit_base.rewards_program == "Cash Back Plus"
+    assert credit_base.autopay_status == "minimum"
+    assert credit_base.last_statement_date == now
+
+
+def test_statement_balance_edge_cases():
+    """Test edge cases for statement balance validation."""
+    # Test zero statement balance
+    credit = CreditAccountCreate(
+        name="Zero Statement Balance",
+        account_type="credit",
+        current_balance=Decimal("0.00"),
+        available_balance=Decimal("2000.00"),
+        credit_limit=Decimal("2000.00"),
+        statement_balance=Decimal("0.00"),
+    )
+    assert credit.statement_balance == Decimal("0.00")
+
+    # Test very small statement balance
+    credit = CreditAccountCreate(
+        name="Small Statement Balance",
+        account_type="credit",
+        current_balance=Decimal("0.01"),
+        available_balance=Decimal("1999.99"),
+        credit_limit=Decimal("2000.00"),
+        statement_balance=Decimal("0.01"),
+    )
+    assert credit.statement_balance == Decimal("0.01")
+
+    # Test statement balance with high precision
+    with pytest.raises(ValidationError):  # Should fail due to MoneyDecimal precision
+        CreditAccountCreate(
+            name="High Precision Balance",
+            account_type="credit",
+            current_balance=Decimal("500.00"),
+            available_balance=Decimal("1500.00"),
+            credit_limit=Decimal("2000.00"),
+            statement_balance=Decimal("500.001"),  # Too many decimal places
+        )
+
+    # Test update with zero statement balance
+    update = CreditAccountUpdate(
+        statement_balance=Decimal("0.00"),
+    )
+    assert update.statement_balance == Decimal("0.00")
+
+
+def test_minimum_payment_edge_cases():
+    """Test edge cases for minimum payment validation."""
+    # Test zero minimum payment
+    credit = CreditAccountCreate(
+        name="Zero Minimum Payment",
+        account_type="credit",
+        current_balance=Decimal("500.00"),
+        available_balance=Decimal("1500.00"),
+        credit_limit=Decimal("2000.00"),
+        statement_balance=Decimal("500.00"),
+        minimum_payment=Decimal("0.00"),
+    )
+    assert credit.minimum_payment == Decimal("0.00")
+
+    # Test very small minimum payment
+    credit = CreditAccountCreate(
+        name="Small Minimum Payment",
+        account_type="credit",
+        current_balance=Decimal("500.00"),
+        available_balance=Decimal("1500.00"),
+        credit_limit=Decimal("2000.00"),
+        statement_balance=Decimal("500.00"),
+        minimum_payment=Decimal("0.01"),
+    )
+    assert credit.minimum_payment == Decimal("0.01")
+
+    # Test minimum payment with high precision
+    with pytest.raises(ValidationError):  # Should fail due to MoneyDecimal precision
+        CreditAccountCreate(
+            name="High Precision Payment",
+            account_type="credit",
+            current_balance=Decimal("500.00"),
+            available_balance=Decimal("1500.00"),
+            credit_limit=Decimal("2000.00"),
+            statement_balance=Decimal("500.00"),
+            minimum_payment=Decimal("25.001"),  # Too many decimal places
+        )
+
+    # Test update with zero minimum payment
+    update = CreditAccountUpdate(
+        statement_balance=Decimal("500.00"),
+        minimum_payment=Decimal("0.00"),
+    )
+    assert update.minimum_payment == Decimal("0.00")
+
+    # Test complex update scenario: update statement balance but not minimum payment
+    # This should be valid even if existing minimum payment would be greater than new statement balance
+    # (since we're only validating when both are provided in the same update)
+    update = CreditAccountUpdate(
+        statement_balance=Decimal("10.00"),  # New lower statement balance
+        # Not updating minimum payment
+    )
+    assert update.statement_balance == Decimal("10.00")
+    assert update.minimum_payment is None
+
+
+def test_credit_limit_validation():
+    """Test credit limit validation in credit account schemas."""
+    # Test zero credit limit (should fail)
+    with pytest.raises(ValidationError, match="Input should be greater than 0"):
+        CreditAccountCreate(
+            name="Zero Credit Limit",
+            account_type="credit",
+            current_balance=Decimal("0.00"),
+            available_balance=Decimal("0.00"),
+            credit_limit=Decimal("0.00"),  # Not allowed
+        )
+
+    # Test negative credit limit (should fail)
+    with pytest.raises(ValidationError, match="Input should be greater than 0"):
+        CreditAccountCreate(
+            name="Negative Credit Limit",
+            account_type="credit",
+            current_balance=Decimal("0.00"),
+            available_balance=Decimal("0.00"),
+            credit_limit=Decimal("-1000.00"),  # Not allowed
+        )
+
+    # Test very small credit limit
+    credit = CreditAccountCreate(
+        name="Small Credit Limit",
+        account_type="credit",
+        current_balance=Decimal("0.00"),
+        available_balance=Decimal("0.01"),
+        credit_limit=Decimal("0.01"),  # Very small but > 0
+    )
+    assert credit.credit_limit == Decimal("0.01")
+
+    # Test update with very small credit limit
+    update = CreditAccountUpdate(
+        credit_limit=Decimal("0.01"),
+    )
+    assert update.credit_limit == Decimal("0.01")
+
+    # Test update with zero credit limit (should fail)
+    with pytest.raises(ValidationError, match="Input should be greater than 0"):
+        CreditAccountUpdate(
+            credit_limit=Decimal("0.00"),
+        )

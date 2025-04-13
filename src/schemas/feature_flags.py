@@ -312,20 +312,21 @@ class FeatureFlagContext(BaseSchemaValidator):
 
 # Schemas for feature flag requirements management API
 
+
 class RequirementsBase(BaseSchemaValidator):
     """
     Base schema for feature flag requirements.
-    
+
     This schema defines the common structure for feature flag requirements
     across all validation layers: repository, service, and API.
     """
-    
+
     flag_name: str = Field(
         ...,
         description="Name of the feature flag",
         examples=["BANKING_ACCOUNT_TYPES_ENABLED", "MULTI_CURRENCY_SUPPORT_ENABLED"],
     )
-    
+
     requirements: Dict[str, Any] = Field(
         ...,
         description="Requirements mapping for repository, service, and API layers",
@@ -333,14 +334,10 @@ class RequirementsBase(BaseSchemaValidator):
             {
                 "repository": {
                     "create_typed_entity": ["bnpl", "ewa", "payment_app"],
-                    "update_typed_entity": ["bnpl", "ewa", "payment_app"]
+                    "update_typed_entity": ["bnpl", "ewa", "payment_app"],
                 },
-                "service": {
-                    "create_account": ["bnpl", "ewa", "payment_app"]
-                },
-                "api": {
-                    "/api/v1/accounts": ["bnpl", "ewa", "payment_app"]
-                }
+                "service": {"create_account": ["bnpl", "ewa", "payment_app"]},
+                "api": {"/api/v1/accounts": ["bnpl", "ewa", "payment_app"]},
             }
         ],
     )
@@ -349,124 +346,147 @@ class RequirementsBase(BaseSchemaValidator):
 class RequirementsResponse(RequirementsBase):
     """
     Schema for requirements API responses.
-    
+
     This schema extends the base schema with response-specific fields.
     """
-    pass
 
 
 class RequirementsUpdate(BaseSchemaValidator):
     """
     Schema for updating feature flag requirements.
-    
+
     This schema is used for updating the requirements of an existing feature flag,
     with validation to ensure a proper structure.
     """
-    
+
     requirements: Dict[str, Any] = Field(
         ...,
         description="Updated requirements mapping for repository, service, and API layers",
     )
-    
+
     @model_validator(mode="after")
     def validate_requirements_structure(self) -> "RequirementsUpdate":
         """Validate that requirements follows the expected structure."""
         requirements = self.requirements
-        
+
         # Check top-level keys
         valid_layers = {"repository", "service", "api"}
         actual_layers = set(requirements.keys())
-        
+
         if not actual_layers.issubset(valid_layers):
             invalid_layers = actual_layers - valid_layers
             raise ValueError(
                 f"Invalid layers in requirements: {invalid_layers}. "
                 f"Valid layers are: {valid_layers}"
             )
-        
+
         # Check repository requirements
         if "repository" in requirements:
             repo_reqs = requirements["repository"]
             if not isinstance(repo_reqs, dict):
-                raise ValueError("Repository requirements must be a dictionary mapping methods to account types")
-            
+                raise ValueError(
+                    "Repository requirements must be a dictionary mapping methods to account types"
+                )
+
             for method, account_types in repo_reqs.items():
                 if not isinstance(method, str):
                     raise ValueError("Repository method names must be strings")
-                
-                if not isinstance(account_types, list) and not isinstance(account_types, dict):
-                    raise ValueError(f"Account types for method '{method}' must be a list or dictionary")
-                
+
+                if not isinstance(account_types, list) and not isinstance(
+                    account_types, dict
+                ):
+                    raise ValueError(
+                        f"Account types for method '{method}' must be a list or dictionary"
+                    )
+
                 if isinstance(account_types, list):
                     if not all(isinstance(t, str) for t in account_types):
-                        raise ValueError(f"Account types for method '{method}' must be strings")
-        
+                        raise ValueError(
+                            f"Account types for method '{method}' must be strings"
+                        )
+
         # Check service requirements
         if "service" in requirements:
             service_reqs = requirements["service"]
             if not isinstance(service_reqs, dict):
-                raise ValueError("Service requirements must be a dictionary mapping methods to account types")
-            
+                raise ValueError(
+                    "Service requirements must be a dictionary mapping methods to account types"
+                )
+
             for method, account_types in service_reqs.items():
                 if not isinstance(method, str):
                     raise ValueError("Service method names must be strings")
-                
-                if not isinstance(account_types, list) and not isinstance(account_types, dict):
-                    raise ValueError(f"Account types for method '{method}' must be a list or dictionary")
-                
+
+                if not isinstance(account_types, list) and not isinstance(
+                    account_types, dict
+                ):
+                    raise ValueError(
+                        f"Account types for method '{method}' must be a list or dictionary"
+                    )
+
                 if isinstance(account_types, list):
                     if not all(isinstance(t, str) for t in account_types):
-                        raise ValueError(f"Account types for method '{method}' must be strings")
-        
+                        raise ValueError(
+                            f"Account types for method '{method}' must be strings"
+                        )
+
         # Check API requirements
         if "api" in requirements:
             api_reqs = requirements["api"]
             if not isinstance(api_reqs, dict):
-                raise ValueError("API requirements must be a dictionary mapping endpoints to account types")
-            
+                raise ValueError(
+                    "API requirements must be a dictionary mapping endpoints to account types"
+                )
+
             for endpoint, account_types in api_reqs.items():
                 if not isinstance(endpoint, str):
                     raise ValueError("API endpoint paths must be strings")
-                
-                if not isinstance(account_types, list) and not isinstance(account_types, dict):
-                    raise ValueError(f"Account types for endpoint '{endpoint}' must be a list or dictionary")
-                
+
+                if not isinstance(account_types, list) and not isinstance(
+                    account_types, dict
+                ):
+                    raise ValueError(
+                        f"Account types for endpoint '{endpoint}' must be a list or dictionary"
+                    )
+
                 if isinstance(account_types, list):
                     if not all(isinstance(t, str) for t in account_types):
-                        raise ValueError(f"Account types for endpoint '{endpoint}' must be strings")
-        
+                        raise ValueError(
+                            f"Account types for endpoint '{endpoint}' must be strings"
+                        )
+
         return self
 
 
 class FlagHistoryEntry(BaseSchemaValidator):
     """
     Schema for a single feature flag history entry.
-    
+
     This schema represents a single change to a feature flag,
     including what was changed and when.
     """
-    
+
     flag_name: str = Field(
         ...,
         description="Name of the feature flag",
     )
-    
+
     timestamp: datetime = Field(
         ...,
         description="When the change occurred",
     )
-    
+
     change_type: str = Field(
         ...,
         description="Type of change (create, update, delete)",
         examples=["create", "update", "delete"],
     )
-    
+
     old_value: Optional[Any] = Field(
         None,
         description="Previous value (for updates)",
     )
-    
+
     new_value: Optional[Any] = Field(
         None,
         description="New value (for creates and updates)",
@@ -476,15 +496,15 @@ class FlagHistoryEntry(BaseSchemaValidator):
 class FlagHistoryResponse(BaseSchemaValidator):
     """
     Schema for flag history API responses.
-    
+
     This schema is used for returning the history of changes to a feature flag.
     """
-    
+
     flag_name: str = Field(
         ...,
         description="Name of the feature flag",
     )
-    
+
     history: List[FlagHistoryEntry] = Field(
         ...,
         description="List of history entries, newest first",
@@ -494,33 +514,27 @@ class FlagHistoryResponse(BaseSchemaValidator):
 class FlagMetricsResponse(BaseSchemaValidator):
     """
     Schema for feature flag metrics API responses.
-    
+
     This schema is used for returning usage metrics for a feature flag,
     such as how many times it has been checked and in which layers.
     """
-    
+
     flag_name: str = Field(
         ...,
         description="Name of the feature flag",
     )
-    
+
     check_count: int = Field(
         ...,
         description="Total number of times the flag has been checked",
     )
-    
+
     layers: Dict[str, int] = Field(
         ...,
         description="Check counts by layer (repository, service, api)",
-        examples=[
-            {
-                "repository": 1250,
-                "service": 980,
-                "api": 430
-            }
-        ],
+        examples=[{"repository": 1250, "service": 980, "api": 430}],
     )
-    
+
     last_checked: Optional[datetime] = Field(
         None,
         description="When the flag was last checked",

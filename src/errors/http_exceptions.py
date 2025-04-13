@@ -88,9 +88,10 @@ class AccountOperationHTTPException(AccountHTTPException):
 
 # Feature Flag HTTP Exceptions
 
+
 class FeatureFlagHTTPException(HTTPException):
     """Base HTTP exception for feature flag errors."""
-    
+
     def __init__(
         self,
         status_code: int,
@@ -103,12 +104,14 @@ class FeatureFlagHTTPException(HTTPException):
         if details:
             combined_details.update(details)
         combined_details["feature_flag"] = feature_name
-        super().__init__(status_code=status_code, detail=combined_details, headers=headers)
+        super().__init__(
+            status_code=status_code, detail=combined_details, headers=headers
+        )
 
 
 class FeatureDisabledHTTPException(FeatureFlagHTTPException):
     """HTTP exception for disabled features."""
-    
+
     def __init__(
         self,
         feature_name: str,
@@ -123,13 +126,13 @@ class FeatureDisabledHTTPException(FeatureFlagHTTPException):
                 message += f" for {entity_type}"
                 if entity_id:
                     message += f" (id: {entity_id})"
-                    
+
         combined_details = details or {}
         if entity_type:
             combined_details["entity_type"] = entity_type
         if entity_id:
             combined_details["entity_id"] = entity_id
-            
+
         super().__init__(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=message,
@@ -140,7 +143,7 @@ class FeatureDisabledHTTPException(FeatureFlagHTTPException):
 
 class FeatureConfigurationHTTPException(FeatureFlagHTTPException):
     """HTTP exception for feature configuration issues."""
-    
+
     def __init__(
         self,
         feature_name: Optional[str] = None,
@@ -152,10 +155,10 @@ class FeatureConfigurationHTTPException(FeatureFlagHTTPException):
             message = f"Feature flag configuration error: {config_issue}"
             if feature_name:
                 message += f" for feature '{feature_name}'"
-                
+
         combined_details = details or {}
         combined_details["config_issue"] = config_issue
-        
+
         super().__init__(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=message,
@@ -165,7 +168,9 @@ class FeatureConfigurationHTTPException(FeatureFlagHTTPException):
 
 
 # Update existing FeatureFlagAccountHTTPException to use multiple inheritance
-class FeatureFlagAccountHTTPException(FeatureDisabledHTTPException, AccountHTTPException):
+class FeatureFlagAccountHTTPException(
+    FeatureDisabledHTTPException, AccountHTTPException
+):
     """HTTP exception for feature flag restrictions on accounts."""
 
     def __init__(
@@ -174,9 +179,12 @@ class FeatureFlagAccountHTTPException(FeatureDisabledHTTPException, AccountHTTPE
         message: Optional[str] = None,
         details: Optional[Dict[str, Any]] = None,
     ):
-        message = message or f"Operation not available: feature '{flag_name}' is disabled for account"
+        message = (
+            message
+            or f"Operation not available: feature '{flag_name}' is disabled for account"
+        )
         combined_details = details or {}
-        
+
         # Initialize FeatureDisabledHTTPException
         FeatureDisabledHTTPException.__init__(
             self,

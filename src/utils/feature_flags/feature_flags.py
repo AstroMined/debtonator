@@ -10,14 +10,12 @@ defined in ADR-024 implementation.
 """
 
 import logging
-from typing import Dict, List, Any
-
-from src.utils.feature_flags.requirements import get_default_requirements
 
 from src.registry.feature_flags_registry import FeatureFlagRegistry
 from src.repositories.feature_flags import FeatureFlagRepository
 from src.schemas.feature_flags import FeatureFlagType
 from src.services.feature_flags import FeatureFlagService
+from src.utils.feature_flags.requirements import get_default_requirements
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +72,9 @@ DEFAULT_FEATURE_FLAGS = [
         "description": "Enable international account support (IBAN, SWIFT, etc.)",
         "is_system": True,
         "flag_metadata": {"adr": "019", "owner": "backend-team"},
-        "requirements": DEFAULT_REQUIREMENTS.get("INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED", {}),
+        "requirements": DEFAULT_REQUIREMENTS.get(
+            "INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED", {}
+        ),
     },
     {
         "name": "BNPL_ACCOUNTS_ENABLED",

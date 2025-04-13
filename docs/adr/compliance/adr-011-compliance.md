@@ -1,0 +1,54 @@
+# These files import the datetime module and will be investigated for ADR-011 violations
+
+- [X] src/registry/feature_flags_registry.py
+- [X] src/repositories/accounts.py
+- [X] src/repositories/balance_reconciliation.py
+- [X] src/repositories/bill_splits.py
+- [X] src/repositories/cashflow.py
+- [X] src/repositories/credit_limit_history.py
+- [X] src/repositories/deposit_schedules.py
+- [X] src/repositories/feature_flags.py
+- [X] src/repositories/income.py
+- [X] src/repositories/liabilities.py
+- [X] src/repositories/payment_schedules.py
+- [X] src/repositories/payments.py
+- [X] src/repositories/recurring_income.py
+- [ ] src/repositories/transaction_history.py
+- [ ] src/schemas/accounts.py
+- [ ] src/schemas/account_types/banking/bnpl.py
+- [ ] src/schemas/account_types/banking/credit.py
+- [ ] src/schemas/account_types/banking/ewa.py
+- [ ] src/schemas/balance_history.py
+- [ ] src/schemas/balance_reconciliation.py
+- [ ] src/schemas/base_schema.py
+- [ ] src/schemas/bill_splits.py
+- [ ] src/schemas/cashflow/cashflow_account_analysis.py
+- [ ] src/schemas/cashflow/cashflow_base.py
+- [ ] src/schemas/cashflow/cashflow_forecasting.py
+- [ ] src/schemas/cashflow/cashflow_historical.py
+- [ ] src/schemas/categories.py
+- [ ] src/schemas/credit_limit_history.py
+- [ ] src/schemas/deposit_schedules.py
+- [ ] src/schemas/feature_flags.py
+- [ ] src/schemas/impact_analysis.py
+- [ ] src/schemas/income.py
+- [ ] src/schemas/income_trends.py
+- [ ] src/schemas/liabilities.py
+- [ ] src/schemas/payment_patterns.py
+- [ ] src/schemas/payment_schedules.py
+- [ ] src/schemas/payments.py
+- [ ] src/schemas/realtime_cashflow.py
+- [ ] src/schemas/recommendations.py
+- [ ] src/schemas/recurring_bills.py
+- [ ] src/schemas/recurring_income.py
+- [ ] src/schemas/statement_history.py
+- [ ] src/schemas/transaction_history.py
+- [ ] src/services/account_types/banking/bnpl.py
+- [ ] src/services/balance_history.py
+- [ ] src/services/balance_reconciliation.py
+- [ ] src/services/bulk_import.py
+- [ ] src/services/feature_flags.py
+- [ ] src/services/payment_patterns.py
+- [ ] src/services/realtime_cashflow.py
+- [ ] src/services/statement_history.py
+- [ ] src/services/transactions.py

@@ -12,7 +12,7 @@ is implemented, these endpoints should be secured with proper authorization chec
 This is part of the implementation of ADR-024: Feature Flag System.
 """
 
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
@@ -222,7 +222,7 @@ async def update_flag_requirements(
         updated_flag = await repository.update_requirements(
             flag_name, update.requirements
         )
-        
+
         # Return the updated requirements
         return RequirementsResponse(
             flag_name=flag_name,

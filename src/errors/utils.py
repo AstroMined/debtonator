@@ -15,10 +15,10 @@ from src.errors.accounts import (
     AccountValidationError,
 )
 from src.errors.feature_flags import (
-    FeatureFlagError,
-    FeatureDisabledError,
     FeatureConfigurationError,
-    FeatureFlagAccountError
+    FeatureDisabledError,
+    FeatureFlagAccountError,
+    FeatureFlagError,
 )
 from src.errors.http_exceptions import (
     AccountHTTPException,
@@ -26,14 +26,16 @@ from src.errors.http_exceptions import (
     AccountOperationHTTPException,
     AccountTypeHTTPException,
     AccountValidationHTTPException,
-    FeatureFlagHTTPException,
-    FeatureDisabledHTTPException,
     FeatureConfigurationHTTPException,
+    FeatureDisabledHTTPException,
     FeatureFlagAccountHTTPException,
+    FeatureFlagHTTPException,
 )
 
 
-def feature_flag_error_to_http_exception(error: FeatureFlagError) -> FeatureFlagHTTPException:
+def feature_flag_error_to_http_exception(
+    error: FeatureFlagError,
+) -> FeatureFlagHTTPException:
     """Convert a FeatureFlagError to an appropriate HTTP exception."""
     if isinstance(error, FeatureFlagAccountError):
         return FeatureFlagAccountHTTPException(
@@ -71,7 +73,7 @@ def account_error_to_http_exception(error: AccountError) -> AccountHTTPException
     # If it's also a FeatureFlagError, use that handler
     if isinstance(error, FeatureFlagError):
         return feature_flag_error_to_http_exception(error)
-        
+
     if isinstance(error, AccountNotFoundError):
         return AccountNotFoundHTTPException(
             account_id=error.details.get("account_id"), message=error.message

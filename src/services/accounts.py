@@ -309,7 +309,9 @@ class AccountService:
             account_dict["available_credit"] = account_obj.available_credit
 
         # Use repository to create account with typed entity
-        db_account = await self.account_repo.create_typed_entity(account_type, account_dict)
+        db_account = await self.account_repo.create_typed_entity(
+            account_type, account_dict
+        )
 
         # Convert to appropriate response type based on account type
         # This will work with a discriminated union because all the response types
@@ -381,7 +383,9 @@ class AccountService:
 
         # Use repository to update account with proper type
         account_type = db_account.account_type
-        updated_account = await self.account_repo.update_typed_entity(account_id, account_type, update_data)
+        updated_account = await self.account_repo.update_typed_entity(
+            account_id, account_type, update_data
+        )
         return AccountInDB.model_validate(updated_account) if updated_account else None
 
     async def validate_account_deletion(
@@ -548,13 +552,11 @@ class AccountService:
             "last_statement_balance": statement_balance,
             "last_statement_date": statement_date,
         }
-        
+
         # Use typed entity update
         account_type = db_account.account_type
         updated_account = await self.account_repo.update_typed_entity(
-            account_id, 
-            account_type, 
-            account_update
+            account_id, account_type, account_update
         )
 
         # Create statement history entry using the statement repository
@@ -610,13 +612,11 @@ class AccountService:
             "total_limit": credit_limit_data.credit_limit,
             "available_credit": db_account.available_credit,
         }
-        
+
         # Use typed entity update
         account_type = db_account.account_type
         updated_account = await self.account_repo.update_typed_entity(
-            account_id, 
-            account_type, 
-            account_update
+            account_id, account_type, account_update
         )
 
         # Create credit limit history entry using the credit limit repository
@@ -731,34 +731,41 @@ class AccountService:
             adjusted_balance=adjusted_balance,
             available_credit=available_credit,
         )
-        
-    async def get_available_credit_amount(self, credit_account: AccountModel) -> Decimal:
+
+    async def get_available_credit_amount(
+        self, credit_account: AccountModel
+    ) -> Decimal:
         """
         Calculate and return just the available credit amount for a CreditAccount.
-        
+
         Use this method to access credit availability without requiring a database lookup,
         when you already have the account instance (follows ADR-012).
-        
+
         Args:
             credit_account: Credit account to calculate available credit for
-            
+
         Returns:
             Decimal: Available credit amount
-            
+
         Raises:
             ValueError: If account is not a credit account
         """
         if credit_account.account_type != "credit":
-            raise ValueError("Available credit calculation only available for credit accounts")
-            
-        if not hasattr(credit_account, "credit_limit") or credit_account.credit_limit is None:
+            raise ValueError(
+                "Available credit calculation only available for credit accounts"
+            )
+
+        if (
+            not hasattr(credit_account, "credit_limit")
+            or credit_account.credit_limit is None
+        ):
             return Decimal("0")
-            
+
         if credit_account.available_balance >= 0:
             # If balance is positive (credit), all credit is available
             return credit_account.credit_limit
-            
-        # If balance is negative (debit), subtract from limit  
+
+        # If balance is negative (debit), subtract from limit
         return credit_account.credit_limit - abs(credit_account.available_balance)
 
     async def _get_pending_transactions(self, account_id: int) -> Decimal:
@@ -884,7 +891,7 @@ class AccountService:
 
         Returns:
             Result of the function call, or None if function not found
-            
+
         Note:
             Feature flag checks are handled by the ServiceProxy layer
         """

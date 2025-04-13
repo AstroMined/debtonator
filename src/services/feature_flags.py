@@ -151,7 +151,7 @@ class FeatureFlagService(FeatureFlagObserver):
             return False
 
     async def set_enabled(
-        self, flag_name: str, enabled: bool, persist: bool = True, proxy = None
+        self, flag_name: str, enabled: bool, persist: bool = True, proxy=None
     ) -> bool:
         """
         Enable or disable a boolean feature flag.
@@ -184,11 +184,13 @@ class FeatureFlagService(FeatureFlagObserver):
         # Persist to database if requested
         if persist:
             await self.repository.update(flag_name, {"value": enabled})
-            
+
         # Clear proxy cache if provided
-        if proxy and hasattr(proxy, 'clear_feature_check_cache'):
+        if proxy and hasattr(proxy, "clear_feature_check_cache"):
             proxy.clear_feature_check_cache()
-            logger.debug(f"Cleared cache for proxy after setting {flag_name} to {enabled}")
+            logger.debug(
+                f"Cleared cache for proxy after setting {flag_name} to {enabled}"
+            )
 
         logger.info(f"Feature flag {flag_name} set to: {enabled}")
         return True
@@ -561,19 +563,19 @@ class FeatureFlagService(FeatureFlagObserver):
     async def reset(self) -> None:
         """
         Reset the service state for testing.
-        
+
         This method:
         1. Resets the internal initialization flag
         2. Clears the registry state
         3. Removes all observers
-        
+
         This is primarily intended for testing scenarios where
         service state needs to be reset between tests.
         """
         self._initialized = False
         self.registry.reset()
         logger.info("Feature flag service reset to initial state")
-        
+
     # Implementation of FeatureFlagObserver protocol
     def flag_changed(self, flag_name: str, old_value: Any, new_value: Any) -> None:
         """

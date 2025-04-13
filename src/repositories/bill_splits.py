@@ -16,7 +16,7 @@ from sqlalchemy.orm import joinedload, selectinload
 from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability
 from src.repositories.base_repository import BaseRepository
-from src.utils.datetime_utils import days_ago
+from src.utils.datetime_utils import days_ago, ensure_utc, naive_start_of_day, naive_end_of_day
 from src.utils.decimal_precision import DecimalPrecision
 
 
@@ -102,12 +102,20 @@ class BillSplitRepository(BaseRepository[BillSplit, int]):
 
         Args:
             account_id (int): ID of the account to get splits for
-            start_date (datetime): Start date of the range
-            end_date (datetime): End date of the range
+            start_date (datetime): Start date of the range, must be timezone-aware (UTC)
+            end_date (datetime): End date of the range, must be timezone-aware (UTC)
 
         Returns:
             List[BillSplit]: List of bill splits in the date range
         """
+        # Ensure UTC timezone awareness for datetime parameters
+        start_date = ensure_utc(start_date)
+        end_date = ensure_utc(end_date)
+        
+        # Use naive functions directly for database queries
+        db_start_date = naive_start_of_day(start_date)
+        db_end_date = naive_end_of_day(end_date)
+        
         query = (
             select(BillSplit)
             .join(BillSplit.liability)
@@ -115,8 +123,8 @@ class BillSplitRepository(BaseRepository[BillSplit, int]):
             .where(
                 and_(
                     BillSplit.account_id == account_id,
-                    Liability.due_date >= start_date,
-                    Liability.due_date <= end_date,
+                    Liability.due_date >= db_start_date,
+                    Liability.due_date <= db_end_date,
                 )
             )
         )
@@ -222,8 +230,8 @@ class BillSplitRepository(BaseRepository[BillSplit, int]):
 
         Args:
             account_id (int): ID of the account to calculate splits for
-            start_date (datetime, optional): Start date of the range
-            end_date (datetime, optional): End date of the range
+            start_date (datetime, optional): Start date of the range, must be timezone-aware (UTC)
+            end_date (datetime, optional): End date of the range, must be timezone-aware (UTC)
 
         Returns:
             Decimal: Total amount of all splits for the account
@@ -237,10 +245,16 @@ class BillSplitRepository(BaseRepository[BillSplit, int]):
             query = query.join(BillSplit.liability)
 
             if start_date:
-                query = query.where(Liability.due_date >= start_date)
+                # Ensure UTC timezone awareness and convert to naive datetime for DB
+                start_date = ensure_utc(start_date)
+                db_start_date = naive_start_of_day(start_date)
+                query = query.where(Liability.due_date >= db_start_date)
 
             if end_date:
-                query = query.where(Liability.due_date <= end_date)
+                # Ensure UTC timezone awareness and convert to naive datetime for DB
+                end_date = ensure_utc(end_date)
+                db_end_date = naive_end_of_day(end_date)
+                query = query.where(Liability.due_date <= db_end_date)
 
         result = await self.session.execute(query)
         total = result.scalar_one_or_none() or Decimal("0")

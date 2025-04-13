@@ -16,12 +16,12 @@ from src.schemas.feature_flags import (
     FeatureFlagToggle,
     FeatureFlagType,
     FeatureFlagUpdate,
-    RequirementsBase,
-    RequirementsResponse,
-    RequirementsUpdate,
     FlagHistoryEntry,
     FlagHistoryResponse,
     FlagMetricsResponse,
+    RequirementsBase,
+    RequirementsResponse,
+    RequirementsUpdate,
 )
 from src.utils.datetime_utils import utc_now
 
@@ -158,10 +158,7 @@ def test_valid_environment_flag():
     flag = FeatureFlagCreate(
         name="TEST_ENVIRONMENT_FLAG",
         flag_type=FeatureFlagType.ENVIRONMENT,
-        value={
-            "environments": ["dev", "staging", "prod"],
-            "default": False
-        },
+        value={"environments": ["dev", "staging", "prod"], "default": False},
         description="Test environment flag",
     )
     assert flag.name == "TEST_ENVIRONMENT_FLAG"
@@ -179,7 +176,10 @@ def test_invalid_environment_flag_missing_keys():
             flag_type=FeatureFlagType.ENVIRONMENT,
             value={"environments": ["dev", "staging"]},  # Missing 'default' key
         )
-    assert "Environment flag value must contain 'environments' and 'default' keys" in str(exc.value)
+    assert (
+        "Environment flag value must contain 'environments' and 'default' keys"
+        in str(exc.value)
+    )
 
     with pytest.raises(ValidationError) as exc:
         FeatureFlagCreate(
@@ -187,7 +187,10 @@ def test_invalid_environment_flag_missing_keys():
             flag_type=FeatureFlagType.ENVIRONMENT,
             value={"default": True},  # Missing 'environments' key
         )
-    assert "Environment flag value must contain 'environments' and 'default' keys" in str(exc.value)
+    assert (
+        "Environment flag value must contain 'environments' and 'default' keys"
+        in str(exc.value)
+    )
 
 
 def test_invalid_environment_flag_wrong_type():
@@ -198,7 +201,7 @@ def test_invalid_environment_flag_wrong_type():
             flag_type=FeatureFlagType.ENVIRONMENT,
             value={
                 "environments": "dev,staging",  # String instead of list
-                "default": False
+                "default": False,
             },
         )
     assert "'environments' must be a list of environment names" in str(exc.value)
@@ -354,10 +357,7 @@ def test_update_environment_flag():
     """Test updating an environment flag."""
     update = FeatureFlagUpdate(
         flag_type=FeatureFlagType.ENVIRONMENT,
-        value={
-            "environments": ["dev", "staging"],
-            "default": True
-        }
+        value={"environments": ["dev", "staging"], "default": True},
     )
     assert update.flag_type == FeatureFlagType.ENVIRONMENT
     assert update.value["environments"] == ["dev", "staging"]
@@ -367,18 +367,18 @@ def test_update_environment_flag():
     with pytest.raises(ValidationError) as exc:
         FeatureFlagUpdate(
             flag_type=FeatureFlagType.ENVIRONMENT,
-            value={"environments": ["dev"]}  # Missing 'default' key
+            value={"environments": ["dev"]},  # Missing 'default' key
         )
-    assert "Environment flag value must contain 'environments' and 'default' keys" in str(exc.value)
+    assert (
+        "Environment flag value must contain 'environments' and 'default' keys"
+        in str(exc.value)
+    )
 
     # Invalid update - wrong type for environments
     with pytest.raises(ValidationError) as exc:
         FeatureFlagUpdate(
             flag_type=FeatureFlagType.ENVIRONMENT,
-            value={
-                "environments": "all",  # Should be a list
-                "default": False
-            }
+            value={"environments": "all", "default": False},  # Should be a list
         )
     assert "'environments' must be a list of environment names" in str(exc.value)
 
@@ -433,10 +433,7 @@ def test_environment_flag_response():
     response = FeatureFlagResponse(
         name="ENV_FLAG",
         flag_type=FeatureFlagType.ENVIRONMENT,
-        value={
-            "environments": ["dev", "staging", "prod"],
-            "default": False
-        },
+        value={"environments": ["dev", "staging", "prod"], "default": False},
         created_at=now,
         updated_at=now,
     )
@@ -576,7 +573,11 @@ def test_requirements_update_schema_valid():
     )
     assert "repository" in update.requirements
     assert "service" in update.requirements
-    assert update.requirements["repository"]["create_typed_entity"] == ["bnpl", "ewa", "payment_app"]
+    assert update.requirements["repository"]["create_typed_entity"] == [
+        "bnpl",
+        "ewa",
+        "payment_app",
+    ]
 
 
 def test_requirements_update_invalid_layer():
@@ -626,7 +627,10 @@ def test_requirements_update_invalid_account_types():
                 },
             },
         )
-    assert "Account types for method 'create_typed_entity' must be a list or dictionary" in str(exc.value)
+    assert (
+        "Account types for method 'create_typed_entity' must be a list or dictionary"
+        in str(exc.value)
+    )
 
 
 def test_requirements_update_non_string_account_types():
@@ -639,7 +643,9 @@ def test_requirements_update_non_string_account_types():
                 },
             },
         )
-    assert "Account types for method 'create_typed_entity' must be strings" in str(exc.value)
+    assert "Account types for method 'create_typed_entity' must be strings" in str(
+        exc.value
+    )
 
 
 def test_requirements_update_service_validation():
@@ -664,7 +670,10 @@ def test_requirements_update_service_validation():
                 },
             },
         )
-    assert "Account types for method 'create_account' must be a list or dictionary" in str(exc.value)
+    assert (
+        "Account types for method 'create_account' must be a list or dictionary"
+        in str(exc.value)
+    )
 
 
 def test_requirements_update_api_validation():
@@ -700,7 +709,10 @@ def test_requirements_update_api_validation():
                 },
             },
         )
-    assert "Account types for endpoint '/api/v1/accounts' must be a list or dictionary" in str(exc.value)
+    assert (
+        "Account types for endpoint '/api/v1/accounts' must be a list or dictionary"
+        in str(exc.value)
+    )
 
 
 # Tests for flag history schemas
@@ -769,7 +781,7 @@ def test_flag_history_response_schema():
         old_value=False,
         new_value=True,
     )
-    
+
     response = FlagHistoryResponse(
         flag_name="TEST_FLAG",
         history=[entry1, entry2],

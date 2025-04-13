@@ -160,9 +160,7 @@ async def test_mark_bnpl_payment_made(
     validated_data = update_schema.model_dump()
 
     # 3. ACT: Perform the update operation
-    await bnpl_repository.update_typed_entity(
-        account_id, "bnpl", validated_data
-    )
+    await bnpl_repository.update_typed_entity(account_id, "bnpl", validated_data)
 
     # 4. VERIFY: Get a fresh instance from DB to verify changes
     account_after = await bnpl_repository.get(account_id)

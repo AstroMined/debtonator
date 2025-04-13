@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -14,6 +13,7 @@ from src.schemas.transaction_history import (
     TransactionHistoryUpdate as TransactionUpdate,
 )
 from src.services.transactions import TransactionService
+from src.utils.datetime_utils import ensure_utc
 
 router = APIRouter(prefix="/accounts/{account_id}/transactions", tags=["transactions"])
 
@@ -40,11 +40,16 @@ async def list_transactions(
     account_id: int,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    start_date: Optional[datetime] = None,
-    end_date: Optional[datetime] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
 ) -> TransactionList:
-    """List transactions for an account with optional date filtering"""
+    """
+    List transactions for an account with optional date filtering.
+    
+    Date parameters are expected to be ISO format strings following ADR-011 
+    requirements for UTC datetime standardization.
+    """
     service = TransactionService(db)
     transactions, total = await service.get_account_transactions(
         account_id, skip=skip, limit=limit, start_date=start_date, end_date=end_date

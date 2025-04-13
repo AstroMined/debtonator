@@ -5,7 +5,7 @@ This module provides a repository for CashflowForecast model operations and spec
 forecast-related queries.
 """
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
@@ -14,7 +14,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.cashflow import CashflowForecast
 from src.repositories.base_repository import BaseRepository
-from src.utils.datetime_utils import days_ago, end_of_day, start_of_day, utc_now
+from src.utils.datetime_utils import (
+    days_ago,
+    days_from_now,
+    end_of_day,
+    naive_end_of_day,
+    naive_start_of_day,
+    start_of_day,
+    utc_now,
+)
 
 
 class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
@@ -49,15 +57,15 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
             Optional[CashflowForecast]: Forecast for the specified date or None
         """
         # Extract date part only for comparison
-        day_start = start_of_day(forecast_date)
-        day_end = start_of_day(forecast_date + timedelta(days=1))
+        day_start = naive_start_of_day(forecast_date)
+        day_end = naive_end_of_day(forecast_date)  # Use end_of_day for inclusive range
 
         result = await self.session.execute(
             select(CashflowForecast)
             .where(
                 and_(
                     CashflowForecast.forecast_date >= day_start,
-                    CashflowForecast.forecast_date < day_end,
+                    CashflowForecast.forecast_date <= day_end,
                 )
             )
             .order_by(desc(CashflowForecast.created_at))
@@ -65,7 +73,7 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
         return result.scalars().first()
 
     async def get_by_date_range(
-        self, start_date: datetime, end_date: datetime
+        self, start_date, end_date
     ) -> List[CashflowForecast]:
         """
         Get forecasts within a date range.
@@ -80,8 +88,9 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
             List[CashflowForecast]: List of forecasts within the date range
         """
         # Extract date parts for comparison - use end of day for inclusive end date
-        range_start = start_of_day(start_date)
-        range_end = end_of_day(end_date)  # Make end date inclusive
+        # Following ADR-011 requirements for inclusive date ranges
+        range_start = naive_start_of_day(start_date)
+        range_end = naive_end_of_day(end_date)  # Make end date inclusive
 
         # Get the distinct dates in the range
         date_subquery = (
@@ -93,7 +102,7 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
                 and_(
                     CashflowForecast.forecast_date >= range_start,
                     CashflowForecast.forecast_date
-                    <= range_end,  # Use <= for inclusive end date
+                    <= range_end,  # Use <= for inclusive end date per ADR-011
                 )
             )
             .group_by(func.date(CashflowForecast.forecast_date))
@@ -290,7 +299,7 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
     # Extended analysis methods
 
     async def get_forecast_with_metrics(
-        self, forecast_date: Optional[datetime] = None
+        self, forecast_date: Optional = None
     ) -> Dict[str, Any]:
         """
         Get a forecast with additional calculated metrics.
@@ -351,7 +360,7 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
         }
 
     async def get_forecast_summary(
-        self, start_date: Optional[datetime] = None, end_date: Optional[datetime] = None
+        self, start_date = None, end_date = None
     ) -> Dict[str, Any]:
         """
         Get a summary of forecasts over a period.

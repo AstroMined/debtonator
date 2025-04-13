@@ -3,12 +3,14 @@ Buy Now Pay Later (BNPL) account specific errors.
 
 This module provides error classes specific to BNPL accounts
 (e.g., Affirm, Klarna, Afterpay, etc.).
+
+All datetime handling follows ADR-011 requirements for UTC datetime standardization.
 """
 
-from datetime import datetime
 from typing import Any, Dict, Optional
 
 from src.errors.accounts import AccountError
+from src.utils.datetime_utils import ensure_utc
 
 
 class BNPLAccountError(AccountError):
@@ -84,19 +86,25 @@ class BNPLPaymentFrequencyError(BNPLAccountError):
 
 
 class BNPLNextPaymentDateError(BNPLAccountError):
-    """Error raised for next payment date issues."""
+    """
+    Error raised for next payment date issues.
+    
+    Per ADR-011, ensures all datetime values are converted to UTC before processing.
+    """
 
     def __init__(
         self,
         message: str,
         account_id: Optional[int] = None,
-        next_payment_date: Optional[datetime] = None,
+        next_payment_date: Optional[Any] = None,
         details: Optional[Dict[str, Any]] = None,
     ):
         combined_details = details or {}
         if next_payment_date:
+            # Ensure datetime is UTC-aware before conversion to string per ADR-011
+            utc_date = ensure_utc(next_payment_date) if next_payment_date else None
             combined_details["next_payment_date"] = (
-                next_payment_date.isoformat() if next_payment_date else None
+                utc_date.isoformat() if utc_date else None
             )
         super().__init__(message, account_id, combined_details)
 

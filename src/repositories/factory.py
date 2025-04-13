@@ -19,7 +19,10 @@ from typing import Any, Dict, Optional, Set
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config.providers.feature_flags import DatabaseConfigProvider, InMemoryConfigProvider
+from src.config.providers.feature_flags import (
+    DatabaseConfigProvider,
+    InMemoryConfigProvider,
+)
 from src.registry.account_types import account_type_registry
 from src.repositories.accounts import AccountRepository
 from src.repositories.base_repository import BaseRepository
@@ -69,7 +72,9 @@ class RepositoryFactory:
         if not account_type:
             # Wrap with proxy if feature flag service is provided
             if feature_flag_service:
-                return cls._wrap_with_proxy(base_repo, feature_flag_service, session, config_provider)
+                return cls._wrap_with_proxy(
+                    base_repo, feature_flag_service, session, config_provider
+                )
             return base_repo
 
         # If account type is specified but registry is not available,
@@ -78,7 +83,9 @@ class RepositoryFactory:
         if not module_path:
             # Wrap with proxy if feature flag service is provided
             if feature_flag_service:
-                return cls._wrap_with_proxy(base_repo, feature_flag_service, session, config_provider)
+                return cls._wrap_with_proxy(
+                    base_repo, feature_flag_service, session, config_provider
+                )
             return base_repo
 
         # Get the specialized module
@@ -86,7 +93,9 @@ class RepositoryFactory:
         if not module:
             # Wrap with proxy if feature flag service is provided
             if feature_flag_service:
-                return cls._wrap_with_proxy(base_repo, feature_flag_service, session, config_provider)
+                return cls._wrap_with_proxy(
+                    base_repo, feature_flag_service, session, config_provider
+                )
             return base_repo
 
         # Bind specialized functions to the base repository
@@ -94,8 +103,10 @@ class RepositoryFactory:
 
         # Wrap with proxy if feature flag service is provided
         if feature_flag_service:
-            return cls._wrap_with_proxy(base_repo, feature_flag_service, session, config_provider)
-        
+            return cls._wrap_with_proxy(
+                base_repo, feature_flag_service, session, config_provider
+            )
+
         return base_repo
 
     @classmethod
@@ -108,13 +119,13 @@ class RepositoryFactory:
     ) -> Any:
         """
         Wrap a repository with the FeatureFlagRepositoryProxy.
-        
+
         Args:
             repository: Repository instance to wrap
             feature_flag_service: Feature flag service for checking flag values
             session: SQLAlchemy async session
             config_provider: Optional config provider for feature requirements
-            
+
         Returns:
             Wrapped repository
         """
@@ -123,12 +134,16 @@ class RepositoryFactory:
             # Try to use database config provider
             try:
                 config_provider = DatabaseConfigProvider(session)
-                logger.debug("Using DatabaseConfigProvider for feature flag requirements")
+                logger.debug(
+                    "Using DatabaseConfigProvider for feature flag requirements"
+                )
             except Exception as e:
                 # Fall back to in-memory provider if database provider fails
-                logger.warning(f"Could not create DatabaseConfigProvider: {e}. Using InMemoryConfigProvider")
+                logger.warning(
+                    f"Could not create DatabaseConfigProvider: {e}. Using InMemoryConfigProvider"
+                )
                 config_provider = InMemoryConfigProvider()
-        
+
         # Create and return the proxy
         return FeatureFlagRepositoryProxy(
             repository=repository,

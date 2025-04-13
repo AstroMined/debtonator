@@ -65,34 +65,43 @@ class BaseRepository(Generic[ModelType, PKType]):
         """
         # Filter input to only include valid model attributes
         model_fields = set()
-        
+
         # Add column attributes (including foreign keys)
-        if hasattr(self.model_class, "__table__") and hasattr(self.model_class.__table__, "columns"):
+        if hasattr(self.model_class, "__table__") and hasattr(
+            self.model_class.__table__, "columns"
+        ):
             model_fields.update(c.key for c in self.model_class.__table__.columns)
-            
+
         # Add relationship attributes
-        if hasattr(self.model_class, "__mapper__") and hasattr(self.model_class.__mapper__, "relationships"):
+        if hasattr(self.model_class, "__mapper__") and hasattr(
+            self.model_class.__mapper__, "relationships"
+        ):
             model_fields.update(self.model_class.__mapper__.relationships.keys())
-            
+
         # Add foreign key fields explicitly
-        if hasattr(self.model_class, "__mapper__") and hasattr(self.model_class.__mapper__, "relationships"):
+        if hasattr(self.model_class, "__mapper__") and hasattr(
+            self.model_class.__mapper__, "relationships"
+        ):
             for relationship in self.model_class.__mapper__.relationships.values():
                 # Extract foreign key column names if available
                 if hasattr(relationship, "local_columns"):
                     for column in relationship.local_columns:
                         if hasattr(column, "key"):
                             model_fields.add(column.key)
-                            
+
         # Add any fields that start with valid column names (for foreign keys that might be named differently)
-        column_prefixes = {c.key.replace('_id', '') for c in self.model_class.__table__.columns 
-                          if c.key.endswith('_id')}
+        column_prefixes = {
+            c.key.replace("_id", "")
+            for c in self.model_class.__table__.columns
+            if c.key.endswith("_id")
+        }
         for key in obj_in.keys():
-            if key.endswith('_id') and key.replace('_id', '') in column_prefixes:
+            if key.endswith("_id") and key.replace("_id", "") in column_prefixes:
                 model_fields.add(key)
-                            
+
         # Filter out fields that don't exist in the model
         filtered_obj_in = {k: v for k, v in obj_in.items() if k in model_fields}
-        
+
         # Create the object with filtered data
         db_obj = self.model_class(**filtered_obj_in)
         self.session.add(db_obj)
@@ -103,9 +112,9 @@ class BaseRepository(Generic[ModelType, PKType]):
     def _needs_polymorphic_loading(self) -> bool:
         """
         Determine if this repository's model requires polymorphic loading.
-        
+
         Can be overridden by subclasses to enable polymorphic loading.
-        
+
         Returns:
             bool: True if polymorphic loading should be used, False otherwise
         """
@@ -124,6 +133,7 @@ class BaseRepository(Generic[ModelType, PKType]):
         if self._needs_polymorphic_loading():
             # Use polymorphic loading for models with inheritance
             from sqlalchemy.orm import with_polymorphic
+
             poly_model = with_polymorphic(self.model_class, "*")
             result = await self.session.execute(
                 select(poly_model).where(poly_model.id == id)
@@ -133,7 +143,7 @@ class BaseRepository(Generic[ModelType, PKType]):
             result = await self.session.execute(
                 select(self.model_class).where(self.model_class.id == id)
             )
-        
+
         return result.scalars().first()
 
     async def get_with_joins(

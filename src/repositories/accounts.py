@@ -10,15 +10,16 @@ Enhanced as part of ADR-016, ADR-019, and ADR-024 implementation.
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Dict, List, Optional, TypeVar, Any
+from typing import List, Optional, TypeVar
 
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, with_polymorphic
 
 from src.models.accounts import Account
-from src.repositories.polymorphic_base_repository import PolymorphicBaseRepository
 from src.registry.account_types import account_type_registry
+from src.repositories.polymorphic_base_repository import PolymorphicBaseRepository
+from src.utils.datetime_utils import ensure_utc  # Added UTC datetime compliance
 
 # Type variable for polymorphic account types
 AccountType = TypeVar("AccountType", bound=Account)
@@ -27,7 +28,7 @@ AccountType = TypeVar("AccountType", bound=Account)
 class AccountRepository(PolymorphicBaseRepository[Account, int]):
     # Set the discriminator field for accounts
     discriminator_field = "account_type"
-    
+
     # Set the registry for account types
     registry = account_type_registry
     """
@@ -129,11 +130,18 @@ class AccountRepository(PolymorphicBaseRepository[Account, int]):
         Get accounts with their statement history.
 
         Args:
-            after_date (datetime, optional): Filter statements after this date
+            after_date (datetime, optional): Filter statements after this date.
+                Must be a timezone-aware datetime (UTC).
 
         Returns:
             List[Account]: Accounts with statement history loaded
         """
+        # Ensure UTC timezone awareness for datetime parameter
+        if after_date is not None:
+            after_date = ensure_utc(after_date)
+            # For database operations, strip timezone
+            after_date = after_date.replace(tzinfo=None)
+
         query = (
             select(Account)
             .outerjoin(Account.statement_history)
@@ -160,9 +168,7 @@ class AccountRepository(PolymorphicBaseRepository[Account, int]):
         )
         return result.scalars().all()
 
-    async def get_by_type(
-        self, account_type: str
-    ) -> List[Account]:
+    async def get_by_type(self, account_type: str) -> List[Account]:
         """
         Get accounts by type.
 
@@ -179,7 +185,7 @@ class AccountRepository(PolymorphicBaseRepository[Account, int]):
         query = select(Account).where(Account.account_type == account_type)
         result = await self.session.execute(query)
         return result.scalars().all()
-    
+
     async def get_with_type(self, account_id: int) -> Optional[Account]:
         """
         Get account by ID, ensuring type-specific data is loaded.
@@ -245,7 +251,8 @@ class AccountRepository(PolymorphicBaseRepository[Account, int]):
         Args:
             account_id (int): Account ID
             statement_balance (Decimal): New statement balance
-            statement_date (datetime): Statement date
+            statement_date (datetime): Statement date, must be a timezone-aware 
+                datetime (UTC)
 
         Returns:
             Optional[Account]: Updated account or None if not found
@@ -253,17 +260,23 @@ class AccountRepository(PolymorphicBaseRepository[Account, int]):
         account = await self.get(account_id)
         if not account:
             return None
-            
+
+        # Ensure UTC timezone awareness for datetime parameter
+        statement_date = ensure_utc(statement_date)
+        
+        # For database operations, strip timezone
+        db_statement_date = statement_date.replace(tzinfo=None)
+
         # Get the account type
         account_type = account.account_type
-        
+
         # Use update_typed_entity to ensure proper polymorphic identity
         return await self.update_typed_entity(
             account_id,
             account_type,
             {
                 "last_statement_balance": statement_balance,
-                "last_statement_date": statement_date,
+                "last_statement_date": db_statement_date,
             },
         )
 
@@ -298,7 +311,7 @@ class AccountRepository(PolymorphicBaseRepository[Account, int]):
             List[Account]: Accounts with the specified currency
 
         Note:
-            Feature flag validation for MULTI_CURRENCY_SUPPORT_ENABLED is now handled 
+            Feature flag validation for MULTI_CURRENCY_SUPPORT_ENABLED is now handled
             by the FeatureFlagRepositoryProxy layer.
         """
 
@@ -346,11 +359,11 @@ class AccountRepository(PolymorphicBaseRepository[Account, int]):
 
         result = await self.session.execute(query)
         return result.scalars().all()
-        
+
     async def delete(self, id: int) -> bool:
         """
         Soft delete an account by marking it as closed.
-        
+
         This overrides the base repository's delete method to implement
         soft deletion for accounts, maintaining data integrity while
         allowing "deletion" functionality.
@@ -365,10 +378,10 @@ class AccountRepository(PolymorphicBaseRepository[Account, int]):
         account = await self.get(id)
         if not account:
             return False
-            
+
         # Mark as closed (soft delete)
         account.is_closed = True
         self.session.add(account)
         await self.session.flush()
-        
+
         return True

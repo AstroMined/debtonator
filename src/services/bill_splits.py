@@ -875,7 +875,10 @@ class BillSplitService:
 
         for account_id, impact in short_term_impact.items():
             account = accounts[account_id]
-            if account.account_type != "credit" and abs(impact) > account.available_balance:
+            if (
+                account.account_type != "credit"
+                and abs(impact) > account.available_balance
+            ):
                 risk_factors.append(
                     f"Insufficient 30-day funds in account {account.name}"
                 )

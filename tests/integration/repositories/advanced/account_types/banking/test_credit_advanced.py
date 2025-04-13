@@ -127,9 +127,7 @@ async def test_create_typed_entity_with_credit_type(
     )
 
     # 3. ACT: Create the account
-    result = await repository.create_typed_entity(
-        "credit", account_schema.model_dump()
-    )
+    result = await repository.create_typed_entity("credit", account_schema.model_dump())
 
     # 4. ASSERT: Verify the account was created correctly
     assert result is not None

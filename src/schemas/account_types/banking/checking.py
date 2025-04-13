@@ -167,15 +167,15 @@ class CheckingAccountUpdate(AccountBase):
 
     # Override name to make it optional
     name: Optional[str] = Field(
-        default=None, 
+        default=None,
         min_length=1,
         max_length=50,
         description="Account name (1-50 characters)",
     )
-    
+
     # Override account_type to be a fixed literal for checking accounts
     account_type: Optional[Literal["checking"]] = None
-    
+
     # Override balance fields to be None by default (don't update if not provided)
     current_balance: Optional[MoneyDecimal] = Field(
         default=None, description="Current balance"

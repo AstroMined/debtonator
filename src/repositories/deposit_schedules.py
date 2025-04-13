@@ -14,7 +14,13 @@ from sqlalchemy.orm import joinedload
 
 from src.models.deposit_schedules import DepositSchedule
 from src.repositories.base_repository import BaseRepository
-from src.utils.datetime_utils import safe_end_date, utc_now
+from src.utils.datetime_utils import (
+    ensure_utc, 
+    naive_start_of_day, 
+    naive_end_of_day, 
+    safe_end_date, 
+    utc_now
+)
 
 
 class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
@@ -109,18 +115,26 @@ class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
         Get deposit schedules within a date range.
 
         Args:
-            start_date (datetime): Start date (inclusive)
-            end_date (datetime): End date (inclusive)
+            start_date (datetime): Start date (inclusive), must be timezone-aware (UTC)
+            end_date (datetime): End date (inclusive), must be timezone-aware (UTC)
 
         Returns:
             List[DepositSchedule]: Deposit schedules within the date range
         """
+        # Ensure UTC timezone awareness for datetime parameters
+        start_date = ensure_utc(start_date)
+        end_date = ensure_utc(end_date)
+        
+        # Use naive functions directly for database queries
+        db_start_date = naive_start_of_day(start_date)
+        db_end_date = naive_end_of_day(end_date)
+        
         result = await self.session.execute(
             select(DepositSchedule)
             .where(
                 and_(
-                    DepositSchedule.schedule_date >= start_date,
-                    DepositSchedule.schedule_date <= end_date,
+                    DepositSchedule.schedule_date >= db_start_date,
+                    DepositSchedule.schedule_date <= db_end_date,
                 )
             )
             .order_by(DepositSchedule.schedule_date)
@@ -183,6 +197,7 @@ class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
 
         Args:
             date_range (Tuple[datetime, datetime], optional): Date range filter (start_date, end_date)
+                Dates must be timezone-aware (UTC)
 
         Returns:
             List[DepositSchedule]: Deposit schedules with all relationships loaded
@@ -198,10 +213,18 @@ class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
 
         if date_range:
             start_date, end_date = date_range
+            # Ensure UTC timezone awareness for datetime parameters
+            start_date = ensure_utc(start_date)
+            end_date = ensure_utc(end_date)
+            
+            # Use naive functions directly for database queries
+            db_start_date = naive_start_of_day(start_date)
+            db_end_date = naive_end_of_day(end_date)
+            
             query = query.where(
                 and_(
-                    DepositSchedule.schedule_date >= start_date,
-                    DepositSchedule.schedule_date <= end_date,
+                    DepositSchedule.schedule_date >= db_start_date,
+                    DepositSchedule.schedule_date <= db_end_date,
                 )
             )
 
@@ -221,9 +244,12 @@ class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
         Returns:
             List[DepositSchedule]: List of upcoming deposit schedules
         """
-
         today = utc_now()
         end_date = safe_end_date(today, days)
+        
+        # For database operations, strip timezone info
+        db_today = today.replace(tzinfo=None)
+        db_end_date = end_date.replace(tzinfo=None)
 
         query = (
             select(DepositSchedule)
@@ -233,8 +259,8 @@ class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
             )
             .where(
                 and_(
-                    DepositSchedule.schedule_date >= today,
-                    DepositSchedule.schedule_date <= end_date,
+                    DepositSchedule.schedule_date >= db_today,
+                    DepositSchedule.schedule_date <= db_end_date,
                     DepositSchedule.status == "pending",
                 )
             )
@@ -260,6 +286,9 @@ class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
             List[DepositSchedule]: List of overdue deposit schedules
         """
         today = utc_now()
+        
+        # For database operations, strip timezone info
+        db_today = today.replace(tzinfo=None)
 
         query = (
             select(DepositSchedule)
@@ -269,7 +298,7 @@ class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
             )
             .where(
                 and_(
-                    DepositSchedule.schedule_date < today,
+                    DepositSchedule.schedule_date < db_today,
                     DepositSchedule.status == "pending",
                 )
             )
@@ -306,17 +335,25 @@ class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
         Get total amount of scheduled deposits within a date range.
 
         Args:
-            start_date (datetime): Start date (inclusive)
-            end_date (datetime): End date (inclusive)
+            start_date (datetime): Start date (inclusive), must be timezone-aware (UTC)
+            end_date (datetime): End date (inclusive), must be timezone-aware (UTC)
             account_id (int, optional): Filter by specific account
 
         Returns:
             float: Total amount of scheduled deposits
         """
+        # Ensure UTC timezone awareness for datetime parameters
+        start_date = ensure_utc(start_date)
+        end_date = ensure_utc(end_date)
+        
+        # Use naive functions directly for database queries
+        db_start_date = naive_start_of_day(start_date)
+        db_end_date = naive_end_of_day(end_date)
+        
         query = select(func.sum(DepositSchedule.amount)).where(
             and_(
-                DepositSchedule.schedule_date >= start_date,
-                DepositSchedule.schedule_date <= end_date,
+                DepositSchedule.schedule_date >= db_start_date,
+                DepositSchedule.schedule_date <= db_end_date,
                 DepositSchedule.status == "pending",
             )
         )

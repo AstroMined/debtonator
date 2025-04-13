@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 
+from src.api.admin import admin_router
 from src.api.response_formatter import format_response
 from src.api.v1 import api_v1_router
-from src.api.admin import admin_router
 from src.utils.config import settings
 
 api_router = APIRouter()

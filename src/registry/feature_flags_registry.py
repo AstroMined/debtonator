@@ -15,7 +15,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Protocol, Union
 
 from src.schemas.feature_flags import FeatureFlagType
-from src.utils.datetime_utils import utc_now
+from src.utils.datetime_utils import ensure_utc, utc_datetime_from_str, utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -180,11 +180,21 @@ class FeatureFlagRegistry:
 
                 # Convert string timestamps to datetime if needed
                 if isinstance(start_time, str):
-                    start_time = datetime.fromisoformat(
-                        start_time.replace("Z", "+00:00")
+                    start_time = utc_datetime_from_str(
+                        start_time.replace("Z", "+00:00"),
+                        "%Y-%m-%dT%H:%M:%S%z"
                     )
                 if isinstance(end_time, str):
-                    end_time = datetime.fromisoformat(end_time.replace("Z", "+00:00"))
+                    end_time = utc_datetime_from_str(
+                        end_time.replace("Z", "+00:00"),
+                        "%Y-%m-%dT%H:%M:%S%z"
+                    )
+
+                # Ensure datetimes are UTC-compliant per ADR-011
+                if isinstance(start_time, datetime):
+                    start_time = ensure_utc(start_time)
+                if isinstance(end_time, datetime):
+                    end_time = ensure_utc(end_time)
 
                 # Check time range
                 if start_time and now < start_time:
@@ -279,7 +289,7 @@ class FeatureFlagRegistry:
     def reset(self) -> None:
         """
         Reset the registry to its initial state.
-        
+
         This method is primarily intended for testing scenarios where
         registry state needs to be cleaned between tests.
         """
@@ -287,17 +297,17 @@ class FeatureFlagRegistry:
             self._flags = {}
             self._observers = []
             logger.info("Feature flag registry reset to initial state")
-    
+
     def get_all_flag_names(self) -> List[str]:
         """
         Get a list of all registered feature flag names.
-        
+
         Returns:
             List of flag names
         """
         with self._lock:
             return list(self._flags.keys())
-    
+
     def _is_user_in_percentage(
         self, user_id: str, flag_name: str, percentage: float
     ) -> bool:

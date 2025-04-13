@@ -13,13 +13,10 @@ from pydantic import ValidationError
 from src.schemas.account_types.banking.ewa import (
     EWAAccountBase,
     EWAAccountCreate,
-    EWAAccountResponse
+    EWAAccountResponse,
+    EWAAccountUpdate,
 )
-from src.utils.datetime_utils import (
-    utc_now, 
-    days_from_now,
-    utc_datetime
-)
+from src.utils.datetime_utils import days_from_now, utc_datetime, utc_now
 
 
 def test_ewa_account_create_schema():
@@ -40,7 +37,7 @@ def test_ewa_account_create_schema():
     # Test with all fields including dates
     period_start = utc_now()
     period_end = days_from_now(14)  # 2 weeks after period_start
-    payday = days_from_now(15)      # a day after period_end
+    payday = days_from_now(15)  # a day after period_end
 
     ewa = EWAAccountCreate(
         name="Full EWA",
@@ -149,8 +146,15 @@ def test_ewa_provider_validation():
     """Test EWA provider validation in EWA account schemas."""
     # Test various valid providers
     valid_providers = [
-        "Payactiv", "DailyPay", "Earnin", "Even", "FlexWage", 
-        "Branch", "Instant", "Rain", "Other"
+        "Payactiv",
+        "DailyPay",
+        "Earnin",
+        "Even",
+        "FlexWage",
+        "Branch",
+        "Instant",
+        "Rain",
+        "Other",
     ]
 
     for provider in valid_providers:
@@ -225,7 +229,7 @@ def test_ewa_pay_period_dates_validation():
     """Test pay period date validations in EWA account schemas."""
     now = utc_now()
     future = days_from_now(14)  # 14 days in the future
-    past = days_from_now(-1)    # 1 day in the past
+    past = days_from_now(-1)  # 1 day in the past
 
     # Test valid dates (period_end after period_start)
     ewa = EWAAccountCreate(
@@ -241,7 +245,9 @@ def test_ewa_pay_period_dates_validation():
     assert ewa.pay_period_end == future
 
     # Test invalid dates (period_end before period_start)
-    with pytest.raises(ValidationError, match="Pay period end date must be after start date"):
+    with pytest.raises(
+        ValidationError, match="Pay period end date must be after start date"
+    ):
         EWAAccountCreate(
             name="Invalid Pay Period",
             account_type="ewa",
@@ -284,7 +290,7 @@ def test_ewa_next_payday_normalization():
     # Create datetime objects using utility functions
     now = utc_now()
     specific_date = utc_datetime(2025, 4, 15, 12, 0, 0)
-    
+
     # Test with standard UTC datetime
     ewa = EWAAccountCreate(
         name="UTC Datetime Test",
@@ -296,7 +302,7 @@ def test_ewa_next_payday_normalization():
     )
     assert ewa.next_payday.tzinfo is not None  # Should have timezone info
     assert ewa.next_payday == now  # Should remain as is
-    
+
     # Test with specific UTC datetime
     ewa = EWAAccountCreate(
         name="Specific UTC Datetime Test",
@@ -335,7 +341,9 @@ def test_ewa_transaction_fee_validation():
     assert ewa.per_transaction_fee == Decimal("0.00")
 
     # Test negative transaction fee (should raise validation error)
-    with pytest.raises(ValidationError, match="Input should be greater than or equal to 0"):
+    with pytest.raises(
+        ValidationError, match="Input should be greater than or equal to 0"
+    ):
         EWAAccountCreate(
             name="Negative Fee",
             account_type="ewa",
@@ -346,7 +354,7 @@ def test_ewa_transaction_fee_validation():
         )
 
 
-def test_ewa_account_base_inheritance():
+def test_ewa_account_base_instantiation():
     """Test that EWAAccountBase can be instantiated directly."""
     # Test with minimum required fields
     ewa_base = EWAAccountBase(
@@ -359,7 +367,7 @@ def test_ewa_account_base_inheritance():
     assert ewa_base.name == "Base EWA"
     assert ewa_base.account_type == "ewa"
     assert ewa_base.provider == "Payactiv"
-    
+
     # Test with additional fields
     ewa_base = EWAAccountBase(
         name="Full Base EWA",
@@ -373,3 +381,272 @@ def test_ewa_account_base_inheritance():
     assert ewa_base.provider == "DailyPay"
     assert ewa_base.max_advance_percentage == Decimal("0.40")
     assert ewa_base.per_transaction_fee == Decimal("4.99")
+
+
+def test_ewa_account_update_schema():
+    """Test the EWA account update schema."""
+    # Test empty update (all fields optional)
+    update = EWAAccountUpdate()
+    assert update.name is None
+    assert update.account_type is None
+    assert update.current_balance is None
+    assert update.available_balance is None
+    assert update.provider is None
+    assert update.max_advance_percentage is None
+    assert update.per_transaction_fee is None
+    assert update.pay_period_start is None
+    assert update.pay_period_end is None
+    assert update.next_payday is None
+
+    # Test partial update
+    update = EWAAccountUpdate(
+        name="Updated EWA",
+        provider="DailyPay",
+    )
+    assert update.name == "Updated EWA"
+    assert update.provider == "DailyPay"
+    assert update.account_type is None  # Not updated
+    assert update.current_balance is None  # Not updated
+
+    # Test full update
+    now = utc_now()
+    future = days_from_now(14)
+    payday = days_from_now(15)
+
+    update = EWAAccountUpdate(
+        name="Fully Updated EWA",
+        account_type="ewa",
+        current_balance=Decimal("300.00"),
+        available_balance=Decimal("300.00"),
+        provider="Earnin",
+        max_advance_percentage=Decimal("0.60"),
+        per_transaction_fee=Decimal("3.99"),
+        pay_period_start=now,
+        pay_period_end=future,
+        next_payday=payday,
+    )
+    assert update.name == "Fully Updated EWA"
+    assert update.account_type == "ewa"
+    assert update.current_balance == Decimal("300.00")
+    assert update.available_balance == Decimal("300.00")
+    assert update.provider == "Earnin"
+    assert update.max_advance_percentage == Decimal("0.60")
+    assert update.per_transaction_fee == Decimal("3.99")
+    assert update.pay_period_start == now
+    assert update.pay_period_end == future
+    assert update.next_payday == payday
+
+    # Test invalid account type in update
+    with pytest.raises(ValidationError, match="Input should be 'ewa'"):
+        EWAAccountUpdate(
+            account_type="checking",  # Wrong type
+        )
+
+
+def test_update_provider_validation():
+    """Test provider validation in EWA account update schema."""
+    # Test valid provider update
+    update = EWAAccountUpdate(
+        provider="Branch",  # Valid provider
+    )
+    assert update.provider == "Branch"
+
+    # Test invalid provider update
+    with pytest.raises(ValidationError, match="EWA provider must be one of:"):
+        EWAAccountUpdate(
+            provider="Invalid Provider",  # Not in allowed values
+        )
+
+    # Test None provider (no update)
+    update = EWAAccountUpdate(
+        provider=None,
+    )
+    assert update.provider is None
+
+
+def test_update_max_advance_percentage():
+    """Test max advance percentage validation in EWA account update schema."""
+    # Test valid update
+    update = EWAAccountUpdate(
+        max_advance_percentage=Decimal("0.75"),
+    )
+    assert update.max_advance_percentage == Decimal("0.75")
+
+    # Test high percentage (now allowed)
+    update = EWAAccountUpdate(
+        max_advance_percentage=Decimal("0.95"),
+    )
+    assert update.max_advance_percentage == Decimal("0.95")
+
+    # Test percentage at upper limit
+    update = EWAAccountUpdate(
+        max_advance_percentage=Decimal("1.00"),
+    )
+    assert update.max_advance_percentage == Decimal("1.00")
+
+    # Test None value (no update)
+    update = EWAAccountUpdate(
+        max_advance_percentage=None,
+    )
+    assert update.max_advance_percentage is None
+
+
+def test_update_per_transaction_fee():
+    """Test per transaction fee validation in EWA account update schema."""
+    # Test valid update
+    update = EWAAccountUpdate(
+        per_transaction_fee=Decimal("4.50"),
+    )
+    assert update.per_transaction_fee == Decimal("4.50")
+
+    # Test zero fee
+    update = EWAAccountUpdate(
+        per_transaction_fee=Decimal("0.00"),
+    )
+    assert update.per_transaction_fee == Decimal("0.00")
+
+    # Test negative fee (invalid)
+    with pytest.raises(
+        ValidationError, match="Input should be greater than or equal to 0"
+    ):
+        EWAAccountUpdate(
+            per_transaction_fee=Decimal("-1.00"),
+        )
+
+    # Test None value (no update)
+    update = EWAAccountUpdate(
+        per_transaction_fee=None,
+    )
+    assert update.per_transaction_fee is None
+
+
+def test_update_pay_period_dates():
+    """Test pay period date validations in EWA account update schema."""
+    now = utc_now()
+    future = days_from_now(14)
+    past = days_from_now(-1)
+
+    # Test valid update with both dates
+    update = EWAAccountUpdate(
+        pay_period_start=now,
+        pay_period_end=future,
+    )
+    assert update.pay_period_start == now
+    assert update.pay_period_end == future
+
+    # Test invalid dates (end before start)
+    with pytest.raises(
+        ValidationError, match="Pay period end date must be after start date"
+    ):
+        EWAAccountUpdate(
+            pay_period_start=now,
+            pay_period_end=past,
+        )
+
+    # Test update with only start date
+    update = EWAAccountUpdate(
+        pay_period_start=now,
+    )
+    assert update.pay_period_start == now
+    assert update.pay_period_end is None
+
+    # Test update with only end date
+    update = EWAAccountUpdate(
+        pay_period_end=future,
+    )
+    assert update.pay_period_start is None
+    assert update.pay_period_end == future
+
+    # Test None values (no update)
+    update = EWAAccountUpdate(
+        pay_period_start=None,
+        pay_period_end=None,
+    )
+    assert update.pay_period_start is None
+    assert update.pay_period_end is None
+
+
+def test_update_next_payday():
+    """Test next payday validation in EWA account update schema."""
+    now = utc_now()
+    specific_date = utc_datetime(2025, 5, 15, 12, 0, 0)
+
+    # Test valid update
+    update = EWAAccountUpdate(
+        next_payday=now,
+    )
+    assert update.next_payday == now
+    assert update.next_payday.tzinfo is not None  # Should have timezone info
+
+    # Test with specific date
+    update = EWAAccountUpdate(
+        next_payday=specific_date,
+    )
+    assert update.next_payday == specific_date
+    assert update.next_payday.tzinfo is not None  # Should have timezone info
+
+    # Test None value (no update)
+    update = EWAAccountUpdate(
+        next_payday=None,
+    )
+    assert update.next_payday is None
+
+
+def test_complex_pay_period_scenarios():
+    """Test complex scenarios with pay period dates."""
+    # Test updating pay period start to be after existing end date
+    # This should be valid since we're only validating when both are provided together
+    now = utc_now()
+    future1 = days_from_now(7)
+    future2 = days_from_now(14)
+
+    # First create an account with initial dates
+    ewa = EWAAccountCreate(
+        name="Pay Period Test",
+        account_type="ewa",
+        current_balance=Decimal("150.00"),
+        available_balance=Decimal("150.00"),
+        provider="Payactiv",
+        pay_period_start=now,
+        pay_period_end=future1,
+    )
+    assert ewa.pay_period_start == now
+    assert ewa.pay_period_end == future1
+
+    # Now update only the start date to be after the end date
+    # In a real application, this would be validated at the service layer
+    # The schema only validates when both are provided in the same update
+    update = EWAAccountUpdate(
+        pay_period_start=future2,  # After the existing end date
+    )
+    assert update.pay_period_start == future2
+    assert update.pay_period_end is None
+
+    # Test updating both dates to valid values
+    update = EWAAccountUpdate(
+        pay_period_start=future1,
+        pay_period_end=future2,
+    )
+    assert update.pay_period_start == future1
+    assert update.pay_period_end == future2
+
+
+def test_next_payday_normalization_in_update():
+    """Test next payday normalization in EWA account update schema."""
+    # Create datetime objects using utility functions
+    now = utc_now()
+    specific_date = utc_datetime(2025, 6, 15, 12, 0, 0)
+
+    # Test with standard UTC datetime
+    update = EWAAccountUpdate(
+        next_payday=now,
+    )
+    assert update.next_payday.tzinfo is not None  # Should have timezone info
+    assert update.next_payday == now  # Should remain as is
+
+    # Test with specific UTC datetime
+    update = EWAAccountUpdate(
+        next_payday=specific_date,
+    )
+    assert update.next_payday.tzinfo is not None  # Should have timezone info
+    assert update.next_payday == specific_date  # Should remain as is

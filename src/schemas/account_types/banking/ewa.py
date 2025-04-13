@@ -8,14 +8,13 @@ Implemented as part of ADR-019 Banking Account Types Expansion.
 """
 
 from datetime import datetime
-from decimal import Decimal
 from typing import Literal, Optional
 
 from pydantic import Field, field_validator
 
 from src.schemas.accounts import AccountBase, AccountResponse
 from src.schemas.base_schema import MoneyDecimal, PercentageDecimal
-from src.utils.datetime_utils import ensure_utc, datetime_less_than
+from src.utils.datetime_utils import ensure_utc
 
 
 class EWAAccountBase(AccountBase):
@@ -127,8 +126,8 @@ class EWAAccountBase(AccountBase):
     ) -> Optional[datetime]:
         """
         Normalize the next payday datetime to UTC.
-        
-        Note: Previously included validation that required next payday to be after 
+
+        Note: Previously included validation that required next payday to be after
         pay period end date, but this was removed as per ADR-027. Different employers
         have various payment schedules that may not align with this constraint.
 
@@ -142,11 +141,11 @@ class EWAAccountBase(AccountBase):
         # Skip normalization if value is missing
         if value is None:
             return value
-        
+
         # Use project's datetime utilities to properly handle timezone awareness
         # and ensure consistent UTC representation according to ADR-011
         normalized_value = ensure_utc(value)
-        
+
         return normalized_value
 
 
@@ -168,15 +167,15 @@ class EWAAccountUpdate(AccountBase):
 
     # Override name to make it optional
     name: Optional[str] = Field(
-        default=None, 
+        default=None,
         min_length=1,
         max_length=50,
         description="Account name (1-50 characters)",
     )
-    
+
     # Override account_type to be a fixed literal for EWA accounts
     account_type: Optional[Literal["ewa"]] = None
-    
+
     # Override balance fields to be None by default (don't update if not provided)
     current_balance: Optional[MoneyDecimal] = Field(
         default=None, description="Current balance"
@@ -227,7 +226,7 @@ class EWAAccountUpdate(AccountBase):
         """
         if value is None:
             return None
-            
+
         valid_providers = [
             "Payactiv",
             "DailyPay",
@@ -270,7 +269,7 @@ class EWAAccountUpdate(AccountBase):
         """
         if value is None:
             return None
-            
+
         pay_period_start = info.data.get("pay_period_start")
 
         if pay_period_start is not None and value < pay_period_start:
@@ -285,7 +284,7 @@ class EWAAccountUpdate(AccountBase):
     ) -> Optional[datetime]:
         """
         Normalize the next payday datetime to UTC.
-        
+
         Args:
             value: The next payday date
             info: The validation context
@@ -296,11 +295,11 @@ class EWAAccountUpdate(AccountBase):
         # Skip normalization if value is missing
         if value is None:
             return value
-        
+
         # Use project's datetime utilities to properly handle timezone awareness
         # and ensure consistent UTC representation according to ADR-011
         normalized_value = ensure_utc(value)
-        
+
         return normalized_value
 
 

@@ -80,7 +80,7 @@ class FeatureFlag(BaseDBModel):
         default=False,
         doc="Whether this is a system-defined flag (protected)",
     )
-    
+
     requirements: Mapped[Optional[Dict[str, Any]]] = mapped_column(
         JSON,
         nullable=True,

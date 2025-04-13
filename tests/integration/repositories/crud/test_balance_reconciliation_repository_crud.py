@@ -116,3 +116,23 @@ async def test_update_balance_reconciliation(
     assert datetime_greater_than(
         result.updated_at, original_updated_at, ignore_timezone=True
     )
+
+
+async def test_delete_balance_reconciliation(
+    balance_reconciliation_repository: BalanceReconciliationRepository,
+    test_balance_reconciliation: BalanceReconciliation,
+):
+    """Test deleting a balance reconciliation entry."""
+    # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
+
+    # 3. ACT: Delete the reconciliation entry
+    result = await balance_reconciliation_repository.delete(test_balance_reconciliation.id)
+
+    # 4. ASSERT: Verify the operation results
+    assert result is True
+
+    # Verify it's actually deleted
+    deleted_reconciliation = await balance_reconciliation_repository.get(
+        test_balance_reconciliation.id
+    )
+    assert deleted_reconciliation is None

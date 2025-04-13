@@ -12,7 +12,7 @@ Updated for ADR-024 Feature Flag System to support service proxies for feature e
 import importlib
 import inspect
 import logging
-from typing import Any, Dict, Optional, Set, Tuple
+from typing import Any, Dict, Optional, Set
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -85,7 +85,7 @@ class ServiceFactory:
         if feature_flag_service and apply_proxy:
             # Get a config provider
             config_provider = await cls._get_config_provider(session)
-            
+
             # Create a proxied service with feature flag enforcement
             logger.debug(f"Applying ServiceProxy to AccountService")
             return ServiceProxy(
@@ -93,23 +93,23 @@ class ServiceFactory:
                 feature_flag_service=feature_flag_service,
                 config_provider=config_provider,
             )
-        
+
         return base_service
 
     @classmethod
     async def _get_config_provider(cls, session: AsyncSession) -> ConfigProvider:
         """
         Get the database-driven configuration provider.
-        
+
         Args:
             session: SQLAlchemy async session
-            
+
         Returns:
             DatabaseConfigProvider instance
         """
         feature_flag_repository = FeatureFlagRepository(session)
         return DatabaseConfigProvider(session)
-    
+
     @classmethod
     async def bind_account_type_service(
         cls,

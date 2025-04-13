@@ -24,9 +24,7 @@ pytestmark = pytest.mark.asyncio
 class TestAccountRepository(AccountRepository):
     """Minimal repository implementation for demo purposes."""
 
-    async def create_typed_entity(
-        self, account_type: str, data: Dict[str, Any]
-    ) -> Any:
+    async def create_typed_entity(self, account_type: str, data: Dict[str, Any]) -> Any:
         """Create a typed account - demo method."""
         return {"id": "123", "account_type": account_type, **data}
 
@@ -127,9 +125,7 @@ async def test_feature_flag_caching_demo(
 
     # Step 12: Verify operation fails immediately (no cache delay)
     try:
-        await zero_ttl_repo.create_typed_entity(
-            ACCOUNT_TYPE, {"name": "Zero TTL Test"}
-        )
+        await zero_ttl_repo.create_typed_entity(ACCOUNT_TYPE, {"name": "Zero TTL Test"})
         print("ERROR: Operation succeeded when it should have failed")
     except FeatureDisabledError as e:
         print(f"Success! Operation correctly failed with zero TTL: {e}")
@@ -196,9 +192,7 @@ async def test_feature_flag_caching_demo(
     print(f"Enabled flag '{FLAG_NAME}' again")
 
     # Step 23: Operation succeeds with flag enabled
-    result4 = await wait_repo.create_typed_entity(
-        ACCOUNT_TYPE, {"name": "Wait Test 1"}
-    )
+    result4 = await wait_repo.create_typed_entity(ACCOUNT_TYPE, {"name": "Wait Test 1"})
     print(f"Operation succeeded: {result4}")
 
     # Step 24: Disable the flag

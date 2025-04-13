@@ -15,6 +15,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from src.models.income import Income
 from src.repositories.base_repository import BaseRepository
+from src.utils.datetime_utils import ensure_utc, naive_start_of_day, naive_end_of_day
 
 
 class IncomeRepository(BaseRepository[Income, int]):
@@ -59,14 +60,22 @@ class IncomeRepository(BaseRepository[Income, int]):
         Get income records within a date range.
 
         Args:
-            start_date (datetime): Start date (inclusive)
-            end_date (datetime): End date (inclusive)
+            start_date (datetime): Start date (inclusive), must be timezone-aware (UTC)
+            end_date (datetime): End date (inclusive), must be timezone-aware (UTC)
             account_id (Optional[int]): Optional account ID to filter by
 
         Returns:
             List[Income]: List of income records in the date range
         """
-        conditions = [Income.date >= start_date, Income.date <= end_date]
+        # Ensure UTC timezone awareness for datetime parameters
+        start_date = ensure_utc(start_date)
+        end_date = ensure_utc(end_date)
+        
+        # Use naive functions directly for database queries
+        db_start_date = naive_start_of_day(start_date)
+        db_end_date = naive_end_of_day(end_date)
+        
+        conditions = [Income.date >= db_start_date, Income.date <= db_end_date]
 
         if account_id is not None:
             conditions.append(Income.account_id == account_id)
@@ -262,16 +271,24 @@ class IncomeRepository(BaseRepository[Income, int]):
         Calculate income statistics for a specific period.
 
         Args:
-            start_date (datetime): Start date of the period
-            end_date (datetime): End date of the period
+            start_date (datetime): Start date of the period, must be timezone-aware (UTC)
+            end_date (datetime): End date of the period, must be timezone-aware (UTC)
             account_id (Optional[int]): Optional account ID to filter by
             category_id (Optional[int]): Optional category ID to filter by
 
         Returns:
             Dict[str, Any]: Dictionary with statistics (total, average, count, etc.)
         """
+        # Ensure UTC timezone awareness for datetime parameters
+        start_date = ensure_utc(start_date)
+        end_date = ensure_utc(end_date)
+        
+        # Use naive functions directly for database queries
+        db_start_date = naive_start_of_day(start_date)
+        db_end_date = naive_end_of_day(end_date)
+        
         # Build conditions based on parameters
-        conditions = [Income.date >= start_date, Income.date <= end_date]
+        conditions = [Income.date >= db_start_date, Income.date <= db_end_date]
 
         if account_id is not None:
             conditions.append(Income.account_id == account_id)
@@ -339,8 +356,8 @@ class IncomeRepository(BaseRepository[Income, int]):
         Args:
             skip (int): Number of records to skip
             limit (int): Maximum number of records to return
-            start_date (Optional[datetime]): Filter by start date
-            end_date (Optional[datetime]): Filter by end date
+            start_date (Optional[datetime]): Filter by start date, must be timezone-aware (UTC) if provided
+            end_date (Optional[datetime]): Filter by end date, must be timezone-aware (UTC) if provided
             source (Optional[str]): Filter by source (partial match)
             deposited (Optional[bool]): Filter by deposit status
             min_amount (Optional[Decimal]): Filter by minimum amount
@@ -356,10 +373,16 @@ class IncomeRepository(BaseRepository[Income, int]):
         conditions = []
 
         if start_date is not None:
-            conditions.append(Income.date >= start_date)
+            # Ensure UTC timezone awareness and convert to naive datetime for DB
+            start_date = ensure_utc(start_date)
+            db_start_date = naive_start_of_day(start_date)
+            conditions.append(Income.date >= db_start_date)
 
         if end_date is not None:
-            conditions.append(Income.date <= end_date)
+            # Ensure UTC timezone awareness and convert to naive datetime for DB
+            end_date = ensure_utc(end_date)
+            db_end_date = naive_end_of_day(end_date)
+            conditions.append(Income.date <= db_end_date)
 
         if source is not None:
             conditions.append(Income.source.ilike(f"%{source}%"))

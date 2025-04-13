@@ -2,12 +2,14 @@
 Credit account specific errors.
 
 This module provides error classes specific to credit accounts.
+
+All datetime handling follows ADR-011 requirements for UTC datetime standardization.
 """
 
-from datetime import datetime
 from typing import Any, Dict, Optional
 
 from src.errors.accounts import AccountError
+from src.utils.datetime_utils import ensure_utc
 
 
 class CreditAccountError(AccountError):
@@ -42,13 +44,17 @@ class CreditCreditLimitExceededError(CreditAccountError):
 
 
 class CreditPaymentDueError(CreditAccountError):
-    """Error raised for payment due issues."""
+    """
+    Error raised for payment due issues.
+    
+    Per ADR-011, ensures all datetime values are converted to UTC before processing.
+    """
 
     def __init__(
         self,
         message: str,
         account_id: Optional[int] = None,
-        due_date: Optional[datetime] = None,
+        due_date: Optional[Any] = None,
         minimum_payment: Optional[float] = None,
         statement_balance: Optional[float] = None,
         details: Optional[Dict[str, Any]] = None,
@@ -57,7 +63,9 @@ class CreditPaymentDueError(CreditAccountError):
         if account_id:
             combined_details["account_id"] = account_id
         if due_date:
-            combined_details["due_date"] = due_date.isoformat() if due_date else None
+            # Ensure datetime is UTC-aware before conversion to string per ADR-011
+            utc_date = ensure_utc(due_date) if due_date else None
+            combined_details["due_date"] = utc_date.isoformat() if utc_date else None
         if minimum_payment is not None:
             combined_details["minimum_payment"] = minimum_payment
         if statement_balance is not None:
@@ -96,17 +104,23 @@ class CreditAutopayError(CreditAccountError):
 
 
 class CreditStatementError(CreditAccountError):
-    """Error raised for statement issues."""
+    """
+    Error raised for statement issues.
+    
+    Per ADR-011, ensures all datetime values are converted to UTC before processing.
+    """
 
     def __init__(
         self,
         message: str,
-        statement_date: Optional[datetime] = None,
+        statement_date: Optional[Any] = None,
         details: Optional[Dict[str, Any]] = None,
     ):
         combined_details = details or {}
         if statement_date:
+            # Ensure datetime is UTC-aware before conversion to string per ADR-011
+            utc_date = ensure_utc(statement_date) if statement_date else None
             combined_details["statement_date"] = (
-                statement_date.isoformat() if statement_date else None
+                utc_date.isoformat() if utc_date else None
             )
         super().__init__(message, combined_details)

@@ -103,9 +103,7 @@ async def test_update_ewa_account(
     validated_data = update_schema.model_dump()
 
     # 3. ACT: Update the account using typed update method
-    result = await ewa_repository.update_typed_entity(
-        account_id, "ewa", validated_data
-    )
+    result = await ewa_repository.update_typed_entity(account_id, "ewa", validated_data)
 
     # 4. ASSERT: Verify the operation results
     assert result is not None

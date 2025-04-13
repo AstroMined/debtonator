@@ -8,7 +8,7 @@ ADR-011 requirements for datetime standardization.
 import importlib
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -570,20 +570,20 @@ def test_ensure_datetime_fields_are_utc():
     # Create a class that sets a naive datetime after initialization
     class PostInitModel(BaseSchemaValidator):
         name: str
-        created_at: datetime
+        timestamp: datetime
 
-        @field_validator("created_at", mode="after")
+        @field_validator("timestamp", mode="after")
         @classmethod
         def set_naive_datetime(cls, v):
             # Return a UTC-aware datetime instead of a naive one
             return utc_now()
 
     # Initialize with a valid UTC datetime
-    model = PostInitModel(name="Test", created_at=utc_now())
+    model = PostInitModel(name="Test", timestamp=utc_now())
 
     # The validator should handle the datetime properly
-    assert model.created_at.tzinfo is not None
-    assert model.created_at.tzinfo == timezone.utc
+    assert model.timestamp.tzinfo is not None
+    assert model.timestamp.tzinfo == timezone.utc
 
 
 def test_datetimes_with_varying_tzinfo_implementations():
@@ -830,3 +830,137 @@ def test_validate_required_fields_with_update_suffix():
 
     # Since there's no model to check against, it should return the instance unchanged
     assert result is instance
+
+
+# Additional tests to improve coverage
+
+
+class ComplexDictionaryModel(BaseSchemaValidator):
+    """Model with complex nested dictionary structures."""
+
+    # Dictionary with string keys and nested dictionaries as values
+    nested_dict: Dict[str, Dict[str, MoneyDecimal]] = {}
+
+    # Dictionary with mixed value types
+    mixed_dict: Dict[str, Dict[str, PercentageDecimal]] = {}
+
+
+def test_complex_dictionary_validation():
+    """Test validation of complex nested dictionary structures."""
+    # Valid nested dictionary
+    valid_nested_dict = {
+        "category1": {"item1": Decimal("10.50"), "item2": Decimal("20.00")},
+        "category2": {"item3": Decimal("30.75")},
+    }
+
+    model = ComplexDictionaryModel(nested_dict=valid_nested_dict)
+    assert model.nested_dict == valid_nested_dict
+
+    # Invalid nested dictionary (too many decimal places in nested value)
+    invalid_nested_dict = {
+        "category1": {"item1": Decimal("10.501")}  # Too many decimal places
+    }
+
+    with pytest.raises(ValidationError, match="multiple_of"):
+        ComplexDictionaryModel(nested_dict=invalid_nested_dict)
+
+
+class ModelWithListField(BaseSchemaValidator):
+    """Model with a list field for testing dictionary validation with non-dict fields."""
+
+    name: str
+    values: List[MoneyDecimal] = []
+
+
+def test_list_field_validation():
+    """Test validation of list fields to ensure they don't trigger dictionary validation."""
+    # Valid list of money values
+    model = ModelWithListField(name="Test", values=[Decimal("10.50"), Decimal("20.00")])
+    assert model.name == "Test"
+    assert model.values == [Decimal("10.50"), Decimal("20.00")]
+
+    # Invalid list (too many decimal places)
+    with pytest.raises(ValidationError, match="multiple_of"):
+        ModelWithListField(
+            name="Test", values=[Decimal("10.501")]  # Too many decimal places
+        )
+
+
+class ModelWithMultipleValidators(BaseSchemaValidator):
+    """Model with multiple validators to test validator execution order."""
+
+    name: str
+    value: MoneyDecimal
+    timestamp: datetime = Field(default_factory=utc_now)
+
+    @field_validator("value")
+    @classmethod
+    def validate_value(cls, v):
+        """Validate that value is positive."""
+        if v <= 0:
+            raise ValueError("Value must be positive")
+        return v
+
+
+def test_multiple_validators():
+    """Test that multiple validators are executed correctly."""
+    # Valid model
+    model = ModelWithMultipleValidators(name="Test", value=Decimal("100.00"))
+    assert model.name == "Test"
+    assert model.value == Decimal("100.00")
+    assert model.timestamp.tzinfo is not None
+
+    # Invalid value (negative)
+    with pytest.raises(ValidationError, match="Value must be positive"):
+        ModelWithMultipleValidators(name="Test", value=Decimal("-100.00"))
+
+    # Invalid value (too many decimal places)
+    with pytest.raises(ValidationError, match="multiple_of"):
+        ModelWithMultipleValidators(name="Test", value=Decimal("100.001"))
+
+
+class ModelWithNonDictField(BaseSchemaValidator):
+    """Model with a non-dictionary field that has a similar name to a dictionary field."""
+
+    money_value: MoneyDecimal  # Not a dictionary
+    percentage_value: PercentageDecimal  # Not a dictionary
+
+
+def test_non_dict_field_with_similar_name():
+    """Test that non-dictionary fields with similar names to dictionary fields are handled correctly."""
+    # Valid model
+    model = ModelWithNonDictField(
+        money_value=Decimal("100.00"), percentage_value=Decimal("0.5000")
+    )
+    assert model.money_value == Decimal("100.00")
+    assert model.percentage_value == Decimal("0.5000")
+
+    # Invalid money value (too many decimal places)
+    with pytest.raises(ValidationError, match="multiple_of"):
+        ModelWithNonDictField(
+            money_value=Decimal("100.001"), percentage_value=Decimal("0.5000")
+        )
+
+    # Invalid percentage value (out of range)
+    with pytest.raises(ValidationError, match="less than or equal to 1"):
+        ModelWithNonDictField(
+            money_value=Decimal("100.00"), percentage_value=Decimal("1.5")
+        )
+
+
+class UpdateModelWithoutFlag(BaseSchemaValidator):
+    """Update model without the __test_update_schema__ flag."""
+
+    name: Optional[str] = None
+    value: Optional[MoneyDecimal] = None
+
+
+def test_update_model_without_flag():
+    """Test that update models without the flag don't trigger the validator."""
+    # This should not raise an error even though it ends with "Update"
+    model = UpdateModelWithoutFlag(name=None)
+    assert model.name is None
+
+    # Manually run the validator
+    result = model.validate_required_fields_not_none()
+    assert result is model  # Should return self unchanged

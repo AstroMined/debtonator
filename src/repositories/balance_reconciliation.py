@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.balance_reconciliation import BalanceReconciliation
 from src.repositories.base_repository import BaseRepository
-from src.utils.datetime_utils import days_ago, utc_now
+from src.utils.datetime_utils import days_ago, ensure_utc, naive_start_of_day, naive_end_of_day, utc_now
 
 
 class BalanceReconciliationRepository(BaseRepository[BalanceReconciliation, int]):
@@ -74,20 +74,31 @@ class BalanceReconciliationRepository(BaseRepository[BalanceReconciliation, int]
         """
         Get balance reconciliation entries within a date range.
 
+        Following ADR-011, uses inclusive date range with naive_start_of_day and 
+        naive_end_of_day for direct database storage without timezone conversion.
+
         Args:
             account_id (int): Account ID to get entries for
-            start_date (datetime): Start date for range (inclusive)
-            end_date (datetime): End date for range (inclusive)
+            start_date (datetime): Start date for range (inclusive), must be timezone-aware (UTC)
+            end_date (datetime): End date for range (inclusive), must be timezone-aware (UTC)
 
         Returns:
             List[BalanceReconciliation]: List of reconciliation entries
         """
+        # Ensure UTC timezone awareness for datetime parameters
+        start_date = ensure_utc(start_date)
+        end_date = ensure_utc(end_date)
+        
+        # Use naive functions directly for database queries
+        db_start_date = naive_start_of_day(start_date)
+        db_end_date = naive_end_of_day(end_date)
+        
         query = (
             select(BalanceReconciliation)
             .where(
                 BalanceReconciliation.account_id == account_id,
-                BalanceReconciliation.reconciliation_date >= start_date,
-                BalanceReconciliation.reconciliation_date <= end_date,
+                BalanceReconciliation.reconciliation_date >= db_start_date,
+                BalanceReconciliation.reconciliation_date <= db_end_date,
             )
             .order_by(BalanceReconciliation.reconciliation_date)
         )
@@ -149,8 +160,8 @@ class BalanceReconciliationRepository(BaseRepository[BalanceReconciliation, int]
 
         Args:
             account_id (int): Account ID to calculate for
-            start_date (datetime, optional): Start date for filtering
-            end_date (datetime, optional): End date for filtering
+            start_date (datetime, optional): Start date for filtering, must be timezone-aware (UTC)
+            end_date (datetime, optional): End date for filtering, must be timezone-aware (UTC)
 
         Returns:
             Decimal: Total adjustment amount
@@ -160,10 +171,16 @@ class BalanceReconciliationRepository(BaseRepository[BalanceReconciliation, int]
         )
 
         if start_date:
-            query = query.where(BalanceReconciliation.reconciliation_date >= start_date)
+            # Ensure UTC timezone awareness and convert to naive datetime for DB
+            start_date = ensure_utc(start_date)
+            db_start_date = naive_start_of_day(start_date)
+            query = query.where(BalanceReconciliation.reconciliation_date >= db_start_date)
 
         if end_date:
-            query = query.where(BalanceReconciliation.reconciliation_date <= end_date)
+            # Ensure UTC timezone awareness and convert to naive datetime for DB
+            end_date = ensure_utc(end_date)
+            db_end_date = naive_end_of_day(end_date)
+            query = query.where(BalanceReconciliation.reconciliation_date <= db_end_date)
 
         result = await self.session.execute(query)
         total = result.scalar_one_or_none()

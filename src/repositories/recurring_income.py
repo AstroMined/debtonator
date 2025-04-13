@@ -15,6 +15,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from src.models.recurring_income import RecurringIncome
 from src.repositories.base_repository import BaseRepository
+from src.utils.datetime_utils import ensure_utc, days_from_now, utc_now
 
 
 class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):
@@ -305,11 +306,14 @@ class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):
         result = await self.session.execute(query)
         recurring_incomes = result.unique().scalars().all()
 
-        # Calculate upcoming deposit dates based on day_of_month
-        today = datetime.utcnow()
-        current_month = today.month
-        current_year = today.year
-        current_day = today.day
+        # Use UTC now instead of utcnow
+        today = utc_now()
+        # For date calculations strip timezone
+        today_naive = today.replace(tzinfo=None)
+        
+        current_month = today_naive.month
+        current_year = today_naive.year
+        current_day = today_naive.day
 
         upcoming_deposits = []
 
@@ -348,7 +352,7 @@ class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):
                     deposit_date = datetime(deposit_year, deposit_month, 31)
 
             # Check if it's within the specified days range
-            delta = (deposit_date - today).days
+            delta = (deposit_date - today_naive).days
             if 0 <= delta <= days:
                 upcoming_deposits.append(
                     {

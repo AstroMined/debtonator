@@ -153,16 +153,16 @@ def naive_utc_from_date(
 def naive_days_from_now(days: int) -> datetime:
     """
     Get naive datetime n days from now (for database storage).
-    
+
     This function returns a naive datetime that semantically represents UTC time
     but without timezone information, suitable for database storage per ADR-011.
-    
+
     Args:
         days: Number of days in the future (can be negative for past)
-        
+
     Returns:
         datetime: Naive datetime object (for database storage)
-        
+
     Example:
         >>> # For SQLAlchemy model columns that need future dates
         >>> due_date = naive_days_from_now(30)  # 30 days from now
@@ -175,16 +175,16 @@ def naive_days_from_now(days: int) -> datetime:
 def naive_days_ago(days: int) -> datetime:
     """
     Get naive datetime n days ago (for database storage).
-    
+
     This function returns a naive datetime that semantically represents UTC time
     but without timezone information, suitable for database storage per ADR-011.
-    
+
     Args:
         days: Number of days in the past (can be negative for future)
-        
+
     Returns:
         datetime: Naive datetime object (for database storage)
-        
+
     Example:
         >>> # For SQLAlchemy model columns that need past dates
         >>> created_date = naive_days_ago(5)  # 5 days ago
@@ -197,16 +197,16 @@ def naive_days_ago(days: int) -> datetime:
 def naive_first_day_of_month(dt: Optional[datetime] = None) -> datetime:
     """
     Get naive first day of the month for a given datetime (for database storage).
-    
+
     This function returns a naive datetime that semantically represents UTC time
     but without timezone information, suitable for database storage per ADR-011.
-    
+
     Args:
         dt: Input datetime (defaults to now if None)
-        
+
     Returns:
         datetime: Naive datetime for first day of month at 00:00:00
-        
+
     Example:
         >>> # For database queries
         >>> month_start = naive_first_day_of_month()
@@ -220,16 +220,16 @@ def naive_first_day_of_month(dt: Optional[datetime] = None) -> datetime:
 def naive_last_day_of_month(dt: Optional[datetime] = None) -> datetime:
     """
     Get naive last day of the month for a given datetime (for database storage).
-    
+
     This function returns a naive datetime that semantically represents UTC time
     but without timezone information, suitable for database storage per ADR-011.
-    
+
     Args:
         dt: Input datetime (defaults to now if None)
-        
+
     Returns:
         datetime: Naive datetime for last day of month at 00:00:00
-        
+
     Example:
         >>> # For database queries
         >>> month_end = naive_last_day_of_month()
@@ -245,16 +245,16 @@ def naive_last_day_of_month(dt: Optional[datetime] = None) -> datetime:
 def naive_start_of_day(dt: Optional[datetime] = None) -> datetime:
     """
     Get naive start of day (00:00:00) for a given datetime (for database storage).
-    
+
     This function returns a naive datetime that semantically represents UTC time
     but without timezone information, suitable for database storage per ADR-011.
-    
+
     Args:
         dt: Input datetime (defaults to now if None)
-        
+
     Returns:
         datetime: Naive datetime for start of day (00:00:00)
-        
+
     Example:
         >>> # For database queries
         >>> today_start = naive_start_of_day()
@@ -275,16 +275,16 @@ def naive_start_of_day(dt: Optional[datetime] = None) -> datetime:
 def naive_end_of_day(dt: Optional[datetime] = None) -> datetime:
     """
     Get naive end of day (23:59:59.999999) for a given datetime (for database storage).
-    
+
     This function returns a naive datetime that semantically represents UTC time
     but without timezone information, suitable for database storage per ADR-011.
-    
+
     Args:
         dt: Input datetime (defaults to now if None)
-        
+
     Returns:
         datetime: Naive datetime for end of day (23:59:59.999999)
-        
+
     Example:
         >>> # For database queries
         >>> today_end = naive_end_of_day()
@@ -551,20 +551,20 @@ def naive_utc_datetime_from_str(
 ) -> datetime:
     """
     Parse a string into a naive datetime (for database storage).
-    
+
     This function returns a naive datetime that semantically represents UTC time
     but without timezone information, suitable for database storage per ADR-011.
-    
+
     Args:
         datetime_str: String to parse
         format_str: Format string for parsing (following datetime.strptime conventions)
-        
+
     Returns:
         datetime: Naive datetime object (for database storage)
-        
+
     Raises:
         ValueError: If the string cannot be parsed with the given format
-        
+
     Example:
         >>> # Parse ISO format string for database storage
         >>> dt = naive_utc_datetime_from_str("2025-03-15 14:30:00")
@@ -986,20 +986,20 @@ def date_range(start_date: datetime, end_date: datetime) -> List[datetime]:
 def naive_date_range(start_date: datetime, end_date: datetime) -> List[datetime]:
     """
     Generate a list of naive dates within a range (for database storage).
-    
+
     This function returns a list of naive datetimes that semantically represent UTC time
     but without timezone information, suitable for database storage per ADR-011.
-    
+
     Args:
         start_date: Start date (inclusive)
         end_date: End date (inclusive)
-        
+
     Returns:
         list: List of naive datetimes, one for each day in the range
-        
+
     Raises:
         ValueError: If end_date is earlier than start_date
-        
+
     Example:
         >>> # Get all days in March 2025 for database queries
         >>> march_1 = naive_utc_from_date(2025, 3, 1)
@@ -1088,20 +1088,20 @@ def safe_end_date(today: datetime, days: int) -> datetime:
 def naive_safe_end_date(today: datetime, days: int) -> datetime:
     """
     Calculate naive end date safely handling month transitions (for database storage).
-    
+
     This function returns a naive datetime that semantically represents UTC time
     but without timezone information, suitable for database storage per ADR-011.
-    
+
     It prevents "day out of range" errors when adding days that cross into months
     with fewer days, just like safe_end_date() but returns a naive datetime.
-    
+
     Args:
         today: Starting date
         days: Number of days to add
-        
+
     Returns:
         datetime: Naive end date with time set to end of day (23:59:59.999999)
-        
+
     Example:
         >>> # Handle adding days that cross month boundaries for database storage
         >>> jan_30 = naive_utc_from_date(2025, 1, 30)

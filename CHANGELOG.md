@@ -7,6 +7,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.115] - 2025-04-12
+
+### Fixed
+
+- Fixed validation issues in payment app schema:
+  - Modified field validators to only check the format of card_last_four, removing cross-field validation
+  - Added model validators to handle the relationship between has_debit_card and card_last_four
+  - Implemented automatic has_debit_card=True setting when card_last_four is provided
+  - Fixed validation flow to handle fields not explicitly set
+  - Updated test to explicitly set has_debit_card=True when providing card_last_four
+
+### Changed
+
+- Improved schema validation patterns:
+  - Separated field validation from model validation for better control flow
+  - Used field validators for format and basic constraints
+  - Used model validators for cross-field validation and business rules
+  - Enhanced error messages for validation failures
+  - Added proper docstrings explaining validation behavior
+
 ## [0.5.114] - 2025-04-12
 
 ### Changed

@@ -16,7 +16,7 @@ from src.services.system_initialization import ensure_system_categories
 async def category_repository(db_session: AsyncSession) -> CategoryRepository:
     """
     Fixture for CategoryRepository with test database session.
-    
+
     Initializes system categories to ensure proper test behavior.
 
     Args:
@@ -26,8 +26,8 @@ async def category_repository(db_session: AsyncSession) -> CategoryRepository:
         CategoryRepository: Repository for category operations
     """
     repo = CategoryRepository(db_session)
-    
+
     # Initialize system categories to ensure default category exists
     await ensure_system_categories(repo)
-    
+
     return repo

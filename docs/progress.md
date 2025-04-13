@@ -17,6 +17,9 @@
    - Comprehensive unit tests for all schema validation
    - Account type schema hierarchy implemented with polymorphic support
    - Discriminated union pattern for API integration
+   - Fixed validation issues in payment app schema with proper model validators
+   - Improved field and model validator separation for better control flow
+   - Enhanced test coverage for edge cases in schema validation
 
 3. __Repository Layer__: COMPLETED (100%) ✓
    - Repository pattern foundation complete (ADR-014) ✓
@@ -54,14 +57,14 @@
    - Get_banking_overview implementation (100%) ✓
    - Get_upcoming_payments implementation (100%) ✓
 
-5. __Account Type Expansion__: IN PROGRESS (88%)
+5. __Account Type Expansion__: IN PROGRESS (90%)
    - Base Account Architecture (100%) ✓
    - Database Schema and Model Implementation (100%) ✓
    - Pydantic Schema Implementation (100%) ✓
    - Repository Module Pattern Implementation (100%) ✓
    - Repository Layer Test Implementation (100%) ✓
    - Traditional Banking Account Types Tests (100%) ✓
-   - Modern Financial Account Types Tests (65%) ✓
+   - Modern Financial Account Types Tests (100%) ✓
    - Service Layer Implementation (100%) ✓
    - Schema Factory Implementation (100%) ✓ 
    - API Layer Integration (0%)
@@ -129,6 +132,7 @@
    - Comprehensive model fixture code review (100%) ✓
    - Repository fixture decomposition and standardization (100%) ✓
    - Test consolidation for complementary test files (100%) ✓
+   - Schema validation test improvements (100%) ✓
 
 ## What Works
 
@@ -169,6 +173,10 @@
    - Feature flag integration in schemas ✓
    - Comprehensive schema tests for all account types ✓
    - Deterministic schema factory tests ✓
+   - Proper separation of field and model validation ✓
+   - Improved validation flow with field validators for format and model validators for business rules ✓
+   - Enhanced error messages for validation failures ✓
+   - Proper handling of implicit field values ✓
 
 3. __Service Layer__
    - Account service with polymorphic support ✓
@@ -233,6 +241,7 @@
    - API middleware tests for feature flag enforcement ✓
    - Standardized repository fixture usage patterns ✓
    - Proper separation of CRUD and advanced repository tests ✓
+   - Improved schema validation tests with proper field and model validation coverage ✓
 
 ## What's Left to Build
 
@@ -312,12 +321,12 @@
 
 ## Known Issues
 
-1. __Repository Fixture Usage Pattern Inconsistencies__
-   - Some repository fixtures use repository_factory as an object with methods
-   - Others correctly use repository_factory as a function
-   - Need to standardize usage pattern across all repository fixtures
-   - Ensure proper documentation of fixture usage patterns
-   - Fix remaining test failures related to fixture usage
+1. ~~__Repository Fixture Usage Pattern Inconsistencies__~~ RESOLVED ✓
+   - ~~Some repository fixtures use repository_factory as an object with methods~~
+   - ~~Others correctly use repository_factory as a function~~
+   - ~~Need to standardize usage pattern across all repository fixtures~~
+   - ~~Ensure proper documentation of fixture usage patterns~~
+   - ~~Fix remaining test failures related to fixture usage~~
 
 2. __Pydantic v2 Discriminator Field Validator Conflict__
    - Some account type response models still have validators on the discriminator field
@@ -353,3 +362,9 @@
    - Should move functionality to src/errors/ for better separation of concerns
    - Some feature_flags functionality requires integration tests rather than unit tests
    - Need to document cross-layer concerns for future refactoring
+
+8. __Schema Validation Flow Inconsistencies__
+   - Some schemas mix field and model validation responsibilities
+   - Need to standardize validation approach across all schemas
+   - Improve error messages for validation failures
+   - Document validation patterns for consistent implementation

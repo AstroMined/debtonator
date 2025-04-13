@@ -3,12 +3,14 @@ Earned Wage Access (EWA) account specific errors.
 
 This module provides error classes specific to EWA accounts
 (e.g., Payactiv, DailyPay, etc.).
+
+All datetime handling follows ADR-011 requirements for UTC datetime standardization.
 """
 
-from datetime import datetime
 from typing import Any, Dict, Optional
 
 from src.errors.accounts import AccountError
+from src.utils.datetime_utils import ensure_utc
 
 
 class EWAAccountError(AccountError):
@@ -58,47 +60,59 @@ class EWAAdvancePercentageError(EWAAccountError):
 
 
 class EWAPayPeriodError(EWAAccountError):
-    """Error raised for pay period issues."""
+    """
+    Error raised for pay period issues.
+    
+    Per ADR-011, ensures all datetime values are converted to UTC before processing.
+    """
 
     def __init__(
         self,
         message: str,
         account_id: Optional[int] = None,
-        pay_period_start: Optional[datetime] = None,
-        pay_period_end: Optional[datetime] = None,
+        pay_period_start: Optional[Any] = None,
+        pay_period_end: Optional[Any] = None,
         details: Optional[Dict[str, Any]] = None,
     ):
         combined_details = details or {}
         if account_id:
             combined_details["account_id"] = account_id
         if pay_period_start:
+            # Ensure datetime is UTC-aware before conversion to string per ADR-011
+            utc_start_date = ensure_utc(pay_period_start) if pay_period_start else None
             combined_details["pay_period_start"] = (
-                pay_period_start.isoformat() if pay_period_start else None
+                utc_start_date.isoformat() if utc_start_date else None
             )
         if pay_period_end:
+            # Ensure datetime is UTC-aware before conversion to string per ADR-011
+            utc_end_date = ensure_utc(pay_period_end) if pay_period_end else None
             combined_details["pay_period_end"] = (
-                pay_period_end.isoformat() if pay_period_end else None
+                utc_end_date.isoformat() if utc_end_date else None
             )
         super().__init__(message, combined_details)
 
 
 class EWANextPaydayError(EWAAccountError):
-    """Error raised for next payday issues."""
+    """
+    Error raised for next payday issues.
+    
+    Per ADR-011, ensures all datetime values are converted to UTC before processing.
+    """
 
     def __init__(
         self,
         message: str,
         account_id: Optional[int] = None,
-        next_payday: Optional[datetime] = None,
+        next_payday: Optional[Any] = None,
         details: Optional[Dict[str, Any]] = None,
     ):
         combined_details = details or {}
         if account_id:
             combined_details["account_id"] = account_id
         if next_payday:
-            combined_details["next_payday"] = (
-                next_payday.isoformat() if next_payday else None
-            )
+            # Ensure datetime is UTC-aware before conversion to string per ADR-011
+            utc_date = ensure_utc(next_payday) if next_payday else None
+            combined_details["next_payday"] = utc_date.isoformat() if utc_date else None
         super().__init__(message, combined_details)
 
 

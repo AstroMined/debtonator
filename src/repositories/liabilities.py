@@ -5,17 +5,25 @@ This module provides a repository for Liability model CRUD operations and specia
 queries for bill/liability-related functionality.
 """
 
-from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import List, Optional
 
-from sqlalchemy import and_, desc, func, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability, LiabilityStatus
 from src.repositories.base_repository import BaseRepository
+from src.utils.datetime_utils import (
+    days_from_now,
+    end_of_day,
+    last_day_of_month,
+    naive_end_of_day, 
+    naive_start_of_day,
+    utc_datetime,
+    utc_now,
+)
 
 
 class LiabilityRepository(BaseRepository[Liability, int]):
@@ -113,7 +121,7 @@ class LiabilityRepository(BaseRepository[Liability, int]):
         return result.scalars().first()
 
     async def get_bills_due_in_range(
-        self, start_date: datetime, end_date: datetime, include_paid: bool = False
+        self, start_date, end_date, include_paid: bool = False
     ) -> List[Liability]:
         """
         Get bills due within a specified date range.
@@ -126,12 +134,17 @@ class LiabilityRepository(BaseRepository[Liability, int]):
         Returns:
             List[Liability]: Bills due in the specified date range
         """
+        # Following ADR-011, using naive datetime functions for database operations
+        # and inclusive date range semantics (start to end, inclusive of both)
+        naive_start = naive_start_of_day(start_date)
+        naive_end = naive_end_of_day(end_date)
+        
         query = (
             select(Liability)
             .where(
                 and_(
-                    Liability.due_date >= start_date,
-                    Liability.due_date <= end_date,
+                    Liability.due_date >= naive_start,
+                    Liability.due_date <= naive_end,
                     Liability.active == True,
                 )
             )
@@ -161,7 +174,7 @@ class LiabilityRepository(BaseRepository[Liability, int]):
         query = (
             select(Liability)
             .where(and_(Liability.category_id == category_id, Liability.active == True))
-            .order_by(desc(Liability.due_date))
+            .order_by(Liability.due_date.desc())
             .limit(limit)
         )
 
@@ -293,10 +306,9 @@ class LiabilityRepository(BaseRepository[Liability, int]):
         Returns:
             List[Liability]: Upcoming bills
         """
-        now = datetime.utcnow()
-        end_date = datetime.utcnow().replace(hour=23, minute=59, second=59) + timedelta(
-            days=days
-        )
+        # Following ADR-011: Using utc_now() for current time and days_from_now() for future time
+        now = utc_now()
+        end_date = end_of_day(days_from_now(days))
 
         return await self.get_bills_due_in_range(now, end_date, include_paid)
 
@@ -307,13 +319,16 @@ class LiabilityRepository(BaseRepository[Liability, int]):
         Returns:
             List[Liability]: Overdue bills
         """
-        now = datetime.utcnow()
+        now = utc_now()
+
+        # Converting to naive datetime for database query per ADR-011
+        naive_now = naive_end_of_day(now)
 
         query = (
             select(Liability)
             .where(
                 and_(
-                    Liability.due_date < now,
+                    Liability.due_date < naive_now,
                     Liability.paid == False,
                     Liability.active == True,
                 )
@@ -335,19 +350,19 @@ class LiabilityRepository(BaseRepository[Liability, int]):
         Returns:
             Decimal: Total liability amount
         """
-        # Create date range for the month
-        start_date = datetime(year, month, 1)
-        if month == 12:
-            end_date = datetime(year + 1, 1, 1)
-        else:
-            end_date = datetime(year, month + 1, 1)
-        end_date = end_date - timedelta(seconds=1)
+        # Create date range for the month using ADR-011 compliant methods
+        start_date = utc_datetime(year, month, 1)
+        end_date = last_day_of_month(start_date)
+        
+        # Convert to naive for database operations
+        naive_start = naive_start_of_day(start_date)
+        naive_end = naive_end_of_day(end_date)
 
         # Query for total amount
         query = select(func.sum(Liability.amount)).where(
             and_(
-                Liability.due_date >= start_date,
-                Liability.due_date <= end_date,
+                Liability.due_date >= naive_start,
+                Liability.due_date <= naive_end,
                 Liability.active == True,
             )
         )
@@ -357,7 +372,7 @@ class LiabilityRepository(BaseRepository[Liability, int]):
         return total if total is not None else Decimal("0")
 
     async def mark_as_paid(
-        self, liability_id: int, payment_date: Optional[datetime] = None
+        self, liability_id: int, payment_date = None
     ) -> Optional[Liability]:
         """
         Mark a liability as paid.
@@ -370,7 +385,7 @@ class LiabilityRepository(BaseRepository[Liability, int]):
             Optional[Liability]: Updated liability or None if not found
         """
         if payment_date is None:
-            payment_date = datetime.utcnow()
+            payment_date = utc_now()
 
         update_data = {"paid": True, "status": LiabilityStatus.PAID}
 
