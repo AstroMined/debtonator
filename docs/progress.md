@@ -49,6 +49,7 @@
    - Method name transition from create/update_typed_account to create/update_typed_entity completed ✓
    - Polymorphic repository pattern implementation with proper type handling ✓
    - Partial update field preservation in polymorphic repositories ✓
+   - Repository factory async consistency implementation ✓
 
 4. __Service Layer__: IN PROGRESS (75%)
    - Service refactoring to use repositories (90%)
@@ -165,6 +166,7 @@
    - Standardized repository fixture usage patterns ✓
    - Proper separation of CRUD and advanced repository tests ✓
    - Partial update field preservation for optional fields with existing values ✓
+   - Consistent async/await patterns throughout the repository layer ✓
 
 2. __Schema Layer__
    - Complete validation for all model types ✓
@@ -338,42 +340,49 @@
    - ~~Ensure proper documentation of fixture usage patterns~~
    - ~~Fix remaining test failures related to fixture usage~~
 
-2. __Pydantic v2 Discriminator Field Validator Conflict__
+2. ~~__Repository Factory Async Inconsistency__~~ RESOLVED ✓
+   - ~~Repository factory methods are not async but used in async context~~
+   - ~~Inconsistent with the rest of the codebase which is fully async~~
+   - ~~Need to make repository factory methods async~~
+   - ~~Update all calls to repository factory methods to use await~~
+   - ~~Fix repository fixtures to properly handle async factory methods~~
+
+3. __Pydantic v2 Discriminator Field Validator Conflict__
    - Some account type response models still have validators on the discriminator field
    - This causes validation errors with Pydantic v2's discriminated union implementation
    - Need to move those validators to the service layer following the established pattern
    - This issue affects API integration tests and polymorphic response serialization
 
-3. __Repository Error Handling__
+4. __Repository Error Handling__
    - Need to implement custom repository exceptions
    - Error translation in services needs to be standardized
    - Exception hierarchy should be consistent across the application
 
-4. __Schema Factory Parameter Alignment__
+5. __Schema Factory Parameter Alignment__
    - Some schema factory functions include parameters not in the final schema
    - Need to add clear documentation for all schema factories about field usage
    - Consider standardizing parameter patterns across all schema factories
    
-5. __Complex Nested Schema Structures__
+6. __Complex Nested Schema Structures__
    - Schemas with multi-level nesting like Dict[str, Dict[str, Object]] require careful handling
    - Need to document expected structure for complex nested objects
    - Test coverage for nested object validation should be improved
    - Some schema factory implementations don't match the schema structure
 
-6. __Decimal Sum Validation in Tests__
+7. __Decimal Sum Validation in Tests__
    - Some tests for decimal sums in complex structures require tolerance ranges
    - Day of month patterns in seasonality analysis sum to 0.94 instead of 1.0
    - Similar issues exist in other probability distribution tests
    - Solution is to use appropriate tolerance ranges in tests
    - Need standardized approach to decimal equality testing
 
-7. __Cross-Layer Concerns in Utils Module__
+8. __Cross-Layer Concerns in Utils Module__
    - The db.py module crosses layers between database and HTTP concerns
    - Should move functionality to src/errors/ for better separation of concerns
    - Some feature_flags functionality requires integration tests rather than unit tests
    - Need to document cross-layer concerns for future refactoring
 
-8. __Schema Validation Flow Inconsistencies__
+9. __Schema Validation Flow Inconsistencies__
    - Some schemas mix field and model validation responsibilities
    - Need to standardize validation approach across all schemas
    - Improve error messages for validation failures

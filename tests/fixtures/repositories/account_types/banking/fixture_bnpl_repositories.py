@@ -28,4 +28,4 @@ async def bnpl_repository(
     Returns:
         AccountRepository: Repository with BNPL-specific operations
     """
-    return repository_factory(account_type="bnpl")
+    return await repository_factory(account_type="bnpl")

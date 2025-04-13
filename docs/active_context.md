@@ -6,7 +6,28 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
 
 ### Recent Changes
 
-1. **Fixed Partial Update Field Preservation in PolymorphicBaseRepository (April 13, 2025)** ✓
+1. **Implemented Repository Factory Async Consistency (April 13, 2025)** ✓
+   - Fixed critical architectural inconsistency in repository factory:
+     - Made `RepositoryFactory.create_account_repository` method async to match the rest of the codebase
+     - Updated `_wrap_with_proxy` method to be async for proper async flow
+     - Made `RepositoryFactoryHelper.get_available_repository_functions` async for consistency
+     - Updated all internal calls to use `await` with async methods
+   - Fixed repository fixture implementation:
+     - Updated `repository_factory` fixture to return an async lambda function
+     - Ensured proper async/await pattern in all fixture usages
+     - Fixed all account type repository fixtures to await factory calls
+   - Updated service layer to match async pattern:
+     - Added `await` to all calls to `RepositoryFactory.create_account_repository`
+     - Fixed BNPL service module to properly await repository creation
+     - Maintained consistent async/await patterns throughout the codebase
+   - These changes ensure:
+     - Architectural consistency with async patterns throughout the codebase
+     - Proper async flow with all async operations correctly awaited
+     - Future-proofing for async operations in the factory
+     - Consistent patterns for repository creation across the codebase
+     - Fixed test failures in repository factory tests
+
+2. **Fixed Partial Update Field Preservation in PolymorphicBaseRepository (April 13, 2025)** ✓
    - Fixed issue with optional fields not being preserved during partial updates:
      - Modified `update_typed_entity` method to preserve optional fields with existing values
      - Added check to skip setting optional fields to NULL if they already have a value

@@ -7,6 +7,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.119] - 2025-04-13
+
+### Fixed
+
+- Fixed critical architectural inconsistency in repository factory by making methods async to match the rest of the codebase
+- Updated repository_factory fixture to return an async lambda function for proper async flow
+- Fixed all account type repository fixtures to await factory calls
+- Updated service layer to properly await repository factory method calls
+- Ensured consistent async/await patterns throughout the repository layer
+
 ## [0.5.118] - 2025-04-13
 
 ### Fixed

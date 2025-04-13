@@ -64,7 +64,7 @@ class ServiceFactory:
         from src.services.accounts import AccountService
 
         # Create the repositories
-        account_repo = RepositoryFactory.create_account_repository(
+        account_repo = await RepositoryFactory.create_account_repository(
             session=session,
             feature_flag_service=feature_flag_service,
         )

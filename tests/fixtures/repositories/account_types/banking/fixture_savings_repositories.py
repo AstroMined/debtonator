@@ -28,4 +28,4 @@ async def savings_repository(
     Returns:
         AccountRepository: Repository with savings-specific operations
     """
-    return repository_factory(account_type="savings")
+    return await repository_factory(account_type="savings")

@@ -32,4 +32,4 @@ async def ewa_repository(
         AccountRepository: Repository with EWA-specific operations
     """
     # Repository factory will use the feature_flag_service parameter we fixed earlier
-    return repository_factory(account_type="ewa")
+    return await repository_factory(account_type="ewa")

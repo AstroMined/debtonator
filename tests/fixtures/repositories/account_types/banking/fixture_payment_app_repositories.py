@@ -32,4 +32,4 @@ async def payment_app_repository(
         AccountRepository: Repository with Payment App-specific operations
     """
     # Repository factory will use the feature_flag_service parameter we fixed earlier
-    return repository_factory(account_type="payment_app")
+    return await repository_factory(account_type="payment_app")

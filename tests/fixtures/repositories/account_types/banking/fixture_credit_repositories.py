@@ -28,4 +28,4 @@ async def credit_repository(
     Returns:
         AccountRepository: Repository with credit-specific operations
     """
-    return repository_factory(account_type="credit")
+    return await repository_factory(account_type="credit")

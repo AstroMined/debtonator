@@ -169,7 +169,7 @@ async def get_upcoming_payments(
     from src.repositories.factory import RepositoryFactory
 
     # Get the repository with this session
-    account_repo = RepositoryFactory.create_account_repository(session)
+    account_repo = await RepositoryFactory.create_account_repository(session)
     account = await account_repo.get_with_type(account_id)
 
     if not account or account.account_type != "bnpl" or account.is_closed:
@@ -223,7 +223,7 @@ async def update_bnpl_status(session: AsyncSession, account_id: int) -> Optional
     from src.repositories.factory import RepositoryFactory
 
     # Get the repository with this session
-    account_repo = RepositoryFactory.create_account_repository(session)
+    account_repo = await RepositoryFactory.create_account_repository(session)
     account = await account_repo.get_with_type(account_id)
 
     if not account or account.account_type != "bnpl":

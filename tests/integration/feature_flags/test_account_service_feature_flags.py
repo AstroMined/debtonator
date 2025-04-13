@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.account_types.banking import BNPLAccount, CheckingAccount
 from src.models.feature_flags import FeatureFlag
-from src.registry.feature_flags_registry import feature_flag_registry
+from src.registry.feature_flags_registry import FeatureFlagRegistry
 from src.repositories.feature_flags import FeatureFlagRepository
 from src.services.accounts import AccountService
 from src.services.factory import ServiceFactory
@@ -34,7 +34,7 @@ async def feature_flag_service(
     """Create a feature flag service for testing."""
     context = EnvironmentContext()
     service = FeatureFlagService(
-        registry=feature_flag_registry, repository=feature_flag_repo, context=context
+        registry=FeatureFlagRegistry, repository=feature_flag_repo, context=context
     )
     await service.initialize()
     return service

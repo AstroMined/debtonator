@@ -45,7 +45,7 @@ class RepositoryFactory:
     _module_cache: Dict[str, Any] = {}
 
     @classmethod
-    def create_account_repository(
+    async def create_account_repository(
         cls,
         session: AsyncSession,
         account_type: Optional[str] = None,
@@ -72,7 +72,7 @@ class RepositoryFactory:
         if not account_type:
             # Wrap with proxy if feature flag service is provided
             if feature_flag_service:
-                return cls._wrap_with_proxy(
+                return await cls._wrap_with_proxy(
                     base_repo, feature_flag_service, session, config_provider
                 )
             return base_repo
@@ -83,7 +83,7 @@ class RepositoryFactory:
         if not module_path:
             # Wrap with proxy if feature flag service is provided
             if feature_flag_service:
-                return cls._wrap_with_proxy(
+                return await cls._wrap_with_proxy(
                     base_repo, feature_flag_service, session, config_provider
                 )
             return base_repo
@@ -93,7 +93,7 @@ class RepositoryFactory:
         if not module:
             # Wrap with proxy if feature flag service is provided
             if feature_flag_service:
-                return cls._wrap_with_proxy(
+                return await cls._wrap_with_proxy(
                     base_repo, feature_flag_service, session, config_provider
                 )
             return base_repo
@@ -103,14 +103,14 @@ class RepositoryFactory:
 
         # Wrap with proxy if feature flag service is provided
         if feature_flag_service:
-            return cls._wrap_with_proxy(
+            return await cls._wrap_with_proxy(
                 base_repo, feature_flag_service, session, config_provider
             )
 
         return base_repo
 
     @classmethod
-    def _wrap_with_proxy(
+    async def _wrap_with_proxy(
         cls,
         repository: Any,
         feature_flag_service: FeatureFlagService,
@@ -257,7 +257,7 @@ class RepositoryFactoryHelper:
     """
 
     @staticmethod
-    def get_available_repository_functions(account_type: str) -> Set[str]:
+    async def get_available_repository_functions(account_type: str) -> Set[str]:
         """
         Get the names of specialized repository functions available for an account type.
 

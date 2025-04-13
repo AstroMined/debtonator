@@ -9,6 +9,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.repositories.factory import RepositoryFactory
+from src.repositories.accounts import AccountRepository
 
 
 @pytest_asyncio.fixture
@@ -26,9 +27,11 @@ async def repository_factory(db_session: AsyncSession, feature_flag_service=None
     Returns:
         Function: Factory function for creating repositories
     """
-    return lambda account_type=None: RepositoryFactory.create_account_repository(
-        db_session, account_type, feature_flag_service
-    )
+    async def factory(account_type=None):
+        return await RepositoryFactory.create_account_repository(
+            db_session, account_type, feature_flag_service
+        )
+    return factory
 
 
 @pytest_asyncio.fixture
@@ -45,6 +48,5 @@ async def repository(db_session: AsyncSession):
     Returns:
         AccountRepository: Repository for account operations
     """
-    from src.repositories.accounts import AccountRepository
 
     return AccountRepository(db_session)

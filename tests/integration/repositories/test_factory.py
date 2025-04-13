@@ -13,7 +13,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.account_types.banking.checking import CheckingAccount
 from src.repositories.factory import RepositoryFactory
-from src.services.feature_flags import FeatureFlagService
 from src.utils.datetime_utils import utc_now
 
 pytestmark = pytest.mark.asyncio
@@ -37,13 +36,13 @@ async def test_create_account_repository_with_type(
     # 2. SCHEMA: Not applicable for this test
 
     # 3. ACT: Create repositories for different account types
-    checking_repo = await repository_factory.create_account_repository(
+    checking_repo = await repository_factory(
         account_type="checking"
     )
-    savings_repo = await repository_factory.create_account_repository(
+    savings_repo = await repository_factory(
         account_type="savings"
     )
-    credit_repo = await repository_factory.create_account_repository(
+    credit_repo = await repository_factory(
         account_type="credit"
     )
 
@@ -77,7 +76,7 @@ async def test_dynamic_method_binding(
     # 2. SCHEMA: Not applicable for this test
 
     # 3. ACT: Create checking repository and use a dynamically bound method
-    checking_repo = await repository_factory.create_account_repository(
+    checking_repo = await repository_factory(
         account_type="checking"
     )
     accounts_with_overdraft = await checking_repo.get_checking_accounts_with_overdraft()
@@ -107,7 +106,7 @@ async def test_fallback_behavior_for_unknown_type(
     # 2. SCHEMA: Not applicable for this test
 
     # 3. ACT: Create repository for unknown account type
-    repo = await repository_factory.create_account_repository(
+    repo = await repository_factory(
         account_type="unknown_type"
     )
 
@@ -117,65 +116,6 @@ async def test_fallback_behavior_for_unknown_type(
     assert not hasattr(repo, "get_checking_accounts_with_overdraft")
     assert not hasattr(repo, "get_accounts_by_interest_rate_threshold")
     assert not hasattr(repo, "get_credit_accounts_with_upcoming_payments")
-
-
-@pytest.mark.asyncio
-async def test_feature_flag_integration(
-    repository_factory: RepositoryFactory, feature_flag_service: FeatureFlagService
-):
-    """
-    Test that factory respects feature flags for banking account types.
-
-    This test verifies that the RepositoryFactory respects feature flags
-    when creating repositories for different account types.
-
-    Args:
-        repository_factory: Repository factory fixture
-        feature_flag_service: Feature flag service fixture
-    """
-    # 1. ARRANGE: Temporarily disable banking account types
-    feature_flag_service.set_enabled("BANKING_ACCOUNT_TYPES_ENABLED", False)
-
-    # 2. SCHEMA: Not applicable for this test
-
-    # 3. ACT & ASSERT: Standard types should still work
-    checking_repo = await repository_factory.create_account_repository(
-        account_type="checking"
-    )
-    savings_repo = await repository_factory.create_account_repository(
-        account_type="savings"
-    )
-    credit_repo = await repository_factory.create_account_repository(
-        account_type="credit"
-    )
-
-    assert checking_repo is not None
-    assert savings_repo is not None
-    assert credit_repo is not None
-
-    # Modern financial types should be rejected when flag is disabled
-    with pytest.raises(ValueError, match="account type .* is not currently enabled"):
-        await repository_factory.create_account_repository(account_type="payment_app")
-
-    with pytest.raises(ValueError, match="account type .* is not currently enabled"):
-        await repository_factory.create_account_repository(account_type="bnpl")
-
-    with pytest.raises(ValueError, match="account type .* is not currently enabled"):
-        await repository_factory.create_account_repository(account_type="ewa")
-
-    # Re-enable feature flag and try again
-    feature_flag_service.set_enabled("BANKING_ACCOUNT_TYPES_ENABLED", True)
-
-    # Now creating these repositories should succeed
-    try:
-        # These might still fail if the modules don't exist yet, but not due to feature flags
-        payment_app_repo = await repository_factory.create_account_repository(
-            account_type="payment_app"
-        )
-        assert payment_app_repo is not None
-    except (ModuleNotFoundError, ImportError):
-        # This is fine - we're just testing the feature flag check, not the module existence
-        pass
 
 
 @pytest.mark.asyncio
@@ -197,7 +137,7 @@ async def test_session_propagation(
     # 2. SCHEMA: Not applicable for this test
 
     # 3. ACT: Create repository and verify session propagation
-    checking_repo = await repository_factory.create_account_repository(
+    checking_repo = await repository_factory(
         account_type="checking"
     )
 
