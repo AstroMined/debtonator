@@ -47,9 +47,8 @@ def create_deposit_schedule_schema(
     if amount is None:
         amount = Decimal("1000.00")
 
-    # Ensure status is valid
-    if status not in ["pending", "completed"]:
-        status = "pending"
+    # Let schema validation handle status - don't override schema validation
+    # This will allow tests to check that validation is working properly
 
     # Create data with all required fields
     data = {
@@ -111,8 +110,7 @@ def create_deposit_schedule_update_schema(
         data["recurrence_pattern"] = recurrence_pattern
 
     if status is not None:
-        # Ensure status is valid
-        if status in ["pending", "completed", "canceled"]:
-            data["status"] = status
+        # Pass status as-is to allow validation testing
+        data["status"] = status
 
     return data

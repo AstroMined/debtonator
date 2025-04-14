@@ -52,6 +52,8 @@
    - Repository factory async consistency implementation ✓
    - Bill splits implementation with liability terminology standardization ✓
    - Transaction management with proper validation and error handling ✓
+   - Fixed timezone handling across repository advanced tests ✓
+   - Enhanced available credit handling in account operations ✓
 
 4. __Service Layer__: IN PROGRESS (75%)
    - Service refactoring to use repositories (90%)
@@ -144,6 +146,7 @@
    - Generic test models implemented for factory testing (100%) ✓
    - Test helper modules implemented for type-specific functionality (100%) ✓
    - Clear separation between factory functionality and domain logic (100%) ✓
+   - Repository advanced tests with proper timezone compliance (100%) ✓
 
 ## What Works
 
@@ -175,6 +178,9 @@
    - Consistent async/await patterns throughout the repository layer ✓
    - Standardized terminology across bill splits implementation ✓
    - Transaction handling with proper validation and rollback ✓
+   - Reliable date range filtering using naive datetimes for DB operations ✓
+   - Available credit tracking for credit accounts ✓
+   - Proper timezone handling in datetime-sensitive tests ✓
 
 2. __Schema Layer__
    - Complete validation for all model types ✓
@@ -193,6 +199,7 @@
    - Enhanced error messages for validation failures ✓
    - Proper handling of implicit field values ✓
    - Consistent terminology in schema factories ✓
+   - Schema validation-driven factories that don't override validation ✓
 
 3. __Service Layer__
    - Account service with polymorphic support ✓
@@ -264,6 +271,9 @@
    - Partial update field preservation tests for polymorphic repositories ✓
    - Transaction handling and rollback testing for bill splits ✓
    - Account validation testing for bill splits ✓
+   - Robust date comparison with `datetime_equals` and proper parameter settings ✓
+   - Fixed validation errors in schema factory implementation ✓
+   - Credit account with proper available_credit calculations ✓
 
 ## What's Left to Build
 
@@ -349,6 +359,10 @@
    - ~~Added schema factory tests to verify correct default value behavior~~ ✓
    - ~~Fixed deposit schedule schema tests with proper income_id field~~ ✓
    - ~~Fixed bill splits repository terminology and methods~~ ✓
+   - ~~Fixed advanced repository tests with proper timezone handling~~ ✓
+   - ~~Improved credit account implementation for available_credit~~ ✓
+   - ~~Fixed validation issues in schema factories~~ ✓
+   - ~~Enhanced date range filtering in repository queries~~ ✓
 
 ## Known Issues
 
@@ -401,14 +415,15 @@
    - Some feature_flags functionality requires integration tests rather than unit tests
    - Need to document cross-layer concerns for future refactoring
 
-9. __Schema Validation Flow Inconsistencies__
-   - Some schemas mix field and model validation responsibilities
-   - Need to standardize validation approach across all schemas
-   - Improve error messages for validation failures
-   - Document validation patterns for consistent implementation
+9. ~~__Schema Validation Flow Inconsistencies__~~ RESOLVED ✓
+   - ~~Some schemas mix field and model validation responsibilities~~
+   - ~~Need to standardize validation approach across all schemas~~
+   - ~~Improve error messages for validation failures~~
+   - ~~Document validation patterns for consistent implementation~~
 
-10. __Bill Split Transaction Boundary Testing__
-    - Need to add more comprehensive tests for transaction boundaries
-    - Ensure rollback works correctly for all failure scenarios
-    - Test validation for non-existent accounts and other edge cases
-    - Verify proper automatic primary account split creation
+10. ~~__Bill Split Transaction Boundary Testing__~~ COMPLETED ✓
+    - ~~Need to add more comprehensive tests for transaction boundaries~~
+    - ~~Ensure rollback works correctly for all failure scenarios~~
+    - ~~Test validation for non-existent accounts and other edge cases~~
+    - ~~Verify proper automatic primary account split creation~~
+

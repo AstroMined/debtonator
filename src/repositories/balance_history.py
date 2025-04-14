@@ -342,9 +342,27 @@ class BalanceHistoryRepository(BaseRepository[BalanceHistory, int]):
         Returns:
             List[Tuple[datetime, Optional[Decimal]]]: List of (timestamp, available_credit) tuples
         """
-        # Get date range
+        # Get date range - ensure timezone-aware datetimes
         end_date = utc_now()
         start_date = end_date - timedelta(days=days)
+        
+        # Convert to naive datetime for database query (ADR-011 compliance)
+        naive_start = start_date.replace(tzinfo=None)
+        naive_end = end_date.replace(tzinfo=None)
 
-        balances = await self.get_by_date_range(account_id, start_date, end_date)
+        # Query using naive datetimes for database filters
+        result = await self.session.execute(
+            select(BalanceHistory)
+            .where(
+                and_(
+                    BalanceHistory.account_id == account_id,
+                    BalanceHistory.timestamp >= naive_start,
+                    BalanceHistory.timestamp <= naive_end,
+                    BalanceHistory.available_credit.isnot(None),
+                )
+            )
+            .order_by(BalanceHistory.timestamp)
+        )
+        
+        balances = result.scalars().all()
         return [(b.timestamp, b.available_credit) for b in balances]

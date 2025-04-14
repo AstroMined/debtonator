@@ -226,17 +226,20 @@ class AccountRepository(PolymorphicBaseRepository[Account, int]):
 
         account.available_balance += amount_change
 
-        # For credit accounts, recalculate next action amount for available credit
+        # For credit accounts, recalculate available credit and next action amount
         if account.account_type == "credit":
             credit_account = await self.get_with_type(account_id)
             if (
                 hasattr(credit_account, "credit_limit")
                 and credit_account.credit_limit is not None
             ):
-                diff = credit_account.credit_limit - abs(account.available_balance)
+                # Recalculate available credit
+                credit_account.available_credit = credit_account.credit_limit - abs(account.available_balance)
                 # Set next_action_amount field for credit available
                 if hasattr(account, "next_action_amount"):
-                    account.next_action_amount = diff
+                    account.next_action_amount = credit_account.available_credit
+                # Make sure we use the updated account for flush and return
+                account = credit_account
 
         await self.session.flush()
         await self.session.refresh(account)

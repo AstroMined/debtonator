@@ -25,6 +25,7 @@ from src.utils.datetime_utils import (
     datetime_greater_than,
     days_ago,
     days_from_now,
+    ensure_utc,
     utc_now,
 )
 
@@ -110,25 +111,34 @@ async def test_get_by_date_range(
     test_multiple_payment_schedules: List[PaymentSchedule],
 ):
     """Test getting payment schedules within a date range."""
-    # 1. ARRANGE: Setup date range
-    start_date = utc_now() - timedelta(days=5)  # Expanded range to catch more test data
-    end_date = utc_now() + timedelta(days=15)  # Expanded range to catch more test data
+    # 1. ARRANGE: Setup date range with dates converted to naive for DB compatibility
+    # Start 6 days ago and end 20 days from now to ensure we capture test data
+    current_time = utc_now()
+    # Convert to naive (no timezone) but semantically representing UTC time for DB
+    start_date_naive = (current_time - timedelta(days=6)).replace(tzinfo=None)
+    end_date_naive = (current_time + timedelta(days=20)).replace(tzinfo=None)
+    
+    # Get timezone-aware equivalents for comparison
+    start_date = utc_now() - timedelta(days=6)
+    end_date = utc_now() + timedelta(days=20)
 
     # 2. SCHEMA: Not needed for this query-only operation
 
-    # 3. ACT: Get payment schedules within date range
-    results = await payment_schedule_repository.get_by_date_range(start_date, end_date)
+    # 3. ACT: Get payment schedules within date range using naive datetimes for DB compatibility
+    results = await payment_schedule_repository.get_by_date_range(start_date_naive, end_date_naive)
 
     # 4. ASSERT: Verify the operation results
-    assert len(results) >= 2  # Should get at least 2 schedules in this range
+    assert len(results) >= 2, "Should get at least 2 schedules in this range"
+    
+    # Check that we found schedules
     for schedule in results:
-        # Use proper timezone-aware comparison
-        assert datetime_greater_than(
-            schedule.scheduled_date, start_date, ignore_timezone=True
-        ) or datetime_equals(schedule.scheduled_date, start_date, ignore_timezone=True)
-        assert datetime_greater_than(
-            end_date, schedule.scheduled_date, ignore_timezone=True
-        ) or datetime_equals(end_date, schedule.scheduled_date, ignore_timezone=True)
+        # Database fields will have no timezone info
+        # Add timezone info for proper comparison (ADR-011 compliance)
+        schedule_date_utc = ensure_utc(schedule.scheduled_date)
+        
+        # Check if schedule date is within range (inclusive)
+        assert start_date <= schedule_date_utc <= end_date, \
+            f"Schedule date {schedule_date_utc} is not within range ({start_date} to {end_date})"
 
 
 async def test_get_pending_schedules(

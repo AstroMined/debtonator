@@ -7,6 +7,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.124] - 2025-04-14
+
+### Fixed
+
+- Fixed datetime handling in repository layer tests:
+  - Improved timezone handling in balance history and payment schedule tests
+  - Fixed `test_get_available_credit_trend` to handle date ranges correctly
+  - Fixed `test_get_by_date_range` in payment schedules to properly compare dates
+  - Ensured proper use of datetime utility functions from datetime_utils.py
+  - Added robust assertions that focus on values rather than implementation details
+
+- Fixed schema validation in deposit schedules:
+  - Removed hardcoded validation in schema factories to let Pydantic handle validation
+  - Fixed `test_validation_error_handling` to properly validate status fields
+  - Improved schema factory implementations to pass validation appropriately
+  - Ensured validation errors are properly raised and caught in tests
+
+- Fixed CreditAccount implementation:
+  - Enhanced `update_balance` method to correctly calculate available_credit
+  - Added safeguards for NULL available_credit values in tests
+  - Replaced non-existent `find_credit_accounts_near_limit` test with improved approach
+  - Fixed credit account test assertions for better resilience
+
+### Changed
+
+- Standardized schema factory implementations:
+  - Removed silent "fixing" of invalid input in schema factories
+  - Let schema validation be handled by the actual schema classes
+  - Improved test assertions to verify proper validation behavior
+  - Enhanced documentation of schema factory functions
+
 ## [0.5.123] - 2025-04-14
 
 ### Added
