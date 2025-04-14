@@ -162,20 +162,6 @@ class AccountBase(BaseSchemaValidator):
         default=None, max_length=255, description="Path to the account's logo image"
     )
 
-    # Credit-specific fields - kept for backward compatibility
-    available_credit: Optional[MoneyDecimal] = Field(
-        default=None, description="Available credit for credit accounts", ge=0
-    )
-    total_limit: Optional[MoneyDecimal] = Field(
-        default=None, description="Total credit limit for credit accounts", ge=0
-    )
-    last_statement_balance: Optional[MoneyDecimal] = Field(
-        default=None, description="Balance from last statement"
-    )
-    last_statement_date: Optional[datetime] = datetime_field(
-        required=False, name="Date of last statement"
-    )
-
     # Performance optimization fields
     next_action_date: Optional[datetime] = datetime_field(
         required=False, name="Date of next required action (payment due, etc.)"
@@ -186,46 +172,6 @@ class AccountBase(BaseSchemaValidator):
 
     # Removed account_type validator to avoid conflicts with discriminated unions
     # Validation now happens at the service layer
-
-    @field_validator("total_limit")
-    @classmethod
-    def validate_total_limit(
-        cls, value: Optional[Decimal], info: Any
-    ) -> Optional[Decimal]:
-        """
-        Validate total_limit based on account type.
-
-        Args:
-            value: The total credit limit value to validate
-            info: Validation context with all data
-
-        Returns:
-            Optional[Decimal]: The validated value
-
-        Raises:
-            ValueError: If value is set for a non-credit account
-        """
-        return validate_credit_account_field("total_limit")(value, info)
-
-    @field_validator("available_credit")
-    @classmethod
-    def validate_available_credit(
-        cls, value: Optional[Decimal], info: Any
-    ) -> Optional[Decimal]:
-        """
-        Validate available_credit based on account type.
-
-        Args:
-            value: The available credit value to validate
-            info: Validation context with all data
-
-        Returns:
-            Optional[Decimal]: The validated value
-
-        Raises:
-            ValueError: If value is set for a non-credit account
-        """
-        return validate_credit_account_field("available_credit")(value, info)
 
 
 class AccountUpdate(AccountBase):
@@ -274,19 +220,7 @@ class AccountUpdate(AccountBase):
         default=None, max_length=255, description="Path to the account's logo image"
     )
 
-    # Credit-specific fields - kept for backward compatibility
-    available_credit: Optional[MoneyDecimal] = Field(
-        default=None, description="Available credit for credit accounts", ge=0
-    )
-    total_limit: Optional[MoneyDecimal] = Field(
-        default=None, description="Total credit limit for credit accounts", ge=0
-    )
-    last_statement_balance: Optional[MoneyDecimal] = Field(
-        default=None, description="Balance from last statement"
-    )
-    last_statement_date: Optional[datetime] = datetime_field(
-        required=False, name="Date of last statement"
-    )
+    # Credit-specific fields have been moved to the CreditAccount schema
 
     # Performance optimization fields
     next_action_date: Optional[datetime] = datetime_field(
@@ -298,46 +232,6 @@ class AccountUpdate(AccountBase):
 
     # Removed account_type validator to avoid conflicts with discriminated unions
     # Validation now happens at the service layer
-
-    @field_validator("total_limit")
-    @classmethod
-    def validate_total_limit(
-        cls, value: Optional[Decimal], info: Any
-    ) -> Optional[Decimal]:
-        """
-        Validate total_limit based on account type.
-
-        Args:
-            value: The total credit limit value to validate
-            info: Validation context with all data
-
-        Returns:
-            Optional[Decimal]: The validated value
-
-        Raises:
-            ValueError: If value is set for a non-credit account
-        """
-        return validate_credit_account_field("total_limit")(value, info)
-
-    @field_validator("available_credit")
-    @classmethod
-    def validate_available_credit(
-        cls, value: Optional[Decimal], info: Any
-    ) -> Optional[Decimal]:
-        """
-        Validate available_credit based on account type.
-
-        Args:
-            value: The available credit value to validate
-            info: Validation context with all data
-
-        Returns:
-            Optional[Decimal]: The validated value
-
-        Raises:
-            ValueError: If value is set for a non-credit account
-        """
-        return validate_credit_account_field("available_credit")(value, info)
 
 
 class AccountInDB(AccountBase):

@@ -29,8 +29,20 @@ class CreditAccountBase(AccountBase):
 
     # Credit-specific fields
     credit_limit: MoneyDecimal = Field(..., description="Total credit limit", gt=0)
+    available_credit: Optional[MoneyDecimal] = Field(
+        default=None, description="Available credit for credit accounts", ge=0
+    )
+    total_limit: Optional[MoneyDecimal] = Field(
+        default=None, description="Alias for credit_limit for backward compatibility", ge=0
+    )
     statement_balance: Optional[MoneyDecimal] = Field(
         default=None, description="Current statement balance"
+    )
+    last_statement_balance: Optional[MoneyDecimal] = Field(
+        default=None, description="Balance from last statement"
+    )
+    last_statement_date: Optional[datetime] = Field(
+        default=None, description="Date of last statement"
     )
     statement_due_date: Optional[datetime] = Field(
         default=None, description="Payment due date for current statement"

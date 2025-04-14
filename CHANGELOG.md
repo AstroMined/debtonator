@@ -7,6 +7,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.121] - 2025-04-14
+
+### Fixed
+
+- Removed credit-specific fields from base AccountBase schema to fix schema-model field mismatch issues
+- Added corresponding fields (available_credit, total_limit) to CreditAccount model
+- Fixed test failures in checking_advanced.py related to schema-model field mismatches
+- Improved object hierarchy design with better separation of concerns between account types
+
+### Changed
+
+- Refactored account inheritance hierarchy to properly separate type-specific fields
+- Removed validators for credit-specific fields from base AccountBase/AccountUpdate schemas
+- Moved credit-specific field validation to CreditAccountBase schema
+
 ## [0.5.120] - 2025-04-14
 
 ### Changed

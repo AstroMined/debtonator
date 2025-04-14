@@ -80,6 +80,11 @@ def create_checking_account_schema(
         "routing_number": routing_number,
         "has_overdraft_protection": has_overdraft_protection,
         "account_format": account_format,
+        # Explicitly set credit-specific fields to None to prevent inheriting from base schema
+        "available_credit": None,
+        "total_limit": None,
+        "last_statement_balance": None,
+        "last_statement_date": None,
     }
 
     # Only add overdraft_limit if has_overdraft_protection is True
@@ -187,6 +192,12 @@ def create_checking_account_update_schema(
 
     if interest_rate is not None:
         data["interest_rate"] = interest_rate
+        
+    # Explicitly set credit-specific fields to None to prevent inheriting from base schema
+    data["available_credit"] = None
+    data["total_limit"] = None
+    data["last_statement_balance"] = None
+    data["last_statement_date"] = None
 
     # Add international banking fields if provided
     if iban is not None:
@@ -292,6 +303,12 @@ def create_checking_account_response_schema(
         "updated_at": updated_at,
         **base_dict,
     }
+    
+    # Ensure credit-specific fields are explicitly set to None
+    response_data["available_credit"] = None
+    response_data["total_limit"] = None
+    response_data["last_statement_balance"] = None
+    response_data["last_statement_date"] = None
 
     # Add any additional fields from kwargs
     response_data.update(kwargs)

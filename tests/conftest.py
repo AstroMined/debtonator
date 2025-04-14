@@ -29,6 +29,7 @@ pytest_plugins = [
     "tests.fixtures.services.fixture_service_factory",
     # Add repository fixtures
     "tests.fixtures.repositories.fixture_factory_repositories",
+    "tests.fixtures.repositories.fixture_test_type_factory",
     "tests.fixtures.repositories.fixture_account_repositories",
     "tests.fixtures.repositories.fixture_balance_history_repositories",
     "tests.fixtures.repositories.fixture_balance_reconciliation_repositories",
