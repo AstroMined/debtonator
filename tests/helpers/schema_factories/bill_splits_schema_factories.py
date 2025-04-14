@@ -39,8 +39,8 @@ def create_bill_split_schema(
     Create a valid BillSplitCreate schema instance.
 
     Args:
-        liability_id: ID of the liability
-        account_id: ID of the account
+        liability_id: ID of the liability being split
+        account_id: ID of the account receiving this portion
         amount: Split amount (defaults to 100.00)
         **kwargs: Additional fields to override
 

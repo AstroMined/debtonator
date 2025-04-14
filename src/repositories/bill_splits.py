@@ -13,6 +13,7 @@ from sqlalchemy import and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
+from src.models.accounts import Account
 from src.models.bill_splits import BillSplit
 from src.models.liabilities import Liability
 from src.repositories.base_repository import BaseRepository
@@ -75,6 +76,20 @@ class BillSplitRepository(BaseRepository[BillSplit, int]):
         )
         result = await self.session.execute(query)
         return result.unique().scalars().all()
+        
+    async def get_splits_by_bill(self, liability_id: int) -> List[BillSplit]:
+        """
+        Get all splits for a specific liability.
+        
+        This is an alias for get_splits_for_bill to maintain API compatibility.
+
+        Args:
+            liability_id (int): ID of the liability to get splits for
+
+        Returns:
+            List[BillSplit]: List of bill splits for the liability
+        """
+        return await self.get_splits_for_bill(liability_id)
 
     async def get_splits_for_account(self, account_id: int) -> List[BillSplit]:
         """
@@ -184,6 +199,82 @@ class BillSplitRepository(BaseRepository[BillSplit, int]):
             await self.session.refresh(split)
 
         return db_splits
+        
+    async def create_bill_splits(
+        self, liability_id: int, splits: List[Dict[str, Any]]
+    ) -> List[BillSplit]:
+        """
+        Create bill splits for a liability including automatic primary account split.
+        
+        This method creates all provided splits and automatically calculates
+        and creates a split for the primary account to ensure total splits
+        equal the liability amount.
+
+        Args:
+            liability_id (int): ID of the liability to create splits for
+            splits (List[Dict[str, Any]]): List of split data dictionaries
+                Each dict should contain account_id and amount.
+
+        Returns:
+            List[BillSplit]: List of created bill splits including primary account split
+            
+        Raises:
+            ValueError: If liability not found or splits exceed liability amount
+            Exception: If any account validation fails or creation fails
+        """
+        # Get the liability to calculate primary account split
+        stmt = select(Liability).where(Liability.id == liability_id)
+        result = await self.session.execute(stmt)
+        liability = result.scalar_one_or_none()
+        
+        if not liability:
+            raise ValueError(f"Liability with ID {liability_id} not found")
+            
+        # Calculate total of provided splits
+        total_splits_amount = sum(Decimal(str(split["amount"])) for split in splits)
+        
+        # Ensure total doesn't exceed liability amount
+        if total_splits_amount > liability.amount:
+            raise ValueError(
+                f"Total of splits ({total_splits_amount}) exceeds bill amount ({liability.amount})"
+            )
+        
+        # Verify all accounts exist
+        for split in splits:
+            account_id = split["account_id"]
+            stmt = select(Account).where(Account.id == account_id)
+            result = await self.session.execute(stmt)
+            account = result.scalar_one_or_none()
+            
+            if not account:
+                raise ValueError(f"Account with ID {account_id} not found")
+            
+        # Calculate remaining amount for primary account
+        primary_amount = liability.amount - total_splits_amount
+        
+        # Create all splits in a transaction
+        async with self.session.begin_nested():
+            # First create the explicit splits
+            created_splits = await self.bulk_create_splits(liability_id, splits)
+            
+            # Then create the primary account split if needed
+            if primary_amount > Decimal("0"):
+                primary_split_data = {
+                    "liability_id": liability_id,
+                    "account_id": liability.primary_account_id,
+                    "amount": primary_amount
+                }
+                
+                # Create the primary split
+                primary_split = BillSplit(**primary_split_data)
+                self.session.add(primary_split)
+                await self.session.flush()
+                await self.session.refresh(primary_split)
+                
+                # Add to list of created splits
+                created_splits.append(primary_split)
+                
+        return created_splits
 
     async def delete_splits_for_liability(self, liability_id: int) -> int:
         """
@@ -199,6 +290,85 @@ class BillSplitRepository(BaseRepository[BillSplit, int]):
             delete(BillSplit).where(BillSplit.liability_id == liability_id)
         )
         return result.rowcount
+        
+    async def update_bill_splits(
+        self, liability_id: int, splits: List[Dict[str, Any]]
+    ) -> List[BillSplit]:
+        """
+        Update bill splits for a liability including automatic primary account split.
+        
+        This method first deletes all existing splits for the liability,
+        then creates new ones based on the provided data. It automatically
+        calculates and creates a split for the primary account.
+
+        Args:
+            liability_id (int): ID of the liability to update splits for
+            splits (List[Dict[str, Any]]): List of split data dictionaries
+                Each dict should contain account_id and amount.
+
+        Returns:
+            List[BillSplit]: List of updated bill splits including primary account split
+            
+        Raises:
+            ValueError: If liability not found or splits exceed liability amount
+            Exception: If any account validation fails or update fails
+        """
+        # Get the liability to calculate primary account split
+        stmt = select(Liability).where(Liability.id == liability_id)
+        result = await self.session.execute(stmt)
+        liability = result.scalar_one_or_none()
+        
+        if not liability:
+            raise ValueError(f"Liability with ID {liability_id} not found")
+            
+        # Calculate total of provided splits
+        total_splits_amount = sum(Decimal(str(split["amount"])) for split in splits)
+        
+        # Ensure total doesn't exceed liability amount
+        if total_splits_amount > liability.amount:
+            raise ValueError(
+                f"Total of splits ({total_splits_amount}) exceeds bill amount ({liability.amount})"
+            )
+            
+        # Verify all accounts exist
+        for split in splits:
+            account_id = split["account_id"]
+            stmt = select(Account).where(Account.id == account_id)
+            result = await self.session.execute(stmt)
+            account = result.scalar_one_or_none()
+            
+            if not account:
+                raise ValueError(f"Account with ID {account_id} not found")
+            
+        # Calculate remaining amount for primary account
+        primary_amount = liability.amount - total_splits_amount
+        
+        # Perform all operations in a transaction
+        async with self.session.begin_nested():
+            # First delete all existing splits
+            await self.delete_splits_for_liability(liability_id)
+            
+            # Then create the new explicit splits
+            created_splits = await self.bulk_create_splits(liability_id, splits)
+            
+            # Finally create the primary account split if needed
+            if primary_amount > Decimal("0"):
+                primary_split_data = {
+                    "liability_id": liability_id,
+                    "account_id": liability.primary_account_id,
+                    "amount": primary_amount
+                }
+                
+                # Create the primary split
+                primary_split = BillSplit(**primary_split_data)
+                self.session.add(primary_split)
+                await self.session.flush()
+                await self.session.refresh(primary_split)
+                
+                # Add to list of created splits
+                created_splits.append(primary_split)
+                
+        return created_splits
 
     async def calculate_split_totals(self, liability_id: int) -> Decimal:
         """

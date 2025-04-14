@@ -7,6 +7,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.123] - 2025-04-14
+
+### Added
+
+- Implemented missing bill split repository methods:
+  - Added `create_bill_splits` method with automatic primary account split creation
+  - Added `update_bill_splits` method for updating existing bill splits
+  - Added `get_splits_by_bill` method as an alias for `get_splits_for_bill`
+- Added proper validation for bill splits:
+  - Validation to prevent total splits exceeding bill amount
+  - Account existence validation
+  - Transaction boundaries with proper rollback on errors
+
+### Changed
+
+- Standardized on "liability_id" terminology in bill split implementation:
+  - Updated schema factory parameters to consistently use `liability_id`
+  - Modified test files to use `liability_id` instead of `bill_id`
+  - Updated parameter documentation for clarity
+- Improved transaction handling in bill splits:
+  - Added transaction boundaries with proper error isolation
+  - Implemented validation to ensure data integrity
+  - Enhanced rollback behavior on validation failures
+
+### Fixed
+
+- Fixed bill splits tests with account types:
+  - Fixed parameter mismatch between schema factory and tests
+  - Fixed transaction handling and rollback behavior
+  - Fixed automatic primary account split creation
+
 ## [0.5.122] - 2025-04-14
 
 ### Added

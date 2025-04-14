@@ -50,6 +50,8 @@
    - Polymorphic repository pattern implementation with proper type handling ✓
    - Partial update field preservation in polymorphic repositories ✓
    - Repository factory async consistency implementation ✓
+   - Bill splits implementation with liability terminology standardization ✓
+   - Transaction management with proper validation and error handling ✓
 
 4. __Service Layer__: IN PROGRESS (75%)
    - Service refactoring to use repositories (90%)
@@ -75,7 +77,7 @@
    - API Layer Integration (0%)
    - Documentation (90%) ✓
    - Configuration and Initialization (90%) ✓
-   - Bill Split Integration (90%) ✓
+   - Bill Split Integration (100%) ✓
    - Polymorphic Schema Validation Implementation (100%) ✓
    - Polymorphic Repository Pattern Implementation (100%) ✓
    - Error Handling Implementation (75%) ✓
@@ -171,6 +173,8 @@
    - Proper separation of CRUD and advanced repository tests ✓
    - Partial update field preservation for optional fields with existing values ✓
    - Consistent async/await patterns throughout the repository layer ✓
+   - Standardized terminology across bill splits implementation ✓
+   - Transaction handling with proper validation and rollback ✓
 
 2. __Schema Layer__
    - Complete validation for all model types ✓
@@ -188,6 +192,7 @@
    - Improved validation flow with field validators for format and model validators for business rules ✓
    - Enhanced error messages for validation failures ✓
    - Proper handling of implicit field values ✓
+   - Consistent terminology in schema factories ✓
 
 3. __Service Layer__
    - Account service with polymorphic support ✓
@@ -257,6 +262,8 @@
    - Standardized test fixtures for feature flag testing ✓
    - Improved datetime handling in time-based feature flag tests ✓
    - Partial update field preservation tests for polymorphic repositories ✓
+   - Transaction handling and rollback testing for bill splits ✓
+   - Account validation testing for bill splits ✓
 
 ## What's Left to Build
 
@@ -318,10 +325,12 @@
      - ✓ Standardized parameter naming across all files
    - Refactored other repository tests:
      - ✓ test_feature_flag_registry.py
+     - ✓ bill_splits/test_bill_splits_with_account_types_advanced.py
    - Added specialized repository methods:
      - ✓ Credit account methods (utilization, statements, autopay)
      - ✓ Savings account methods (interest rates, minimum balance, yields)
      - ✓ Fixed timezone handling in datetime-related methods
+     - ✓ Added bill split repository methods (create_bill_splits, update_bill_splits)
    - Refactor account type advanced tests:
      - ✓ advanced/account_types/banking/test_bnpl_advanced.py
      - advanced/account_types/banking/test_ewa_advanced.py
@@ -332,7 +341,6 @@
      - account_types/banking/test_checking.py
      - account_types/banking/test_credit.py
      - account_types/banking/test_savings.py
-     - bill_splits/test_bill_splits_with_account_types.py
 
 6. ~~__Troubleshoot Repository Test Failures__~~ COMPLETED ✓
    - ~~Fixed repository integration test failures in category repository~~ ✓
@@ -340,6 +348,7 @@
    - ~~Enhanced BaseRepository with robust field filtering for model compatibility~~ ✓
    - ~~Added schema factory tests to verify correct default value behavior~~ ✓
    - ~~Fixed deposit schedule schema tests with proper income_id field~~ ✓
+   - ~~Fixed bill splits repository terminology and methods~~ ✓
 
 ## Known Issues
 
@@ -397,3 +406,9 @@
    - Need to standardize validation approach across all schemas
    - Improve error messages for validation failures
    - Document validation patterns for consistent implementation
+
+10. __Bill Split Transaction Boundary Testing__
+    - Need to add more comprehensive tests for transaction boundaries
+    - Ensure rollback works correctly for all failure scenarios
+    - Test validation for non-existent accounts and other edge cases
+    - Verify proper automatic primary account split creation

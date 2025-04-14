@@ -94,13 +94,13 @@ async def test_create_bill_split_with_different_account_types(
 
     # 2. SCHEMA: Create bill split schemas
     credit_split_schema = create_bill_split_schema(
-        bill_id=bill.id,
+        liability_id=bill.id,
         account_id=credit.id,
         amount=Decimal("40.00"),
     )
 
     savings_split_schema = create_bill_split_schema(
-        bill_id=bill.id,
+        liability_id=bill.id,
         account_id=savings.id,
         amount=Decimal("30.00"),
     )
@@ -194,13 +194,13 @@ async def test_bill_split_validation_with_account_types(
 
     # 2. SCHEMA: Create invalid bill split schemas (total > bill amount)
     credit_split_schema = create_bill_split_schema(
-        bill_id=bill.id,
+        liability_id=bill.id,
         account_id=credit.id,
         amount=Decimal("60.00"),
     )
 
     savings_split_schema = create_bill_split_schema(
-        bill_id=bill.id,
+        liability_id=bill.id,
         account_id=savings.id,
         amount=Decimal("50.00"),
     )
@@ -251,7 +251,7 @@ async def test_transaction_rollback_on_validation_failure(
 
     # 2. SCHEMA: Create a bill split with invalid account ID
     invalid_split_schema = create_bill_split_schema(
-        bill_id=bill.id,
+        liability_id=bill.id,
         account_id=9999,  # Non-existent account ID
         amount=Decimal("40.00"),
     )
@@ -324,7 +324,7 @@ async def test_updating_bill_splits_with_account_types(
 
     # Create initial splits
     initial_split_schema = create_bill_split_schema(
-        bill_id=bill.id,
+        liability_id=bill.id,
         account_id=credit.id,
         amount=Decimal("30.00"),
     )
@@ -338,13 +338,13 @@ async def test_updating_bill_splits_with_account_types(
 
     # 2. SCHEMA: Create updated bill split schemas
     credit_split_schema = create_bill_split_schema(
-        bill_id=bill.id,
+        liability_id=bill.id,
         account_id=credit.id,
         amount=Decimal("40.00"),
     )
 
     savings_split_schema = create_bill_split_schema(
-        bill_id=bill.id,
+        liability_id=bill.id,
         account_id=savings.id,
         amount=Decimal("35.00"),
     )
@@ -429,7 +429,7 @@ async def test_creating_primary_account_split_automatically(
 
     # 2. SCHEMA: Create bill split schema
     credit_split_schema = create_bill_split_schema(
-        bill_id=bill.id,
+        liability_id=bill.id,
         account_id=credit.id,
         amount=Decimal("75.00"),
     )

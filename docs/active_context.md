@@ -6,7 +6,23 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
 
 ### Recent Changes
 
-1. **Fixed Banking Account Type Implementations (April 14, 2025)** ✓
+1. **Fixed Bill Splits Integration with Standardized Terminology (April 14, 2025)** ✓
+   - Standardized on "liability_id" terminology in bill split schema factories:
+     - Updated `create_bill_split_schema` to consistently use `liability_id` parameter
+     - Modified test files to use `liability_id` instead of `bill_id` to match schema
+     - Updated parameter documentation for clarity
+   - Implemented missing repository methods for bill splits:
+     - Added `create_bill_splits` with automatic primary account split creation
+     - Added `update_bill_splits` for existing splits with transaction support
+     - Added `get_splits_by_bill` as an alias to maintain API compatibility
+     - Added proper account validation and error handling
+   - Enhanced transaction handling and validation:
+     - Added transaction boundaries with proper rollback on errors
+     - Implemented validation to prevent total splits exceeding bill amount
+     - Added specific validation for non-existent accounts
+     - Ensured all tests pass consistently
+
+2. **Fixed Banking Account Type Implementations (April 14, 2025)** ✓
    - Added missing fixtures for credit and savings account types:
      - Created `test_credit_with_due_date` and `test_credit_with_rewards` fixtures
      - Created `test_savings_with_interest` and `test_savings_with_min_balance` fixtures
@@ -21,7 +37,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Made sure methods have descriptive names that properly indicate account type
    - Fixed datetime timezone handling throughout the repository methods
 
-2. **Fixed Schema-Model Field Mismatches in Account Hierarchy (April 14, 2025)** ✓
+3. **Fixed Schema-Model Field Mismatches in Account Hierarchy (April 14, 2025)** ✓
    - Removed credit-specific fields from base AccountBase schema:
      - Removed available_credit, total_limit, last_statement_balance, and last_statement_date
      - Removed corresponding field validators in both AccountBase and AccountUpdate
@@ -32,33 +48,12 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
    - Fixed test failures in checking_advanced.py related to schema-model mismatch
    - Improved object hierarchy design with better separation of concerns
 
-3. **Refactored Repository Factory Tests (April 14, 2025)** ✓
+4. **Refactored Repository Factory Tests (April 14, 2025)** ✓
    - Implemented generic test models instead of account-specific tests
    - Created test helper modules for type_a and type_b entities
    - Added comprehensive tests for polymorphic entity operations
    - Improved test structure with clear sections for core functionality
    - Enhanced test readability with consistent documentation patterns
-
-4. **Implemented Repository Factory Async Consistency (April 13, 2025)** ✓
-   - Fixed critical architectural inconsistency in repository factory:
-     - Made `RepositoryFactory.create_account_repository` method async to match the rest of the codebase
-     - Updated `_wrap_with_proxy` method to be async for proper async flow
-     - Made `RepositoryFactoryHelper.get_available_repository_functions` async for consistency
-     - Updated all internal calls to use `await` with async methods
-   - Fixed repository fixture implementation:
-     - Updated `repository_factory` fixture to return an async lambda function
-     - Ensured proper async/await pattern in all fixture usages
-     - Fixed all account type repository fixtures to await factory calls
-   - Updated service layer to match async pattern:
-     - Added `await` to all calls to `RepositoryFactory.create_account_repository`
-     - Fixed BNPL service module to properly await repository creation
-     - Maintained consistent async/await patterns throughout the codebase
-   - These changes ensure:
-     - Architectural consistency with async patterns throughout the codebase
-     - Proper async flow with all async operations correctly awaited
-     - Future-proofing for async operations in the factory
-     - Consistent patterns for repository creation across the codebase
-     - Fixed test failures in repository factory tests
 
 5. **Fixed Partial Update Field Preservation in PolymorphicBaseRepository (April 13, 2025)** ✓
    - Fixed issue with optional fields not being preserved during partial updates:
@@ -82,7 +77,6 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
 
 1. **Continue Repository Test Refactoring**
    - Refactor account type advanced tests:
-     - advanced/account_types/banking/test_bnpl_advanced.py
      - advanced/account_types/banking/test_ewa_advanced.py
      - advanced/account_types/banking/test_payment_app_advanced.py
    - Refactor other repository tests:
@@ -92,7 +86,6 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - account_types/banking/test_checking.py
      - account_types/banking/test_credit.py
      - account_types/banking/test_savings.py
-     - bill_splits/test_bill_splits_with_account_types.py
 
 2. **Fix Remaining Schema-Model Mismatches**
    - Update CreditAccount model and schema to ensure all fields match
@@ -149,21 +142,29 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
    - Preserve optional fields with existing values during partial updates
    - Skip setting optional fields to NULL if they already have a value
 
-3. **Repository Fixture Usage Patterns**
+3. **Terminology Standardization**
+   - Maintain consistent terminology across codebase (e.g., "liability" vs "bill")
+   - Avoid parameter aliasing and dual naming conventions
+   - Update tests and schemas to use the same terminology
+   - Document naming conventions in repository method docstrings
+   - Be explicit about relationships between different entity types
+   - Consider adding alias methods only when absolutely necessary for compatibility
+
+4. **Repository Fixture Usage Patterns**
    - Use repository_factory as a function, not as an object with methods
    - Understand the difference between class-based and function-based fixtures
    - Ensure consistent fixture usage patterns across similar repository types
    - Verify fixture implementation matches usage in tests
    - Document fixture usage patterns for team reference
 
-4. **Repository Test Organization**
+5. **Repository Test Organization**
    - Separate CRUD tests from advanced repository tests
    - Place basic CRUD operations (create, get, update, delete) in crud/ directory
    - Place specialized operations in advanced/ directory
    - Maintain consistent test naming across similar repository types
    - Follow established patterns from working test files
 
-5. **Feature Flag System Architecture**
+6. **Feature Flag System Architecture**
    - Centralize feature flag enforcement at architectural boundaries instead of scattering checks
    - Use proxy/interceptor patterns to separate business logic from feature gating
    - Implement domain-specific exceptions for better error handling and clarity
@@ -177,22 +178,12 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
    - Add helper utilities for clear cache invalidation when needed
    - Implement proper inspection of async methods to avoid mismatches
 
-6. **Test Consolidation for Complete Coverage**
-   - Analyze coverage reports to identify specific uncovered lines and branches
-   - Combine complementary test files that cover different parts of the same functionality
-   - Create targeted tests for specific edge cases that are missed by existing tests
-   - Use descriptive test names that clearly indicate what scenario is being tested
-   - Maintain all existing test functionality when consolidating test files
-   - Focus on branch coverage for conditional logic, especially in financial calculations
-   - Test both positive and negative scenarios for complete coverage
-   - Verify coverage with specific coverage reports after changes
-
-7. **Schema Validation Patterns**
-   - Separate field validation from model validation for better control flow
-   - Use field validators for format and basic constraints
-   - Use model validators for cross-field validation and business rules
-   - Implement proper validation flow with field validators running first
-   - Handle implicit field values in model validators
-   - Add clear error messages for validation failures
-   - Document validation behavior in docstrings
-   - Test both field and model validation scenarios
+7. **Testing Transaction Boundaries**
+   - Use `session.begin_nested()` for proper savepoint management
+   - Test both successful and failing scenarios
+   - Ensure proper rollback with transaction isolation
+   - Verify no entities are created on failure
+   - Test validation before and during transactions
+   - Include specific validation for non-existent entities
+   - Test for correct relationships between entities
+   - Implement proper error handling with explicit error types

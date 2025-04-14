@@ -110,7 +110,7 @@ async def test_get_with_account(
     assert result.account is not None
     assert result.account.id == test_checking_account.id
     assert result.account.name == test_checking_account.name
-    assert result.account.account_type == test_checking_account.type
+    assert result.account.account_type == test_checking_account.account_type
 
 
 async def test_get_by_date_range(
