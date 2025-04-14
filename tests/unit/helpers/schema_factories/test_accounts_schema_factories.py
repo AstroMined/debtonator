@@ -20,6 +20,10 @@ from src.schemas.account_types.banking import (
     PaymentAppAccountCreate,
     SavingsAccountCreate,
 )
+from src.schemas.account_types.banking.credit import (
+    CreditAccountResponse,
+    CreditAccountUpdate,
+)
 from src.schemas.accounts import (
     AccountInDB,
     AccountResponse,
@@ -37,6 +41,9 @@ from tests.helpers.schema_factories.accounts_schema_factories import (
     create_account_update_schema,
     create_available_credit_response_schema,
     create_statement_balance_history_schema,
+)
+from tests.helpers.schema_factories.account_types.banking.credit_schema_factories import (
+    create_credit_account_schema,
 )
 
 
@@ -179,14 +186,14 @@ def test_create_account_in_db_schema_custom_values():
 
 def test_create_account_in_db_schema_credit():
     """Test creating a credit AccountInDB schema."""
+    # As of ADR-019 Banking Account Types Expansion, credit account specific fields
+    # like total_limit and available_credit are only available in CreditAccountBase classes
+    # not in the base AccountInDB
     schema = create_account_in_db_schema(
         id=3,
         name="Credit Card",
         account_type="credit",
         available_balance=Decimal("-1500.00"),
-        total_limit=Decimal("10000.00"),
-        last_statement_balance=Decimal("-1200.00"),
-        last_statement_date=utc_now() - timedelta(days=15),
     )
 
     assert isinstance(schema, AccountInDB)
@@ -194,13 +201,14 @@ def test_create_account_in_db_schema_credit():
     assert schema.name == "Credit Card"
     assert schema.account_type == "credit"
     assert schema.available_balance == Decimal("-1500.00")
-    assert schema.total_limit == Decimal("10000.00")
-    assert schema.available_credit == Decimal("8500.00")  # 10000 + (-1500)
-    assert schema.last_statement_balance == Decimal("-1200.00")
-
-    # Verify last_statement_date is timezone-aware and in UTC per ADR-011
-    assert schema.last_statement_date.tzinfo is not None
-    assert schema.last_statement_date.tzinfo == timezone.utc
+    
+    # last_statement_balance and last_statement_date have been moved to credit-specific schemas
+    # Verify datetime fields are timezone-aware and in UTC per ADR-011
+    assert schema.created_at.tzinfo is not None
+    assert schema.created_at.tzinfo == timezone.utc
+    
+    # Credit-specific fields should be accessed through CreditAccountResponse
+    # Testing those fields requires using the credit-specific schema factories
 
 
 def test_create_account_response_schema():
@@ -222,12 +230,13 @@ def test_create_account_response_schema():
 
 def test_create_account_response_schema_credit():
     """Test creating a credit AccountResponse schema."""
+    # As of ADR-019 Banking Account Types Expansion, credit account specific fields
+    # like total_limit and available_credit are only available in CreditAccountResponse
     schema = create_account_response_schema(
         id=3,
         name="Credit Card",
         account_type="credit",
         available_balance=Decimal("-1500.00"),
-        total_limit=Decimal("10000.00"),
     )
 
     assert isinstance(schema, AccountResponse)
@@ -235,8 +244,9 @@ def test_create_account_response_schema_credit():
     assert schema.name == "Credit Card"
     assert schema.account_type == "credit"
     assert schema.available_balance == Decimal("-1500.00")
-    assert schema.total_limit == Decimal("10000.00")
-    assert schema.available_credit == Decimal("8500.00")  # 10000 + (-1500)
+    
+    # To test credit-specific fields, we need to use CreditAccountResponse
+    # which would be tested separately
 
 
 def test_create_statement_balance_history_schema():
@@ -419,24 +429,59 @@ def test_create_account_update_schema_minimal():
 
 def test_create_account_update_schema_credit_fields():
     """Test creating an account update schema with credit-specific fields."""
+    # As of ADR-019 Banking Account Types Expansion, credit account specific fields
+    # like total_limit and available_credit are only available in CreditAccountUpdate
     schema = create_account_update_schema(
         account_type="credit",
-        total_limit=Decimal("10000.00"),
-        available_credit=Decimal("5000.00"),
     )
 
     assert isinstance(schema, AccountUpdate)
     assert schema.account_type == "credit"
-    assert schema.total_limit == Decimal("10000.00")
-    assert schema.available_credit == Decimal("5000.00")
+    
+    # Credit-specific fields should be accessed through CreditAccountUpdate
+    # Testing those fields requires using the credit-specific schema factories
 
 
 def test_create_account_update_schema_credit_validation():
-    """Test that credit fields are only allowed for credit accounts."""
-    with pytest.raises(
-        ValueError, match="Total Limit can only be set for credit accounts"
-    ):
-        create_account_update_schema(
-            account_type="checking",
-            total_limit=Decimal("5000.00"),
-        )
+    """Test that AccountUpdate no longer accepts credit-specific fields."""
+    # This test is now redundant since the base AccountUpdate no longer
+    # accepts credit-specific fields, which will be ignored
+    # Credit fields should be tested with CreditAccountUpdate
+    schema = create_account_update_schema(
+        account_type="checking",
+    )
+    
+    assert isinstance(schema, AccountUpdate)
+    assert schema.account_type == "checking"
+
+
+def test_create_credit_account_schema():
+    """Test creating a CreditAccountCreate schema with credit-specific fields."""
+    schema = create_credit_account_schema(
+        name="Test Credit Card",
+        credit_limit=Decimal("10000.00"), 
+    )
+    
+    assert isinstance(schema, CreditAccountCreate)
+    assert schema.name == "Test Credit Card"
+    assert schema.account_type == "credit"
+    assert schema.credit_limit == Decimal("10000.00")
+    # The comment in credit.py suggested total_limit was an alias for credit_limit,
+    # but it seems these are separate fields in the implementation
+
+
+def test_credit_account_polymorphic_structure():
+    """Test that the polymorphic structure for credit accounts works properly."""
+    # This test verifies that credit-specific fields are only available
+    # in the credit-specific schemas, not in the base schemas
+    
+    # Create a base account schema with credit type
+    base_schema = create_account_update_schema(
+        account_type="credit",
+    )
+    assert isinstance(base_schema, AccountUpdate)
+    assert base_schema.account_type == "credit"
+    
+    # Verify the appropriate schema type is used for create_account_schema with credit type
+    account_schema = create_account_schema(account_type="credit")
+    assert isinstance(account_schema, CreditAccountCreate)

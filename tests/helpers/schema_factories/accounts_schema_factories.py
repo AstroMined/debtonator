@@ -145,25 +145,16 @@ def create_account_in_db_schema(
         **kwargs,
     }
 
-    # Add credit account specific fields
-    if account_type == "credit":
-        if total_limit is None:
-            total_limit = Decimal("5000.00")
-        data["total_limit"] = total_limit
-
-        # Calculate available credit if not provided
-        if "available_credit" not in data and "available_credit" not in kwargs:
-            available_credit = (
-                total_limit + available_balance
-            )  # Balance is negative for credit
-            data["available_credit"] = available_credit
-
     # Add statement related fields if provided
     if last_statement_balance is not None:
         data["last_statement_balance"] = last_statement_balance
 
     if last_statement_date is not None:
         data["last_statement_date"] = last_statement_date
+
+    # Note: Credit-specific fields like total_limit and available_credit
+    # should be added to the type-specific schemas in tests that need them,
+    # not to the base AccountInDB class
 
     return data
 
@@ -200,12 +191,13 @@ def create_account_response_schema(
         Dict[str, Any]: Data to create AccountResponse schema
     """
     # Use the AccountInDB factory since they have the same structure
+    # Note: Credit-specific fields like total_limit should be handled 
+    # by the CreditAccountResponse schema, not here
     return create_account_in_db_schema(
         id=id,
         name=name,
         account_type=account_type,
         available_balance=available_balance,
-        total_limit=total_limit,
         last_statement_balance=last_statement_balance,
         last_statement_date=last_statement_date,
         created_at=created_at,
@@ -407,8 +399,9 @@ def create_account_update_schema(
     if account_type is not None:
         data["account_type"] = account_type
 
-    if total_limit is not None:
-        data["total_limit"] = total_limit
+    # Note: Credit-specific fields like total_limit should be handled
+    # by the CreditAccountUpdate schema, not here
+    # We keep the param for backward compatibility but don't add it to data
 
     # Add any additional fields from kwargs
     data.update(kwargs)

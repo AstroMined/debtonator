@@ -10,6 +10,9 @@ that pass validation.
 from datetime import datetime, timezone
 from decimal import Decimal
 
+import pytest
+from pydantic import ValidationError
+
 from src.schemas.deposit_schedules import DepositScheduleCreate
 from tests.helpers.schema_factories.deposit_schedules_schema_factories import (
     create_deposit_schedule_schema,
@@ -66,13 +69,11 @@ def test_create_deposit_schedule_schema_with_minimum_amount():
 
 
 def test_create_deposit_schedule_schema_validates_status():
-    """Test that invalid status values are corrected to 'pending'."""
-    schema = create_deposit_schedule_schema(
-        income_id=1, account_id=2, status="invalid_status"
-    )
-
-    assert isinstance(schema, DepositScheduleCreate)
-    assert schema.status == "pending"
+    """Test that invalid status values raise a validation error."""
+    with pytest.raises(ValidationError, match="String should match pattern"):
+        create_deposit_schedule_schema(
+            income_id=1, account_id=2, status="invalid_status"
+        )
 
 
 def test_create_deposit_schedule_schema_with_additional_fields():

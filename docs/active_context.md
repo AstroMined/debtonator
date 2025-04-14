@@ -6,7 +6,15 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
 
 ### Recent Changes
 
-1. **Fixed Repository Advanced Test Issues with Timezone Handling (April 14, 2025)** ✓
+1. **Fixed Schema Test Failures for Account and Deposit Schedule Schemas (April 14, 2025)** ✓
+   - Updated account schema structure to support polymorphic account types (ADR-016, ADR-019):
+     - Removed credit-specific fields from base account schemas
+     - Updated schema factories to handle specialized account types correctly
+     - Fixed tests to align with the new polymorphic structure
+   - Fixed deposit schedule validation tests to expect proper validation errors for invalid status values
+   - Aligned all schema factory tests with the current schema architecture
+
+2. **Fixed Repository Advanced Test Issues with Timezone Handling (April 14, 2025)** ✓
    - Improved datetime handling in repository tests in accordance with ADR-011:
      - Fixed `test_get_available_credit_trend` in balance history repository tests to handle timezone differences
      - Fixed `test_get_by_date_range` in payment schedules to properly compare dates with timezone awareness

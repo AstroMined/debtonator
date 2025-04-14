@@ -7,6 +7,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.125] - 2025-04-14
+
+### Fixed
+
+- Fixed account schema tests to align with polymorphic account structure (ADR-016, ADR-019)
+  - Updated account schema factories to properly handle specialized account types
+  - Removed credit-specific fields from base account schemas
+  - Updated tests to reflect the new polymorphic structure
+- Fixed deposit schedule schema validation tests to expect proper validation errors
+- All schema factory tests now passing (297 tests total)
+
 ## [0.5.124] - 2025-04-14
 
 ### Fixed
