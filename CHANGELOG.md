@@ -7,6 +7,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.127] - 2025-04-14
+
+### Added
+
+- Created comprehensive documentation hierarchy for test directories:
+  - Added README.md files for all test helpers and subdirectories
+  - Created README.md files for fixtures subdirectories
+  - Added documentation for integration test directories
+  - Created comprehensive documentation for unit test directories
+  - Implemented proper cross-references between documentation files
+
+### Changed
+
+- Reorganized feature_flag_utils into proper module structure:
+  - Created dedicated directory with clear module structure
+  - Added proper __init__.py with exports for better usability
+  - Enhanced documentation with usage examples and best practices
+
+### Fixed
+
+- Corrected account type test organization:
+  - Moved test_account_type_unions.py to banking-specific directory
+  - Created banking-specific test_banking_account_type_unions.py
+  - Updated imports and references in relevant files
+  - Fixed documentation to reflect current architectural principles
+
 ## [0.5.126] - 2025-04-14
 
 ### Fixed
@@ -122,7 +148,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed BNPL Account Provider Schema by adding "SplitIt" to valid providers list
 - Fixed datetime timezone issues in banking account repository methods
 - Fixed BNPL test expectation in test_get_bnpl_accounts_with_remaining_installments
-- Fixed SQLAlchemy query issues in utilization method to use `func.abs()` 
+- Fixed SQLAlchemy query issues in utilization method to use `func.abs()`
 - Fixed polymorphic repository updates in EWA test to use `update_typed_entity`
 
 ## [0.5.121] - 2025-04-14
@@ -888,7 +914,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updated tests/helpers/schema_factories/README.md with proper naming conventions
 - Standardized naming conventions across test files:
-  - Renamed fixture files to use *_models.py suffix 
+  - Renamed fixture files to use *_models.py suffix
   - Renamed schema factory files to use *_schema_factories.py suffix
 
 ## [0.5.86] - 2025-04-09
@@ -944,7 +970,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Created 5 new test files for schema factories:
   - Added test_base.py for cashflow base schema factories
-  - Added test_forecasting.py for cashflow forecasting schema factories 
+  - Added test_forecasting.py for cashflow forecasting schema factories
   - Added test_historical.py for cashflow historical schema factories
   - Added test_income_trends.py for income trends schema factories
   - Enhanced test_accounts.py for complete accounts schema factories coverage

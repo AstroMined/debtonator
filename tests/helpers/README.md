@@ -4,12 +4,16 @@ This directory contains supporting modules, utilities, and test-specific impleme
 
 ## Directory Structure
 
-```
+```tree
 helpers/
 ├── __init__.py
 ├── models/                   # Test-specific SQLAlchemy models
+├── repositories/             # Repository modules for testing factory functionality
+│   └── test_types/           # Type-specific repository modules for testing
 ├── schemas/                  # Test-specific Pydantic schemas
-└── schema_factories/         # Schema factory functions for test data creation
+├── schema_factories/         # Schema factory functions for test data creation
+├── feature_flag_utils/       # Feature flag testing utilities
+└── test_data/                # Sample data files for testing import/export
 ```
 
 ## Helper Categories
@@ -19,6 +23,7 @@ helpers/
 Contains SQLAlchemy models designed specifically for testing base functionality without involving business models. These models support testing of generic components like the `BaseRepository` class.
 
 Example usage:
+
 ```python
 from tests.helpers.models.test_item import TestItem
 
@@ -33,6 +38,7 @@ await db_session.flush()
 Contains Pydantic schemas designed specifically for testing validation flow and base functionality. These schemas work with the test models to enable comprehensive testing of generic components.
 
 Example usage:
+
 ```python
 from tests.helpers.schemas.test_item import TestItemCreate
 
@@ -47,6 +53,7 @@ assert schema.value == 42
 Contains factory functions for creating schema instances used in tests. These factories ensure proper validation flow from schemas to repositories and provide consistent test data creation patterns.
 
 Example usage:
+
 ```python
 from tests.helpers.schema_factories.basic_test_schema_factories import create_test_item_schema
 
@@ -56,6 +63,56 @@ schema = create_test_item_schema(name="Factory Item", value=42)
 # Use in repository test
 data = schema.model_dump()
 result = await repository.create(data)
+```
+
+### Repository Test Modules
+
+Contains specialized repository modules designed for testing the repository factory's dynamic module loading capabilities and type-specific repositories.
+
+Example usage:
+
+```python
+# Create repository with factory that loads specialized modules
+repository = repository_factory(
+    db_session,
+    TestPolymorphicModel,
+    "entity_type",
+    {"type_a": "tests.helpers.repositories.test_types.type_a"}
+)
+
+# Use dynamically loaded methods
+entities = await repository.get_type_a_entities_with_field_value("test value")
+```
+
+### Feature Flag Utilities
+
+Contains utilities for testing with feature flags, including solutions for cache-related issues in test environments.
+
+Example usage:
+
+```python
+from tests.helpers.feature_flag_utils import ZeroTTLConfigProvider, create_test_requirements
+
+# Create zero-TTL config provider for testing
+requirements = create_test_requirements("CHECKING_ACCOUNTS", "checking")
+config_provider = ZeroTTLConfigProvider(requirements)
+
+# Use in tests
+feature_flag_service = FeatureFlagService(config_provider=config_provider)
+```
+
+### Test Data Files
+
+Contains sample data files for testing import, validation, and processing functionality.
+
+Example usage:
+
+```python
+# Get path to test data file
+test_file_path = Path(__file__).parent.parent / "helpers" / "test_data" / "valid_liabilities.csv"
+
+# Test import function
+result = await import_service.import_liabilities_from_csv(test_file_path)
 ```
 
 ## Key Principles
@@ -83,3 +140,7 @@ For detailed information about specific helper categories, see these READMEs:
 - [Test Models](./models/README.md)
 - [Test Schemas](./schemas/README.md)
 - [Schema Factories](./schema_factories/README.md)
+- [Repository Test Modules](./repositories/README.md)
+- [Repository Test Types](./repositories/test_types/README.md)
+- [Feature Flag Utilities](./feature_flag_utils/README.md)
+- [Test Data Files](./test_data/README.md)

@@ -2,11 +2,71 @@
 
 ## Current Focus
 
-Account Type Expansion, Feature Flag System, Banking Account Types Integration, Testing Strategy Implementation, Schema Factory Testing, Error Handling System, UTC Datetime Compliance, Utils Module Test Coverage, Repository Test Pattern Implementation, API Layer Implementation, Test Infrastructure Improvement
+Account Type Expansion, Feature Flag System, Banking Account Types Integration, Testing Strategy Implementation, Schema Factory Testing, Error Handling System, UTC Datetime Compliance, Utils Module Test Coverage, Repository Test Pattern Implementation, API Layer Implementation, Test Infrastructure Improvement, Documentation Hierarchy Implementation
 
 ### Recent Changes
 
-1. **Fixed Account Base Schema Testing to Align with Polymorphic Design (April 14, 2025)** ✓
+1. **Implemented Documentation Hierarchy for Test Helpers Directory (April 14, 2025)** ✓
+   - Created comprehensive README.md files for test helpers and subdirectories:
+     - Added README.md for repositories module with detailed documentation
+     - Added README.md for repositories/test_types module with usage examples
+     - Added README.md for test_data directory with file descriptions
+     - Created properly structured feature_flag_utils module with README.md
+   - Reorganized feature_flag_utils into proper module structure:
+     - Moved utilities to dedicated directory with clear organization
+     - Created proper __init__.py with exports for better usability
+     - Added comprehensive documentation of utility functions
+   - Updated main helpers README.md with complete structure:
+     - Documented all helper categories with usage examples
+     - Added cross-references to all subdirectory documentation
+     - Ensured consistent documentation style across all files
+
+2. **Completed Documentation for Multiple Test Directories (April 14, 2025)** ✓
+   - Added README.md files for fixtures subdirectories:
+     - Documented fixtures/api and fixtures/api/middleware directories
+     - Created README.md for fixtures/models/account_types and banking subdirectory
+     - Added documentation for fixtures/repositories/account_types hierarchy
+     - Created README.md for fixtures/repositories/proxies directory
+     - Added documentation for fixtures/services/interceptors and proxies
+   - Created comprehensive README.md files for integration test directories:
+     - Added documentation for integration/repositories/advanced hierarchy
+     - Created README.md for integration/repositories/bill_splits directory
+     - Added README.md for integration/repositories/crud and account_types subdirectories
+   - Documented unit test directories:
+     - Created README.md for unit/errors hierarchy with error class documentation
+     - Added documentation for unit/registry directory
+     - Created README.md for unit/utils and datetime_utils directories
+
+3. **Fixed Account Type Test Organization (April 14, 2025)** ✓
+   - Reorganized account type union tests:
+     - Moved test_account_type_unions.py to banking-specific directory
+     - Created banking-specific test_banking_account_type_unions.py
+     - Updated imports and references in relevant files
+   - Updated unit/schemas/account_types README.md with current architectural principles:
+     - Documented polymorphic validation approach
+     - Added information about discriminated unions
+     - Clarified type-specific validation patterns
+   - Enhanced integration/repositories README.md with recent improvements:
+     - Updated information about passing tests
+     - Added details about fixed account schema testing
+     - Documented corrected datetime handling in tests
+
+4. **Implemented Repository Test Documentation Improvements (April 14, 2025)** ✓
+   - Updated repository test documentation for better guidance:
+     - Added explicit four-step pattern documentation
+     - Clarified schema factory usage in repository tests
+     - Enhanced examples of polymorphic repository pattern usage
+     - Added information about datetime handling compliance
+   - Created consistent test organization documentation:
+     - Documented separation between CRUD and advanced tests
+     - Added file naming conventions and patterns
+     - Created clear hierarchical organization of test files
+   - Ensured proper cross-references between documentation files:
+     - Added links to parent/child documentation
+     - Referenced relevant ADRs and system patterns
+     - Created clear navigation between related files
+
+5. **Fixed Account Base Schema Testing to Align with Polymorphic Design (April 14, 2025)** ✓
    - Corrected account schema testing approach to align with architectural principles:
      - Removed incorrect expectation that base schema should validate type-specific fields
      - Added proper testing for discriminated unions in a dedicated test file
@@ -17,78 +77,6 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Added tests demonstrating proper field validation approach
      - Documented the intended validation pattern for account types
    - Reinforced the architectural principle that base schemas only validate universal fields
-
-2. **Fixed Schema Test Failures for Account and Deposit Schedule Schemas (April 14, 2025)** ✓
-   - Updated account schema structure to support polymorphic account types (ADR-016, ADR-019):
-     - Removed credit-specific fields from base account schemas
-     - Updated schema factories to handle specialized account types correctly
-     - Fixed tests to align with the new polymorphic structure
-   - Fixed deposit schedule validation tests to expect proper validation errors for invalid status values
-   - Aligned all schema factory tests with the current schema architecture
-
-2. **Fixed Repository Advanced Test Issues with Timezone Handling (April 14, 2025)** ✓
-   - Improved datetime handling in repository tests in accordance with ADR-011:
-     - Fixed `test_get_available_credit_trend` in balance history repository tests to handle timezone differences
-     - Fixed `test_get_by_date_range` in payment schedules to properly compare dates with timezone awareness
-     - Used proper utility functions from datetime_utils.py like `ensure_utc` for timezone compatibility
-     - Implemented consistent datetime handling across repository layer
-   - Enhanced schema validation for deposit schedules:
-     - Fixed schema factory implementations to properly validate status fields
-     - Removed hardcoded status validation in schema factories to let Pydantic handle validation
-     - Ensured validation errors are properly raised and caught in tests
-   - Fixed CreditAccount implementation issues:
-     - Improved `update_balance` method to correctly handle available_credit calculation
-     - Added safeguards for NULL available_credit values in tests
-     - Enhanced test assertions to be more resilient to implementation details
-
-2. **Fixed Bill Splits Integration with Standardized Terminology (April 14, 2025)** ✓
-   - Standardized on "liability_id" terminology in bill split schema factories:
-     - Updated `create_bill_split_schema` to consistently use `liability_id` parameter
-     - Modified test files to use `liability_id` instead of `bill_id` to match schema
-     - Updated parameter documentation for clarity
-   - Implemented missing repository methods for bill splits:
-     - Added `create_bill_splits` with automatic primary account split creation
-     - Added `update_bill_splits` for existing splits with transaction support
-     - Added `get_splits_by_bill` as an alias to maintain API compatibility
-     - Added proper account validation and error handling
-   - Enhanced transaction handling and validation:
-     - Added transaction boundaries with proper rollback on errors
-     - Implemented validation to prevent total splits exceeding bill amount
-     - Added specific validation for non-existent accounts
-     - Ensured all tests pass consistently
-
-3. **Fixed Banking Account Type Implementations (April 14, 2025)** ✓
-   - Added missing fixtures for credit and savings account types:
-     - Created `test_credit_with_due_date` and `test_credit_with_rewards` fixtures
-     - Created `test_savings_with_interest` and `test_savings_with_min_balance` fixtures
-     - Fixed session handling for proper SQLAlchemy relationships
-   - Fixed CreditAccount model fields:
-     - Removed `total_limit` field which was causing compatibility issues
-     - Added `last_statement_balance` field that was missing but referenced in schema
-     - Added `rewards_rate` field for more accurate credit rewards tracking
-   - Added specialized repository methods for credit and savings accounts:
-     - Implemented utilization, statement status, and autopay query methods for credit accounts
-     - Implemented interest rate, minimum balance, and yield query methods for savings accounts
-     - Made sure methods have descriptive names that properly indicate account type
-   - Fixed datetime timezone handling throughout the repository methods
-
-4. **Fixed Schema-Model Field Mismatches in Account Hierarchy (April 14, 2025)** ✓
-   - Removed credit-specific fields from base AccountBase schema:
-     - Removed available_credit, total_limit, last_statement_balance, and last_statement_date
-     - Removed corresponding field validators in both AccountBase and AccountUpdate
-   - Added credit-specific fields to CreditAccount model:
-     - Added available_credit field with proper Numeric type definition
-     - Added total_limit field as an alias for credit_limit for backward compatibility
-   - Updated CreditAccountBase schema to ensure all needed fields are explicitly included
-   - Fixed test failures in checking_advanced.py related to schema-model mismatch
-   - Improved object hierarchy design with better separation of concerns
-
-5. **Refactored Repository Factory Tests (April 14, 2025)** ✓
-   - Implemented generic test models instead of account-specific tests
-   - Created test helper modules for type_a and type_b entities
-   - Added comprehensive tests for polymorphic entity operations
-   - Improved test structure with clear sections for core functionality
-   - Enhanced test readability with consistent documentation patterns
 
 ## Next Steps
 

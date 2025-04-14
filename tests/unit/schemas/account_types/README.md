@@ -6,12 +6,12 @@ This directory contains tests for the polymorphic account type schema system imp
 
 The test files follow the same structure as the source code:
 
-```
+```tree
 tests/unit/schemas/account_types/
 ├── __init__.py
-├── test_account_type_unions.py  # Tests for discriminated union validation
 ├── banking/
 │   ├── __init__.py
+│   ├── test_account_type_unions.py  # Tests for discriminated union validation
 │   ├── test_checking_schemas.py
 │   ├── test_credit_schemas.py 
 │   ├── test_savings_schemas.py
@@ -33,11 +33,12 @@ Each account type has its own dedicated test file that tests:
 
 Additionally, `test_account_type_unions.py` tests the discriminated union functionality:
 
-1. Proper routing of validation based on account_type 
+1. Proper routing of validation based on account_type
 2. Validation that type-specific fields are rejected on incorrect account types
 3. Testing field validation at the union level rather than the base schema level
 
 This architecture-aligned testing approach tests validation at the correct level:
+
 - Base schema only validates universal fields
 - Type-specific schemas validate their own fields
 - Discriminated unions route validation based on account_type
