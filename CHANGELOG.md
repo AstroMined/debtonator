@@ -7,6 +7,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.120] - 2025-04-14
+
+### Changed
+
+- Refactored repository factory tests to use generic test models instead of domain-specific models
+- Improved test structure with clear sections for core functionality and polymorphic operations
+- Enhanced test maintainability by decoupling factory tests from account type implementation details
+
+### Added
+
+- Test helper modules with type-specific functions for polymorphic test entities
+- Comprehensive tests for entity creation, updating, and deletion through factory-created repositories
+- Tests for combining base repository methods with type-specific methods
+
+### Fixed
+
+- Removed dependency on specific account types in repository factory tests
+- Improved test clarity by following the project's established 4-step testing pattern
+
 ## [0.5.119] - 2025-04-13
 
 ### Fixed
