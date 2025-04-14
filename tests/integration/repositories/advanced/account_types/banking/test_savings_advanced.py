@@ -212,7 +212,7 @@ async def test_get_accounts_by_interest_rate_threshold(
     # 2. SCHEMA: Not applicable for this read operation
 
     # 3. ACT: Call the specialized repository method
-    high_interest = await savings_repository.get_accounts_by_interest_rate_threshold(
+    high_interest = await savings_repository.get_savings_accounts_by_interest_rate_threshold(
         Decimal("2.0")
     )
 
@@ -259,7 +259,7 @@ async def test_get_accounts_with_minimum_balance(
     # 2. SCHEMA: Not applicable for this read operation
 
     # 3. ACT: Call the specialized repository method
-    min_balance_accounts = await savings_repository.get_accounts_with_minimum_balance()
+    min_balance_accounts = await savings_repository.get_savings_accounts_with_minimum_balance()
 
     # 4. ASSERT: Verify the results
     assert len(min_balance_accounts) >= 1
@@ -320,7 +320,7 @@ async def test_get_accounts_below_minimum_balance(
     # 2. SCHEMA: Used for creating the test accounts
 
     # 3. ACT: Call the specialized repository method
-    below_min_accounts = await savings_repository.get_accounts_below_minimum_balance()
+    below_min_accounts = await savings_repository.get_savings_accounts_below_minimum_balance()
 
     # 4. ASSERT: Verify the results
     assert len(below_min_accounts) >= 1
@@ -362,7 +362,7 @@ async def test_get_highest_yield_accounts(
     # 2. SCHEMA: Not applicable for this read operation
 
     # 3. ACT: Call the specialized repository method
-    top_accounts = await savings_repository.get_highest_yield_accounts(limit=2)
+    top_accounts = await savings_repository.get_highest_yield_savings_accounts(limit=2)
 
     # 4. ASSERT: Verify the results
     assert len(top_accounts) <= 2  # Should respect the limit
@@ -395,16 +395,16 @@ async def test_repository_has_specialized_methods(
     # 2. SCHEMA: Not applicable for this test
 
     # 3. ACT & ASSERT: Verify the repository has specialized savings methods
-    assert hasattr(savings_repository, "get_accounts_by_interest_rate_threshold")
+    assert hasattr(savings_repository, "get_savings_accounts_by_interest_rate_threshold")
     assert callable(
-        getattr(savings_repository, "get_accounts_by_interest_rate_threshold")
+        getattr(savings_repository, "get_savings_accounts_by_interest_rate_threshold")
     )
 
-    assert hasattr(savings_repository, "get_accounts_with_minimum_balance")
-    assert callable(getattr(savings_repository, "get_accounts_with_minimum_balance"))
+    assert hasattr(savings_repository, "get_savings_accounts_with_minimum_balance")
+    assert callable(getattr(savings_repository, "get_savings_accounts_with_minimum_balance"))
 
-    assert hasattr(savings_repository, "get_accounts_below_minimum_balance")
-    assert callable(getattr(savings_repository, "get_accounts_below_minimum_balance"))
+    assert hasattr(savings_repository, "get_savings_accounts_below_minimum_balance")
+    assert callable(getattr(savings_repository, "get_savings_accounts_below_minimum_balance"))
 
-    assert hasattr(savings_repository, "get_highest_yield_accounts")
-    assert callable(getattr(savings_repository, "get_highest_yield_accounts"))
+    assert hasattr(savings_repository, "get_highest_yield_savings_accounts")
+    assert callable(getattr(savings_repository, "get_highest_yield_savings_accounts"))

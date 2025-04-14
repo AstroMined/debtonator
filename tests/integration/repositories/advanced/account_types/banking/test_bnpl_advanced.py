@@ -215,9 +215,9 @@ async def test_get_bnpl_accounts_with_remaining_installments(
     assert len(accounts_3_or_more_remaining) >= 1
     account_ids_3_plus = [account.id for account in accounts_3_or_more_remaining]
     assert test_bnpl_account.id in account_ids_3_plus
-    assert (
-        test_bnpl_account_with_upcoming_payment.id not in account_ids_3_plus
-    )  # (4 - 1 = 3 remaining)
+    # test_bnpl_account_with_upcoming_payment has 3 remaining installments (4 - 1 = 3)
+    # so it should be included in the 3+ remaining results
+    assert test_bnpl_account_with_upcoming_payment.id in account_ids_3_plus
     assert (
         test_bnpl_account_nearly_paid.id not in account_ids_3_plus
     )  # (4 - 3 = 1 remaining)

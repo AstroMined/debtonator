@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.account_types.banking.credit import CreditAccount
 from src.repositories.accounts import AccountRepository
 from src.services.accounts import AccountService
-from src.utils.datetime_utils import utc_now
+from src.utils.datetime_utils import ensure_utc, utc_now, datetime_less_than
 from tests.helpers.schema_factories.account_types.banking.credit_schema_factories import (
     create_credit_account_schema,
     create_credit_account_update_schema,
@@ -239,7 +239,9 @@ async def test_get_credit_accounts_with_upcoming_payments(
     now = utc_now()
     for account in upcoming_payments:
         assert account.statement_due_date is not None
-        days_until_due = (account.statement_due_date - now).days
+        # Use ensure_utc to add timezone info for the database datetime
+        statement_due_date = ensure_utc(account.statement_due_date)
+        days_until_due = (statement_due_date - now).days
         assert 0 <= days_until_due <= 20
 
 
@@ -282,9 +284,14 @@ async def test_get_credit_accounts_by_utilization(
         available_credit=Decimal("2000.00"),
     )
 
-    low_util = CreditAccount(**low_util_schema.model_dump())
-    mid_util = CreditAccount(**mid_util_schema.model_dump())
-    high_util = CreditAccount(**high_util_schema.model_dump())
+    # Filter out 'total_limit' which was removed from the model
+    low_util_data = {k: v for k, v in low_util_schema.model_dump().items() if k != 'total_limit'}
+    mid_util_data = {k: v for k, v in mid_util_schema.model_dump().items() if k != 'total_limit'}
+    high_util_data = {k: v for k, v in high_util_schema.model_dump().items() if k != 'total_limit'}
+
+    low_util = CreditAccount(**low_util_data)
+    mid_util = CreditAccount(**mid_util_data)
+    high_util = CreditAccount(**high_util_data)
 
     db_session.add_all([low_util, mid_util, high_util])
     await db_session.flush()
@@ -341,6 +348,10 @@ async def test_get_credit_accounts_by_statement_status(
     no_statement_data = no_statement_schema.model_dump()
     no_statement_data["statement_balance"] = None
     no_statement_data["statement_due_date"] = None
+    
+    # Remove total_limit which was removed from the model
+    if "total_limit" in no_statement_data:
+        del no_statement_data["total_limit"]
 
     no_statement = CreditAccount(**no_statement_data)
     db_session.add(no_statement)
@@ -403,6 +414,10 @@ async def test_get_credit_accounts_with_autopay(
     # Modify the schema data to set autopay_status to "none"
     no_autopay_data = no_autopay_schema.model_dump()
     no_autopay_data["autopay_status"] = "none"
+    
+    # Remove total_limit which was removed from the model
+    if "total_limit" in no_autopay_data:
+        del no_autopay_data["total_limit"]
 
     no_autopay = CreditAccount(**no_autopay_data)
     db_session.add(no_autopay)

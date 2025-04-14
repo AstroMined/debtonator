@@ -11,11 +11,11 @@ Implemented as part of ADR-016 Account Type Expansion and ADR-019 Banking Accoun
 from decimal import Decimal
 from typing import Dict, List, Optional
 
-from sqlalchemy import and_, desc, select
+from sqlalchemy import and_, desc, or_, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.account_types.banking.credit import CreditAccount
-from src.utils.datetime_utils import days_from_now, naive_utc_now
+from src.utils.datetime_utils import naive_days_from_now, naive_utc_now
 
 
 async def get_all_credit_accounts(
@@ -53,8 +53,9 @@ async def get_credit_accounts_with_upcoming_payments(
     Returns:
         List of credit accounts with upcoming payments
     """
+    # Use naive datetime for database operations
     now = naive_utc_now()
-    cutoff = days_from_now(days).replace(tzinfo=None)  # Get naive datetime for DB
+    cutoff = naive_days_from_now(days)  # Use existing naive function for consistency
 
     query = (
         select(CreditAccount)
@@ -160,6 +161,113 @@ async def get_credit_accounts_with_rewards(
         .order_by(desc(CreditAccount.rewards_rate))
     )
 
+    result = await session.execute(query)
+    return result.scalars().all()
+
+
+async def get_credit_accounts_by_utilization(
+    session: AsyncSession, min_percent: Decimal = Decimal("0"), max_percent: Decimal = Decimal("100")
+) -> List[CreditAccount]:
+    """
+    Get credit accounts with utilization within the specified percentage range.
+    
+    Args:
+        session: SQLAlchemy async session
+        min_percent: Minimum utilization percentage (default: 0%)
+        max_percent: Maximum utilization percentage (default: 100%)
+        
+    Returns:
+        List of credit accounts within the utilization range
+    """
+    # Convert percentages to decimal values (0-1 range)
+    min_ratio = min_percent / 100
+    max_ratio = max_percent / 100
+    
+    query = select(CreditAccount).where(
+        and_(
+            CreditAccount.is_closed == False,  # noqa: E712
+            CreditAccount.credit_limit > 0,
+            # Calculate utilization as abs(current_balance) / credit_limit
+            # Use func.abs() for SQLAlchemy compatibility
+            (func.abs(CreditAccount.current_balance) / CreditAccount.credit_limit) >= min_ratio,
+            (func.abs(CreditAccount.current_balance) / CreditAccount.credit_limit) <= max_ratio,
+        )
+    ).order_by(func.abs(CreditAccount.current_balance) / CreditAccount.credit_limit)
+    
+    result = await session.execute(query)
+    return result.scalars().all()
+
+
+async def get_credit_accounts_with_open_statements(
+    session: AsyncSession
+) -> List[CreditAccount]:
+    """
+    Get credit accounts with open statements that have a balance and due date.
+    
+    Args:
+        session: SQLAlchemy async session
+        
+    Returns:
+        List of credit accounts with open statements
+    """
+    query = select(CreditAccount).where(
+        and_(
+            CreditAccount.is_closed == False,  # noqa: E712
+            CreditAccount.statement_balance.is_not(None),
+            CreditAccount.statement_due_date.is_not(None),
+        )
+    ).order_by(CreditAccount.statement_due_date)
+    
+    result = await session.execute(query)
+    return result.scalars().all()
+
+
+async def get_credit_accounts_without_statements(
+    session: AsyncSession
+) -> List[CreditAccount]:
+    """
+    Get credit accounts without open statements (missing balance or due date).
+    
+    Args:
+        session: SQLAlchemy async session
+        
+    Returns:
+        List of credit accounts without open statements
+    """
+    query = select(CreditAccount).where(
+        and_(
+            CreditAccount.is_closed == False,  # noqa: E712
+            or_(
+                CreditAccount.statement_balance.is_(None),
+                CreditAccount.statement_due_date.is_(None),
+            )
+        )
+    ).order_by(CreditAccount.name)
+    
+    result = await session.execute(query)
+    return result.scalars().all()
+
+
+async def get_credit_accounts_with_autopay(
+    session: AsyncSession
+) -> List[CreditAccount]:
+    """
+    Get credit accounts with autopay enabled (any status other than 'none').
+    
+    Args:
+        session: SQLAlchemy async session
+        
+    Returns:
+        List of credit accounts with autopay enabled
+    """
+    query = select(CreditAccount).where(
+        and_(
+            CreditAccount.is_closed == False,  # noqa: E712
+            CreditAccount.autopay_status.is_not(None),
+            CreditAccount.autopay_status != "none",
+        )
+    ).order_by(CreditAccount.name)
+    
     result = await session.execute(query)
     return result.scalars().all()
 

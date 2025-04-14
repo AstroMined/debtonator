@@ -34,11 +34,11 @@ class CreditAccount(Account):
     available_credit: Mapped[Optional[Decimal]] = mapped_column(
         Numeric(12, 4), nullable=True, comment="Available credit (credit_limit - balance)"
     )
-    total_limit: Mapped[Optional[Decimal]] = mapped_column(
-        Numeric(12, 4), nullable=True, comment="Alias for credit_limit for backward compatibility"
-    )
     statement_balance: Mapped[Optional[Decimal]] = mapped_column(
         Numeric(12, 4), nullable=True, comment="Current statement balance"
+    )
+    last_statement_balance: Mapped[Optional[Decimal]] = mapped_column(
+        Numeric(12, 4), nullable=True, comment="Balance from last statement"
     )
     statement_due_date: Mapped[Optional[datetime]] = mapped_column(
         DateTime(), nullable=True, comment="Payment due date for current statement"
@@ -62,6 +62,9 @@ class CreditAccount(Account):
     )
     last_statement_date: Mapped[Optional[datetime]] = mapped_column(
         DateTime(), nullable=True, comment="Date of last statement"
+    )
+    rewards_rate: Mapped[Optional[Decimal]] = mapped_column(
+        Numeric(6, 4), nullable=True, comment="Rewards rate (percentage)"
     )
 
     __mapper_args__ = {"polymorphic_identity": "credit"}

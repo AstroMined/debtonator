@@ -75,3 +75,61 @@ async def test_emergency_fund(db_session: AsyncSession) -> SavingsAccount:
     await db_session.refresh(account)
 
     return account
+
+
+@pytest_asyncio.fixture
+async def test_savings_with_interest(db_session: AsyncSession) -> SavingsAccount:
+    """
+    Create a savings account with high interest rate for testing.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        SavingsAccount: Savings account with 2.5% interest rate
+    """
+    account = SavingsAccount(
+        name="High Interest Savings",
+        available_balance=Decimal("7500.00"),
+        interest_rate=Decimal("2.50"),  # 2.50% APY
+        compound_frequency="monthly",
+        interest_earned_ytd=Decimal("85.25"),
+        minimum_balance=None,  # No minimum balance
+        withdrawal_limit=4,
+    )
+
+    # Add to session manually
+    db_session.add(account)
+    await db_session.flush()
+    await db_session.refresh(account)
+
+    return account
+
+
+@pytest_asyncio.fixture
+async def test_savings_with_min_balance(db_session: AsyncSession) -> SavingsAccount:
+    """
+    Create a savings account with minimum balance requirement and high interest.
+    
+    Args:
+        db_session: Database session fixture
+        
+    Returns:
+        SavingsAccount: Savings account with minimum balance and 3% interest
+    """
+    account = SavingsAccount(
+        name="Premium Savings",
+        available_balance=Decimal("12000.00"),
+        interest_rate=Decimal("3.00"),  # 3.00% APY (highest rate)
+        compound_frequency="daily",
+        interest_earned_ytd=Decimal("175.50"),
+        minimum_balance=Decimal("1000.00"),  # Substantial minimum balance
+        withdrawal_limit=2,  # Limited withdrawals
+    )
+
+    # Add to session manually
+    db_session.add(account)
+    await db_session.flush()
+    await db_session.refresh(account)
+
+    return account

@@ -291,7 +291,7 @@
    - Create comprehensive test cases for polymorphic validation
    - Add pattern documentation for schema-service validation split
 
-5. __Continue Repository Test Refactoring (55%)__
+5. __Continue Repository Test Refactoring (65%)__
    - Fixed repository fixtures for account types:
      - ✓ fixture_bnpl_repositories.py
      - ✓ fixture_ewa_repositories.py
@@ -302,6 +302,8 @@
    - Fixed schema validation errors in test files:
      - ✓ test_credit_crud.py (autopay_status)
      - ✓ test_savings_crud.py (interest_rate)
+     - ✓ added CreditAccount missing fields
+     - ✓ added SavingsAccount proper interest handling
    - Standardized CRUD test files:
      - ✓ test_checking_crud.py
      - ✓ test_savings_crud.py
@@ -316,8 +318,12 @@
      - ✓ Standardized parameter naming across all files
    - Refactored other repository tests:
      - ✓ test_feature_flag_registry.py
+   - Added specialized repository methods:
+     - ✓ Credit account methods (utilization, statements, autopay)
+     - ✓ Savings account methods (interest rates, minimum balance, yields)
+     - ✓ Fixed timezone handling in datetime-related methods
    - Refactor account type advanced tests:
-     - advanced/account_types/banking/test_bnpl_advanced.py
+     - ✓ advanced/account_types/banking/test_bnpl_advanced.py
      - advanced/account_types/banking/test_ewa_advanced.py
      - advanced/account_types/banking/test_payment_app_advanced.py
    - Refactor other repository tests:

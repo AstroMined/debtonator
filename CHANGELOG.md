@@ -7,6 +7,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.122] - 2025-04-14
+
+### Added
+
+- Added missing test fixtures for credit and savings account types
+- Added specialized repository methods for credit accounts:
+  - `get_credit_accounts_by_utilization`
+  - `get_credit_accounts_with_open_statements`
+  - `get_credit_accounts_without_statements`
+  - `get_credit_accounts_with_autopay`
+- Added specialized repository methods for savings accounts:
+  - `get_savings_accounts_by_interest_rate_threshold`
+  - `get_savings_accounts_with_minimum_balance`
+  - `get_savings_accounts_below_minimum_balance`
+  - `get_highest_yield_savings_accounts`
+
+### Fixed
+
+- Fixed CreditAccount model fields:
+  - Removed `total_limit` field which caused compatibility issues
+  - Added `last_statement_balance` field that was missing but referenced in schema
+  - Added `rewards_rate` field for more accurate credit rewards tracking
+- Fixed BNPL Account Provider Schema by adding "SplitIt" to valid providers list
+- Fixed datetime timezone issues in banking account repository methods
+- Fixed BNPL test expectation in test_get_bnpl_accounts_with_remaining_installments
+- Fixed SQLAlchemy query issues in utilization method to use `func.abs()` 
+- Fixed polymorphic repository updates in EWA test to use `update_typed_entity`
+
 ## [0.5.121] - 2025-04-14
 
 ### Fixed

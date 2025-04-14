@@ -164,6 +164,7 @@ class BNPLAccountBase(AccountBase):
             "PayPal Pay in 4",
             "Uplift",
             "Quadpay",
+            "SplitIt",
             "Other",
         ]
 

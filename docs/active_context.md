@@ -6,7 +6,22 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
 
 ### Recent Changes
 
-1. **Fixed Schema-Model Field Mismatches in Account Hierarchy (April 14, 2025)** ✓
+1. **Fixed Banking Account Type Implementations (April 14, 2025)** ✓
+   - Added missing fixtures for credit and savings account types:
+     - Created `test_credit_with_due_date` and `test_credit_with_rewards` fixtures
+     - Created `test_savings_with_interest` and `test_savings_with_min_balance` fixtures
+     - Fixed session handling for proper SQLAlchemy relationships
+   - Fixed CreditAccount model fields:
+     - Removed `total_limit` field which was causing compatibility issues
+     - Added `last_statement_balance` field that was missing but referenced in schema
+     - Added `rewards_rate` field for more accurate credit rewards tracking
+   - Added specialized repository methods for credit and savings accounts:
+     - Implemented utilization, statement status, and autopay query methods for credit accounts
+     - Implemented interest rate, minimum balance, and yield query methods for savings accounts
+     - Made sure methods have descriptive names that properly indicate account type
+   - Fixed datetime timezone handling throughout the repository methods
+
+2. **Fixed Schema-Model Field Mismatches in Account Hierarchy (April 14, 2025)** ✓
    - Removed credit-specific fields from base AccountBase schema:
      - Removed available_credit, total_limit, last_statement_balance, and last_statement_date
      - Removed corresponding field validators in both AccountBase and AccountUpdate
@@ -17,14 +32,14 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
    - Fixed test failures in checking_advanced.py related to schema-model mismatch
    - Improved object hierarchy design with better separation of concerns
 
-2. **Refactored Repository Factory Tests (April 14, 2025)** ✓
+3. **Refactored Repository Factory Tests (April 14, 2025)** ✓
    - Implemented generic test models instead of account-specific tests
    - Created test helper modules for type_a and type_b entities
    - Added comprehensive tests for polymorphic entity operations
    - Improved test structure with clear sections for core functionality
    - Enhanced test readability with consistent documentation patterns
 
-3. **Implemented Repository Factory Async Consistency (April 13, 2025)** ✓
+4. **Implemented Repository Factory Async Consistency (April 13, 2025)** ✓
    - Fixed critical architectural inconsistency in repository factory:
      - Made `RepositoryFactory.create_account_repository` method async to match the rest of the codebase
      - Updated `_wrap_with_proxy` method to be async for proper async flow
@@ -45,7 +60,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Consistent patterns for repository creation across the codebase
      - Fixed test failures in repository factory tests
 
-4. **Fixed Partial Update Field Preservation in PolymorphicBaseRepository (April 13, 2025)** ✓
+5. **Fixed Partial Update Field Preservation in PolymorphicBaseRepository (April 13, 2025)** ✓
    - Fixed issue with optional fields not being preserved during partial updates:
      - Modified `update_typed_entity` method to preserve optional fields with existing values
      - Added check to skip setting optional fields to NULL if they already have a value
@@ -62,28 +77,6 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
      - Required fields continue to be protected from NULL values
      - The repository behaves as expected for both complete and partial updates
      - Tests properly verify field preservation behavior
-
-5. **Refactored Feature Flag Registry Tests (April 13, 2025)** ✓
-   - Converted class-based tests to function-based approach:
-     - Transformed TestFeatureFlagRegistry class into standalone test functions
-     - Maintained same test logic and assertions to ensure equivalent coverage
-     - Organized tests into logical groups with clear section comments
-     - Added proper docstrings to improve test readability
-   - Enhanced test fixtures for better isolation:
-     - Added registry_with_predefined_flags fixture to tests/fixtures/fixture_feature_flags.py
-     - Created standardized test setup with boolean, percentage, user segment, and time-based flags
-     - Improved fixture reusability across multiple test functions
-     - Fixed fixture scope for better test isolation
-   - Fixed datetime format handling in time-based feature flag tests:
-     - Resolved ValueError issues with datetime string parsing
-     - Improved time-based flag test reliability
-     - Fixed test failures related to microsecond precision in datetime strings
-     - Ensured consistent datetime handling across all tests
-   - These improvements ensure:
-     - Better alignment with project's function-based testing standards
-     - Improved test organization and maintainability
-     - More reliable time-based feature flag testing
-     - Consistent fixture usage across feature flag tests
 
 ## Next Steps
 

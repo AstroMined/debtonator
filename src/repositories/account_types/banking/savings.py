@@ -180,26 +180,233 @@ async def get_savings_accounts_by_interest_rate_range(
     return result.scalars().all()
 
 
-async def get_goal_based_savings_accounts(
-    session: AsyncSession,
+async def get_savings_accounts_by_interest_rate_threshold(
+    session: AsyncSession, threshold: Decimal
 ) -> List[SavingsAccount]:
     """
-    Get goal-based savings accounts.
-
+    Get savings accounts with interest rate above a specified threshold.
+    
     Args:
         session: SQLAlchemy async session
-
+        threshold: Minimum interest rate threshold
+        
     Returns:
-        List of goal-based savings accounts
+        List of savings accounts with interest rate above threshold
     """
-    query = select(SavingsAccount).where(
-        and_(
-            SavingsAccount.is_closed == False,  # noqa: E712
-            SavingsAccount.is_goal_based == True,  # noqa: E712
-            SavingsAccount.goal_amount.is_not(None),
-            SavingsAccount.goal_date.is_not(None),
+    query = (
+        select(SavingsAccount)
+        .where(
+            and_(
+                SavingsAccount.is_closed == False,  # noqa: E712
+                SavingsAccount.interest_rate.is_not(None),
+                SavingsAccount.interest_rate >= threshold,
+            )
         )
+        .order_by(desc(SavingsAccount.interest_rate))
     )
+    
+    result = await session.execute(query)
+    return result.scalars().all()
 
+
+async def get_savings_accounts_with_minimum_balance(
+    session: AsyncSession
+) -> List[SavingsAccount]:
+    """
+    Get savings accounts that have minimum balance requirements.
+    
+    Args:
+        session: SQLAlchemy async session
+        
+    Returns:
+        List of savings accounts with minimum balance requirements
+    """
+    query = (
+        select(SavingsAccount)
+        .where(
+            and_(
+                SavingsAccount.is_closed == False,  # noqa: E712
+                SavingsAccount.minimum_balance.is_not(None),
+                SavingsAccount.minimum_balance > 0,
+            )
+        )
+        .order_by(desc(SavingsAccount.minimum_balance))
+    )
+    
+    result = await session.execute(query)
+    return result.scalars().all()
+
+
+async def get_savings_accounts_below_minimum_balance(
+    session: AsyncSession
+) -> List[SavingsAccount]:
+    """
+    Get savings accounts with balance below their minimum balance requirement.
+    
+    Args:
+        session: SQLAlchemy async session
+        
+    Returns:
+        List of savings accounts below their minimum balance
+    """
+    query = (
+        select(SavingsAccount)
+        .where(
+            and_(
+                SavingsAccount.is_closed == False,  # noqa: E712
+                SavingsAccount.minimum_balance.is_not(None),
+                SavingsAccount.minimum_balance > 0,
+                SavingsAccount.available_balance < SavingsAccount.minimum_balance,
+            )
+        )
+        .order_by(desc(SavingsAccount.minimum_balance - SavingsAccount.available_balance))
+    )
+    
+    result = await session.execute(query)
+    return result.scalars().all()
+
+
+async def get_highest_yield_savings_accounts(
+    session: AsyncSession, limit: int = 5
+) -> List[SavingsAccount]:
+    """
+    Get the highest yield savings accounts, limited to a specified number.
+    
+    Args:
+        session: SQLAlchemy async session
+        limit: Maximum number of accounts to return (default: 5)
+        
+    Returns:
+        List of highest yield savings accounts, sorted by interest rate descending
+    """
+    query = (
+        select(SavingsAccount)
+        .where(
+            and_(
+                SavingsAccount.is_closed == False,  # noqa: E712
+                SavingsAccount.interest_rate.is_not(None),
+                SavingsAccount.interest_rate > 0,
+            )
+        )
+        .order_by(desc(SavingsAccount.interest_rate))
+        .limit(limit)
+    )
+    
+    result = await session.execute(query)
+    return result.scalars().all()
+
+
+async def get_savings_accounts_by_interest_rate_threshold(
+    session: AsyncSession, threshold: Decimal
+) -> List[SavingsAccount]:
+    """
+    Get savings accounts with interest rate above a specified threshold.
+    
+    Args:
+        session: SQLAlchemy async session
+        threshold: Minimum interest rate threshold
+        
+    Returns:
+        List of savings accounts with interest rate above threshold
+    """
+    query = (
+        select(SavingsAccount)
+        .where(
+            and_(
+                SavingsAccount.is_closed == False,  # noqa: E712
+                SavingsAccount.interest_rate.is_not(None),
+                SavingsAccount.interest_rate >= threshold,
+            )
+        )
+        .order_by(desc(SavingsAccount.interest_rate))
+    )
+    
+    result = await session.execute(query)
+    return result.scalars().all()
+
+
+async def get_savings_accounts_with_minimum_balance(
+    session: AsyncSession
+) -> List[SavingsAccount]:
+    """
+    Get savings accounts that have minimum balance requirements.
+    
+    Args:
+        session: SQLAlchemy async session
+        
+    Returns:
+        List of savings accounts with minimum balance requirements
+    """
+    query = (
+        select(SavingsAccount)
+        .where(
+            and_(
+                SavingsAccount.is_closed == False,  # noqa: E712
+                SavingsAccount.minimum_balance.is_not(None),
+                SavingsAccount.minimum_balance > 0,
+            )
+        )
+        .order_by(desc(SavingsAccount.minimum_balance))
+    )
+    
+    result = await session.execute(query)
+    return result.scalars().all()
+
+
+async def get_savings_accounts_below_minimum_balance(
+    session: AsyncSession
+) -> List[SavingsAccount]:
+    """
+    Get savings accounts with balance below their minimum balance requirement.
+    
+    Args:
+        session: SQLAlchemy async session
+        
+    Returns:
+        List of savings accounts below their minimum balance
+    """
+    query = (
+        select(SavingsAccount)
+        .where(
+            and_(
+                SavingsAccount.is_closed == False,  # noqa: E712
+                SavingsAccount.minimum_balance.is_not(None),
+                SavingsAccount.minimum_balance > 0,
+                SavingsAccount.available_balance < SavingsAccount.minimum_balance,
+            )
+        )
+        .order_by(desc(SavingsAccount.minimum_balance - SavingsAccount.available_balance))
+    )
+    
+    result = await session.execute(query)
+    return result.scalars().all()
+
+
+async def get_highest_yield_savings_accounts(
+    session: AsyncSession, limit: int = 5
+) -> List[SavingsAccount]:
+    """
+    Get the highest yield savings accounts, limited to a specified number.
+    
+    Args:
+        session: SQLAlchemy async session
+        limit: Maximum number of accounts to return (default: 5)
+        
+    Returns:
+        List of highest yield savings accounts, sorted by interest rate descending
+    """
+    query = (
+        select(SavingsAccount)
+        .where(
+            and_(
+                SavingsAccount.is_closed == False,  # noqa: E712
+                SavingsAccount.interest_rate.is_not(None),
+                SavingsAccount.interest_rate > 0,
+            )
+        )
+        .order_by(desc(SavingsAccount.interest_rate))
+        .limit(limit)
+    )
+    
     result = await session.execute(query)
     return result.scalars().all()

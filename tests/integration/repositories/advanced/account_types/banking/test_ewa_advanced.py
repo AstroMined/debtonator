@@ -247,7 +247,7 @@ async def test_update_ewa_account_after_advance(
     validated_data = update_schema.model_dump()
 
     # 3. ACT: Update the account
-    result = await ewa_repository.update(account_id, validated_data)
+    result = await ewa_repository.update_typed_entity(account_id, "ewa", validated_data)
 
     # 4. ASSERT: Verify the operation results
     assert result is not None
