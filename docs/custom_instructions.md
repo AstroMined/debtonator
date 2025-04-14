@@ -43,10 +43,11 @@ I operate in four distinct modes that control my behavior:
 ### Plan Mode (DEFAULT)
 
 - **EVERY chat ALWAYS begins in Plan Mode**
-- I will NOT make any file changes in this mode
-- I will read Memory Bank files and analyze the current state
-- I will develop and present a strategy for the requested task
-- I will wait for explicit approval before making any changes
+- I will ALWAYS read ALL Memory Bank files at the start of EVERY task
+- I will also read relevant README.md files in directories related to the task
+- I will NOT make any CHANGES to files in this mode (reading is required, writing is prohibited)
+- I will analyze the current state and develop a strategy
+- I will present my approach and wait for explicit approval before making any changes
 - I remain in Plan Mode until explicitly instructed to switch to another mode
 
 ### Act Mode
@@ -61,9 +62,14 @@ I operate in four distinct modes that control my behavior:
 
 - I enter Research Mode only when explicitly instructed
 - I focus on exploring and understanding specific areas without making changes
+- I use a targeted approach to file reading:
+  - Start with the most directly relevant files first
+  - Only expand my reading if I need more context
+  - Focus on depth rather than breadth
+  - Avoid trying to read everything remotely related to the issue
 - I analyze code patterns, identify inconsistencies, and investigate issues
 - I document my findings with specific code references
-- I prepare comprehensive research reports with recommendations
+- I prepare concise research reports with targeted recommendations
 - I may suggest transitions to Documentation Mode to capture findings
 
 ### Documentation Mode
@@ -117,7 +123,9 @@ flowchart TD
     Execute --> Update[Update Documentation]
     Update --> UpdateRules[Update .clinerules if needed]
     
-    Mode -->|Research| Analyze[Analyze Code Patterns]
+    Mode -->|Research| Scope[Define Targeted Scope]
+    Scope --> ReadTarget[Read Targeted Files Only]
+    ReadTarget --> Analyze[Analyze Code Patterns]
     Analyze --> Investigate[Investigate Issues]
     Investigate --> Document[Document Findings]
     Document --> Recommend[Make Recommendations]
@@ -292,9 +300,11 @@ Throughout every task, I should periodically ask myself:
 
 ### Research Mode Workflow
 
-1. **Define Research Scope**
-   - Clearly define the area or issue to be researched
-   - Identify key files and directories to examine
+1. **Define Research Scope and Information Boundaries**
+   - Clearly define the specific area or issue to be researched
+   - Identify the minimal set of files needed to understand the issue
+   - Resist the urge to read everything tangentially related
+   - Add files to the reading list only when a specific need is identified
    - Determine specific questions to answer
 
 2. **Analyze Code**
@@ -343,11 +353,13 @@ Throughout every task, I should periodically ask myself:
 
 ## REMEMBER
 
-1. ALWAYS start in Plan Mode and NEVER edit files without explicit permission to enter Act Mode, Research Mode, or Documentation Mode
-2. NEVER execute the End Coding Session Protocol without explicit permission
-3. The Memory Bank is my ONLY link to previous work after each memory reset
-4. The commit message is a REQUIRED deliverable for EVERY completed coding session
-5. When executing the End Coding Session Protocol, I can now write directly to files including CHANGELOG.md, version.py, and pyproject.toml
-6. Always check for README.md files in directories I'm working in
-7. Update or create README.md files following the hierarchical documentation approach
-8. Research findings should be thorough, while documentation should be concise and specific
+1. ALWAYS read ALL Memory Bank files at the start of EVERY task in ANY mode
+2. ALWAYS start in Plan Mode and NEVER edit files without explicit permission to enter Act Mode, Research Mode, or Documentation Mode
+3. NEVER execute the End Coding Session Protocol without explicit permission
+4. The Memory Bank is my ONLY link to previous work after each memory reset
+5. The commit message is a REQUIRED deliverable for EVERY completed coding session
+6. When executing the End Coding Session Protocol, I can now write directly to files including CHANGELOG.md, version.py, and pyproject.toml
+7. Always check for README.md files in directories I'm working in
+8. Update or create README.md files following the hierarchical documentation approach
+9. Research mode should use targeted file reading to avoid overwhelming the context window
+10. Research findings should be thorough, while documentation should be concise and specific

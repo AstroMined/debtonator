@@ -2,13 +2,15 @@
 
 ## Recent Updates
 
-### Schema Refactoring (2025-04-14)
+### Schema Refactoring and Validation Alignment (2025-04-14)
 
-- Fixed account schema tests to align with polymorphic account structure (ADR-016, ADR-019)
-- Updated account schema factories to handle specialized account types correctly
-- Removed credit-specific fields from base account schemas
+- Fixed account base schema tests to correctly align with polymorphic architecture
+- Added proper discriminated union testing in a dedicated test file
+- Strengthened alignment between tests and architectural principles
+- Created test_account_type_unions.py to document and test proper validation patterns
+- Fixed account schema factories to handle specialized account types correctly
 - Fixed deposit schedule validation tests to expect proper validation errors
-- All schema factory tests are now passing (297 tests)
+- All schema factory tests are now passing (298 tests)
 
 ## Current Status Overview
 

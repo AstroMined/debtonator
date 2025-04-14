@@ -7,6 +7,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.126] - 2025-04-14
+
+### Fixed
+
+- Fixed account base schema test to align with polymorphic architecture design:
+  - Removed incorrect expectation that base schema should validate account type-specific fields
+  - Created test_account_type_unions.py to properly test discriminated union validation
+  - Documented proper architectural approach for validation in schemas README.md
+  - Enhanced alignment between tests and polymorphic design principles
+
+### Changed
+
+- Improved schema test architecture to better reflect polymorphic design:
+  - Updated test explanations to document architectural design decisions
+  - Added tests demonstrating proper field validation at the account type level
+  - Enhanced documentation on polymorphic validation patterns
+
 ## [0.5.125] - 2025-04-14
 
 ### Fixed

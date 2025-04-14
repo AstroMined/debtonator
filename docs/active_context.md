@@ -6,7 +6,19 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
 
 ### Recent Changes
 
-1. **Fixed Schema Test Failures for Account and Deposit Schedule Schemas (April 14, 2025)** ✓
+1. **Fixed Account Base Schema Testing to Align with Polymorphic Design (April 14, 2025)** ✓
+   - Corrected account schema testing approach to align with architectural principles:
+     - Removed incorrect expectation that base schema should validate type-specific fields
+     - Added proper testing for discriminated unions in a dedicated test file
+     - Documented the correct architectural approach in README.md
+     - Fixed alignment between tests and polymorphic design principles
+   - Enhanced type-specific validation testing:
+     - Created test_account_type_unions.py test file
+     - Added tests demonstrating proper field validation approach
+     - Documented the intended validation pattern for account types
+   - Reinforced the architectural principle that base schemas only validate universal fields
+
+2. **Fixed Schema Test Failures for Account and Deposit Schedule Schemas (April 14, 2025)** ✓
    - Updated account schema structure to support polymorphic account types (ADR-016, ADR-019):
      - Removed credit-specific fields from base account schemas
      - Updated schema factories to handle specialized account types correctly

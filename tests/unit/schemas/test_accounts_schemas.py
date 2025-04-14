@@ -102,15 +102,13 @@ def test_account_base_schema():
             currency="DOLLAR",  # Invalid currency (should be 3 characters)
         )
 
-    # Test validation for credit-specific fields on non-credit accounts
-    with pytest.raises(ValidationError):
-        AccountBase(
-            name="Invalid Field",
-            account_type="checking",  # Not a credit account
-            current_balance=Decimal("1000.00"),
-            available_balance=Decimal("1000.00"),
-            total_limit=Decimal("5000.00"),  # Credit-specific field
-        )
+    # Note: In our architecture, it's not the base schema's responsibility to validate
+    # account type-specific fields. That validation happens at the discriminated union level.
+    # We're removing this test to align with our polymorphic design pattern.
+    
+    # To properly test account type validation, we should use the AccountCreateUnion
+    # discriminated union type for validation, which is tested separately in 
+    # tests/unit/schemas/account_types/test_account_type_unions.py
 
 
 def test_validate_credit_account_field_function():

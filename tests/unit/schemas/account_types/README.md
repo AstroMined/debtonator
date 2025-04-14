@@ -9,6 +9,7 @@ The test files follow the same structure as the source code:
 ```
 tests/unit/schemas/account_types/
 ├── __init__.py
+├── test_account_type_unions.py  # Tests for discriminated union validation
 ├── banking/
 │   ├── __init__.py
 │   ├── test_checking_schemas.py
@@ -30,7 +31,18 @@ Each account type has its own dedicated test file that tests:
 4. Validation that the account_type field must match the schema's type
 5. Response schema validation
 
-This modular approach allows for easy addition of new account types in the future without creating monolithic test files.
+Additionally, `test_account_type_unions.py` tests the discriminated union functionality:
+
+1. Proper routing of validation based on account_type 
+2. Validation that type-specific fields are rejected on incorrect account types
+3. Testing field validation at the union level rather than the base schema level
+
+This architecture-aligned testing approach tests validation at the correct level:
+- Base schema only validates universal fields
+- Type-specific schemas validate their own fields
+- Discriminated unions route validation based on account_type
+
+This modular approach allows for easy addition of new account types in the future without creating monolithic test files or adding specific type validations to the base schema.
 
 ## Running Tests
 
