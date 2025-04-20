@@ -1,9 +1,11 @@
 # ADR 002: Support for Historical Data Entry in Forms
 
 ## Status
-Accepted
+
+Deprecated
 
 ## Context
+
 When implementing the Bill Entry Form, we initially restricted date selection to future dates only. However, this limitation conflicted with several important use cases:
 
 1. Data Migration Support
@@ -23,6 +25,7 @@ When implementing the Bill Entry Form, we initially restricted date selection to
    - Complete financial history improves analysis accuracy
 
 ## Decision
+
 We decided to remove date restrictions and allow historical data entry in forms, specifically:
 
 1. Removed the `disablePast` prop from Material-UI DatePicker components
@@ -33,6 +36,7 @@ We decided to remove date restrictions and allow historical data entry in forms,
 ## Consequences
 
 ### Positive
+
 1. Better support for data migration and historical record keeping
 2. Improved user experience for correcting past entries
 3. More accurate financial analysis with complete historical data
@@ -40,20 +44,24 @@ We decided to remove date restrictions and allow historical data entry in forms,
 5. Consistency with Excel-based system's capabilities
 
 ### Negative
+
 1. Slightly increased complexity in date validation
 2. Need for additional UI feedback to distinguish historical entries
 3. Potential for accidental historical entries
 
 ### Mitigations
+
 1. Clear UI indicators for historical dates
 2. Proper validation messages
 3. Comprehensive unit tests for date handling
 4. Documentation of date handling behavior
 
 ## Related Decisions
+
 - ADR 001: Database Schema Design
 
 ## Notes
+
 - Future enhancements might include:
   - Audit trails for historical entries
   - Visual indicators for backdated entries

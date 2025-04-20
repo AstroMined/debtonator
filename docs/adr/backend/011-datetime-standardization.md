@@ -1,8 +1,10 @@
-# ADR 11: Standardize on UTC DateTime Storage
+<!-- markdownlint-disable MD024 -->
+# ADR-011: Datetime Standardization
 
 > **⚠️ FILE SYNCHRONIZATION NOTICE**
 >
 > This ADR is part of a triad of files that must remain synchronized:
+>
 > - **This ADR**: Architectural decision record defining the standard
 > - **User Guide**: [`docs/guides/utc_datetime_compliance.md`] - Developer documentation
 > - **Implementation**: [`src/utils/datetime_utils.py`] - Actual utility functions
@@ -11,7 +13,12 @@
 > The implementation in `datetime_utils.py` is the definitive source for function behavior.
 
 ## Status
-**Implemented**
+
+Implemented
+
+## Executive Summary
+
+This ADR establishes a comprehensive datetime handling standard throughout the Debtonator platform that enforces UTC storage for all datetime values while providing specialized utilities for each architectural layer. It eliminates timezone inconsistencies by storing all timestamps as UTC, centralizing timezone validation in Pydantic schemas, simplifying database operations with naive datetimes, and providing standardized utility functions for timezone-aware business logic and naive database operations. The implementation is fully complete across all 18 models, supported by consistent patterns for inclusive date range handling, cross-database compatibility, and timezone enforcement with thorough docstrings, resulting in a reliable, maintainable datetime system with 100% test coverage.
 
 ## Context
 
@@ -29,6 +36,7 @@ We want to store and handle all datetimes as UTC internally, while still accommo
 **We will store all timestamps as UTC (Universal Coordinated Time) throughout the application.**  
 
 This applies to:
+
 - **SQLAlchemy models** (regardless of `timezone=True` usage)
 - **Pydantic models**, which validate incoming/outgoing data
 - **Service layer** logic for business operations
@@ -39,6 +47,7 @@ This applies to:
 After implementation experience, we've refined our approach to simplify datetime handling:
 
 ### Key Changes
+
 1. **Remove SQLAlchemy timezone parameters**
    - Remove all `timezone=True` parameters from DateTime columns
    - These parameters provide no actual benefit as the DB engines don't store timezone data
@@ -51,6 +60,7 @@ After implementation experience, we've refined our approach to simplify datetime
    - No timezone conversion utilities - enforce correct input
 
 3. **Simplify model definitions**
+
    ```python
    # Before
    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
@@ -69,6 +79,7 @@ After implementation experience, we've refined our approach to simplify datetime
 ### Implementation Guidelines
 
 #### Base Pydantic Validator
+
 ```python
 from datetime import datetime, timezone
 from pydantic import BaseModel, field_validator  # Updated to V2 style
@@ -95,6 +106,7 @@ class PaymentCreate(BaseSchemaValidator):
 Note: As of 2025, we use Pydantic V2 style validators with `@field_validator` instead of the deprecated V1 style `@validator`.
 
 #### SQLAlchemy Model
+
 ```python
 from sqlalchemy import Column, Integer, DateTime, func
 from sqlalchemy.ext.declarative import declarative_base
@@ -154,12 +166,14 @@ class Payment(Base):
 The implementation of this ADR has been successfully completed:
 
 ### Implementation Status
+
 - **✅ All 18 model files** are now fully compliant with the ADR requirements
 - All DateTime columns use naive storage without timezone parameters
 - All documentation has been updated to clearly indicate UTC approach
 - Verification through comprehensive test coverage (100% coverage achieved)
 
 ### Key Achievements
+
 - Removed all `timezone=True` parameters from DateTime columns
 - Centralized UTC enforcement in Pydantic schemas
 - Simplified model definitions for clearer code
@@ -172,14 +186,18 @@ The implementation of this ADR has been successfully completed:
 During test implementation, we identified and fixed an important issue with default datetime values:
 
 ### Issue Discovered
+
 We found that datetime fields with `default_factory=datetime.now` were creating naive datetimes that bypassed our validation system:
+
 - `default_factory` values are applied after individual field validation
 - These naive datetimes weren't being properly converted to UTC
 - This created inconsistent timezone behavior for default values vs. explicitly provided values
 - Tests could fail with timezone comparison issues across local vs. UTC timezones
 
 ### Solution Implemented
+
 We enhanced the `BaseSchemaValidator` with a post-initialization validator:
+
 ```python
 @model_validator(mode="after")
 def ensure_datetime_fields_are_utc(self) -> 'BaseSchemaValidator':
@@ -201,7 +219,9 @@ def ensure_datetime_fields_are_utc(self) -> 'BaseSchemaValidator':
 ```
 
 ### Key Insight
+
 Local timestamps should be *converted* to UTC, not just labeled as UTC:
+
 - Simply adding UTC timezone to naive datetimes (`replace(tzinfo=timezone.utc)`) creates semantically incorrect datetimes
 - Proper conversion requires first interpreting the naive datetime in its local context, then converting to UTC
 - This ensures the datetime represents the same moment in time, just in different timezone representations
@@ -215,6 +235,7 @@ We've enhanced our datetime handling approach with standardized utilities and co
 ### Date Range Handling
 
 A key decision was made about date range handling:
+
 - **Date ranges are now INCLUSIVE of both start and end dates** to better match business expectations
 - Use `start_of_day(start_date)` for the beginning boundary
 - Use `end_of_day(end_date)` for the ending boundary
@@ -301,6 +322,7 @@ async def get_by_date_range(self, account_id: int, start_date, end_date) -> List
 We've also standardized testing patterns:
 
 1. **Using ADR-011 utilities in tests**:
+
    ```python
    # Instead of:
    now = datetime.now(timezone.utc)
@@ -312,6 +334,7 @@ We've also standardized testing patterns:
    ```
 
 2. **Safe datetime comparisons**:
+
    ```python
    # Instead of:
    assert entry.datetime_field >= start_date
@@ -322,6 +345,7 @@ We've also standardized testing patterns:
    ```
 
 3. **Docstring Updates**:
+
    ```python
    """Test function.
    
@@ -469,6 +493,7 @@ The real-world benefit is significant: repository methods can now handle date va
 ## Consequences
 
 ### Positive
+
 - Simpler, more consistent datetime handling
 - Clear separation of concerns (validation in schemas only)
 - Reduced confusion about timezone storage
@@ -477,11 +502,13 @@ The real-world benefit is significant: repository methods can now handle date va
 - Improved testability with naive datetime handling
 
 ### Negative
+
 - Strict UTC requirement may require more frontend work
 - No automatic timezone conversion (by design)
 - Migration needed for existing code
 
 ### Mitigation
+
 - Clear error messages help developers provide correct UTC values
 - Comprehensive documentation and examples
 - Extensive test suite for validation behavior (now at 100% coverage)
@@ -497,10 +524,12 @@ We've implemented stricter enforcement of ADR-011 compliance in datetime functio
 1. **Explicit Rejection of Non-UTC Timezones**
    - Functions now validate that datetimes are either naive or UTC timezone-aware
    - Non-UTC timezone-aware datetimes are rejected with a clear error message:
-     ```
+
+     ```plaintext
      "Datetime has non-UTC timezone: [datetime]. This violates ADR-011 which requires all 
      datetimes to be either naive (from DB) or timezone-aware with UTC."
      ```
+
    - No silent timezone conversions - explicit errors instead
 
 2. **Key Functions Updated with Strict Validation**
@@ -519,6 +548,7 @@ We are now **explicitly requiring** the use of functions from `datetime_utils.py
    - **NEVER** use raw timedelta arithmetic - use appropriate utility functions
 
 2. **Essential Functions for Common Tasks**
+
    | Task | Prohibited | Required |
    |------|------------|----------|
    | Current time | `datetime.now()` | `utc_now()` |
@@ -553,7 +583,8 @@ We've enhanced several utilities to handle edge cases more reliably:
 
 ### Implementation Examples
 
-**Example 1: Repository Query with Date Range**
+#### Example 1: Repository Query with Date Range
+
 ```python
 # Correct implementation
 from src.utils.datetime_utils import ensure_utc, start_of_day, end_of_day
@@ -573,7 +604,8 @@ def get_transactions_in_range(start_date, end_date):
     return session.execute(query).scalars().all()
 ```
 
-**Example 2: Service Function with Date Handling**
+#### Example 2: Service Function with Date Handling
+
 ```python
 # Correct implementation
 from src.utils.datetime_utils import utc_now, days_from_now, safe_end_date
@@ -592,7 +624,8 @@ def schedule_future_payment(amount, days_ahead):
     return repository.create(payment)
 ```
 
-**Example 3: Test Date Assertions**
+#### Example 3: Test Date Assertions
+
 ```python
 # Correct implementation
 from src.utils.datetime_utils import utc_datetime, datetime_equals
@@ -613,6 +646,7 @@ def test_payment_date():
 ### Integration with Existing Guidelines
 
 These new requirements complement our existing guidelines for:
+
 - Date filtering (using inclusive ranges)
 - Date range generation
 - Database compatibility
@@ -654,7 +688,8 @@ naive_safe_end_date()           # Calculate naive end date with month handling
 
 We now have two recommended patterns for repository methods:
 
-**Pattern 1: Using Naive Functions Directly**
+#### Pattern 1: Using Naive Functions Directly
+
 ```python
 from src.utils.datetime_utils import naive_start_of_day, naive_end_of_day
 
@@ -672,7 +707,8 @@ def get_by_date_range(start_date, end_date):
     return session.execute(query).scalars().all()
 ```
 
-**Pattern 2: Converting Timezone-Aware to Naive**
+#### Pattern 2: Converting Timezone-Aware to Naive
+
 ```python
 from src.utils.datetime_utils import ensure_utc, start_of_day, end_of_day
 
@@ -713,6 +749,7 @@ def get_by_date_range(start_date, end_date):
    - Be explicit about which type of datetime is expected in assertions
 
 ## References
+
 - [Python datetime docs](https://docs.python.org/3/library/datetime.html)  
 - [SQLAlchemy DateTime docs](https://docs.sqlalchemy.org/en/14/core/type_basics.html#sqlalchemy.types.DateTime)  
 - [Pydantic datetime docs](https://docs.pydantic.dev/latest/usage/types/#datetime-types)  

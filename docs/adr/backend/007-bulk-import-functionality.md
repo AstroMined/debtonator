@@ -1,7 +1,7 @@
 # ADR 007: Bulk Import Functionality
 
 ## Status
-Accepted
+Proposed (very rough draft based on old backend architecture, needs significant updates)
 
 ## Context
 Users need the ability to import historical data for bills and income from CSV or JSON files. This is particularly important for:

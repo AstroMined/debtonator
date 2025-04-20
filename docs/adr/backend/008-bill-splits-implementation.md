@@ -1,7 +1,7 @@
 # ADR 008: Bill Splits Implementation
 
 ## Status
-Accepted
+Proposed (very rough draft based on old backend architecture, needs significant updates)
 
 ## Context
 The bill splits feature needed enhancement to properly handle primary account amounts and validation. The original implementation had issues with split amount validation and didn't properly handle the primary account's portion of the bill.

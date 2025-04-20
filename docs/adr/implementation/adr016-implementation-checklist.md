@@ -17,19 +17,19 @@ Major completed components:
 - Testing infrastructure for all completed components
 - Error Handling System with account type-specific errors
 - Schema Factories for account types
+- Repository Test Infrastructure for Modern Banking Types
+- Updated existing code to use `account_type` instead of `type`
 
 Major remaining components:
 
-- Update existing code to use `account_type` instead of `type`
 - Complete Multi-Currency and Internationalization support
 - Complete API Integration
-- Fix Repository Test Infrastructure for Modern Banking Types
 
 ## Base Account Model
 
 - [x] Refactor existing Account model to use polymorphic inheritance:
   - [x] Rename `type` field to `account_type` for clarity (discriminator column)
-  - [ ] Update all existing code to use `account_type` instead of `type`
+  - [x] Update all existing code to use `account_type` instead of `type`
   - [x] Configure SQLAlchemy polymorphic identity mapping
   - [x] Add `is_closed` flag for account lifecycle management
   - [x] Use `Numeric(12, 4)` for all monetary fields per ADR-013
@@ -227,13 +227,13 @@ Major remaining components:
   - [x] Remove `update_typed_account` method (replaced by `update_typed_entity`)
   - [x] Update any references to these methods in other code
 
-- [ ] Update tests for the new repository pattern:
-  - [ ] Create `tests/unit/repositories/test_polymorphic_base_repository.py`
-  - [ ] Test disabled base methods raise NotImplementedError
-  - [ ] Test `create_typed_entity` with various entity types
-  - [ ] Test `update_typed_entity` with various entity types
-  - [ ] Test field filtering and validation
-  - [ ] Test error handling for invalid entity types
+- [x] Update tests for the new repository pattern:
+  - [x] Tests implemented in `tests/integration/repositories/test_polymorphic_base_repository.py`
+  - [x] Test disabled base methods raise NotImplementedError
+  - [x] Test `create_typed_entity` with various entity types
+  - [x] Test `update_typed_entity` with various entity types
+  - [x] Test field filtering and validation
+  - [x] Test error handling for invalid entity types
 
 - [x] Update existing repository tests:
   - [x] Update `tests/integration/repositories/test_account_repository.py`
@@ -247,11 +247,11 @@ Major remaining components:
   - [x] Update `src/services/accounts.py` to use `update_typed_entity`
   - [x] Test service layer with new repository methods
 
-- [ ] Remove redundant tests in `tests/integration/repositories/crud/test_account_repository_crud.py`:
-  - [ ] Identify tests that create base Account objects directly
-  - [ ] Remove these tests or refactor to use typed entities
-  - [ ] Create new test file for non-CRUD generic repository methods
-  - [ ] Ensure all functionality is still properly tested
+- [x] Remove redundant tests in `tests/integration/repositories/crud/test_account_repository_crud.py`:
+  - [x] Identify tests that create base Account objects directly
+  - [x] Remove these tests or refactor to use typed entities
+  - [x] Create new test file for non-CRUD generic repository methods
+  - [x] Ensure all functionality is still properly tested
 
 ## Service Layer
 
@@ -371,16 +371,16 @@ Major remaining components:
 ## Documentation
 
 - [ ] Update documentation:
-  - [x] Document account type registry usage
-  - [x] Document error handling patterns
-  - [x] Create examples for polymorphic operations
-  - [x] Document schema validation patterns
+  - [ ] Document account type registry usage
+  - [ ] Document error handling patterns
+  - [ ] Create examples for polymorphic operations
+  - [ ] Document schema validation patterns
   - [ ] Document repository query patterns
   - [ ] Document service layer integration
   - [ ] Document API changes
-  - [x] Document feature flag integration
-  - [x] Add multi-currency support documentation
-  - [x] Document international banking support
+  - [ ] Document feature flag integration
+  - [ ] Add multi-currency support documentation
+  - [ ] Document international banking support
   - [ ] Create migration guides for existing code
 
 ## Configuration and Initialization
@@ -460,15 +460,15 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
 
 ### Schema Factories
 
-- [ ] Base Account Schema Factory (`tests/helpers/schema_factories/accounts.py`):
-  - [ ] Create/update base account factory functions
-  - [ ] Support customization via `**kwargs`
-  - [ ] Ensure proper defaults for required fields
+- [x] Base Account Schema Factory (`tests/helpers/schema_factories/accounts.py`):
+  - [x] Create/update base account factory functions
+  - [x] Support customization via `**kwargs`
+  - [x] Ensure proper defaults for required fields
   - [ ] Verify test helpers integrate with registry
 
-- [ ] Banking Type Schema Factories:
-  - [ ] `tests/helpers/schema_factories/account_types/banking/checking.py`:
-    - [ ] Implement factory with appropriate defaults
+- [x] Banking Type Schema Factories:
+  - [x] `tests/helpers/schema_factories/account_types/banking/checking.py`:
+    - [x] Implement factory with appropriate defaults
     - [ ] Support all fields including international fields
   - [ ] `tests/helpers/schema_factories/account_types/banking/savings.py`
   - [ ] `tests/helpers/schema_factories/account_types/banking/credit.py`
@@ -487,7 +487,7 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
 
 ### Repository Testing
 
-- [ ] Base Repository Tests (`tests/integration/repositories/test_accounts.py`):
+- [x] Base Repository Tests (`tests/integration/repositories/test_accounts.py`):
   - [x] Basic CRUD operations:
     - [x] Create account with all account types
     - [x] Retrieve accounts with polymorphic identities
@@ -505,9 +505,9 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
     - [x] Test international banking field operations
   - [x] `tests/integration/repositories/account_types/banking/test_savings.py`
   - [x] `tests/integration/repositories/account_types/banking/test_credit.py`
-  - [ ] `tests/integration/repositories/account_types/banking/test_payment_app.py`
-  - [ ] `tests/integration/repositories/account_types/banking/test_bnpl.py`
-  - [ ] `tests/integration/repositories/account_types/banking/test_ewa.py`
+  - [x] `tests/integration/repositories/account_types/banking/test_payment_app.py`
+  - [x] `tests/integration/repositories/account_types/banking/test_bnpl.py`
+  - [x] `tests/integration/repositories/account_types/banking/test_ewa.py`
 
 - [x] Repository Factory Tests (`tests/integration/repositories/test_factory.py`):
   - [x] Test dynamic module loading
@@ -575,15 +575,7 @@ Following Debtonator's "Real Objects Testing Philosophy," we'll implement a stru
 
 ## Next Steps (Prioritized)
 
-1. __Create Unit Tests for PolymorphicBaseRepository__
-   - Implement test_polymorphic_base_repository.py to verify core functionality
-   - Test disabled base methods raise proper exceptions
-   - Test proper field filtering and validation
-   - Create test scenarios for error handling cases
-   - Verify proper registry integration
-   - Create tests for update handling with type validation
-
-2. __Fix Repository Test Infrastructure for Modern Banking Types__
+1. __Fix Repository Test Infrastructure for Modern Banking Types__
    - Address constructor argument errors in account models
    - Implement consistent field filtering for schema-to-model conversion
    - Fix method name discrepancies between tests and implementation
@@ -625,6 +617,7 @@ Before completing ADR-016 implementation, verify:
    - [x] Registry has comprehensive tests
    - [x] Schema validation is thoroughly tested
    - [x] Repository methods have appropriate tests
+   - [x] Polymorphic repository functionality is completely tested
    - [x] Service methods have business rule tests
    - [ ] API endpoints have response tests
    - [x] Feature flag behavior is tested

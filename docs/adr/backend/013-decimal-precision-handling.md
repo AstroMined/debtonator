@@ -1,8 +1,13 @@
-# ADR-013: Decimal Precision Handling in Financial Calculations
+<!-- markdownlint-disable MD029 -->
+# ADR-013: Decimal Precision Handling
 
 ## Status
 
 Implemented
+
+## Executive Summary
+
+This ADR establishes a comprehensive two-tier precision model for financial calculations throughout the Debtonator platform that balances accuracy with usability. By using 4 decimal places for database storage and internal calculations while enforcing 2 decimal places at UI/API boundaries, the system prevents cumulative rounding errors while maintaining familiar financial presentation formats. The implementation leverages Pydantic V2's Annotated types with Field constraints to create specialized decimal types (MoneyDecimal, PercentageDecimal) that encapsulate validation rules, includes robust handling for decimal dictionaries, and implements specialized distribution algorithms to solve common financial calculation challenges like the "$100 split three ways" problem. This standardized approach, fully implemented across all 187 identified decimal fields in the system, ensures consistent decimal handling throughout the application with minimal performance impact.
 
 ## Context
 
@@ -17,6 +22,7 @@ Our financial application handles monetary values throughout its codebase, from 
 4. **Test Expectations**: Our test suite expects specific behavior (validation failures for >2 decimal places) that conflicts with allowing higher internal precision.
 
 The financial industry typically follows certain practices regarding decimal precision:
+
 - Displaying monetary values with 2 decimal places in user interfaces
 - Storing 2 decimal places for official records and financial statements
 - Using higher precision (4-6 decimal places) for internal calculations to minimize rounding errors
@@ -29,11 +35,11 @@ Based on a systematic review of all decimal fields in the codebase (documented i
 1. **Two-Tier Precision Model**:
    - **UI/API Boundary Fields**: Strictly enforce 2 decimal places for all user inputs and outputs
    - **Database Storage and Calculations**: Use 4 decimal places for all monetary values to maintain precision
-     
+
    This approach clearly separates presentation precision (what users see) from calculation precision (what the system uses internally).
 
 2. **Validation Strategy**:
-   - Use Pydantic V2's Annotated types with Field constraints to enforce 2 decimal places for monetary inputs 
+   - Use Pydantic V2's Annotated types with Field constraints to enforce 2 decimal places for monetary inputs
    - Allow higher precision for internal service layer operations
    - Explicitly round values at API boundaries when returning responses
 
@@ -93,6 +99,7 @@ CorrelationDecimal = Annotated[
 ```
 
 This approach creates specialized decimal types that:
+
 - Carry their validation rules with them
 - Provide clear documentation through type hints
 - Enforce consistent validation across the codebase
@@ -111,11 +118,12 @@ Our implementation includes specialized handling for dictionaries containing dec
 Our solution implements a thorough validation strategy:
 
 1. **Dictionary Type Aliases**: Clear type aliases for common dictionary patterns.
-```python
-MoneyDict = Dict[str, MoneyDecimal]
-PercentageDict = Dict[str, PercentageDecimal]
-IntMoneyDict = Dict[int, MoneyDecimal]
-```
+
+  ```python
+  MoneyDict = Dict[str, MoneyDecimal]
+  PercentageDict = Dict[str, PercentageDecimal]
+  IntMoneyDict = Dict[int, MoneyDecimal]
+  ```
 
 2. **Model-level Validation**: A `validate_decimal_dictionaries` validator that checks all dictionary fields after model construction, enforcing proper precision for each value based on the field's annotation.
 
@@ -128,6 +136,7 @@ This comprehensive approach ensures consistent decimal validation throughout our
 ### Implementation Components
 
 1. **DecimalPrecision Utility Module**:
+
    ```python
    from decimal import Decimal, ROUND_HALF_UP
    from typing import List, Union, Optional, Any
@@ -189,6 +198,7 @@ This comprehensive approach ensures consistent decimal validation throughout our
    ```
 
 2. **Database Schema Updates**:
+
    ```python
    # Old definition
    amount = Column(Numeric(10, 2), nullable=False)
@@ -198,6 +208,7 @@ This comprehensive approach ensures consistent decimal validation throughout our
    ```
 
 3. **Pydantic V2 Annotated Types**:
+
    ```python
    from typing import Annotated, Dict
    from decimal import Decimal
@@ -235,6 +246,7 @@ This comprehensive approach ensures consistent decimal validation throughout our
    ```
 
 4. **Schema Implementation with Annotated Types**:
+
    ```python
    # Example schema class using Annotated types
    class BalanceDistribution(BaseSchemaValidator):
@@ -245,6 +257,7 @@ This comprehensive approach ensures consistent decimal validation throughout our
    ```
 
 5. **Dictionary Validation**:
+
    ```python
    class BaseSchemaValidator(BaseModel):
        """Base schema validator with UTC timezone and decimal validation."""
@@ -493,7 +506,8 @@ Based on our comprehensive inventory analysis, the following classification of f
    - The system presents a consistent financial interface
 
 Of particular note, we identified only one field that requires 4 decimal places at the API boundary:
-   - BalanceDistribution.percentage_of_total - This field represents calculated percentages where 4 decimal places provide necessary precision (e.g., 0.0123 or 1.23%).
+
+- `BalanceDistribution.percentage_of_total` - This field represents calculated percentages where 4 decimal places provide necessary precision (e.g., 0.0123 or 1.23%).
 
 Refer to `/docs/decimal_fields_inventory.md` for the complete inventory of affected fields and their categorization, which now includes all models and schemas with monetary fields.
 

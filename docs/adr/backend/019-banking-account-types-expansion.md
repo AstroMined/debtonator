@@ -1,8 +1,13 @@
+<!-- markdownlint-disable MD024 -->
 # ADR-019: Banking Account Types Expansion
 
 ## Status
 
-Proposed
+Accepted
+
+## Executive Summary
+
+Extends the polymorphic account architecture established in ADR-016 by implementing six specialized banking account types: traditional (checking, savings, credit) and modern financial services (payment apps, BNPL, earned wage access). This expansion provides comprehensive support for international banking with flexible account identification, currency handling, and regional variations, while implementing specialized business logic for each type. The implementation follows Debtonator's established architecture patterns with robust type-specific repositories, schemas, and services, enabling accurate representation of both traditional and emerging financial products within a consistent user experience.
 
 ## Context
 
@@ -487,25 +492,30 @@ class AccountService:
 Each account type will have specific business rules implemented at the service layer:
 
 #### Checking Account
+
 - If `has_overdraft_protection` is True, `overdraft_limit` must be provided
 - `routing_number` should follow a valid format (9 digits for US)
 
 #### Savings Account
+
 - `interest_rate` must be a valid percentage (0-100%)
 - `compound_frequency` must be one of: daily, monthly, quarterly, annually
 
 #### Credit Account
+
 - `credit_limit` must be greater than zero
 - `statement_balance` cannot exceed `credit_limit`
 - `minimum_payment` cannot exceed `statement_balance`
 - `apr` must be a valid percentage
 
 #### Payment App Account
+
 - `platform` must be one of the supported platforms
 - If `has_debit_card` is True, `card_last_four` should be provided
 - `linked_account_ids` should contain valid account IDs
 
 #### BNPL Account
+
 - `installment_count` must be greater than zero
 - `installments_paid` cannot exceed `installment_count`
 - `payment_frequency` must be one of: weekly, biweekly, monthly
@@ -513,6 +523,7 @@ Each account type will have specific business rules implemented at the service l
 - `current_balance` should equal (installment_count - installments_paid) * installment_amount
 
 #### EWA Account
+
 - `max_advance_percentage` must be between 0 and 100
 - `next_payday` must be in the future when creating account
 - `current_balance` represents the amount to be repaid on next payday
@@ -570,6 +581,263 @@ def update_bnpl_status(
     
     return updated_account
 ```
+
+### Frontend Considerations
+
+While detailed frontend implementation will be covered in a separate ADR, there are key considerations for the banking account types:
+
+- Each account type requires specialized display components to show type-specific attributes
+- The account creation workflow must adapt to the selected account type with dynamic form fields
+- Banking overview components need to handle multiple account types in a unified display
+- Upcoming payments visualization must represent different payment types with appropriate visuals
+- Different account types require different primary actions (pay bill, deposit funds, etc.)
+
+### Config, Utils, and Cross-Cutting Concerns
+
+The account type registry configuration is a critical component:
+
+```python
+# During application initialization
+account_type_registry = AccountTypeRegistry()
+
+# Register traditional banking accounts
+account_type_registry.register(
+    account_type_id="checking",
+    model_class=CheckingAccount,
+    schema_class=CheckingAccountCreate,
+    name="Checking Account",
+    description="Standard transaction account for day-to-day banking",
+    category="Banking"
+)
+
+# Additional account type registrations for other banking types...
+```
+
+International banking support requires specific utility functions:
+
+```python
+def format_account_number(account_number: str, account_format: str) -> str:
+    """Format account number based on regional format."""
+    if account_format == "iban":
+        # Format as IBAN with spaces every 4 characters
+        return " ".join([account_number[i:i+4] for i in range(0, len(account_number), 4)])
+    elif account_format == "uk":
+        # Format as UK sort code and account number
+        if len(account_number) >= 14:
+            sort_code = account_number[:6]
+            acc_num = account_number[6:]
+            return f"{sort_code[:2]}-{sort_code[2:4]}-{sort_code[4:6]} {acc_num}"
+    # Default to unformatted
+    return account_number
+```
+
+### Dependencies and External Systems
+
+The banking account types implementation depends on:
+
+- SQLAlchemy 2.0 with polymorphic model support
+- Pydantic 2.0 with discriminated union support
+- DateTime utils from ADR-011 for timezone handling
+- Decimal precision handling from ADR-013 for monetary values
+- Repository pattern from ADR-014 for data access
+- Feature flag system from ADR-024 for phased rollout
+
+### Implementation Impact
+
+This implementation affects multiple components across the system:
+
+- Database: Adds 6 new tables for the banking account types
+- Models: Adds polymorphic model classes with validations
+- Repositories: Extends repository layer with specialized queries
+- Services: Adds banking-specific business logic
+- API: Adds new endpoints for banking operations
+- UI: Requires specialized components for each account type
+- Configuration: Updates account type registry configuration
+- Test infrastructure: Adds fixtures and tests for banking types
+
+## Consequences
+
+### Positive
+
+1. **Comprehensive Financial Picture**: Users can track all their banking accounts in one place, including modern financial services that weren't previously supported.
+
+2. **Better Debt Tracking**: By properly modeling BNPL and EWA accounts, users get a more accurate view of their short-term debt obligations.
+
+3. **Enhanced Financial Insights**: The service layer can now provide more meaningful analysis across different account types.
+
+4. **Improved UX**: Type-specific fields and validation ensure that users provide only relevant information for each account type.
+
+5. **Future-Proof Design**: The polymorphic architecture makes it easy to add new account types as financial services evolve.
+
+### Negative
+
+1. **Increased Complexity**: The polymorphic design introduces more tables and relationships to maintain.
+
+2. **Query Performance**: Polymorphic queries may be more complex than single-table queries, potentially impacting performance for users with many accounts.
+
+3. **Testing Overhead**: Each account type requires thorough testing of its specific fields and validation rules.
+
+### Neutral
+
+1. **UI Adaptation Required**: Frontend components need to adapt to the different fields for each account type.
+
+2. **Database Migration**: New tables need to be created for each account type as part of the migration.
+
+## Quality Considerations
+
+- **Consistent Design Pattern**: This implementation follows the polymorphic model pattern established in ADR-016, ensuring architectural consistency across account types
+- **Specialized Validation**: Type-specific validation rules prevent invalid data and improve user experience
+- **International Compatibility**: Proper support for international banking systems prevents future rework to accommodate global users
+- **Code Organization**: Clean separation of account types simplifies maintenance and future enhancements
+- **Comprehensive Testing**: Each account type will have dedicated test suites ensuring proper behavior
+- **Improved Documentation**: Type-specific behavior is clearly documented, improving developer understanding
+- **Enhanced Error Handling**: Specialized error messages for each account type improve user feedback
+
+## Performance and Resource Considerations
+
+### Performance Impact
+
+- **Single Account Retrieval**: < 10ms (direct ID lookup with polymorphic loading)
+- **User Account List**: < 50ms for typical users (10-30 accounts)
+- **Banking Overview Calculation**: < 100ms (requires aggregation across account types)
+- **Account Creation/Update**: < 100ms (multiple validation layers but minimal impact)
+
+### Optimization Strategies
+
+- **Account Balance Denormalization**: Store calculated values to avoid complex queries
+- **Selective Loading**: Only load type-specific data when needed
+- **Strategic Indexing**: Index key fields for efficient filtering
+- **Caching Overview Data**: Cache banking overview with short TTL
+
+### Resource Usage
+
+- **Database Storage**: Minimal impact as fields are only stored when relevant to the account type
+- **Memory Usage**: Negligible increase in application memory footprint
+- **Network Bandwidth**: Reduced compared to current implementation as only relevant fields are transmitted
+
+## Development Considerations
+
+### Development Effort
+
+- **Model Implementation**: 1 week
+- **Schema and Repository Implementation**: 1 week
+- **Service Layer Implementation**: 1 week
+- **API Layer and Testing**: 2 weeks
+- **Total Estimate**: 5 weeks
+
+### Key Implementation Milestones
+
+1. Define and implement all model classes
+2. Implement schema classes with validations
+3. Extend repositories with banking-specific queries
+4. Implement service layer business logic
+5. Create API endpoints
+6. Develop comprehensive test suite
+
+### Required Refactoring
+
+- Current account model to support polymorphic inheritance
+- Current schema validation to handle discriminated unions
+- Repository queries to use polymorphic loading
+- Service methods to apply type-specific business rules
+
+## Security and Compliance Considerations
+
+- **Financial Data Protection**: All account data must be encrypted at rest
+- **Regional Compliance**: International banking support must adhere to regional regulations
+- **PII Handling**: Account numbers and other sensitive data require proper protection
+- **Authentication**: All banking operations require strong authentication
+- **Audit Logging**: Account modifications must be logged for security auditing
+
+## Timeline
+
+- **Week 1-2**: Model and Schema Implementation
+  - Define all account type models
+  - Implement schema validation
+  - Create type registry configuration
+
+- **Week 3-4**: Repository and Service Layer
+  - Implement repository methods
+  - Develop service layer business logic
+  - Implement banking overview calculations
+
+- **Week 5**: API Implementation
+  - Create banking-specific endpoints
+  - Implement API validation
+  - Develop error handling
+
+- **Week 6-7**: Testing and Documentation
+  - Create comprehensive test suite
+  - Document all banking account types
+  - Test international banking support
+
+## Monitoring & Success Metrics
+
+- **Account Type Adoption**: Track how many users create each type of account
+- **Feature Utilization**: Monitor usage of type-specific features
+- **Error Rates**: Track validation errors and failed operations by account type
+- **Query Performance**: Monitor execution time for polymorphic queries
+- **Data Quality**: Audit completeness and correctness of account data
+- **User Satisfaction**: Measure user feedback on account management features
+
+## Team Impact
+
+- **Backend Team**: Needs to implement and test all banking account types
+- **Frontend Team**: Needs to create type-specific forms and displays
+- **QA Team**: Needs to test each account type thoroughly
+- **UX Team**: Needs to design consistent interfaces across account types
+- **Documentation Team**: Needs to update user and API documentation
+
+## Related Documents
+
+- [ADR-011: DateTime Standardization](/code/debtonator/docs/adr/backend/011-datetime-standardization.md)
+- [ADR-012: Validation Layer Standardization](/code/debtonator/docs/adr/backend/012-validation-layer-standardization.md)
+- [ADR-013: Decimal Precision Handling](/code/debtonator/docs/adr/backend/013-decimal-precision-handling.md)
+- [ADR-014: Repository Layer for CRUD Operations](/code/debtonator/docs/adr/backend/014-repository-layer-for-crud-operations.md)
+- [ADR-016: Account Type Expansion - Foundation](/code/debtonator/docs/adr/backend/016-account-type-expansion.md)
+- [ADR-024: Feature Flag System](/code/debtonator/docs/adr/backend/024-feature-flags.md)
+
+## Notes
+
+### Modeling Hybrid Financial Platforms
+
+We decided to represent payment platforms like PayPal or Venmo primarily through the PaymentAppAccount type, which covers their wallet-like functionality. If a user also has a credit product from the same platform (e.g., PayPal Credit), that would be modeled as a separate CreditAccount with appropriate linking.
+
+This approach maintains clear separation of concerns while still acknowledging the relationship between connected accounts from the same provider.
+
+### Special BNPL Considerations
+
+Buy Now Pay Later (BNPL) accounts require special handling for lifecycle management. Once all installments are paid, the account should automatically be marked as closed. The `update_bnpl_status` method handles this transition.
+
+### International Banking Considerations
+
+The implementation includes comprehensive support for international banking systems:
+
+1. **Flexible Account Identification**:
+   - Support for IBAN (International Bank Account Number) used in Europe and many other countries
+   - Support for SWIFT/BIC codes for international transfers
+   - Support for sort codes used in the UK and Ireland
+   - Support for branch codes used in various countries including Canada, India, and Japan
+
+2. **Currency Handling**:
+   - Store account currency as a separate field with ISO 4217 currency code (e.g., USD, EUR, GBP)
+   - Support for display of amounts in the account's native currency
+   - Integration with currency conversion for multi-currency reporting
+
+3. **Regional Account Types**:
+   - Support for region-specific banking features like Canadian TFSAs, UK ISAs, etc.
+   - Account subtypes can be extended with regional variations
+
+4. **Naming Conventions**:
+   - Labels adaptable to regional terminology (e.g., "checking" in US vs. "current" in UK)
+   - Flexible display options for account numbers based on regional formats
+
+## Updates
+
+| Date | Revision | Author | Description |
+|------|-----------|---------|-------------|
+| 2025-04-01 | 1.0 | Debtonator Team | Initial draft |
+| 2025-04-20 | 2.0 | Debtonator Team | Updated to match new ADR template format |
 
 ### Account Type Registry Updates
 
@@ -676,6 +944,7 @@ account_type_registry.register(
 Given the potential performance impact of the polymorphic design, we will implement several optimization strategies:
 
 1. **Selective Loading Strategy**:
+
    ```python
    # When only base fields are needed
    accounts = session.query(Account).filter(Account.user_id == user_id).all()
@@ -781,7 +1050,7 @@ This approach maintains clear separation of concerns while still acknowledging t
 
 The expanded account types must integrate seamlessly with Debtonator's core bill splitting functionality. The implementation will ensure:
 
-1. **Type-Appropriate Validation**: 
+1. **Type-Appropriate Validation**:
    - Only certain account types should be eligible for bill splits (e.g., checking accounts, credit accounts)
    - BNPL accounts should not be used for bill splits as they are already tied to specific purchases
    - EWA accounts should not be used for bill splits as they represent advances on income

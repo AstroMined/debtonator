@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Proposed (very rough draft based on old backend architecture, needs significant updates)
 
 ## Context
 

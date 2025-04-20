@@ -11,13 +11,11 @@ This ADR establishes a three-layer validation architecture across the Debtonator
 ## Context
 
 Our validation architecture had logic scattered across multiple layers:
-
 - SQLAlchemy models using @validates decorators
 - Pydantic schemas for data validation
 - Business logic in models that should be in services
 
 This created several issues:
-
 - Unclear responsibility boundaries
 - Potential for validation conflicts
 - Business logic mixed with data persistence
@@ -74,7 +72,6 @@ graph TD
 ```
 
 This architecture establishes clear boundaries:
-
 - Pydantic handles structural validation at system boundaries
 - Services contain all business logic and rules
 - SQLAlchemy focuses solely on data persistence with database-level constraints
@@ -105,7 +102,6 @@ class Account(BaseDBModel):
 ```
 
 Key changes to models:
-
 - Removed all @validates decorators
 - Moved calculated properties to service layer
 - Eliminated business logic methods
@@ -139,7 +135,6 @@ class AccountRepository(BaseRepository[Account, int]):
 ```
 
 Key repository patterns:
-
 - No validation logic
 - Focus on efficient data retrieval
 - Relationship loading options
@@ -182,7 +177,6 @@ class AccountBase(BaseModel):
 ```
 
 Validation strategies in schemas:
-
 - Field-level constraints with Pydantic Field
 - Cross-field validation with field_validator
 - Type conversion and validation
@@ -259,7 +253,6 @@ class AccountService:
 ```
 
 Service layer validation patterns:
-
 - Business rule validation in dedicated methods
 - Clear separation from data access logic
 - Comprehensive validation before data changes
@@ -298,7 +291,6 @@ async def update_account(
 ```
 
 API validation flow:
-
 - Pydantic validates request structure
 - Service validates business rules
 - Clear error responses for validation failures
@@ -351,7 +343,6 @@ The validation standardization required refactoring all 18 models and their corr
    - Improved transaction management
 
 This refactoring followed a systematic approach:
-
 - Phase 1: Schema Enhancement (Completed)
 - Phase 2: Model Simplification (Completed)
 - Phase 3: Service Enhancement (Completed)

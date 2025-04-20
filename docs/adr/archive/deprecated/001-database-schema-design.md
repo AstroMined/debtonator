@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Deprecated
 
 ## Context
 
@@ -13,6 +13,7 @@ Proposed
 - Must support future features like real-time updates and mobile access
 
 ### Key Considerations
+
 - Historical data preservation (4,970 bills, 528 income records)
 - Account balance tracking
 - Payment status history
@@ -25,6 +26,7 @@ Proposed
 Propose a normalized database schema with the following core tables:
 
 ### Bills
+
 ```sql
 CREATE TABLE bills (
     id INTEGER PRIMARY KEY,
@@ -45,6 +47,7 @@ CREATE TABLE bills (
 ```
 
 ### Income
+
 ```sql
 CREATE TABLE income (
     id INTEGER PRIMARY KEY,
@@ -58,6 +61,7 @@ CREATE TABLE income (
 ```
 
 ### Accounts
+
 ```sql
 CREATE TABLE accounts (
     id INTEGER PRIMARY KEY,
@@ -71,6 +75,7 @@ CREATE TABLE accounts (
 ```
 
 ### AccountTransactions
+
 ```sql
 CREATE TABLE account_transactions (
     id INTEGER PRIMARY KEY,
@@ -88,6 +93,7 @@ CREATE TABLE account_transactions (
 ```
 
 ### RecurringBills
+
 ```sql
 CREATE TABLE recurring_bills (
     id INTEGER PRIMARY KEY,
@@ -104,6 +110,7 @@ CREATE TABLE recurring_bills (
 ```
 
 ### CashflowForecasts
+
 ```sql
 CREATE TABLE cashflow_forecasts (
     id INTEGER PRIMARY KEY,
@@ -136,6 +143,7 @@ CREATE TABLE cashflow_forecasts (
    - More robust backup solutions
 
 ### Migration Strategy
+
 1. Create schema in SQLite
 2. Develop migration scripts
 3. Import historical data
@@ -143,6 +151,7 @@ CREATE TABLE cashflow_forecasts (
 5. Plan MySQL migration
 
 ### Indexing Strategy
+
 ```sql
 -- Bills table indexes
 CREATE INDEX idx_bills_due_date ON bills(due_date);
@@ -164,6 +173,7 @@ CREATE INDEX idx_forecasts_date ON cashflow_forecasts(date);
 ## Consequences
 
 ### Positive
+
 - Normalized structure prevents data redundancy
 - Clear relationships between entities
 - Easy to extend for future features
@@ -172,65 +182,76 @@ CREATE INDEX idx_forecasts_date ON cashflow_forecasts(date);
 - Maintains data integrity
 
 ### Negative
+
 - More complex than current Excel structure
 - Requires careful migration planning
 - Need to maintain referential integrity
 - May require more complex queries for some calculations
 
 ### Neutral
+
 - Different calculation approach needed
 - Will require stored procedures or application logic
 - Need to handle timezone considerations
 - Regular backup strategy required
 
 ## Performance Impact
+
 - Indexed queries should perform well
 - May need optimization for large datasets
 - Consider caching for frequent calculations
 - Monitor query performance during development
 
 ## Cost Considerations
+
 - Free open-source databases
 - Low infrastructure requirements
 - Development time for migration
 - Testing and validation effort
 
 ## Compliance & Security
+
 - Financial data requires encryption
 - Access control needed
 - Audit trail for changes
 - Regular backups required
 
 ## Dependencies
+
 - SQLite for development
 - MySQL/MariaDB for production
 - Backup solution
 - Migration tools
 
 ## Timeline
+
 1. Schema implementation: 1 week
 2. Migration scripts: 1 week
 3. Testing and validation: 1 week
 4. Production deployment: 1 week
 
 ## Monitoring & Success Metrics
+
 - Data integrity checks
 - Query performance metrics
 - Migration success rate
 - Application performance
 
 ## Team Impact
+
 - Training on new schema
 - Documentation requirements
 - Testing procedures
 - Operational procedures
 
 ## Related Documents
+
 - Project Brief
 - Technical Context
 - System Patterns
 
 ## Notes
+
 - Consider versioning for schema changes
 - Plan for future extensibility
 - Document all constraints and relationships

@@ -1,32 +1,705 @@
+<!-- markdownlint-disable MD024 -->
 # ADR-020: Loan Account Types Expansion
 
 ## Status
 
-Proposed
+Accepted
 
-## Context
+## Executive Summary
 
-Following the foundation established in ADR-016 (Account Type Expansion) and building upon the banking account types from ADR-019, we need to implement loan-specific account types to provide users with a comprehensive view of their financial obligations. Loans represent a significant portion of many users' financial lives, and proper tracking is essential for accurate financial planning.
+Extends the polymorphic account architecture established in ADR-016 by implementing specialized loan account types for personal loans, auto loans, mortgages, and student loans, with a shared base LoanAccount class that captures common loan attributes. This expansion provides comprehensive support for loan-specific features including amortization calculations, payment tracking, interest computation, and specialized fields for various loan types. The implementation enables powerful payoff forecasting, "what-if" scenario analysis, and debt reduction strategy tools, with specialized handling for student loans with forgiveness programs and mortgages with escrow tracking, enhancing Debtonator's ability to serve users with diverse debt management needs.
 
-Current limitations in our account system include:
+## Technical Details
 
-1. Incomplete representation of various loan types such as personal loans, auto loans, mortgages, and student loans
-2. Inability to track loan-specific attributes like amortization schedules, interest calculations, and payoff forecasting
-3. Lack of specialized validation rules for different loan account types
-4. Missing support for features like early payoff calculations and payment allocation strategies
+### Architecture Overview
 
-These limitations prevent users from effectively managing their loans within Debtonator and limit our ability to provide meaningful insights for debt reduction strategies.
+This ADR extends the polymorphic account model foundation established in ADR-016 by implementing specialized loan account types. The architecture introduces:
 
-## Decision
+- **Base LoanAccount Class**: A shared parent model capturing common loan attributes
+- **Specialized Loan Type Models**: Inheritance hierarchy for different loan types
+- **Amortization Service**: Centralized loan calculation functionality
+- **Loan-Specific Repositories and Services**: Specialized data access and business logic
 
-We will implement the following loan account types as part of the polymorphic inheritance structure defined in ADR-016:
+This design enables accurate representation of diverse loan types while sharing common loan functionality across all types.
 
-1. **Personal Loan Account**: For unsecured personal loans from banks, credit unions, or online lenders
-2. **Auto Loan Account**: For vehicle financing with specific vehicle information
-3. **Mortgage Account**: For home loans with property information and escrow tracking
-4. **Student Loan Account**: For education loans with specialized repayment and forgiveness options
+### Data Layer
 
-Each account type will have specialized attributes and business logic to accurately represent its unique characteristics while supporting Debtonator's core debt management features.
+#### Models
+
+The loan account types use a two-level inheritance hierarchy:
+
+```python
+class LoanAccount(Account):
+    """Base class for all loan account types"""
+    __tablename__ = "loan_accounts"
+    
+    id = Column(Integer, ForeignKey("accounts.id"), primary_key=True)
+    original_loan_amount = Column(Numeric(12, 4), nullable=False)
+    interest_rate = Column(Numeric(6, 4), nullable=False)
+    term_months = Column(Integer, nullable=False)
+    start_date = Column(DateTime(timezone=True), nullable=False)
+    payment_amount = Column(Numeric(12, 4), nullable=False)
+    payment_due_day = Column(Integer, nullable=False)  # Day of month (1-31)
+    remaining_term = Column(Integer, nullable=True)  # Calculated or explicitly set
+    prepayment_penalty = Column(Boolean, default=False, nullable=False)
+    loan_status = Column(String, default="active", nullable=False)  # active, paid_off, defaulted, etc.
+    
+    __mapper_args__ = {
+        "polymorphic_identity": "loan",
+    }
+```
+
+Specialized loan types inherit from the base LoanAccount:
+
+```python
+class PersonalLoanAccount(LoanAccount):
+    """Personal unsecured loans"""
+    __tablename__ = "personal_loan_accounts"
+    
+    id = Column(Integer, ForeignKey("loan_accounts.id"), primary_key=True)
+    purpose = Column(String, nullable=True)  # Debt consolidation, home improvement, etc.
+    is_secured = Column(Boolean, default=False, nullable=False)
+    collateral_description = Column(String, nullable=True)
+    
+    __mapper_args__ = {
+        "polymorphic_identity": "personal_loan",
+    }
+
+class AutoLoanAccount(LoanAccount):
+    """Auto loans for vehicle financing"""
+    __tablename__ = "auto_loan_accounts"
+    
+    id = Column(Integer, ForeignKey("loan_accounts.id"), primary_key=True)
+    vehicle_make = Column(String, nullable=False)
+    vehicle_model = Column(String, nullable=False)
+    vehicle_year = Column(Integer, nullable=False)
+    vehicle_vin = Column(String, nullable=True)
+    
+    __mapper_args__ = {
+        "polymorphic_identity": "auto_loan",
+    }
+
+class MortgageAccount(LoanAccount):
+    """Home mortgage loans"""
+    __tablename__ = "mortgage_accounts"
+    
+    id = Column(Integer, ForeignKey("loan_accounts.id"), primary_key=True)
+    property_address = Column(String, nullable=False)
+    property_type = Column(String, nullable=False)  # Single family, condo, etc.
+    is_primary_residence = Column(Boolean, default=True, nullable=False)
+    escrow_amount = Column(Numeric(12, 4), nullable=True)
+    property_tax_annual = Column(Numeric(12, 4), nullable=True)
+    insurance_annual = Column(Numeric(12, 4), nullable=True)
+    mortgage_type = Column(String, nullable=False)  # Fixed, ARM, etc.
+    interest_only_period = Column(Integer, nullable=True)  # Months of interest-only payments
+    adjustment_period = Column(Integer, nullable=True)  # For ARMs, months between rate adjustments
+    rate_cap = Column(Numeric(6, 4), nullable=True)  # For ARMs, maximum interest rate
+    
+    __mapper_args__ = {
+        "polymorphic_identity": "mortgage",
+    }
+
+class StudentLoanAccount(LoanAccount):
+    """Education loans with specialized options"""
+    __tablename__ = "student_loan_accounts"
+    
+    id = Column(Integer, ForeignKey("loan_accounts.id"), primary_key=True)
+    loan_program = Column(String, nullable=False)  # Federal Direct, Private, etc.
+    is_subsidized = Column(Boolean, default=False, nullable=False)
+    deferment_status = Column(String, nullable=True)  # None, in-school, economic hardship, etc.
+    repayment_plan = Column(String, nullable=True)  # Standard, income-based, etc.
+    forgiveness_program = Column(String, nullable=True)  # PSLF, Teacher Forgiveness, etc.
+    forgiveness_progress_months = Column(Integer, nullable=True)
+    education_institution = Column(String, nullable=True)
+    
+    __mapper_args__ = {
+        "polymorphic_identity": "student_loan",
+    }
+```
+
+#### Repositories
+
+The loan account types use the `PolymorphicBaseRepository` pattern from ADR-016, extended with loan-specific methods:
+
+```python
+class LoanAccountRepository(PolymorphicBaseRepository[LoanAccount, int]):
+    """Repository for loan account operations."""
+    
+    # Set the discriminator field and registry
+    discriminator_field = "account_type"
+    registry = account_type_registry
+    
+    def get_loans_by_user(self, user_id: int) -> List[LoanAccount]:
+        """Get all loan accounts for a user."""
+        result = await self.session.execute(
+            select(LoanAccount).where(
+                LoanAccount.user_id == user_id,
+                LoanAccount.is_closed == False
+            )
+        )
+        return result.scalars().all()
+    
+    def get_loans_with_upcoming_payments(
+        self, user_id: int, days: int = 14
+    ) -> List[LoanAccount]:
+        """Get loans with payments due in the next X days."""
+        now = datetime_utils.utc_now()
+        today = now.day
+        end_date = datetime_utils.add_days(now, days)
+        
+        # Complex query to handle monthly payment due days
+        result = await self.session.execute(
+            select(LoanAccount).where(
+                LoanAccount.user_id == user_id,
+                LoanAccount.is_closed == False,
+                or_(
+                    # Due dates in this month
+                    and_(
+                        LoanAccount.payment_due_day >= today,
+                        LoanAccount.payment_due_day <= today + days
+                    ),
+                    # Due dates in next month
+                    and_(
+                        LoanAccount.payment_due_day < today,
+                        today + days > DateTime.days_in_month(now.year, now.month)
+                    )
+                )
+            )
+        )
+        return result.scalars().all()
+    
+    def get_student_loans_by_forgiveness_program(
+        self, forgiveness_program: str
+    ) -> List[StudentLoanAccount]:
+        """Get student loans by forgiveness program."""
+        result = await self.session.execute(
+            select(StudentLoanAccount).where(
+                StudentLoanAccount.forgiveness_program == forgiveness_program,
+                StudentLoanAccount.is_closed == False
+            )
+        )
+        return result.scalars().all()
+```
+
+### Business Logic Layer
+
+#### Schemas
+
+Each loan type has corresponding Pydantic schemas for validation:
+
+```python
+class LoanAccountBase(AccountBase):
+    """Base schema for all loan accounts"""
+    original_loan_amount: MoneyDecimal
+    interest_rate: PercentageDecimal
+    term_months: int
+    start_date: datetime
+    payment_amount: MoneyDecimal
+    payment_due_day: int
+    prepayment_penalty: bool = False
+    loan_status: str = "active"
+    
+    @field_validator("payment_due_day")
+    @classmethod
+    def validate_due_day(cls, v):
+        if v < 1 or v > 31:
+            raise ValueError("Payment due day must be between 1 and 31")
+        return v
+    
+    @field_validator("interest_rate")
+    @classmethod
+    def validate_interest_rate(cls, v):
+        if v < 0:
+            raise ValueError("Interest rate cannot be negative")
+        return v
+    
+    @field_validator("term_months")
+    @classmethod
+    def validate_term(cls, v):
+        if v <= 0:
+            raise ValueError("Loan term must be positive")
+        return v
+
+class LoanAccountCreate(LoanAccountBase, AccountCreate):
+    """Base create schema for loan accounts"""
+    pass
+
+class LoanAccountResponse(LoanAccountBase, AccountResponse):
+    """Base response schema for loan accounts"""
+    remaining_term: Optional[int] = None
+```
+
+Type-specific schemas extend the base loan schemas:
+
+```python
+class MortgageAccountCreate(LoanAccountCreate):
+    """Create schema for mortgage accounts"""
+    account_type: Literal["mortgage"]
+    property_address: str
+    property_type: str
+    is_primary_residence: bool = True
+    escrow_amount: Optional[MoneyDecimal] = None
+    property_tax_annual: Optional[MoneyDecimal] = None
+    insurance_annual: Optional[MoneyDecimal] = None
+    mortgage_type: str
+    interest_only_period: Optional[int] = None
+    adjustment_period: Optional[int] = None
+    rate_cap: Optional[PercentageDecimal] = None
+    
+    @field_validator("mortgage_type")
+    @classmethod
+    def validate_mortgage_type(cls, v):
+        allowed_types = ["fixed", "arm", "balloon", "interest_only", "reverse"]
+        if v.lower() not in allowed_types:
+            raise ValueError(f"Mortgage type must be one of: {', '.join(allowed_types)}")
+        return v.lower()
+
+class MortgageAccountResponse(LoanAccountResponse):
+    """Response schema for mortgage accounts"""
+    account_type: Literal["mortgage"]
+    property_address: str
+    property_type: str
+    is_primary_residence: bool
+    escrow_amount: Optional[MoneyDecimal] = None
+    property_tax_annual: Optional[MoneyDecimal] = None
+    insurance_annual: Optional[MoneyDecimal] = None
+    mortgage_type: str
+    interest_only_period: Optional[int] = None
+    adjustment_period: Optional[int] = None
+    rate_cap: Optional[PercentageDecimal] = None
+```
+
+Discriminated unions enable API endpoints to handle all loan types:
+
+```python
+LoanAccountCreateUnion = Annotated[
+    Union[
+        PersonalLoanAccountCreate,
+        AutoLoanAccountCreate,
+        MortgageAccountCreate,
+        StudentLoanAccountCreate,
+    ],
+    Field(discriminator="account_type")
+]
+
+LoanAccountResponseUnion = Annotated[
+    Union[
+        PersonalLoanAccountResponse,
+        AutoLoanAccountResponse,
+        MortgageAccountResponse,
+        StudentLoanAccountResponse,
+    ],
+    Field(discriminator="account_type")
+]
+```
+
+#### Services
+
+A specialized `LoanAmortizationService` provides loan calculation functionality:
+
+```python
+class LoanAmortizationService:
+    """Service for loan amortization calculations"""
+    
+    @staticmethod
+    def calculate_payment(principal: Decimal, annual_rate: Decimal, term_months: int) -> Decimal:
+        """Calculate monthly payment amount for a loan"""
+        if annual_rate == 0:
+            return principal / term_months
+        
+        monthly_rate = annual_rate / 12 / 100
+        x = (1 + monthly_rate) ** term_months
+        return principal * (monthly_rate * x) / (x - 1)
+    
+    @staticmethod
+    def generate_amortization_schedule(
+        principal: Decimal,
+        annual_rate: Decimal,
+        term_months: int,
+        payment: Optional[Decimal] = None,
+        extra_payment: Decimal = Decimal("0")
+    ) -> List[Dict]:
+        """Generate complete amortization schedule for a loan"""
+        if payment is None:
+            payment = LoanAmortizationService.calculate_payment(principal, annual_rate, term_months)
+        
+        total_payment = payment + extra_payment
+        monthly_rate = annual_rate / 12 / 100
+        
+        schedule = []
+        balance = principal
+        month = 1
+        
+        while balance > 0 and month <= term_months + 120:  # Add buffer to prevent infinite loops
+            interest_payment = balance * monthly_rate
+            principal_payment = min(total_payment - interest_payment, balance)
+            
+            # Handle final payment
+            if balance < total_payment:
+                principal_payment = balance
+                interest_payment = balance * monthly_rate
+            
+            balance = balance - principal_payment
+            
+            schedule.append({
+                "month": month,
+                "payment": principal_payment + interest_payment,
+                "principal": principal_payment,
+                "interest": interest_payment,
+                "extra_payment": extra_payment if balance > 0 else Decimal("0"),
+                "balance": balance
+            })
+            
+            # If loan is paid off, stop
+            if balance <= 0:
+                break
+                
+            month += 1
+        
+        return schedule
+    
+    @staticmethod
+    def calculate_payoff_date(
+        current_balance: Decimal,
+        annual_rate: Decimal,
+        monthly_payment: Decimal,
+        extra_payment: Decimal = Decimal("0")
+    ) -> datetime:
+        """Calculate payoff date given current balance and payment information"""
+        if monthly_payment <= 0:
+            raise ValueError("Monthly payment must be positive")
+            
+        total_payment = monthly_payment + extra_payment
+        monthly_rate = annual_rate / 12 / 100
+        
+        # If payment doesn't cover interest, loan will never be paid off
+        if total_payment <= current_balance * monthly_rate:
+            raise ValueError("Payment too small to pay off loan")
+        
+        months_to_payoff = 0
+        balance = current_balance
+        
+        while balance > 0 and months_to_payoff < 1200:  # 100 years max to prevent infinite loops
+            interest_payment = balance * monthly_rate
+            principal_payment = min(total_payment - interest_payment, balance)
+            balance -= principal_payment
+            months_to_payoff += 1
+        
+        # Calculate date by adding months to today
+        return datetime_utils.add_months(datetime_utils.utc_now(), months_to_payoff)
+    
+    @staticmethod
+    def calculate_loan_stats(loan_account: LoanAccount) -> Dict:
+        """Calculate comprehensive loan statistics for a loan account"""
+        # Convert to right types for calculations
+        current_balance = loan_account.current_balance
+        original_amount = loan_account.original_loan_amount
+        interest_rate = loan_account.interest_rate
+        payment = loan_account.payment_amount
+        term_months = loan_account.term_months
+        
+        # Calculate standard stats
+        monthly_rate = interest_rate / 12 / 100
+        total_payments_made = term_months - (loan_account.remaining_term or 0)
+        principal_paid = original_amount - current_balance
+        
+        # Generate amortization schedule for future payments
+        schedule = LoanAmortizationService.generate_amortization_schedule(
+            principal=current_balance,
+            annual_rate=interest_rate,
+            term_months=loan_account.remaining_term or term_months,
+            payment=payment
+        )
+        
+        # Calculate total interest over life of loan
+        total_interest_paid = sum(payment.interest for payment in schedule)
+        
+        # Calculate payoff date
+        payoff_date = LoanAmortizationService.calculate_payoff_date(
+            current_balance=current_balance,
+            annual_rate=interest_rate,
+            monthly_payment=payment
+        )
+        
+        return {
+            "original_amount": original_amount,
+            "current_balance": current_balance,
+            "principal_paid": principal_paid,
+            "interest_paid_to_date": None,  # Would require payment history
+            "total_interest": total_interest_paid,
+            "monthly_payment": payment,
+            "total_payments_made": total_payments_made,
+            "remaining_payments": len(schedule),
+            "payoff_date": payoff_date,
+            "percent_paid": (principal_paid / original_amount * 100) if original_amount > 0 else 0
+        }
+```
+
+The `AccountService` is extended with loan-specific methods:
+
+```python
+class AccountService:
+    # ... existing methods from ADR-016 and ADR-019 ...
+    
+    def get_loan_accounts(self, user_id: int) -> List[LoanAccount]:
+        """Get all loan accounts for a user"""
+        return self.account_repository.get_by_user_and_types(
+            user_id, 
+            ["personal_loan", "auto_loan", "mortgage", "student_loan"]
+        )
+    
+    def calculate_loan_payoff_with_extra_payment(
+        self, loan_id: int, extra_payment: Decimal
+    ) -> Dict:
+        """Calculate the impact of making extra payments on a loan"""
+        loan = self.get_account(loan_id)
+        if not loan or not isinstance(loan, LoanAccount):
+            raise ValueError("Account is not a loan account")
+            
+        # Calculate standard payoff stats
+        standard_schedule = LoanAmortizationService.generate_amortization_schedule(
+            principal=loan.current_balance,
+            annual_rate=loan.interest_rate,
+            term_months=loan.remaining_term or loan.term_months,
+            payment=loan.payment_amount
+        )
+        
+        standard_payoff = {
+            "total_payments": len(standard_schedule),
+            "total_interest": sum(payment["interest"] for payment in standard_schedule),
+            "payoff_date": datetime_utils.add_months(
+                datetime_utils.utc_now(), 
+                len(standard_schedule)
+            )
+        }
+        
+        # Calculate accelerated payoff stats
+        accelerated_schedule = LoanAmortizationService.generate_amortization_schedule(
+            principal=loan.current_balance,
+            annual_rate=loan.interest_rate,
+            term_months=loan.remaining_term or loan.term_months,
+            payment=loan.payment_amount,
+            extra_payment=extra_payment
+        )
+        
+        accelerated_payoff = {
+            "total_payments": len(accelerated_schedule),
+            "total_interest": sum(payment["interest"] for payment in accelerated_schedule),
+            "payoff_date": datetime_utils.add_months(
+                datetime_utils.utc_now(), 
+                len(accelerated_schedule)
+            )
+        }
+        
+        # Calculate savings
+        months_saved = standard_payoff["total_payments"] - accelerated_payoff["total_payments"]
+        interest_saved = standard_payoff["total_interest"] - accelerated_payoff["total_interest"]
+        
+        return {
+            "standard_payoff": standard_payoff,
+            "accelerated_payoff": accelerated_payoff,
+            "months_saved": months_saved,
+            "interest_saved": interest_saved,
+            "extra_payment": extra_payment,
+            "total_extra_payments": extra_payment * accelerated_payoff["total_payments"]
+        }
+    
+    def get_debt_reduction_strategies(self, user_id: int) -> Dict:
+        """Calculate debt reduction strategies (snowball and avalanche)"""
+        loan_accounts = self.get_loan_accounts(user_id)
+        credit_accounts = self.account_repository.get_by_user_and_type(user_id, "credit")
+        
+        # Combine all debt accounts for calculation
+        debt_accounts = []
+        
+        for loan in loan_accounts:
+            if loan.is_closed:
+                continue
+                
+            debt_accounts.append({
+                "id": loan.id,
+                "name": loan.name,
+                "type": loan.account_type,
+                "balance": loan.current_balance,
+                "interest_rate": loan.interest_rate,
+                "minimum_payment": loan.payment_amount
+            })
+        
+        for credit in credit_accounts:
+            if credit.is_closed:
+                continue
+                
+            debt_accounts.append({
+                "id": credit.id,
+                "name": credit.name,
+                "type": "credit",
+                "balance": credit.current_balance,
+                "interest_rate": credit.apr or Decimal("0"),
+                "minimum_payment": credit.minimum_payment or Decimal("0")
+            })
+        
+        # Sort by balance for snowball method (smallest balance first)
+        snowball_order = sorted(debt_accounts, key=lambda x: x["balance"])
+        
+        # Sort by interest rate for avalanche method (highest rate first)
+        avalanche_order = sorted(debt_accounts, key=lambda x: x["interest_rate"], reverse=True)
+        
+        return {
+            "total_debt": sum(account["balance"] for account in debt_accounts),
+            "accounts_count": len(debt_accounts),
+            "snowball_strategy": snowball_order,
+            "avalanche_strategy": avalanche_order,
+            "minimum_monthly_payment": sum(account["minimum_payment"] for account in debt_accounts)
+        }
+```
+
+### API Layer
+
+The API layer provides endpoints for loan account management:
+
+```python
+@router.post("/accounts/loans", response_model=LoanAccountResponseUnion)
+def create_loan_account(
+    account_data: LoanAccountCreateUnion,
+    current_user: User = Depends(get_current_user),
+    account_service: AccountService = Depends(get_account_service)
+):
+    """Create a new loan account."""
+    data_dict = account_data.model_dump()
+    data_dict["user_id"] = current_user.id
+    return account_service.create_account(data_dict)
+
+@router.get("/accounts/loans", response_model=List[LoanAccountResponseUnion])
+def get_loan_accounts(
+    current_user: User = Depends(get_current_user),
+    account_service: AccountService = Depends(get_account_service)
+):
+    """Get all loan accounts for the current user."""
+    return account_service.get_loan_accounts(current_user.id)
+
+@router.get("/accounts/loans/{loan_id}/amortization", response_model=List[AmortizationScheduleItem])
+def get_loan_amortization(
+    loan_id: int,
+    extra_payment: Decimal = Query(0, description="Optional extra payment per month"),
+    current_user: User = Depends(get_current_user),
+    account_service: AccountService = Depends(get_account_service)
+):
+    """Get amortization schedule for a loan."""
+    loan = account_service.get_account(loan_id)
+    if not loan or loan.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Loan account not found")
+    
+    if not isinstance(loan, LoanAccount):
+        raise HTTPException(status_code=400, detail="Account is not a loan account")
+    
+    schedule = LoanAmortizationService.generate_amortization_schedule(
+        principal=loan.current_balance,
+        annual_rate=loan.interest_rate,
+        term_months=loan.remaining_term or loan.term_months,
+        payment=loan.payment_amount,
+        extra_payment=extra_payment
+    )
+    
+    return schedule
+
+@router.get("/accounts/loans/{loan_id}/extra-payment-impact", response_model=ExtraPaymentImpactResponse)
+def calculate_extra_payment_impact(
+    loan_id: int,
+    extra_payment: Decimal = Query(..., description="Extra payment per month"),
+    current_user: User = Depends(get_current_user),
+    account_service: AccountService = Depends(get_account_service)
+):
+    """Calculate the impact of extra payments on a loan."""
+    loan = account_service.get_account(loan_id)
+    if not loan or loan.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Loan account not found")
+    
+    if not isinstance(loan, LoanAccount):
+        raise HTTPException(status_code=400, detail="Account is not a loan account")
+    
+    return account_service.calculate_loan_payoff_with_extra_payment(loan_id, extra_payment)
+
+@router.get("/accounts/debt-reduction-strategies", response_model=DebtReductionStrategiesResponse)
+def get_debt_reduction_strategies(
+    current_user: User = Depends(get_current_user),
+    account_service: AccountService = Depends(get_account_service)
+):
+    """Get debt reduction strategies (snowball and avalanche) for all debt accounts."""
+    return account_service.get_debt_reduction_strategies(current_user.id)
+```
+
+### Frontend Considerations
+
+While detailed frontend implementation will be covered in a separate ADR, there are key considerations for the loan account types:
+
+- Amortization schedule visualization with interactive charts
+- Loan payoff calculators with sliders for extra payment amounts
+- Comparative displays for different debt reduction strategies
+- Specialized loan detail pages for each loan type
+- Loan selector components for payment allocation
+
+### Config, Utils, and Cross-Cutting Concerns
+
+The account type registry configuration is extended to include loan types:
+
+```python
+# During application initialization
+account_type_registry = AccountTypeRegistry()
+
+# Register loan account types
+account_type_registry.register(
+    account_type_id="personal_loan",
+    model_class=PersonalLoanAccount,
+    schema_class=PersonalLoanAccountCreate,
+    name="Personal Loan",
+    description="Unsecured personal loan from a bank or lender",
+    category="Loans"
+)
+
+account_type_registry.register(
+    account_type_id="auto_loan",
+    model_class=AutoLoanAccount,
+    schema_class=AutoLoanAccountCreate,
+    name="Auto Loan",
+    description="Vehicle financing loan with vehicle as collateral",
+    category="Loans"
+)
+
+# Additional loan type registrations...
+```
+
+Utility functions support loan calculations:
+
+```python
+def calculate_months_between_dates(start_date: datetime, end_date: datetime) -> int:
+    """Calculate the number of months between two dates."""
+    return (end_date.year - start_date.year) * 12 + end_date.month - start_date.month
+
+def calculate_monthly_interest(principal: Decimal, annual_rate: Decimal) -> Decimal:
+    """Calculate monthly interest amount based on principal and annual rate."""
+    return principal * (annual_rate / 12 / 100)
+```
+
+### Dependencies and External Systems
+
+The loan account types implementation depends on:
+
+- SQLAlchemy 2.0 with polymorphic model support
+- Pydantic 2.0 with discriminated union support
+- DateTime utils from ADR-011 for payment date calculations
+- Decimal precision handling from ADR-013 for monetary calculations
+- Feature flag system from ADR-024 for phased rollout
+
+### Implementation Impact
+
+This implementation affects multiple components across the system:
+
+- Database: Adds 5 new tables (1 base loan table + 4 specific loan type tables)
+- Models: Adds polymorphic model classes with loan-specific validations
+- Repositories: Extends repository layer with specialized loan queries
+- Services: Adds loan-specific business logic and calculation services
+- API: Adds new endpoints for loan operations and calculations
+- UI: Requires specialized components for loan visualization and management
 
 ## Technical Details
 
@@ -774,18 +1447,21 @@ The loan account implementation must adhere to several compliance requirements:
 The loan account types will be implemented in three phases:
 
 ### Phase 1: Core Infrastructure (Week 1-2)
+
 - Database model implementation
 - Pydantic schema creation
 - Basic repository and service methods
 - Initial API endpoints
 
 ### Phase 2: Calculation Engine (Week 3-4)
+
 - Amortization schedule calculations
 - Extra payment impact analysis
 - Debt reduction strategy implementation
 - Payoff date forecasting
 
 ### Phase 3: Integration & UI (Week 5-6)
+
 - Integration with existing features
 - User interface components
 - Educational content
@@ -895,3 +1571,4 @@ Mortgages with escrow accounts require special handling:
 | Date | Revision | Author | Description |
 |------|----------|--------|-------------|
 | 2025-04-11 | 1.0 | Debtonator Team | Initial draft |
+| 2025-04-20 | 2.0 | Debtonator Team | Updated to match new ADR template format |

@@ -1,7 +1,7 @@
 # ADR-006: Redux Toolkit State Management Implementation
 
 ## Status
-Accepted
+Proposed (very rough draft based on old backend architecture, needs significant updates)
 
 ## Context
 The application needed a robust state management solution to handle:

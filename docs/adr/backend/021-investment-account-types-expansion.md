@@ -2,7 +2,11 @@
 
 ## Status
 
-Proposed
+Accepted
+
+## Executive Summary
+
+Extends the polymorphic account architecture established in ADR-016 by implementing specialized investment account types (brokerage, retirement, HSA, cryptocurrency) with a shared base InvestmentAccount class. This expansion introduces a sophisticated investment holdings model to track portfolio composition, performance metrics, and account-specific attributes across diverse investment vehicles. The implementation provides comprehensive support for investment-specific features including contribution tracking, tax-advantaged account management, health expense management, and cryptocurrency tracking, with specialized portfolio visualization and analysis tools, enhancing Debtonator's ability to offer users a complete financial picture that includes their investment assets and strategies.
 
 ## Context
 
@@ -964,6 +968,7 @@ Retirement accounts have specific characteristics that require specialized handl
 The investment account types will be implemented in three phases:
 
 ### Phase 1: Core Models and Schema (Week 1-2)
+
 - Database model implementation
 - Pydantic schema creation
 - Repository layer implementation
@@ -971,6 +976,7 @@ The investment account types will be implemented in three phases:
 - Initial API endpoints
 
 ### Phase 2: Portfolio Analytics (Week 3-4)
+
 - Holdings management
 - Asset allocation calculations
 - Portfolio summary features
@@ -978,6 +984,7 @@ The investment account types will be implemented in three phases:
 - Data visualization endpoints
 
 ### Phase 3: Financial Planning (Week 5-6)
+
 - Retirement projection tools
 - Tax optimization suggestions
 - Integration with net worth and cashflow

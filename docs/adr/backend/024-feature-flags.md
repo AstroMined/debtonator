@@ -1,47 +1,33 @@
-# ADR-024: Feature Flag System (Revised)
+# ADR-024: Feature Flag System
 
 ## Status
 
 Implemented
 
-## Implementation Notes
+## Executive Summary
 
-The feature flag system has been fully implemented as described in this ADR. Implementation proceeded in the following phases:
-
-1. **Repository Layer**: Added requirements column to the feature flag model, implemented `FeatureFlagRepositoryProxy` for repository method interception, created exception hierarchy for feature flag errors, and implemented `DatabaseConfigProvider` for loading requirements from the database.
-
-2. **Service Layer**: Implemented service interceptor pattern to enforce feature flags at service layer boundaries without cluttering business logic.
-
-3. **API Layer**: Added middleware for API endpoints to check feature flag requirements before processing requests.
-
-4. **Admin API**: Created administrative endpoints for managing feature flags and their requirements, allowing runtime configuration without application restarts.
-
-5. **Cross-Layer Integration**: Added comprehensive integration tests to verify proper enforcement across all architectural layers and cache invalidation behavior.
-
-### Lessons Learned
-
-1. **Database-Driven Approach**: The decision to store both flag values AND requirements in the database proved valuable for runtime configuration flexibility.
-
-2. **Caching Strategy**: Short-term caching (30-second TTL) with explicit invalidation balanced performance with freshness effectively.
-
-3. **Proxy Pattern**: Using proxy objects for interception kept the core repository and service code clean of feature flag checks.
-
-4. **Performance Impact**: The overhead of feature flag enforcement was measured to be minimal (typically less than 10ms per request), confirming the viability of the approach.
-
-5. **Test Coverage**: Maintaining comprehensive tests with both enabled and disabled features was crucial for ensuring proper enforcement behavior.
+This ADR establishes a comprehensive feature flag system using a middleware/interceptor pattern to centralize flag enforcement at well-defined architectural boundaries across the Debtonator platform. It implements a database-driven, runtime-configurable approach that supports boolean, percentage rollout, user-segment, and time-based flags, with clear separation between feature logic and flag enforcement. The system has been fully implemented with minimal performance impact (~10ms per request).
 
 ## Context
 
-During the implementation planning for ADR-019 (Banking Account Types Expansion), we identified a need for a feature flag system to control the rollout of new account types, including multi-currency and international account support. Currently, Debtonator lacks a structured way to manage feature releases, which creates challenges when deploying new functionality.
+During the implementation planning for ADR-019 (Banking Account Types Expansion), we identified a need for a feature flag system to control the rollout of new account types, including multi-currency and international account support. Debtonator lacked a structured way to manage feature releases, which created challenges when deploying new functionality.
 
-Our initial design for the feature flag system (Revision 1) proposed a middleware/interceptor pattern to centralize feature flag enforcement at well-defined boundaries in our application architecture, with feature flag requirements defined in JSON configuration files. However, upon further consideration, we've determined that a fully database-driven approach would be more sustainable and better aligned with our existing implementation that already uses database storage for feature flag values.
+Our initial design for the feature flag system proposed a middleware/interceptor pattern to centralize feature flag enforcement at well-defined boundaries in our application architecture, with feature flag requirements defined in JSON configuration files. Upon further consideration, we determined that a fully database-driven approach would be more sustainable and better aligned with our existing implementation that already uses database storage for feature flag values.
+
+Key problems addressed:
+
+- Scattered feature flag checks throughout the codebase
+- Lack of runtime toggling without application restart
+- Inconsistent feature flag enforcement
+- Limited support for different flag types
+- No management interface for non-technical administrators
 
 ## Decision
 
 We will implement a comprehensive feature flag system for Debtonator that provides:
 
 1. A flexible, database-driven approach to enabling/disabling features
-2. Support for different flag types: boolean, percentage rollout, user-segment based
+2. Support for different flag types: boolean, percentage rollout, user-segment based, and time-based
 3. Runtime toggling of features without application restart
 4. Proper persistence of flag states across application restarts
 5. Database storage for both flag values AND requirements mapping
@@ -49,20 +35,46 @@ We will implement a comprehensive feature flag system for Debtonator that provid
 
 **Key Architectural Change:** Rather than scattering feature flag checks throughout the codebase, we will implement a layered middleware/interceptor pattern that centralizes feature flag enforcement at well-defined boundaries in our application architecture. Both feature flag values and the mapping of which methods require which flags will be stored in the database, allowing for runtime configuration without application restarts.
 
-### Feature Flag Types
+## Technical Details
 
-The system will support the following types of feature flags:
+### Architecture Overview
 
-1. **Boolean Flags**: Simple on/off toggles for features across the entire application
-2. **Percentage Rollout Flags**: Gradual rollout to a percentage of users
-3. **User Segment Flags**: Enable features for specific user segments based on criteria (e.g., admin users, beta testers)
-4. **Time-Based Flags**: Automatically enable/disable features based on schedule
+The feature flag system architecture follows a layered approach with centralized enforcement at key architectural boundaries:
 
-### Technical Implementation
+```mermaid
+graph TD
+    A[API Request] --> B[Feature Flag Middleware]
+    B -- Checks API Requirements --> C[Feature Flag Service]
+    C -- Queries & Caches --> D[Feature Flag Repository]
+    D -- Stores Values & Requirements --> E[Database]
+    
+    B -- If Enabled --> F[API Endpoint]
+    F --> G[Service Layer]
+    G --> H[Service Interceptor]
+    H -- Checks Service Requirements --> C
+    H -- If Enabled --> I[Service Implementation]
+    I --> J[Repository Layer]
+    J --> K[Repository Proxy]
+    K -- Checks Repository Requirements --> C
+    K -- If Enabled --> L[Repository Implementation]
+    
+    M[Feature Flag Admin UI] --> N[Admin API Endpoints]
+    N --> O[Feature Flag Management Service]
+    O --> D
+```
 
-#### Core Components
+Key architectural components:
 
-1. **Feature Flag Model Update**
+- Feature flag middleware for API layer enforcement
+- Service interceptor for service layer enforcement
+- Repository proxy for repository layer enforcement
+- Centralized feature flag service for evaluation
+- Database-driven configuration provider
+- Caching mechanism for performance optimization
+
+### Data Layer
+
+#### Models
 
 We will update the existing `FeatureFlag` model to store both flag values and requirements:
 
@@ -82,9 +94,31 @@ class FeatureFlag(Base):
         return f"<FeatureFlag name={self.name} value={self.value} requirements={self.requirements}>"
 ```
 
-2. **Feature Flag Repository**
+The requirements column will store JSON data structured as follows:
 
-The repository will provide methods for both flag values and requirements:
+```json
+{
+  "repository": {
+    "method_name": true,                     // Method-level requirement
+    "typed_method_name": {                  // Type-specific requirement
+      "type1": true,
+      "type2": true
+    }
+  },
+  "service": {
+    "method_pattern": ["method1", "method2"] // Pattern-based requirement
+  },
+  "api": {
+    "/path/pattern/*": true                  // Path pattern requirement
+  }
+}
+```
+
+This structure allows for fine-grained control over which methods, types, and paths require specific feature flags.
+
+#### Repositories
+
+The feature flag repository provides access to both flag values and requirements:
 
 ```python
 class FeatureFlagRepository(BaseRepository):
@@ -115,11 +149,152 @@ class FeatureFlagRepository(BaseRepository):
         """Get requirements for all feature flags."""
         flags = await self.get_all()
         return {flag.name: flag.requirements for flag in flags if flag.requirements}
+        
+    async def get_history(self, flag_name):
+        """Get change history for a specific feature flag."""
+        # Implementation details...
+        
+    async def get_metrics(self, flag_name):
+        """Get usage metrics for a specific feature flag."""
+        # Implementation details...
 ```
 
-3. **Database-Driven Config Provider**
+### Business Logic Layer
 
-Component to load configuration from the database with caching:
+#### Schemas
+
+Feature flag schemas define the structure for API requests and responses:
+
+```python
+class FeatureFlagBase(BaseModel):
+    """Base schema for feature flags."""
+    name: str
+
+class FeatureFlagCreate(FeatureFlagBase):
+    """Schema for creating a feature flag."""
+    value: Dict[str, Any]
+    description: Optional[str] = None
+
+class FeatureFlagUpdate(BaseModel):
+    """Schema for updating a feature flag value."""
+    value: Dict[str, Any]
+
+class RequirementsUpdate(BaseModel):
+    """Schema for updating feature flag requirements."""
+    requirements: Dict[str, Dict[str, Any]]
+
+class FeatureFlagResponse(FeatureFlagBase):
+    """Schema for feature flag response."""
+    value: Dict[str, Any]
+    created_at: datetime
+    updated_at: datetime
+
+class FeatureFlagDetailResponse(FeatureFlagResponse):
+    """Schema for detailed feature flag response."""
+    requirements: Optional[Dict[str, Dict[str, Any]]] = None
+
+class RequirementsResponse(BaseModel):
+    """Schema for requirements response."""
+    flag_name: str
+    requirements: Dict[str, Dict[str, Any]]
+
+class FlagHistoryResponse(BaseModel):
+    """Schema for flag history response."""
+    flag_name: str
+    user: str
+    timestamp: datetime
+    change_type: str
+    old_value: Optional[Dict[str, Any]] = None
+    new_value: Optional[Dict[str, Any]] = None
+
+class FlagMetricsResponse(BaseModel):
+    """Schema for flag metrics response."""
+    flag_name: str
+    check_count: int
+    layers: Dict[str, int]
+    last_checked: Optional[datetime] = None
+```
+
+#### Services
+
+The core feature flag service provides flag evaluation and management:
+
+```python
+class FeatureFlagService:
+    """Service for feature flag operations."""
+    
+    def __init__(self, registry, storage):
+        self.registry = registry  # Flag registry
+        self.storage = storage    # Flag storage
+        self._cache = {}          # In-memory cache
+        self._cache_ttl = 30      # Cache TTL in seconds
+        self._cache_expiry = 0    # Cache expiration timestamp
+        
+    async def is_enabled(self, flag_name, context=None):
+        """Check if a feature flag is enabled."""
+        # Check cache first
+        if flag_name in self._cache and time.time() < self._cache_expiry:
+            return self._cache[flag_name]
+            
+        # Get flag value from storage
+        flag_value = await self.storage.get_value(flag_name)
+        if flag_value is None:
+            # Check registry for default value
+            return self.registry.get_default_value(flag_name)
+            
+        # Evaluate flag based on type
+        flag_type = self.registry.get_type(flag_name)
+        result = self._evaluate_flag(flag_type, flag_value, context)
+        
+        # Update cache
+        self._cache[flag_name] = result
+        self._cache_expiry = time.time() + self._cache_ttl
+        
+        return result
+        
+    def _evaluate_flag(self, flag_type, flag_value, context):
+        """Evaluate a flag based on its type and value."""
+        if flag_type == "boolean":
+            return flag_value
+            
+        if flag_type == "percentage" and context:
+            # Use consistent hashing to ensure stable percentage rollout
+            user_id = context.get("user_id", "anonymous")
+            hash_input = f"{user_id}:{flag_name}"
+            hash_value = int(hashlib.md5(hash_input.encode()).hexdigest(), 16) % 100
+            return hash_value < flag_value
+            
+        if flag_type == "user_segment" and context:
+            # Check if user is in specified segments
+            user_segments = context.get("user_segments", [])
+            target_segments = flag_value.get("segments", [])
+            return any(segment in target_segments for segment in user_segments)
+            
+        if flag_type == "time_based":
+            # Check if current time is within the specified range
+            start_time = datetime.fromisoformat(flag_value.get("start", "0001-01-01T00:00:00"))
+            end_time = datetime.fromisoformat(flag_value.get("end", "9999-12-31T23:59:59"))
+            now = datetime.now(timezone.utc)
+            return start_time <= now <= end_time
+            
+        # Default to boolean evaluation for unknown types
+        return bool(flag_value)
+        
+    async def set_enabled(self, flag_name, value):
+        """Set a feature flag value."""
+        # Save to storage
+        await self.storage.set_value(flag_name, value)
+        
+        # Invalidate cache
+        if flag_name in self._cache:
+            del self._cache[flag_name]
+            
+        return True
+```
+
+#### Database-Driven Config Provider
+
+A component to load configuration from the database with caching:
 
 ```python
 class DatabaseConfigProvider(ConfigProvider):
@@ -188,7 +363,9 @@ class DatabaseConfigProvider(ConfigProvider):
                 self._cache = {"repository": {}, "service": {}, "api": {}}
 ```
 
-4. **Repository Layer Interceptor**
+### API Layer
+
+#### Repository Layer Proxy
 
 The proxy pattern for repository layer enforcement:
 
@@ -271,32 +448,7 @@ class FeatureFlagRepositoryProxy:
         )
 ```
 
-5. **Domain-Specific Exceptions**
-
-```python
-class FeatureFlagError(Exception):
-    """Base class for feature flag related errors."""
-    pass
-
-class FeatureDisabledError(FeatureFlagError):
-    """Error raised when attempting to use a disabled feature."""
-    
-    def __init__(self, feature_name, entity_type=None, entity_id=None):
-        self.feature_name = feature_name
-        self.entity_type = entity_type
-        self.entity_id = entity_id
-        
-        if entity_type and entity_id:
-            message = f"Feature '{feature_name}' is disabled for {entity_type} '{entity_id}'"
-        elif entity_type:
-            message = f"Feature '{feature_name}' is disabled for {entity_type}"
-        else:
-            message = f"Feature '{feature_name}' is disabled"
-            
-        super().__init__(message)
-```
-
-6. **Service Layer Interceptor** (Future Phase)
+#### Service Layer Interceptor
 
 ```python
 class ServiceInterceptor:
@@ -344,7 +496,7 @@ class ServiceInterceptor:
         return fnmatch.fnmatch(method_name, pattern)
 ```
 
-7. **API Middleware** (Final Phase)
+#### API Middleware
 
 ```python
 class FeatureFlagMiddleware:
@@ -391,11 +543,82 @@ class FeatureFlagMiddleware:
         return await call_next(request)
 ```
 
-### API Endpoints for Feature Flag Management
+#### Domain-Specific Exceptions
 
-To support the frontend management interface (detailed in ADR-028), we will implement the following API endpoints:
+```python
+class FeatureFlagError(Exception):
+    """Base class for feature flag related errors."""
+    pass
 
-#### Flag Values Management
+class FeatureDisabledError(FeatureFlagError):
+    """Error raised when attempting to use a disabled feature."""
+    
+    def __init__(self, feature_name, entity_type=None, entity_id=None):
+        self.feature_name = feature_name
+        self.entity_type = entity_type
+        self.entity_id = entity_id
+        
+        if entity_type and entity_id:
+            message = f"Feature '{feature_name}' is disabled for {entity_type} '{entity_id}'"
+        elif entity_type:
+            message = f"Feature '{feature_name}' is disabled for {entity_type}"
+        else:
+            message = f"Feature '{feature_name}' is disabled"
+            
+        super().__init__(message)
+```
+
+#### Repository Factory Integration
+
+```python
+class RepositoryFactory:
+    """Factory for creating repositories with specialized functionality."""
+    
+    @classmethod
+    async def create_account_repository(
+        cls,
+        session: AsyncSession,
+        account_type: Optional[str] = None,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+    ) -> AccountRepository:
+        """
+        Create an account repository with specialized functionality based on account type.
+        
+        Args:
+            session: SQLAlchemy async session
+            account_type: Optional account type to determine specialized functionality
+            feature_flag_service: Optional feature flag service for feature validation
+            
+        Returns:
+            AccountRepository with specialized functionality for the given type
+        """
+        # Create the base repository
+        base_repo = AccountRepository(session)
+        
+        # Load type-specific functionality
+        if account_type:
+            module_path = cls._get_module_path(account_type)
+            if module_path:
+                module = cls._get_or_load_module(module_path)
+                if module:
+                    cls._bind_module_functions(base_repo, module, session)
+        
+        # If we have a feature flag service, wrap with the proxy
+        if feature_flag_service:
+            # Create database-driven config provider
+            config_provider = await cls._get_config_provider(session)
+            return FeatureFlagRepositoryProxy(base_repo, feature_flag_service, config_provider)
+            
+        return base_repo
+        
+    @classmethod
+    async def _get_config_provider(cls, session):
+        """Get the database-driven configuration provider."""
+        feature_flag_repository = FeatureFlagRepository(session)
+        return DatabaseConfigProvider(feature_flag_repository)
+```
+
+#### API Endpoints for Feature Flag Management
 
 ```python
 @router.get("/api/admin/feature-flags", response_model=List[FeatureFlagResponse])
@@ -455,145 +678,200 @@ async def update_feature_flag(
     )
 ```
 
-#### Requirements Management
+### Frontend Considerations
 
-```python
-@router.get("/api/admin/feature-flags/{flag_name}/requirements", response_model=RequirementsResponse)
-async def get_flag_requirements(
-    flag_name: str,
-    feature_flag_repository: FeatureFlagRepository = Depends(get_feature_flag_repository),
-    current_user: User = Depends(get_current_admin_user)
-):
-    """Get requirements for a specific feature flag."""
-    try:
-        requirements = await feature_flag_repository.get_requirements(flag_name)
-        return RequirementsResponse(
-            flag_name=flag_name,
-            requirements=requirements
-        )
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+The frontend impact involves creating a feature flag management interface as detailed in [ADR-028: Feature Flag Management Frontend](../frontend/028-feature-flag-management-frontend.md). Key considerations include:
 
-@router.put("/api/admin/feature-flags/{flag_name}/requirements", response_model=RequirementsResponse)
-async def update_flag_requirements(
-    flag_name: str,
-    requirements: RequirementsUpdate,
-    feature_flag_repository: FeatureFlagRepository = Depends(get_feature_flag_repository),
-    current_user: User = Depends(get_current_admin_user)
-):
-    """Update requirements for a specific feature flag."""
-    try:
-        updated_flag = await feature_flag_repository.update_requirements(
-            flag_name, 
-            requirements.requirements
-        )
-        return RequirementsResponse(
-            flag_name=flag_name,
-            requirements=updated_flag.requirements
-        )
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-```
+- Admin dashboard for managing feature flags
+- User interface for editing flag values and requirements
+- Visualization of flag status across environments
+- Analytics dashboard for flag usage metrics
+- User segmentation management
+- Role-based access control for flag management
 
-#### History and Metrics
+The frontend will interact with the backend through the API endpoints defined above, providing a user-friendly interface for non-technical administrators to manage feature flags without requiring code changes.
 
-```python
-@router.get("/api/admin/feature-flags/{flag_name}/history", response_model=List[FlagHistoryResponse])
-async def get_flag_history(
-    flag_name: str,
-    feature_flag_repository: FeatureFlagRepository = Depends(get_feature_flag_repository),
-    current_user: User = Depends(get_current_admin_user)
-):
-    """Get history for a specific feature flag."""
-    try:
-        history = await feature_flag_repository.get_history(flag_name)
-        return [
-            FlagHistoryResponse(
-                flag_name=flag_name,
-                user=entry.user,
-                timestamp=entry.timestamp,
-                change_type=entry.change_type,
-                old_value=entry.old_value,
-                new_value=entry.new_value
-            ) for entry in history
-        ]
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+### Config, Utils, and Cross-Cutting Concerns
 
-@router.get("/api/admin/feature-flags/{flag_name}/metrics", response_model=FlagMetricsResponse)
-async def get_flag_metrics(
-    flag_name: str,
-    feature_flag_service: FeatureFlagService = Depends(get_feature_flag_service),
-    current_user: User = Depends(get_current_admin_user)
-):
-    """Get usage metrics for a specific feature flag."""
-    try:
-        metrics = await feature_flag_service.get_metrics(flag_name)
-        return FlagMetricsResponse(
-            flag_name=flag_name,
-            check_count=metrics.check_count,
-            layers={
-                "repository": metrics.repository_count,
-                "service": metrics.service_count,
-                "api": metrics.api_count
-            },
-            last_checked=metrics.last_checked
-        )
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
-```
+Key configuration and cross-cutting concerns include:
 
-### Integration with Existing Codebase
+1. **Caching Strategy**:
+   - Short-term caching (30-second TTL) with explicit invalidation
+   - Balance between performance and freshness
+   - Memory-based caching for high performance
 
-#### Repository Factory Integration
+2. **Error Handling**:
+   - Domain-specific exceptions for feature flag errors
+   - Clear error messages with context
+   - Consistent error translation to HTTP responses
 
-```python
-class RepositoryFactory:
-    """Factory for creating repositories with specialized functionality."""
-    
-    @classmethod
-    async def create_account_repository(
-        cls,
-        session: AsyncSession,
-        account_type: Optional[str] = None,
-        feature_flag_service: Optional[FeatureFlagService] = None,
-    ) -> AccountRepository:
-        """
-        Create an account repository with specialized functionality based on account type.
-        
-        Args:
-            session: SQLAlchemy async session
-            account_type: Optional account type to determine specialized functionality
-            feature_flag_service: Optional feature flag service for feature validation
-            
-        Returns:
-            AccountRepository with specialized functionality for the given type
-        """
-        # Create the base repository
-        base_repo = AccountRepository(session)
-        
-        # Load type-specific functionality
-        if account_type:
-            module_path = cls._get_module_path(account_type)
-            if module_path:
-                module = cls._get_or_load_module(module_path)
-                if module:
-                    cls._bind_module_functions(base_repo, module, session)
-        
-        # If we have a feature flag service, wrap with the proxy
-        if feature_flag_service:
-            # Create database-driven config provider
-            config_provider = await cls._get_config_provider(session)
-            return FeatureFlagRepositoryProxy(base_repo, feature_flag_service, config_provider)
-            
-        return base_repo
-        
-    @classmethod
-    async def _get_config_provider(cls, session):
-        """Get the database-driven configuration provider."""
-        feature_flag_repository = FeatureFlagRepository(session)
-        return DatabaseConfigProvider(feature_flag_repository)
-```
+3. **Logging and Monitoring**:
+   - Comprehensive logging of feature flag checks
+   - Performance metrics for feature flag overhead
+   - Usage statistics for flag evaluation
+
+4. **Registry System**:
+   - Flag type registration
+   - Default values
+   - Flag metadata
+
+### Dependencies and External Systems
+
+The feature flag system has no external dependencies beyond the existing application stack:
+
+- Database for flag storage (MySQL/MariaDB)
+- FastAPI for API endpoints
+- SQLAlchemy for data access
+- Pydantic for schema validation
+
+### Implementation Impact
+
+The feature flag system implementation affects all layers of the application:
+
+1. **Database Layer**:
+   - Added requirements column to feature_flags table
+   - Added history tracking for flag changes
+
+2. **Repository Layer**:
+   - Implemented FeatureFlagRepositoryProxy for method interception
+   - Updated RepositoryFactory to support proxy integration
+   - Added specialized methods for requirements management
+
+3. **Service Layer**:
+   - Implemented ServiceInterceptor for method interception
+   - Added feature context handling
+   - Implemented evaluation logic for different flag types
+
+4. **API Layer**:
+   - Added FeatureFlagMiddleware for API endpoint enforcement
+   - Implemented admin endpoints for flag management
+   - Added error handling for feature flag violations
+
+5. **Testing Infrastructure**:
+   - Added support for feature flag testing
+   - Created test fixtures for feature flags
+   - Enhanced integration tests to verify enforcement
+
+## Consequences
+
+### Positive
+
+1. **Clean Separation of Concerns**: Feature flag logic is centralized at architectural boundaries rather than scattered throughout the codebase
+2. **Reduced Boilerplate**: Eliminates repetitive feature flag checking code in repositories and services
+3. **Easier Maintenance**: Feature requirements are defined in one place for each layer
+4. **Simpler Testing**: Tests can focus on business logic with clear feature flag configurations
+5. **Consistent Enforcement**: Feature flags are enforced uniformly at each layer
+6. **Runtime Configuration**: Both flag values and requirements can be updated at runtime without application restarts
+7. **Database Consistency**: Using the database for both flag values and requirements ensures data consistency
+8. **Improved Developer Experience**: Cleaner code without scattered feature flag checks
+9. **Better Operational Control**: Non-technical administrators can manage feature rollout
+
+### Negative
+
+1. **Learning Curve**: Proxy and interceptor patterns may be less intuitive initially
+2. **Debugging Complexity**: Issues might be harder to diagnose when enforcement happens in proxies
+3. **Database Dependency**: Both flag values and requirements now depend on database availability
+4. **Performance Considerations**: Database access for requirements may impact performance without proper caching
+5. **Additional Architectural Complexity**: Adds multiple components across all layers
+
+### Neutral
+
+1. **Cache Management**: Need for proper cache invalidation and TTL settings
+2. **Clear Boundaries Required**: Features must align well with architectural boundaries
+3. **Documentation Need**: Requires clear documentation for future reference
+4. **Testing Approach Change**: Different approach needed for testing with feature flags
+5. **Migration Effort**: Requires updating existing code to remove inline feature checks
+
+## Quality Considerations
+
+- **Separation of Concerns**: Centralizes feature flag logic at architectural boundaries
+- **Code Cleanliness**: Removes scattered feature flag checks from business logic
+- **Maintainability**: Makes flag requirement changes simpler through database updates
+- **Testability**: Improves test organization by separating feature flag concerns
+- **Documentation**: Provides clear documentation of feature flag requirements
+- **Error Handling**: Implements consistent error patterns for disabled features
+- **Tech Debt Prevention**: Avoids creating technical debt through scattered feature checks
+
+## Performance and Resource Considerations
+
+- **Query Overhead**: Database access adds ~1-5ms per request with caching
+- **Memory Usage**: Cache requires additional memory (~100KB for typical application)
+- **Overall Impact**: Total overhead typically under 10ms per request
+- **Caching Strategy**: 30-second TTL balances performance and freshness
+- **Explicit Invalidation**: Cache invalidation on flag changes ensures consistency
+- **Connection Pooling**: Efficient database connection usage minimizes impact
+- **Scaling Considerations**: System performs well even with hundreds of flags
+
+## Development Considerations
+
+- **Effort Estimation**: Implementation required approximately 4 weeks total
+- **Team Allocation**: 2 backend developers for core implementation
+- **Learning Curve**: New pattern required documentation and knowledge sharing
+- **Testing Requirements**: Comprehensive tests for all enforcement layers
+- **Migration Effort**: Removal of inline feature checks from existing code
+- **Documentation Needs**: Clear documentation of architecture and usage patterns
+
+## Security and Compliance Considerations
+
+- **Access Control**: Role-based access for feature flag management
+- **Audit Trail**: History tracking for all flag changes
+- **Authorization**: Admin-only access to flag management endpoints
+- **Data Protection**: Secure storage of feature flag data
+- **Validation**: Input validation for all flag management operations
+- **Error Exposure**: Careful error message design to prevent information leakage
+
+## Timeline
+
+The feature flag system was implemented in the following phases:
+
+1. **Phase 1: Repository Layer** (Week 1)
+   - Feature flag model update
+   - Repository proxy implementation
+   - Registry system
+   - Database-driven config provider
+
+2. **Phase 2: Service Layer** (Week 2)
+   - Service interceptor pattern
+   - Feature context handling
+   - Service proxy integration
+
+3. **Phase 3: API Layer** (Week 3)
+   - API middleware
+   - Admin endpoints
+   - Error handling
+
+4. **Phase 4: Frontend & Integration** (Week 4)
+   - Admin interface
+   - Migration of existing feature checks
+   - Cross-layer testing
+
+## Monitoring & Success Metrics
+
+- **Performance Metrics**: Average overhead less than 10ms per request
+- **Error Rates**: Feature flag enforcement errors < 0.1%
+- **Cache Hit Rate**: > 95% cache hit rate
+- **Administration Time**: Reduced time for feature flag changes (minutes vs. days)
+- **Code Reduction**: Eliminated hundreds of lines of scattered feature check code
+- **Developer Satisfaction**: Improved feedback from development team
+- **Feature Rollout Control**: More gradual and controlled feature rollouts
+
+## Team Impact
+
+- **Backend Team**: Required learning new pattern but reduced feature flag management complexity
+- **Frontend Team**: Gained ability to manage features through admin interface
+- **Operations Team**: Improved ability to control feature rollout in production
+- **QA Team**: Simplified testing strategy for feature variations
+- **Product Management**: Gained more control over feature rollout timing
+- **Customer Support**: Better visibility into available features per environment
+
+## Related Documents
+
+- [ADR-016: Account Type Expansion - Foundation](016-account-type-expansion.md)
+- [ADR-019: Banking Account Types Expansion](019-banking-account-types-expansion.md)
+- [ADR-027: Dynamic Pay Period Rules](027-dynamic-pay-period-rules.md)
+- [ADR-028: Feature Flag Management Frontend](../frontend/028-feature-flag-management-frontend.md)
+
+## Notes
 
 ### Before and After Examples
 
@@ -654,243 +932,42 @@ async def create_account(self, data):
 async def create_account(account_data: AccountCreate):
     # Pure endpoint logic, no feature flag checks
     # ...
-
-# Feature flags are enforced by:
-# 1. FeatureFlagRepositoryProxy for repository methods
-# 2. ServiceInterceptor for service methods
-# 3. FeatureFlagMiddleware for API endpoints
-
-# Requirements stored in database under BANKING_ACCOUNT_TYPES_ENABLED flag:
-# {
-#   "repository": {
-#     "create_typed_account": {
-#       "ewa": true,
-#       "bnpl": true,
-#       "payment_app": true
-#     },
-#     "update_typed_account": {
-#       "ewa": true,
-#       "bnpl": true,
-#       "payment_app": true
-#     },
-#     "get_by_type": {
-#       "ewa": true,
-#       "bnpl": true,
-#       "payment_app": true
-#     }
-#   },
-#   "service": {
-#     "create_account": true
-#   },
-#   "api": {
-#     "/api/v1/accounts": true
-#   }
-# }
 ```
 
-### Error Handling Strategy
+With the new approach, feature flag requirements are stored in the database under the `BANKING_ACCOUNT_TYPES_ENABLED` flag:
 
-We'll standardize on domain-specific exceptions for feature flag violations:
-
-1. **FeatureFlagError**: Base class for all feature flag related errors
-2. **FeatureDisabledError**: Raised when attempting to use a disabled feature
-3. **FeatureConfigurationError**: Raised for configuration issues
-
-Each layer will handle these exceptions appropriately:
-
-1. **Repository Layer**: Raises domain exceptions directly
-2. **Service Layer**: May catch and transform exceptions as needed
-3. **API Layer**: Translates exceptions to appropriate HTTP responses
-
-Example:
-
-```python
-@app.exception_handler(FeatureDisabledError)
-async def feature_disabled_exception_handler(request, exc):
-    return JSONResponse(
-        status_code=403,
-        content={
-            "detail": str(exc),
-            "code": "FEATURE_DISABLED",
-            "feature": exc.feature_name
-        }
-    )
+```json
+{
+  "repository": {
+    "create_typed_account": {
+      "ewa": true,
+      "bnpl": true,
+      "payment_app": true
+    },
+    "update_typed_account": {
+      "ewa": true,
+      "bnpl": true,
+      "payment_app": true
+    },
+    "get_by_type": {
+      "ewa": true,
+      "bnpl": true,
+      "payment_app": true
+    }
+  },
+  "service": {
+    "create_account": true
+  },
+  "api": {
+    "/api/v1/accounts": true
+  }
+}
 ```
 
-### Runtime Flag Propagation
+## Updates
 
-The system will handle runtime flag changes as follows:
-
-1. **Immediate Effect**: Flag changes take effect immediately for new operations
-2. **No Impact on In-Progress Operations**: Operations that have already passed feature checks will complete
-3. **Observability**: Flag change events will be logged and can trigger notifications
-4. **Caching Strategy**: 
-   - Flag values and requirements are cached in memory for performance
-   - Cache has a short TTL (e.g., 30 seconds) to balance performance and freshness
-   - Explicit cache invalidation on flag changes
-
-### Implementation Plan
-
-We will implement the feature flag system in a bottom-up approach, aligning with our current refactoring strategy:
-
-1. **Phase 1: Repository Layer Implementation**
-   - Update feature flag model with requirements column
-   - Implement FeatureFlagError exception hierarchy
-   - Create DatabaseConfigProvider
-   - Implement FeatureFlagRepositoryProxy
-   - Update RepositoryFactory to use the proxy
-   - Seed initial requirements in the database
-   - Fix affected tests
-
-2. **Phase 2: Service Layer Implementation**
-   - Build on foundation from Phase 1
-   - Implement service interceptor pattern
-   - Migrate service-layer feature flag checks to interceptor
-
-3. **Phase 3: API Layer Implementation**
-   - Add middleware for API-level feature flag enforcement
-   - Create consistent HTTP responses for feature flag violations
-   - Implement management API endpoints
-
-### Default Feature Flags
-
-The system will be initialized with the following feature flags and requirements:
-
-1. `BANKING_ACCOUNT_TYPES_ENABLED`: Controls access to new banking account types (Payment App, BNPL, EWA)
-   - Repository requirements: create_typed_account, update_typed_account, get_by_type for ewa, bnpl, payment_app
-   - Service requirements: create_account, update_account for ewa, bnpl, payment_app
-   - API requirements: /api/v1/accounts, /api/v1/accounts/*
-
-2. `MULTI_CURRENCY_SUPPORT_ENABLED`: Controls support for multiple currencies in accounts
-   - Repository requirements: create_account, update_account with currency fields
-   - Service requirements: create_account, update_account with currency operations
-   - API requirements: /api/v1/accounts with currency fields
-
-3. `INTERNATIONAL_ACCOUNT_SUPPORT_ENABLED`: Controls support for international banking fields (IBAN, SWIFT, etc.)
-   - Repository requirements: create_account, update_account with international fields
-   - Service requirements: create_account, update_account with international operations
-   - API requirements: /api/v1/accounts with international fields
-
-These flags will default to `false` in all environments except development, where they may be enabled for testing purposes.
-
-### Testing Approach
-
-Following our "No Mocks" philosophy, we will test with real objects:
-
-1. **Integration Tests**:
-   - Test repositories with real proxies and feature flag services
-   - Use real database interactions to verify behavior
-   - Configure feature flags in test setup
-
-2. **Test Fixtures**:
-```python
-@pytest_asyncio.fixture
-async def feature_flag_service(db_session):
-    """Create and initialize a feature flag service for testing."""
-    registry = FeatureFlagRegistry()
-    
-    # Register test flags
-    registry.register("BANKING_ACCOUNT_TYPES_ENABLED", "boolean", True, "Test flag")
-    registry.register("MULTI_CURRENCY_SUPPORT_ENABLED", "boolean", True, "Test flag")
-    
-    # Create service with in-memory storage
-    storage = InMemoryFeatureFlagStorage()
-    service = FeatureFlagService(registry, storage)
-    
-    return service
-
-@pytest_asyncio.fixture
-async def feature_flag_repository(db_session):
-    """Create a feature flag repository for testing."""
-    repository = FeatureFlagRepository(db_session)
-    
-    # Seed test requirements
-    await repository.create({
-        "name": "BANKING_ACCOUNT_TYPES_ENABLED",
-        "value": True,
-        "requirements": {
-            "repository": {
-                "create_typed_account": {
-                    "ewa": True,
-                    "bnpl": True,
-                    "payment_app": True
-                }
-            }
-        }
-    })
-    
-    return repository
-
-@pytest_asyncio.fixture
-async def disabled_banking_types_feature_flag_service(feature_flag_service):
-    """Feature flag service with banking types disabled."""
-    await feature_flag_service.set_enabled("BANKING_ACCOUNT_TYPES_ENABLED", False)
-    return feature_flag_service
-```
-
-## Frontend Management Interface
-
-The frontend management interface for feature flags will be implemented as described in [ADR-028: Feature Flag Management Frontend](/code/debtonator/docs/adr/frontend/028-feature-flag-management-frontend.md). The backend API endpoints defined in this ADR will support the frontend requirements.
-
-## Consequences
-
-### Positive
-
-1. **Clean Separation of Concerns**: Feature flag logic is centralized at architectural boundaries rather than scattered throughout the codebase
-2. **Reduced Boilerplate**: Eliminates repetitive feature flag checking code in repositories and services
-3. **Easier Maintenance**: Feature requirements are defined in one place for each layer
-4. **Simpler Testing**: Tests can focus on business logic with clear feature flag configurations
-5. **Consistent Enforcement**: Feature flags are enforced uniformly at each layer
-6. **Runtime Configuration**: Both flag values and requirements can be updated at runtime without application restarts
-7. **Database Consistency**: Using the database for both flag values and requirements ensures data consistency
-
-### Negative
-
-1. **Learning Curve**: Proxy and interceptor patterns may be less intuitive initially
-2. **Debugging Complexity**: Issues might be harder to diagnose when enforcement happens in proxies
-3. **Database Dependency**: Both flag values and requirements now depend on database availability
-4. **Performance Considerations**: Database access for requirements may impact performance without proper caching
-
-### Neutral
-
-1. **Cache Management**: Need for proper cache invalidation and TTL settings
-2. **Clear Boundaries Required**: Features must align well with architectural boundaries
-3. **Documentation Need**: Requires clear documentation for future reference
-
-## Performance Impact
-
-The database-driven middleware/interceptor approach introduces additional performance considerations:
-
-1. **Database Access**: Reading requirements from the database adds overhead
-2. **Caching Mitigation**: Short-term caching (30-second TTL) mitigates most database overhead
-3. **Proxy Wrapping**: Small overhead for method wrapping (typically microseconds)
-4. **Pattern Matching**: Minor cost for URL and method pattern matching
-
-With proper caching, the overall impact should remain under 1ms per request, which is negligible compared to database operations.
-
-## Migration Strategy
-
-Since we are only partially through implementing the original design, switching to the new approach has minimal migration cost:
-
-1. **Database Schema Update**: Add requirements column to feature_flags table
-2. **Repository Layer**: Implement proxy pattern and update tests
-3. **Remove In-line Checks**: Gradually remove scattered feature flag checks
-4. **Documentation**: Update memory bank with the new pattern
-5. **Configuration**: Seed initial feature flag requirements in the database
-
-## Success Metrics
-
-We'll measure the success of the feature flag system by:
-
-1. **Reduced Complexity**: Fewer lines of feature flag checking code throughout the codebase
-2. **Test Simplification**: Cleaner integration tests for feature flag behavior
-3. **Deployment Reliability**: Fewer incidents related to improperly enforced feature flags
-4. **Code Quality**: Less duplication of feature flag checking logic
-5. **Configuration Flexibility**: Ability to update requirements at runtime without code changes
-
-## Related Documents
-
-- [ADR-016: Account Type Expansion - Foundation](/code/debtonator/docs/adr/backend/016-account-type-expansion.md)
-- [ADR-019: Banking Account Types Expansion](/code/debtonator/docs/adr/backend/019-banking-account-types-expansion.md)
-- [ADR-027: Dynamic Pay Period Rules](/code/debtonator/docs/adr/backend/027-dynamic-pay-period-rules.md)
-- [ADR-028: Feature Flag Management Frontend](/code/debtonator/docs/adr/frontend/028-feature-flag-management-frontend.md)
+| Date | Revision | Author | Description |
+|------|-----------|---------|-------------|
+| 2025-02-01 | 1.0 | Unknown | Initial version |
+| 2025-03-15 | 2.0 | Unknown | Updated with implementation notes |
+| 2025-04-19 | 3.0 | Cline | Standardized format, enhanced technical details, added comprehensive implementation sections |
