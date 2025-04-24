@@ -1,8 +1,12 @@
-# ADR-026: Statement Type Expansion - Frontend Implementation
+# ADR-026: Statement Types Frontend
 
 ## Status
 
 Proposed
+
+## Executive Summary
+
+This ADR defines the frontend implementation for the polymorphic statement history structure established in ADR-025. We will create a comprehensive component architecture that renders type-specific information for different statement types through a component registry pattern. This includes specialized visualizations, interaction patterns, and responsive UI components for credit, checking, savings, and other statement types. The implementation integrates with the feature flag system for controlled rollout, follows accessibility best practices, and provides an extensible foundation for future statement types while maintaining consistent user experience across all statement types.
 
 ## Context
 
@@ -30,7 +34,7 @@ We will implement a comprehensive frontend architecture for statement types that
 
 We will implement a component hierarchy for statement types:
 
-```
+```tree
 src/
   components/
     statements/
@@ -597,50 +601,6 @@ export const StatementListView: React.FC<StatementListViewProps> = ({
 };
 ```
 
-### Feature Flag Integration
-
-The frontend implementation will respect the same feature flags as the backend:
-
-```typescript
-// src/services/feature-flags.ts
-import { API } from './api';
-
-export class FeatureFlagService {
-  private flags: Record<string, boolean> = {};
-  private initialized: boolean = false;
-  
-  constructor(private api: API) {}
-  
-  async initialize(): Promise<void> {
-    if (this.initialized) return;
-    
-    try {
-      const response = await this.api.get('/api/feature-flags');
-      this.flags = response.data.reduce((acc: Record<string, boolean>, flag: any) => {
-        acc[flag.name] = flag.enabled;
-        return acc;
-      }, {});
-      this.initialized = true;
-    } catch (error) {
-      console.error('Failed to initialize feature flags:', error);
-      // Default fallback flags for critical functionality
-      this.flags = {
-        'BANKING_ACCOUNT_TYPES_ENABLED': true
-      };
-    }
-  }
-  
-  isEnabled(flagName: string): boolean {
-    // Banking statement types are always enabled as core functionality
-    if (flagName === 'BANKING_ACCOUNT_TYPES_ENABLED') {
-      return true;
-    }
-    
-    return this.flags[flagName] || false;
-  }
-}
-```
-
 ## Responsive Design Approach
 
 All statement components will be designed with a mobile-first approach:
@@ -892,55 +852,489 @@ To ensure optimal frontend performance:
 We recommend implementing this design in the following phases:
 
 ### Phase 1: Core Architecture
+
 - [ ] Create base statement components (Card, Detail, List)
 - [ ] Implement component registry pattern
 - [ ] Set up feature flag integration
 - [ ] Create statement renderer component
 
 ### Phase 2: Banking Statement Types
+
 - [ ] Implement credit statement components
 - [ ] Implement checking statement components
 - [ ] Implement savings statement components
 - [ ] Create specialized visualizations for each type
 
 ### Phase 3: Interactive Elements
+
 - [ ] Implement credit payment form
 - [ ] Create checking transaction list
 - [ ] Build savings interest calculator
 - [ ] Add type-specific actions and operations
 
 ### Phase 4: Polish and Accessibility
+
 - [ ] Enhance responsive design for all components
 - [ ] Implement comprehensive accessibility features
 - [ ] Add animation and transitions
 - [ ] Create comprehensive documentation
 
-## Expected Benefits
+## Technical Details
 
-1. **Improved User Experience**: Type-specific components provide relevant information and actions
-2. **Enhanced Data Visualization**: Specialized charts and metrics for each statement type
-3. **Consistent Design Language**: Unified component structure with type-specific variations
-4. **Future Extensibility**: Easy addition of new statement types through the registry pattern
-5. **Better Accessibility**: Properly structured components with screen reader support
-6. **Feature Control**: Seamless integration with backend feature flags
+### Architecture Overview
 
-## Alternatives Considered
+The statement types frontend implementation follows a component-based architecture using React with TypeScript, leveraging a registry pattern for dynamic component loading based on statement types. The approach ensures proper separation of concerns while maintaining consistent UI/UX across statement types through shared base components and type-specific implementations.
 
-1. **Generic Component with Conditional Rendering**
-   - Pros: Simpler implementation, less code duplication
-   - Cons: Complex conditional logic, harder to maintain and extend
+### Technology Stack
 
-2. **Separated Route Structure for Each Type**
-   - Pros: Clear separation of concerns, easier code splitting
-   - Cons: Inconsistent user experience, duplication of common functionality
+- **React with TypeScript**: Component-based UI with type safety
+- **Redux Toolkit**: State management for statement data
+- **Material-UI**: UI component library for consistent design
+- **Recharts**: Data visualization for statement-specific charts
+- **React Router**: Navigation between statement list and details
+- **Feature Flag Integration**: Conditional feature availability
 
-3. **Custom Rendering Logic in Parent Components**
-   - Pros: More control over rendering, less abstraction layers
-   - Cons: Logic scattered across application, harder to maintain consistent behavior
+### Component Structure
 
-## References
+```typescript
+// Base statement component interface
+interface StatementCardProps {
+  statement: StatementDto;
+  onClick?: (statementId: string) => void;
+  compact?: boolean;
+}
 
-- [ADR-025: Statement Type Expansion](../adr/backend/025-statement-types.md)
-- [React Component Composition Patterns](https://reactjs.org/docs/composition-vs-inheritance.html)
-- [WAI-ARIA Authoring Practices](https://www.w3.org/WAI/ARIA/apg/)
-- [Recharts Documentation](https://recharts.org/en-US/)
+// Type-specific component implementation example
+const CreditStatementCard: React.FC<StatementCardProps> = ({
+  statement,
+  onClick,
+  compact = false
+}) => {
+  // Credit-specific implementation
+};
+```
+
+The component architecture follows a hierarchical structure:
+
+1. **Base Components**
+   - `StatementCard`: Common card structure for all statement types
+   - `StatementDetail`: Base detail view for all statement types
+   - `StatementList`: List view with filtering capabilities
+
+2. **Type-Specific Components**
+   - Credit statement components (card, detail, payment form, charts)
+   - Checking statement components (card, detail, transaction list, activity chart)
+   - Savings statement components (card, detail, interest calculator, charts)
+
+3. **Utility Components**
+   - `StatementRenderer`: Dynamically selects appropriate component
+   - `StatementTypeBadge`: Visual indicator of statement type
+   - `StatementStatusBadge`: Visual indicator of payment status
+
+### State Management
+
+Statement data will be managed using Redux Toolkit with specialized selectors for different statement types:
+
+```typescript
+// src/store/slices/statements.slice.ts
+import { createSlice, createAsyncThunk, createEntityAdapter } from '@reduxjs/toolkit';
+import { createSelector } from 'reselect';
+import { StatementDto } from '../../types/statement.types';
+import { RootState } from '../store';
+import { statementService } from '../../services/statement.service';
+
+const statementsAdapter = createEntityAdapter<StatementDto>({
+  selectId: (statement) => statement.id,
+  sortComparer: (a, b) => 
+    new Date(b.statement_date).getTime() - new Date(a.statement_date).getTime(),
+});
+
+const initialState = statementsAdapter.getInitialState({
+  loading: false,
+  error: null as string | null,
+  filters: {
+    type: 'all',
+    dateRange: '3months',
+    status: 'all',
+  },
+});
+
+// Async thunks
+export const fetchAllStatements = createAsyncThunk(
+  'statements/fetchAll',
+  async () => {
+    return await statementService.getAllStatements();
+  }
+);
+
+export const fetchStatementDetails = createAsyncThunk(
+  'statements/fetchDetails',
+  async (statementId: string) => {
+    return await statementService.getStatementById(statementId);
+  }
+);
+
+// Slice definition
+const statementsSlice = createSlice({
+  name: 'statements',
+  initialState,
+  reducers: {
+    setFilter: (state, action) => {
+      state.filters = { ...state.filters, ...action.payload };
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchAllStatements.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchAllStatements.fulfilled, (state, action) => {
+        state.loading = false;
+        statementsAdapter.setAll(state, action.payload);
+      })
+      .addCase(fetchAllStatements.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch statements';
+      })
+      .addCase(fetchStatementDetails.fulfilled, (state, action) => {
+        statementsAdapter.upsertOne(state, action.payload);
+      });
+  },
+});
+
+// Selectors
+export const { selectAll: selectAllStatements, selectById: selectStatementById } = 
+  statementsAdapter.getSelectors<RootState>((state) => state.statements);
+
+export const selectStatementsByType = createSelector(
+  [selectAllStatements, (_, type: string) => type],
+  (statements, type) => 
+    type === 'all' ? statements : statements.filter(s => s.statement_type === type)
+);
+
+export const selectStatementsByStatus = createSelector(
+  [selectAllStatements, (_, status: string) => status],
+  (statements, status) => {
+    if (status === 'all') return statements;
+    if (status === 'paid') return statements.filter(s => s.is_paid);
+    if (status === 'unpaid') return statements.filter(s => !s.is_paid);
+    return statements;
+  }
+);
+
+export const { setFilter } = statementsSlice.actions;
+export default statementsSlice.reducer;
+```
+
+### API Integration
+
+Statement data will be fetched and managed through specialized services that integrate with the backend API:
+
+```typescript
+// src/services/statement.service.ts
+import { api } from './api';
+import { StatementDto, StatementDetailDto } from '../types/statement.types';
+
+export class StatementService {
+  async getAllStatements(): Promise<StatementDto[]> {
+    const response = await api.get('/api/statements');
+    return response.data;
+  }
+
+  async getStatementById(id: string): Promise<StatementDetailDto> {
+    const response = await api.get(`/api/statements/${id}`);
+    return response.data;
+  }
+
+  async getStatementsByAccount(accountId: string): Promise<StatementDto[]> {
+    const response = await api.get(`/api/accounts/${accountId}/statements`);
+    return response.data;
+  }
+
+  async makePayment(paymentData: {
+    statementId: string;
+    amount: number;
+    paymentDate: string;
+    accountId: string;
+  }): Promise<any> {
+    const response = await api.post(`/api/statements/${paymentData.statementId}/payments`, paymentData);
+    return response.data;
+  }
+}
+
+export const statementService = new StatementService();
+```
+
+### Feature Flag Integration
+
+Integration with the feature flag system ensures controlled rollout of statement type features:
+
+```typescript
+// src/hooks/useFeatureFlags.ts
+import { useEffect, useState } from 'react';
+import { FeatureFlagService } from '../services/feature-flags';
+
+export function useFeatureFlags() {
+  const [featureFlagService] = useState(() => new FeatureFlagService());
+  const [initialized, setInitialized] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const initializeFlags = async () => {
+      try {
+        await featureFlagService.initialize();
+        setInitialized(true);
+      } catch (error) {
+        setError('Failed to initialize feature flags');
+      }
+    };
+
+    initializeFlags();
+  }, [featureFlagService]);
+
+  return {
+    isEnabled: (flagName: string) => featureFlagService.isEnabled(flagName),
+    initialized,
+    error
+  };
+}
+```
+
+### Accessibility Features
+
+All statement type components will implement comprehensive accessibility features:
+
+1. **Semantic HTML Structure**
+   - Proper heading hierarchy (h1-h6)
+   - Appropriate ARIA landmarks (main, nav, complementary)
+   - Semantic elements (section, article, header, footer)
+
+2. **Keyboard Navigation**
+   - All interactive elements are properly focusable
+   - Custom keyboard shortcuts for common operations
+   - Focus management when opening/closing modals
+   - Focus trapping in modal dialogs
+
+3. **Screen Reader Support**
+   - Descriptive alt text for images and charts
+   - Hidden descriptive text for complex charts
+   - ARIA labels for interactive elements
+   - Status announcements for dynamic content changes
+
+4. **Color and Contrast**
+   - Minimum 4.5:1 contrast ratio for all text
+   - Status indications use both color and text/icons
+   - High contrast mode support
+
+### Security Considerations
+
+1. **Authentication**
+   - JWT-based authentication for all API calls
+   - Token validation on sensitive operations
+
+2. **Authorization**
+   - Role-based access control for statement operations
+   - Permission checks before sensitive actions (payments)
+
+3. **Data Validation**
+   - Client-side validation with Yup schemas
+   - Server-side validation of all inputs
+   - XSS prevention through React's built-in escaping
+
+4. **Sensitive Data Handling**
+   - No storage of sensitive financial data in local storage
+   - Token storage in memory or secure cookie
+   - Automatic session expiration after inactivity
+
+## Consequences
+
+### Positive
+
+1. **Enhanced User Experience**: Users will see relevant information specific to each statement type, making it easier to understand their financial situation
+2. **Improved Data Visualization**: Specialized charts and visualizations for each statement type provide better insights
+3. **Streamlined Interactions**: Type-specific actions allow users to perform common tasks directly from statements
+4. **Better Mobile Experience**: Responsive design patterns improve usability on smaller screens
+5. **Future-Proof Architecture**: The component registry pattern makes it easy to add new statement types as they become available
+6. **Consistent Design Language**: All statement types follow a unified design pattern while allowing for specialized content
+7. **Accessibility Improvements**: Comprehensive accessibility features make the application usable by all users
+
+### Negative
+
+1. **Increased Component Complexity**: The specialized components increase the overall codebase size and complexity
+2. **Development Time**: Creating specialized components for each statement type requires more initial development effort
+3. **Maintenance Overhead**: More components to maintain and test with each update
+4. **Bundle Size**: Additional components may increase the initial bundle size without proper code splitting
+5. **Learning Curve**: New developers will need to understand the component registry pattern
+
+### Neutral
+
+1. **Feature Flag Dependencies**: Components depend on the feature flag system for conditional rendering
+2. **API Dependencies**: Each statement type requires specific backend support
+3. **Testing Requirements**: Need for both common and type-specific test cases
+4. **Documentation Needs**: Requires clear documentation of the component registry pattern
+
+## Quality Considerations
+
+1. **Code Organization**: Clear directory structure separating base and type-specific components
+2. **Component Testing**: Comprehensive unit tests for each statement component
+3. **State Management**: Consistent use of Redux Toolkit for statement data
+4. **UI Consistency**: Shared design patterns across all statement types
+5. **Cross-Browser Compatibility**: Testing across all major browsers
+6. **Error Handling**: Graceful fallbacks when specific statement data is missing
+7. **Type Safety**: TypeScript interfaces for all statement types
+
+## Performance and Resource Considerations
+
+1. **Lazy Loading**: Code splitting to load statement type components on demand
+2. **Bundle Size Impact**: ~2-5KB per statement type component (gzipped)
+3. **Render Performance**:
+   - List view: Capable of handling 100+ statements with virtualization
+   - Detail view: Chart rendering optimized for 12-month history
+4. **API Performance**:
+   - Pagination for large statement histories
+   - Caching of statement data
+   - Optimistic UI updates for common actions
+5. **Memory Usage**:
+   - Redux store optimized for normalized statement data
+   - Memoized selectors for derived data
+
+## Development Considerations
+
+1. **Development Effort**:
+   - Core architecture: 2 weeks
+   - Each statement type implementation: 1-2 weeks
+   - Polish and accessibility: 1 week
+   - Testing: 1-2 weeks throughout
+   - Total: 6-8 weeks for initial implementation
+
+2. **Technical Challenges**:
+   - Ensuring consistent behavior across statement types
+   - Managing feature flag integration
+   - Handling edge cases in statement data
+   - Ensuring proper accessibility for data visualizations
+
+3. **Testing Requirements**:
+   - Unit tests for all components
+   - Integration tests for statement flows
+   - Accessibility testing
+   - Cross-browser compatibility
+   - Mobile responsiveness
+
+## Security and Compliance Considerations
+
+1. **Data Protection**:
+   - No caching of sensitive statement data
+   - Secure handling of payment information
+   - Proper form validation for all user inputs
+
+2. **Authentication**:
+   - Session verification for all statement operations
+   - Timeout for sensitive operations
+
+3. **Audit Requirements**:
+   - Logging of statement access
+   - Payment action audit trail
+   - Error tracking for failed operations
+
+4. **Compliance**:
+   - ADA/WCAG 2.1 accessibility compliance
+   - Financial data display requirements
+   - Payment processing standards
+
+## Timeline
+
+### Phase 1: Core Architecture (Weeks 1-2)
+
+- Week 1: Design component registry and base components
+- Week 2: Implement statement list view with filtering
+
+### Phase 2: Credit Statements (Weeks 3-4)
+
+- Week 3: Credit statement card and detail components
+- Week 4: Payment functionality and history visualization
+
+### Phase 3: Checking and Savings Statements (Weeks 5-6)
+
+- Week 5: Checking statement implementation
+- Week 6: Savings statement implementation
+
+### Phase 4: Polish and Documentation (Weeks 7-8)
+
+- Week 7: Accessibility improvements and testing
+- Week 8: Documentation and final testing
+
+## Monitoring & Success Metrics
+
+1. **User Engagement**:
+   - Statement view frequency
+   - Time spent on statement details
+   - Action completion rate (payments, etc.)
+
+2. **Performance Metrics**:
+   - Statement list load time
+   - Chart rendering performance
+   - API response time
+
+3. **Accessibility Metrics**:
+   - WCAG compliance score
+   - Keyboard navigation success rate
+   - Screen reader compatibility score
+
+4. **User Satisfaction**:
+   - Feature-specific user feedback
+   - Task completion rate
+   - Support ticket reduction
+
+## Team Impact
+
+1. **Frontend Team**:
+   - New component patterns to learn
+   - Registry pattern implementation
+   - Component testing requirements
+
+2. **Backend Team**:
+   - API alignment with frontend requirements
+   - Type-specific data requirements
+
+3. **QA Team**:
+   - Expanded test cases for each statement type
+   - Accessibility testing procedures
+   - Feature flag testing scenarios
+
+4. **Design Team**:
+   - Type-specific visualization patterns
+   - Mobile-responsive design requirements
+   - Accessibility standards implementation
+
+## Related Documents
+
+- [ADR-025: Statement Types Expansion](/code/debtonator/docs/adr/backend/025-statement-types.md)
+- [ADR-024: Feature Flag System](/code/debtonator/docs/adr/backend/024-feature-flags.md)
+- [ADR-028: Feature Flag Management Frontend](/code/debtonator/docs/adr/frontend/028-feature-flag-management-frontend.md)
+- Backend API documentation for statement endpoints
+- Design system guidelines for financial data visualization
+
+## Notes
+
+1. **Assumptions**:
+   - The backend API will provide statement type information
+   - The feature flag system is operational
+   - Statement types will follow the patterns defined in ADR-025
+   - Mobile devices will be a significant portion of users
+
+2. **Open Questions**:
+   - Should specialized transaction views be part of statement components?
+   - How detailed should historical statement visualization be?
+   - What is the optimal balance between generic and specialized components?
+
+3. **Future Considerations**:
+   - Integration with loan and investment statement types
+   - PDF export functionality for statements
+   - Tax document integration
+   - Cross-statement analytics
+
+## Updates
+
+| Date | Revision | Author | Description |
+|------|-----------|---------|-------------|
+| 2025-04-23 | 1.0 | Frontend Architect | Initial version |
