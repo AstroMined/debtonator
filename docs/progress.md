@@ -2,6 +2,16 @@
 
 ## Recent Updates
 
+### ADR-014 Repository Layer Compliance (2025-04-24)
+
+- Implemented structured cashflow repository directory with BaseCashflowRepository
+- Created specialized repositories for metrics, transactions, and forecast operations
+- Refactored TransactionService to use TransactionHistoryRepository
+- Updated cashflow BaseService with repository pattern and lazy loading
+- Modified RepositoryFactory to include new repository factory methods
+- Applied consistent datetime handling and decimal precision patterns
+- Made high-priority services compliant with ADR-014 repository pattern
+
 ### Documentation Hierarchy Implementation (2025-04-14)
 
 - Implemented comprehensive README.md documentation for test helpers directory and subdirectories
@@ -23,7 +33,17 @@
 
 ## Current Status Overview
 
-1. __Model Layer__: COMPLETED (100%) ✓
+1. __ADR-014 Repository Compliance__: IN PROGRESS (60%)
+   - High-priority files refactored (100%) ✓
+   - Repository structure for cashflow components (100%) ✓
+   - RepositoryFactory updated with new factory methods (100%) ✓
+   - TransactionService refactored to use repositories (100%) ✓
+   - Cashflow BaseService refactored to use repositories (100%) ✓
+   - Medium-priority files refactored (0%)
+   - Low-priority files refactored (0%)
+   - Documentation updated for repository compliance (100%) ✓
+
+2. __Model Layer__: COMPLETED (100%) ✓
    - All 18 models fully compliant with ADR-011 and ADR-012
    - Comprehensive test coverage in place
    - System category support with protection mechanisms
@@ -316,7 +336,26 @@
 
 ## What's Left to Build
 
-1. ~~__Complete Feature Flag System (10%)__~~ COMPLETED ✓
+1. __Complete ADR-014 Repository Layer Compliance (60%)__
+   - Implement remaining repositories for high-priority services (50%):
+     - ✓ CashflowTransactionRepository
+     - ✓ CashflowMetricsRepository 
+     - ✓ Moved CashflowForecastRepository to new structure
+     - ✓ Updated TransactionService to use TransactionHistoryRepository
+     - ✓ Updated cashflow/base.py to use repository pattern
+     - Implement RealtimeCashflowRepository
+     - Implement remaining cashflow repository types
+   - Implement repositories for medium-priority services (0%):
+     - income_trends.py
+     - payment_patterns.py
+     - payment_schedules.py
+     - Refactor cashflow/base.py to use repository pattern
+   - Implement repositories for low-priority services (0%):
+     - recommendations.py
+     - impact_analysis.py
+     - Any remaining services
+
+2. ~~__Complete Feature Flag System (10%)__~~ COMPLETED ✓
    - ~~API layer integration completed~~ ✓
    - ~~Create feature flag management interface:~~ ✓
      - ~~Implement admin API endpoints for feature flag management~~ ✓
@@ -324,7 +363,7 @@
      - ~~Add comprehensive documentation for feature flag system~~ ✓
    - ~~Complete end-to-end integration and performance testing~~ ✓
 
-2. __Complete Error Handling System (75%)__
+3. __Complete Error Handling System (75%)__
    - Implement error translation between layers
    - Create consistent error formatting for API responses
    - Add user-friendly error messages to API responses

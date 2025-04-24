@@ -7,6 +7,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.128] - 2025-04-24
+
+### Added
+
+- Implemented new repository structure for cashflow components:
+  - Created BaseCashflowRepository with shared functionality
+  - Implemented CashflowMetricsRepository for metrics operations
+  - Implemented CashflowTransactionRepository for transaction data
+  - Moved CashflowForecastRepository to new structure
+
+### Changed
+
+- Refactored high-priority services for ADR-014 compliance:
+  - Modified TransactionService to use TransactionHistoryRepository
+  - Updated cashflow/base.py to use repository pattern
+  - Added repository accessors with lazy loading in BaseService
+  - Updated RepositoryFactory with new factory methods
+
+### Fixed
+
+- Removed direct database access from TransactionService
+- Eliminated direct session usage in cashflow BaseService
+- Fixed inconsistent repository access patterns
+- Made high-priority services compliant with ADR-014
+
 ## [0.5.127] - 2025-04-14
 
 ### Added

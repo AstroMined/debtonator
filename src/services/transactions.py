@@ -1,12 +1,12 @@
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
-from src.models.accounts import Account
 from src.models.transaction_history import TransactionHistory, TransactionType
+from src.repositories.accounts import AccountRepository
+from src.repositories.factory import RepositoryFactory
+from src.repositories.transaction_history import TransactionHistoryRepository
 from src.schemas.transaction_history import (
     TransactionHistoryCreate as TransactionCreate,
 )
@@ -20,24 +20,55 @@ class TransactionService:
 
     def __init__(self, session: AsyncSession):
         self.session = session
+        self._transaction_repo = None
+        self._account_repo = None
+
+    @property
+    async def transaction_repo(self) -> TransactionHistoryRepository:
+        """
+        Get the transaction history repository instance.
+        
+        Returns:
+            TransactionHistoryRepository: Transaction history repository
+        """
+        if self._transaction_repo is None:
+            self._transaction_repo = await RepositoryFactory.create_transaction_history_repository(
+                self.session
+            )
+        return self._transaction_repo
+
+    @property
+    async def account_repo(self) -> AccountRepository:
+        """
+        Get the account repository instance.
+        
+        Returns:
+            AccountRepository: Account repository
+        """
+        if self._account_repo is None:
+            self._account_repo = await RepositoryFactory.create_account_repository(
+                self.session
+            )
+        return self._account_repo
 
     async def create_transaction(
         self, account_id: int, transaction_data: TransactionCreate
     ) -> TransactionHistory:
         """Create a new transaction and update account balance"""
-        # Get the account
-        account = await self.session.get(Account, account_id)
+        # Get the account using repository
+        account_repo = await self.account_repo
+        account = await account_repo.get(account_id)
         if not account:
             raise ValueError(f"Account with id {account_id} not found")
 
-        # Create transaction
-        transaction = TransactionHistory(
-            account_id=account_id,
-            amount=transaction_data.amount,
-            transaction_type=transaction_data.transaction_type,
-            description=transaction_data.description,
-            transaction_date=transaction_data.transaction_date,
-        )
+        # Prepare transaction data
+        transaction_dict = {
+            "account_id": account_id,
+            "amount": transaction_data.amount,
+            "transaction_type": transaction_data.transaction_type,
+            "description": transaction_data.description,
+            "transaction_date": transaction_data.transaction_date,
+        }
 
         # Update account balance based on transaction type
         if transaction_data.transaction_type == TransactionType.CREDIT:
@@ -45,10 +76,12 @@ class TransactionService:
         else:  # DEBIT
             account.available_balance -= transaction_data.amount
 
-        # Save transaction and updated account
-        self.session.add(transaction)
-        await self.session.commit()
-        await self.session.refresh(transaction)
+        # Update the account
+        await account_repo.update(account_id, {"available_balance": account.available_balance})
+
+        # Create transaction using repository
+        transaction_repo = await self.transaction_repo
+        transaction = await transaction_repo.create(transaction_dict)
 
         return transaction
 
@@ -56,14 +89,8 @@ class TransactionService:
         self, transaction_id: int
     ) -> Optional[TransactionHistory]:
         """Get a transaction by ID"""
-        query = (
-            select(TransactionHistory)
-            .where(TransactionHistory.id == transaction_id)
-            .options(selectinload(TransactionHistory.account))
-        )
-
-        result = await self.session.execute(query)
-        return result.scalar_one_or_none()
+        transaction_repo = await self.transaction_repo
+        return await transaction_repo.get_with_account(transaction_id)
 
     async def get_account_transactions(
         self,
@@ -74,31 +101,38 @@ class TransactionService:
         end_date: Optional[datetime] = None,
     ) -> tuple[List[TransactionHistory], int]:
         """Get transactions for an account with optional date filtering"""
-        query = select(TransactionHistory).where(
-            TransactionHistory.account_id == account_id
+        transaction_repo = await self.transaction_repo
+        
+        # Get transactions within date range if specified
+        if start_date and end_date:
+            transactions = await transaction_repo.get_by_date_range(
+                account_id, start_date, end_date
+            )
+            total = len(transactions)
+            
+            # Apply pagination
+            paginated_transactions = transactions[skip : skip + limit]
+            return paginated_transactions, total
+        
+        # Get all transactions for the account with pagination
+        transactions = await transaction_repo.get_by_account_ordered(
+            account_id, order_by_desc=True, limit=limit
         )
-
-        if start_date:
-            query = query.where(TransactionHistory.transaction_date >= start_date)
-        if end_date:
-            query = query.where(TransactionHistory.transaction_date <= end_date)
-
-        # Get total count
-        count_query = select(func.count()).select_from(query.subquery())
-        total = await self.session.scalar(count_query)
-
-        # Get paginated results
-        query = query.order_by(TransactionHistory.transaction_date.desc())
-        query = query.offset(skip).limit(limit)
-        result = await self.session.execute(query)
-
-        return list(result.scalars().all()), total
+        
+        # Get total count for pagination
+        # We're using the repository directly since it has the count functionality
+        all_transactions = await transaction_repo.get_by_account(account_id)
+        total = len(all_transactions)
+        
+        return transactions, total
 
     async def update_transaction(
         self, transaction_id: int, transaction_data: TransactionUpdate
     ) -> Optional[TransactionHistory]:
         """Update a transaction and adjust account balance if amount changes"""
-        transaction = await self.get_transaction(transaction_id)
+        # Get existing transaction with account
+        transaction_repo = await self.transaction_repo
+        transaction = await transaction_repo.get_with_account(transaction_id)
         if not transaction:
             return None
 
@@ -110,37 +144,54 @@ class TransactionService:
         )
 
         # Update transaction fields
-        for field, value in transaction_data.model_dump(exclude_unset=True).items():
-            setattr(transaction, field, value)
-
+        update_data = transaction_data.model_dump(exclude_unset=True)
+        
         # Calculate new balance impact
+        new_type = update_data.get("transaction_type", transaction.transaction_type)
+        new_amount = update_data.get("amount", transaction.amount)
+        
         new_impact = (
-            transaction.amount
-            if transaction.transaction_type == TransactionType.CREDIT
-            else -transaction.amount
+            new_amount
+            if new_type == TransactionType.CREDIT
+            else -new_amount
         )
 
-        # Adjust account balance
+        # Adjust account balance if impact changes
         if old_impact != new_impact:
             balance_adjustment = new_impact - old_impact
-            transaction.account.available_balance += balance_adjustment
+            new_balance = transaction.account.available_balance + balance_adjustment
+            
+            # Update account balance
+            account_repo = await self.account_repo
+            await account_repo.update(
+                transaction.account.id, {"available_balance": new_balance}
+            )
 
-        await self.session.commit()
-        await self.session.refresh(transaction)
-        return transaction
+        # Update the transaction
+        updated_transaction = await transaction_repo.update(transaction_id, update_data)
+        return updated_transaction
 
     async def delete_transaction(self, transaction_id: int) -> bool:
         """Delete a transaction and reverse its impact on account balance"""
-        transaction = await self.get_transaction(transaction_id)
+        # Get transaction with account
+        transaction_repo = await self.transaction_repo
+        transaction = await transaction_repo.get_with_account(transaction_id)
         if not transaction:
             return False
 
         # Reverse the transaction's impact on account balance
         if transaction.transaction_type == TransactionType.CREDIT:
-            transaction.account.available_balance -= transaction.amount
+            adjustment = -transaction.amount
         else:  # DEBIT
-            transaction.account.available_balance += transaction.amount
+            adjustment = transaction.amount
+        
+        # Update account balance
+        account_repo = await self.account_repo
+        new_balance = transaction.account.available_balance + adjustment
+        await account_repo.update(
+            transaction.account.id, {"available_balance": new_balance}
+        )
 
-        await self.session.delete(transaction)
-        await self.session.commit()
+        # Delete the transaction
+        await transaction_repo.delete(transaction_id)
         return True

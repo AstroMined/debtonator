@@ -2,13 +2,8 @@ from datetime import date, datetime
 from typing import Dict, List
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
-
 from src.models.accounts import Account
-from src.models.income import Income
-from src.models.liabilities import Liability
-from src.models.payments import Payment
+from src.models.transaction_history import TransactionType
 
 from .base import BaseService
 from .types import DateType
@@ -38,15 +33,12 @@ class TransactionService(BaseService):
             List of transaction dictionaries
         """
         transactions = []
+        transaction_repo = await self.transaction_repository
 
         # Get bills due on this date
-        bills_query = select(Liability).where(
-            Liability.primary_account_id == account.id,
-            Liability.due_date == target_date,
+        bills = await transaction_repo.get_bills_due_on_date(
+            account.id, target_date, include_pending
         )
-        if not include_pending:
-            bills_query = bills_query.where(Liability.status != "pending")
-        bills = (await self.db.execute(bills_query)).scalars().all()
 
         for bill in bills:
             transactions.append(
@@ -58,12 +50,9 @@ class TransactionService(BaseService):
             )
 
         # Get income expected on this date
-        income_query = select(Income).where(
-            Income.account_id == account.id, Income.date == target_date
+        income_entries = await transaction_repo.get_income_expected_on_date(
+            account.id, target_date, include_pending
         )
-        if not include_pending:
-            income_query = income_query.where(Income.deposited == True)
-        income_entries = (await self.db.execute(income_query)).scalars().all()
 
         for income in income_entries:
             transactions.append(
@@ -76,10 +65,7 @@ class TransactionService(BaseService):
 
         # Add recurring transactions if requested
         if include_recurring:
-            recurring_query = select(Liability).where(
-                Liability.primary_account_id == account.id, Liability.recurring == True
-            )
-            recurring_bills = (await self.db.execute(recurring_query)).scalars().all()
+            recurring_bills = await transaction_repo.get_recurring_bills(account.id)
 
             for bill in recurring_bills:
                 # Check if this is a recurring instance for this date
@@ -122,21 +108,17 @@ class TransactionService(BaseService):
         Returns:
             List of transaction dictionaries
         """
-        # Get payments
-        payments_query = (
-            select(Payment)
-            .options(selectinload(Payment.sources))
-            .where(Payment.payment_date.between(start_date, end_date))
+        transaction_repo = await self.transaction_repository
+        
+        # Get payments with sources
+        payments = await transaction_repo.get_historical_payments(
+            account_ids, start_date, end_date
         )
-        payments = (await self.db.execute(payments_query)).scalars().all()
-
+        
         # Get income with explicit account filtering
-        income_query = select(Income).where(
-            Income.account_id.in_(account_ids),
-            Income.date.between(start_date, end_date),
-            Income.deposited == True,  # Only include deposited income
+        income_entries = await transaction_repo.get_historical_income(
+            account_ids, start_date, end_date
         )
-        income_entries = (await self.db.execute(income_query)).scalars().all()
 
         # Combine and format transactions
         transactions = []
@@ -195,16 +177,13 @@ class TransactionService(BaseService):
         Returns:
             List of projected transaction dictionaries
         """
+        transaction_repo = await self.transaction_repository
         transactions = []
 
         # Get bills due in the date range
-        bills_query = select(Liability).where(
-            Liability.primary_account_id == account.id,
-            Liability.due_date.between(start_date, end_date),
+        bills = await transaction_repo.get_bills_in_date_range(
+            account.id, start_date, end_date, include_pending
         )
-        if not include_pending:
-            bills_query = bills_query.where(Liability.status != "pending")
-        bills = (await self.db.execute(bills_query)).scalars().all()
 
         for bill in bills:
             transactions.append(
@@ -217,12 +196,9 @@ class TransactionService(BaseService):
             )
 
         # Get expected income in the date range
-        income_query = select(Income).where(
-            Income.account_id == account.id, Income.date.between(start_date, end_date)
+        income_entries = await transaction_repo.get_income_in_date_range(
+            account.id, start_date, end_date, include_pending
         )
-        if not include_pending:
-            income_query = income_query.where(Income.deposited == True)
-        income_entries = (await self.db.execute(income_query)).scalars().all()
 
         for income in income_entries:
             transactions.append(
@@ -236,10 +212,7 @@ class TransactionService(BaseService):
 
         # Add recurring transactions if requested
         if include_recurring:
-            recurring_query = select(Liability).where(
-                Liability.primary_account_id == account.id, Liability.recurring == True
-            )
-            recurring_bills = (await self.db.execute(recurring_query)).scalars().all()
+            recurring_bills = await transaction_repo.get_recurring_bills(account.id)
 
             for bill in recurring_bills:
                 # Generate recurring instances within date range

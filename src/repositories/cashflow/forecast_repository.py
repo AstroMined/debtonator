@@ -5,7 +5,6 @@ This module provides a repository for CashflowForecast model operations and spec
 forecast-related queries.
 """
 
-from datetime import timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
@@ -13,19 +12,17 @@ from sqlalchemy import and_, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.cashflow import CashflowForecast
-from src.repositories.base_repository import BaseRepository
+from src.repositories.cashflow.base import BaseCashflowRepository
 from src.utils.datetime_utils import (
     days_ago,
     days_from_now,
-    end_of_day,
     naive_end_of_day,
     naive_start_of_day,
-    start_of_day,
     utc_now,
 )
 
 
-class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
+class CashflowForecastRepository(BaseCashflowRepository[CashflowForecast]):
     """
     Repository for CashflowForecast model operations.
 
@@ -87,10 +84,8 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
         Returns:
             List[CashflowForecast]: List of forecasts within the date range
         """
-        # Extract date parts for comparison - use end of day for inclusive end date
-        # Following ADR-011 requirements for inclusive date ranges
-        range_start = naive_start_of_day(start_date)
-        range_end = naive_end_of_day(end_date)  # Make end date inclusive
+        # Prepare date range using helper from base repository
+        range_start, range_end = self._prepare_date_range(start_date, end_date)
 
         # Get the distinct dates in the range
         date_subquery = (
@@ -101,8 +96,7 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
             .where(
                 and_(
                     CashflowForecast.forecast_date >= range_start,
-                    CashflowForecast.forecast_date
-                    <= range_end,  # Use <= for inclusive end date per ADR-011
+                    CashflowForecast.forecast_date <= range_end,  # Use <= for inclusive end date per ADR-011
                 )
             )
             .group_by(func.date(CashflowForecast.forecast_date))
@@ -260,41 +254,6 @@ class CashflowForecastRepository(BaseRepository[CashflowForecast, int]):
             )
 
         return trend_data
-
-    async def get_min_forecast(self, days: int = 90) -> Dict[str, Decimal]:
-        """
-        Get minimum forecast values across all lookout periods.
-
-        Args:
-            days (int): Number of days to consider (default: 90)
-
-        Returns:
-            Dict[str, Decimal]: Dictionary with minimum values for each lookout period
-        """
-        end_date = utc_now()
-        start_date = days_ago(days)
-
-        result = await self.session.execute(
-            select(
-                func.min(CashflowForecast.min_14_day).label("min_14_day"),
-                func.min(CashflowForecast.min_30_day).label("min_30_day"),
-                func.min(CashflowForecast.min_60_day).label("min_60_day"),
-                func.min(CashflowForecast.min_90_day).label("min_90_day"),
-            ).where(
-                and_(
-                    CashflowForecast.forecast_date >= start_date,
-                    CashflowForecast.forecast_date <= end_date,
-                )
-            )
-        )
-
-        row = result.one()
-        return {
-            "min_14_day": row.min_14_day or Decimal("0.00"),
-            "min_30_day": row.min_30_day or Decimal("0.00"),
-            "min_60_day": row.min_60_day or Decimal("0.00"),
-            "min_90_day": row.min_90_day or Decimal("0.00"),
-        }
 
     # Extended analysis methods
 

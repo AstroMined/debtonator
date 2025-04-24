@@ -2,11 +2,50 @@
 
 ## Current Focus
 
-Account Type Expansion, Feature Flag System, Banking Account Types Integration, Testing Strategy Implementation, Schema Factory Testing, Error Handling System, UTC Datetime Compliance, Utils Module Test Coverage, Repository Test Pattern Implementation, API Layer Implementation, Test Infrastructure Improvement, Documentation Hierarchy Implementation
+ADR-014 Repository Layer Compliance, Account Type Expansion, Feature Flag System, Banking Account Types Integration, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation
 
 ### Recent Changes
 
-1. **Implemented Documentation Hierarchy for Test Helpers Directory (April 14, 2025)** ✓
+1. **Implemented ADR-014 Repository Layer Compliance for Cashflow Repositories (April 24, 2025)** ✓
+   - Created structured cashflow repository directory with proper organization:
+     - Implemented BaseCashflowRepository as foundation for all cashflow repositories
+     - Created CashflowMetricsRepository for metrics service operations
+     - Created CashflowTransactionRepository for transaction operations
+     - Moved existing CashflowForecastRepository to new structure
+   - Refactored high-priority services to use repository pattern:
+     - Updated TransactionService to use TransactionHistoryRepository
+     - Refactored BaseService in cashflow package to use repository pattern
+     - Added repository accessors with lazy loading in BaseService
+     - Ensured proper dependency injection through repositories
+   - Updated RepositoryFactory to support new repositories:
+     - Added factory methods for all cashflow repositories
+     - Ensured consistent feature flag integration
+     - Added proper documentation for all factory methods
+   - Structured repository implementation to mirror service layer:
+     - Created specialized repository methods matching service requirements
+     - Applied consistent ADR-011 datetime handling patterns
+     - Used proper decimal precision for financial calculations
+
+2. **Completed Comprehensive Tests for PolymorphicBaseRepository (April 14, 2025)** ✓
+   - Identified existing thorough test implementation in integration/repositories/test_polymorphic_base_repository.py:
+     - Contains comprehensive tests for all required functionality
+     - Tests disabled base methods functionality (create/update)
+     - Tests proper field filtering and validation
+     - Tests registry integration with validation for invalid types
+     - Tests error handling for various error cases
+     - Tests update handling with proper type validation
+     - Tests partial update field preservation for optional fields
+   - Verified tests cover all aspects specified in the implementation checklist:
+     - Verified that required and optional fields are handled properly
+     - Confirmed that polymorphic identity is maintained in all operations
+     - Ensured field filtering correctly validates data for specific types
+     - Checked proper error messages guide users to the correct methods
+   - Resolved documentation discrepancy between code and tracking files:
+     - Updated implementation checklist to reflect completed tests
+     - Removed redundant task from Next Steps in active_context.md
+     - Ensured alignment between code state and documentation
+
+2. **Implemented Documentation Hierarchy for Test Helpers Directory (April 14, 2025)** ✓
    - Created comprehensive README.md files for test helpers and subdirectories:
      - Added README.md for repositories module with detailed documentation
      - Added README.md for repositories/test_types module with usage examples
@@ -98,15 +137,7 @@ Account Type Expansion, Feature Flag System, Banking Account Types Integration, 
    - Clean up backward compatibility fields as appropriate
    - Ensure field validation is in the correct layer
 
-3. **Create Unit Tests for PolymorphicBaseRepository**
-   - Implement test_polymorphic_base_repository.py to verify core functionality
-   - Test disabled base methods raise proper exceptions
-   - Test proper field filtering and validation
-   - Create test scenarios for error handling cases
-   - Verify proper registry integration
-   - Create tests for update handling with type validation
-
-4. **Complete Error Handling System Implementation**
+3. **Complete Error Handling System Implementation**
    - Implement remaining error classes for account types
    - Create consistent error translation between layers
    - Add user-friendly error messages to API responses

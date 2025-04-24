@@ -1,12 +1,10 @@
 from decimal import Decimal
 from typing import Dict, List, Optional
 
-from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.cashflow import CashflowForecast
-from src.models.liabilities import Liability
-from src.models.payments import Payment
 from src.schemas.cashflow import CustomForecastResult
 from src.utils.decimal_precision import DecimalPrecision
 
@@ -18,7 +16,7 @@ from .types import DateType
 class MetricsService(BaseService):
     """Service for calculating cashflow metrics and analysis."""
 
-    def __init__(self, db):
+    def __init__(self, db: AsyncSession):
         super().__init__(db)
         self._transaction_service = TransactionService(db)
 
@@ -33,9 +31,9 @@ class MetricsService(BaseService):
         Returns:
             CustomForecastResult with metrics or None if no data available
         """
-        # Get all accounts
-        accounts_query = select(Account)
-        accounts = (await self.db.execute(accounts_query)).scalars().all()
+        # Get all accounts using repository
+        metrics_repo = await self.metrics_repository
+        accounts = await metrics_repo.get_all_accounts()
 
         if not accounts:
             return None
@@ -98,20 +96,11 @@ class MetricsService(BaseService):
         Returns:
             Total required funds as Decimal
         """
-        result = await self.db.execute(
-            select(Liability)
-            .outerjoin(Payment)
-            .where(
-                Liability.primary_account_id == account_id,
-                Liability.due_date >= start_date,
-                Liability.due_date <= end_date,
-                Payment.id == None,  # No associated payments
-            )
-        )
-        liabilities = result.scalars().all()
-        # Use 4 decimal precision for internal calculations
-        total = sum(liability.amount for liability in liabilities)
-        return DecimalPrecision.round_for_calculation(total)
+        # Use metrics repository to calculate required funds
+        metrics_repo = await self.metrics_repository
+        total = await metrics_repo.get_required_funds(account_id, start_date, end_date)
+        
+        return total
 
     def calculate_daily_deficit(self, min_amount: Decimal, days: int) -> Decimal:
         """Calculate daily deficit needed to cover minimum required amount.

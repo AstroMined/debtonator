@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from src.api.v1.accounts import router as accounts_router
+from src.api.v1.banking import router as banking_router
 from src.api.v1.bill_splits import router as bill_splits_router
 from src.api.v1.bulk_import import router as bulk_import_router
 from src.api.v1.cashflow import router as cashflow_router
@@ -51,4 +52,7 @@ api_v1_router.include_router(income_analysis_router, tags=["income-analysis"])
 api_v1_router.include_router(realtime_cashflow_router, tags=["realtime-cashflow"])
 api_v1_router.include_router(
     feature_flags_router, prefix="/feature-flags", tags=["feature-flags"]
+)
+api_v1_router.include_router(
+    banking_router, prefix="/banking", tags=["banking"]
 )

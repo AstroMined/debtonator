@@ -8,8 +8,8 @@ binds their functions to the base repository instance.
 It also handles feature flag enforcement through proxies that intercept repository
 method calls and apply feature flag restrictions based on centralized configuration.
 
-Implemented as part of ADR-016 Account Type Expansion, ADR-019 Banking Account Types,
-and ADR-024 Feature Flag System.
+Implemented as part of ADR-014 Repository Layer Compliance, ADR-016 Account Type Expansion, 
+ADR-019 Banking Account Types, and ADR-024 Feature Flag System.
 """
 
 import importlib
@@ -26,7 +26,11 @@ from src.config.providers.feature_flags import (
 from src.registry.account_types import account_type_registry
 from src.repositories.accounts import AccountRepository
 from src.repositories.base_repository import BaseRepository
+from src.repositories.cashflow.forecast_repository import CashflowForecastRepository
+from src.repositories.cashflow.metrics_repository import CashflowMetricsRepository
+from src.repositories.cashflow.transaction_repository import CashflowTransactionRepository
 from src.repositories.proxies.feature_flag_proxy import FeatureFlagRepositoryProxy
+from src.repositories.transaction_history import TransactionHistoryRepository
 from src.services.feature_flags import FeatureFlagService
 
 logger = logging.getLogger(__name__)
@@ -108,6 +112,122 @@ class RepositoryFactory:
             )
 
         return base_repo
+
+    @classmethod
+    async def create_transaction_history_repository(
+        cls,
+        session: AsyncSession,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None,
+    ) -> TransactionHistoryRepository:
+        """
+        Create a transaction history repository.
+
+        Args:
+            session: SQLAlchemy async session
+            feature_flag_service: Optional feature flag service for feature validation
+            config_provider: Optional config provider for feature requirements
+
+        Returns:
+            TransactionHistoryRepository instance, wrapped with FeatureFlagRepositoryProxy 
+            if feature_flag_service is provided
+        """
+        repository = TransactionHistoryRepository(session)
+        
+        # Wrap with proxy if feature flag service is provided
+        if feature_flag_service:
+            return await cls._wrap_with_proxy(
+                repository, feature_flag_service, session, config_provider
+            )
+        
+        return repository
+
+    @classmethod
+    async def create_cashflow_forecast_repository(
+        cls,
+        session: AsyncSession,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None,
+    ) -> CashflowForecastRepository:
+        """
+        Create a cashflow forecast repository.
+
+        Args:
+            session: SQLAlchemy async session
+            feature_flag_service: Optional feature flag service for feature validation
+            config_provider: Optional config provider for feature requirements
+
+        Returns:
+            CashflowForecastRepository instance, wrapped with FeatureFlagRepositoryProxy 
+            if feature_flag_service is provided
+        """
+        repository = CashflowForecastRepository(session)
+        
+        # Wrap with proxy if feature flag service is provided
+        if feature_flag_service:
+            return await cls._wrap_with_proxy(
+                repository, feature_flag_service, session, config_provider
+            )
+        
+        return repository
+
+    @classmethod
+    async def create_cashflow_metrics_repository(
+        cls,
+        session: AsyncSession,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None,
+    ) -> CashflowMetricsRepository:
+        """
+        Create a cashflow metrics repository.
+
+        Args:
+            session: SQLAlchemy async session
+            feature_flag_service: Optional feature flag service for feature validation
+            config_provider: Optional config provider for feature requirements
+
+        Returns:
+            CashflowMetricsRepository instance, wrapped with FeatureFlagRepositoryProxy 
+            if feature_flag_service is provided
+        """
+        repository = CashflowMetricsRepository(session)
+        
+        # Wrap with proxy if feature flag service is provided
+        if feature_flag_service:
+            return await cls._wrap_with_proxy(
+                repository, feature_flag_service, session, config_provider
+            )
+        
+        return repository
+
+    @classmethod
+    async def create_cashflow_transaction_repository(
+        cls,
+        session: AsyncSession,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None,
+    ) -> CashflowTransactionRepository:
+        """
+        Create a cashflow transaction repository.
+
+        Args:
+            session: SQLAlchemy async session
+            feature_flag_service: Optional feature flag service for feature validation
+            config_provider: Optional config provider for feature requirements
+
+        Returns:
+            CashflowTransactionRepository instance, wrapped with FeatureFlagRepositoryProxy 
+            if feature_flag_service is provided
+        """
+        repository = CashflowTransactionRepository(session)
+        
+        # Wrap with proxy if feature flag service is provided
+        if feature_flag_service:
+            return await cls._wrap_with_proxy(
+                repository, feature_flag_service, session, config_provider
+            )
+        
+        return repository
 
     @classmethod
     async def _wrap_with_proxy(
