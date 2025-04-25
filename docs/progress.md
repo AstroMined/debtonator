@@ -2,6 +2,22 @@
 
 ## Recent Updates
 
+### Repository Pattern Refinement (2025-04-24)
+
+- Refined repository pattern implementation with clear separation of concerns:
+  - Restricted RepositoryFactory to polymorphic repositories only
+  - Implemented BaseService class in src/services/base.py
+  - Created standardized repository access through _get_repository method
+  - Added repository caching and lazy loading mechanisms
+  - Ensured consistent feature flag integration across repository types
+  - Updated documentation in system_patterns.md with the new pattern
+  - Updated README files in src/repositories and src/services
+- Enhanced system architecture for cleaner, more maintainable code:
+  - Removed need for non-polymorphic factory methods
+  - Eliminated code duplication in repository initialization
+  - Improved architectural alignment with original design principles
+  - Created clear patterns for adding new repositories and services
+
 ### ADR-014 Repository Layer Compliance (2025-04-24)
 
 - Completed high-priority service refactoring for ADR-014 compliance:

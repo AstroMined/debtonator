@@ -227,6 +227,118 @@ The Polymorphic Repository Pattern provides a specialized base repository for po
    - Consistent interface across all polymorphic repositories
    - Simplifies adding new polymorphic entity types
 
+### Refined Repository and Service Integration Pattern
+
+```mermaid
+graph TD
+    A[BaseService] --> B[Repository Access]
+    B --> C[_get_repository Method]
+    
+    C --> D[Standard Repositories]
+    C --> E[Polymorphic Repositories]
+    
+    D --> F[Direct Instantiation]
+    E --> G[RepositoryFactory]
+    
+    H[Feature Flag Integration] --> I[Automatic Wrapping]
+    I --> J[FeatureFlagRepositoryProxy]
+    
+    K[Service Layer] --> L[Domain-Specific Services]
+    L --> M[Inherit from BaseService]
+```
+
+The Refined Repository and Service Integration Pattern provides a standardized way to instantiate and access repositories from the service layer, with automatic feature flag integration and proper handling of polymorphic entities.
+
+#### Key Aspects of the Pattern
+
+1. **Repository Type Distinction**:
+   - **Polymorphic Repositories**: Used for entities with subtypes (e.g., accounts)
+   - **Standard Repositories**: Used for regular entities without polymorphic relationships
+
+2. **Repository Access Method**:
+   - All repositories are accessed through the `_get_repository()` method
+   - Method automatically determines whether to use factory or direct instantiation
+   - Provides consistent caching and feature flag integration
+
+3. **Lazy Loading and Caching**:
+   - Repositories are created only when needed
+   - Created repositories are cached for reuse
+   - Repository instances are stored with type-specific keys
+
+4. **Feature Flag Integration**:
+   - Automatic wrapping with `FeatureFlagRepositoryProxy`
+   - Consistent feature flag handling across all repositories
+   - Centralized logic for applying feature flags
+
+5. **Repository Factory Focus**:
+   - Repository factory used ONLY for polymorphic repositories
+   - Standard repositories use direct instantiation
+   - Clear separation of concerns between patterns
+
+#### Service Implementation Pattern
+
+```python
+class SomeService(BaseService):
+    """Service for some domain operations."""
+    
+    async def some_operation(self) -> Result:
+        # Get repository instance
+        repo = await self._get_repository(SomeRepository)
+        
+        # Use repository methods
+        result = await repo.some_method()
+        return result
+        
+    async def account_specific_operation(self, account_type: str) -> Result:
+        # Get polymorphic repository
+        account_repo = await self._get_repository(
+            AccountRepository, 
+            polymorphic_type=account_type
+        )
+        
+        # Use repository methods
+        result = await account_repo.some_method()
+        return result
+```
+
+#### Repository Factory Simplification
+
+The Repository Factory should be simplified to focus solely on polymorphic entity repositories:
+
+```python
+class RepositoryFactory:
+    """Factory for creating polymorphic repositories with specialized functionality."""
+    
+    # Keep only the account repository method and related methods
+    @classmethod
+    async def create_account_repository(
+        cls,
+        session: AsyncSession,
+        account_type: Optional[str] = None,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None,
+    ) -> AccountRepository:
+        """Create an account repository with specialized functionality."""
+        # Implementation details...
+```
+
+#### Implementation Guidelines
+
+1. **Service Inheritance**:
+   - All services should inherit from BaseService
+   - Services should use _get_repository method for all repository access
+   - Service constructors should pass session and feature flag service to `super().__init__`
+
+2. **Repository Factory Usage**:
+   - Use RepositoryFactory only for polymorphic entities
+   - Remove non-polymorphic repository methods from factory
+   - Keep factory focused on its original purpose
+
+3. **Repository Implementation**:
+   - Standard repositories inherit from BaseRepository
+   - Polymorphic repositories inherit from PolymorphicBaseRepository
+   - Follow consistent implementation patterns
+
 ## Validation Patterns
 
 ### Multi-Layer Validation Approach

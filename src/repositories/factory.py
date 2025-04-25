@@ -290,7 +290,7 @@ class RepositoryFactory:
             except Exception as e:
                 # Fall back to in-memory provider if database provider fails
                 logger.warning(
-                    f"Could not create DatabaseConfigProvider: {e}. Using InMemoryConfigProvider"
+                    "Could not create DatabaseConfigProvider: %s. Using InMemoryConfigProvider", e
                 )
                 config_provider = InMemoryConfigProvider()
 

@@ -14,13 +14,13 @@ The repository layer provides a clean abstraction over database access, followin
 
 The repository layer sits between the service layer and the database:
 
-```
+```flow
 Service Layer → Repository Layer → Database Layer
 ```
 
 Key components include:
 
-```
+```tree
 src/repositories/
 ├── base.py                   # BaseRepository with generic CRUD operations
 ├── polymorphic_base.py       # PolymorphicBaseRepository for type-specific entities
@@ -113,27 +113,21 @@ overdraft_accounts = await account_repo.get_accounts_with_overdraft_protection()
 
 ### Repository Factory Pattern
 
-The `RepositoryFactory` creates and manages repository instances:
+The `RepositoryFactory` creates and manages polymorphic repository instances:
 
 ```python
 class RepositoryFactory:
-    """Factory for creating repositories."""
+    """Factory for creating polymorphic repositories with specialized functionality."""
     
-    def __init__(self, session: AsyncSession):
-        self.session = session
-        self._repositories = {}
-    
-    def get_repository(self, repository_class: Type[T]) -> T:
-        """Get or create a repository instance."""
-        if repository_class not in self._repositories:
-            self._repositories[repository_class] = repository_class(self.session)
-        return self._repositories[repository_class]
+    # IMPORTANT: Only use for polymorphic repositories like accounts
+    # Standard repositories should be instantiated directly through BaseService
     
     @classmethod
     async def create_account_repository(
         cls,
         session: AsyncSession,
-        account_type: Optional[str] = None
+        account_type: Optional[str] = None,
+        feature_flag_service: Optional[FeatureFlagService] = None,
     ) -> AccountRepository:
         """Create an account repository with specialized functionality."""
         # Implementation...
@@ -216,3 +210,37 @@ Repositories must follow these datetime handling conventions:
 2. Use timezone-aware objects for business logic
 3. Strip timezone info before storing in the database
 4. Re-add timezone info when retrieving from the database
+
+## Repository Instantiation Guidelines
+
+### Repository Types Classification
+
+- **Polymorphic Repositories**: Extend `PolymorphicBaseRepository`, used for entities with polymorphic relationships (e.g., accounts)
+- **Standard Repositories**: Extend `BaseRepository`, used for standard entities without polymorphic relationships
+
+### Repository Access Patterns
+
+All repositories should be accessed through the BaseService class:
+
+```python
+# For standard repositories
+repo = await self._get_repository(SomeRepository)
+
+# For polymorphic repositories
+repo = await self._get_repository(AccountRepository, polymorphic_type="checking")
+```
+
+### Repository Factory Usage
+
+The RepositoryFactory should be used ONLY for polymorphic repositories:
+
+- Use the factory only for `create_account_repository()` and similar polymorphic entities
+- Don't add factory methods for standard repositories (cashflow, transactions, etc.)
+- Let the BaseService handle standard repository instantiation
+
+### Feature Flag Integration
+
+Feature flag integration is handled automatically by the BaseService._get_repository method:
+
+1. **Polymorphic repositories**: Automatically wrapped by the Repository Factory
+2. **Standard repositories**: Automatically wrapped by the BaseService._wrap_with_feature_flags method

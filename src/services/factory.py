@@ -87,7 +87,7 @@ class ServiceFactory:
             config_provider = await cls._get_config_provider(session)
 
             # Create a proxied service with feature flag enforcement
-            logger.debug(f"Applying ServiceProxy to AccountService")
+            logger.debug("Applying ServiceProxy to AccountService")
             return ServiceProxy(
                 service=base_service,
                 feature_flag_service=feature_flag_service,
@@ -212,7 +212,7 @@ class ServiceFactory:
             return module
         except ImportError as e:
             # Log the error but don't raise an exception
-            logger.warning(f"Could not import service module {module_path}: {e}")
+            logger.warning("Could not import service module %s: %s", module_path, e)
             return None
 
     @classmethod
@@ -246,7 +246,7 @@ class ServiceFactory:
             # Bind the method to the service instance
             setattr(service, name, bound_method)
 
-        logger.debug(f"Bound {module.__name__} functions to service")
+        logger.debug("Bound %s functions to service", module.__name__)
 
 
 class ServiceFactoryHelper:

@@ -7,6 +7,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.131] - 2025-04-24
+
+### Added
+
+- Implemented BaseService class for standardized repository access:
+  - Created repository accessor methods with lazy loading and caching
+  - Added automatic feature flag integration for all repositories
+  - Implemented consistent repository initialization patterns
+
+### Changed
+
+- Updated system_patterns.md with new Repository and Service Integration Pattern:
+  - Added comprehensive documentation of the BaseService pattern
+  - Clarified the distinction between polymorphic and standard repositories
+  - Provided implementation examples for repository access patterns
+
+### Fixed
+
+- Fixed repository factory implementation to better align with the repository pattern:
+  - Clarified that RepositoryFactory should only be used for polymorphic repositories
+  - Established consistent pattern for non-polymorphic repository access through BaseService
+
 ## [0.5.130] - 2025-04-24
 
 ### Added

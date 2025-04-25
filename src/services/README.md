@@ -20,7 +20,7 @@ The services layer:
 4. **Handles transactions**: Ensures data integrity across multiple operations
 5. **Implements feature flags**: Services are wrapped by feature flag proxies
 
-```
+```tree
 src/services/
 ├── factory.py                # Service factory with dependency injection
 ├── accounts.py               # Core account operations and validation
@@ -46,18 +46,28 @@ src/services/
 
 ### Repository Usage Pattern
 
-Services must use repositories for all data access:
+All services should inherit from BaseService and use its repository access methods:
 
 ```python
-# ✓ CORRECT: Using repository for data access
-async def get_account(self, account_id: int) -> Optional[Account]:
-    return await self.account_repository.get(account_id)
-
-# ✗ INCORRECT: Direct database access
-async def get_account(self, account_id: int) -> Optional[Account]:
-    query = select(Account).where(Account.id == account_id)
-    result = await self.session.execute(query)
-    return result.scalar_one_or_none()
+class SomeService(BaseService):
+    """Service for some domain operations."""
+    
+    async def some_operation(self) -> Result:
+        # Get repository instance using BaseService._get_repository
+        repo = await self._get_repository(SomeRepository)
+        
+        # Use repository methods
+        return await repo.some_method()
+        
+    async def account_specific_operation(self, account_type: str) -> Result:
+        # Get polymorphic repository with specific type
+        account_repo = await self._get_repository(
+            AccountRepository, 
+            polymorphic_type=account_type
+        )
+        
+        # Use repository methods
+        return await account_repo.some_method()
 ```
 
 ### Transaction Management
@@ -87,17 +97,44 @@ async def create_bill_with_splits(
         raise ValueError(f"Failed to create bill splits: {str(e)}")
 ```
 
-### Service Factory Pattern
+### BaseService Pattern
 
-Services are instantiated through the ServiceFactory for dependency injection:
+Services inherit from the BaseService class for standardized repository initialization:
 
 ```python
-# Factory creates service with appropriate repositories
-account_service = service_factory.create_account_service()
-
-# Service methods use injected repositories
-account = await account_service.get_account(account_id)
+class BaseService:
+    """Base class for all services with standardized repository initialization."""
+    
+    def __init__(
+        self,
+        session: AsyncSession,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None
+    ):
+        """Initialize base service with session and optional feature flag service."""
+        self._session = session
+        self._feature_flag_service = feature_flag_service
+        self._config_provider = config_provider
+        
+        # Dictionary to store lazy-loaded repositories
+        self._repositories = {}
+        
+    async def _get_repository(
+        self, 
+        repository_class: Type,
+        polymorphic_type: Optional[str] = None,
+        repository_key: Optional[str] = None
+    ) -> Any:
+        """Get or create a repository instance."""
+        # Implementation details...
 ```
+
+The BaseService class provides several key benefits:
+
+- Lazy loading: Repositories are created only when needed
+- Caching: Repositories are created once and reused
+- Automatic feature flag integration
+- Consistent initialization across all services
 
 ### Feature Flag Integration
 
@@ -133,7 +170,35 @@ except FeatureDisabledError as e:
 
 ### ADR-014 Compliance
 
-All services must follow the repository pattern for data access per ADR-014. Direct database queries through SQLAlchemy should be migrated to repository calls.
+All services must follow the repository pattern for data access per ADR-014. Direct database queries through SQLAlchemy are prohibited - all data access must happen through repositories.
+
+### Repository Access through BaseService
+
+All services must:
+
+1. Inherit from BaseService
+2. Use _get_repository method for all repository access
+3. Pass session and feature flag service to `super().__init__`
+
+```python
+class SomeService(BaseService):
+    def __init__(
+        self,
+        session: AsyncSession,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+    ):
+        super().__init__(session, feature_flag_service)
+    
+    async def some_method(self):
+        # Standard repository access
+        repo = await self._get_repository(SomeRepository)
+        
+        # Polymorphic repository access
+        account_repo = await self._get_repository(
+            AccountRepository, 
+            polymorphic_type="checking"
+        )
+```
 
 ### Service Method Proxying
 
