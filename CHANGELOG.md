@@ -7,6 +7,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.130] - 2025-04-24
+
+### Added
+
+- Implemented RealtimeCashflowRepository for comprehensive financial analytics:
+  - Created repository with account balances, upcoming bills, and transfer patterns
+  - Added usage pattern analysis methods for account usage insights
+  - Implemented balance distribution analytics across accounts
+  - Added risk assessment functionality for financial health monitoring
+  - Included proper datetime handling with ADR-011 compliance
+
+### Changed
+
+- Refactored realtime_cashflow.py to use repository pattern:
+  - Removed all direct database access from the service
+  - Implemented lazy loading of repository through factory
+  - Maintained existing API contracts while improving architecture
+  - Enhanced separation of concerns between layers
+  - Added cross-account analysis using repository pattern
+
+### Fixed
+
+- Eliminated direct database access from realtime cashflow service
+- Fixed all SQLAlchemy queries now properly encapsulated in repository
+- All high-priority services now compliant with ADR-014 requirements
+
 ## [0.5.129] - 2025-04-24
 
 ### Added

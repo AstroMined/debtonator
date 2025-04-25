@@ -28,6 +28,7 @@ from src.repositories.accounts import AccountRepository
 from src.repositories.base_repository import BaseRepository
 from src.repositories.cashflow.forecast_repository import CashflowForecastRepository
 from src.repositories.cashflow.metrics_repository import CashflowMetricsRepository
+from src.repositories.cashflow.realtime_repository import RealtimeCashflowRepository
 from src.repositories.cashflow.transaction_repository import CashflowTransactionRepository
 from src.repositories.proxies.feature_flag_proxy import FeatureFlagRepositoryProxy
 from src.repositories.transaction_history import TransactionHistoryRepository
@@ -220,6 +221,35 @@ class RepositoryFactory:
             if feature_flag_service is provided
         """
         repository = CashflowTransactionRepository(session)
+        
+        # Wrap with proxy if feature flag service is provided
+        if feature_flag_service:
+            return await cls._wrap_with_proxy(
+                repository, feature_flag_service, session, config_provider
+            )
+        
+        return repository
+        
+    @classmethod
+    async def create_realtime_cashflow_repository(
+        cls,
+        session: AsyncSession,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None,
+    ) -> RealtimeCashflowRepository:
+        """
+        Create a realtime cashflow repository.
+
+        Args:
+            session: SQLAlchemy async session
+            feature_flag_service: Optional feature flag service for feature validation
+            config_provider: Optional config provider for feature requirements
+
+        Returns:
+            RealtimeCashflowRepository instance, wrapped with FeatureFlagRepositoryProxy 
+            if feature_flag_service is provided
+        """
+        repository = RealtimeCashflowRepository(session)
         
         # Wrap with proxy if feature flag service is provided
         if feature_flag_service:
