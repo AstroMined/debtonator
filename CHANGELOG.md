@@ -7,6 +7,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.129] - 2025-04-24
+
+### Added
+
+- Implemented additional repository methods for metrics service:
+  - Added get_liabilities_for_metrics method to retrieve unpaid liabilities
+  - Added get_min_forecast_values method for consistent forecast metrics
+  - Improved repository usage across cashflow services
+
+### Changed
+
+- Completed high-priority service refactoring for ADR-014 compliance:
+  - Fully refactored metrics_service.py to use CashflowMetricsRepository
+  - Validated transaction_service.py with CashflowTransactionRepository
+  - Updated all cashflow services to use repository pattern consistently
+  - Improved service layer compliance with ADR-014 repository pattern
+
+### Fixed
+
+- Eliminated all direct database access from high-priority cashflow services
+- Ensured proper repository usage throughout the entire cashflow service layer
+- Enhanced service method documentation with clear parameter descriptions
+
 ## [0.5.128] - 2025-04-24
 
 ### Added

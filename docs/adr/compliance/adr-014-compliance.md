@@ -65,6 +65,10 @@ Files that only use repositories for data access with no direct database queries
 - src/services/system_initialization.py - Uses CategoryRepository for initialization operations
 - src/services/interceptors/feature_flag_interceptor.py - No direct database access
 - src/services/proxies/feature_flag_proxy.py - Proxies service methods without direct database access
+- src/services/transactions.py - Refactored to use TransactionHistoryRepository (2025-04-24)
+- src/services/cashflow/base.py - Updated to use repository pattern with lazy loading (2025-04-24)
+- src/services/cashflow/metrics_service.py - Fully refactored to use CashflowMetricsRepository (2025-04-24)
+- src/services/cashflow/transaction_service.py - Fully refactored to use CashflowTransactionRepository (2025-04-24)
 
 ### Partially Compliant Files
 
@@ -77,14 +81,11 @@ Files that primarily use direct database access instead of repositories:
 
 - src/services/deposit_schedules.py - Uses direct SQLAlchemy queries with session instead of repositories
 - src/services/income_trends.py - Uses direct database access for queries and analysis
-- src/services/transactions.py - Uses direct database operations for all CRUD functions
 - src/services/realtime_cashflow.py - Extensive use of direct SQLAlchemy queries and session operations
 - src/services/payment_patterns.py - Uses direct database session for all operations
 - src/services/payment_schedules.py - Direct database access for CRUD operations
 - src/services/recommendations.py - Direct database access with SQLAlchemy queries
 - src/services/impact_analysis.py - Extensive direct database access for analysis
-- src/services/cashflow/base.py - Contains direct database session usage
-- src/services/cashflow/metrics_service.py - Uses direct SQL queries with session.execute and selects
 
 ## Required Changes
 
@@ -92,21 +93,24 @@ Files that primarily use direct database access instead of repositories:
 
 Key service files that need immediate refactoring to use repositories:
 
-1. src/services/transactions.py:
-   - Critical service that directly modifies account balances
-   - Used by many other services for core financial tracking
-   - Uses direct database access for CRUD operations
-   - Should be refactored to use TransactionRepository and AccountRepository
+1. ~~src/services/transactions.py:~~ ✅ COMPLETED
+   - ~~Critical service that directly modifies account balances~~
+   - ~~Used by many other services for core financial tracking~~
+   - ~~Uses direct database access for CRUD operations~~
+   - ~~Should be refactored to use TransactionRepository and AccountRepository~~
+   - Refactored to use TransactionHistoryRepository (2025-04-24)
 
-2. src/services/deposit_schedules.py:
-   - Important for income tracking and account balance predictions
-   - Uses direct session management throughout
-   - Should be refactored to use DepositScheduleRepository and IncomeRepository
+2. ~~src/services/cashflow/base.py:~~ ✅ COMPLETED
+   - ~~Base service with direct session usage~~
+   - ~~Other cashflow services inherit from it~~
+   - ~~Should be refactored to remove direct database access~~
+   - Updated to use repository pattern with lazy loading (2025-04-24)
 
-3. src/services/cashflow/metrics_service.py:
-   - Calculates critical financial metrics for the application
-   - Currently uses direct database queries for complex operations
-   - Should be refactored to use dedicated repositories (LiabilityRepository, AccountRepository)
+3. ~~src/services/cashflow/metrics_service.py:~~ ✅ COMPLETED
+   - ~~Calculates critical financial metrics for the application~~
+   - ~~Currently uses direct database queries for complex operations~~
+   - ~~Should be refactored to use dedicated repositories (LiabilityRepository, AccountRepository)~~
+   - Repository implemented (CashflowMetricsRepository) and service fully refactored (2025-04-24)
 
 4. src/services/realtime_cashflow.py:
    - Provides real-time financial data for user decision-making
@@ -481,8 +485,10 @@ After a complete examination of all service files in the project, I've identifie
 
 1. **Create Missing Repositories**
    - Implement these repositories in priority order:
-     - TransactionRepository
-     - CashflowRepository and CashflowMetricsRepository
+     - ✅ TransactionHistoryRepository - Existing, used in refactored transactions.py
+     - ✅ CashflowForecastRepository - Moved to structured repository pattern (2025-04-24)
+     - ✅ CashflowMetricsRepository - Created but service not refactored (2025-04-24)
+     - ✅ CashflowTransactionRepository - Created but service not refactored (2025-04-24)
      - RealtimeCashflowRepository
      - DepositScheduleRepository
      - PaymentPatternRepository and PaymentScheduleRepository
@@ -535,16 +541,17 @@ After a complete examination of all service files in the project, I've identifie
 | system_initialization.py | CategoryRepository | ✅ Complete | Using repositories properly |
 | interceptors/feature_flag_interceptor.py | N/A | ✅ Complete | No direct DB access needed |
 | proxies/feature_flag_proxy.py | N/A | ✅ Complete | No direct DB access needed |
+| transactions.py | TransactionHistoryRepository | ✅ Complete | Refactored on 2025-04-24 |
+| cashflow/base.py | Multiple repositories | ✅ Complete | Updated on 2025-04-24 with lazy loading |
+| cashflow/metrics_service.py | CashflowMetricsRepository | ✅ Complete | Fully refactored on 2025-04-24 |
+| cashflow/transaction_service.py | CashflowTransactionRepository | ✅ Complete | Fully refactored on 2025-04-24 |
 | deposit_schedules.py | DepositScheduleRepository | ❌ Not Started | Uses direct session management |
 | income_trends.py | IncomeTrendsRepository | ❌ Not Started | Direct database queries |
 | payment_patterns.py | PaymentPatternRepository | ❌ Not Started | Direct database operations |
 | payment_schedules.py | PaymentScheduleRepository | ❌ Not Started | Direct database operations |
 | recommendations.py | RecommendationRepository | ❌ Not Started | Direct database queries |
 | impact_analysis.py | ImpactAnalysisRepository | ❌ Not Started | Extensive direct DB usage |
-| transactions.py | TransactionRepository | ❌ Not Started | Direct database operations |
 | realtime_cashflow.py | RealtimeCashflowRepository | ❌ Not Started | Extensive direct DB usage |
-| cashflow/base.py | CashflowRepository | ❌ Not Started | Direct session usage |
-| cashflow/metrics_service.py | CashflowMetricsRepository | ❌ Not Started | Direct database operations |
 
 ## Considerations During Refactoring
 
@@ -568,7 +575,64 @@ After a complete examination of all service files in the project, I've identifie
 
 - [X] Initial assessment complete
 - [X] Comprehensive service review (ALL services examined)
-- [ ] High priority files refactored
+- [X] High priority files refactored
+  - [X] src/services/transactions.py - Refactored to use TransactionHistoryRepository
+  - [X] src/services/cashflow/base.py - Updated to use repository pattern with lazy loading
+  - [X] Created structured repository directory for cashflow components
+    - [X] src/repositories/cashflow/base.py - BaseCashflowRepository
+    - [X] src/repositories/cashflow/metrics_repository.py - For metrics service operations
+    - [X] src/repositories/cashflow/transaction_repository.py - For transaction service
+    - [X] src/repositories/cashflow/forecast_repository.py - Moved from cashflow.py
+  - [X] Updated RepositoryFactory to include new repository factory methods
+  - [X] src/services/cashflow/metrics_service.py - Refactored to use CashflowMetricsRepository
+  - [X] src/services/cashflow/transaction_service.py - Fully compliant with repository pattern
 - [ ] Medium priority files refactored
 - [ ] Low priority files refactored
 - [ ] All service files compliant with ADR-014
+## Summary of Current Implementation (April 24, 2025)
+
+As of April 24, 2025, significant progress has been made on implementing ADR-014 compliance:
+
+1. **Structured Repository Pattern for Cashflow**:
+   - Created a proper directory structure for cashflow repositories:
+     - `/code/debtonator/src/repositories/cashflow/__init__.py`
+     - `/code/debtonator/src/repositories/cashflow/base.py`
+     - `/code/debtonator/src/repositories/cashflow/forecast_repository.py`
+     - `/code/debtonator/src/repositories/cashflow/metrics_repository.py`
+     - `/code/debtonator/src/repositories/cashflow/transaction_repository.py`
+   - Implemented a base repository with shared functionality
+   - Applied consistent datetime handling and decimal precision patterns
+
+2. **Service Refactoring**:
+   - Fully refactored `transactions.py` to use the repository pattern:
+     - Removed all direct database access
+     - Used lazy loading for repositories
+     - Ensured proper update of account balances through repositories
+   - Updated `cashflow/base.py` to support repositories:
+     - Added repository accessors with lazy loading
+     - Removed direct session usage
+     - Prepared for consistent repository usage throughout cashflow services
+
+3. **RepositoryFactory Updates**:
+   - Added factory methods for all new repository types:
+     - `create_transaction_history_repository()`
+     - `create_cashflow_forecast_repository()`
+     - `create_cashflow_metrics_repository()`
+     - `create_cashflow_transaction_repository()`
+   - Ensured proper feature flag integration
+   - Added comprehensive documentation
+
+4. **Completed Service Refactoring**:
+   - Fully refactored `cashflow/metrics_service.py` to use CashflowMetricsRepository:
+     - Added new methods to use repository pattern consistently
+     - Implemented liabilities and forecast value retrieval through repositories
+     - Ensured proper validation and error handling
+   - Fully refactored `cashflow/transaction_service.py` to use CashflowTransactionRepository:
+     - Ensured all transaction operations use repository methods
+     - Maintained consistent datetime and validation patterns
+
+5. **Next Steps**:
+   - Implement `RealtimeCashflowRepository` and refactor `realtime_cashflow.py`
+   - Continue with medium-priority services following the established patterns
+
+This implementation establishes a consistent pattern for repository compliance that can be applied to the remaining services in future work.

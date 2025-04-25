@@ -4,6 +4,11 @@
 
 ### ADR-014 Repository Layer Compliance (2025-04-24)
 
+- Completed high-priority service refactoring for ADR-014 compliance:
+  - Fully refactored `metrics_service.py` to use CashflowMetricsRepository
+  - Validated `transaction_service.py` with CashflowTransactionRepository
+  - Added new repository methods for metrics and liabilities operations
+  - Ensured consistent repository usage across cashflow services
 - Implemented structured cashflow repository directory with BaseCashflowRepository
 - Created specialized repositories for metrics, transactions, and forecast operations
 - Refactored TransactionService to use TransactionHistoryRepository
@@ -31,17 +36,33 @@
 - Fixed deposit schedule validation tests to expect proper validation errors
 - All schema factory tests are now passing (298 tests)
 
-## Current Status Overview
+## Next Steps
 
-1. __ADR-014 Repository Compliance__: IN PROGRESS (60%)
-   - High-priority files refactored (100%) ✓
-   - Repository structure for cashflow components (100%) ✓
-   - RepositoryFactory updated with new factory methods (100%) ✓
-   - TransactionService refactored to use repositories (100%) ✓
-   - Cashflow BaseService refactored to use repositories (100%) ✓
-   - Medium-priority files refactored (0%)
-   - Low-priority files refactored (0%)
-   - Documentation updated for repository compliance (100%) ✓
+1. **Continue Repository Layer Compliance (ADR-014)**
+   - Implement RealtimeCashflowRepository for real-time financial data
+   - Refactor realtime_cashflow.py to use repository pattern
+   - Focus on medium-priority services next:
+     - income_trends.py
+     - payment_patterns.py
+     - payment_schedules.py
+   - Create specialized repositories for each service
+   - Apply consistent repository pattern and dependency injection
+   - Extend RepositoryFactory with methods for new repositories
+
+2. **Implement API Layer for Account Types**
+   - Create endpoint for GET /banking/overview
+   - Implement endpoint for GET /banking/upcoming-payments
+   - Add POST /accounts/banking endpoint
+   - Create POST /accounts/bnpl/{account_id}/update-status endpoint
+   - Add comprehensive documentation with OpenAPI annotations
+   - Implement proper schema validation for API responses
+
+3. **Complete Error Handling System**
+   - Implement remaining error classes for account types
+   - Create consistent error translation between layers
+   - Add user-friendly error messages to API responses
+   - Implement error handling middleware for API endpoints
+   - Add comprehensive documentation for error handling patterns
 
 2. __Model Layer__: COMPLETED (100%) ✓
    - All 18 models fully compliant with ADR-011 and ADR-012
@@ -336,20 +357,18 @@
 
 ## What's Left to Build
 
-1. __Complete ADR-014 Repository Layer Compliance (60%)__
-   - Implement remaining repositories for high-priority services (50%):
-     - ✓ CashflowTransactionRepository
-     - ✓ CashflowMetricsRepository 
+1. __Complete ADR-014 Repository Layer Compliance (70%)__
+   - Implement remaining repositories for high-priority services (100%): ✓
+     - ✓ CashflowTransactionRepository - Created and service refactored
+     - ✓ CashflowMetricsRepository - Created and service refactored
      - ✓ Moved CashflowForecastRepository to new structure
      - ✓ Updated TransactionService to use TransactionHistoryRepository
      - ✓ Updated cashflow/base.py to use repository pattern
-     - Implement RealtimeCashflowRepository
-     - Implement remaining cashflow repository types
+     - ✓ Refactored metrics_service.py to fully use CashflowMetricsRepository
    - Implement repositories for medium-priority services (0%):
      - income_trends.py
      - payment_patterns.py
      - payment_schedules.py
-     - Refactor cashflow/base.py to use repository pattern
    - Implement repositories for low-priority services (0%):
      - recommendations.py
      - impact_analysis.py

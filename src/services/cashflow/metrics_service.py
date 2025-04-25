@@ -101,6 +101,42 @@ class MetricsService(BaseService):
         total = await metrics_repo.get_required_funds(account_id, start_date, end_date)
         
         return total
+        
+    async def get_liabilities_for_metrics(
+        self, account_id: int, start_date: DateType, end_date: DateType
+    ) -> List:
+        """Get unpaid liabilities for an account in the specified date range.
+
+        Args:
+            account_id: Account ID to get liabilities for
+            start_date: Start date of range
+            end_date: End date of range
+
+        Returns:
+            List of unpaid liabilities
+        """
+        # Use metrics repository to get liabilities
+        metrics_repo = await self.metrics_repository
+        liabilities = await metrics_repo.get_liabilities_for_metrics(
+            account_id, start_date, end_date
+        )
+        
+        return liabilities
+
+    async def get_min_forecast_values(self, days: int = 90) -> Dict[str, Decimal]:
+        """Get minimum forecast values across all lookout periods.
+        
+        Args:
+            days: Number of days to consider (default: 90)
+            
+        Returns:
+            Dictionary with minimum values for each lookout period
+        """
+        # Use metrics repository to get minimum forecast values
+        metrics_repo = await self.metrics_repository
+        min_values = await metrics_repo.get_min_forecast_values(days)
+        
+        return min_values
 
     def calculate_daily_deficit(self, min_amount: Decimal, days: int) -> Decimal:
         """Calculate daily deficit needed to cover minimum required amount.

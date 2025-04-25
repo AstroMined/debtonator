@@ -6,6 +6,23 @@ ADR-014 Repository Layer Compliance, Account Type Expansion, Feature Flag System
 
 ### Recent Changes
 
+1. **Completed High Priority Service Refactoring for ADR-014 Compliance (April 24, 2025)** ✓
+   - Fully refactored `cashflow/metrics_service.py` to use CashflowMetricsRepository:
+     - Added new methods to retrieve liabilities and forecast data through repository
+     - Added async get_liabilities_for_metrics method for unpaid liabilities retrieval
+     - Added async get_min_forecast_values method for consistent forecast metrics
+     - Ensured proper repository usage throughout the entire service
+   - Validated `cashflow/transaction_service.py` with CashflowTransactionRepository:
+     - Confirmed all transaction operations use repository methods
+     - Verified consistent datetime and validation patterns
+     - Ensured proper transaction handling for critical financial operations
+   - Updated ADR-014-compliance.md documentation:
+     - Marked high-priority services as completed
+     - Updated progress tracking with completed items
+     - Added documentation of cashflow repository pattern implementation
+
+### Previous Changes
+
 1. **Implemented ADR-014 Repository Layer Compliance for Cashflow Repositories (April 24, 2025)** ✓
    - Created structured cashflow repository directory with proper organization:
      - Implemented BaseCashflowRepository as foundation for all cashflow repositories
