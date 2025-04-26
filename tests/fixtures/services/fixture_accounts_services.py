@@ -40,9 +40,6 @@ async def account_service(
         AccountService: Service for account operations
     """
     return AccountService(
-        account_repo=account_repository,
-        statement_repo=statement_history_repository,
-        credit_limit_repo=credit_limit_history_repository,
-        transaction_repo=transaction_history_repository,
+        session=account_repository.session,
         feature_flag_service=feature_flag_service,
     )

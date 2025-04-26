@@ -387,6 +387,46 @@ class CashflowForecastRepository(CashflowBaseRepository[CashflowForecast]):
             },
         }
 
+    async def get_min_forecast(self, days: int = 90) -> Dict[str, Any]:
+        """
+        Get minimum forecast values across all lookout periods.
+
+        This method calculates the minimum values for each lookout period
+        (14, 30, 60, 90 days) across all forecasts within the specified time range.
+
+        Args:
+            days (int): Number of days to include in the analysis (default: 90)
+
+        Returns:
+            Dict[str, Any]: Dictionary with minimum values for each lookout period
+        """
+        # Get forecasts for the specified days
+        end_date = utc_now()
+        start_date = days_ago(days)
+        
+        forecasts = await self.get_by_date_range(start_date, end_date)
+        
+        if not forecasts:
+            return {
+                "min_14_day": Decimal("0.00"),
+                "min_30_day": Decimal("0.00"),
+                "min_60_day": Decimal("0.00"),
+                "min_90_day": Decimal("0.00"),
+            }
+        
+        # Calculate minimum values for each lookout period
+        min_14_day = min(f.min_14_day for f in forecasts)
+        min_30_day = min(f.min_30_day for f in forecasts)
+        min_60_day = min(f.min_60_day for f in forecasts)
+        min_90_day = min(f.min_90_day for f in forecasts)
+        
+        return {
+            "min_14_day": min_14_day,
+            "min_30_day": min_30_day,
+            "min_60_day": min_60_day,
+            "min_90_day": min_90_day,
+        }
+
     async def get_forecast_by_account(
         self, account_id: int, days: int = 90
     ) -> List[Dict[str, Any]]:

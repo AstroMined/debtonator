@@ -2,6 +2,30 @@
 
 ## Recent Updates
 
+### Fixed Repository Test Issues (2025-04-26)
+
+- Fixed AccountService fixture parameter mismatch:
+  - Updated account_service fixture to match constructor signature in fixture_accounts_services.py
+  - Aligned with BaseService inheritance pattern using session parameter
+  - Simplified dependency injection following established patterns
+  - Used session parameter directly from repository session
+  - Removed obsolete parameter names (account_repo, statement_repo, etc.)
+
+- Implemented missing repository method in CashflowForecastRepository:
+  - Added get_min_forecast method to calculate minimum forecast values across lookout periods
+  - Used existing get_by_date_range method to avoid code duplication
+  - Added appropriate error handling for empty result sets
+  - Followed consistent method pattern for data aggregation operations
+  - Added comprehensive docstrings with parameter and return documentation
+  - Fixed test_get_min_forecast in test_cashflow_forecast_repository_advanced.py
+
+- Fixed all related failing tests in integration test suite:
+  - Resolved TypeError in test_create_typed_entity_with_credit_type
+  - Fixed AttributeError in test_get_min_forecast
+  - Maintained consistent method signatures across codebase
+  - Enhanced code quality with proper typing and documentation
+  - Ensured all 1265 repository tests pass with improved code quality
+
 ### Completed Phases 18, 19, and 20 of ADR-014 Implementation Checklist (2025-04-26)
 
 - Completed Phase 18 (Recommendations Implementation):

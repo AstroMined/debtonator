@@ -7,6 +7,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.148] - 2025-04-26
+
+### Fixed
+
+- Fixed AccountService fixture parameter mismatch in tests:
+  - Updated fixture_accounts_services.py to use correct constructor parameters
+  - Replaced account_repo, statement_repo, and other obsolete parameters
+  - Aligned with BaseService inheritance pattern using session parameter
+  - Fixed test_create_typed_entity_with_credit_type and test_update_typed_entity_with_credit_type
+
+- Implemented missing repository method in CashflowForecastRepository:
+  - Added get_min_forecast method to calculate minimum forecast values
+  - Fixed test_get_min_forecast in cashflow forecast repository advanced tests
+  - Enabled calculation of minimum values across all lookout periods
+  - Provided consistent error handling for empty result sets
+
+### Changed
+
+- Improved test suite stability:
+  - Ensured all 1265 repository tests pass with improved code quality
+  - Enhanced method documentation with comprehensive docstrings
+  - Maintained consistent method signatures across codebase
+
 ## [0.5.147] - 2025-04-26
 
 ### Changed
