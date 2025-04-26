@@ -7,6 +7,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.147] - 2025-04-26
+
+### Changed
+
+- Completed Phases 18, 19, and 20 of ADR-014 Repository Layer Implementation:
+  - Refactored RecommendationService to use repository pattern:
+    - Updated to inherit from BaseService
+    - Replaced direct database access with repository method calls
+    - Used existing repositories (LiabilityRepository, AccountRepository, PaymentRepository)
+    - Replaced CashflowService with more specific MetricsService
+    - Applied proper timezone handling with ensure_utc and utc_now
+    - Documented all methods with comprehensive docstrings
+  - Refactored ImpactAnalysisService to use repository pattern:
+    - Updated to inherit from BaseService
+    - Replaced direct SQL queries with repository methods
+    - Used existing repositories for data access
+    - Applied proper ADR-011 datetime compliance
+    - Updated account type references (credit_limit instead of total_limit)
+    - Enhanced documentation and error handling
+  - Refactored RecurringBillService to use repository pattern:
+    - Used existing RecurringBillRepository through _get_repository method
+    - Replaced all direct database access
+    - Applied proper datetime standardization
+    - Enhanced method documentation
+
+### Documentation
+
+- Updated ADR-014 implementation checklist to mark Phases 18, 19, and 20 as completed
+- Added implementation lessons for service-repository integration
+- Added repository selection strategy to implementation lessons
+- Added service dependency refinement pattern documentation
+
 ## [0.5.146] - 2025-04-26
 
 ### Fixed

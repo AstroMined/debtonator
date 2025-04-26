@@ -2,11 +2,34 @@
 
 ## Current Focus
 
-Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Bulk Import Implementation, Deposit Schedules Implementation, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration
+Repository Pattern Refinement, ADR-014 Repository Layer Compliance Implementation, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration
 
 ### Recent Changes
 
-1. **Completed BulkImportService Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
+1. **Completed Phases 18, 19, and 20 of ADR-014 Repository Layer Implementation (April 26, 2025)** ✓
+   - Refactored RecommendationService to use repository pattern:
+     - Updated to inherit from BaseService
+     - Replaced direct database access with repository method calls
+     - Used existing repositories (LiabilityRepository, AccountRepository, PaymentRepository)
+     - Replaced CashflowService with more specific MetricsService
+     - Applied proper timezone handling with ensure_utc and utc_now
+     - Documented all methods with comprehensive docstrings
+   - Refactored ImpactAnalysisService to use repository pattern:
+     - Updated to inherit from BaseService
+     - Replaced direct SQL queries with repository methods
+     - Used existing repositories for data access
+     - Applied proper ADR-011 datetime compliance
+     - Updated account type references (credit_limit instead of total_limit)
+     - Enhanced documentation and error handling
+   - Completed RecurringBillService refactoring:
+     - Used existing RecurringBillRepository through _get_repository method
+     - Replaced all direct database access
+     - Applied proper datetime standardization
+     - Enhanced method documentation
+   - Updated ADR-014 implementation checklist to reflect completion
+   - Improved code quality across all three services
+
+2. **Completed BulkImportService Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
    - Refactored BulkImportService to inherit from BaseService:
      - Updated constructor to properly initialize BaseService
      - Maintained service orchestration pattern through other services
@@ -25,7 +48,7 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Bulk Import 
      - Clarified orchestration responsibilities
    - Updated ADR-014 implementation checklist to mark Phase 15 as completed
 
-2. **Completed DepositScheduleService Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
+3. **Completed DepositScheduleService Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
    - Refactored DepositScheduleService to inherit from BaseService:
      - Updated constructor to properly initialize BaseService
      - Used _get_repository method for standardized repository access
@@ -46,7 +69,7 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Bulk Import 
      - Updated list_deposit_schedules to use specialized repository methods
    - Updated ADR-014 implementation checklist to mark Phase 16 as completed
 
-3. **Completed Statement History Service Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
+4. **Completed Statement History Service Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
    - Refactored StatementService to inherit from BaseService:
      - Updated constructor to properly initialize BaseService
      - Used _get_repository method for standardized repository access
@@ -67,7 +90,7 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Bulk Import 
      - Improved method documentation with comprehensive docstrings
    - Updated ADR-014 implementation checklist to mark Phase 13 as completed
 
-4. **Completed Liabilities Service Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
+5. **Completed Liabilities Service Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
    - Refactored LiabilityService to inherit from BaseService:
      - Updated constructor to properly initialize BaseService
      - Used _get_repository method for standardized repository access
@@ -83,7 +106,9 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Bulk Import 
      - Added proper date range handling in filter methods
    - Updated ADR-014 implementation checklist to mark Phase 14 as completed
 
-5. **Completed Categories Service Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
+### Previous Changes
+
+1. **Completed Categories Service Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
    - Refactored CategoryService to inherit from BaseService:
      - Updated constructor to properly initialize BaseService
      - Used _get_repository method for standardized repository access
@@ -96,88 +121,18 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Bulk Import 
      - Provided descriptive error messages for validation failures
    - Updated ADR-014 implementation checklist to mark Phase 12 as completed
 
-2. **Fixed Environment Context Initialization in Feature Flags (April 25, 2025)** ✓
-   - Fixed error when executing tests in `test_accounts_services.py`
-   - Updated feature flags dependencies to use `create_default_context()` for proper initialization
-   - Fixed dependency injection issue by properly passing `get_db` function to FastAPI
-   - Added proper exports in `repositories/cashflow/__init__.py` 
-   - Fixed attribute naming inconsistencies in AccountService (`type` → `account_type`)
-   - Ensured proper test execution with polymorphic account types
-
-3. **Completed BillSplitService Refactoring for ADR-014 Compliance (April 25, 2025)** ✓
-   - Refactored BillSplitService to inherit from BaseService
-   - Replaced direct database access with _get_repository method calls
-   - Updated all methods to use BillSplitRepository for data operations
-   - Ensured proper datetime handling with ADR-011 compliance
-   - Fixed timezone handling in date range operations
-   - Improved documentation with comprehensive method docstrings
-   - Preserved all existing business logic and functionality
-
-4. **Completed TransactionService Refactoring for ADR-014 Compliance (April 25, 2025)** ✓
-   - Refactored TransactionService to inherit from BaseService
-   - Replaced property-based repository access with _get_repository method calls
-   - Removed unnecessary constructor override for better code quality
-   - Updated all methods to use consistent repository access pattern
-   - Ensured proper datetime handling in date-related operations
-   - Improved documentation with comprehensive method docstrings
-   - Preserved all existing business logic and functionality
-
-5. **Refined Repository Factory Implementation for ADR-014 Compliance (April 24, 2025)** ✓
-   - Removed non-polymorphic repository methods from RepositoryFactory
-   - Updated documentation to clarify factory's refined purpose
-   - Added explicit guidance for standard repository instantiation
-   - Fixed cashflow services to properly use the repository pattern
-   - Updated BaseService implementation in cashflow package
-
-### Previous Changes
-
-1. **Implemented ADR-014 Repository Layer Compliance for Cashflow Repositories (April 24, 2025)** ✓
-   - Created structured cashflow repository directory with proper organization
-   - Refactored high-priority services to use repository pattern
-   - Updated RepositoryFactory to support new repositories
-   - Structured repository implementation to mirror service layer
-
-2. **Refined Repository Pattern Implementation (April 24, 2025)** ✓
-   - Established clear separation between polymorphic and standard repositories
-   - Implemented BaseService class for standardized repository initialization
-   - Limited RepositoryFactory to focus solely on polymorphic entities
-   - Created repository caching and lazy loading mechanism in BaseService
-   - Added consistent feature flag integration for all repository types
-
-3. **Completed Documentation for Test Directories (April 14, 2025)** ✓
-   - Added README.md files for fixtures, integration tests, and unit tests subdirectories
-   - Reorganized feature_flag_utils into proper module structure
-   - Fixed account type test organization with proper architectural alignment
-   - Updated repository test documentation with four-step pattern
-
 ## Next Steps
 
-1. **Continue Repository Layer Compliance (ADR-014)**
-   - Move to Phase 15: Bulk Import Implementation
-   - Create BulkImportRepository with appropriate methods
-   - Refactor bulk_import.py to use repository pattern
-   - Apply proper ADR-011 datetime compliance with utility functions
-   - Implement proper transaction handling for bulk operations
-   - Maintain feature flag integration with _get_repository
-   - Use BaseService for standardized repository access
-   - Ensure proper error handling and validation
+1. **Complete Repository Test Refactoring (65%)**
+   - Fix remaining repository fixtures for account types
+   - Update method calls to use new interface
+   - Refactor account type advanced tests
+   - Refactor other repository tests
+   - Ensure proper transaction boundary testing
+   - Add specialized repository methods for account types
+   - Fix timezone handling in datetime-related methods
 
-2. **Move to Phase 16: Deposit Schedules Implementation**
-   - Create DepositScheduleRepository with appropriate methods
-   - Refactor deposit_schedules.py to use repository pattern
-   - Implement proper validation in repository methods
-   - Add comprehensive documentation
-   - Apply proper timezone handling practices
-   - Maintain feature flag integration with BaseService
-
-3. **Fix Remaining Schema-Model Mismatches**
-   - Update CreditAccount model and schema to ensure all fields match
-   - Fix same issues in related models like BNPLAccount and SavingsAccount
-   - Add comprehensive tests for schema-model compatibility
-   - Clean up backward compatibility fields as appropriate
-   - Ensure field validation is in the correct layer
-
-4. **Implement API Layer for Account Types**
+2. **Implement API Layer for Account Types**
    - Create endpoint for GET /banking/overview
    - Implement endpoint for GET /banking/upcoming-payments
    - Add POST /accounts/banking endpoint
@@ -185,26 +140,46 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Bulk Import 
    - Add comprehensive documentation with OpenAPI annotations
    - Implement proper schema validation for API responses
 
+3. **Complete Error Handling System**
+   - Implement error translation between layers
+   - Create consistent error formatting for API responses
+   - Add user-friendly error messages to API responses
+   - Implement error handling middleware for API endpoints
+   - Add comprehensive documentation for error handling patterns
+
 ## Implementation Lessons
 
-1. **Service-Repository Integration Pattern**
+1. **Repository Selection Strategy**
+   - Use existing repositories for data access operations rather than creating new ones
+   - Maintain single responsibility principle by using the repository that owns the entity
+   - Use polymorphic repositories with proper type handling for account-related operations
+   - Ensure repositories focus on data access and services focus on business logic
+
+2. **Repository Method Documentation**
+   - Document clear parameter requirements including timezone expectations
+   - Add "Returns" section in docstrings with explanations of return types and formats
+   - Clarify whether methods expect timezone-aware or naive datetimes
+   - Include usage notes for proper integration with other services
+   - Add examples of method usage for complex parameter combinations
+   - Document error conditions and what exceptions might be raised
+
+3. **Service-Repository Integration Pattern**
    - Always use BaseService._get_repository() method for repository access
    - Never use direct repository initialization in services
    - Follow established pattern for constructor initialization
    - Pass feature flag service and config provider to super().__init__()
    - Always maintain the pattern of delegating data operations to repositories
-   - Keep business logic in the service layer while data operations go in repositories
+   - Keep business logic in the service layer while data access goes in repositories
    - Use specialized repository methods rather than reimplementing data access logic
 
-2. **Error Handling With Context**
-   - Add entity-specific context to error classes (e.g., account_id, category_id, name)
-   - Implement specialized error classes for domain-specific errors
-   - Preserve error propagation through layers with informative messages
-   - Include enough contextual information for effective debugging
-   - Use descriptive error messages that explain the failure and potential solutions
-   - Standardize error class naming with domain prefixes and "Error" suffix
+4. **Service Dependency Refinement**
+   - Use specialized service implementations (e.g., MetricsService) instead of high-level facades
+   - Maintain clear separation of concerns in service dependencies
+   - Document dependencies and initialization order in service constructors
+   - Allow dependency injection while providing default instantiation for convenience
+   - Ensure proper parameter passing to dependent service constructors
 
-3. **ADR-011 Datetime Compliance**
+5. **ADR-011 Datetime Compliance**
    - Always use utility functions for datetime operations:
      - utc_now() for the current time with proper timezone
      - ensure_utc() for guaranteeing timezone awareness
@@ -213,19 +188,4 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Bulk Import 
    - Use timezone-aware datetimes in the service and API boundaries
    - Be explicit about timezone handling in method signatures and docstrings
    - Use proper timezone-aware datetime comparisons
-
-4. **Repository Method Documentation**
-   - Document clear parameter requirements including timezone expectations
-   - Add "Returns" section in docstrings with explanations of return types and formats
-   - Clarify whether methods expect timezone-aware or naive datetimes
-   - Include usage notes for proper integration with other services
-   - Add examples of method usage for complex parameter combinations
-   - Document error conditions and what exceptions might be raised
-
-5. **Handling Relationships in Repository Layer**
-   - Use get_with_relationships method for loading multiple relationships
-   - Create specialized methods for specific relationship patterns
-   - Avoid redundant data loading by using targeted relationship loading
-   - Maintain consistency with SQLAlchemy relationship definitions
-   - Properly handle circular references in data composition methods
-   - Document relationship loading behavior in method docstrings
+   - Convert dates to datetime objects with consistent timezone handling

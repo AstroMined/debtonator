@@ -1,14 +1,14 @@
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
 
 from src.models.accounts import Account
 from src.models.liabilities import Liability
-from src.models.payments import Payment
+from src.repositories.accounts import AccountRepository
+from src.repositories.liabilities import LiabilityRepository
+from src.repositories.payments import PaymentRepository
 from src.schemas.payment_patterns import PatternType, PaymentPatternAnalysis
 from src.schemas.recommendations import (
     BillPaymentTimingRecommendation,
@@ -16,28 +16,84 @@ from src.schemas.recommendations import (
     ImpactMetrics,
     RecommendationResponse,
 )
-from src.services.cashflow import CashflowService
+from src.services.base import BaseService
+from src.services.cashflow.cashflow_metrics_service import MetricsService
+from src.services.feature_flags import FeatureFlagService
 from src.services.payment_patterns import BillPaymentPatternService
+from src.utils.datetime_utils import ensure_utc, utc_now
 
 
-class RecommendationService:
-    def __init__(self, session: AsyncSession):
-        self.session = session
-        self.pattern_service = BillPaymentPatternService(session)
-        self.cashflow_service = CashflowService(session)
+class RecommendationService(BaseService):
+    """
+    Service for generating financial recommendations.
+    
+    This service analyzes payment patterns, account statuses, and cashflow to generate
+    actionable financial recommendations, particularly around bill payment timing.
+    
+    Attributes:
+        _session: SQLAlchemy async session
+        _feature_flag_service: Optional feature flag service
+        pattern_service: Service for analyzing bill payment patterns
+        metrics_service: Service for cashflow metrics operations
+    """
+    
+    def __init__(
+        self,
+        session: AsyncSession,
+        pattern_service: Optional[BillPaymentPatternService] = None,
+        metrics_service: Optional[MetricsService] = None,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None
+    ):
+        """
+        Initialize the recommendation service.
+        
+        Args:
+            session: SQLAlchemy async session
+            pattern_service: Optional pattern analysis service (created if not provided)
+            metrics_service: Optional metrics service (created if not provided)
+            feature_flag_service: Optional feature flag service for repository proxies
+            config_provider: Optional config provider for feature flags
+        """
+        super().__init__(session, feature_flag_service, config_provider)
+        
+        # Initialize dependent services
+        if pattern_service:
+            self.pattern_service = pattern_service
+        else:
+            self.pattern_service = BillPaymentPatternService(
+                session, feature_flag_service, config_provider
+            )
+            
+        if metrics_service:
+            self.metrics_service = metrics_service
+        else:
+            self.metrics_service = MetricsService(
+                session, feature_flag_service, config_provider
+            )
 
     async def get_bill_payment_recommendations(
         self, account_ids: Optional[List[int]] = None
     ) -> RecommendationResponse:
-        """Generate bill payment timing recommendations based on historical patterns."""
+        """
+        Generate bill payment timing recommendations based on historical patterns.
+        
+        Args:
+            account_ids: Optional list of account IDs to filter by
+            
+        Returns:
+            Response containing recommendations with impact analysis
+        """
+        # Initialize results
         recommendations: List[BillPaymentTimingRecommendation] = []
         total_savings = Decimal("0")
         confidence_sum = Decimal("0")
 
+        # Get repositories
+        liability_repo = await self._get_repository(LiabilityRepository)
+
         # Get active bills
-        stmt = select(Liability).where(Liability.active == True)
-        result = await self.session.execute(stmt)
-        bills = result.scalars().all()
+        bills = await liability_repo.get_active_bills()
 
         for bill in bills:
             recommendation = await self._analyze_bill_payment_timing(bill, account_ids)
@@ -51,41 +107,49 @@ class RecommendationService:
             confidence_sum / len(recommendations) if recommendations else Decimal("0")
         )
 
+        # Create timestamp with proper timezone
+        generated_at = utc_now()
+
         return RecommendationResponse(
             recommendations=recommendations,
             total_savings_potential=total_savings,
             average_confidence=avg_confidence,
+            generated_at=generated_at
         )
 
     async def _analyze_bill_payment_timing(
         self, bill: Liability, account_ids: Optional[List[int]]
     ) -> Optional[BillPaymentTimingRecommendation]:
-        """Analyze payment patterns for a bill and generate timing recommendations."""
+        """
+        Analyze payment patterns for a bill and generate timing recommendations.
+        
+        Args:
+            bill: Liability to analyze
+            account_ids: Optional list of account IDs to filter by
+            
+        Returns:
+            Recommendation for optimal payment timing or None if no recommendation
+        """
         # Get payment patterns
         pattern_analysis: Optional[PaymentPatternAnalysis] = (
             await self.pattern_service.analyze_bill_payments(bill.id)
         )
-        print(f"\nAnalyzing bill {bill.id} with pattern analysis: {pattern_analysis}")
+        
         if not pattern_analysis:
-            print("No pattern analysis found")
             return None
 
         # Get affected accounts
         affected_accounts = await self._get_affected_accounts(bill.id, account_ids)
-        print(f"Found affected accounts: {affected_accounts}")
+        
         if not affected_accounts:
-            print("No affected accounts found")
             return None
 
         # Analyze optimal payment timing
         optimal_date, confidence, reason = await self._calculate_optimal_payment_date(
             bill, pattern_analysis, affected_accounts
         )
-        print(
-            f"Optimal payment date: {optimal_date}, confidence: {confidence}, reason: {reason}"
-        )
+        
         if not optimal_date:
-            print("No optimal date found")
             return None
 
         # Calculate impact metrics
@@ -93,54 +157,79 @@ class RecommendationService:
             bill, optimal_date, affected_accounts
         )
 
+        # Create recommendation with proper timezone handling
+        current_due_date = ensure_utc(bill.due_date)
+        recommended_date = ensure_utc(optimal_date)
+        
         return BillPaymentTimingRecommendation(
             bill_id=bill.id,
-            current_due_date=bill.due_date,
-            recommended_date=optimal_date,
+            current_due_date=current_due_date,
+            recommended_date=recommended_date,
             reason=reason,
             confidence=confidence,
             impact=impact,
             historical_pattern_strength=pattern_analysis.confidence_score,
             affected_accounts=[acc.id for acc in affected_accounts],
+            created_at=utc_now()
         )
 
     async def _get_affected_accounts(
         self, bill_id: int, account_ids: Optional[List[int]]
     ) -> List[Account]:
-        """Get accounts affected by a bill's payments."""
-        # Get recent payments for the bill
-        stmt = (
-            select(Payment)
-            .options(selectinload(Payment.sources))
-            .where(Payment.liability_id == bill_id)
-            .order_by(Payment.payment_date.desc())
-            .limit(5)
-        )
-        result = await self.session.execute(stmt)
-        payments = result.scalars().all()
-
+        """
+        Get accounts affected by a bill's payments.
+        
+        Args:
+            bill_id: ID of the bill to analyze
+            account_ids: Optional list of account IDs to filter by
+            
+        Returns:
+            List of affected accounts
+        """
+        # Get repositories
+        payment_repo = await self._get_repository(PaymentRepository)
+        account_repo = await self._get_repository(AccountRepository)
+        
+        # Get recent payments for the bill with sources loaded
+        payments = await payment_repo.get_recent_bill_payments(bill_id, limit=5)
+        
         # Get unique account IDs from payment sources
         account_ids_set = set()
         for payment in payments:
             for source in payment.sources:
                 if not account_ids or source.account_id in account_ids:
                     account_ids_set.add(source.account_id)
-
+        
         # Get account details
         if not account_ids_set:
             return []
-
-        stmt = select(Account).where(Account.id.in_(account_ids_set))
-        result = await self.session.execute(stmt)
-        return result.scalars().all()
+        
+        # Get accounts with those IDs
+        accounts = []
+        for account_id in account_ids_set:
+            account = await account_repo.get(account_id)
+            if account:
+                accounts.append(account)
+                
+        return accounts
 
     async def _calculate_optimal_payment_date(
         self,
         bill: Liability,
         pattern_analysis: PaymentPatternAnalysis,
         accounts: List[Account],
-    ) -> Tuple[Optional[date], ConfidenceLevel, str]:
-        """Calculate the optimal payment date based on patterns and account status."""
+    ) -> Tuple[Optional[date], Optional[ConfidenceLevel], str]:
+        """
+        Calculate the optimal payment date based on patterns and account status.
+        
+        Args:
+            bill: Liability to analyze
+            pattern_analysis: Analysis of payment patterns
+            accounts: Affected accounts
+            
+        Returns:
+            Tuple of (optimal date, confidence level, reason)
+        """
         if pattern_analysis.pattern_type == PatternType.REGULAR:
             return await self._analyze_regular_pattern(bill, pattern_analysis, accounts)
         elif pattern_analysis.pattern_type == PatternType.IRREGULAR:
@@ -161,18 +250,32 @@ class RecommendationService:
         recommended_date: date,
         accounts: List[Account],
     ) -> ImpactMetrics:
-        """Calculate the impact of the recommendation on accounts."""
+        """
+        Calculate the impact of the recommendation on accounts.
+        
+        Args:
+            bill: The liability being analyzed
+            recommended_date: Recommended payment date
+            accounts: List of affected accounts
+            
+        Returns:
+            Impact metrics for the recommendation
+        """
         # Initialize impact metrics
         balance_impact = Decimal("0")
         credit_impact = None
         savings = Decimal("0")
 
+        # Convert dates to ensure consistent types
+        current_due = ensure_utc(bill.due_date).date()
+        recommended = ensure_utc(recommended_date).date() if isinstance(recommended_date, datetime) else recommended_date
+
         # Calculate impacts based on cashflow projections
-        current_metrics = await self.cashflow_service.get_metrics_for_date(
-            bill.due_date
+        current_metrics = await self.metrics_service.get_metrics_for_date(
+            current_due
         )
-        recommended_metrics = await self.cashflow_service.get_metrics_for_date(
-            recommended_date
+        recommended_metrics = await self.metrics_service.get_metrics_for_date(
+            recommended
         )
 
         if recommended_metrics and current_metrics:
@@ -186,7 +289,7 @@ class RecommendationService:
                 savings = balance_impact * Decimal("0.1")  # Estimated savings
 
             # Calculate credit utilization impact for credit accounts
-            credit_accounts = [acc for acc in accounts if acc.type == "credit"]
+            credit_accounts = [acc for acc in accounts if acc.account_type == "credit"]
             if credit_accounts:
                 current_util = self._calculate_credit_utilization(credit_accounts)
                 recommended_util = self._calculate_credit_utilization(
@@ -209,8 +312,17 @@ class RecommendationService:
         accounts: List[Account],
         balance_adjustment: Decimal = Decimal("0"),
     ) -> Decimal:
-        """Calculate the weighted average credit utilization across accounts."""
-        total_limit = sum(acc.total_limit for acc in accounts if acc.total_limit)
+        """
+        Calculate the weighted average credit utilization across accounts.
+        
+        Args:
+            accounts: List of credit accounts
+            balance_adjustment: Optional balance adjustment amount
+            
+        Returns:
+            Weighted average credit utilization percentage
+        """
+        total_limit = sum(acc.credit_limit for acc in accounts if acc.credit_limit)
         if not total_limit:
             return Decimal("0")
 
@@ -224,9 +336,19 @@ class RecommendationService:
         self,
         balance_impact: Decimal,
         credit_impact: Optional[Decimal],
-        accounts: List[Account],
+        accounts: List[Account],  # Keep this for potential future use and API compatibility
     ) -> Decimal:
-        """Calculate a risk score for the recommendation."""
+        """
+        Calculate a risk score for the recommendation.
+        
+        Args:
+            balance_impact: Impact on account balance
+            credit_impact: Impact on credit utilization (if applicable)
+            accounts: Affected accounts
+            
+        Returns:
+            Risk score from 0-100 (lower is less risky)
+        """
         score = Decimal("50")  # Base score
 
         # Adjust for balance impact
@@ -246,7 +368,15 @@ class RecommendationService:
         return min(max(score, Decimal("0")), Decimal("100"))
 
     def _confidence_to_decimal(self, confidence: ConfidenceLevel) -> Decimal:
-        """Convert confidence level to decimal score."""
+        """
+        Convert confidence level to decimal score.
+        
+        Args:
+            confidence: Confidence level enum value
+            
+        Returns:
+            Decimal score representing confidence level
+        """
         return {
             ConfidenceLevel.HIGH: Decimal("1.0"),
             ConfidenceLevel.MEDIUM: Decimal("0.6"),
@@ -257,9 +387,19 @@ class RecommendationService:
         self,
         bill: Liability,
         pattern_analysis: PaymentPatternAnalysis,
-        accounts: List[Account],
+        accounts: List[Account],  # Keep this for potential future use and API compatibility
     ) -> Tuple[Optional[date], ConfidenceLevel, str]:
-        """Analyze regular payment patterns for optimal timing."""
+        """
+        Analyze regular payment patterns for optimal timing.
+        
+        Args:
+            bill: Liability to analyze
+            pattern_analysis: Analysis of payment patterns
+            accounts: Affected accounts
+            
+        Returns:
+            Tuple of (optimal date, confidence level, reason)
+        """
         # For regular patterns, use the average days before due date
         days_before = int(pattern_analysis.frequency_metrics.average_days_between)
         optimal_date = bill.due_date - timedelta(days=days_before)
@@ -289,10 +429,20 @@ class RecommendationService:
     async def _analyze_irregular_pattern(
         self,
         bill: Liability,
-        pattern_analysis: PaymentPatternAnalysis,
-        accounts: List[Account],
+        pattern_analysis: PaymentPatternAnalysis,  # Keep this for potential future use and API compatibility
+        accounts: List[Account],  # Keep this for potential future use and API compatibility
     ) -> Tuple[Optional[date], ConfidenceLevel, str]:
-        """Analyze irregular payment patterns for optimal timing."""
+        """
+        Analyze irregular payment patterns for optimal timing.
+        
+        Args:
+            bill: Liability to analyze
+            pattern_analysis: Analysis of payment patterns
+            accounts: Affected accounts
+            
+        Returns:
+            Tuple of (optimal date, confidence level, reason)
+        """
         # For irregular patterns, focus on cashflow optimization
         best_date = None
         best_balance = Decimal("-999999")
@@ -300,7 +450,7 @@ class RecommendationService:
         # Check different potential dates
         for days in range(1, 15):  # Check up to 2 weeks before due date
             check_date = bill.due_date - timedelta(days=days)
-            metrics = await self.cashflow_service.get_metrics_for_date(check_date)
+            metrics = await self.metrics_service.get_metrics_for_date(check_date)
             if metrics and metrics.projected_balance > best_balance:
                 best_date = check_date
                 best_balance = metrics.projected_balance
@@ -311,19 +461,29 @@ class RecommendationService:
                 ConfidenceLevel.MEDIUM,
                 "Optimized for best cashflow position",
             )
-        return None, None, ""
+        return None, ConfidenceLevel.LOW, "Unable to determine optimal date"
 
     async def _analyze_seasonal_pattern(
         self,
         bill: Liability,
         pattern_analysis: PaymentPatternAnalysis,
-        accounts: List[Account],
+        accounts: List[Account],  # Keep this for potential future use and API compatibility
     ) -> Tuple[Optional[date], ConfidenceLevel, str]:
-        """Analyze seasonal payment patterns for optimal timing."""
+        """
+        Analyze seasonal payment patterns for optimal timing.
+        
+        Args:
+            bill: Liability to analyze
+            pattern_analysis: Analysis of payment patterns
+            accounts: Affected accounts
+            
+        Returns:
+            Tuple of (optimal date, confidence level, reason)
+        """
         # For seasonal patterns, consider the current season's typical behavior
-        current_month = datetime.now().month
+        current_month = utc_now().month
         if not pattern_analysis.seasonal_metrics:
-            return None, None, ""
+            return None, ConfidenceLevel.LOW, "Insufficient seasonal data"
 
         season_data = pattern_analysis.seasonal_metrics.get((current_month - 1) // 3)
 
@@ -335,4 +495,4 @@ class RecommendationService:
                 ConfidenceLevel.MEDIUM,
                 f"Seasonal pattern suggests {days_before} days before due date",
             )
-        return None, None, ""
+        return None, ConfidenceLevel.LOW, "No seasonal pattern for current season"

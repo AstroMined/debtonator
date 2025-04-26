@@ -2,6 +2,49 @@
 
 ## Recent Updates
 
+### Completed Phases 18, 19, and 20 of ADR-014 Implementation Checklist (2025-04-26)
+
+- Completed Phase 18 (Recommendations Implementation):
+  - Refactored RecommendationService to use repository pattern:
+    - Updated to inherit from BaseService 
+    - Replaced direct database access with repository method calls
+    - Used existing repositories (LiabilityRepository, AccountRepository, PaymentRepository)
+    - Replaced CashflowService with more specific MetricsService for better separation of concerns
+    - Fixed references to account types and attributes (account_type, credit_limit)
+    - Applied proper timezone handling with ensure_utc and utc_now
+  - Enhanced documentation and error handling:
+    - Added comprehensive method docstrings with parameters and return values
+    - Improved error response for irregular and seasonal patterns
+    - Made error handling more predictable with stable return types
+  - Updated ADR-014 implementation checklist to mark Phase 18 as completed
+
+- Completed Phase 19 (Impact Analysis Implementation):
+  - Refactored ImpactAnalysisService to use repository pattern:
+    - Updated to inherit from BaseService
+    - Replaced direct SQL queries with repository methods
+    - Used existing repositories for data access
+    - Applied proper ADR-011 datetime compliance
+    - Updated reference to account attributes (total_limit → credit_limit)
+    - Improved documentation with comprehensive docstrings
+  - Enhanced error handling and fixed validation issues:
+    - Converted date objects to naive UTC datetimes for database operations
+    - Fixed validation issues with split amount calculations
+    - Ensured proper decimal precision throughout calculations
+  - Updated ADR-014 implementation checklist to mark Phase 19 as completed
+
+- Completed Phase 20 (Recurring Bills Implementation):
+  - Used existing RecurringBillRepository with comprehensive methods
+  - Refactored RecurringBillService to inherit from BaseService:
+    - Replaced all direct database access with repository method calls
+    - Used _get_repository method for standardized repository access
+    - Added appropriate parameter documentation with comprehensive docstrings
+    - Ensured proper error handling with validation
+  - Applied proper ADR-011 datetime compliance:
+    - Used naive_utc_from_date for database operations
+    - Converted dates to datetimes with proper timezone handling
+    - Fixed timezone inconsistencies between due dates and check dates
+  - Updated ADR-014 implementation checklist to mark Phase 20 as completed
+
 ### Fixed FeatureFlagService Implementation (2025-04-26)
 
 - Fixed syntax errors and eliminated tech debt in FeatureFlagService:
@@ -110,79 +153,6 @@
     - Implemented proper error handling with validation
     - Added comprehensive docstrings to all methods
   - Updated ADR-014 implementation checklist to mark Phase 10 as completed
-
-### Payment Patterns Implementation for ADR-014 Compliance (2025-04-26)
-
-- Completed Payment Patterns Implementation for ADR-014 Repository Layer Compliance:
-  - Created PaymentPatternRepository with specialized methods:
-    - Implemented get_payments_with_filters with comprehensive filtering
-    - Added get_bill_payments for liability-specific analysis
-    - Created calculate_payment_frequency_metrics for interval analysis
-    - Added calculate_amount_statistics for financial analysis
-    - Implemented get_date_range_for_pattern_analysis for proper boundaries
-    - Added get_most_common_category for category suggestion
-  - Refactored BillPaymentPatternService to follow repository pattern:
-    - Updated service to inherit from BaseService
-    - Replaced all direct database queries with repository methods
-    - Used _get_repository method for standardized repository access
-    - Delegated data operations to repository layer
-    - Kept business logic for pattern classification in service
-  - Applied proper ADR-011 datetime compliance:
-    - Used ensure_utc() for timezone awareness
-    - Used naive_start_of_day() and naive_end_of_day() for DB operations
-    - Used utc_now() instead of direct datetime usage
-    - Fixed timezone handling in all date comparisons
-  - Updated ADR-014 implementation checklist to mark Phase 8 as completed
-
-### Recurring Income Service Refactoring for ADR-014 Compliance (2025-04-25)
-
-- Completed Recurring Income Service refactoring to comply with ADR-014 Repository Layer Compliance:
-  - Refactored RecurringIncomeService to inherit from BaseService
-  - Utilized existing RecurringIncomeRepository for all data access operations
-  - Replaced all direct database queries with repository method calls
-  - Added find_by_recurring_and_date method to IncomeRepository
-  - Updated class constructor to properly pass dependencies to BaseService
-  - Used _get_repository method for standardized repository access
-  - Updated validation methods to use repositories for verification
-  - Applied proper ADR-011 datetime compliance:
-    - Used utc_now() instead of direct datetime usage
-    - Stored dates in database without timezone info
-    - Used proper timezone-aware datetime comparisons
-  - Maintained identical business logic while using repository pattern
-  - Improved documentation with comprehensive method docstrings
-  - Updated implementation checklist to mark Phase 5 as completed
-
-### Income Service Refactoring for ADR-014 Compliance (2025-04-25)
-
-- Completed Income Service refactoring to comply with ADR-014 Repository Layer Compliance:
-  - Refactored IncomeService to inherit from BaseService
-  - Utilized existing IncomeRepository for all data access operations
-  - Replaced all direct database queries with repository method calls
-  - Updated class constructor to properly pass dependencies to BaseService
-  - Maintained identical business logic while using repository pattern
-  - Used _get_repository method for standardized repository access
-  - Updated validation methods to use repositories for verification
-  - Updated all module-level convenience functions to use refactored service
-  - Identified test issues requiring follow-up fixes:
-    - UTC timezone validation for date fields
-    - Need to use update_typed_entity for polymorphic repositories
-    - Proper datetime formatting in test fixtures
-  - Updated implementation checklist to mark Phase 4 as completed
-
-### Income Trends Service Refactoring for ADR-014 Compliance (2025-04-25)
-
-- Completed Income Trends Service refactoring to comply with ADR-014 Repository Layer Compliance:
-  - Created IncomeTrendsRepository with appropriate methods for data access
-  - Updated IncomeTrendsService to inherit from BaseService for standardized repository access
-  - Replaced direct database operations with repository method calls
-  - Fixed timezone handling with proper ADR-011 datetime utility functions
-  - Improved method documentation with comprehensive docstrings
-  - Maintained statistical analysis and seasonality detection functionality
-  - All income trends functionality now works through repository layer
-  - Updated tests to use proper UTC-aware datetimes
-  - Updated implementation checklist to reflect completed phase
-  - Added proper parameter validation in repository methods
-  - Ensured clean separation between data access and business logic
 
 ### Environment Context Initialization Fix (2025-04-25)
 

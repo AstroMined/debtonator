@@ -1,12 +1,13 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import List, Optional
+from typing import Any, List, Optional
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.liabilities import Liability
+from src.repositories.accounts import AccountRepository
+from src.repositories.liabilities import LiabilityRepository
 from src.schemas.impact_analysis import (
     AccountImpact,
     CashflowImpact,
@@ -14,17 +15,55 @@ from src.schemas.impact_analysis import (
     SplitImpactAnalysis,
     SplitImpactRequest,
 )
+from src.services.base import BaseService
+from src.services.feature_flags import FeatureFlagService
+from src.utils.datetime_utils import ensure_utc, naive_utc_from_date
 from src.utils.decimal_precision import DecimalPrecision
 
 
-class ImpactAnalysisService:
-    def __init__(self, session: AsyncSession):
-        self.session = session
+class ImpactAnalysisService(BaseService):
+    """
+    Service for analyzing financial impact of proposed actions.
+    
+    This service provides analysis of how financial decisions such as
+    bill splits would impact accounts, cashflow, and overall financial health.
+    
+    Attributes:
+        _session: SQLAlchemy async session
+        _feature_flag_service: Optional feature flag service
+    """
+    
+    def __init__(
+        self,
+        session: AsyncSession,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None
+    ):
+        """
+        Initialize the impact analysis service.
+        
+        Args:
+            session: SQLAlchemy async session
+            feature_flag_service: Optional feature flag service for repository proxies
+            config_provider: Optional config provider for feature flags
+        """
+        super().__init__(session, feature_flag_service, config_provider)
 
     async def analyze_split_impact(
         self, request: SplitImpactRequest
     ) -> SplitImpactAnalysis:
-        """Analyze the impact of proposed bill splits on accounts and cashflow."""
+        """
+        Analyze the impact of proposed bill splits on accounts and cashflow.
+        
+        Args:
+            request: Split impact request containing split configuration
+            
+        Returns:
+            Comprehensive analysis of bill split impacts
+            
+        Raises:
+            ValueError: If the liability is not found
+        """
         # Get the liability and validate it exists
         liability = await self._get_liability(request.liability_id)
         if not liability:
@@ -75,18 +114,44 @@ class ImpactAnalysisService:
         )
 
     async def _get_liability(self, liability_id: int) -> Optional[Liability]:
-        """Retrieve a liability by ID."""
-        result = await self.session.execute(
-            select(Liability).where(Liability.id == liability_id)
-        )
-        return result.scalar_one_or_none()
+        """
+        Retrieve a liability by ID.
+        
+        Args:
+            liability_id: ID of the liability to retrieve
+            
+        Returns:
+            Liability object if found, None otherwise
+        """
+        # Get repository
+        repo = await self._get_repository(LiabilityRepository)
+        
+        # Use repository to get liability
+        return await repo.get(liability_id)
 
     async def _get_accounts(self, account_ids: List[int]) -> List[Account]:
-        """Retrieve multiple accounts by their IDs."""
-        result = await self.session.execute(
-            select(Account).where(Account.id.in_(account_ids))
-        )
-        return list(result.scalars().all())
+        """
+        Retrieve multiple accounts by their IDs.
+        
+        Args:
+            account_ids: List of account IDs to retrieve
+            
+        Returns:
+            List of account objects matching the provided IDs
+        """
+        # Get repository
+        repo = await self._get_repository(AccountRepository)
+        
+        # Initialize results list
+        accounts = []
+        
+        # Fetch each account individually to handle cases where some IDs might not exist
+        for account_id in account_ids:
+            account = await repo.get(account_id)
+            if account:
+                accounts.append(account)
+                
+        return accounts
 
     async def _calculate_account_impacts(
         self, accounts: List[Account], splits: List[dict]
@@ -150,7 +215,17 @@ class ImpactAnalysisService:
     async def _calculate_cashflow_impacts(
         self, accounts: List[Account], splits: List[dict], analysis_period_days: int
     ) -> List[CashflowImpact]:
-        """Calculate cashflow impacts over the analysis period."""
+        """
+        Calculate cashflow impacts over the analysis period.
+        
+        Args:
+            accounts: List of affected accounts
+            splits: List of split configurations
+            analysis_period_days: Number of days to analyze
+            
+        Returns:
+            List of cashflow impacts for different time periods
+        """
         impacts = []
         today = date.today()
 
@@ -185,9 +260,11 @@ class ImpactAnalysisService:
                     month_bills - available_funds
                 )
 
+            # Use ensure_utc to ensure timezone-aware datetime
+            impact_date = ensure_utc(datetime.combine(current_date, datetime.min.time()))
             impacts.append(
                 CashflowImpact(
-                    date=current_date,
+                    date=impact_date,
                     total_bills=month_bills,
                     available_funds=available_funds,
                     projected_deficit=projected_deficit,
@@ -205,11 +282,25 @@ class ImpactAnalysisService:
     async def _get_upcoming_bills(
         self, start_date: date, end_date: date
     ) -> List[Liability]:
-        """Get all upcoming bills in the given date range."""
-        result = await self.session.execute(
-            select(Liability).where(Liability.due_date.between(start_date, end_date))
-        )
-        return list(result.scalars().all())
+        """
+        Get all upcoming bills in the given date range.
+        
+        Args:
+            start_date: Start date for the range (inclusive)
+            end_date: End date for the range (inclusive)
+            
+        Returns:
+            List of liabilities due in the specified date range
+        """
+        # Get repository
+        repo = await self._get_repository(LiabilityRepository)
+        
+        # Convert dates to naive UTC datetimes for database query
+        start_datetime = naive_utc_from_date(start_date.year, start_date.month, start_date.day)
+        end_datetime = naive_utc_from_date(end_date.year, end_date.month, end_date.day)
+        
+        # Use repository to get liabilities in date range
+        return await repo.get_due_in_range(start_datetime, end_datetime)
 
     async def _analyze_risk_factors(
         self,
@@ -217,12 +308,22 @@ class ImpactAnalysisService:
         splits: List[dict],
         cashflow_impacts: List[CashflowImpact],
     ) -> List[RiskFactor]:
-        """Analyze various risk factors for the proposed splits."""
+        """
+        Analyze various risk factors for the proposed splits.
+        
+        Args:
+            accounts: List of affected accounts
+            splits: List of split configurations
+            cashflow_impacts: Calculated cashflow impacts
+            
+        Returns:
+            List of identified risk factors
+        """
         risk_factors = []
 
         # Check for high credit utilization
         for account in accounts:
-            if account.account_type == "credit" and account.total_limit:
+            if account.account_type == "credit" and account.credit_limit:
                 # Calculate split amount with 4 decimal precision
                 split_amount = DecimalPrecision.round_for_calculation(
                     sum(
@@ -239,7 +340,7 @@ class ImpactAnalysisService:
                     account.available_balance
                 )
                 total_limit = DecimalPrecision.round_for_calculation(
-                    account.total_limit
+                    account.credit_limit
                 )
 
                 projected_balance = DecimalPrecision.round_for_calculation(

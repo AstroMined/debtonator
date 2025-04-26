@@ -1,115 +1,187 @@
-from datetime import date
-from typing import List, Optional
+from datetime import date, datetime
+from typing import List, Optional, Any
 
 from fastapi import HTTPException
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
-from sqlalchemy.sql.expression import func
 
-from src.models.accounts import Account
 from src.models.liabilities import Liability
 from src.models.recurring_bills import RecurringBill
+from src.repositories.recurring_bills import RecurringBillRepository
+from src.repositories.accounts import AccountRepository
+from src.repositories.liabilities import LiabilityRepository
 from src.schemas.recurring_bills import RecurringBillCreate, RecurringBillUpdate
+from src.services.base import BaseService
+from src.services.feature_flags import FeatureFlagService
 from src.utils.datetime_utils import naive_utc_from_date
 from src.utils.decimal_precision import DecimalPrecision
 
 
-class RecurringBillService:
-    def __init__(self, db: AsyncSession):
-        self.db = db
+class RecurringBillService(BaseService):
+    """
+    Service for managing recurring bills and generating liabilities.
+    
+    This service handles operations related to recurring bills, including creation,
+    update, deletion, and generation of liabilities based on recurring bill templates.
+    
+    Attributes:
+        _session: SQLAlchemy async session
+        _feature_flag_service: Optional feature flag service
+    """
+    
+    def __init__(
+        self,
+        session: AsyncSession,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None
+    ):
+        """
+        Initialize the recurring bill service.
+        
+        Args:
+            session: SQLAlchemy async session
+            feature_flag_service: Optional feature flag service for repository proxies
+            config_provider: Optional config provider for feature flags
+        """
+        super().__init__(session, feature_flag_service, config_provider)
 
     async def get_recurring_bills(
         self, skip: int = 0, limit: int = 100, active_only: bool = True
     ) -> List[RecurringBill]:
-        """Get all recurring bills"""
-        stmt = select(RecurringBill).options(
-            joinedload(RecurringBill.account), joinedload(RecurringBill.liabilities)
-        )
-
+        """
+        Get all recurring bills with optional filtering.
+        
+        Args:
+            skip: Number of records to skip (for pagination)
+            limit: Maximum number of records to return
+            active_only: If True, return only active recurring bills
+            
+        Returns:
+            List of recurring bill objects with loaded relationships
+        """
+        # Get repository
+        repo = await self._get_repository(RecurringBillRepository)
+        
         if active_only:
-            stmt = stmt.filter(RecurringBill.active == True)
-
-        stmt = stmt.offset(skip).limit(limit).order_by(RecurringBill.bill_name)
-
-        result = await self.db.execute(stmt)
-        return result.unique().scalars().all()
+            # Use repository's specialized method for active bills
+            bills = await repo.get_active_bills()
+            # Apply skip and limit
+            return bills[skip:skip+limit]
+        else:
+            # Use get_multi for all bills with filters
+            return await repo.get_multi(
+                skip=skip, 
+                limit=limit,
+                filters=None
+            )
 
     async def get_recurring_bill(
         self, recurring_bill_id: int
     ) -> Optional[RecurringBill]:
-        """Get a specific recurring bill by ID"""
-        stmt = (
-            select(RecurringBill)
-            .options(
-                joinedload(RecurringBill.account), joinedload(RecurringBill.liabilities)
-            )
-            .filter(RecurringBill.id == recurring_bill_id)
+        """
+        Get a specific recurring bill by ID with relationships loaded.
+        
+        Args:
+            recurring_bill_id: ID of the recurring bill to retrieve
+            
+        Returns:
+            Recurring bill with loaded relationships or None if not found
+        """
+        # Get repository
+        repo = await self._get_repository(RecurringBillRepository)
+        
+        # Use specialized method to get bill with relationships
+        return await repo.get_with_relationships(
+            recurring_bill_id,
+            include_account=True,
+            include_liabilities=True
         )
-        result = await self.db.execute(stmt)
-        return result.unique().scalar_one_or_none()
 
     async def create_recurring_bill(
         self, recurring_bill_create: RecurringBillCreate
     ) -> RecurringBill:
-        """Create a new recurring bill"""
+        """
+        Create a new recurring bill.
+        
+        Args:
+            recurring_bill_create: Schema with recurring bill data
+            
+        Returns:
+            Created recurring bill instance
+            
+        Raises:
+            HTTPException: If the account doesn't exist
+        """
+        # Get repositories
+        account_repo = await self._get_repository(AccountRepository)
+        recurring_bill_repo = await self._get_repository(RecurringBillRepository)
+        
         # Verify account exists
-        account_result = await self.db.execute(
-            select(Account).where(Account.id == recurring_bill_create.account_id)
-        )
-        account = account_result.scalar_one_or_none()
+        account = await account_repo.get(recurring_bill_create.account_id)
         if not account:
             raise HTTPException(status_code=404, detail="Account not found")
-
-        db_recurring_bill = RecurringBill(
-            bill_name=recurring_bill_create.bill_name,
-            # Use DecimalPrecision to ensure proper rounding for storage
-            amount=DecimalPrecision.round_for_display(recurring_bill_create.amount),
-            day_of_month=recurring_bill_create.day_of_month,
-            account_id=recurring_bill_create.account_id,
-            category_id=recurring_bill_create.category_id,
-            auto_pay=recurring_bill_create.auto_pay,
-        )
-
-        self.db.add(db_recurring_bill)
-        await self.db.commit()
-        await self.db.refresh(db_recurring_bill)
-
+        
+        # Prepare data with proper decimal precision
+        bill_data = recurring_bill_create.model_dump()
+        bill_data["amount"] = DecimalPrecision.round_for_display(recurring_bill_create.amount)
+        
+        # Use repository to create the bill
+        db_recurring_bill = await recurring_bill_repo.create(bill_data)
+        
         return db_recurring_bill
 
     async def update_recurring_bill(
         self, recurring_bill_id: int, recurring_bill_update: RecurringBillUpdate
     ) -> Optional[RecurringBill]:
-        """Update a recurring bill"""
+        """
+        Update an existing recurring bill.
+        
+        Args:
+            recurring_bill_id: ID of the recurring bill to update
+            recurring_bill_update: Schema with fields to update
+            
+        Returns:
+            Updated recurring bill or None if not found
+        """
+        # Get repository
+        repo = await self._get_repository(RecurringBillRepository)
+        
+        # Verify bill exists
         db_recurring_bill = await self.get_recurring_bill(recurring_bill_id)
         if not db_recurring_bill:
             return None
-
+        
+        # Prepare update data with proper decimal precision
         update_data = recurring_bill_update.model_dump(exclude_unset=True)
-
+        
         # Apply proper decimal precision for amount if present
         if "amount" in update_data:
             update_data["amount"] = DecimalPrecision.round_for_display(
                 update_data["amount"]
             )
-
-        for key, value in update_data.items():
-            setattr(db_recurring_bill, key, value)
-
-        await self.db.commit()
-        await self.db.refresh(db_recurring_bill)
-
-        return db_recurring_bill
+        
+        # Use repository to update
+        return await repo.update(recurring_bill_id, update_data)
 
     async def delete_recurring_bill(self, recurring_bill_id: int) -> bool:
-        """Delete a recurring bill and its generated liabilities"""
+        """
+        Delete a recurring bill and its generated liabilities.
+        
+        Args:
+            recurring_bill_id: ID of the recurring bill to delete
+            
+        Returns:
+            True if deleted successfully, False if not found
+        """
+        # Get repository
+        repo = await self._get_repository(RecurringBillRepository)
+        
+        # Verify bill exists
         db_recurring_bill = await self.get_recurring_bill(recurring_bill_id)
         if not db_recurring_bill:
             return False
-
-        await self.db.delete(db_recurring_bill)
-        await self.db.commit()
-        return True
+        
+        # Use repository to delete
+        return await repo.delete(recurring_bill_id)
 
     def create_liability_from_recurring(
         self, recurring_bill: RecurringBill, month: str, year: int
@@ -128,11 +200,15 @@ class RecurringBillService:
         Returns:
             Liability: New liability instance with proper UTC due date
         """
+        # Create due date using proper ADR-011 datetime compliance
+        due_date = naive_utc_from_date(year, int(month), recurring_bill.day_of_month)
+        
+        # Create liability with appropriate fields
         liability = Liability(
             name=recurring_bill.bill_name,
             # Ensure proper decimal precision for monetary values
             amount=DecimalPrecision.round_for_display(recurring_bill.amount),
-            due_date=naive_utc_from_date(year, int(month), recurring_bill.day_of_month),
+            due_date=due_date,
             primary_account_id=recurring_bill.account_id,
             category_id=recurring_bill.category_id,
             auto_pay=recurring_bill.auto_pay,
@@ -145,42 +221,80 @@ class RecurringBillService:
     async def generate_bills(
         self, recurring_bill_id: int, month: int, year: int
     ) -> List[Liability]:
-        """Generate liabilities for a recurring bill pattern"""
-        db_recurring_bill = await self.get_recurring_bill(recurring_bill_id)
+        """
+        Generate liabilities for a recurring bill pattern.
+        
+        Args:
+            recurring_bill_id: ID of the recurring bill template
+            month: Month (1-12) to generate bills for
+            year: Year to generate bills for
+            
+        Returns:
+            List of generated liability instances (empty if already exists)
+        """
+        # Get repositories
+        recurring_bill_repo = await self._get_repository(RecurringBillRepository)
+        liability_repo = await self._get_repository(LiabilityRepository)
+        
+        # Get recurring bill with relationships
+        db_recurring_bill = await recurring_bill_repo.get_with_relationships(
+            recurring_bill_id,
+            include_category=True
+        )
+        
         if not db_recurring_bill or not db_recurring_bill.active:
             return []
-
-        # Check if bills already exist for this month/year
-        # Need to compare just the date components since due_date is a datetime in the model
-        # but we're checking with a date object
-        stmt = select(Liability).filter(
-            Liability.recurring_bill_id == recurring_bill_id,
-            func.date(Liability.due_date)
-            == date(year, month, db_recurring_bill.day_of_month),
+        
+        # Check if bills already exist for this month/year using repository method
+        # Create the due date for checking
+        check_date = date(year, month, db_recurring_bill.day_of_month)
+        # Convert to datetime for consistent comparison
+        check_datetime = datetime.combine(check_date, datetime.min.time())
+        
+        # Use repository to check if liability already exists
+        already_exists = await recurring_bill_repo.check_liability_exists(
+            recurring_bill_id, 
+            check_datetime
         )
-        result = await self.db.execute(stmt)
-        if result.first():
+        
+        if already_exists:
             return []  # Bills already exist for this period
-
+        
         # Create new liability using service method instead of model method
         liability = self.create_liability_from_recurring(
             db_recurring_bill, str(month), year
         )
-        self.db.add(liability)
-        await self.db.commit()
-        await self.db.refresh(liability)
-
-        return [liability]
+        
+        # Use repository to create liability
+        created_liability = await liability_repo.create(liability.__dict__)
+        
+        return [created_liability]
 
     async def generate_bills_for_month(
         self, month: int, year: int, active_only: bool = True
     ) -> List[Liability]:
-        """Generate liabilities for all recurring bills for a specific month"""
-        recurring_bills = await self.get_recurring_bills(active_only=active_only)
+        """
+        Generate liabilities for all recurring bills for a specific month.
+        
+        Args:
+            month: Month (1-12) to generate bills for
+            year: Year to generate bills for
+            active_only: If True, only process active recurring bills
+            
+        Returns:
+            List of all generated liability instances
+        """
+        # Get all applicable recurring bills
+        recurring_bills = await self.get_recurring_bills(
+            active_only=active_only,
+            limit=1000  # Increased limit to ensure we get all bills
+        )
+        
         generated_bills = []
-
+        
+        # Generate bills for each recurring bill
         for recurring_bill in recurring_bills:
             bills = await self.generate_bills(recurring_bill.id, month, year)
             generated_bills.extend(bills)
-
+            
         return generated_bills
