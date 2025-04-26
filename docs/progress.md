@@ -2,6 +2,24 @@
 
 ## Recent Updates
 
+### Recurring Income Service Refactoring for ADR-014 Compliance (2025-04-25)
+
+- Completed Recurring Income Service refactoring to comply with ADR-014 Repository Layer Compliance:
+  - Refactored RecurringIncomeService to inherit from BaseService
+  - Utilized existing RecurringIncomeRepository for all data access operations
+  - Replaced all direct database queries with repository method calls
+  - Added find_by_recurring_and_date method to IncomeRepository
+  - Updated class constructor to properly pass dependencies to BaseService
+  - Used _get_repository method for standardized repository access
+  - Updated validation methods to use repositories for verification
+  - Applied proper ADR-011 datetime compliance:
+    - Used utc_now() instead of direct datetime usage
+    - Stored dates in database without timezone info
+    - Used proper timezone-aware datetime comparisons
+  - Maintained identical business logic while using repository pattern
+  - Improved documentation with comprehensive method docstrings
+  - Updated implementation checklist to mark Phase 5 as completed
+
 ### Income Service Refactoring for ADR-014 Compliance (2025-04-25)
 
 - Completed Income Service refactoring to comply with ADR-014 Repository Layer Compliance:

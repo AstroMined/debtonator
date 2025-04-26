@@ -90,11 +90,13 @@ Each phase is designed to be completed in a single coding session:
   - [x] Maintained feature flag integration with proper constructor
   - [x] Completion criteria: Income service using repository pattern exclusively
 
-- [ ] **Phase 5: Recurring Income Service Refactoring**
-  - [ ] Create dedicated `RecurringIncomeRepository` 
-  - [ ] Refactor `recurring_income.py` service to use repository pattern
-  - [ ] Implement proper validation in repository methods
-  - [ ] Completion criteria: Recurring income service using repository pattern exclusively
+- [x] **Phase 5: Recurring Income Service Refactoring** ✅
+  - [x] Used existing `RecurringIncomeRepository` that was already implemented
+  - [x] Refactored `recurring_income.py` service to inherit from BaseService
+  - [x] Replaced all direct database queries with repository method calls
+  - [x] Added find_by_recurring_and_date method to IncomeRepository
+  - [x] Applied proper ADR-011 datetime compliance with utility functions
+  - [x] Completion criteria: Recurring income service using repository pattern exclusively
 
 - [ ] **Phase 6: Payment Service Refactoring**
   - [ ] Create dedicated `PaymentRepository` and `PaymentSourceRepository`
@@ -328,7 +330,7 @@ For each refactored service, verify:
 | `transactions.py` | ✅ Fully compliant | None needed | 2 |
 | `bill_splits.py` | ✅ Fully compliant | None needed | 3 |
 | `income.py` | ✅ Fully compliant | None needed | 4 |
-| `recurring_income.py` | Not compliant | Complete refactoring needed | 5 |
+| `recurring_income.py` | ✅ Fully compliant | None needed | 5 |
 | `payments.py` | Not compliant | Complete refactoring needed | 6 |
 | `income_trends.py` | ✅ Fully compliant | None needed | 7 |
 | `payment_patterns.py` | Not compliant | Create repository and refactor service | 8 |

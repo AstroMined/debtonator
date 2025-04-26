@@ -6,7 +6,27 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Account Type
 
 ### Recent Changes
 
-1. **Refactored IncomeService for ADR-014 Repository Pattern Compliance (April 25, 2025)** ✓
+1. **Refactored RecurringIncomeService for ADR-014 Repository Pattern Compliance (April 25, 2025)** ✓
+   - Refactored RecurringIncomeService to inherit from BaseService:
+     - Updated constructor to properly initialize BaseService
+     - Used _get_repository method for standardized repository access
+     - Replaced all direct database queries with repository methods
+   - Leveraged existing RecurringIncomeRepository's comprehensive methods:
+     - Used get_with_relationships for loading related data
+     - Applied specialized methods like toggle_active and toggle_auto_deposit
+     - Added get_upcoming_deposits for advanced forecasting
+   - Added find_by_recurring_and_date method to IncomeRepository:
+     - Created specialized method for finding recurring income entries by month/year
+     - Used proper SQLAlchemy filtering with strftime
+     - Ensured consistent behavior with the previous implementation
+   - Applied proper ADR-011 datetime compliance:
+     - Used utc_now() instead of datetime.now()
+     - Stored dates in database without timezone info
+     - Maintained consistent business logic throughout refactoring
+   - Updated implementation checklist to mark Phase 5 as completed
+   - Identified typical refactoring pattern for similar services
+
+2. **Refactored IncomeService for ADR-014 Repository Pattern Compliance (April 25, 2025)** ✓
    - Refactored IncomeService to inherit from BaseService:
      - Updated constructor to properly initialize BaseService
      - Used _get_repository method for standardized repository access

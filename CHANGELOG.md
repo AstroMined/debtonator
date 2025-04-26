@@ -7,6 +7,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.139] - 2025-04-25
+
+### Changed
+
+- Refactored RecurringIncomeService to implement repository pattern (ADR-014):
+  - Updated RecurringIncomeService to inherit from BaseService
+  - Leveraged existing RecurringIncomeRepository for all data access
+  - Added find_by_recurring_and_date method to IncomeRepository
+  - Replaced direct database access with repository method calls
+  - Applied proper ADR-011 datetime compliance with utility functions
+  - Used _get_repository method for standardized repository access
+  - Maintained existing business logic while improving architecture
+  - Updated implementation checklist to mark Phase 5 as completed
+  - Improved documentation with comprehensive method docstrings
+
 ## [0.5.138] - 2025-04-25
 
 ### Changed
