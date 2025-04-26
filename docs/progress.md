@@ -2,6 +2,55 @@
 
 ## Recent Updates
 
+### Statement History Service Refactoring for ADR-014 Compliance (2025-04-26)
+
+- Completed Statement History Service refactoring to comply with ADR-014 Repository Layer Compliance:
+  - Refactored StatementService to inherit from BaseService:
+    - Updated constructor to properly initialize BaseService
+    - Used _get_repository method for standardized repository access
+    - Replaced all direct database queries with repository method calls
+  - Leveraged existing StatementHistoryRepository's comprehensive methods:
+    - Used get_by_account for efficient statement retrieval
+    - Used get_by_date_range for filtering by date period
+    - Used get_with_account for loading account relationships
+    - Added get_latest_statement for recent statement access
+  - Applied proper ADR-011 datetime compliance:
+    - Used ensure_utc() for timezone awareness throughout
+    - Properly handled timezone in date comparisons and filtering
+    - Used utc_now() for current time access with proper timezone
+  - Enhanced service with additional functionality:
+    - Added methods for trend analysis and financial reporting
+    - Added get_total_minimum_payments_due for financial summaries
+    - Added get_upcoming_statements for forecasting
+    - Improved method documentation with comprehensive docstrings
+  - Updated ADR-014 implementation checklist to mark Phase 13 as completed
+
+### Liabilities Service Refactoring for ADR-014 Compliance (2025-04-26)
+
+- Completed Liabilities Service refactoring to comply with ADR-014 Repository Layer Compliance:
+  - Refactored LiabilityService to inherit from BaseService:
+    - Updated constructor to properly initialize BaseService
+    - Used _get_repository method for standardized repository access
+    - Replaced all direct database queries with repository method calls
+  - Leveraged existing LiabilityRepository's comprehensive methods:
+    - Used get_bills_due_in_range for date-based filtering
+    - Used get_bills_for_account for account-specific liabilities
+    - Added get_with_relationships for complete record access
+    - Used proper validation methods from repository layer
+  - Enhanced validation and service methods:
+    - Updated validation methods to use repositories for verification
+    - Maintained business logic while delegating data access
+    - Added proper error handling for validation failures
+  - Applied proper ADR-011 datetime compliance:
+    - Used ensure_utc() for timezone awareness throughout
+    - Used utc_now() instead of datetime.now() for current time
+    - Added proper date range handling in filter methods
+  - Enhanced auto-pay functionality:
+    - Properly integrated with repository methods
+    - Improved settings validation and handling
+    - Fixed timezone issues in auto-pay scheduling
+  - Updated ADR-014 implementation checklist to mark Phase 14 as completed
+
 ### Balance History Service Refactoring for ADR-014 Compliance (2025-04-26)
 
 - Completed Balance History Service refactoring to comply with ADR-014 Repository Layer Compliance:
@@ -24,31 +73,6 @@
     - Implemented proper error handling with validation
     - Added comprehensive docstrings to all methods
   - Updated ADR-014 implementation checklist to mark Phase 10 as completed
-
-### Payment Schedules Service Refactoring for ADR-014 Compliance (2025-04-26)
-
-- Completed Payment Schedules Service refactoring to comply with ADR-014 Repository Layer Compliance:
-  - Refactored PaymentScheduleService to inherit from BaseService:
-    - Updated constructor to properly initialize BaseService
-    - Used _get_repository method for standardized repository access
-    - Replaced all direct database queries with repository method calls
-  - Leveraged existing PaymentScheduleRepository's comprehensive methods:
-    - Used get_by_date_range for date-based schedule retrieval
-    - Leveraged mark_as_processed for state management
-    - Used cancel_schedule for schedule deletion
-    - Added specialized methods for overdue and auto-process schedules
-  - Properly initialized PaymentService with all dependencies:
-    - Passed feature_flag_service and config_provider to PaymentService
-    - Maintained consistent payment processing interface
-  - Applied proper ADR-011 datetime compliance:
-    - Used ensure_utc() for timezone awareness throughout
-    - Applied utc_now() for current time with proper timezone
-  - Enhanced service with additional functionality:
-    - Added get_upcoming_schedules for forecast view
-    - Added find_overdue_schedules for missed payment identification
-    - Added get_total_scheduled_payments for financial planning
-    - Added get_schedules_with_relationships for complete record access
-  - Updated ADR-014 implementation checklist to mark Phase 9 as completed
 
 ### Payment Patterns Implementation for ADR-014 Compliance (2025-04-26)
 

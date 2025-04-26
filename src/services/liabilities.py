@@ -1,20 +1,21 @@
-from datetime import date, timedelta
-from typing import Dict, List, Optional, Tuple
+from datetime import date, datetime, timedelta
+from typing import Dict, List, Optional, Tuple, Any
 
-from sqlalchemy import and_, select
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
 
-from src.models.accounts import Account
-from src.models.base_model import naive_utc_now
-from src.models.categories import Category
-from src.models.liabilities import Liability
-from src.models.payments import Payment
+from src.models.liabilities import Liability, LiabilityStatus
+from src.repositories.accounts import AccountRepository
+from src.repositories.categories import CategoryRepository
+from src.repositories.liabilities import LiabilityRepository
+from src.repositories.payments import PaymentRepository
 from src.schemas.liabilities import AutoPayUpdate, LiabilityCreate, LiabilityUpdate
+from src.services.base import BaseService
+from src.utils.datetime_utils import ensure_utc, utc_now, days_from_now
 from src.utils.decimal_precision import DecimalPrecision
 
 
-class LiabilityService:
+class LiabilityService(BaseService):
     """
     Service class for handling Liability-related business logic.
 
@@ -25,11 +26,25 @@ class LiabilityService:
     - Managing liability relationships
 
     All business logic and validations are centralized here, keeping the
-    Liability model as a pure data structure (ADR-012).
+    Liability model as a pure data structure (ADR-012) and following
+    ADR-014 repository pattern principles.
     """
 
-    def __init__(self, db: AsyncSession):
-        self.db = db
+    def __init__(
+        self, 
+        session: AsyncSession,
+        feature_flag_service: Optional[Any] = None,
+        config_provider: Optional[Any] = None
+    ):
+        """
+        Initialize the service with a database session and optional dependencies.
+        
+        Args:
+            session: SQLAlchemy async session
+            feature_flag_service: Optional feature flag service
+            config_provider: Optional configuration provider
+        """
+        super().__init__(session, feature_flag_service, config_provider)
 
     async def validate_liability_create(
         self, liability_data: LiabilityCreate
@@ -48,13 +63,17 @@ class LiabilityService:
         Returns:
             Tuple[bool, Optional[str]]: Success status and error message if failed
         """
+        # Get repositories
+        category_repo = await self._get_repository(CategoryRepository)
+        account_repo = await self._get_repository(AccountRepository)
+        
         # Verify category exists
-        category = await self._get_category(liability_data.category_id)
+        category = await category_repo.get(liability_data.category_id)
         if not category:
             return False, f"Category with ID {liability_data.category_id} not found"
 
         # Verify account exists
-        account = await self._get_account(liability_data.primary_account_id)
+        account = await account_repo.get(liability_data.primary_account_id)
         if not account:
             return (
                 False,
@@ -83,8 +102,13 @@ class LiabilityService:
         Returns:
             Tuple[bool, Optional[str]]: Success status and error message if failed
         """
+        # Get repositories
+        liability_repo = await self._get_repository(LiabilityRepository)
+        category_repo = await self._get_repository(CategoryRepository)
+        account_repo = await self._get_repository(AccountRepository)
+        
         # Verify liability exists
-        liability = await self.get_liability(liability_id)
+        liability = await liability_repo.get(liability_id)
         if not liability:
             return False, f"Liability with ID {liability_id} not found"
 
@@ -93,13 +117,13 @@ class LiabilityService:
 
         # Verify new category exists if changing
         if "category_id" in update_data:
-            category = await self._get_category(update_data["category_id"])
+            category = await category_repo.get(update_data["category_id"])
             if not category:
                 return False, f"Category with ID {update_data['category_id']} not found"
 
         # Verify new primary account exists if changing
         if "primary_account_id" in update_data:
-            account = await self._get_account(update_data["primary_account_id"])
+            account = await account_repo.get(update_data["primary_account_id"])
             if not account:
                 return (
                     False,
@@ -125,8 +149,11 @@ class LiabilityService:
         Returns:
             Tuple[bool, Optional[str]]: Success status and error message if failed
         """
+        # Get repository
+        liability_repo = await self._get_repository(LiabilityRepository)
+        
         # Verify liability exists
-        liability = await self.get_liability(liability_id)
+        liability = await liability_repo.get(liability_id)
         if not liability:
             return False, f"Liability with ID {liability_id} not found"
 
@@ -136,18 +163,6 @@ class LiabilityService:
             pass
 
         return True, None
-
-    async def _get_category(self, category_id: int) -> Optional[Category]:
-        """Get a category by ID."""
-        result = await self.db.execute(
-            select(Category).where(Category.id == category_id)
-        )
-        return result.scalar_one_or_none()
-
-    async def _get_account(self, account_id: int) -> Optional[Account]:
-        """Get an account by ID."""
-        result = await self.db.execute(select(Account).where(Account.id == account_id))
-        return result.scalar_one_or_none()
 
     async def get_liabilities(self, skip: int = 0, limit: int = 100) -> List[Liability]:
         """
@@ -160,19 +175,14 @@ class LiabilityService:
         Returns:
             List[Liability]: List of liabilities
         """
-        stmt = (
-            select(Liability)
-            .options(joinedload(Liability.payments))
-            .offset(skip)
-            .limit(limit)
-            .order_by(Liability.due_date.desc())
-        )
-        result = await self.db.execute(stmt)
-        return result.unique().scalars().all()
+        liability_repo = await self._get_repository(LiabilityRepository)
+        
+        # Use the repository's list method with pagination params 
+        return await liability_repo.list(skip=skip, limit=limit, order_by=Liability.due_date.desc())
 
     async def get_liability(self, liability_id: int) -> Optional[Liability]:
         """
-        Get a liability by ID.
+        Get a liability by ID with payments loaded.
 
         Args:
             liability_id: ID of the liability
@@ -180,13 +190,13 @@ class LiabilityService:
         Returns:
             Optional[Liability]: The liability if found, None otherwise
         """
-        stmt = (
-            select(Liability)
-            .options(joinedload(Liability.payments))
-            .filter(Liability.id == liability_id)
+        liability_repo = await self._get_repository(LiabilityRepository)
+        
+        # Use repository method that loads relationships
+        return await liability_repo.get_with_relationships(
+            liability_id, 
+            include_payments=True
         )
-        result = await self.db.execute(stmt)
-        return result.unique().scalar_one_or_none()
 
     async def get_liabilities_by_date_range(
         self, start_date: date, end_date: date
@@ -201,14 +211,16 @@ class LiabilityService:
         Returns:
             List[Liability]: List of liabilities due within the range
         """
-        stmt = (
-            select(Liability)
-            .options(joinedload(Liability.payments))
-            .filter(Liability.due_date.between(start_date, end_date))
-            .order_by(Liability.due_date.desc())
+        # Ensure we have datetime objects in UTC for consistency
+        start_datetime = ensure_utc(datetime.combine(start_date, datetime.min.time()))
+        end_datetime = ensure_utc(datetime.combine(end_date, datetime.max.time()))
+        
+        liability_repo = await self._get_repository(LiabilityRepository)
+        return await liability_repo.get_bills_due_in_range(
+            start_datetime, 
+            end_datetime, 
+            include_paid=True
         )
-        result = await self.db.execute(stmt)
-        return result.unique().scalars().all()
 
     async def get_unpaid_liabilities(self) -> List[Liability]:
         """
@@ -217,14 +229,10 @@ class LiabilityService:
         Returns:
             List[Liability]: List of unpaid liabilities
         """
-        stmt = (
-            select(Liability)
-            .options(joinedload(Liability.payments))
-            .filter(~Liability.payments.any())  # No associated payments
-            .order_by(Liability.due_date.desc())
-        )
-        result = await self.db.execute(stmt)
-        return result.unique().scalars().all()
+        liability_repo = await self._get_repository(LiabilityRepository)
+        
+        # Find bills with PENDING status
+        return await liability_repo.find_bills_by_status(LiabilityStatus.PENDING)
 
     async def create_liability(self, liability_create: LiabilityCreate) -> Liability:
         """
@@ -242,34 +250,27 @@ class LiabilityService:
         # Validate first
         valid, error_message = await self.validate_liability_create(liability_create)
         if not valid:
-            from fastapi import HTTPException
-
             raise HTTPException(status_code=400, detail=error_message)
 
-        # Create liability
-        db_liability = Liability(
-            name=liability_create.name,
-            # Ensure proper decimal precision for the amount
-            amount=DecimalPrecision.round_for_display(liability_create.amount),
-            due_date=liability_create.due_date,
-            description=liability_create.description,
-            category_id=liability_create.category_id,
-            recurring=liability_create.recurring,
-            recurrence_pattern=liability_create.recurrence_pattern,
-            primary_account_id=liability_create.primary_account_id,
+        # Get repository
+        liability_repo = await self._get_repository(LiabilityRepository)
+        
+        # Create liability data with proper decimal precision
+        liability_data = liability_create.model_dump()
+        liability_data["amount"] = DecimalPrecision.round_for_display(liability_data["amount"])
+        
+        # Ensure due_date is UTC-aware if it's a datetime
+        if isinstance(liability_data["due_date"], datetime):
+            liability_data["due_date"] = ensure_utc(liability_data["due_date"])
+        
+        # Create liability using repository
+        db_liability = await liability_repo.create(liability_data)
+        
+        # Get fresh copy with relationships
+        return await liability_repo.get_with_relationships(
+            db_liability.id, 
+            include_payments=True
         )
-
-        self.db.add(db_liability)
-        await self.db.commit()
-
-        # Fetch fresh copy with relationships
-        stmt = (
-            select(Liability)
-            .options(joinedload(Liability.payments))
-            .filter(Liability.id == db_liability.id)
-        )
-        result = await self.db.execute(stmt)
-        return result.unique().scalar_one()
 
     async def update_liability(
         self, liability_id: int, liability_update: LiabilityUpdate
@@ -292,16 +293,12 @@ class LiabilityService:
             liability_id, liability_update
         )
         if not valid:
-            from fastapi import HTTPException
-
             raise HTTPException(status_code=400, detail=error_message)
 
-        # Get liability
-        db_liability = await self.get_liability(liability_id)
-        if not db_liability:
-            return None
-
-        # Update fields
+        # Get repository
+        liability_repo = await self._get_repository(LiabilityRepository)
+        
+        # Get update data
         update_data = liability_update.model_dump(exclude_unset=True)
 
         # Special handling for decimal values
@@ -309,20 +306,21 @@ class LiabilityService:
             update_data["amount"] = DecimalPrecision.round_for_display(
                 update_data["amount"]
             )
+            
+        # Ensure due_date is UTC-aware if it's a datetime
+        if "due_date" in update_data and isinstance(update_data["due_date"], datetime):
+            update_data["due_date"] = ensure_utc(update_data["due_date"])
 
-        for key, value in update_data.items():
-            setattr(db_liability, key, value)
-
-        await self.db.commit()
-
-        # Fetch fresh copy with relationships
-        stmt = (
-            select(Liability)
-            .options(joinedload(Liability.payments))
-            .filter(Liability.id == liability_id)
+        # Update using repository
+        updated_liability = await liability_repo.update(liability_id, update_data)
+        if not updated_liability:
+            return None
+            
+        # Get fresh copy with relationships
+        return await liability_repo.get_with_relationships(
+            liability_id, 
+            include_payments=True
         )
-        result = await self.db.execute(stmt)
-        return result.unique().scalar_one()
 
     async def delete_liability(self, liability_id: int) -> bool:
         """
@@ -334,14 +332,16 @@ class LiabilityService:
         Returns:
             bool: True if deleted, False if not found
         """
-        db_liability = await self.get_liability(liability_id)
-        if not db_liability:
+        liability_repo = await self._get_repository(LiabilityRepository)
+        
+        # Check if liability exists
+        liability = await liability_repo.get(liability_id)
+        if not liability:
             return False
 
-        # The cascade will handle deleting associated payments and payment sources
-        await self.db.delete(db_liability)
-        await self.db.commit()
-        return True
+        # Delete using repository
+        deleted = await liability_repo.delete(liability_id)
+        return deleted
 
     async def is_paid(self, liability_id: int) -> bool:
         """
@@ -353,13 +353,11 @@ class LiabilityService:
         Returns:
             bool: True if paid, False otherwise
         """
-        stmt = (
-            select(Payment)
-            .options(joinedload(Payment.sources), joinedload(Payment.liability))
-            .filter(Payment.liability_id == liability_id)
-        )
-        result = await self.db.execute(stmt)
-        return result.unique().first() is not None
+        payment_repo = await self._get_repository(PaymentRepository)
+        
+        # Get payments for this liability
+        payments = await payment_repo.get_by_liability(liability_id)
+        return len(payments) > 0
 
     async def update_auto_pay(
         self, liability_id: int, auto_pay_update: AutoPayUpdate
@@ -382,20 +380,21 @@ class LiabilityService:
             liability_id, auto_pay_update
         )
         if not valid:
-            from fastapi import HTTPException
-
             raise HTTPException(status_code=400, detail=error_message)
 
+        # Get repository
+        liability_repo = await self._get_repository(LiabilityRepository)
+        
         # Get liability
-        db_liability = await self.get_liability(liability_id)
-        if not db_liability:
+        liability = await liability_repo.get(liability_id)
+        if not liability:
             return None
 
-        # Update auto-pay state and settings
-        db_liability.auto_pay_enabled = auto_pay_update.enabled
-        db_liability.auto_pay = (
-            auto_pay_update.enabled
-        )  # Sync auto_pay with enabled state
+        # Prepare update data
+        update_data = {
+            "auto_pay_enabled": auto_pay_update.enabled,
+            "auto_pay": auto_pay_update.enabled,  # Sync auto_pay with enabled state
+        }
 
         # Update settings if provided
         if auto_pay_update.settings:
@@ -407,14 +406,16 @@ class LiabilityService:
                 settings_dict["minimum_balance_required"] = str(
                     DecimalPrecision.round_for_display(min_balance)
                 )
-            db_liability.auto_pay_settings = settings_dict
+            update_data["auto_pay_settings"] = settings_dict
         elif not auto_pay_update.enabled:
             # Clear settings when disabling auto-pay
-            db_liability.auto_pay_settings = None
+            update_data["auto_pay_settings"] = None
 
-        await self.db.commit()
-        await self.db.refresh(db_liability)  # Ensure we have latest data
-        return db_liability
+        # Update using repository
+        updated_liability = await liability_repo.update(liability_id, update_data)
+        
+        # Get fresh copy
+        return updated_liability
 
     async def get_auto_pay_candidates(self, days_ahead: int = 7) -> List[Liability]:
         """
@@ -426,23 +427,17 @@ class LiabilityService:
         Returns:
             List[Liability]: List of auto-pay candidates
         """
-        end_date = date.today() + timedelta(days=days_ahead)
-
-        stmt = (
-            select(Liability)
-            .options(joinedload(Liability.payments))
-            .filter(
-                and_(
-                    Liability.auto_pay == True,
-                    Liability.auto_pay_enabled == True,
-                    Liability.paid == False,
-                    Liability.due_date <= end_date,
-                )
-            )
-            .order_by(Liability.due_date.asc())
-        )
-        result = await self.db.execute(stmt)
-        return result.unique().scalars().all()
+        liability_repo = await self._get_repository(LiabilityRepository)
+        
+        # Get current date and end date
+        now = utc_now()
+        end_date = days_from_now(days_ahead)
+        
+        # Get upcoming bills
+        bills = await liability_repo.get_bills_due_in_range(now, end_date, include_paid=False)
+        
+        # Filter for auto-pay enabled
+        return [bill for bill in bills if bill.auto_pay_enabled and bill.auto_pay]
 
     async def process_auto_pay(self, liability_id: int) -> bool:
         """
@@ -454,13 +449,24 @@ class LiabilityService:
         Returns:
             bool: True if processed successfully, False otherwise
         """
-        db_liability = await self.get_liability(liability_id)
-        if not db_liability or not db_liability.auto_pay_enabled:
+        liability_repo = await self._get_repository(LiabilityRepository)
+        
+        # Get liability with relationships
+        liability = await liability_repo.get_with_relationships(
+            liability_id,
+            include_primary_account=True
+        )
+        
+        if not liability or not liability.auto_pay_enabled:
             return False
 
         try:
             # Update last attempt timestamp
-            db_liability.last_auto_pay_attempt = naive_utc_now()
+            update_data = {
+                "last_auto_pay_attempt": utc_now()
+            }
+            
+            await liability_repo.update(liability_id, update_data)
 
             # TODO: Implement actual payment processing logic here
             # This would involve:
@@ -469,10 +475,8 @@ class LiabilityService:
             # 3. Processing payment through payment service
             # 4. Updating liability status
 
-            await self.db.commit()
             return True
         except Exception:
-            await self.db.rollback()
             return False
 
     async def disable_auto_pay(self, liability_id: int) -> Optional[Liability]:
@@ -485,17 +489,16 @@ class LiabilityService:
         Returns:
             Optional[Liability]: The updated liability if found, None otherwise
         """
-        db_liability = await self.get_liability(liability_id)
-        if not db_liability:
-            return None
-
-        db_liability.auto_pay = False
-        db_liability.auto_pay_enabled = False
-        db_liability.auto_pay_settings = None
-
-        await self.db.commit()
-        await self.db.refresh(db_liability)  # Ensure we have latest data
-        return db_liability
+        liability_repo = await self._get_repository(LiabilityRepository)
+        
+        # Update auto-pay settings
+        update_data = {
+            "auto_pay": False,
+            "auto_pay_enabled": False,
+            "auto_pay_settings": None
+        }
+        
+        return await liability_repo.update(liability_id, update_data)
 
     async def get_auto_pay_status(self, liability_id: int) -> Optional[Dict]:
         """
@@ -507,13 +510,137 @@ class LiabilityService:
         Returns:
             Optional[Dict]: Auto-pay status info if found, None otherwise
         """
-        db_liability = await self.get_liability(liability_id)
-        if not db_liability:
+        liability_repo = await self._get_repository(LiabilityRepository)
+        liability = await liability_repo.get(liability_id)
+        
+        if not liability:
             return None
 
         return {
-            "auto_pay": db_liability.auto_pay,
-            "enabled": db_liability.auto_pay_enabled,
-            "settings": db_liability.auto_pay_settings,
-            "last_attempt": db_liability.last_auto_pay_attempt,
+            "auto_pay": liability.auto_pay,
+            "enabled": liability.auto_pay_enabled,
+            "settings": liability.auto_pay_settings,
+            "last_attempt": liability.last_auto_pay_attempt,
         }
+        
+    async def get_bills_due_in_range(
+        self, start_date: datetime, end_date: datetime, include_paid: bool = False
+    ) -> List[Liability]:
+        """
+        Get bills due within a specified date range.
+        
+        Args:
+            start_date: Start date (inclusive)
+            end_date: End date (inclusive)
+            include_paid: Whether to include paid bills
+            
+        Returns:
+            List[Liability]: Bills due in the date range
+        """
+        # Ensure UTC timezone
+        start_date = ensure_utc(start_date)
+        end_date = ensure_utc(end_date)
+        
+        liability_repo = await self._get_repository(LiabilityRepository)
+        return await liability_repo.get_bills_due_in_range(
+            start_date, 
+            end_date, 
+            include_paid
+        )
+        
+    async def get_bills_by_category(
+        self, category_id: int, include_paid: bool = False, limit: int = 100
+    ) -> List[Liability]:
+        """
+        Get bills filtered by category.
+        
+        Args:
+            category_id: Category ID
+            include_paid: Whether to include paid bills
+            limit: Maximum number of bills to return
+            
+        Returns:
+            List[Liability]: Bills in the category
+        """
+        liability_repo = await self._get_repository(LiabilityRepository)
+        return await liability_repo.get_bills_by_category(
+            category_id,
+            include_paid,
+            limit
+        )
+        
+    async def get_recurring_bills(self, active_only: bool = True) -> List[Liability]:
+        """
+        Get recurring bills.
+        
+        Args:
+            active_only: Whether to include only active bills
+            
+        Returns:
+            List[Liability]: Recurring bills
+        """
+        liability_repo = await self._get_repository(LiabilityRepository)
+        return await liability_repo.get_recurring_bills(active_only)
+        
+    async def get_bills_for_account(
+        self, account_id: int, include_paid: bool = False, include_splits: bool = True
+    ) -> List[Liability]:
+        """
+        Get bills associated with a specific account.
+        
+        Args:
+            account_id: Account ID
+            include_paid: Whether to include paid bills
+            include_splits: Whether to include bills via splits
+            
+        Returns:
+            List[Liability]: Bills associated with the account
+        """
+        liability_repo = await self._get_repository(LiabilityRepository)
+        return await liability_repo.get_bills_for_account(
+            account_id,
+            include_paid,
+            include_splits
+        )
+        
+    async def get_upcoming_payments(
+        self, days: int = 30, include_paid: bool = False
+    ) -> List[Liability]:
+        """
+        Get upcoming bills due within specified number of days.
+        
+        Args:
+            days: Number of days to look ahead
+            include_paid: Whether to include paid bills
+            
+        Returns:
+            List[Liability]: Upcoming bills
+        """
+        liability_repo = await self._get_repository(LiabilityRepository)
+        return await liability_repo.get_upcoming_payments(days, include_paid)
+        
+    async def get_overdue_bills(self) -> List[Liability]:
+        """
+        Get overdue bills (due date in past and not paid).
+        
+        Returns:
+            List[Liability]: Overdue bills
+        """
+        liability_repo = await self._get_repository(LiabilityRepository)
+        return await liability_repo.get_overdue_bills()
+        
+    async def mark_as_paid(
+        self, liability_id: int, payment_date: Optional[datetime] = None
+    ) -> Optional[Liability]:
+        """
+        Mark a liability as paid.
+        
+        Args:
+            liability_id: Liability ID
+            payment_date: Date of payment (defaults to now)
+            
+        Returns:
+            Optional[Liability]: Updated liability or None if not found
+        """
+        liability_repo = await self._get_repository(LiabilityRepository)
+        return await liability_repo.mark_as_paid(liability_id, payment_date)

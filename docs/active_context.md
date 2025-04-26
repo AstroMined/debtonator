@@ -2,11 +2,56 @@
 
 ## Current Focus
 
-Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Statement History Implementation, Liabilities Implementation, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration
+Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Bulk Import Implementation, Deposit Schedules Implementation, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration
 
 ### Recent Changes
 
-1. **Completed Categories Service Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
+1. **Completed Statement History Service Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
+   - Refactored StatementService to inherit from BaseService:
+     - Updated constructor to properly initialize BaseService
+     - Used _get_repository method for standardized repository access
+     - Replaced all direct database queries with repository method calls
+   - Leveraged existing StatementHistoryRepository's comprehensive methods:
+     - Used get_by_account for efficient statement retrieval
+     - Used get_by_date_range for filtering by date period
+     - Used get_with_account for loading account relationships
+     - Added get_latest_statement for recent statement access
+   - Applied proper ADR-011 datetime compliance:
+     - Used ensure_utc() for timezone awareness throughout
+     - Properly handled timezone in date comparisons and filtering
+     - Used utc_now() for current time access with proper timezone
+   - Enhanced service with additional functionality:
+     - Added methods for trend analysis and financial reporting
+     - Added get_total_minimum_payments_due for financial summaries
+     - Added get_upcoming_statements for forecasting
+     - Improved method documentation with comprehensive docstrings
+   - Updated ADR-014 implementation checklist to mark Phase 13 as completed
+
+2. **Completed Liabilities Service Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
+   - Refactored LiabilityService to inherit from BaseService:
+     - Updated constructor to properly initialize BaseService
+     - Used _get_repository method for standardized repository access
+     - Replaced all direct database queries with repository method calls
+   - Leveraged existing LiabilityRepository's comprehensive methods:
+     - Used get_bills_due_in_range for date-based filtering
+     - Used get_bills_for_account for account-specific liabilities
+     - Added get_with_relationships for complete record access
+     - Used proper validation methods from repository layer
+   - Enhanced validation and service methods:
+     - Updated validation methods to use repositories for verification
+     - Maintained business logic while delegating data access
+     - Added proper error handling for validation failures
+   - Applied proper ADR-011 datetime compliance:
+     - Used ensure_utc() for timezone awareness throughout
+     - Used utc_now() instead of datetime.now() for current time
+     - Added proper date range handling in filter methods
+   - Enhanced auto-pay functionality:
+     - Properly integrated with repository methods
+     - Improved settings validation and handling
+     - Fixed timezone issues in auto-pay scheduling
+   - Updated ADR-014 implementation checklist to mark Phase 14 as completed
+
+3. **Completed Categories Service Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
    - Refactored CategoryService to inherit from BaseService:
      - Updated constructor to properly initialize BaseService
      - Used _get_repository method for standardized repository access
@@ -21,7 +66,7 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Statement Hi
    - Added comprehensive method docstrings and parameter documentation
    - Updated implementation checklist to mark Phase 12 as completed
 
-2. **Completed Balance Reconciliation Service Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
+4. **Completed Balance Reconciliation Service Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
    - Refactored BalanceReconciliationService to inherit from BaseService:
      - Updated constructor to properly initialize BaseService
      - Used _get_repository method for standardized repository access
@@ -35,7 +80,7 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Statement Hi
      - Added get_adjustment_count_by_reason for audit pattern detection
    - Updated implementation checklist to mark Phase 11 as completed
 
-3. **Completed Balance History Service Refactoring for ADR-014 Repository Layer Compliance (April 26, 2025)** ✓
+5. **Completed Balance History Service Refactoring for ADR-014 Repository Layer Compliance (April 26, 2025)** ✓
    - Refactored BalanceHistoryService to inherit from BaseService:
      - Updated constructor to properly use BaseService initialization
      - Used _get_repository method for standardized repository access
@@ -55,49 +100,6 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Statement Hi
      - Improved method documentation with comprehensive docstrings
      - Enhanced error handling with proper validation
    - Updated ADR-014 implementation checklist to mark Phase 10 as completed
-
-4. **Completed Payment Schedules Service Refactoring for ADR-014 Repository Layer Compliance (April 26, 2025)** ✓
-   - Refactored PaymentScheduleService to inherit from BaseService:
-     - Updated constructor to properly initialize BaseService
-     - Used _get_repository method for standardized repository access
-     - Replaced all direct database queries with repository methods
-   - Leveraged existing PaymentScheduleRepository's comprehensive methods:
-     - Used get_by_date_range for date-based schedule retrieval
-     - Leveraged mark_as_processed for schedule processing
-     - Used cancel_schedule for schedule deletion
-     - Added specialized methods for overdue and upcoming schedules
-   - Improved PaymentService integration:
-     - Properly passed dependencies to PaymentService constructor
-     - Maintained consistent interface for payment processing
-   - Applied proper ADR-011 datetime compliance:
-     - Used ensure_utc() for timezone-aware datetime parameters
-     - Used utc_now() for current time access with proper timezone
-   - Enhanced service with additional functionality:
-     - Added get_upcoming_schedules for forecast view
-     - Added find_overdue_schedules for missed payments
-     - Added get_total_scheduled_payments for financial planning
-     - Added get_schedules_with_relationships for complete record access
-   - Updated ADR-014 implementation checklist to mark Phase 9 as completed
-
-5. **Refactored RecurringIncomeService for ADR-014 Repository Pattern Compliance (April 25, 2025)** ✓
-   - Refactored RecurringIncomeService to inherit from BaseService:
-     - Updated constructor to properly initialize BaseService
-     - Used _get_repository method for standardized repository access
-     - Replaced all direct database queries with repository methods
-   - Leveraged existing RecurringIncomeRepository's comprehensive methods:
-     - Used get_with_relationships for loading related data
-     - Applied specialized methods like toggle_active and toggle_auto_deposit
-     - Added get_upcoming_deposits for advanced forecasting
-   - Added find_by_recurring_and_date method to IncomeRepository:
-     - Created specialized method for finding recurring income entries by month/year
-     - Used proper SQLAlchemy filtering with strftime
-     - Ensured consistent behavior with the previous implementation
-   - Applied proper ADR-011 datetime compliance:
-     - Used utc_now() instead of datetime.now()
-     - Stored dates in database without timezone info
-     - Maintained consistent business logic throughout refactoring
-   - Updated implementation checklist to mark Phase 5 as completed
-   - Identified typical refactoring pattern for similar services
 
 2. **Fixed Environment Context Initialization in Feature Flags (April 25, 2025)** ✓
    - Fixed error when executing tests in `test_accounts_services.py`
@@ -156,20 +158,19 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Statement Hi
 ## Next Steps
 
 1. **Continue Repository Layer Compliance (ADR-014)**
-   - Move to Phase 13: Statement History Implementation
-   - Create BalanceReconciliationRepository with specialized methods
-   - Move specialized statement history queries to repository methods
-   - Refactor statement_history.py to use repository pattern
+   - Move to Phase 15: Bulk Import Implementation
+   - Create BulkImportRepository with appropriate methods
+   - Refactor bulk_import.py to use repository pattern
    - Apply proper ADR-011 datetime compliance with utility functions
+   - Implement proper transaction handling for bulk operations
    - Maintain feature flag integration with _get_repository
-   - Ensure proper relationship loading for statement records
-   - Maintain all existing behavior while improving architecture
+   - Use BaseService for standardized repository access
+   - Ensure proper error handling and validation
 
-2. **Move to Phase 14: Liabilities Implementation**
-   - Create LiabilityRepository with appropriate methods
-   - Move liability calculations to repository methods
-   - Refactor liabilities.py to use repository pattern
-   - Implement proper bill categorization
+2. **Move to Phase 16: Deposit Schedules Implementation**
+   - Create DepositScheduleRepository with appropriate methods
+   - Refactor deposit_schedules.py to use repository pattern
+   - Implement proper validation in repository methods
    - Add comprehensive documentation
    - Apply proper timezone handling practices
    - Maintain feature flag integration with BaseService

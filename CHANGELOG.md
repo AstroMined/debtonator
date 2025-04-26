@@ -7,6 +7,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.144] - 2025-04-26
+
+### Changed
+
+- Completed Statement History Service refactoring for ADR-014 Repository Layer Compliance:
+  - Refactored StatementService to inherit from BaseService
+  - Used _get_repository method for standardized repository access
+  - Replaced all direct database queries with repository method calls
+  - Leveraged existing StatementHistoryRepository's comprehensive methods
+  - Applied proper ADR-011 datetime compliance with utility functions
+  - Enhanced service with additional functionality and improved documentation
+  
+- Completed Liabilities Service refactoring for ADR-014 Repository Layer Compliance:
+  - Refactored LiabilityService to inherit from BaseService
+  - Used _get_repository method for standardized repository access
+  - Replaced all direct database queries with repository method calls
+  - Leveraged existing LiabilityRepository's comprehensive methods
+  - Enhanced validation and service methods for better error handling
+  - Applied proper ADR-011 datetime compliance with utility functions
+  - Improved auto-pay functionality with proper repository integration
+
+### Documentation
+
+- Updated ADR-014 implementation checklist:
+  - Marked Phase 13 (Statement History Implementation) as completed
+  - Marked Phase 14 (Liabilities Implementation) as completed
+  - Updated implementation status with completed refactoring tasks
+  - Added detailed implementation notes for future service refactoring
+  
 ## [0.5.143] - 2025-04-26
 
 ### Changed

@@ -171,17 +171,29 @@ Each phase is designed to be completed in a single coding session:
 
 **Focus**: Refactor statement and liability-related services to follow the repository pattern
 
-- [ ] **Phase 13: Statement History Implementation**
-  - [ ] Review existing repository methods for statement history
-  - [ ] Refactor `statement_history.py` to use repository pattern
-  - [ ] Move specialized statement queries to repository methods
-  - [ ] Completion criteria: Statement history service using repository pattern exclusively
+- [x] **Phase 13: Statement History Implementation** ✅ COMPLETED
+  - [x] Reviewed existing StatementHistoryRepository implementation
+  - [x] Refactored StatementService to inherit from BaseService
+  - [x] Updated constructor to properly initialize BaseService
+  - [x] Used _get_repository method for standardized repository access
+  - [x] Replaced direct database access with repository method calls
+  - [x] Applied proper ADR-011 datetime compliance with utility functions
+  - [x] Added support for additional methods from repository
+  - [x] Enhanced method documentation with comprehensive docstrings
+  - [x] Completion criteria: Statement history service using repository pattern exclusively
 
-- [ ] **Phase 14: Liabilities Implementation**
-  - [ ] Create `LiabilityRepository` with appropriate methods
-  - [ ] Refactor `liabilities.py` to use repository pattern
-  - [ ] Move liability calculations to repository methods
-  - [ ] Completion criteria: Liabilities service using repository pattern exclusively
+- [x] **Phase 14: Liabilities Implementation** ✅ COMPLETED
+  - [x] Used existing LiabilityRepository with comprehensive methods
+  - [x] Refactored LiabilityService to inherit from BaseService
+  - [x] Updated constructor to properly initialize BaseService
+  - [x] Used _get_repository method for standardized repository access
+  - [x] Replaced direct database access with repository method calls
+  - [x] Applied proper ADR-011 datetime compliance with utility functions
+  - [x] Updated validation methods to use repositories for account and category verification
+  - [x] Added support for additional methods from repository
+  - [x] Enhanced error handling with proper validation
+  - [x] Maintained feature flag integration with protected attribute
+  - [x] Completion criteria: Liabilities service using repository pattern exclusively
 
 #### Supporting Services (Lower Priority)
 
@@ -357,8 +369,8 @@ For each refactored service, verify:
 | `balance_history.py` | ✅ Fully compliant | None needed | 10 |
 | `balance_reconciliation.py` | ✅ Fully compliant | None needed | 11 |
 | `categories.py` | ✅ Fully compliant | None needed | 12 |
-| `statement_history.py` | Not compliant | Replace direct database access | 13 |
-| `liabilities.py` | Not compliant | Convert to repository pattern | 14 |
+| `statement_history.py` | ✅ Fully compliant | None needed | 13 |
+| `liabilities.py` | ✅ Fully compliant | None needed | 14 |
 | `bulk_import.py` | Not compliant | Needs repository access implementation | 15 |
 | `deposit_schedules.py` | Not compliant | Create repository and refactor service | 16 |
 | `feature_flags.py` | Partially compliant | Review and refactor to use `BaseService` | 17 |
