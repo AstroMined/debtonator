@@ -2,6 +2,55 @@
 
 ## Recent Updates
 
+### BulkImportService and DepositScheduleService Refactoring for ADR-014 Compliance (2025-04-26)
+
+- Completed BulkImportService refactoring to comply with ADR-014 Repository Layer Compliance:
+  - Refactored BulkImportService to inherit from BaseService:
+    - Updated constructor to properly initialize BaseService
+    - Maintained service orchestration pattern
+    - Added proper feature flag service integration
+    - Configured dependency injection correctly
+  - Applied proper ADR-011 datetime compliance:
+    - Used utc_now() for current time reference
+    - Used naive_utc_from_date() for database-safe dates
+    - Used naive_utc_datetime_from_str() for string conversion
+    - Ensured consistent timezone handling throughout
+  - Improved architecture with dedicated schema file:
+    - Created src/schemas/bulk_import.py for schema definitions
+    - Moved ImportError, BulkImportResponse, and BulkImportPreview schemas
+    - Added comprehensive schema documentation with Field descriptors
+    - Properly separated concerns between schema and service layers
+  - Enhanced documentation:
+    - Added comprehensive class and method docstrings
+    - Added parameter documentation with type information
+    - Clarified orchestration responsibilities in the service
+  - Updated ADR-014 implementation checklist to mark Phase 15 as completed
+
+- Completed DepositScheduleService refactoring to comply with ADR-014 Repository Layer Compliance:
+  - Refactored DepositScheduleService to inherit from BaseService:
+    - Updated constructor to properly initialize BaseService
+    - Used _get_repository method for standardized repository access
+    - Leveraged existing DepositScheduleRepository's comprehensive methods
+    - Removed property-based repository instantiation
+  - Replaced direct database operations:
+    - Removed all direct SQL queries using select()
+    - Used repository methods for data access and filtering
+    - Maintained business logic in service layer
+    - Implemented proper transaction boundary handling
+  - Applied proper ADR-011 datetime compliance:
+    - Used utc_now() for current time
+    - Used ensure_utc() for timezone awareness
+    - Used naive_start_of_day() and naive_end_of_day() for DB operations
+    - Fixed timezone handling in date range operations
+  - Enhanced service methods:
+    - Updated create_deposit_schedule to use repository.create
+    - Updated get_deposit_schedule to use repository.get
+    - Updated update_deposit_schedule to use repository.update
+    - Updated delete_deposit_schedule to use repository.delete
+    - Updated list_deposit_schedules to use specialized repository methods
+    - Added improved error handling with descriptive messages
+  - Updated ADR-014 implementation checklist to mark Phase 16 as completed
+
 ### Statement History Service Refactoring for ADR-014 Compliance (2025-04-26)
 
 - Completed Statement History Service refactoring to comply with ADR-014 Repository Layer Compliance:
@@ -24,32 +73,6 @@
     - Added get_upcoming_statements for forecasting
     - Improved method documentation with comprehensive docstrings
   - Updated ADR-014 implementation checklist to mark Phase 13 as completed
-
-### Liabilities Service Refactoring for ADR-014 Compliance (2025-04-26)
-
-- Completed Liabilities Service refactoring to comply with ADR-014 Repository Layer Compliance:
-  - Refactored LiabilityService to inherit from BaseService:
-    - Updated constructor to properly initialize BaseService
-    - Used _get_repository method for standardized repository access
-    - Replaced all direct database queries with repository method calls
-  - Leveraged existing LiabilityRepository's comprehensive methods:
-    - Used get_bills_due_in_range for date-based filtering
-    - Used get_bills_for_account for account-specific liabilities
-    - Added get_with_relationships for complete record access
-    - Used proper validation methods from repository layer
-  - Enhanced validation and service methods:
-    - Updated validation methods to use repositories for verification
-    - Maintained business logic while delegating data access
-    - Added proper error handling for validation failures
-  - Applied proper ADR-011 datetime compliance:
-    - Used ensure_utc() for timezone awareness throughout
-    - Used utc_now() instead of datetime.now() for current time
-    - Added proper date range handling in filter methods
-  - Enhanced auto-pay functionality:
-    - Properly integrated with repository methods
-    - Improved settings validation and handling
-    - Fixed timezone issues in auto-pay scheduling
-  - Updated ADR-014 implementation checklist to mark Phase 14 as completed
 
 ### Balance History Service Refactoring for ADR-014 Compliance (2025-04-26)
 
@@ -267,13 +290,14 @@
 ## Next Steps
 
 1. **Continue Repository Layer Compliance (ADR-014)**
-   - Focus on medium-priority services next:
-     - statement_history.py (Phase 13)
-     - liabilities.py (Phase 14)
-     - bulk_import.py (Phase 15)
-   - Create specialized repositories for each service where needed
-   - Apply consistent repository pattern and dependency injection
-   - Ensure proper datetime handling with ADR-011 compliance
+   - Move on to lower-priority services:
+     - system_initialization.py (Phase 17)
+     - feature_flags.py (Phase 17)
+     - recommendations.py (Phase 18)
+     - impact_analysis.py (Phase 19)
+   - Create specialized repositories for services as needed
+   - Continue applying consistent repository pattern
+   - Maintain proper ADR-011 datetime compliance
    - Follow established patterns from previous implementations
 
 2. **Implement API Layer for Account Types**

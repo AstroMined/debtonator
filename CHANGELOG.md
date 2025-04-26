@@ -7,6 +7,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.145] - 2025-04-26
+
+### Changed
+
+- Completed BulkImportService refactoring for ADR-014 Repository Layer Compliance:
+  - Refactored service to inherit from BaseService
+  - Applied proper ADR-011 datetime compliance with utility functions
+  - Improved architecture by moving schema definitions to src/schemas/bulk_import.py
+  - Added comprehensive documentation with detailed docstrings
+  
+- Completed DepositScheduleService refactoring for ADR-014 Repository Layer Compliance:
+  - Refactored service to inherit from BaseService
+  - Used _get_repository method for standardized repository access
+  - Replaced all direct database queries with repository method calls
+  - Leveraged existing DepositScheduleRepository's comprehensive methods
+  - Applied proper ADR-011 datetime compliance with utility functions
+  - Enhanced all service methods to properly use the repository pattern
+
 ## [0.5.144] - 2025-04-26
 
 ### Changed

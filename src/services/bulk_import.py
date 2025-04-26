@@ -1,39 +1,27 @@
 import csv
 import json
-from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from io import StringIO
-from typing import List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 from fastapi import UploadFile
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.schemas.bulk_import import BulkImportPreview, BulkImportResponse, ImportError
 from src.schemas.categories import CategoryCreate
 from src.schemas.income import IncomeCreate
 from src.schemas.liabilities import LiabilityCreate
+from src.services.base import BaseService
 from src.services.categories import CategoryService
+from src.services.feature_flags import FeatureFlagService
 from src.services.income import IncomeService
 from src.services.liabilities import LiabilityService
-
-
-class ImportError(BaseModel):
-    row: int
-    field: str
-    message: str
-
-
-class BulkImportResponse(BaseModel):
-    success: bool
-    processed: int
-    succeeded: int
-    failed: int
-    errors: Optional[List[ImportError]] = None
-
-
-class BulkImportPreview(BaseModel):
-    records: List[Union[LiabilityCreate, IncomeCreate]]
-    validation_errors: List[ImportError]
-    total_records: int
+from src.utils.datetime_utils import (
+    naive_utc_datetime_from_str,
+    naive_utc_from_date,
+    utc_now,
+)
 
 
 async def process_csv_content(content: bytes) -> List[dict]:
@@ -47,13 +35,35 @@ async def process_json_content(content: bytes) -> List[dict]:
     return json.loads(content.decode("utf-8"))
 
 
-class BulkImportService:
+class BulkImportService(BaseService):
+    """
+    Service for bulk importing data from CSV and JSON files.
+
+    This service orchestrates the validation and import of liabilities and income records
+    from uploaded files, using specialized services for actual data operations.
+    """
+
     def __init__(
         self,
+        session: AsyncSession,
         liability_service: LiabilityService,
         income_service: IncomeService,
         category_service: CategoryService,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None,
     ):
+        """
+        Initialize bulk import service with required dependencies.
+
+        Args:
+            session (AsyncSession): SQLAlchemy async session
+            liability_service (LiabilityService): Service for liability operations
+            income_service (IncomeService): Service for income operations
+            category_service (CategoryService): Service for category operations
+            feature_flag_service (Optional[FeatureFlagService]): Feature flag service
+            config_provider (Optional[Any]): Configuration provider
+        """
+        super().__init__(session, feature_flag_service, config_provider)
         self.liability_service = liability_service
         self.income_service = income_service
         self.category_service = category_service
@@ -77,7 +87,10 @@ class BulkImportService:
                 day = int(record.get("day_of_month", "1"))
                 if not (1 <= month <= 12 and 1 <= day <= 31):
                     raise ValueError("Invalid date")
-                due_date = datetime.strptime(f"{month}/{day}/2025", "%m/%d/%Y").date()
+                # Get current year for the due date
+                current_year = utc_now().year
+                # Create a naive date for database storage
+                due_date = naive_utc_from_date(current_year, month, day).date()
             except ValueError:
                 return None, ImportError(
                     row=row_num, field="date", message="Invalid date format or values"
@@ -185,9 +198,9 @@ class BulkImportService:
             # Convert date string to date object
             try:
                 if "date" in record:
-                    record["date"] = datetime.strptime(
-                        record["date"], "%Y-%m-%d"
-                    ).date()
+                    # Use ADR-011 compliant function for datetime conversion
+                    dt = naive_utc_datetime_from_str(record["date"], "%Y-%m-%d")
+                    record["date"] = dt.date()
             except ValueError:
                 return None, ImportError(
                     row=row_num, field="date", message="Invalid date format"
