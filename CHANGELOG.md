@@ -7,6 +7,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.143] - 2025-04-26
+
+### Changed
+
+- Refactored CategoryService to comply with ADR-014 Repository Layer standards:
+  - Updated CategoryService to inherit from BaseService for standardized repository access
+  - Replaced direct database operations with repository method calls
+  - Leveraged existing CategoryRepository's comprehensive methods
+  - Enhanced error handling with improved CategoryError class
+  - Maintained specialized category tree composition methods
+  - Applied proper system category protection through repository layer
+  
+- Refactored BalanceReconciliationService to comply with ADR-014 Repository Layer standards:
+  - Updated BalanceReconciliationService to inherit from BaseService
+  - Used _get_repository method for standardized repository access
+  - Leveraged existing BalanceReconciliationRepository's methods
+  - Applied proper ADR-011 datetime compliance with utility functions
+  - Enhanced service with additional functionality from repository
+  - Added specialized methods for reconciliation analysis and audit tracking
+  
+### Added
+
+- Added Implementation Lessons for Service-Repository Integration Pattern to active_context.md
+- Added Error Handling With Context pattern documentation with best practices
+- Added Relationship Handling patterns for the repository layer
+
 ## [0.5.142] - 2025-04-26
 
 ### Changed

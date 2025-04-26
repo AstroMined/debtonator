@@ -2,11 +2,40 @@
 
 ## Current Focus
 
-Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Account Type Expansion, Feature Flag System, Banking Account Types Integration, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration
+Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Statement History Implementation, Liabilities Implementation, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration
 
 ### Recent Changes
 
-1. **Completed Balance History Service Refactoring for ADR-014 Repository Layer Compliance (April 26, 2025)** ✓
+1. **Completed Categories Service Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
+   - Refactored CategoryService to inherit from BaseService:
+     - Updated constructor to properly initialize BaseService
+     - Used _get_repository method for standardized repository access
+     - Leveraged existing CategoryRepository's comprehensive methods
+   - Maintained specialized category tree composition methods:
+     - Preserved hierarchical response composition without circular references
+     - Kept bill relationship handling intact with repository pattern
+   - Enhanced error handling with improved CategoryError class:
+     - Added proper context fields for better debugging
+     - Provided descriptive error messages for validation failures
+   - Applied proper system category protection through repository layer
+   - Added comprehensive method docstrings and parameter documentation
+   - Updated implementation checklist to mark Phase 12 as completed
+
+2. **Completed Balance Reconciliation Service Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
+   - Refactored BalanceReconciliationService to inherit from BaseService:
+     - Updated constructor to properly initialize BaseService
+     - Used _get_repository method for standardized repository access
+     - Leveraged existing BalanceReconciliationRepository's methods
+   - Applied proper ADR-011 datetime compliance with utility functions
+     - Used utc_now() instead of datetime.utcnow() for proper timestamps
+     - Maintained consistent timezone handling across operations
+   - Enhanced service with additional functionality from repository:
+     - Added get_reconciliations_by_date_range for date-based filtering
+     - Added get_total_adjustment_amount for reconciliation analysis
+     - Added get_adjustment_count_by_reason for audit pattern detection
+   - Updated implementation checklist to mark Phase 11 as completed
+
+3. **Completed Balance History Service Refactoring for ADR-014 Repository Layer Compliance (April 26, 2025)** ✓
    - Refactored BalanceHistoryService to inherit from BaseService:
      - Updated constructor to properly use BaseService initialization
      - Used _get_repository method for standardized repository access
@@ -27,7 +56,7 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Account Type
      - Enhanced error handling with proper validation
    - Updated ADR-014 implementation checklist to mark Phase 10 as completed
 
-2. **Completed Payment Schedules Service Refactoring for ADR-014 Repository Layer Compliance (April 26, 2025)** ✓
+4. **Completed Payment Schedules Service Refactoring for ADR-014 Repository Layer Compliance (April 26, 2025)** ✓
    - Refactored PaymentScheduleService to inherit from BaseService:
      - Updated constructor to properly initialize BaseService
      - Used _get_repository method for standardized repository access
@@ -50,7 +79,7 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Account Type
      - Added get_schedules_with_relationships for complete record access
    - Updated ADR-014 implementation checklist to mark Phase 9 as completed
 
-1. **Refactored RecurringIncomeService for ADR-014 Repository Pattern Compliance (April 25, 2025)** ✓
+5. **Refactored RecurringIncomeService for ADR-014 Repository Pattern Compliance (April 25, 2025)** ✓
    - Refactored RecurringIncomeService to inherit from BaseService:
      - Updated constructor to properly initialize BaseService
      - Used _get_repository method for standardized repository access
@@ -69,40 +98,6 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Account Type
      - Maintained consistent business logic throughout refactoring
    - Updated implementation checklist to mark Phase 5 as completed
    - Identified typical refactoring pattern for similar services
-
-2. **Refactored IncomeService for ADR-014 Repository Pattern Compliance (April 25, 2025)** ✓
-   - Refactored IncomeService to inherit from BaseService:
-     - Updated constructor to properly initialize BaseService
-     - Used _get_repository method for standardized repository access
-     - Replaced all direct database queries with repository methods
-   - Leveraged existing IncomeRepository's comprehensive methods:
-     - Used get_with_relationships for loading related data
-     - Applied specialized methods for undeposited income calculation
-     - Utilized get_income_with_filters for advanced filtering
-   - Maintained consistent business logic throughout refactoring:
-     - Preserved deposit status change validation and processing
-     - Maintained account balance update functionality
-     - Ensured proper monetary calculations with DecimalPrecision
-   - Updated implementation checklist to mark Phase 4 as completed
-   - Identified test issues requiring follow-up fixes:
-     - UTC timezone validation in test fixtures
-     - Polymorphic repository update method usage
-
-2. **Implemented IncomeTrendsRepository for ADR-014 Compliance (April 25, 2025)** ✓
-   - Created IncomeTrendsRepository with specialized methods:
-     - Implemented get_income_records with proper filtering
-     - Added group_records_by_source for source-specific analysis
-     - Created get_min_max_dates for date range operations
-     - Added get_records_by_month for seasonality analysis
-   - Refactored IncomeTrendsService to use repository pattern:
-     - Updated service to inherit from BaseService
-     - Replaced direct database queries with repository methods
-     - Improved timezone handling with ADR-011 utility functions
-     - Enhanced method documentation and parameter validation
-     - Maintained all statistical analysis capabilities
-   - Ensured proper datetime handling with utc_now and ensure_utc
-   - Updated test suite to use proper UTC-aware datetimes
-   - Updated implementation checklist to reflect completed phase
 
 2. **Fixed Environment Context Initialization in Feature Flags (April 25, 2025)** ✓
    - Fixed error when executing tests in `test_accounts_services.py`
@@ -161,27 +156,30 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Account Type
 ## Next Steps
 
 1. **Continue Repository Layer Compliance (ADR-014)**
-   - Move to Phase 11: Balance Reconciliation Implementation
+   - Move to Phase 13: Statement History Implementation
    - Create BalanceReconciliationRepository with specialized methods
-   - Refactor balance_reconciliation.py to use repository pattern
-   - Move specialized reconciliation logic to repository methods
+   - Move specialized statement history queries to repository methods
+   - Refactor statement_history.py to use repository pattern
+   - Apply proper ADR-011 datetime compliance with utility functions
    - Maintain feature flag integration with _get_repository
-   - Apply consistent datetime handling patterns for DB operations
+   - Ensure proper relationship loading for statement records
    - Maintain all existing behavior while improving architecture
 
-2. **Fix Remaining Schema-Model Mismatches**
+2. **Move to Phase 14: Liabilities Implementation**
+   - Create LiabilityRepository with appropriate methods
+   - Move liability calculations to repository methods
+   - Refactor liabilities.py to use repository pattern
+   - Implement proper bill categorization
+   - Add comprehensive documentation
+   - Apply proper timezone handling practices
+   - Maintain feature flag integration with BaseService
+
+3. **Fix Remaining Schema-Model Mismatches**
    - Update CreditAccount model and schema to ensure all fields match
    - Fix same issues in related models like BNPLAccount and SavingsAccount
    - Add comprehensive tests for schema-model compatibility
    - Clean up backward compatibility fields as appropriate
    - Ensure field validation is in the correct layer
-
-3. **Complete Error Handling System Implementation**
-   - Implement remaining error classes for account types
-   - Create consistent error translation between layers
-   - Add user-friendly error messages to API responses
-   - Implement error handling middleware for API endpoints
-   - Add comprehensive documentation for error handling patterns
 
 4. **Implement API Layer for Account Types**
    - Create endpoint for GET /banking/overview
@@ -193,51 +191,45 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Account Type
 
 ## Implementation Lessons
 
-1. **Proper Datetime Handling with ADR-011**
-   - Always use the utility functions in datetime_utils.py for consistent timezone handling
-   - Use `ensure_utc()` to guarantee timezone awareness when needed
-   - Use `.replace(tzinfo=None)` for database operations as SQLAlchemy stores datetimes without timezone
-   - For datetime comparisons, use `datetime_equals()` and `datetime_greater_than()` with `ignore_timezone=True`
-   - Be cautious with timestamps in tests to ensure proper date range filtering and comparisons
-   - Understand the distinction between naive datetimes (for DB) and timezone-aware datetimes (for business logic)
+1. **Service-Repository Integration Pattern**
+   - Always use BaseService._get_repository() method for repository access
+   - Never use direct repository initialization in services
+   - Follow established pattern for constructor initialization
+   - Pass feature flag service and config provider to super().__init__()
+   - Always maintain the pattern of delegating data operations to repositories
+   - Keep business logic in the service layer while data operations go in repositories
+   - Use specialized repository methods rather than reimplementing data access logic
 
-2. **Schema-Model Field Alignment**
-   - Keep model fields and schema fields aligned to prevent runtime errors
-   - Validate that model fields can accept values from schema fields
-   - Consider creating utility tools to verify schema-model compatibility
-   - Move type-specific fields to the appropriate subclass schemas
-   - Be careful about backward compatibility fields that could cause issues
-   - Consider using field validation at the schema level for type-specific fields
-   - Use proper inheritance patterns in both models and schemas
-   - Ensure proper separation of concerns in the class hierarchy
+2. **Error Handling With Context**
+   - Add entity-specific context to error classes (e.g., account_id, category_id, name)
+   - Implement specialized error classes for domain-specific errors
+   - Preserve error propagation through layers with informative messages
+   - Include enough contextual information for effective debugging
+   - Use descriptive error messages that explain the failure and potential solutions
+   - Standardize error class naming with domain prefixes and "Error" suffix
 
-3. **Schema Factory Implementation Best Practices**
-   - Don't silently "fix" invalid input in schema factories - let validation handle it
-   - Schema factories should construct valid data structures but not perform validation
-   - Let schema validation be handled by the actual schema classes for consistent errors
-   - Don't override validation logic in factories - it creates inconsistencies
-   - Document expected schema structure clearly in factory function docstrings
-   - Consider adding test utility assertions specifically for schema validation
+3. **ADR-011 Datetime Compliance**
+   - Always use utility functions for datetime operations:
+     - utc_now() for the current time with proper timezone
+     - ensure_utc() for guaranteeing timezone awareness
+     - naive_start_of_day() and naive_end_of_day() for DB operations
+   - Maintain consistent pattern of storing naive datetimes in the database
+   - Use timezone-aware datetimes in the service and API boundaries
+   - Be explicit about timezone handling in method signatures and docstrings
+   - Use proper timezone-aware datetime comparisons
 
-4. **Repository Test Design**
-   - Focus on testing behavior, not implementation details
-   - Use flexible assertions that can handle minor implementation changes
-   - Verify expected values rather than exact implementation details (e.g. check credit values, not timestamps)
-   - Use appropriate helper functions from utility modules
-   - Make tests more robust by handling edge cases like NULL values
-   - For date-based tests, be explicit about timezone handling
-   - Test functionality through existing methods rather than adding specialized ones
+4. **Repository Method Documentation**
+   - Document clear parameter requirements including timezone expectations
+   - Add "Returns" section in docstrings with explanations of return types and formats
+   - Clarify whether methods expect timezone-aware or naive datetimes
+   - Include usage notes for proper integration with other services
+   - Add examples of method usage for complex parameter combinations
+   - Document error conditions and what exceptions might be raised
 
-5. **Polymorphic Repository Pattern**
-   - Use specialized base repository for polymorphic entities (`PolymorphicBaseRepository`)
-   - Disable base `create` and `update` methods with `NotImplementedError` to prevent incorrect usage
-   - Implement type-specific creation and update methods (`create_typed_entity`, `update_typed_entity`)
-   - Always use concrete subclasses that match the intended polymorphic type
-   - Integrate with type registries for proper model class lookup
-   - Implement automatic field validation and filtering based on model class
-   - Ensure proper type handling and identity management
-   - Prevent setting invalid fields that don't exist on specific model classes
-   - Use consistent interface for all polymorphic repositories
-   - Design for future expansion to support any number of polymorphic entity types
-   - Preserve optional fields with existing values during partial updates
-   - Skip setting optional fields to NULL if they already have a value
+5. **Handling Relationships in Repository Layer**
+   - Use get_with_relationships method for loading multiple relationships
+   - Create specialized methods for specific relationship patterns
+   - Avoid redundant data loading by using targeted relationship loading
+   - Maintain consistency with SQLAlchemy relationship definitions
+   - Properly handle circular references in data composition methods
+   - Document relationship loading behavior in method docstrings

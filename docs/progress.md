@@ -244,9 +244,9 @@
 
 1. **Continue Repository Layer Compliance (ADR-014)**
    - Focus on medium-priority services next:
-     - balance_reconciliation.py (Phase 11)
-     - categories.py (Phase 12)
      - statement_history.py (Phase 13)
+     - liabilities.py (Phase 14)
+     - bulk_import.py (Phase 15)
    - Create specialized repositories for each service where needed
    - Apply consistent repository pattern and dependency injection
    - Ensure proper datetime handling with ADR-011 compliance
@@ -338,14 +338,16 @@
    - Schema factory usage documented for all test types ✓
    - Repository module pattern thoroughly documented ✓
 
-4. __Service Layer__: IN PROGRESS (80%)
-   - Service refactoring to use repositories (95%)
+4. __Service Layer__: IN PROGRESS (85%)
+   - Service refactoring to use repositories (98%)
    - AccountService refactored and tested (100%) ✓
    - Service layer integration with feature flags (100%) ✓
    - API dependency integration (100%) ✓
    - Banking account type services (100%) ✓
    - BNPL lifecycle management (100%) ✓
-   - Error handling system implementation (25%)
+   - Balance reconciliation service refactored (100%) ✓
+   - Categories service refactored (100%) ✓
+   - Error handling system implementation (35%)
    - Get_banking_overview implementation (100%) ✓
    - Get_upcoming_payments implementation (100%) ✓
 

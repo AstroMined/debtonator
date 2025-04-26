@@ -1,251 +1,402 @@
-from typing import List, Optional
+"""
+Categories service implementation.
 
-from sqlalchemy import select
+This module provides services for category management, hierarchical organization,
+and category-liability relationships with proper system category protection.
+"""
+
+from typing import Any, Dict, List, Optional, Tuple
+
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
+from src.constants import DEFAULT_CATEGORY_ID
 from src.models.categories import Category
+from src.repositories.categories import CategoryRepository
 from src.schemas.categories import (
     CategoryCreate,
     CategoryTree,
     CategoryUpdate,
     CategoryWithBillsResponse,
 )
+from src.services.base import BaseService
 
 
 class CategoryError(Exception):
-    """Base exception for category-related errors"""
+    """Base exception for category-related errors."""
+
+    def __init__(self, message: str, category_id: Optional[int] = None, name: Optional[str] = None):
+        self.category_id = category_id
+        self.name = name
+        self.message = message
+        super().__init__(self.message)
 
 
-class CategoryService:
-    def __init__(self, db: AsyncSession):
-        self.db = db
+class CategoryService(BaseService):
+    """
+    Service for category management.
+    
+    This service provides comprehensive support for hierarchical category management,
+    including category-bill relationships, system category protection, and
+    hierarchical tree operations.
+    """
+
+    def __init__(
+        self,
+        session: AsyncSession,
+        feature_flag_service: Optional[Any] = None,
+        config_provider: Optional[Any] = None,
+    ):
+        """
+        Initialize the category service.
+        
+        Args:
+            session: Database session for operations
+            feature_flag_service: Optional feature flag service
+            config_provider: Optional configuration provider
+        """
+        super().__init__(session, feature_flag_service, config_provider)
 
     async def validate_parent_category(
         self, parent_id: int, category_id: Optional[int] = None
     ) -> Category:
-        """Validate parent category exists and prevent circular references"""
+        """
+        Validate parent category exists and prevent circular references.
+        
+        Args:
+            parent_id: ID of the parent category
+            category_id: Optional ID of the category being validated
+            
+        Returns:
+            The parent category if valid
+            
+        Raises:
+            CategoryError: If parent doesn't exist or would create a circular reference
+        """
         if parent_id is None:
             return None
 
-        parent = await self.get_category(parent_id)
+        # Get the repository
+        category_repo = await self._get_repository(CategoryRepository)
+            
+        # Get the parent category
+        parent = await category_repo.get(parent_id)
         if not parent:
-            raise CategoryError(f"Parent category with ID {parent_id} does not exist")
+            raise CategoryError(
+                f"Parent category with ID {parent_id} does not exist", 
+                category_id=parent_id
+            )
 
         # For existing categories, prevent circular references
         if category_id:
             if parent_id == category_id:
-                raise CategoryError("Category cannot be its own parent")
-            category = await self.get_category(category_id)
+                raise CategoryError(
+                    "Category cannot be its own parent",
+                    category_id=category_id
+                )
+                
+            category = await category_repo.get(category_id)
             if category:
                 # Check if the parent is actually a descendant of the category
-                current = parent
-                while current and current.parent_id:
-                    if current.parent_id == category_id:
-                        raise CategoryError(
-                            "Circular reference detected in category hierarchy"
-                        )
-                    current = await self.get_category(current.parent_id)
+                if await category_repo.is_ancestor_of(category_id, parent_id):
+                    raise CategoryError(
+                        "Circular reference detected in category hierarchy",
+                        category_id=category_id
+                    )
 
         return parent
 
     async def create_category(self, category: CategoryCreate) -> Category:
-        """Create a new category"""
+        """
+        Create a new category.
+        
+        Args:
+            category: Data for the new category
+            
+        Returns:
+            The newly created category
+            
+        Raises:
+            CategoryError: If validation fails or name is duplicate
+        """
+        # Get the repository
+        category_repo = await self._get_repository(CategoryRepository)
+            
+        # Validate parent if specified
         if category.parent_id:
             await self.validate_parent_category(category.parent_id)
 
-        db_category = Category(
-            name=category.name,
-            description=category.description,
-            parent_id=category.parent_id,
-        )
+        # Check for duplicate name
+        existing = await category_repo.get_by_name(category.name)
+        if existing:
+            raise CategoryError(
+                f"Category with name '{category.name}' already exists",
+                name=category.name
+            )
+            
+        # Create category using repository
         try:
-            self.db.add(db_category)
-            await self.db.commit()
-            await self.db.refresh(db_category)
-            return db_category
+            return await category_repo.create(category.model_dump())
         except IntegrityError:
-            await self.db.rollback()
-            raise CategoryError(f"Category with name '{category.name}' already exists")
+            raise CategoryError(
+                f"Category with name '{category.name}' already exists",
+                name=category.name
+            )
 
     async def get_category(self, category_id: int) -> Optional[Category]:
-        """Get a category by ID"""
-        query = select(Category).where(Category.id == category_id)
-        result = await self.db.execute(query)
-        # Use unique() to handle eager-loaded relationships
-        return result.unique().scalar_one_or_none()
+        """
+        Get a category by ID.
+        
+        Args:
+            category_id: ID of the category
+            
+        Returns:
+            Category or None if not found
+        """
+        category_repo = await self._get_repository(CategoryRepository)
+        return await category_repo.get(category_id)
 
     async def get_category_by_name(self, name: str) -> Optional[Category]:
-        """Get a category by name"""
-        query = select(Category).where(Category.name == name)
-        result = await self.db.execute(query)
-        # Use unique() to handle eager-loaded relationships
-        return result.unique().scalar_one_or_none()
+        """
+        Get a category by name.
+        
+        Args:
+            name: Name of the category
+            
+        Returns:
+            Category or None if not found
+        """
+        category_repo = await self._get_repository(CategoryRepository)
+        return await category_repo.get_by_name(name)
 
     async def get_categories(self, skip: int = 0, limit: int = 100) -> List[Category]:
-        """Get a list of categories with pagination"""
-        query = select(Category).offset(skip).limit(limit)
-        result = await self.db.execute(query)
-        # Use unique() to handle eager-loaded relationships
-        return list(result.unique().scalars().all())
+        """
+        Get a list of categories with pagination.
+        
+        Args:
+            skip: Number of records to skip
+            limit: Maximum number of records to return
+            
+        Returns:
+            List of categories
+        """
+        category_repo = await self._get_repository(CategoryRepository)
+        all_categories = await category_repo.get_multi()
+        
+        # Apply manual pagination
+        start = min(skip, len(all_categories))
+        end = min(start + limit, len(all_categories))
+        return all_categories[start:end]
 
     async def update_category(
         self, category_id: int, category_update: CategoryUpdate
     ) -> Optional[Category]:
-        """Update a category"""
-        db_category = await self.get_category(category_id)
+        """
+        Update a category.
+        
+        Args:
+            category_id: ID of the category to update
+            category_update: Data to update
+            
+        Returns:
+            Updated category or None if not found
+            
+        Raises:
+            CategoryError: If validation fails, name is duplicate, or attempting to update system category
+        """
+        category_repo = await self._get_repository(CategoryRepository)
+        
+        # Get current category
+        db_category = await category_repo.get(category_id)
         if not db_category:
             return None
-
+            
+        # Extract update fields
         update_data = category_update.model_dump(exclude_unset=True)
 
+        # Validate parent_id if being updated
         if "parent_id" in update_data:
             await self.validate_parent_category(update_data["parent_id"], category_id)
 
         try:
-            for field, value in update_data.items():
-                setattr(db_category, field, value)
-            await self.db.commit()
-            await self.db.refresh(db_category)
-            return db_category
+            # Update through repository, which handles system category protection
+            return await category_repo.update(category_id, update_data)
+        except ValueError as e:
+            # Repository throws ValueError for system categories
+            raise CategoryError(str(e), category_id=category_id)
         except IntegrityError:
-            await self.db.rollback()
+            # Handle duplicate name
+            await self._session.rollback()
             raise CategoryError(
-                f"Category name '{category_update.name}' already exists"
+                f"Category name '{category_update.name}' already exists",
+                category_id=category_id,
+                name=category_update.name
             )
 
     async def delete_category(self, category_id: int) -> bool:
-        """Delete a category"""
-        # Get category with bills and children loaded
-        query = (
-            select(Category)
-            .where(Category.id == category_id)
-            .options(selectinload(Category.bills), selectinload(Category.children))
+        """
+        Delete a category.
+        
+        Args:
+            category_id: ID of the category to delete
+            
+        Returns:
+            True if successfully deleted, False if not found
+            
+        Raises:
+            CategoryError: If category has bills, children, or is a system category
+        """
+        category_repo = await self._get_repository(CategoryRepository)
+        
+        # Load category with relationships
+        category = await category_repo.get_with_relationships(
+            category_id, 
+            include_bills=True,
+            include_children=True
         )
-        result = await self.db.execute(query)
-        db_category = result.unique().scalar_one_or_none()
-
-        if not db_category:
+        
+        if not category:
             return False
 
-        if db_category.bills:
-            raise CategoryError("Cannot delete category that has bills assigned to it")
+        # Check system category
+        if category.system or category_id == DEFAULT_CATEGORY_ID:
+            raise CategoryError(
+                f"Cannot delete system category: {category.name}",
+                category_id=category_id,
+                name=category.name
+            )
 
-        if db_category.children:
-            raise CategoryError("Cannot delete category that has child categories")
+        # Check for bills
+        if category.bills and len(category.bills) > 0:
+            raise CategoryError(
+                "Cannot delete category that has bills assigned to it",
+                category_id=category_id
+            )
 
-        await self.db.delete(db_category)
-        await self.db.commit()
-        await self.db.flush()
-        return True
+        # Check for children
+        if category.children and len(category.children) > 0:
+            raise CategoryError(
+                "Cannot delete category that has child categories",
+                category_id=category_id
+            )
+
+        # Delete using repository
+        try:
+            return await category_repo.delete(category_id)
+        except ValueError as e:
+            # Repository throws ValueError for system categories
+            raise CategoryError(str(e), category_id=category_id)
 
     async def get_category_with_children(self, category_id: int) -> Optional[Category]:
-        """Get a category with its child categories"""
-        query = (
-            select(Category)
-            .where(Category.id == category_id)
-            .options(selectinload(Category.children))
-        )
-        result = await self.db.execute(query)
-        # Use unique() to handle eager-loaded relationships
-        return result.unique().scalar_one_or_none()
+        """
+        Get a category with its child categories.
+        
+        Args:
+            category_id: ID of the category
+            
+        Returns:
+            Category with loaded children or None if not found
+        """
+        category_repo = await self._get_repository(CategoryRepository)
+        return await category_repo.get_with_children(category_id)
 
     async def get_category_with_parent(self, category_id: int) -> Optional[Category]:
-        """Get a category with its parent category"""
-        query = (
-            select(Category)
-            .where(Category.id == category_id)
-            .options(selectinload(Category.parent))
-        )
-        result = await self.db.execute(query)
-        # Use unique() to handle eager-loaded relationships
-        return result.unique().scalar_one_or_none()
+        """
+        Get a category with its parent category.
+        
+        Args:
+            category_id: ID of the category
+            
+        Returns:
+            Category with loaded parent or None if not found
+        """
+        category_repo = await self._get_repository(CategoryRepository)
+        return await category_repo.get_with_parent(category_id)
 
     async def get_root_categories(self) -> List[Category]:
-        """Get all top-level categories (categories without parents)"""
-        query = (
-            select(Category)
-            .where(Category.parent_id.is_(None))
-            .options(selectinload(Category.children))
-        )
-        result = await self.db.execute(query)
-        # Use unique() to handle eager-loaded relationships
-        return list(result.unique().scalars().all())
+        """
+        Get all top-level categories (categories without parents).
+        
+        Returns:
+            List of root categories
+        """
+        category_repo = await self._get_repository(CategoryRepository)
+        return await category_repo.get_root_categories()
 
     async def get_category_with_bills(self, category_id: int) -> Optional[Category]:
-        """Get a category with its associated bills"""
-        query = (
-            select(Category)
-            .where(Category.id == category_id)
-            .options(selectinload(Category.bills), selectinload(Category.children))
-        )
-        result = await self.db.execute(query)
-        # Use unique() to handle eager-loaded relationships
-        return result.unique().scalar_one_or_none()
+        """
+        Get a category with its associated bills.
+        
+        Args:
+            category_id: ID of the category
+            
+        Returns:
+            Category with loaded bills or None if not found
+        """
+        category_repo = await self._get_repository(CategoryRepository)
+        return await category_repo.get_with_bills(category_id)
 
     async def get_full_path(self, category: Category) -> str:
         """
-        Returns the full hierarchical path of the category.
-
-        This method replaces the full_path property in the Category model
-        to maintain separation of business logic and data structure.
-
+        Get the full hierarchical path of the category.
+        
         Args:
             category: The category to get the full path for
-
+            
         Returns:
             A string representing the full hierarchical path of the category
         """
         if not category:
             return ""
 
-        if not category.parent_id:
-            return category.name
-
-        # If parent is already loaded (e.g., via joinedload)
-        if category.parent:
-            parent_path = await self.get_full_path(category.parent)
-            return f"{parent_path} > {category.name}"
-
-        # If parent needs to be queried
-        parent = await self.get_category(category.parent_id)
-        if not parent:
-            return category.name
-
-        parent_path = await self.get_full_path(parent)
-        return f"{parent_path} > {category.name}"
+        category_repo = await self._get_repository(CategoryRepository)
+        
+        # Use repository to get category path
+        return await category_repo.get_category_path(category.id)
 
     async def is_ancestor_of(self, ancestor: Category, descendant: Category) -> bool:
         """
         Check if one category is an ancestor of another category.
-
-        This method replaces the is_ancestor_of method in the Category model
-        to maintain separation of business logic and data structure.
-
+        
         Args:
             ancestor: The potential ancestor category
             descendant: The potential descendant category
-
+            
         Returns:
             True if ancestor is an ancestor of descendant, False otherwise
         """
-        if not ancestor or not descendant or not descendant.parent_id:
+        if not ancestor or not descendant:
             return False
+            
+        category_repo = await self._get_repository(CategoryRepository)
+        
+        # Use repository to check ancestry
+        return await category_repo.is_ancestor_of(ancestor.id, descendant.id)
 
-        if descendant.parent_id == ancestor.id:
-            return True
-
-        # If parent is loaded via relationship
-        if descendant.parent:
-            return await self.is_ancestor_of(ancestor, descendant.parent)
-
-        # If parent needs to be queried
-        parent = await self.get_category(descendant.parent_id)
-        if not parent:
-            return False
-
-        return await self.is_ancestor_of(ancestor, parent)
+    async def move_category(
+        self, category_id: int, new_parent_id: Optional[int]
+    ) -> Optional[Category]:
+        """
+        Move a category to a new parent.
+        
+        Args:
+            category_id: ID of the category to move
+            new_parent_id: ID of the new parent category or None for root
+            
+        Returns:
+            Updated category or None if not found or invalid move
+            
+        Raises:
+            CategoryError: If validation fails or category is a system category
+        """
+        category_repo = await self._get_repository(CategoryRepository)
+        
+        try:
+            # Use repository to move the category
+            return await category_repo.move_category(category_id, new_parent_id)
+        except ValueError as e:
+            # Repository throws ValueError for system categories
+            raise CategoryError(str(e), category_id=category_id)
 
     # Rich composition methods for building response objects without circular references
 
@@ -254,19 +405,18 @@ class CategoryService:
     ) -> Optional[CategoryTree]:
         """
         Build a rich category tree response without circular references.
-
-        This method composes a hierarchical tree of categories at runtime, eliminating
-        the need for circular references in the schema layer.
-
+        
         Args:
-            category_id: The ID of the root category
+            category_id: ID of the root category
             depth: Maximum depth to recurse (-1 for unlimited)
-
+            
         Returns:
             CategoryTree object with child categories nested to specified depth
         """
+        category_repo = await self._get_repository(CategoryRepository)
+        
         # Get category with children loaded
-        category = await self.get_category_with_children(category_id)
+        category = await category_repo.get_with_children(category_id)
         if not category:
             return None
 
@@ -281,7 +431,7 @@ class CategoryService:
         )
 
         # Add full path
-        result.full_path = await self.get_full_path(category)
+        result.full_path = await category_repo.get_category_path(category.id)
 
         # Only recurse if depth limit not reached
         if depth != 0 and category.children:
@@ -300,18 +450,22 @@ class CategoryService:
     ) -> Optional[CategoryWithBillsResponse]:
         """
         Build a rich category response with bills without circular references.
-
-        This method composes a category with its bills at runtime, eliminating
-        the need for circular references in the schema layer.
-
+        
         Args:
-            category_id: The ID of the category
-
+            category_id: ID of the category
+            
         Returns:
             CategoryWithBillsResponse object with bills and child categories
         """
+        category_repo = await self._get_repository(CategoryRepository)
+        
         # Get category with bills and children loaded
-        category = await self.get_category_with_bills(category_id)
+        category = await category_repo.get_with_relationships(
+            category_id,
+            include_bills=True,
+            include_children=True
+        )
+        
         if not category:
             return None
 
@@ -326,7 +480,7 @@ class CategoryService:
         )
 
         # Add full path
-        result.full_path = await self.get_full_path(category)
+        result.full_path = await category_repo.get_category_path(category.id)
 
         # Transform bills to simplified dict representation
         result.bills = [
@@ -349,3 +503,90 @@ class CategoryService:
                 result.children.append(child_with_bills)
 
         return result
+        
+    async def get_category_with_bill_count(
+        self, category_id: int
+    ) -> Tuple[Optional[Category], int]:
+        """
+        Get a category with the count of bills assigned to it.
+        
+        Args:
+            category_id: ID of the category
+            
+        Returns:
+            Tuple of (category, bill_count)
+        """
+        category_repo = await self._get_repository(CategoryRepository)
+        return await category_repo.get_category_with_bill_count(category_id)
+        
+    async def get_categories_with_bill_counts(self) -> List[Tuple[Category, int]]:
+        """
+        Get all categories with bill counts.
+        
+        Returns:
+            List of (category, bill_count) tuples
+        """
+        category_repo = await self._get_repository(CategoryRepository)
+        return await category_repo.get_categories_with_bill_counts()
+        
+    async def get_ancestors(self, category_id: int) -> List[Category]:
+        """
+        Get all ancestors of a category.
+        
+        Args:
+            category_id: ID of the category
+            
+        Returns:
+            List of ancestor categories
+        """
+        category_repo = await self._get_repository(CategoryRepository)
+        return await category_repo.get_ancestors(category_id)
+        
+    async def get_descendants(self, category_id: int) -> List[Category]:
+        """
+        Get all descendants of a category.
+        
+        Args:
+            category_id: ID of the category
+            
+        Returns:
+            List of descendant categories
+        """
+        category_repo = await self._get_repository(CategoryRepository)
+        return await category_repo.get_descendants(category_id)
+        
+    async def find_categories_by_prefix(self, prefix: str) -> List[Category]:
+        """
+        Find categories whose names start with the given prefix.
+        
+        Args:
+            prefix: Prefix to search for
+            
+        Returns:
+            List of matching categories
+        """
+        category_repo = await self._get_repository(CategoryRepository)
+        return await category_repo.find_categories_by_prefix(prefix)
+        
+    async def delete_if_unused(self, category_id: int) -> bool:
+        """
+        Delete a category only if it has no children and no bills.
+        
+        Args:
+            category_id: ID of the category
+            
+        Returns:
+            True if deleted, False if not deleted (has children or bills)
+        """
+        category_repo = await self._get_repository(CategoryRepository)
+        return await category_repo.delete_if_unused(category_id)
+        
+    async def get_default_category_id(self) -> int:
+        """
+        Get the default category ID, creating it if needed.
+        
+        Returns:
+            ID of the default category
+        """
+        category_repo = await self._get_repository(CategoryRepository)
+        return await category_repo.get_default_category_id()
