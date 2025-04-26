@@ -82,11 +82,13 @@ Each phase is designed to be completed in a single coding session:
 
 **Focus**: Refactor income-related services to follow the repository pattern
 
-- [ ] **Phase 4: Income Service Refactoring**
-  - [ ] Create dedicated `IncomeRepository` with appropriate methods
-  - [ ] Refactor `income.py` service to use repository pattern
-  - [ ] Move direct DB access to repository methods
-  - [ ] Completion criteria: Income service using repository pattern exclusively
+- [x] **Phase 4: Income Service Refactoring** ✅
+  - [x] Discovered the `IncomeRepository` already exists with comprehensive methods
+  - [x] Refactored `income.py` service to inherit from `BaseService`
+  - [x] Replaced all direct DB access with repository method calls
+  - [x] Ensured proper transaction boundary handling
+  - [x] Maintained feature flag integration with proper constructor
+  - [x] Completion criteria: Income service using repository pattern exclusively
 
 - [ ] **Phase 5: Recurring Income Service Refactoring**
   - [ ] Create dedicated `RecurringIncomeRepository` 
@@ -325,7 +327,7 @@ For each refactored service, verify:
 | `accounts.py` | ✅ Fully compliant | None needed | 1 |
 | `transactions.py` | ✅ Fully compliant | None needed | 2 |
 | `bill_splits.py` | ✅ Fully compliant | None needed | 3 |
-| `income.py` | Not compliant | Complete refactoring needed | 4 |
+| `income.py` | ✅ Fully compliant | None needed | 4 |
 | `recurring_income.py` | Not compliant | Complete refactoring needed | 5 |
 | `payments.py` | Not compliant | Complete refactoring needed | 6 |
 | `income_trends.py` | ✅ Fully compliant | None needed | 7 |

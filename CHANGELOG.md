@@ -7,6 +7,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.138] - 2025-04-25
+
+### Changed
+
+- Refactored IncomeService to implement repository pattern (ADR-014):
+  - Updated IncomeService to inherit from BaseService
+  - Replaced direct database access with repository method calls
+  - Added proper feature flag integration via constructor
+  - Used _get_repository method for standardized repository access
+  - Maintained existing business logic while improving architecture
+  - Preserved all validation and account balance update functionality
+  - Updated implementation checklist to mark Phase 4 as completed
+  - Identified issues with test fixtures for follow-up fixes
+  
 ## [0.5.137] - 2025-04-25
 
 ### Added

@@ -2,6 +2,23 @@
 
 ## Recent Updates
 
+### Income Service Refactoring for ADR-014 Compliance (2025-04-25)
+
+- Completed Income Service refactoring to comply with ADR-014 Repository Layer Compliance:
+  - Refactored IncomeService to inherit from BaseService
+  - Utilized existing IncomeRepository for all data access operations
+  - Replaced all direct database queries with repository method calls
+  - Updated class constructor to properly pass dependencies to BaseService
+  - Maintained identical business logic while using repository pattern
+  - Used _get_repository method for standardized repository access
+  - Updated validation methods to use repositories for verification
+  - Updated all module-level convenience functions to use refactored service
+  - Identified test issues requiring follow-up fixes:
+    - UTC timezone validation for date fields
+    - Need to use update_typed_entity for polymorphic repositories
+    - Proper datetime formatting in test fixtures
+  - Updated implementation checklist to mark Phase 4 as completed
+
 ### Income Trends Service Refactoring for ADR-014 Compliance (2025-04-25)
 
 - Completed Income Trends Service refactoring to comply with ADR-014 Repository Layer Compliance:

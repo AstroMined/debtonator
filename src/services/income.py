@@ -1,19 +1,20 @@
 from decimal import Decimal
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from fastapi import HTTPException
-from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
 
-from src.models.accounts import Account
 from src.models.income import Income
-from src.models.income_categories import IncomeCategory
+from src.repositories.accounts import AccountRepository
+from src.repositories.income import IncomeRepository
+from src.repositories.income_categories import IncomeCategoryRepository
 from src.schemas.income import IncomeCreate, IncomeFilters, IncomeUpdate
+from src.services.base import BaseService
+from src.services.feature_flags import FeatureFlagService
 from src.utils.decimal_precision import DecimalPrecision
 
 
-class IncomeService:
+class IncomeService(BaseService):
     """
     Service class for handling Income-related business logic.
 
@@ -28,8 +29,21 @@ class IncomeService:
     Income model as a pure data structure (ADR-012).
     """
 
-    def __init__(self, db: AsyncSession):
-        self.db = db
+    def __init__(
+        self,
+        session: AsyncSession,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None,
+    ):
+        """
+        Initialize IncomeService with required dependencies.
+
+        Args:
+            session: SQLAlchemy async session
+            feature_flag_service: Optional feature flag service for repository proxies
+            config_provider: Optional config provider for feature flags
+        """
+        super().__init__(session, feature_flag_service, config_provider)
 
     async def _calculate_undeposited_amount(self, income: Income) -> Decimal:
         """
@@ -80,14 +94,18 @@ class IncomeService:
         Returns:
             Tuple[bool, Optional[str]]: Success status and error message if failed
         """
+        # Get repositories
+        account_repo = await self._get_repository(AccountRepository)
+        
         # Verify account exists
-        account = await self._get_account(income_data.account_id)
+        account = await account_repo.get(income_data.account_id)
         if not account:
             return False, f"Account with ID {income_data.account_id} not found"
 
         # Verify category exists if provided
         if income_data.category_id:
-            category = await self._get_category(income_data.category_id)
+            category_repo = await self._get_repository(IncomeCategoryRepository)
+            category = await category_repo.get(income_data.category_id)
             if not category:
                 return False, f"Category with ID {income_data.category_id} not found"
 
@@ -111,37 +129,30 @@ class IncomeService:
         Returns:
             Tuple[bool, Optional[str]]: Success status and error message if failed
         """
+        # Get repositories
+        income_repo = await self._get_repository(IncomeRepository)
+        
         # Verify income exists
-        income = await self.get(income_id)
+        income = await income_repo.get_with_relationships(income_id)
         if not income:
             return False, f"Income with ID {income_id} not found"
 
         # Verify new account exists if changing
         update_data = income_data.dict(exclude_unset=True)
         if "account_id" in update_data:
-            account = await self._get_account(update_data["account_id"])
+            account_repo = await self._get_repository(AccountRepository)
+            account = await account_repo.get(update_data["account_id"])
             if not account:
                 return False, f"Account with ID {update_data['account_id']} not found"
 
         # Verify new category exists if changing
         if "category_id" in update_data and update_data["category_id"] is not None:
-            category = await self._get_category(update_data["category_id"])
+            category_repo = await self._get_repository(IncomeCategoryRepository)
+            category = await category_repo.get(update_data["category_id"])
             if not category:
                 return False, f"Category with ID {update_data['category_id']} not found"
 
         return True, None
-
-    async def _get_account(self, account_id: int) -> Optional[Account]:
-        """Get an account by ID."""
-        result = await self.db.execute(select(Account).where(Account.id == account_id))
-        return result.scalar_one_or_none()
-
-    async def _get_category(self, category_id: int) -> Optional[IncomeCategory]:
-        """Get a category by ID."""
-        result = await self.db.execute(
-            select(IncomeCategory).where(IncomeCategory.id == category_id)
-        )
-        return result.scalar_one_or_none()
 
     async def create(self, income_data: IncomeCreate) -> Income:
         """
@@ -151,11 +162,23 @@ class IncomeService:
         - Setting up relationships
         - Calculating initial undeposited amount
         - Updating account balance if auto-deposited
+
+        Args:
+            income_data: The income data to create
+
+        Returns:
+            Income: The created income record with relationships loaded
+
+        Raises:
+            HTTPException: If validation fails
         """
         # Validate first
         valid, error_message = await self.validate_income_create(income_data)
         if not valid:
             raise HTTPException(status_code=400, detail=error_message)
+
+        # Get repository
+        income_repo = await self._get_repository(IncomeRepository)
 
         # Create new income record
         income = Income(
@@ -170,27 +193,25 @@ class IncomeService:
 
         # Calculate initial undeposited amount
         await self._update_undeposited_amount(income)
-        self.db.add(income)
-        await self.db.commit()
-
-        # Fetch fresh copy with relationships
-        stmt = (
-            select(Income)
-            .options(joinedload(Income.account))
-            .filter(Income.id == income.id)
-        )
-        result = await self.db.execute(stmt)
-        return result.unique().scalar_one()
+        
+        # Use repository to create the income record
+        income = await income_repo.create(income)
+        
+        # Return the income record with relationships loaded
+        return await income_repo.get_with_relationships(income.id)
 
     async def get(self, income_id: int) -> Optional[Income]:
-        """Get an income entry by ID."""
-        stmt = (
-            select(Income)
-            .options(joinedload(Income.account))
-            .where(Income.id == income_id)
-        )
-        result = await self.db.execute(stmt)
-        return result.unique().scalar_one_or_none()
+        """
+        Get an income entry by ID with relationships loaded.
+
+        Args:
+            income_id: The ID of the income record to get
+
+        Returns:
+            Optional[Income]: The income record or None if not found
+        """
+        income_repo = await self._get_repository(IncomeRepository)
+        return await income_repo.get_with_relationships(income_id)
 
     async def update(
         self, income_id: int, income_data: IncomeUpdate
@@ -202,19 +223,28 @@ class IncomeService:
         - Recalculating undeposited amount if deposit status changes
         - Updating account balance if deposit status changes
         - Maintaining relationship integrity
+
+        Args:
+            income_id: The ID of the income to update
+            income_data: The updated income data
+
+        Returns:
+            Optional[Income]: The updated income record or None if not found
+
+        Raises:
+            HTTPException: If validation fails
         """
         # Validate first
         valid, error_message = await self.validate_income_update(income_id, income_data)
         if not valid:
             raise HTTPException(status_code=400, detail=error_message)
 
-        stmt = (
-            select(Income)
-            .options(joinedload(Income.account))
-            .where(Income.id == income_id)
-        )
-        result = await self.db.execute(stmt)
-        income = result.unique().scalar_one_or_none()
+        # Get repositories
+        income_repo = await self._get_repository(IncomeRepository)
+        account_repo = await self._get_repository(AccountRepository)
+
+        # Get the income record with relationships
+        income = await income_repo.get_with_relationships(income_id)
         if not income:
             return None
 
@@ -236,14 +266,8 @@ class IncomeService:
             "amount" in update_data
             or ("deposited" in update_data and not original_deposited)
         ):
-            # Get the account
-            stmt = (
-                select(Account)
-                .options(joinedload(Account.income))
-                .where(Account.id == income.account_id)
-            )
-            result = await self.db.execute(stmt)
-            account = result.unique().scalar_one()
+            # Get the account with relationships
+            account = await account_repo.get_with_relationships(income.account_id)
 
             # If this is a new deposit
             if not original_deposited:
@@ -278,76 +302,74 @@ class IncomeService:
                 account.available_balance = DecimalPrecision.round_for_display(
                     new_balance
                 )
+                
+            # Update the account in the database
+            await account_repo.update(account.id, {"available_balance": account.available_balance})
 
-        await self.db.commit()
-
-        # Fetch fresh copy with relationships
-        stmt = (
-            select(Income)
-            .options(joinedload(Income.account))
-            .filter(Income.id == income_id)
-        )
-        result = await self.db.execute(stmt)
-        return result.unique().scalar_one()
+        # Update the income record in the database
+        income = await income_repo.update(income_id, update_data)
+        
+        # Return the updated income record with relationships loaded
+        return await income_repo.get_with_relationships(income_id)
 
     async def delete(self, income_id: int) -> bool:
-        """Delete an income entry."""
-        income = await self.get(income_id)
+        """
+        Delete an income entry.
+
+        Args:
+            income_id: The ID of the income record to delete
+
+        Returns:
+            bool: True if deleted, False if not found
+        """
+        income_repo = await self._get_repository(IncomeRepository)
+        
+        # Verify income exists
+        income = await income_repo.get(income_id)
         if not income:
             return False
-
-        await self.db.delete(income)
-        await self.db.commit()
-        return True
+            
+        # Delete the income record
+        return await income_repo.delete(income_id)
 
     async def list(
         self, filters: IncomeFilters, skip: int = 0, limit: int = 100
     ) -> Tuple[List[Income], int]:
-        """List income entries with filtering."""
-        query = select(Income).options(joinedload(Income.account))
-        conditions = []
+        """
+        List income entries with filtering.
 
-        if filters.start_date:
-            conditions.append(Income.date >= filters.start_date)
-        if filters.end_date:
-            conditions.append(Income.date <= filters.end_date)
-        if filters.source:
-            conditions.append(Income.source.ilike(f"%{filters.source}%"))
-        if filters.deposited is not None:
-            conditions.append(Income.deposited == filters.deposited)
-        if filters.min_amount:
-            conditions.append(Income.amount >= filters.min_amount)
-        if filters.max_amount:
-            conditions.append(Income.amount <= filters.max_amount)
-        if hasattr(filters, "account_id") and filters.account_id:
-            conditions.append(Income.account_id == filters.account_id)
+        Args:
+            filters: Filter parameters for income records
+            skip: Number of records to skip
+            limit: Maximum number of records to return
 
-        if conditions:
-            query = query.where(and_(*conditions))
-
-        # Get total count (without joins to avoid cartesian product)
-        count_query = select(func.count(Income.id)).select_from(Income)
-        if conditions:
-            count_query = count_query.where(and_(*conditions))
-        count_result = await self.db.execute(count_query)
-        total = count_result.scalar_one()
-
-        # Get paginated results (with joins)
-        query = query.offset(skip).limit(limit)
-        result = await self.db.execute(query)
-        items = result.scalars().all()
-
-        return items, total
+        Returns:
+            Tuple[List[Income], int]: Tuple of (income_records, total_count)
+        """
+        income_repo = await self._get_repository(IncomeRepository)
+        
+        # Use repository's filter method to get income records
+        return await income_repo.get_income_with_filters(
+            skip=skip,
+            limit=limit,
+            start_date=filters.start_date,
+            end_date=filters.end_date,
+            source=filters.source,
+            deposited=filters.deposited,
+            min_amount=filters.min_amount,
+            max_amount=filters.max_amount,
+            account_id=getattr(filters, "account_id", None)
+        )
 
     async def get_undeposited(self) -> List[Income]:
-        """Get all undeposited income entries."""
-        stmt = (
-            select(Income)
-            .options(joinedload(Income.account))
-            .where(Income.deposited == False)
-        )
-        result = await self.db.execute(stmt)
-        return result.unique().scalars().all()
+        """
+        Get all undeposited income entries.
+
+        Returns:
+            List[Income]: List of undeposited income records
+        """
+        income_repo = await self._get_repository(IncomeRepository)
+        return await income_repo.get_undeposited_income()
 
     async def validate_deposit_status_change(
         self, income_id: int, deposit: bool
@@ -366,8 +388,11 @@ class IncomeService:
         Returns:
             Tuple[bool, Optional[str]]: Success status and error message if failed
         """
+        # Get repositories
+        income_repo = await self._get_repository(IncomeRepository)
+        
         # Verify income exists
-        income = await self.get(income_id)
+        income = await income_repo.get_with_relationships(income_id)
         if not income:
             return False, f"Income with ID {income_id} not found"
 
@@ -377,7 +402,8 @@ class IncomeService:
 
         # If marking as deposited, verify account exists
         if deposit:
-            account = await self._get_account(income.account_id)
+            account_repo = await self._get_repository(AccountRepository)
+            account = await account_repo.get(income.account_id)
             if not account:
                 return False, f"Account with ID {income.account_id} not found"
 
@@ -399,8 +425,12 @@ class IncomeService:
         Returns:
             Optional[Income]: The updated income object or None if not found
         """
-        # Get the income entry
-        income = await self.get(income_id)
+        # Get repositories
+        income_repo = await self._get_repository(IncomeRepository)
+        account_repo = await self._get_repository(AccountRepository)
+        
+        # Get the income entry with relationships
+        income = await income_repo.get_with_relationships(income_id)
         if not income:
             return None
 
@@ -408,14 +438,8 @@ class IncomeService:
         if income.deposited:
             return income
 
-        # Get the target account
-        stmt = (
-            select(Account)
-            .options(joinedload(Account.income))
-            .where(Account.id == income.account_id)
-        )
-        result = await self.db.execute(stmt)
-        account = result.unique().scalar_one()
+        # Get the target account with relationships
+        account = await account_repo.get_with_relationships(income.account_id)
 
         # Update account balance with proper decimal precision
         income_amount = DecimalPrecision.round_for_calculation(income.amount)
@@ -427,21 +451,30 @@ class IncomeService:
         )
 
         # Round to 2 decimal places for storage
-        account.available_balance = DecimalPrecision.round_for_display(new_balance)
+        new_balance_display = DecimalPrecision.round_for_display(new_balance)
+        
+        # Update the account balance
+        await account_repo.update(account.id, {"available_balance": new_balance_display})
 
-        # Mark income as deposited
-        income.deposited = True
-        # Use DecimalPrecision for monetary values
-        income.undeposited_amount = DecimalPrecision.round_for_display(Decimal("0.00"))
-
-        await self.db.commit()
-
-        # Refresh to get updated relationships
-        await self.db.refresh(income, ["account"])
-        return income
+        # Mark income as deposited using repository method
+        income = await income_repo.mark_as_deposited(income_id)
+        
+        # Return the updated income record with relationships loaded
+        return await income_repo.get_with_relationships(income_id)
 
     async def mark_as_deposited(self, income_id: int) -> Optional[Income]:
-        """Mark an income entry as deposited and update account balance."""
+        """
+        Mark an income entry as deposited and update account balance.
+
+        Args:
+            income_id: The ID of the income record to mark as deposited
+
+        Returns:
+            Optional[Income]: The updated income record or None if not found
+
+        Raises:
+            HTTPException: If validation fails
+        """
         # Validate first
         valid, error_message = await self.validate_deposit_status_change(
             income_id, True
@@ -453,11 +486,14 @@ class IncomeService:
         return await self.update_account_balance_from_income(income_id)
 
     async def get_total_undeposited(self) -> Decimal:
-        """Get total amount of undeposited income."""
-        result = await self.db.execute(
-            select(func.sum(Income.amount)).where(Income.deposited == False)
-        )
-        total = result.scalar_one() or Decimal("0.00")
+        """
+        Get total amount of undeposited income.
+
+        Returns:
+            Decimal: Total undeposited amount
+        """
+        income_repo = await self._get_repository(IncomeRepository)
+        total = await income_repo.get_total_undeposited()
         # Ensure proper decimal precision for the total
         return DecimalPrecision.round_for_display(total)
 
@@ -473,12 +509,8 @@ class IncomeService:
         Returns:
             Decimal: Total undeposited amount for the account
         """
-        result = await self.db.execute(
-            select(func.sum(Income.amount)).where(
-                and_(Income.account_id == account_id, Income.deposited == False)
-            )
-        )
-        total = result.scalar_one() or Decimal("0.00")
+        income_repo = await self._get_repository(IncomeRepository)
+        total = await income_repo.get_total_undeposited_by_account(account_id)
         # Ensure proper decimal precision for the total
         return DecimalPrecision.round_for_display(total)
 
@@ -492,13 +524,8 @@ class IncomeService:
         Returns:
             List[Income]: List of income entries for the account
         """
-        stmt = (
-            select(Income)
-            .options(joinedload(Income.account))
-            .where(Income.account_id == account_id)
-        )
-        result = await self.db.execute(stmt)
-        return result.unique().scalars().all()
+        income_repo = await self._get_repository(IncomeRepository)
+        return await income_repo.get_income_by_account(account_id)
 
 
 # Convenience functions that use the service
