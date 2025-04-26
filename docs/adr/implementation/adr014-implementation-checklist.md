@@ -4,6 +4,8 @@
 
 This checklist provides a structured guide for implementing ADR-014 Repository Layer compliance across the Debtonator application. Earlier implementation attempts had significant architectural issues, so this document serves as a definitive implementation guide to ensure all services properly use the repository pattern consistently.
 
+To make this work more manageable, the implementation has been divided into focused phases, each designed to be completed in a single coding session. This approach prevents scope creep and ensures steady progress.
+
 ## Core Architectural Principles
 
 ### Repository Types Classification
@@ -34,141 +36,200 @@ This checklist provides a structured guide for implementing ADR-014 Repository L
    - Keep only `create_account_repository()` and similar polymorphic entity methods
    - Let `BaseService` handle standard repository instantiation
 
-## Implementation Checklist
+## Implementation Phases
 
-### 1. BaseService Implementation
+### Completed Work
 
-- [x] Create or update `BaseService` class in `src/services/base.py` with:
-  - [x] Repository accessor method with caching
-  - [x] Feature flag integration
-  - [x] Polymorphic repository support
-  - [x] Proper type hints and documentation
+- [x] **Phase 0: Foundation (COMPLETED)** 
+  - [x] Created `BaseService` class in `src/services/base.py` 
+  - [x] Refined Repository Factory to focus solely on polymorphic repositories
+  - [x] Fixed cashflow services to properly use the repository pattern:
+    - [x] Refactored cashflow/base.py to properly inherit from app-wide BaseService
+    - [x] Updated metrics_service.py with proper feature flag integration
+    - [x] Refactored transaction_service.py with proper inheritance
+    - [x] Updated realtime_cashflow.py to follow the correct architectural pattern
 
-```python
-class BaseService:
-    """Base class for all services with standardized repository initialization."""
-    
-    def __init__(
-        self,
-        session: AsyncSession,
-        feature_flag_service: Optional[FeatureFlagService] = None,
-        config_provider: Optional[Any] = None
-    ):
-        """Initialize base service with session and optional feature flag service."""
-        self._session = session
-        self._feature_flag_service = feature_flag_service
-        self._config_provider = config_provider
-        
-        # Dictionary to store lazy-loaded repositories
-        self._repositories = {}
-        
-    async def _get_repository(
-        self, 
-        repository_class: Type,
-        polymorphic_type: Optional[str] = None,
-        repository_key: Optional[str] = None
-    ) -> Any:
-        """Get or create a repository instance."""
-        # Implementation details...
-```
+### Core Implementation Phases (Remaining)
 
-### 2. Repository Factory Refactoring
+Each phase is designed to be completed in a single coding session:
 
-- [x] Remove non-polymorphic repository methods from `RepositoryFactory`:
-  - [x] `create_transaction_history_repository()`
-  - [x] `create_cashflow_forecast_repository()`
-  - [x] `create_cashflow_metrics_repository()`
-  - [x] `create_cashflow_transaction_repository()`
-  - [x] `create_realtime_cashflow_repository()`
-- [x] Update factory documentation to clarify its refined purpose
-- [x] Add explicit guidance that standard repositories should use direct instantiation
+#### Core Account-Related Services (High Priority)
 
-### 3. Review and Fix Problematic Implementations
+**Focus**: Refactor account-related services to follow the repository pattern
 
-Several services were marked as "complete" but needed review due to problematic implementation:
+- [x] **Phase 1: Account Service Refactoring** ✅
+  - [x] Review and refactor `accounts.py` to use `BaseService` pattern
+  - [x] Apply consistent repository access through _get_repository
+  - [x] Handle polymorphic repository access properly
+  - [x] Update feature flag access to use protected attribute
+  - [x] Completion criteria: Successful implementation of repository pattern
 
-- [x] Review and fix `cashflow/metrics_service.py`:
-  - [x] Check for proper `BaseService` inheritance 
-  - [x] Remove any direct `RepositoryFactory` usage for non-polymorphic repositories
-  - [x] Ensure feature flag integration through `BaseService`
-  - [x] Verify repository methods match service needs
+- [ ] **Phase 2: Transaction Service Refactoring**
+  - [ ] Review and refactor `transactions.py` to use `BaseService` pattern properly
+  - [ ] Move specialized SQL queries to repository methods
+  - [ ] Fix any datetime handling issues in repository methods
+  - [ ] Completion criteria: All transaction service tests passing
 
-- [x] Review and fix `cashflow/transaction_service.py`:
-  - [x] Verify proper repository method usage
-  - [x] Check transaction boundaries
-  - [x] Ensure consistency with architectural principles
+- [ ] **Phase 3: Bill Splits Service Refactoring**
+  - [ ] Create dedicated `BillSplitRepository` with appropriate methods
+  - [ ] Refactor `bill_splits.py` service to use repository pattern
+  - [ ] Move direct DB access to repository methods
+  - [ ] Ensure proper transaction boundary handling
+  - [ ] Completion criteria: Bill splits functionality working correctly with repository pattern
 
-- [x] Review and fix `realtime_cashflow.py`:
-  - [x] Refactor to use `BaseService._get_repository()`
-  - [x] Remove any direct factory usage for standard repositories
-  - [x] Ensure proper feature flag integration
+#### Income-Related Services (High Priority)
 
-### 4. Service Refactoring
+**Focus**: Refactor income-related services to follow the repository pattern
 
-Based on comprehensive review of the codebase, nearly all services need refactoring:
+- [ ] **Phase 4: Income Service Refactoring**
+  - [ ] Create dedicated `IncomeRepository` with appropriate methods
+  - [ ] Refactor `income.py` service to use repository pattern
+  - [ ] Move direct DB access to repository methods
+  - [ ] Completion criteria: Income service using repository pattern exclusively
 
-#### Core Services (High Priority)
-- [ ] `accounts.py` - Update to properly use `BaseService` pattern
-- [ ] `bill_splits.py` - Substantial direct database access
-- [ ] `income.py` - Direct database access throughout
-- [ ] `recurring_income.py` - No repository pattern implementation
-- [ ] `transactions.py` - Review existing implementation and fix issues
-- [ ] `payments.py` - Direct database access throughout
-- [x] `cashflow/base.py` - Update to properly use `BaseService` pattern
+- [ ] **Phase 5: Recurring Income Service Refactoring**
+  - [ ] Create dedicated `RecurringIncomeRepository` 
+  - [ ] Refactor `recurring_income.py` service to use repository pattern
+  - [ ] Implement proper validation in repository methods
+  - [ ] Completion criteria: Recurring income service using repository pattern exclusively
 
-#### Financial Services (Medium Priority)
-- [ ] `income_trends.py` - Implement `IncomeTrendsRepository`
-- [ ] `balance_history.py` - Direct database access throughout
-- [ ] `balance_reconciliation.py` - Direct database access
-- [ ] `payment_patterns.py` - Implement `PaymentPatternRepository`
-- [ ] `payment_schedules.py` - Implement `PaymentScheduleRepository`
-- [ ] `categories.py` - Direct database access throughout
-- [ ] `statement_history.py` - Replace direct database access
-- [ ] `liabilities.py` - Convert to repository pattern
+- [ ] **Phase 6: Payment Service Refactoring**
+  - [ ] Create dedicated `PaymentRepository` and `PaymentSourceRepository`
+  - [ ] Refactor `payments.py` service to use repository pattern
+  - [ ] Move specialized payment queries to repository methods
+  - [ ] Completion criteria: Payment service using repository pattern exclusively
 
-#### Additional Services (Lower Priority)
-- [ ] `bulk_import.py` - Needs repository access implementation
-- [ ] `recommendations.py` - Implement `RecommendationRepository`
-- [ ] `impact_analysis.py` - Implement `ImpactAnalysisRepository`
-- [ ] `income_categories.py` - Implement repository pattern
-- [ ] `deposit_schedules.py` - Create repository and refactor service
-- [ ] `recurring_bills.py` - Convert to repository pattern
-- [ ] `feature_flags.py` - Verify repository usage is correct
-- [ ] `factory.py` - Update to align with new repository pattern
-- [ ] `system_initialization.py` - Update to use repository pattern
+#### Financial Analysis Services (Medium Priority)
 
-### 5. Repository Implementation
+**Focus**: Refactor financial analysis services to follow the repository pattern
 
-For each non-compliant service, implement the corresponding repository:
+- [ ] **Phase 7: Income Trends Implementation**
+  - [ ] Create `IncomeTrendsRepository` with appropriate methods
+  - [ ] Refactor `income_trends.py` to use repository pattern
+  - [ ] Move specialized analysis queries to repository methods
+  - [ ] Completion criteria: Income trends service using repository pattern exclusively
 
-#### Core Repositories
-- [ ] `AccountRepository` - Review existing implementation
-- [ ] `BillSplitRepository` - Create from scratch
-- [ ] `IncomeRepository` - Create from scratch
-- [ ] `RecurringIncomeRepository` - Create from scratch
-- [ ] `TransactionRepository` - Review existing implementation
-- [ ] `PaymentRepository` - Create from scratch
-- [ ] `PaymentSourceRepository` - Create from scratch
+- [ ] **Phase 8: Payment Patterns Implementation**
+  - [ ] Create `PaymentPatternRepository` with appropriate methods
+  - [ ] Refactor `payment_patterns.py` to use repository pattern
+  - [ ] Move specialized pattern analysis to repository methods
+  - [ ] Completion criteria: Payment patterns service using repository pattern exclusively
 
-#### Financial Repositories
-- [ ] `BalanceHistoryRepository` - Create from scratch
-- [ ] `BalanceReconciliationRepository` - Create from scratch
-- [ ] `IncomeTrendsRepository` - Create from scratch
-- [ ] `CategoryRepository` - Create from scratch
-- [ ] `StatementHistoryRepository` - Create from scratch
-- [ ] `LiabilityRepository` - Create from scratch
-- [ ] `PaymentPatternRepository` - Create from scratch
-- [ ] `PaymentScheduleRepository` - Create from scratch
+- [ ] **Phase 9: Payment Schedules Implementation**
+  - [ ] Create `PaymentScheduleRepository` with appropriate methods
+  - [ ] Refactor `payment_schedules.py` to use repository pattern
+  - [ ] Move schedule calculations to repository methods
+  - [ ] Completion criteria: Payment schedules service using repository pattern exclusively
 
-#### Additional Repositories
-- [ ] `BulkImportRepository` - Create from scratch
-- [ ] `DepositScheduleRepository` - Create from scratch
-- [ ] `IncomeCategoryRepository` - Create from scratch
-- [ ] `RecommendationRepository` - Create from scratch
-- [ ] `ImpactAnalysisRepository` - Create from scratch
-- [ ] `RecurringBillRepository` - Create from scratch
+#### Balance Management Services (Medium Priority)
 
-Follow this implementation pattern:
+**Focus**: Refactor balance-related services to follow the repository pattern
+
+- [ ] **Phase 10: Balance History Implementation**
+  - [ ] Create `BalanceHistoryRepository` with appropriate methods
+  - [ ] Refactor `balance_history.py` to use repository pattern
+  - [ ] Move timeline queries to repository methods
+  - [ ] Completion criteria: Balance history service using repository pattern exclusively
+
+- [ ] **Phase 11: Balance Reconciliation Implementation**
+  - [ ] Create `BalanceReconciliationRepository` with appropriate methods
+  - [ ] Refactor `balance_reconciliation.py` to use repository pattern
+  - [ ] Move reconciliation logic to appropriate layer
+  - [ ] Completion criteria: Balance reconciliation service using repository pattern exclusively
+
+- [ ] **Phase 12: Categories Implementation**
+  - [ ] Create `CategoryRepository` with appropriate methods
+  - [ ] Refactor `categories.py` to use repository pattern
+  - [ ] Implement proper system category protection
+  - [ ] Completion criteria: Categories service using repository pattern exclusively
+
+#### Statement and Liability Services (Medium Priority)
+
+**Focus**: Refactor statement and liability-related services to follow the repository pattern
+
+- [ ] **Phase 13: Statement History Implementation**
+  - [ ] Review existing repository methods for statement history
+  - [ ] Refactor `statement_history.py` to use repository pattern
+  - [ ] Move specialized statement queries to repository methods
+  - [ ] Completion criteria: Statement history service using repository pattern exclusively
+
+- [ ] **Phase 14: Liabilities Implementation**
+  - [ ] Create `LiabilityRepository` with appropriate methods
+  - [ ] Refactor `liabilities.py` to use repository pattern
+  - [ ] Move liability calculations to repository methods
+  - [ ] Completion criteria: Liabilities service using repository pattern exclusively
+
+#### Supporting Services (Lower Priority)
+
+**Focus**: Refactor supporting services to follow the repository pattern
+
+- [ ] **Phase 15: Bulk Import Implementation**
+  - [ ] Create `BulkImportRepository` with appropriate methods
+  - [ ] Refactor `bulk_import.py` to use repository pattern
+  - [ ] Implement proper transaction handling for bulk operations
+  - [ ] Completion criteria: Bulk import service using repository pattern exclusively
+
+- [ ] **Phase 16: Deposit Schedules Implementation**
+  - [ ] Create `DepositScheduleRepository` with appropriate methods
+  - [ ] Refactor `deposit_schedules.py` to use repository pattern
+  - [ ] Implement proper validation in repository methods
+  - [ ] Completion criteria: Deposit schedules service using repository pattern exclusively
+
+- [ ] **Phase 17: System Services Implementation**
+  - [ ] Review and refactor `feature_flags.py` to properly use repository pattern
+  - [ ] Update `system_initialization.py` to use repository pattern
+  - [ ] Ensure proper feature flag integration
+  - [ ] Completion criteria: System services using repository pattern exclusively
+
+#### Analysis and Recommendation Services (Lower Priority)
+
+**Focus**: Refactor analysis and recommendation services to follow the repository pattern
+
+- [ ] **Phase 18: Recommendations Implementation**
+  - [ ] Create `RecommendationRepository` with appropriate methods
+  - [ ] Refactor `recommendations.py` to use repository pattern
+  - [ ] Move recommendation algorithms to appropriate layer
+  - [ ] Completion criteria: Recommendations service using repository pattern exclusively
+
+- [ ] **Phase 19: Impact Analysis Implementation**
+  - [ ] Create `ImpactAnalysisRepository` with appropriate methods
+  - [ ] Refactor `impact_analysis.py` to use repository pattern
+  - [ ] Move analysis calculations to repository methods
+  - [ ] Completion criteria: Impact analysis service using repository pattern exclusively
+
+- [ ] **Phase 20: Recurring Bills Implementation**
+  - [ ] Create `RecurringBillRepository` with appropriate methods
+  - [ ] Refactor `recurring_bills.py` to use repository pattern
+  - [ ] Implement proper validation in repository methods
+  - [ ] Completion criteria: Recurring bills service using repository pattern exclusively
+
+#### Documentation and Validation
+
+**Focus**: Complete and validate the repository pattern implementation across the application
+
+- [ ] **Phase 21: README and Documentation Updates**
+  - [ ] Update `README.md` files in `src/repositories` and `src/services`
+  - [ ] Update `system_patterns.md` with refined repository pattern
+  - [ ] Create comprehensive implementation guides
+  - [ ] Completion criteria: All documentation updated to reflect the new architecture
+
+- [ ] **Phase 22: Cross-Application Testing and Validation**
+  - [ ] Run full test suite to verify application integrity
+  - [ ] Verify all services follow the repository pattern
+  - [ ] Check for any remaining direct database access
+  - [ ] Completion criteria: All tests passing with no architectural violations
+
+- [ ] **Phase 23: Final Review and Performance Analysis**
+  - [ ] Review repository method usage patterns
+  - [ ] Identify and fix any performance bottlenecks
+  - [ ] Ensure proper transaction boundaries
+  - [ ] Completion criteria: Application performing optimally with the repository pattern
+
+## Implementation Guide
+
+### Repository Implementation Pattern
+
+When creating a new repository, follow this pattern:
 
 ```python
 class SomeRepository(BaseRepository[ModelType, int]):
@@ -186,82 +247,6 @@ class SomeRepository(BaseRepository[ModelType, int]):
         result = await self.session.execute(stmt)
         return result.scalars().all()
 ```
-
-### 6. Documentation Updates
-
-- [ ] Update `README.md` files in `src/repositories` and `src/services`
-- [ ] Update `system_patterns.md` with refined repository pattern
-- [ ] Create or update implementation guides for each repository type
-- [ ] Document the BaseService usage pattern with examples
-
-## Implementation Guide
-
-### BaseService Implementation
-
-The `BaseService` class is the foundation of our architecture:
-
-1. **Repository Accessor Method**
-   ```python
-   async def _get_repository(
-       self, 
-       repository_class: Type,
-       polymorphic_type: Optional[str] = None,
-       repository_key: Optional[str] = None
-   ) -> Any:
-       """Get or create a repository instance with caching."""
-       
-       # Generate cache key from class and optional parameters
-       key = f"{repository_class.__name__}"
-       if polymorphic_type:
-           key += f":{polymorphic_type}"
-       if repository_key:
-           key += f":{repository_key}"
-           
-       # Return cached instance if available
-       if key in self._repositories:
-           return self._repositories[key]
-           
-       # Create new repository based on type
-       if polymorphic_type:
-           # Use factory for polymorphic repositories
-           if repository_class == AccountRepository:
-               repo = await RepositoryFactory.create_account_repository(
-                   self._session,
-                   account_type=polymorphic_type,
-                   feature_flag_service=self._feature_flag_service,
-                   config_provider=self._config_provider
-               )
-           else:
-               # Other polymorphic repositories would go here
-               raise NotImplementedError(
-                   f"Polymorphic repository for {repository_class.__name__} not implemented"
-               )
-       else:
-           # Create standard repository directly
-           repo = repository_class(self._session)
-           
-           # Apply feature flags if available
-           if self._feature_flag_service:
-               repo = self._wrap_with_feature_flags(repo)
-               
-       # Cache the repository
-       self._repositories[key] = repo
-       return repo
-   ```
-
-2. **Feature Flag Integration**
-   ```python
-   def _wrap_with_feature_flags(self, repository: Any) -> Any:
-       """Wrap repository with feature flag proxy if available."""
-       if not self._feature_flag_service:
-           return repository
-           
-       return FeatureFlagRepositoryProxy(
-           repository,
-           self._feature_flag_service,
-           self._config_provider
-       )
-   ```
 
 ### Service Refactoring Pattern
 
@@ -301,6 +286,8 @@ class SomeService(BaseService):
 
 ## Testing Guidelines
 
+For each refactoring phase, ensure:
+
 1. **Repository Testing**
    - Test all repository methods with a real test database
    - Include edge cases (empty results, NULL values)
@@ -328,29 +315,35 @@ For each refactored service, verify:
 
 ## Current Status (April 24, 2025)
 
-| Service | Current Status | Required Action |
-|---------|-----------------|-----------------|
-| `accounts.py` | Partially compliant | Review and refactor to use `BaseService` |
-| `feature_flags.py` | Partially compliant | Review and refactor to use `BaseService` |
-| `transactions.py` | Implementation issues | Refactor to properly use `BaseService` pattern |
-| `cashflow/base.py` | ✅ Fully compliant | Refactored to inherit from app-wide BaseService and use _get_repository |
-| `cashflow/metrics_service.py` | ✅ Fully compliant | Updated to use BaseService with proper feature flag integration |
-| `cashflow/transaction_service.py` | ✅ Fully compliant | Verified repository pattern usage and updated constructor |
-| `realtime_cashflow.py` | ✅ Fully compliant | Refactored to inherit from BaseService and use _get_repository |
-| `bill_splits.py` | Not compliant | Major refactoring needed, direct DB access throughout |
-| `income.py` | Not compliant | Complete refactoring needed, direct DB access throughout |
-| `recurring_income.py` | Not compliant | Complete refactoring needed, no repository pattern |
-| `payments.py` | Not compliant | Complete refactoring needed, direct DB access throughout |
-| `balance_history.py` | Not compliant | Complete refactoring needed, direct DB access throughout |
-| `balance_reconciliation.py` | Not compliant | Complete refactoring needed, direct DB access throughout |
-| `categories.py` | Not compliant | Complete refactoring needed, direct DB access throughout |
-| `deposit_schedules.py` | Not compliant | Create repository and refactor service |
-| `income_trends.py` | Not compliant | Create repository and refactor service |
-| `payment_patterns.py` | Not compliant | Create repository and refactor service |
-| `payment_schedules.py` | Not compliant | Create repository and refactor service |
-| `liabilities.py` | Not compliant | Create repository and refactor service |
-| `recommendations.py` | Not compliant | Create repository and refactor service |
-| `impact_analysis.py` | Not compliant | Create repository and refactor service |
+| Service | Current Status | Required Action | Phase |
+|---------|----------------|-----------------|-------|
+| `cashflow/base.py` | ✅ Fully compliant | None needed | 0 |
+| `cashflow/metrics_service.py` | ✅ Fully compliant | None needed | 0 |
+| `cashflow/transaction_service.py` | ✅ Fully compliant | None needed | 0 |
+| `realtime_cashflow.py` | ✅ Fully compliant | None needed | 0 |
+| `accounts.py` | ✅ Fully compliant | None needed | 1 |
+| `transactions.py` | Implementation issues | Refactor to use `BaseService` pattern | 2 |
+| `bill_splits.py` | Not compliant | Major refactoring needed | 3 |
+| `income.py` | Not compliant | Complete refactoring needed | 4 |
+| `recurring_income.py` | Not compliant | Complete refactoring needed | 5 |
+| `payments.py` | Not compliant | Complete refactoring needed | 6 |
+| `income_trends.py` | Not compliant | Create repository and refactor service | 7 |
+| `payment_patterns.py` | Not compliant | Create repository and refactor service | 8 |
+| `payment_schedules.py` | Not compliant | Create repository and refactor service | 9 |
+| `balance_history.py` | Not compliant | Complete refactoring needed | 10 |
+| `balance_reconciliation.py` | Not compliant | Complete refactoring needed | 11 |
+| `categories.py` | Not compliant | Complete refactoring needed | 12 |
+| `statement_history.py` | Not compliant | Replace direct database access | 13 |
+| `liabilities.py` | Not compliant | Convert to repository pattern | 14 |
+| `bulk_import.py` | Not compliant | Needs repository access implementation | 15 |
+| `deposit_schedules.py` | Not compliant | Create repository and refactor service | 16 |
+| `feature_flags.py` | Partially compliant | Review and refactor to use `BaseService` | 17 |
+| `system_initialization.py` | Not compliant | Update to use repository pattern | 17 |
+| `recommendations.py` | Not compliant | Create repository and refactor service | 18 |
+| `impact_analysis.py` | Not compliant | Create repository and refactor service | 19 |
+| `recurring_bills.py` | Not compliant | Convert to repository pattern | 20 |
+| `income_categories.py` | Not compliant | Implement repository pattern | 20 |
+| `factory.py` | Not compliant | Update to align with new repository pattern | 17 |
 
 ## ADR-011 Datetime Compliance Requirements
 
@@ -395,34 +388,9 @@ converted_dt = ensure_utc(user_input_dt)  # Right: Ensures timezone awareness
 if datetime_equals(db_dt, user_dt, ignore_timezone=True):  # Right: Safe comparison
 ```
 
-### Repository Implementation Requirements
+### Implementation Patterns and Best Practices
 
-1. **All repository methods that handle datetimes MUST**:
-   - Accept timezone-aware datetimes as input
-   - Strip timezone info before database storage
-   - Restore timezone info (UTC) after database retrieval
-   - Use utility functions for all comparisons
-
-2. **Service refactoring MUST**:
-   - Replace all direct datetime and ZoneInfo usage with utility functions
-   - Ensure all datetime parameters are properly documented with timezone expectations
-   - Use consistent timezone handling patterns throughout
-
-### Validation Step
-
-For each refactored service and repository, verify:
-
-- [ ] No direct imports of `datetime` or `ZoneInfo`
-- [ ] All datetime creation uses utility functions
-- [ ] Database operations properly handle timezone info
-- [ ] All datetime comparisons use utility comparison functions
-- [ ] Proper timezone documentation in function signatures
-
-Failure to comply with ADR-011 will cause database queries with datetime filters to behave inconsistently.
-
-## Implementation Patterns and Best Practices
-
-### Common Anti-Patterns Found in Codebase
+#### Common Anti-Patterns Found in Codebase
 
 1. **Direct Database Access**
    ```python
@@ -479,24 +447,7 @@ Failure to comply with ADR-011 will cause database queries with datetime filters
        return payment
    ```
 
-### Repository Method Design
-
-1. **Focus on Business Operations**
-   - Design repository methods around business operations, not raw database access
-   - Use descriptive method names that reflect domain language
-   - Consider what the service needs, not just CRUD operations
-
-2. **Field Filtering and Validation**
-   - Handle field filtering and validation consistently
-   - Ensure type-specific fields are validated appropriately
-   - Preserve optional fields with existing values during updates
-
-3. **Transaction Boundaries**
-   - Consider transaction boundaries carefully
-   - For multi-step operations, use explicit transaction management
-   - Ensure proper rollback in error cases
-
-### Common Pitfalls to Avoid
+#### Common Pitfalls to Avoid
 
 1. **Direct Repository Factory Usage for Standard Repositories**
    - INCORRECT: `repo = await RepositoryFactory.create_some_repository(session)`

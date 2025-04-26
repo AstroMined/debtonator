@@ -3,11 +3,15 @@ Account service implementation.
 
 This module provides service methods for account management, including account creation,
 update, deletion, and specialized operations like statement balance and credit limit updates.
+
+Refactored to comply with ADR-014 Repository Layer Compliance.
 """
 
 from datetime import date
 from decimal import Decimal
 from typing import Any, Callable, Dict, List, Optional, Tuple
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account as AccountModel
 from src.registry.account_types import account_type_registry
@@ -29,11 +33,12 @@ from src.schemas.credit_limit_history import (
     CreditLimitHistoryUpdate,
 )
 from src.schemas.statement_history import StatementHistoryCreate
+from src.services.base import BaseService
 from src.services.feature_flags import FeatureFlagService
 from src.utils.decimal_precision import DecimalPrecision
 
 
-class AccountService:
+class AccountService(BaseService):
     """
     Service for account management operations.
 
@@ -41,32 +46,27 @@ class AccountService:
     creation, updates, and specialized operations like statement and credit limit management.
 
     Supports dynamic loading of type-specific service modules for different account types.
+    
+    Implements ADR-014 Repository Layer Compliance with standardized repository access
+    through the BaseService class.
     """
 
     def __init__(
         self,
-        account_repo: AccountRepository,
-        statement_repo: StatementHistoryRepository,
-        credit_limit_repo: CreditLimitHistoryRepository,
-        transaction_repo: TransactionHistoryRepository,
+        session: AsyncSession,
         feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None,
     ):
         """
-        Initialize service with required repositories.
+        Initialize service with required parameters.
 
         Args:
-            account_repo: Repository for account operations
-            statement_repo: Repository for statement history operations
-            credit_limit_repo: Repository for credit limit history operations
-            transaction_repo: Repository for transaction history operations
+            session: SQLAlchemy async session
             feature_flag_service: Optional service for feature flag functionality
+            config_provider: Optional config provider for feature flags
         """
-        self.account_repo = account_repo
-        self.statement_repo = statement_repo
-        self.credit_limit_repo = credit_limit_repo
-        self.transaction_repo = transaction_repo
-        self.feature_flag_service = feature_flag_service
-
+        super().__init__(session, feature_flag_service, config_provider)
+        
         # Storage for dynamically loaded type-specific functions
         self._type_specific_functions: Dict[str, Callable] = {}
 
@@ -174,8 +174,13 @@ class AccountService:
         Returns:
             Tuple of (is_valid, error_message)
         """
+        # Get the account repository using the _get_repository method
+        account_repo = await self._get_repository(
+            AccountRepository, polymorphic_type=None
+        )
+        
         # Get the account using the repository
-        account = await self.account_repo.get(account_id)
+        account = await account_repo.get(account_id)
 
         # Check if account exists
         if not account:
@@ -260,9 +265,9 @@ class AccountService:
         # Validate account type against registry
         # This replaces the validation that was previously in the schema
         if not account_type_registry.is_valid_account_type(
-            account_type, self.feature_flag_service
+            account_type, self._feature_flag_service
         ):
-            valid_types = account_type_registry.get_all_types(self.feature_flag_service)
+            valid_types = account_type_registry.get_all_types(self._feature_flag_service)
             valid_type_ids = [t["id"] for t in valid_types]
             valid_types_str = ", ".join(valid_type_ids)
             raise ValueError(
@@ -308,8 +313,13 @@ class AccountService:
             self._update_available_credit(account_obj)
             account_dict["available_credit"] = account_obj.available_credit
 
+        # Get the account repository using the _get_repository method with polymorphic type
+        account_repo = await self._get_repository(
+            AccountRepository, polymorphic_type=account_type
+        )
+        
         # Use repository to create account with typed entity
-        db_account = await self.account_repo.create_typed_entity(
+        db_account = await account_repo.create_typed_entity(
             account_type, account_dict
         )
 
@@ -328,7 +338,10 @@ class AccountService:
         Returns:
             Account data or None if not found
         """
-        db_account = await self.account_repo.get(account_id)
+        # Get the account repository using _get_repository method
+        account_repo = await self._get_repository(AccountRepository)
+        
+        db_account = await account_repo.get(account_id)
         return AccountInDB.model_validate(db_account) if db_account else None
 
     async def update_account(
@@ -347,7 +360,10 @@ class AccountService:
         Raises:
             ValueError: If validation fails
         """
-        db_account = await self.account_repo.get(account_id)
+        # Get the account repository using _get_repository method
+        account_repo = await self._get_repository(AccountRepository)
+        
+        db_account = await account_repo.get(account_id)
         if not db_account:
             return None
 
@@ -381,9 +397,14 @@ class AccountService:
             self._update_available_credit(db_account)
             update_data["available_credit"] = db_account.available_credit
 
-        # Use repository to update account with proper type
+        # Get the account repository with proper polymorphic type
         account_type = db_account.account_type
-        updated_account = await self.account_repo.update_typed_entity(
+        typed_account_repo = await self._get_repository(
+            AccountRepository, polymorphic_type=account_type
+        )
+        
+        # Use repository to update account with proper type
+        updated_account = await typed_account_repo.update_typed_entity(
             account_id, account_type, update_data
         )
         return AccountInDB.model_validate(updated_account) if updated_account else None
@@ -445,7 +466,10 @@ class AccountService:
         Raises:
             ValueError: If validation fails
         """
-        db_account = await self.account_repo.get(account_id)
+        # Get the account repository
+        account_repo = await self._get_repository(AccountRepository)
+        
+        db_account = await account_repo.get(account_id)
         if not db_account:
             return False
 
@@ -455,7 +479,7 @@ class AccountService:
             raise ValueError(error_message)
 
         # Use repository to delete account
-        return await self.account_repo.delete(account_id)
+        return await account_repo.delete(account_id)
 
     async def list_accounts(self) -> List[AccountInDB]:
         """
@@ -464,7 +488,10 @@ class AccountService:
         Returns:
             List of all accounts
         """
-        accounts = await self.account_repo.get_active_accounts()
+        # Get the account repository
+        account_repo = await self._get_repository(AccountRepository)
+        
+        accounts = await account_repo.get_active_accounts()
         return [AccountInDB.model_validate(account) for account in accounts]
 
     async def validate_statement_update(
@@ -536,7 +563,10 @@ class AccountService:
         Raises:
             ValueError: If validation fails
         """
-        db_account = await self.account_repo.get(account_id)
+        # Get the account repository
+        account_repo = await self._get_repository(AccountRepository)
+        
+        db_account = await account_repo.get(account_id)
         if not db_account:
             return None
 
@@ -553,11 +583,19 @@ class AccountService:
             "last_statement_date": statement_date,
         }
 
-        # Use typed entity update
+        # Get typed account repository
         account_type = db_account.account_type
-        updated_account = await self.account_repo.update_typed_entity(
+        typed_account_repo = await self._get_repository(
+            AccountRepository, polymorphic_type=account_type
+        )
+
+        # Use typed entity update
+        updated_account = await typed_account_repo.update_typed_entity(
             account_id, account_type, account_update
         )
+
+        # Get statement repository
+        statement_repo = await self._get_repository(StatementHistoryRepository)
 
         # Create statement history entry using the statement repository
         statement_data = StatementHistoryCreate(
@@ -567,7 +605,7 @@ class AccountService:
             minimum_payment=minimum_payment,
             due_date=due_date,
         )
-        await self.statement_repo.create(statement_data.model_dump())
+        await statement_repo.create(statement_data.model_dump())
 
         return AccountInDB.model_validate(updated_account) if updated_account else None
 
@@ -587,7 +625,10 @@ class AccountService:
         Raises:
             ValueError: If validation fails
         """
-        db_account = await self.account_repo.get(account_id)
+        # Get account repository
+        account_repo = await self._get_repository(AccountRepository)
+        
+        db_account = await account_repo.get(account_id)
         if not db_account:
             return None
 
@@ -613,11 +654,19 @@ class AccountService:
             "available_credit": db_account.available_credit,
         }
 
-        # Use typed entity update
+        # Get typed account repository
         account_type = db_account.account_type
-        updated_account = await self.account_repo.update_typed_entity(
+        typed_account_repo = await self._get_repository(
+            AccountRepository, polymorphic_type=account_type
+        )
+
+        # Use typed entity update
+        updated_account = await typed_account_repo.update_typed_entity(
             account_id, account_type, account_update
         )
+
+        # Get credit limit repository
+        credit_limit_repo = await self._get_repository(CreditLimitHistoryRepository)
 
         # Create credit limit history entry using the credit limit repository
         history_data = CreditLimitHistoryCreate(
@@ -626,7 +675,7 @@ class AccountService:
             effective_date=credit_limit_data.effective_date,
             reason=credit_limit_data.reason,
         )
-        await self.credit_limit_repo.create(history_data.model_dump())
+        await credit_limit_repo.create(history_data.model_dump())
 
         return AccountInDB.model_validate(updated_account) if updated_account else None
 
@@ -645,15 +694,21 @@ class AccountService:
         Raises:
             ValueError: If account is not a credit account
         """
-        db_account = await self.account_repo.get(account_id)
+        # Get account repository
+        account_repo = await self._get_repository(AccountRepository)
+        
+        db_account = await account_repo.get(account_id)
         if not db_account:
             return None
 
         if db_account.type != "credit":
             raise ValueError("Credit limit history only available for credit accounts")
 
+        # Get credit limit repository
+        credit_limit_repo = await self._get_repository(CreditLimitHistoryRepository)
+
         # Get credit limit history ordered by effective date descending
-        history_records = await self.credit_limit_repo.get_by_account_ordered(
+        history_records = await credit_limit_repo.get_by_account_ordered(
             account_id, order_by_desc=True
         )
 
@@ -679,7 +734,10 @@ class AccountService:
         Raises:
             ValueError: If account is not a credit account
         """
-        db_account = await self.account_repo.get(account_id)
+        # Get account repository
+        account_repo = await self._get_repository(AccountRepository)
+        
+        db_account = await account_repo.get(account_id)
         if not db_account:
             return None
 
@@ -778,7 +836,10 @@ class AccountService:
         Returns:
             Sum of pending debit transactions
         """
-        transactions = await self.transaction_repo.get_debit_sum_for_account(account_id)
+        # Get transaction repository
+        transaction_repo = await self._get_repository(TransactionHistoryRepository)
+        
+        transactions = await transaction_repo.get_debit_sum_for_account(account_id)
         return transactions or Decimal(0)
 
     async def _get_pending_payments(self, account_id: int) -> Decimal:
@@ -791,7 +852,10 @@ class AccountService:
         Returns:
             Sum of pending credit transactions
         """
-        payments = await self.transaction_repo.get_credit_sum_for_account(account_id)
+        # Get transaction repository
+        transaction_repo = await self._get_repository(TransactionHistoryRepository)
+        
+        payments = await transaction_repo.get_credit_sum_for_account(account_id)
         return payments or Decimal(0)
 
     async def get_statement_history(
@@ -806,13 +870,19 @@ class AccountService:
         Returns:
             Statement history or None if account not found
         """
+        # Get account repository
+        account_repo = await self._get_repository(AccountRepository)
+        
         # Get account using repository
-        db_account = await self.account_repo.get(account_id)
+        db_account = await account_repo.get(account_id)
         if not db_account:
             return None
 
+        # Get statement repository
+        statement_repo = await self._get_repository(StatementHistoryRepository)
+        
         # Get statement history ordered by date descending
-        history_records = await self.statement_repo.get_by_account_ordered(
+        history_records = await statement_repo.get_by_account_ordered(
             account_id, order_by_desc=True
         )
 
@@ -861,7 +931,7 @@ class AccountService:
 
         # Try to load and bind the service module
         success = ServiceFactory.bind_account_type_service(
-            self, account_type, self.account_repo._session
+            self, account_type, self._session
         )
         if not success:
             return
@@ -902,7 +972,7 @@ class AccountService:
 
         # Try to load and bind the service module
         success = ServiceFactory.bind_account_type_service(
-            self, account_type, self.account_repo._session
+            self, account_type, self._session
         )
         if not success:
             return None
@@ -927,8 +997,11 @@ class AccountService:
         Returns:
             Dictionary with banking overview information
         """
+        # Get account repository
+        account_repo = await self._get_repository(AccountRepository)
+        
         # Get all accounts for the user
-        accounts = await self.account_repo.get_by_user(user_id)
+        accounts = await account_repo.get_by_user(user_id)
 
         # Initialize overview with zero values
         overview = {
@@ -1007,8 +1080,11 @@ class AccountService:
         """
         upcoming_payments = []
 
+        # Get account repository
+        account_repo = await self._get_repository(AccountRepository)
+        
         # Get accounts for the user
-        accounts = await self.account_repo.get_by_user(user_id)
+        accounts = await account_repo.get_by_user(user_id)
 
         # Process each account type
         for account in accounts:
@@ -1040,5 +1116,8 @@ class AccountService:
         Returns:
             List of accounts of the specified type
         """
-        accounts = await self.account_repo.get_by_user_and_type(user_id, account_type)
+        # Get account repository
+        account_repo = await self._get_repository(AccountRepository)
+        
+        accounts = await account_repo.get_by_user_and_type(user_id, account_type)
         return [AccountInDB.model_validate(account) for account in accounts]

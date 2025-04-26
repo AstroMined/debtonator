@@ -2,6 +2,16 @@
 
 ## Recent Updates
 
+### AccountService Refactoring for ADR-014 Compliance (2025-04-25)
+
+- Refactored AccountService to comply with ADR-014 Repository Layer Compliance:
+  - Updated class to inherit from BaseService
+  - Replaced direct repository access with _get_repository method
+  - Handled polymorphic repositories properly with polymorphic_type parameter
+  - Maintained type-specific method handling and feature flag integration
+  - Updated all methods to follow the consistent repository access pattern
+  - Modified validation methods to use repository access through BaseService
+
 ### Repository Factory Refinement (2025-04-24)
 
 - Refined Repository Factory to focus solely on polymorphic repositories:
@@ -169,8 +179,8 @@
    - Schema factory usage documented for all test types ✓
    - Repository module pattern thoroughly documented ✓
 
-4. __Service Layer__: IN PROGRESS (75%)
-   - Service refactoring to use repositories (90%)
+4. __Service Layer__: IN PROGRESS (80%)
+   - Service refactoring to use repositories (95%)
    - AccountService refactored and tested (100%) ✓
    - Service layer integration with feature flags (100%) ✓
    - API dependency integration (100%) ✓
@@ -391,7 +401,7 @@
 
 ## What's Left to Build
 
-1. __Complete ADR-014 Repository Layer Compliance (70%)__
+1. __Complete ADR-014 Repository Layer Compliance (75%)__
    - Implement remaining repositories for high-priority services (100%): ✓
      - ✓ CashflowTransactionRepository - Created and service refactored
      - ✓ CashflowMetricsRepository - Created and service refactored
@@ -399,6 +409,7 @@
      - ✓ Updated TransactionService to use TransactionHistoryRepository
      - ✓ Updated cashflow/base.py to use repository pattern
      - ✓ Refactored metrics_service.py to fully use CashflowMetricsRepository
+     - ✓ Refactored AccountService to use BaseService and _get_repository
    - Implement repositories for medium-priority services (0%):
      - income_trends.py
      - payment_patterns.py

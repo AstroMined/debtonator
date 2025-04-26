@@ -7,6 +7,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.133] - 2025-04-25
+
+### Changed
+
+- Refactored AccountService to comply with ADR-014 Repository Layer Compliance:
+  - Updated class to inherit from BaseService
+  - Replaced direct repository access with _get_repository method
+  - Handled polymorphic repositories properly with polymorphic_type parameter
+  - Maintained type-specific method handling and feature flag integration
+  - Updated all methods to use the repository pattern consistently
+
+### Improved
+
+- Enhanced repository access pattern for AccountService:
+  - Used _get_repository for proper repository instantiation
+  - Applied consistent repository access throughout all methods
+  - Maintained polymorphic entity handling with appropriate type parameters
+  - Ensured proper caching of repositories through BaseService
+
+### Documentation
+
+- Updated implementation documentation in ADR-014 checklist:
+  - Marked AccountService refactoring as completed
+  - Updated progress tracking for service layer implementation
+  - Noted next steps for Transaction Service refactoring
+
 ## [0.5.132] - 2025-04-24
 
 ### Changed
