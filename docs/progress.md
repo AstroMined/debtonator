@@ -2,6 +2,20 @@
 
 ## Recent Updates
 
+### BillSplitService Refactoring for ADR-014 Compliance (2025-04-25)
+
+- Completed BillSplitService refactoring to comply with ADR-014 Repository Layer Compliance:
+  - Updated BillSplitService to inherit from BaseService for standardized repository access
+  - Replaced direct database operations with repository method calls
+  - Leveraged existing BillSplitRepository implementation
+  - Fixed timezone handling with proper ADR-011 datetime utility functions
+  - Improved documentation with comprehensive method docstrings
+  - Fixed validation and error handling to maintain existing business logic
+  - Ensured proper transaction boundary management
+  - Updated implementation checklist to reflect completed phase
+  - All BillSplitService functionality now works through the repository layer
+  - Preserved split pattern analysis, impact analysis, and optimization suggestion features
+
 ### TransactionService Refactoring for ADR-014 Compliance (2025-04-25)
 
 - Completed TransactionService refactoring to comply with ADR-014 Repository Layer Compliance:

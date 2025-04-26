@@ -6,6 +6,16 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Account Type
 
 ### Recent Changes
 
+1. **Completed BillSplitService Refactoring for ADR-014 Compliance (April 25, 2025)** ✓
+   - Refactored BillSplitService to inherit from BaseService
+   - Replaced direct database access with _get_repository method calls
+   - Updated all methods to use BillSplitRepository for data operations
+   - Ensured proper datetime handling with ADR-011 compliance
+   - Fixed timezone handling in date range operations
+   - Improved documentation with comprehensive method docstrings 
+   - Updated implementation checklist documentation
+   - Preserved all existing business logic and functionality
+
 1. **Completed TransactionService Refactoring for ADR-014 Compliance (April 25, 2025)** ✓
    - Refactored TransactionService to inherit from BaseService
    - Replaced property-based repository access with _get_repository method calls
@@ -15,16 +25,6 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Account Type
    - Improved documentation with comprehensive method docstrings
    - Updated implementation checklist documentation
    - Preserved all existing business logic and functionality
-
-1. **Completed AccountService Refactoring for ADR-014 Compliance (April 25, 2025)** ✓
-   - Refactored AccountService to inherit from BaseService
-   - Replaced direct repository access with _get_repository method calls
-   - Properly handled polymorphic repository access for account types
-   - Updated feature flag access to use protected attribute from BaseService
-   - Maintained compatibility with service factory pattern and type-specific operations
-   - Validated successful implementation with import validation
-   - Updated implementation documentation in ADR-014 checklist
-   - Preserved all existing business logic and validation methods
 
 1. **Refined Repository Factory Implementation for ADR-014 Compliance (April 24, 2025)** ✓
    - Removed non-polymorphic repository methods from RepositoryFactory

@@ -7,6 +7,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.135] - 2025-04-25
+
+### Changed
+
+- Refactored BillSplitService to comply with ADR-014 Repository Layer standards
+- Replaced direct database operations with repository access via BaseService._get_repository
+- Updated datetime handling to properly use ADR-011 utility functions
+- Improved docstrings for better developer experience and code documentation
+
+### Fixed
+
+- Fixed inconsistent repository access patterns in BillSplitService
+- Removed unnecessary direct database access via session.execute
+- Fixed timezone handling in date range operations for bill splits
+- Aligned BillSplitService with current repository pattern best practices
+
 ## [0.5.134] - 2025-04-25
 
 ### Changed
