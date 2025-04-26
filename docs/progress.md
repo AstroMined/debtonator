@@ -2,6 +2,48 @@
 
 ## Recent Updates
 
+### Resolved Circular Import Dependencies in Cashflow Module (2025-04-26)
+
+- Created a common domain types module for proper architecture:
+  - Created src/common/cashflow_types.py with shared types
+  - Moved CashflowHolidays and CashflowWarningThresholds to the common module
+  - Documented the architecture with comprehensive README.md
+  - Established proper one-way dependency direction (repositories → common, services → repositories)
+- Updated cashflow repositories to use common types:
+  - Modified cashflow_base.py to import from common module
+  - Eliminated service layer imports from repository layer
+  - Fixed type references throughout the codebase
+- Updated cashflow services to follow clean architecture:
+  - Modified services to import from common types module
+  - Fixed import references in specialized service files
+  - Followed architectural best practices with proper layering
+- Created src/common/README.md with comprehensive architecture documentation:
+  - Explained one-way dependency direction pattern
+  - Documented the purpose of domain types
+  - Provided examples of proper module usage
+  - Included diagrams showing dependency flows
+
+### Removed CashflowService Anti-Pattern (2025-04-26)
+
+- Eliminated unnecessary layer of abstraction:
+  - Deleted cashflow_main.py containing the CashflowService class
+  - Removed delegation layer that added complexity without value
+- Fixed references to use proper specialized services:
+  - Updated documentation in ADR files to reference specific services
+  - Fixed test files to use appropriate specialized services:
+    - Updated test_account_specific_forecasts.py to use ForecastService
+    - Updated test_cashflow_services.py to use right services for each function
+    - Updated test_historical_trends_services.py to use HistoricalService
+  - Added proper exports in src/services/cashflow/__init__.py
+- Updated service fixture patterns in tests:
+  - Modified services to use proper BaseService inheritance pattern
+  - Used session parameter instead of individual repositories
+  - Fixed interface mismatches between service and test expectations
+- Improved architecture and test readability:
+  - Clearer separation of concerns with specialized services
+  - More maintainable code with direct service usage
+  - More accurate representation of service responsibilities
+
 ### Fixed Repository Test Issues (2025-04-26)
 
 - Fixed AccountService fixture parameter mismatch:

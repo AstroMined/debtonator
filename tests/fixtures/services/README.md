@@ -307,16 +307,16 @@ async def bill_service(
 
 ```python
 @pytest_asyncio.fixture
-async def cashflow_service(
-    cashflow_repository: CashflowRepository,
-    account_service: AccountService,
-    bill_service: BillService,
-) -> CashflowService:
-    """Create a cashflow service that depends on other services."""
-    return CashflowService(
-        repository=cashflow_repository,
-        account_service=account_service,
-        bill_service=bill_service,
+async def forecast_service(
+    db_session: AsyncSession,
+    feature_flag_service: Optional[FeatureFlagService] = None,
+    config_provider: Optional[Any] = None,
+) -> ForecastService:
+    """Create a forecast service with proper initialization."""
+    return ForecastService(
+        session=db_session,
+        feature_flag_service=feature_flag_service,
+        config_provider=config_provider,
     )
 ```
 
@@ -533,16 +533,16 @@ async def bill_service(
 
 ```python
 @pytest_asyncio.fixture
-async def cashflow_service(
-    cashflow_repository: CashflowRepository,
-    account_service: AccountService,
-    bill_service: BillService,
-) -> CashflowService:
-    """Create a cashflow service that depends on other services."""
-    return CashflowService(
-        repository=cashflow_repository,
-        account_service=account_service,
-        bill_service=bill_service,
+async def forecast_service(
+    db_session: AsyncSession,
+    feature_flag_service: Optional[FeatureFlagService] = None,
+    config_provider: Optional[Any] = None,
+) -> ForecastService:
+    """Create a forecast service with proper initialization."""
+    return ForecastService(
+        session=db_session,
+        feature_flag_service=feature_flag_service,
+        config_provider=config_provider,
     )
 ```
 

@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.repositories.base_repository import BaseRepository
-from src.services.cashflow.cashflow_types import CashflowHolidays, CashflowWarningThresholds
+from src.common.cashflow_types import CashflowHolidays, CashflowWarningThresholds
 from src.utils.datetime_utils import naive_end_of_day, naive_start_of_day
 
 ModelType = TypeVar("ModelType")

@@ -7,7 +7,12 @@ from src.repositories.accounts import AccountRepository
 from src.repositories.credit_limit_history import CreditLimitHistoryRepository
 from src.repositories.statement_history import StatementHistoryRepository
 from src.repositories.transaction_history import TransactionHistoryRepository
-from src.schemas.accounts import AccountCreate, AccountUpdate
+from src.schemas.account_types import (
+    CheckingAccountCreate,
+    CreditAccountCreate,
+    AccountCreateUnion
+)
+from src.schemas.accounts import AccountUpdate
 from src.schemas.credit_limit_history import CreditLimitHistoryUpdate
 from src.services.accounts import AccountService
 
@@ -15,17 +20,9 @@ from src.services.accounts import AccountService
 @pytest.mark.asyncio
 class TestAccountService:
     def setup_service(self, db_session):
-        """Helper to set up the service with repositories"""
-        account_repo = AccountRepository(db_session)
-        statement_repo = StatementHistoryRepository(db_session)
-        credit_limit_repo = CreditLimitHistoryRepository(db_session)
-        transaction_repo = TransactionHistoryRepository(db_session)
-
+        """Helper to set up the service with session"""
         return AccountService(
-            account_repo=account_repo,
-            statement_repo=statement_repo,
-            credit_limit_repo=credit_limit_repo,
-            transaction_repo=transaction_repo,
+            session=db_session,
         )
 
     async def test_create_account_checking(self, db_session):

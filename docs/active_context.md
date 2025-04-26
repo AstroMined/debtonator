@@ -2,11 +2,43 @@
 
 ## Current Focus
 
-Repository Pattern Refinement, ADR-014 Repository Layer Compliance Implementation, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration, Repository Test Fixes
+Repository Pattern Refinement, ADR-014 Repository Layer Compliance Implementation, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration, Repository Test Fixes, Circular Dependency Resolution
 
 ### Recent Changes
 
-1. **Fixed Repository Test Issues (April 26, 2025)** ✓
+1. **Resolved Circular Import Dependencies in Cashflow Module (April 26, 2025)** ✓
+   - Created a common domain types module to break circular dependencies:
+     - Moved shared types like CashflowHolidays and CashflowWarningThresholds to src/common/cashflow_types.py
+     - Documented the architecture with a comprehensive README.md file
+     - Established proper one-way dependency direction (repositories → common, services → repositories)
+   - Updated cashflow repositories to use common types:
+     - Modified cashflow_base.py to import from common module
+     - Eliminated service layer imports from repository layer
+   - Updated cashflow services to follow clean architecture:
+     - Updated cashflow_types.py to re-export from common module
+     - Fixed imports in specialized service files
+     - Maintained proper architectural boundaries
+   - Enforced architectural best practices:
+     - Repositories never import from services
+     - Services can import from repositories
+     - Both can import from common types
+     - Cleaner testing and module initialization
+
+2. **Removed CashflowService Anti-Pattern (April 26, 2025)** ✓
+   - Eliminated unnecessary layer of abstraction:
+     - Deleted cashflow_main.py containing the CashflowService class
+     - Updated documentation references to use specialized services
+   - Fixed test files to use proper specialized services:
+     - Added proper exports to src/services/cashflow/__init__.py
+     - Updated test_account_specific_forecasts.py to use ForecastService
+     - Updated test_cashflow_services.py to use the appropriate services
+     - Updated test_historical_trends_services.py to use HistoricalService
+   - Updated documentation references:
+     - Changed ADR references to use specialized services
+     - Updated service fixture patterns in README.md
+   - Improved architecture by removing unnecessary delegation layer
+
+3. **Fixed Repository Test Issues (April 26, 2025)** ✓
    - Fixed AccountService fixture parameter mismatch:
      - Updated account_service fixture to match constructor signature
      - Aligned parameters with BaseService inheritance pattern
@@ -24,48 +56,6 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance Implementatio
      - Fixed AttributeError in cashflow repository
      - Maintained consistent method signatures across codebase
      - Enhanced code quality with proper typing and documentation
-
-1. **Completed Phases 18, 19, and 20 of ADR-014 Repository Layer Implementation (April 26, 2025)** ✓
-   - Refactored RecommendationService to use repository pattern:
-     - Updated to inherit from BaseService
-     - Replaced direct database access with repository method calls
-     - Used existing repositories (LiabilityRepository, AccountRepository, PaymentRepository)
-     - Replaced CashflowService with more specific MetricsService
-     - Applied proper timezone handling with ensure_utc and utc_now
-     - Documented all methods with comprehensive docstrings
-   - Refactored ImpactAnalysisService to use repository pattern:
-     - Updated to inherit from BaseService
-     - Replaced direct SQL queries with repository methods
-     - Used existing repositories for data access
-     - Applied proper ADR-011 datetime compliance
-     - Updated account type references (credit_limit instead of total_limit)
-     - Enhanced documentation and error handling
-   - Completed RecurringBillService refactoring:
-     - Used existing RecurringBillRepository through _get_repository method
-     - Replaced all direct database access
-     - Applied proper datetime standardization
-     - Enhanced method documentation
-   - Updated ADR-014 implementation checklist to reflect completion
-   - Improved code quality across all three services
-
-2. **Completed BulkImportService Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
-   - Refactored BulkImportService to inherit from BaseService:
-     - Updated constructor to properly initialize BaseService
-     - Maintained service orchestration pattern through other services
-     - Added proper feature flag service integration
-   - Applied proper ADR-011 datetime compliance:
-     - Used utc_now() for current time reference
-     - Used naive_utc_from_date() for database-safe dates
-     - Used naive_utc_datetime_from_str() for string conversion
-   - Improved architecture by moving schema definitions:
-     - Created dedicated schema file in src/schemas/bulk_import.py
-     - Moved ImportError, BulkImportResponse, and BulkImportPreview schemas
-     - Added comprehensive schema documentation with Field descriptors
-   - Enhanced documentation:
-     - Added comprehensive class and method docstrings
-     - Added parameter documentation
-     - Clarified orchestration responsibilities
-   - Updated ADR-014 implementation checklist to mark Phase 15 as completed
 
 3. **Completed DepositScheduleService Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
    - Refactored DepositScheduleService to inherit from BaseService:

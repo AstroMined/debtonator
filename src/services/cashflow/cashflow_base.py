@@ -14,7 +14,7 @@ from src.repositories.cashflow.cashflow_transaction_repository import (
     CashflowTransactionRepository,
 )
 from src.services.base import BaseService
-from src.services.cashflow.cashflow_types import (
+from src.common.cashflow_types import (
     CashflowHolidays,
     CashflowWarningThresholds,
 )

@@ -7,6 +7,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.149] - 2025-04-26
+
+### Removed
+
+- Eliminated CashflowService anti-pattern:
+  - Deleted cashflow_main.py file containing unnecessary abstraction layer
+  - Updated references in test files to use proper specialized services
+  - Fixed documentation in ADR files to reference specific services
+  - Created proper exports in services/__init__.py
+
+### Added
+
+- Created common domain types module for proper architecture:
+  - Added src/common/cashflow_types.py with shared domain types
+  - Created comprehensive README.md documenting the architecture
+  - Established proper one-way dependency direction pattern
+  - Provided clean solution to circular import issues
+
+### Fixed
+
+- Resolved circular import dependencies in cashflow modules:
+  - Fixed repository modules to import from common types
+  - Updated service modules to use common types
+  - Eliminated service layer imports from repository layer
+  - Fixed test files to run with proper architecture
+
 ## [0.5.148] - 2025-04-26
 
 ### Fixed

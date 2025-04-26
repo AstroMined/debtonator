@@ -1075,18 +1075,22 @@ The statement type expansion affects several other components:
 Cashflow analysis must be updated to handle different statement types:
 
 ```python
-class CashflowService:
-    """Service for cashflow analysis across accounts."""
+class ForecastService:
+    """Service for forecast analysis across accounts."""
     
     # ... existing code ...
     
     async def include_upcoming_statements(self, forecast: CashflowForecast) -> None:
         """Include upcoming statement payments in cashflow forecast."""
-        credit_accounts = await self.account_repository.get_by_type("credit")
+        forecast_repository = await self.forecast_repository
+        statement_repository = await self._get_repository(StatementRepository)
+        account_repository = await self._get_repository(AccountRepository)
+        
+        credit_accounts = await account_repository.get_by_type("credit")
         account_ids = [acc.id for acc in credit_accounts]
         
         # Get upcoming credit statement payments
-        upcoming_statements = await self.statement_repository.get_upcoming_due_payments(
+        upcoming_statements = await statement_repository.get_upcoming_due_payments(
             account_ids, forecast.days
         )
         

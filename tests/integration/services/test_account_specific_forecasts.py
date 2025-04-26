@@ -9,7 +9,7 @@ from src.models.accounts import Account
 from src.models.income import Income
 from src.models.liabilities import Liability
 from src.schemas.cashflow import AccountForecastRequest
-from src.services.cashflow import CashflowService
+from src.services.cashflow.cashflow_forecast_service import ForecastService
 
 
 @pytest.fixture
@@ -108,7 +108,7 @@ async def test_income(db_session: AsyncSession, test_account: Account):
 async def test_get_account_forecast_basic(
     db_session: AsyncSession, test_account: Account, test_bills, test_income
 ):
-    service = CashflowService(db_session)
+    service = ForecastService(db_session)
     today = datetime.now(ZoneInfo("UTC")).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
@@ -143,7 +143,7 @@ async def test_get_account_forecast_basic(
 async def test_get_account_forecast_credit_account(
     db_session: AsyncSession, test_credit_account: Account
 ):
-    service = CashflowService(db_session)
+    service = ForecastService(db_session)
     today = datetime.now(ZoneInfo("UTC")).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
@@ -168,7 +168,7 @@ async def test_get_account_forecast_credit_account(
 async def test_get_account_forecast_warning_flags(
     db_session: AsyncSession, test_account: Account, test_bills
 ):
-    service = CashflowService(db_session)
+    service = ForecastService(db_session)
     today = datetime.now(ZoneInfo("UTC")).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
@@ -201,7 +201,7 @@ async def test_get_account_forecast_warning_flags(
 async def test_get_account_forecast_recurring_bills(
     db_session: AsyncSession, test_account: Account, test_bills
 ):
-    service = CashflowService(db_session)
+    service = ForecastService(db_session)
     today = datetime.now(ZoneInfo("UTC")).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
@@ -229,7 +229,7 @@ async def test_get_account_forecast_recurring_bills(
 
 
 async def test_get_account_forecast_invalid_account(db_session: AsyncSession):
-    service = CashflowService(db_session)
+    service = ForecastService(db_session)
     today = datetime.now(ZoneInfo("UTC")).replace(
         hour=0, minute=0, second=0, microsecond=0
     )

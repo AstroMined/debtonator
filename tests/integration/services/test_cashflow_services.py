@@ -8,7 +8,9 @@ from src.models.categories import Category
 from src.models.income import Income
 from src.models.liabilities import Liability
 from src.schemas.cashflow import CustomForecastParameters
-from src.services.cashflow import CashflowService
+from src.services.cashflow.cashflow_forecast_service import ForecastService
+from src.services.cashflow.cashflow_metrics_service import MetricsService
+from src.services.cashflow.cashflow_transaction_service import TransactionService
 
 
 @pytest.fixture(scope="function")
@@ -112,7 +114,7 @@ async def test_income(db_session, test_account):
 @pytest.mark.asyncio
 async def test_get_forecast(db_session, test_account, test_liabilities, test_income):
     """Test getting cashflow forecast for a date range."""
-    service = CashflowService(db_session)
+    service = ForecastService(db_session)
     today = date.today()
     start_date = today
     end_date = today + timedelta(days=20)
@@ -139,7 +141,7 @@ async def test_get_forecast(db_session, test_account, test_liabilities, test_inc
 @pytest.mark.asyncio
 async def test_get_required_funds(db_session, test_account, test_liabilities):
     """Test calculating required funds for a date range."""
-    service = CashflowService(db_session)
+    service = ForecastService(db_session)
     today = date.today()
     start_date = today
     end_date = today + timedelta(days=20)
@@ -154,13 +156,13 @@ async def test_get_required_funds(db_session, test_account, test_liabilities):
 
 def test_get_daily_deficit():
     """Test calculating daily deficit."""
-    service = CashflowService(None)  # No DB needed for this calculation
+    service = MetricsService(None)  # No DB needed for this calculation
 
     # Test positive amount (should return 0)
-    assert service.get_daily_deficit(Decimal("100.00"), 30) == Decimal("0.00")
+    assert service.calculate_daily_deficit(Decimal("100.00"), 30) == Decimal("0.00")
 
     # Test negative amount
-    assert service.get_daily_deficit(Decimal("-300.00"), 30) == Decimal("10.00")
+    assert service.calculate_daily_deficit(Decimal("-300.00"), 30) == Decimal("10.00")
 
     # Test zero amount
     assert service.get_daily_deficit(Decimal("0.00"), 30) == Decimal("0.00")
@@ -171,7 +173,7 @@ def test_get_daily_deficit():
 
 def test_get_yearly_deficit():
     """Test calculating yearly deficit."""
-    service = CashflowService(None)  # No DB needed for this calculation
+    service = MetricsService(None)  # No DB needed for this calculation
 
     # Test with daily deficit
     assert service.get_yearly_deficit(Decimal("10.00")) == Decimal("3650.00")
@@ -182,7 +184,7 @@ def test_get_yearly_deficit():
 
 def test_get_required_income():
     """Test calculating required income with tax consideration."""
-    service = CashflowService(None)  # No DB needed for this calculation
+    service = MetricsService(None)  # No DB needed for this calculation
 
     # Test with default tax rate (0.80)
     assert service.get_required_income(Decimal("1000.00")) == Decimal("1250.00")
@@ -201,7 +203,7 @@ def test_get_required_income():
 @pytest.mark.asyncio
 async def test_get_forecast_empty_range(db_session, test_account):
     """Test getting forecast with no liabilities or income in range."""
-    service = CashflowService(db_session)
+    service = ForecastService(db_session)
     today = date.today()
     start_date = today + timedelta(days=100)  # Future date with no entries
     end_date = start_date + timedelta(days=5)
@@ -216,7 +218,7 @@ async def test_get_forecast_empty_range(db_session, test_account):
 @pytest.mark.asyncio
 async def test_get_required_funds_empty_range(db_session, test_account):
     """Test getting required funds with no liabilities in range."""
-    service = CashflowService(db_session)
+    service = ForecastService(db_session)
     today = date.today()
     start_date = today + timedelta(days=100)  # Future date with no entries
     end_date = start_date + timedelta(days=5)
@@ -233,7 +235,7 @@ async def test_get_custom_forecast(
     db_session, test_account, test_liabilities, test_income
 ):
     """Test getting custom forecast with specific parameters."""
-    service = CashflowService(db_session)
+    service = ForecastService(db_session)
     today = date.today()
 
     params = CustomForecastParameters(
@@ -282,7 +284,7 @@ async def test_get_custom_forecast_filtered(
     db_session, test_account, test_liabilities, test_income, test_categories
 ):
     """Test getting custom forecast with category filters."""
-    service = CashflowService(db_session)
+    service = ForecastService(db_session)
     today = date.today()
 
     params = CustomForecastParameters(
@@ -314,7 +316,7 @@ async def test_get_custom_forecast_filtered(
 @pytest.mark.asyncio
 async def test_get_custom_forecast_no_accounts(db_session):
     """Test custom forecast with no valid accounts."""
-    service = CashflowService(db_session)
+    service = ForecastService(db_session)
     today = date.today()
 
     params = CustomForecastParameters(

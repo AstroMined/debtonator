@@ -17,7 +17,7 @@ from src.schemas.cashflow import (
 )
 from src.services.cashflow.cashflow_base import CashflowBaseService
 from src.services.cashflow.cashflow_transaction_service import TransactionService
-from src.services.cashflow.cashflow_types import DateType
+from src.common.cashflow_types import DateType
 
 
 class ForecastService(CashflowBaseService):

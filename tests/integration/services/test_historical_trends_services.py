@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.accounts import Account
 from src.models.income import Income
 from src.models.payments import Payment, PaymentSource
-from src.services.cashflow import CashflowService
+from src.services.cashflow.cashflow_historical_service import HistoricalService
 
 
 @pytest.fixture
@@ -129,7 +129,7 @@ async def setup_test_data(db_session: AsyncSession):
 
 @pytest.mark.asyncio
 async def test_historical_trends_analysis(db_session: AsyncSession, setup_test_data):
-    service = CashflowService(db_session)
+    service = HistoricalService(db_session)
     base_date = setup_test_data["base_date"]
     now = datetime.now(ZoneInfo("UTC"))
 
@@ -164,7 +164,7 @@ async def test_historical_trends_analysis(db_session: AsyncSession, setup_test_d
 
 @pytest.mark.asyncio
 async def test_historical_trends_empty_data(db_session: AsyncSession):
-    service = CashflowService(db_session)
+    service = HistoricalService(db_session)
     now = datetime.now(ZoneInfo("UTC"))
 
     # Create an account with no transactions
@@ -191,7 +191,7 @@ async def test_historical_trends_empty_data(db_session: AsyncSession):
 async def test_historical_trends_significant_events(
     db_session: AsyncSession, setup_test_data
 ):
-    service = CashflowService(db_session)
+    service = HistoricalService(db_session)
     base_date = setup_test_data["base_date"]
     now = datetime.now(ZoneInfo("UTC"))
 
@@ -227,7 +227,7 @@ async def test_historical_trends_significant_events(
 async def test_historical_trends_seasonal_patterns(
     db_session: AsyncSession, setup_test_data
 ):
-    service = CashflowService(db_session)
+    service = HistoricalService(db_session)
     base_date = setup_test_data["base_date"]
     now = datetime.now(ZoneInfo("UTC"))
 

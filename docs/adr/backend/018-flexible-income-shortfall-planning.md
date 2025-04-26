@@ -279,7 +279,7 @@ class IncomePlanningService:
         self,
         scenario_repository: IncomeScenarioRepository,
         source_repository: IncomeSourceRepository,
-        cashflow_service: CashflowService,
+        metrics_service: MetricsService,
     ):
         self.scenario_repository = scenario_repository
         self.source_repository = source_repository
