@@ -124,21 +124,27 @@ Each phase is designed to be completed in a single coding session:
   - [x] Implemented service delegation to repository for data access
   - [x] Completion criteria: Payment patterns service using repository pattern exclusively
 
-- [ ] **Phase 9: Payment Schedules Implementation**
-  - [ ] Create `PaymentScheduleRepository` with appropriate methods
-  - [ ] Refactor `payment_schedules.py` to use repository pattern
-  - [ ] Move schedule calculations to repository methods
-  - [ ] Completion criteria: Payment schedules service using repository pattern exclusively
+- [x] **Phase 9: Payment Schedules Implementation** ✅ COMPLETED
+  - [x] Used existing `PaymentScheduleRepository` with comprehensive methods
+  - [x] Refactored `payment_schedules.py` to inherit from BaseService
+  - [x] Replaced direct database queries with repository method calls
+  - [x] Properly initialized PaymentService with all dependencies
+  - [x] Applied ADR-011 datetime compliance with utility functions
+  - [x] Added new methods leveraging specialized repository functions
+  - [x] Completion criteria: Payment schedules service using repository pattern exclusively
 
 #### Balance Management Services (Medium Priority)
 
 **Focus**: Refactor balance-related services to follow the repository pattern
 
-- [ ] **Phase 10: Balance History Implementation**
-  - [ ] Create `BalanceHistoryRepository` with appropriate methods
-  - [ ] Refactor `balance_history.py` to use repository pattern
-  - [ ] Move timeline queries to repository methods
-  - [ ] Completion criteria: Balance history service using repository pattern exclusively
+- [x] **Phase 10: Balance History Implementation** ✅ COMPLETED
+  - [x] Used existing `BalanceHistoryRepository` with comprehensive methods
+  - [x] Refactored `balance_history.py` to inherit from BaseService
+  - [x] Replaced direct database queries with repository method calls
+  - [x] Applied ADR-011 datetime compliance with utility functions
+  - [x] Added new methods leveraging specialized repository functions
+  - [x] Implemented proper feature flag integration
+  - [x] Completion criteria: Balance history service using repository pattern exclusively
 
 - [ ] **Phase 11: Balance Reconciliation Implementation**
   - [ ] Create `BalanceReconciliationRepository` with appropriate methods
@@ -338,8 +344,8 @@ For each refactored service, verify:
 | `payments.py` | ✅ Fully compliant | None needed | 6 |
 | `income_trends.py` | ✅ Fully compliant | None needed | 7 |
 | `payment_patterns.py` | ✅ Fully compliant | None needed | 8 |
-| `payment_schedules.py` | Not compliant | Create repository and refactor service | 9 |
-| `balance_history.py` | Not compliant | Complete refactoring needed | 10 |
+| `payment_schedules.py` | ✅ Fully compliant | None needed | 9 |
+| `balance_history.py` | ✅ Fully compliant | None needed | 10 |
 | `balance_reconciliation.py` | Not compliant | Complete refactoring needed | 11 |
 | `categories.py` | Not compliant | Complete refactoring needed | 12 |
 | `statement_history.py` | Not compliant | Replace direct database access | 13 |

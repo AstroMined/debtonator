@@ -7,6 +7,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.142] - 2025-04-26
+
+### Changed
+
+- Refactored PaymentScheduleService to comply with ADR-014 Repository Layer standards:
+  - Updated PaymentScheduleService to inherit from BaseService for standardized repository access
+  - Replaced direct database operations with repository method calls
+  - Leveraged existing PaymentScheduleRepository's comprehensive methods
+  - Applied proper ADR-011 datetime compliance with utility functions
+  - Properly initialized PaymentService with all dependencies
+  - Enhanced service with additional functionality (get_upcoming_schedules, find_overdue_schedules)
+  - Added get_total_scheduled_payments for financial planning
+
+- Refactored BalanceHistoryService to comply with ADR-014 Repository Layer standards:
+  - Updated BalanceHistoryService to inherit from BaseService for standardized repository access
+  - Replaced direct database operations with repository method calls
+  - Leveraged existing BalanceHistoryRepository's comprehensive methods
+  - Applied proper ADR-011 datetime compliance with utility functions
+  - Enhanced service with additional functionality (get_balance_trend_data, get_average_balance)
+  - Added get_available_credit_trend for credit account tracking
+  - Added find_missing_days for data completeness validation
+
+### Documentation
+
+- Updated ADR-014 implementation checklist:
+  - Marked Phase 9 (Payment Schedules Implementation) as completed
+  - Marked Phase 10 (Balance History Implementation) as completed
+  - Updated implementation status with completed phases
+  - Updated service implementation patterns with lessons learned
+
 ## [0.5.141] - 2025-04-26
 
 ### Added
