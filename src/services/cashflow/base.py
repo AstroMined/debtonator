@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional, TypeVar
+from typing import Any, Optional, TypeVar
 from zoneinfo import ZoneInfo
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,31 +7,34 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.repositories.cashflow.forecast_repository import CashflowForecastRepository
 from src.repositories.cashflow.metrics_repository import CashflowMetricsRepository
 from src.repositories.cashflow.transaction_repository import CashflowTransactionRepository
-from src.repositories.factory import RepositoryFactory
+from src.services.base import BaseService as AppBaseService
 from src.services.cashflow.types import CashflowHolidays, CashflowWarningThresholds
+from src.services.feature_flags import FeatureFlagService
 
 # Generic type for repository types
 RepositoryType = TypeVar("RepositoryType")
 
 
-class BaseService:
+class BaseService(AppBaseService):
     """Base service with shared functionality for cashflow services."""
 
-    def __init__(self, db: AsyncSession):
+    def __init__(
+        self, 
+        session: AsyncSession,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None
+    ):
         """Initialize the base service.
 
         Args:
-            db: SQLAlchemy async session for database operations
+            session: SQLAlchemy async session for database operations
+            feature_flag_service: Optional feature flag service for repository proxies
+            config_provider: Optional config provider for feature flags
         """
-        self.db = db
+        super().__init__(session, feature_flag_service, config_provider)
         self._warning_thresholds = CashflowWarningThresholds()
         self._holidays = CashflowHolidays(date.today().year).get_holidays()
         self._timezone = ZoneInfo("UTC")
-        
-        # Repository instances to be lazy-loaded
-        self._forecast_repo = None
-        self._metrics_repo = None
-        self._transaction_repo = None
 
     def _get_warning_thresholds(self) -> CashflowWarningThresholds:
         """Get the current warning thresholds."""
@@ -53,12 +56,12 @@ class BaseService:
         """
         try:
             # Attempt a simple query to verify session
-            await self.db.connection()
+            await self._session.connection()
             return True
         except Exception:
             return False
     
-    # Repository accessors with lazy loading
+    # Repository accessors with lazy loading using BaseService._get_repository
     
     @property
     async def forecast_repository(self) -> CashflowForecastRepository:
@@ -68,11 +71,7 @@ class BaseService:
         Returns:
             CashflowForecastRepository: Cashflow forecast repository
         """
-        if self._forecast_repo is None:
-            self._forecast_repo = await RepositoryFactory.create_cashflow_forecast_repository(
-                self.db
-            )
-        return self._forecast_repo
+        return await self._get_repository(CashflowForecastRepository)
     
     @property
     async def metrics_repository(self) -> CashflowMetricsRepository:
@@ -82,11 +81,7 @@ class BaseService:
         Returns:
             CashflowMetricsRepository: Cashflow metrics repository
         """
-        if self._metrics_repo is None:
-            self._metrics_repo = await RepositoryFactory.create_cashflow_metrics_repository(
-                self.db
-            )
-        return self._metrics_repo
+        return await self._get_repository(CashflowMetricsRepository)
     
     @property
     async def transaction_repository(self) -> CashflowTransactionRepository:
@@ -96,8 +91,4 @@ class BaseService:
         Returns:
             CashflowTransactionRepository: Cashflow transaction repository
         """
-        if self._transaction_repo is None:
-            self._transaction_repo = await RepositoryFactory.create_cashflow_transaction_repository(
-                self.db
-            )
-        return self._transaction_repo
+        return await self._get_repository(CashflowTransactionRepository)

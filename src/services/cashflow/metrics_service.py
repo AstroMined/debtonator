@@ -1,11 +1,12 @@
 from decimal import Decimal
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
 from src.models.cashflow import CashflowForecast
 from src.schemas.cashflow import CustomForecastResult
+from src.services.feature_flags import FeatureFlagService
 from src.utils.decimal_precision import DecimalPrecision
 
 from .base import BaseService
@@ -16,9 +17,14 @@ from .types import DateType
 class MetricsService(BaseService):
     """Service for calculating cashflow metrics and analysis."""
 
-    def __init__(self, db: AsyncSession):
-        super().__init__(db)
-        self._transaction_service = TransactionService(db)
+    def __init__(
+        self, 
+        session: AsyncSession,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None
+    ):
+        super().__init__(session, feature_flag_service, config_provider)
+        self._transaction_service = TransactionService(session)
 
     async def get_metrics_for_date(
         self, target_date: DateType

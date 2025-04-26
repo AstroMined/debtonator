@@ -2,6 +2,24 @@
 
 ## Recent Updates
 
+### Repository Factory Refinement (2025-04-24)
+
+- Refined Repository Factory to focus solely on polymorphic repositories:
+  - Removed non-polymorphic repository factory methods (create_transaction_history_repository, etc.)
+  - Updated factory documentation with explicit guidance for repository usage
+  - Added detailed usage examples showing correct and incorrect patterns
+  - Improved code quality with clearer separation of concerns
+- Fixed cashflow services to properly use the repository pattern:
+  - Refactored cashflow/base.py to properly inherit from app-wide BaseService
+  - Updated repository accessors to use _get_repository() method
+  - Fixed metrics_service.py to use proper feature flag integration
+  - Refactored transaction_service.py with proper inheritance and constructor
+  - Updated realtime_cashflow.py to follow the correct architectural pattern
+- Enhanced ADR-014 implementation checklist:
+  - Updated current status with completed implementations
+  - Added detail on implementation patterns and anti-patterns
+  - Created comprehensive documentation with examples
+
 ### Repository Pattern Refinement (2025-04-24)
 
 - Refined repository pattern implementation with clear separation of concerns:

@@ -1,12 +1,16 @@
 """
 Repository factory implementation.
 
-This module provides a factory for creating repositories with specialized functionality
-based on account types. It dynamically loads type-specific repository modules and
-binds their functions to the base repository instance.
+This module provides a factory ONLY for creating polymorphic repositories with specialized 
+functionality based on account types. It dynamically loads type-specific repository modules 
+and binds their functions to the base repository instance.
 
 It also handles feature flag enforcement through proxies that intercept repository
 method calls and apply feature flag restrictions based on centralized configuration.
+
+IMPORTANT: Following ADR-014 Repository Layer Compliance, this factory should ONLY be used 
+for polymorphic repositories (like AccountRepository). For standard repositories, use 
+BaseService._get_repository() instead of direct factory methods.
 
 Implemented as part of ADR-014 Repository Layer Compliance, ADR-016 Account Type Expansion, 
 ADR-019 Banking Account Types, and ADR-024 Feature Flag System.
@@ -26,12 +30,7 @@ from src.config.providers.feature_flags import (
 from src.registry.account_types import account_type_registry
 from src.repositories.accounts import AccountRepository
 from src.repositories.base_repository import BaseRepository
-from src.repositories.cashflow.forecast_repository import CashflowForecastRepository
-from src.repositories.cashflow.metrics_repository import CashflowMetricsRepository
-from src.repositories.cashflow.realtime_repository import RealtimeCashflowRepository
-from src.repositories.cashflow.transaction_repository import CashflowTransactionRepository
 from src.repositories.proxies.feature_flag_proxy import FeatureFlagRepositoryProxy
-from src.repositories.transaction_history import TransactionHistoryRepository
 from src.services.feature_flags import FeatureFlagService
 
 logger = logging.getLogger(__name__)
@@ -39,11 +38,25 @@ logger = logging.getLogger(__name__)
 
 class RepositoryFactory:
     """
-    Factory for creating repositories with specialized functionality.
+    Factory for creating POLYMORPHIC repositories with specialized functionality.
 
-    This class implements the factory pattern for creating repositories with
+    This class implements the factory pattern ONLY for polymorphic repositories with
     type-specific functionality. It dynamically loads repository modules based
     on account types and binds their functions to the base repository instance.
+    
+    STANDARD (non-polymorphic) repositories should NOT use this factory.
+    Instead, they should be created directly by BaseService._get_repository().
+    
+    Example usage in BaseService:
+    
+        # For polymorphic repositories:
+        account_repo = await self._get_repository(
+            AccountRepository, 
+            polymorphic_type="checking"
+        )
+        
+        # For standard repositories:
+        transaction_repo = await self._get_repository(TransactionHistoryRepository)
     """
 
     # Cache for loaded repository modules
@@ -114,150 +127,16 @@ class RepositoryFactory:
 
         return base_repo
 
-    @classmethod
-    async def create_transaction_history_repository(
-        cls,
-        session: AsyncSession,
-        feature_flag_service: Optional[FeatureFlagService] = None,
-        config_provider: Optional[Any] = None,
-    ) -> TransactionHistoryRepository:
-        """
-        Create a transaction history repository.
-
-        Args:
-            session: SQLAlchemy async session
-            feature_flag_service: Optional feature flag service for feature validation
-            config_provider: Optional config provider for feature requirements
-
-        Returns:
-            TransactionHistoryRepository instance, wrapped with FeatureFlagRepositoryProxy 
-            if feature_flag_service is provided
-        """
-        repository = TransactionHistoryRepository(session)
-        
-        # Wrap with proxy if feature flag service is provided
-        if feature_flag_service:
-            return await cls._wrap_with_proxy(
-                repository, feature_flag_service, session, config_provider
-            )
-        
-        return repository
-
-    @classmethod
-    async def create_cashflow_forecast_repository(
-        cls,
-        session: AsyncSession,
-        feature_flag_service: Optional[FeatureFlagService] = None,
-        config_provider: Optional[Any] = None,
-    ) -> CashflowForecastRepository:
-        """
-        Create a cashflow forecast repository.
-
-        Args:
-            session: SQLAlchemy async session
-            feature_flag_service: Optional feature flag service for feature validation
-            config_provider: Optional config provider for feature requirements
-
-        Returns:
-            CashflowForecastRepository instance, wrapped with FeatureFlagRepositoryProxy 
-            if feature_flag_service is provided
-        """
-        repository = CashflowForecastRepository(session)
-        
-        # Wrap with proxy if feature flag service is provided
-        if feature_flag_service:
-            return await cls._wrap_with_proxy(
-                repository, feature_flag_service, session, config_provider
-            )
-        
-        return repository
-
-    @classmethod
-    async def create_cashflow_metrics_repository(
-        cls,
-        session: AsyncSession,
-        feature_flag_service: Optional[FeatureFlagService] = None,
-        config_provider: Optional[Any] = None,
-    ) -> CashflowMetricsRepository:
-        """
-        Create a cashflow metrics repository.
-
-        Args:
-            session: SQLAlchemy async session
-            feature_flag_service: Optional feature flag service for feature validation
-            config_provider: Optional config provider for feature requirements
-
-        Returns:
-            CashflowMetricsRepository instance, wrapped with FeatureFlagRepositoryProxy 
-            if feature_flag_service is provided
-        """
-        repository = CashflowMetricsRepository(session)
-        
-        # Wrap with proxy if feature flag service is provided
-        if feature_flag_service:
-            return await cls._wrap_with_proxy(
-                repository, feature_flag_service, session, config_provider
-            )
-        
-        return repository
-
-    @classmethod
-    async def create_cashflow_transaction_repository(
-        cls,
-        session: AsyncSession,
-        feature_flag_service: Optional[FeatureFlagService] = None,
-        config_provider: Optional[Any] = None,
-    ) -> CashflowTransactionRepository:
-        """
-        Create a cashflow transaction repository.
-
-        Args:
-            session: SQLAlchemy async session
-            feature_flag_service: Optional feature flag service for feature validation
-            config_provider: Optional config provider for feature requirements
-
-        Returns:
-            CashflowTransactionRepository instance, wrapped with FeatureFlagRepositoryProxy 
-            if feature_flag_service is provided
-        """
-        repository = CashflowTransactionRepository(session)
-        
-        # Wrap with proxy if feature flag service is provided
-        if feature_flag_service:
-            return await cls._wrap_with_proxy(
-                repository, feature_flag_service, session, config_provider
-            )
-        
-        return repository
-        
-    @classmethod
-    async def create_realtime_cashflow_repository(
-        cls,
-        session: AsyncSession,
-        feature_flag_service: Optional[FeatureFlagService] = None,
-        config_provider: Optional[Any] = None,
-    ) -> RealtimeCashflowRepository:
-        """
-        Create a realtime cashflow repository.
-
-        Args:
-            session: SQLAlchemy async session
-            feature_flag_service: Optional feature flag service for feature validation
-            config_provider: Optional config provider for feature requirements
-
-        Returns:
-            RealtimeCashflowRepository instance, wrapped with FeatureFlagRepositoryProxy 
-            if feature_flag_service is provided
-        """
-        repository = RealtimeCashflowRepository(session)
-        
-        # Wrap with proxy if feature flag service is provided
-        if feature_flag_service:
-            return await cls._wrap_with_proxy(
-                repository, feature_flag_service, session, config_provider
-            )
-        
-        return repository
+    # Non-polymorphic repository factory methods have been removed
+    # to follow ADR-014 Repository Layer Compliance.
+    # Use BaseService._get_repository() instead for standard repositories.
+    #
+    # Example:
+    # Instead of:
+    #   repo = await RepositoryFactory.create_transaction_history_repository(session)
+    #
+    # Use this in services:
+    #   repo = await self._get_repository(TransactionHistoryRepository)
 
     @classmethod
     async def _wrap_with_proxy(

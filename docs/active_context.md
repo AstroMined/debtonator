@@ -6,6 +6,13 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Account Type
 
 ### Recent Changes
 
+1. **Refined Repository Factory Implementation for ADR-014 Compliance (April 24, 2025)** ✓
+   - Removed non-polymorphic repository methods from RepositoryFactory
+   - Updated documentation to clarify factory's refined purpose
+   - Added explicit guidance for standard repository instantiation
+   - Fixed cashflow services to properly use the repository pattern
+   - Updated BaseService implementation in cashflow package
+
 1. **Refined Repository Pattern Implementation (April 24, 2025)** ✓
    - Established clear separation between polymorphic and standard repositories
    - Implemented BaseService class for standardized repository initialization

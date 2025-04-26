@@ -2,7 +2,7 @@ import statistics
 from collections import defaultdict
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,7 +10,7 @@ from src.models.accounts import Account
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
 from src.models.transaction_history import TransactionHistory
-from src.repositories.factory import RepositoryFactory
+from src.repositories.cashflow.realtime_repository import RealtimeCashflowRepository
 from src.schemas.cashflow import (
     AccountCorrelation,
     AccountRiskAssessment,
@@ -20,10 +20,12 @@ from src.schemas.cashflow import (
     TransferPattern,
 )
 from src.schemas.realtime_cashflow import AccountBalance, RealtimeCashflow
+from src.services.base import BaseService
+from src.services.feature_flags import FeatureFlagService
 from src.utils.decimal_precision import DecimalPrecision
 
 
-class RealtimeCashflowService:
+class RealtimeCashflowService(BaseService):
     """
     Service for real-time cashflow analysis across accounts.
     
@@ -38,23 +40,30 @@ class RealtimeCashflowService:
     2. Data access (in RealtimeCashflowRepository)
     3. API contracts (through schema objects)
     """
-    def __init__(self, db: AsyncSession):
-        self.db = db
-        self._realtime_repo = None
+    def __init__(
+        self, 
+        session: AsyncSession,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None
+    ):
+        """Initialize the realtime cashflow service.
+        
+        Args:
+            session: SQLAlchemy async session for database operations
+            feature_flag_service: Optional feature flag service for repository proxies
+            config_provider: Optional config provider for feature flags
+        """
+        super().__init__(session, feature_flag_service, config_provider)
         
     @property
-    async def realtime_repository(self):
+    async def realtime_repository(self) -> RealtimeCashflowRepository:
         """
         Get the realtime cashflow repository instance.
         
         Returns:
             RealtimeCashflowRepository: Realtime cashflow repository
         """
-        if self._realtime_repo is None:
-            self._realtime_repo = await RepositoryFactory.create_realtime_cashflow_repository(
-                self.db
-            )
-        return self._realtime_repo
+        return await self._get_repository(RealtimeCashflowRepository)
 
     async def get_account_balances(self) -> List[AccountBalance]:
         """Fetch current balances for all accounts."""

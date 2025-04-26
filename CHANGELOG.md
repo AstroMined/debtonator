@@ -7,6 +7,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.132] - 2025-04-24
+
+### Changed
+
+- Refactored `RepositoryFactory` to focus solely on polymorphic repositories:
+  - Removed non-polymorphic repository factory methods for better architecture
+  - Updated documentation to clarify its refined purpose
+  - Added explicit guidance for standard repository instantiation
+  - Improved inline documentation with usage examples
+
+### Fixed
+
+- Fixed cashflow services to properly use the repository pattern:
+  - Updated `cashflow/base.py` to inherit from app-wide BaseService
+  - Refactored repository accessors to use `_get_repository()` method
+  - Modified `metrics_service.py` to use proper feature flag integration
+  - Updated `transaction_service.py` with proper inheritance and constructor
+  - Fixed `realtime_cashflow.py` to use BaseService._get_repository()
+
+### Documentation
+
+- Updated ADR-014 implementation checklist with current status:
+  - Marked completed refactoring tasks
+  - Updated progress tracking with completed implementations
+  - Added detailed implementation guidelines for services
+  - Included anti-patterns to avoid in repository usage
+
 ## [0.5.131] - 2025-04-24
 
 ### Added
