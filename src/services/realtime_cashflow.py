@@ -7,7 +7,9 @@ from typing import Any, Dict, List, Optional, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.transaction_history import TransactionHistory
-from src.repositories.cashflow.cashflow_realtime_repository import RealtimeCashflowRepository
+from src.repositories.cashflow.cashflow_realtime_repository import (
+    RealtimeCashflowRepository,
+)
 from src.schemas.cashflow import (
     AccountCorrelation,
     AccountRiskAssessment,

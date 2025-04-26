@@ -37,11 +37,7 @@ from src.schemas.bill_splits import (
 )
 from src.services.base import BaseService
 from src.services.feature_flags import FeatureFlagService
-from src.utils.datetime_utils import (
-    ensure_utc,
-    start_of_day,
-    end_of_day,
-)
+from src.utils.datetime_utils import end_of_day, ensure_utc, start_of_day
 from src.utils.decimal_precision import DecimalPrecision
 
 
@@ -52,14 +48,14 @@ class BillSplitValidationError(Exception):
 class BillSplitService(BaseService):
     """
     Service for handling bill split operations.
-    
+
     This service manages bill split operations including creating, retrieving,
     updating, and analyzing bill splits across accounts. It provides insights
     into split patterns and suggestions for bill distribution.
-    
+
     Follows ADR-014 Repository Layer Compliance by using the BaseService pattern.
     """
-    
+
     def __init__(
         self,
         session: AsyncSession,
@@ -68,7 +64,7 @@ class BillSplitService(BaseService):
     ):
         """
         Initialize bill split service with session and optional feature flag service.
-        
+
         Args:
             session: SQLAlchemy async session
             feature_flag_service: Optional feature flag service for repository proxies
@@ -79,32 +75,32 @@ class BillSplitService(BaseService):
     async def get_bill_splits(self, liability_id: int) -> List[BillSplit]:
         """
         Get all splits for a specific liability.
-        
+
         Args:
             liability_id: ID of the liability to get splits for
-            
+
         Returns:
             List[BillSplit]: List of bill splits for the liability
         """
         # Get repository using BaseService pattern
         bill_split_repo = await self._get_repository(BillSplitRepository)
-        
+
         # Use repository method
         return await bill_split_repo.get_splits_for_bill(liability_id)
 
     async def get_account_splits(self, account_id: int) -> List[BillSplit]:
         """
         Get all splits for a specific account.
-        
+
         Args:
             account_id: ID of the account to get splits for
-            
+
         Returns:
             List[BillSplit]: List of bill splits for the account
         """
         # Get repository using BaseService pattern
         bill_split_repo = await self._get_repository(BillSplitRepository)
-        
+
         # Use repository method
         return await bill_split_repo.get_splits_for_account(account_id)
 
@@ -113,18 +109,18 @@ class BillSplitService(BaseService):
     ) -> BillSplit:
         """
         Create a new bill split (internal use).
-        
+
         Args:
             liability_id: ID of the liability for the split
             account_id: ID of the account for the split
             amount: Amount for the split
-            
+
         Returns:
             BillSplit: Created bill split with relationships
         """
         # Get repository using BaseService pattern
         bill_split_repo = await self._get_repository(BillSplitRepository)
-        
+
         # Prepare split data
         split_data = {
             "liability_id": liability_id,
@@ -133,27 +129,27 @@ class BillSplitService(BaseService):
             "created_at": date.today(),
             "updated_at": date.today(),
         }
-        
+
         # Create the split and return it with relationships
         return await bill_split_repo.create(split_data)
 
     async def create_bill_split(self, split: BillSplitCreate) -> BillSplit:
         """
         Create a new bill split (API use).
-        
+
         Args:
             split: Bill split data for creation
-            
+
         Returns:
             BillSplit: Created bill split
-            
+
         Raises:
             BillSplitValidationError: If validation fails
         """
         # Get repositories using BaseService pattern
         liability_repo = await self._get_repository(LiabilityRepository)
         account_repo = await self._get_repository(AccountRepository)
-        
+
         # Verify liability exists
         liability = await liability_repo.get_with_relationships(split.liability_id)
         if not liability:
@@ -198,21 +194,21 @@ class BillSplitService(BaseService):
     ) -> Optional[BillSplit]:
         """
         Update an existing bill split.
-        
+
         Args:
             split_id: ID of the bill split to update
             split: Bill split data for update
-            
+
         Returns:
             Optional[BillSplit]: Updated bill split or None if not found
-            
+
         Raises:
             BillSplitValidationError: If validation fails
         """
         # Get repositories using BaseService pattern
         bill_split_repo = await self._get_repository(BillSplitRepository)
         account_repo = await self._get_repository(AccountRepository)
-        
+
         # Get the bill split with relationships
         db_split = await bill_split_repo.get_with_relationships(split_id)
         if not db_split:
@@ -244,41 +240,41 @@ class BillSplitService(BaseService):
             # Prepare update data
             update_data = split.model_dump(exclude_unset=True)
             update_data["updated_at"] = date.today()
-            
+
             # Update the bill split
             return await bill_split_repo.update(split_id, update_data)
-        
+
         return db_split
 
     async def delete_bill_split(self, split_id: int) -> bool:
         """
         Delete a specific bill split.
-        
+
         Args:
             split_id: ID of the bill split to delete
-            
+
         Returns:
             bool: True if successful, False if split not found
         """
         # Get repository using BaseService pattern
         bill_split_repo = await self._get_repository(BillSplitRepository)
-        
+
         # Delete the bill split
         return await bill_split_repo.delete(split_id)
 
     async def delete_bill_splits(self, liability_id: int) -> int:
         """
         Delete all splits for a liability.
-        
+
         Args:
             liability_id: ID of the liability to delete splits for
-            
+
         Returns:
             int: Number of splits deleted
         """
         # Get repository using BaseService pattern
         bill_split_repo = await self._get_repository(BillSplitRepository)
-        
+
         # Delete all splits for the liability
         return await bill_split_repo.delete_splits_for_liability(liability_id)
 
@@ -302,7 +298,7 @@ class BillSplitService(BaseService):
             # Get repositories using BaseService pattern
             liability_repo = await self._get_repository(LiabilityRepository)
             account_repo = await self._get_repository(AccountRepository)
-            
+
             # Verify liability exists
             liability = await liability_repo.get(validation.liability_id)
             if not liability:
@@ -317,7 +313,7 @@ class BillSplitService(BaseService):
 
             # Get all accounts involved in splits
             account_ids = [split.account_id for split in validation.splits]
-            
+
             # Get accounts by IDs
             accounts_list = await account_repo.get_accounts_by_ids(account_ids)
             accounts = {acc.id: acc for acc in accounts_list}
@@ -374,13 +370,13 @@ class BillSplitService(BaseService):
     ) -> float:
         """
         Calculate a confidence score based on frequency and recency.
-        
+
         Args:
             occurrences: Number of times this pattern has occurred
             total_patterns: Total number of patterns for normalization
             _first_seen: Date when this pattern was first seen (unused but kept for API compatibility)
             last_seen: Date when this pattern was last seen
-            
+
         Returns:
             float: Confidence score between 0.1 and 0.9
         """
@@ -408,20 +404,20 @@ class BillSplitService(BaseService):
     ) -> HistoricalAnalysis:
         """
         Perform comprehensive historical analysis of bill splits.
-        
+
         Args:
             liability_id: ID of the liability to analyze
-            
+
         Returns:
             HistoricalAnalysis: Comprehensive analysis of historical bill split patterns
-            
+
         Raises:
             BillSplitValidationError: If liability not found
         """
         # Get repositories using BaseService pattern
         liability_repo = await self._get_repository(LiabilityRepository)
         bill_split_repo = await self._get_repository(BillSplitRepository)
-        
+
         # Get the liability with its category
         liability = await liability_repo.get_with_relationships(liability_id)
         if not liability:
@@ -434,7 +430,7 @@ class BillSplitService(BaseService):
             liability.name, liability.category_id
         )
         similar_liability_ids = [liability.id for liability in similar_liabilities]
-        
+
         # Get all splits for similar liabilities
         all_splits = await bill_split_repo.get_splits_for_multiple_liabilities(
             similar_liability_ids
@@ -561,18 +557,18 @@ class BillSplitService(BaseService):
         """
         Analyze historical split patterns for similar liabilities.
         Returns a list of account-to-amount mappings that occur frequently.
-        
+
         Args:
             liability_id: ID of the liability to analyze patterns for
             min_frequency: Minimum frequency threshold for patterns to be included
-            
+
         Returns:
             List[Dict[int, Decimal]]: List of account-to-amount mappings that occur frequently
         """
         # Get repositories using BaseService pattern
         liability_repo = await self._get_repository(LiabilityRepository)
         bill_split_repo = await self._get_repository(BillSplitRepository)
-        
+
         # Get the liability
         liability = await liability_repo.get(liability_id)
         if not liability:
@@ -582,7 +578,7 @@ class BillSplitService(BaseService):
         similar_liabilities = await liability_repo.find_similar_liabilities(
             liability.name, liability.category_id, exclude_id=liability_id
         )
-        
+
         similar_ids = [l.id for l in similar_liabilities]
         if not similar_ids:
             return []
@@ -643,7 +639,7 @@ class BillSplitService(BaseService):
         # Get repositories using BaseService pattern
         liability_repo = await self._get_repository(LiabilityRepository)
         account_repo = await self._get_repository(AccountRepository)
-        
+
         # Get the liability
         liability = await liability_repo.get(liability_id)
         if not liability:
@@ -774,16 +770,16 @@ class BillSplitService(BaseService):
     async def calculate_split_totals(self, liability_id: int) -> Decimal:
         """
         Calculate the total amount of all splits for a given liability.
-        
+
         Args:
             liability_id: ID of the liability to calculate splits for
-            
+
         Returns:
             Decimal: Total amount of all splits
         """
         # Get repository using BaseService pattern
         bill_split_repo = await self._get_repository(BillSplitRepository)
-        
+
         # Use repository method to calculate the total
         return await bill_split_repo.calculate_split_totals(liability_id)
 
@@ -793,16 +789,16 @@ class BillSplitService(BaseService):
         """
         Process a bulk bill split operation with transaction support.
         Validates and processes multiple splits in a single transaction.
-        
+
         Args:
             operation: Bulk operation data with splits and operation type
-            
+
         Returns:
             BulkOperationResult: Result of the bulk operation with success status and details
         """
         # Get repository using BaseService pattern
         bill_split_repo = await self._get_repository(BillSplitRepository)
-        
+
         processed_count = len(operation.splits)
         result = BulkOperationResult(
             success=True,
@@ -889,11 +885,11 @@ class BillSplitService(BaseService):
     ) -> OptimizationMetrics:
         """
         Calculate optimization metrics for a set of splits.
-        
+
         Args:
             splits: List of bill splits to analyze
             accounts: Dictionary of account IDs to Account objects
-            
+
         Returns:
             OptimizationMetrics: Metrics about optimization, credit utilization, and risk
         """
@@ -954,17 +950,17 @@ class BillSplitService(BaseService):
     ) -> ImpactAnalysis:
         """
         Analyze the impact of a split configuration.
-        
+
         Args:
             splits: List of bill splits to analyze
-            
+
         Returns:
             ImpactAnalysis: Analysis of impact on accounts, risk factors, and recommendations
         """
         # Get repositories using BaseService pattern
         account_repo = await self._get_repository(AccountRepository)
         bill_split_repo = await self._get_repository(BillSplitRepository)
-        
+
         # Get all accounts involved
         account_ids = [split.account_id for split in splits]
         accounts_list = await account_repo.get_accounts_by_ids(account_ids)
@@ -977,20 +973,24 @@ class BillSplitService(BaseService):
         short_term_impact = {}
         for split in splits:
             account = accounts[split.account_id]
-            
+
             # Get upcoming bills for next 30 days
             today = date.today()
             in_30_days = today + timedelta(days=30)
-            
+
             # Convert to datetime with proper timezone handling using ADR-011 utility functions
-            start_date = start_of_day(ensure_utc(datetime.combine(today, datetime.min.time())))
-            end_date = end_of_day(ensure_utc(datetime.combine(in_30_days, datetime.min.time())))
-            
+            start_date = start_of_day(
+                ensure_utc(datetime.combine(today, datetime.min.time()))
+            )
+            end_date = end_of_day(
+                ensure_utc(datetime.combine(in_30_days, datetime.min.time()))
+            )
+
             # Get splits in date range
             upcoming_bills_splits = await bill_split_repo.get_splits_in_date_range(
                 account.id, start_date, end_date
             )
-            
+
             # Calculate total
             upcoming_bills = sum(split.amount for split in upcoming_bills_splits)
             short_term_impact[account.id] = -(upcoming_bills + split.amount)
@@ -999,20 +999,24 @@ class BillSplitService(BaseService):
         long_term_impact = {}
         for split in splits:
             account = accounts[split.account_id]
-            
+
             # Get upcoming bills for next 90 days
             today = date.today()
             in_90_days = today + timedelta(days=90)
-            
+
             # Convert to datetime with proper timezone handling using ADR-011 utility functions
-            start_date = start_of_day(ensure_utc(datetime.combine(today, datetime.min.time())))
-            end_date = end_of_day(ensure_utc(datetime.combine(in_90_days, datetime.min.time())))
-            
+            start_date = start_of_day(
+                ensure_utc(datetime.combine(today, datetime.min.time()))
+            )
+            end_date = end_of_day(
+                ensure_utc(datetime.combine(in_90_days, datetime.min.time()))
+            )
+
             # Get splits in date range
             upcoming_bills_splits = await bill_split_repo.get_splits_in_date_range(
                 account.id, start_date, end_date
             )
-            
+
             # Calculate total
             upcoming_bills = sum(split.amount for split in upcoming_bills_splits)
             long_term_impact[account.id] = -(upcoming_bills + split.amount)
@@ -1068,13 +1072,13 @@ class BillSplitService(BaseService):
     ) -> List[OptimizationSuggestion]:
         """
         Generate optimization suggestions for bill splits.
-        
+
         Args:
             liability_id: ID of the liability to generate optimization suggestions for
-            
+
         Returns:
             List[OptimizationSuggestion]: List of optimization suggestions with metrics
-            
+
         Raises:
             BillSplitValidationError: If liability not found
         """
@@ -1082,7 +1086,7 @@ class BillSplitService(BaseService):
         liability_repo = await self._get_repository(LiabilityRepository)
         account_repo = await self._get_repository(AccountRepository)
         bill_split_repo = await self._get_repository(BillSplitRepository)
-        
+
         # Get current splits if they exist
         current_splits = await bill_split_repo.get_splits_for_bill(liability_id)
 
@@ -1283,15 +1287,15 @@ class BillSplitService(BaseService):
         """
         Validate a bulk operation without executing it.
         This is a dry-run that checks all validations but doesn't commit changes.
-        
+
         Args:
             operation: Bulk operation data to validate
-            
+
         Returns:
             BulkOperationResult: Result of the validation with success status and details
         """
         # Set validate_only flag to ensure no changes are committed
         operation.validate_only = True
-        
+
         # Process the operation in validation mode
         return await self.process_bulk_operation(operation)

@@ -96,7 +96,7 @@ class IncomeService(BaseService):
         """
         # Get repositories
         account_repo = await self._get_repository(AccountRepository)
-        
+
         # Verify account exists
         account = await account_repo.get(income_data.account_id)
         if not account:
@@ -131,7 +131,7 @@ class IncomeService(BaseService):
         """
         # Get repositories
         income_repo = await self._get_repository(IncomeRepository)
-        
+
         # Verify income exists
         income = await income_repo.get_with_relationships(income_id)
         if not income:
@@ -193,10 +193,10 @@ class IncomeService(BaseService):
 
         # Calculate initial undeposited amount
         await self._update_undeposited_amount(income)
-        
+
         # Use repository to create the income record
         income = await income_repo.create(income)
-        
+
         # Return the income record with relationships loaded
         return await income_repo.get_with_relationships(income.id)
 
@@ -302,13 +302,15 @@ class IncomeService(BaseService):
                 account.available_balance = DecimalPrecision.round_for_display(
                     new_balance
                 )
-                
+
             # Update the account in the database
-            await account_repo.update(account.id, {"available_balance": account.available_balance})
+            await account_repo.update(
+                account.id, {"available_balance": account.available_balance}
+            )
 
         # Update the income record in the database
         income = await income_repo.update(income_id, update_data)
-        
+
         # Return the updated income record with relationships loaded
         return await income_repo.get_with_relationships(income_id)
 
@@ -323,12 +325,12 @@ class IncomeService(BaseService):
             bool: True if deleted, False if not found
         """
         income_repo = await self._get_repository(IncomeRepository)
-        
+
         # Verify income exists
         income = await income_repo.get(income_id)
         if not income:
             return False
-            
+
         # Delete the income record
         return await income_repo.delete(income_id)
 
@@ -347,7 +349,7 @@ class IncomeService(BaseService):
             Tuple[List[Income], int]: Tuple of (income_records, total_count)
         """
         income_repo = await self._get_repository(IncomeRepository)
-        
+
         # Use repository's filter method to get income records
         return await income_repo.get_income_with_filters(
             skip=skip,
@@ -358,7 +360,7 @@ class IncomeService(BaseService):
             deposited=filters.deposited,
             min_amount=filters.min_amount,
             max_amount=filters.max_amount,
-            account_id=getattr(filters, "account_id", None)
+            account_id=getattr(filters, "account_id", None),
         )
 
     async def get_undeposited(self) -> List[Income]:
@@ -390,7 +392,7 @@ class IncomeService(BaseService):
         """
         # Get repositories
         income_repo = await self._get_repository(IncomeRepository)
-        
+
         # Verify income exists
         income = await income_repo.get_with_relationships(income_id)
         if not income:
@@ -428,7 +430,7 @@ class IncomeService(BaseService):
         # Get repositories
         income_repo = await self._get_repository(IncomeRepository)
         account_repo = await self._get_repository(AccountRepository)
-        
+
         # Get the income entry with relationships
         income = await income_repo.get_with_relationships(income_id)
         if not income:
@@ -452,13 +454,15 @@ class IncomeService(BaseService):
 
         # Round to 2 decimal places for storage
         new_balance_display = DecimalPrecision.round_for_display(new_balance)
-        
+
         # Update the account balance
-        await account_repo.update(account.id, {"available_balance": new_balance_display})
+        await account_repo.update(
+            account.id, {"available_balance": new_balance_display}
+        )
 
         # Mark income as deposited using repository method
         income = await income_repo.mark_as_deposited(income_id)
-        
+
         # Return the updated income record with relationships loaded
         return await income_repo.get_with_relationships(income_id)
 

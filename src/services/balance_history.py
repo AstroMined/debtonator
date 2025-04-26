@@ -7,7 +7,7 @@ This module provides a service for managing balance history records.
 from datetime import datetime, timedelta
 from decimal import Decimal
 from statistics import mean, stdev
-from typing import List, Optional, Tuple, Dict, Any
+from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,12 +24,12 @@ from src.utils.decimal_precision import DecimalPrecision
 class BalanceHistoryService(BaseService):
     """
     Service for managing balance history records.
-    
+
     This service provides methods for recording, retrieving, and analyzing
     balance history data. It follows the repository pattern for data access
     and inherits from BaseService for standardized repository management.
     """
-    
+
     def __init__(
         self,
         session: AsyncSession,
@@ -38,7 +38,7 @@ class BalanceHistoryService(BaseService):
     ):
         """
         Initialize balance history service with database session and optional dependencies.
-        
+
         Args:
             session (AsyncSession): SQLAlchemy async session
             feature_flag_service (Optional[FeatureFlagService]): Feature flag service for feature toggling
@@ -51,36 +51,36 @@ class BalanceHistoryService(BaseService):
     ) -> BalanceHistory:
         """
         Record a new balance history entry.
-        
+
         Args:
             balance_data (BalanceHistoryCreate): Balance history data
             timestamp (Optional[datetime]): Timestamp for the record (defaults to current UTC time)
-            
+
         Returns:
             BalanceHistory: Created balance history record
-            
+
         Raises:
             ValueError: If account does not exist
         """
         # Get repositories
         account_repo = await self._get_repository(AccountRepository)
         balance_repo = await self._get_repository(BalanceHistoryRepository)
-        
+
         # Verify account exists
         account = await account_repo.get(balance_data.account_id)
         if not account:
             raise ValueError(f"Account {balance_data.account_id} not found")
 
-        # Ensure proper timestamp with UTC awareness 
+        # Ensure proper timestamp with UTC awareness
         if timestamp:
             current_time = ensure_utc(timestamp)
         else:
             current_time = utc_now()
-        
+
         # Create database entry (convert to dict and add timestamp)
         entry_data = balance_data.model_dump()
         entry_data["timestamp"] = current_time
-        
+
         # Use repository to create record
         return await balance_repo.create(entry_data)
 
@@ -92,12 +92,12 @@ class BalanceHistoryService(BaseService):
     ) -> List[BalanceHistory]:
         """
         Get balance history for an account within a date range.
-        
+
         Args:
             account_id (int): Account ID
             start_date (Optional[datetime]): Start date (inclusive)
             end_date (Optional[datetime]): End date (inclusive)
-            
+
         Returns:
             List[BalanceHistory]: Balance history records within date range
         """
@@ -107,8 +107,10 @@ class BalanceHistoryService(BaseService):
         if start_date and end_date:
             start_date = ensure_utc(start_date)
             end_date = ensure_utc(end_date)
-            return await balance_repo.get_by_date_range(account_id, start_date, end_date)
-        
+            return await balance_repo.get_by_date_range(
+                account_id, start_date, end_date
+            )
+
         # Otherwise get all history for the account (limited to recent records)
         return await balance_repo.get_by_account(account_id)
 
@@ -117,22 +119,22 @@ class BalanceHistoryService(BaseService):
     ) -> BalanceTrend:
         """
         Calculate balance trends for an account within a date range.
-        
+
         Args:
             account_id (int): Account ID
             start_date (datetime): Start date (inclusive)
             end_date (datetime): End date (inclusive)
-            
+
         Returns:
             BalanceTrend: Calculated balance trend statistics
-            
+
         Raises:
             ValueError: If no balance history found for account
         """
         # Ensure UTC timezone awareness
         start_date = ensure_utc(start_date)
         end_date = ensure_utc(end_date)
-        
+
         # Get balance history from repository
         balance_repo = await self._get_repository(BalanceHistoryRepository)
         history = await balance_repo.get_by_date_range(account_id, start_date, end_date)
@@ -190,28 +192,28 @@ class BalanceHistoryService(BaseService):
     ) -> BalanceHistory:
         """
         Mark a balance history entry as reconciled.
-        
+
         Args:
             balance_history_id (int): Balance history entry ID
             notes (Optional[str]): Optional notes to add to the entry
-            
+
         Returns:
             BalanceHistory: Updated balance history record
-            
+
         Raises:
             ValueError: If balance history entry not found
         """
         balance_repo = await self._get_repository(BalanceHistoryRepository)
-        
+
         # Use repository method to mark as reconciled
         updated = await balance_repo.mark_as_reconciled(balance_history_id, True)
         if not updated:
             raise ValueError(f"Balance history entry {balance_history_id} not found")
-            
+
         # If notes provided, add them
         if notes:
             updated = await balance_repo.add_balance_note(balance_history_id, notes)
-            
+
         return updated
 
     async def get_unreconciled_entries(
@@ -222,110 +224,110 @@ class BalanceHistoryService(BaseService):
     ) -> List[BalanceHistory]:
         """
         Get unreconciled balance history entries for an account.
-        
+
         Args:
             account_id (int): Account ID
             start_date (Optional[datetime]): Start date (inclusive)
             end_date (Optional[datetime]): End date (inclusive)
-            
+
         Returns:
             List[BalanceHistory]: Unreconciled balance history entries
         """
         # Get all entries first
         entries = await self.get_balance_history(account_id, start_date, end_date)
-        
+
         # Filter for unreconciled entries
         return [entry for entry in entries if not entry.is_reconciled]
-        
+
     async def get_min_max_balance(
         self, account_id: int, days: int = 30
     ) -> Tuple[Optional[BalanceHistory], Optional[BalanceHistory]]:
         """
         Get minimum and maximum balance records within specified days.
-        
+
         Args:
             account_id (int): Account ID
             days (int): Number of days to look back
-            
+
         Returns:
             Tuple[Optional[BalanceHistory], Optional[BalanceHistory]]: Min and max balance records
         """
         balance_repo = await self._get_repository(BalanceHistoryRepository)
         return await balance_repo.get_min_max_balance(account_id, days)
-        
+
     async def get_balance_trend_data(
         self, account_id: int, days: int = 30
     ) -> List[Tuple[datetime, Decimal]]:
         """
         Get balance trend data for visualization.
-        
+
         Args:
             account_id (int): Account ID
             days (int): Number of days of history
-            
+
         Returns:
             List[Tuple[datetime, Decimal]]: List of (timestamp, balance) tuples
         """
         balance_repo = await self._get_repository(BalanceHistoryRepository)
         return await balance_repo.get_balance_trend(account_id, days)
-        
+
     async def get_average_balance(
         self, account_id: int, days: int = 30
     ) -> Optional[Decimal]:
         """
         Get average balance over specified period.
-        
+
         Args:
             account_id (int): Account ID
             days (int): Number of days to average
-            
+
         Returns:
             Optional[Decimal]: Average balance or None
         """
         balance_repo = await self._get_repository(BalanceHistoryRepository)
         return await balance_repo.get_average_balance(account_id, days)
-        
+
     async def find_missing_days(
         self, account_id: int, days: int = 30
     ) -> List[datetime.date]:
         """
         Find days with no balance records within a period.
-        
+
         Args:
             account_id (int): Account ID
             days (int): Number of days to check
-            
+
         Returns:
             List[date]: List of dates with no balance records
         """
         balance_repo = await self._get_repository(BalanceHistoryRepository)
         return await balance_repo.get_missing_days(account_id, days)
-        
+
     async def get_history_with_relationships(
         self, balance_id: int
     ) -> Optional[BalanceHistory]:
         """
         Get balance history with account relationship loaded.
-        
+
         Args:
             balance_id (int): Balance history ID
-            
+
         Returns:
             Optional[BalanceHistory]: Balance history with account or None
         """
         balance_repo = await self._get_repository(BalanceHistoryRepository)
         return await balance_repo.get_with_account(balance_id)
-        
+
     async def get_available_credit_trend(
         self, account_id: int, days: int = 30
     ) -> List[Tuple[datetime, Optional[Decimal]]]:
         """
         Get available credit trend over time.
-        
+
         Args:
             account_id (int): Account ID
             days (int): Number of days of history
-            
+
         Returns:
             List[Tuple[datetime, Optional[Decimal]]]: List of (timestamp, available_credit) tuples
         """

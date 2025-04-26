@@ -90,13 +90,13 @@ class RecurringIncomeService(BaseService):
     async def create(self, income_data: RecurringIncomeCreate) -> RecurringIncome:
         """
         Create a new recurring income template.
-        
+
         Args:
             income_data: Data for creating the recurring income
 
         Returns:
             RecurringIncome: Created recurring income object
-            
+
         Raises:
             HTTPException: If the account does not exist
         """
@@ -108,25 +108,25 @@ class RecurringIncomeService(BaseService):
 
         # Use RecurringIncomeRepository to create the recurring income
         recurring_repo = await self._get_repository(RecurringIncomeRepository)
-        
+
         # Get the current time using utility functions for ADR-011 compliance
         current_time = utc_now().replace(tzinfo=None)  # Naive UTC for DB
-        
+
         # Prepare data for creation
         create_data = income_data.dict()
         create_data["created_at"] = current_time
         create_data["updated_at"] = current_time
-        
+
         # Create recurring income
         return await recurring_repo.create(create_data)
 
     async def get(self, recurring_income_id: int) -> Optional[RecurringIncome]:
         """
         Get a recurring income template by ID with all relationships loaded.
-        
+
         Args:
             recurring_income_id: ID of the recurring income to retrieve
-            
+
         Returns:
             Optional[RecurringIncome]: Retrieved recurring income with all relationships or None
         """
@@ -138,48 +138,48 @@ class RecurringIncomeService(BaseService):
     ) -> Optional[RecurringIncome]:
         """
         Update a recurring income template.
-        
+
         Args:
             recurring_income_id: ID of the recurring income to update
             income_data: Data for updating the recurring income
-            
+
         Returns:
             Optional[RecurringIncome]: Updated recurring income or None if not found
         """
         recurring_repo = await self._get_repository(RecurringIncomeRepository)
-        
+
         # Check if recurring income exists
         existing = await recurring_repo.get(recurring_income_id)
         if not existing:
             return None
-        
+
         # Prepare update data
         update_data = income_data.dict(exclude_unset=True)
-        
+
         # Add updated timestamp
         current_time = utc_now().replace(tzinfo=None)  # Naive UTC for DB
         update_data["updated_at"] = current_time
-        
+
         # Update recurring income
         return await recurring_repo.update(recurring_income_id, update_data)
 
     async def delete(self, recurring_income_id: int) -> bool:
         """
         Delete a recurring income template.
-        
+
         Args:
             recurring_income_id: ID of the recurring income to delete
-            
+
         Returns:
             bool: True if deleted successfully, False if not found
         """
         recurring_repo = await self._get_repository(RecurringIncomeRepository)
-        
+
         # Check if recurring income exists
         existing = await recurring_repo.get(recurring_income_id)
         if not existing:
             return False
-            
+
         # Delete recurring income
         await recurring_repo.delete(recurring_income_id)
         return True
@@ -189,113 +189,113 @@ class RecurringIncomeService(BaseService):
     ) -> Tuple[List[RecurringIncome], int]:
         """
         List recurring income templates with pagination.
-        
+
         Args:
             skip: Number of records to skip
             limit: Maximum number of records to return
-            
+
         Returns:
             Tuple[List[RecurringIncome], int]: List of recurring incomes and total count
         """
         recurring_repo = await self._get_repository(RecurringIncomeRepository)
-        
+
         # Get items with pagination
         items = await recurring_repo.get_multi(skip=skip, limit=limit)
-        
+
         # Get total count
         total = await recurring_repo.count()
-        
+
         return items, total
 
     async def generate_income(self, request: GenerateIncomeRequest) -> List[Income]:
         """
         Generate income entries for a specific month/year from recurring templates.
-        
+
         Args:
             request: Request containing month and year for income generation
-            
+
         Returns:
             List[Income]: List of generated income entries
         """
         # Get repositories
         recurring_repo = await self._get_repository(RecurringIncomeRepository)
         income_repo = await self._get_repository(IncomeRepository)
-        
+
         # Get all active recurring income templates
         templates = await recurring_repo.get_active_income()
-        
+
         generated_income = []
         for template in templates:
             # Check if income entry already exists for this month/year
             existing_entries = await income_repo.find_by_recurring_and_date(
-                template.id, 
-                request.month, 
-                request.year
+                template.id, request.month, request.year
             )
-            
+
             # If no existing entry, create a new one
             if not existing_entries:
                 # Create new income entry from template using service method
                 income_entry = self.create_income_from_recurring(
                     template, request.month, request.year
                 )
-                
+
                 # Create income entry using repository
                 created_entry = await income_repo.create(income_entry.__dict__)
                 generated_income.append(created_entry)
 
         return generated_income
-        
+
     async def toggle_active(self, recurring_id: int) -> Optional[RecurringIncome]:
         """
         Toggle the active status of a recurring income record.
-        
+
         Args:
             recurring_id: ID of the recurring income to toggle
-            
+
         Returns:
             Optional[RecurringIncome]: Updated recurring income or None if not found
         """
         recurring_repo = await self._get_repository(RecurringIncomeRepository)
         return await recurring_repo.toggle_active(recurring_id)
-        
+
     async def toggle_auto_deposit(self, recurring_id: int) -> Optional[RecurringIncome]:
         """
         Toggle the auto_deposit status of a recurring income record.
-        
+
         Args:
             recurring_id: ID of the recurring income to toggle
-            
+
         Returns:
             Optional[RecurringIncome]: Updated recurring income or None if not found
         """
         recurring_repo = await self._get_repository(RecurringIncomeRepository)
         return await recurring_repo.toggle_auto_deposit(recurring_id)
-        
-    async def update_day_of_month(self, recurring_id: int, day: int) -> Optional[RecurringIncome]:
+
+    async def update_day_of_month(
+        self, recurring_id: int, day: int
+    ) -> Optional[RecurringIncome]:
         """
         Update the day_of_month for a recurring income record.
-        
+
         Args:
             recurring_id: ID of the recurring income to update
             day: New day of the month (1-31)
-            
+
         Returns:
             Optional[RecurringIncome]: Updated recurring income or None if not found
-            
+
         Raises:
             ValueError: If day is not between 1 and 31
         """
         recurring_repo = await self._get_repository(RecurringIncomeRepository)
         return await recurring_repo.update_day_of_month(recurring_id, day)
-        
+
     async def get_upcoming_deposits(self, days: int = 30) -> List[Dict[str, Any]]:
         """
         Get estimated upcoming deposits based on recurring income records.
-        
+
         Args:
             days: Number of days to look ahead (default: 30)
-            
+
         Returns:
             List[Dict[str, Any]]: List of projected income entries
         """

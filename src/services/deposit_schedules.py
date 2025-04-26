@@ -12,20 +12,20 @@ from src.services.base import BaseService
 from src.services.feature_flags import FeatureFlagService
 from src.utils.datetime_utils import (
     ensure_utc,
-    naive_start_of_day,
     naive_end_of_day,
-    utc_now
+    naive_start_of_day,
+    utc_now,
 )
 
 
 class DepositScheduleService(BaseService):
     """
     Service for deposit schedule operations.
-    
-    This service handles deposit schedule management including creating, updating, 
+
+    This service handles deposit schedule management including creating, updating,
     and retrieving deposit schedules with proper validation.
     """
-    
+
     def __init__(
         self,
         session: AsyncSession,
@@ -34,7 +34,7 @@ class DepositScheduleService(BaseService):
     ):
         """
         Initialize deposit schedule service with required dependencies.
-        
+
         Args:
             session (AsyncSession): SQLAlchemy async session
             feature_flag_service (Optional[FeatureFlagService]): Feature flag service
@@ -47,18 +47,18 @@ class DepositScheduleService(BaseService):
     ) -> Tuple[bool, Optional[str], Optional[DepositSchedule]]:
         """
         Create a new deposit schedule.
-        
+
         Args:
             schedule (DepositScheduleCreate): Deposit schedule data
-            
+
         Returns:
-            Tuple[bool, Optional[str], Optional[DepositSchedule]]: 
+            Tuple[bool, Optional[str], Optional[DepositSchedule]]:
                 Success flag, error message (if any), and created schedule
         """
         try:
             # Get repositories
             deposit_repo = await self._get_repository(DepositScheduleRepository)
-            
+
             # Verify income exists (repository will validate relationships)
             # For simplicity, we'll use a direct get operation for these checks
             income = await self._session.get(Income, schedule.income_id)
@@ -77,7 +77,7 @@ class DepositScheduleService(BaseService):
             # Create deposit schedule using repository
             schedule_data = schedule.model_dump()
             db_schedule = await deposit_repo.create(schedule_data)
-            
+
             return True, None, db_schedule
         except Exception as e:
             return False, str(e), None
@@ -85,10 +85,10 @@ class DepositScheduleService(BaseService):
     async def get_deposit_schedule(self, schedule_id: int) -> Optional[DepositSchedule]:
         """
         Get a deposit schedule by ID.
-        
+
         Args:
             schedule_id (int): Deposit schedule ID
-            
+
         Returns:
             Optional[DepositSchedule]: Deposit schedule or None if not found
         """
@@ -100,19 +100,19 @@ class DepositScheduleService(BaseService):
     ) -> Tuple[bool, Optional[str], Optional[DepositSchedule]]:
         """
         Update a deposit schedule.
-        
+
         Args:
             schedule_id (int): Deposit schedule ID
             schedule_update (DepositScheduleUpdate): Updated deposit schedule data
-            
+
         Returns:
-            Tuple[bool, Optional[str], Optional[DepositSchedule]]: 
+            Tuple[bool, Optional[str], Optional[DepositSchedule]]:
                 Success flag, error message (if any), and updated schedule
         """
         try:
             # Get repositories
             deposit_repo = await self._get_repository(DepositScheduleRepository)
-            
+
             # Check if schedule exists
             db_schedule = await deposit_repo.get(schedule_id)
             if not db_schedule:
@@ -127,7 +127,7 @@ class DepositScheduleService(BaseService):
             # Update through repository
             update_data = schedule_update.model_dump(exclude_unset=True)
             updated_schedule = await deposit_repo.update(schedule_id, update_data)
-            
+
             return True, None, updated_schedule
         except Exception as e:
             return False, str(e), None
@@ -137,17 +137,17 @@ class DepositScheduleService(BaseService):
     ) -> Tuple[bool, Optional[str]]:
         """
         Delete a deposit schedule.
-        
+
         Args:
             schedule_id (int): Deposit schedule ID
-            
+
         Returns:
             Tuple[bool, Optional[str]]: Success flag and error message (if any)
         """
         try:
             # Get repository
             deposit_repo = await self._get_repository(DepositScheduleRepository)
-            
+
             # Check if schedule exists
             db_schedule = await deposit_repo.get(schedule_id)
             if not db_schedule:
@@ -155,7 +155,7 @@ class DepositScheduleService(BaseService):
 
             # Delete through repository
             result = await deposit_repo.delete(schedule_id)
-            
+
             # Return success based on deletion result
             if result:
                 return True, None
@@ -174,33 +174,33 @@ class DepositScheduleService(BaseService):
     ) -> List[DepositSchedule]:
         """
         List deposit schedules with optional filters.
-        
+
         Args:
             income_id (Optional[int]): Filter by income ID
             account_id (Optional[int]): Filter by account ID
             status (Optional[str]): Filter by status
             from_date (Optional[date]): Start date for date range filter
             to_date (Optional[date]): End date for date range filter
-            
+
         Returns:
             List[DepositSchedule]: List of deposit schedules matching filters
         """
         # Get repository
         deposit_repo = await self._get_repository(DepositScheduleRepository)
-        
+
         # Setup date range if provided
         date_range = None
         if from_date is not None and to_date is not None:
             # Convert dates to datetime if needed
             from_datetime = datetime.combine(from_date, datetime.min.time())
             to_datetime = datetime.combine(to_date, datetime.max.time())
-            
+
             # Ensure UTC timezone awareness
             from_datetime = ensure_utc(from_datetime)
             to_datetime = ensure_utc(to_datetime)
-            
+
             date_range = (from_datetime, to_datetime)
-        
+
         # Handle different filter combinations
         if account_id is not None:
             # If filtering by account
@@ -222,7 +222,7 @@ class DepositScheduleService(BaseService):
         else:
             # Get all schedules
             schedules = await deposit_repo.get_all()
-        
+
         return schedules
 
     async def get_pending_deposits(
@@ -230,15 +230,15 @@ class DepositScheduleService(BaseService):
     ) -> List[DepositSchedule]:
         """
         Get all pending deposits, optionally filtered by account.
-        
+
         Args:
             account_id (Optional[int]): Filter by account ID
-            
+
         Returns:
             List[DepositSchedule]: List of pending deposit schedules
         """
         # Get repository
         deposit_repo = await self._get_repository(DepositScheduleRepository)
-        
+
         # Get upcoming schedules for the next 30 days
         return await deposit_repo.get_upcoming_schedules(days=30, account_id=account_id)

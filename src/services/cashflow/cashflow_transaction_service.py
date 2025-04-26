@@ -5,10 +5,9 @@ from zoneinfo import ZoneInfo
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
-from src.services.feature_flags import FeatureFlagService
-
 from src.services.cashflow.cashflow_base import CashflowBaseService
 from src.services.cashflow.cashflow_types import DateType
+from src.services.feature_flags import FeatureFlagService
 
 
 class TransactionService(CashflowBaseService):

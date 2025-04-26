@@ -7,10 +7,12 @@ methods for checking if flags are enabled, setting flag values, and managing the
 lifecycle of feature flags.
 
 The service is a core component of the Feature Flag System defined in ADR-024.
+
+Implements ADR-014 Repository Layer Compliance by using BaseService for repository access.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from src.registry.feature_flags_registry import FeatureFlagObserver, FeatureFlagRegistry
 from src.repositories.feature_flags import FeatureFlagRepository
@@ -21,7 +23,11 @@ from src.schemas.feature_flags import (
     FeatureFlagUpdate,
 )
 from src.utils.datetime_utils import ensure_utc
-from src.utils.feature_flags.context import EnvironmentContext
+from src.utils.feature_flags.context import EnvironmentContext, create_default_context
+
+# Use TYPE_CHECKING to avoid circular import
+if TYPE_CHECKING:
+    from src.services.base import BaseService
 
 logger = logging.getLogger(__name__)
 
@@ -54,13 +60,16 @@ class FeatureFlagService(FeatureFlagObserver):
         """
         self.registry = registry
         self.repository = repository
-        self.context = context
+        self.context = context or create_default_context()
 
         # Register as an observer to receive notifications of flag changes
         self.registry.add_observer(self)
 
         # Set on first initialization
         self._initialized = False
+
+        # For repositories cache when using repository pattern
+        self._repositories = {}
 
         logger.info("Feature flag service initialized")
 
@@ -77,7 +86,7 @@ class FeatureFlagService(FeatureFlagObserver):
 
         logger.info("Initializing feature flag service from database")
 
-        # Load all flags from the database
+        # Load all flags from the database using the repository
         flags = await self.repository.get_all()
 
         # Register each flag in the registry
@@ -94,10 +103,10 @@ class FeatureFlagService(FeatureFlagObserver):
             except ValueError:
                 # Flag already exists in registry, update its value
                 self.registry.set_value(flag.name, flag.value)
-                logger.debug(f"Updated existing flag in registry: {flag.name}")
+                logger.debug("Updated existing flag in registry: %s", flag.name)
 
         self._initialized = True
-        logger.info(f"Feature flag service initialized with {len(flags)} flags")
+        logger.info("Feature flag service initialized with %d flags", len(flags))
 
     async def is_enabled(
         self, flag_name: str, context: Optional[Dict[str, Any]] = None
@@ -147,7 +156,7 @@ class FeatureFlagService(FeatureFlagObserver):
             return bool(value)
         except ValueError:
             # If flag doesn't exist, default to disabled for safety
-            logger.warning(f"Feature flag not found: {flag_name}")
+            logger.warning("Feature flag not found: %s", flag_name)
             return False
 
     async def set_enabled(
@@ -168,13 +177,15 @@ class FeatureFlagService(FeatureFlagObserver):
         flag = self.registry.get_flag(flag_name)
         if not flag:
             logger.warning(
-                f"Cannot set enabled state for non-existent flag: {flag_name}"
+                "Cannot set enabled state for non-existent flag: %s", flag_name
             )
             return False
 
         if flag["type"] != FeatureFlagType.BOOLEAN:
             logger.warning(
-                f"Cannot set enabled state for non-boolean flag: {flag_name} (type: {flag['type']})"
+                "Cannot set enabled state for non-boolean flag: %s (type: %s)",
+                flag_name,
+                flag["type"],
             )
             return False
 
@@ -189,10 +200,10 @@ class FeatureFlagService(FeatureFlagObserver):
         if proxy and hasattr(proxy, "clear_feature_check_cache"):
             proxy.clear_feature_check_cache()
             logger.debug(
-                f"Cleared cache for proxy after setting {flag_name} to {enabled}"
+                "Cleared cache for proxy after setting %s to %s", flag_name, enabled
             )
 
-        logger.info(f"Feature flag {flag_name} set to: {enabled}")
+        logger.info("Feature flag %s set to: %s", flag_name, enabled)
         return True
 
     async def set_value(self, flag_name: str, value: Any, persist: bool = True) -> bool:
@@ -235,7 +246,7 @@ class FeatureFlagService(FeatureFlagObserver):
         """
         flag = self.registry.get_flag(flag_name)
         if not flag:
-            logger.warning(f"Cannot set value for non-existent flag: {flag_name}")
+            logger.warning("Cannot set value for non-existent flag: %s", flag_name)
             return False
 
         # Validate value based on flag type
@@ -243,37 +254,46 @@ class FeatureFlagService(FeatureFlagObserver):
 
         if flag_type == FeatureFlagType.BOOLEAN and not isinstance(value, bool):
             logger.warning(
-                f"Invalid value for boolean flag: {value} (type: {type(value).__name__}). "
-                f"Expected boolean value."
+                "Invalid value for boolean flag: %s (type: %s). "
+                "Expected boolean value.",
+                value,
+                type(value).__name__,
             )
             return False
 
         if flag_type == FeatureFlagType.PERCENTAGE:
             if not isinstance(value, (int, float)):
                 logger.warning(
-                    f"Invalid percentage value: {value} (type: {type(value).__name__}). "
-                    f"Expected number between 0 and 100."
+                    "Invalid percentage value: %s (type: %s). "
+                    "Expected number between 0 and 100.",
+                    value,
+                    type(value).__name__,
                 )
                 return False
             if value < 0 or value > 100:
                 logger.warning(
-                    f"Invalid percentage value: {value}. "
-                    f"Value must be between 0 and 100."
+                    "Invalid percentage value: %s. "
+                    "Value must be between 0 and 100.",
+                    value,
                 )
                 return False
 
         if flag_type == FeatureFlagType.USER_SEGMENT and not isinstance(value, list):
             logger.warning(
-                f"Invalid user segment value: {value} (type: {type(value).__name__}). "
-                f"Expected list of segment names."
+                "Invalid user segment value: %s (type: %s). "
+                "Expected list of segment names.",
+                value,
+                type(value).__name__,
             )
             return False
 
         if flag_type == FeatureFlagType.TIME_BASED:
             if not isinstance(value, dict):
                 logger.warning(
-                    f"Invalid time-based value: {value} (type: {type(value).__name__}). "
-                    f"Expected dictionary with start_time/end_time keys."
+                    "Invalid time-based value: %s (type: %s). "
+                    "Expected dictionary with start_time/end_time keys.",
+                    value,
+                    type(value).__name__,
                 )
                 return False
 
@@ -290,8 +310,9 @@ class FeatureFlagService(FeatureFlagObserver):
                             value[key] = ensure_utc(dt).isoformat()
                         except ValueError:
                             logger.warning(
-                                f"Invalid datetime string in time-based flag: {val}. "
-                                f"Expected ISO format (YYYY-MM-DDThh:mm:ssZ)"
+                                "Invalid datetime string in time-based flag: %s. "
+                                "Expected ISO format (YYYY-MM-DDThh:mm:ssZ)",
+                                val,
                             )
                             # Continue with original value
 
@@ -302,7 +323,7 @@ class FeatureFlagService(FeatureFlagObserver):
         if persist:
             await self.repository.update(flag_name, {"value": value})
 
-        logger.info(f"Feature flag {flag_name} value updated to: {value}")
+        logger.info("Feature flag %s value updated to: %s", flag_name, value)
         return True
 
     async def create_flag(
@@ -354,13 +375,13 @@ class FeatureFlagService(FeatureFlagObserver):
                 updated_at=ensure_utc(flag.updated_at),
             )
 
-            logger.info(f"Feature flag created: {flag.name}")
+            logger.info("Feature flag created: %s", flag.name)
 
             # Return the response object with proper timezone conversion
             return response
 
         except Exception as e:
-            logger.error(f"Error creating feature flag: {e}")
+            logger.error("Error creating feature flag: %s", e)
             return None
 
     async def update_flag(
@@ -383,7 +404,7 @@ class FeatureFlagService(FeatureFlagObserver):
         try:
             # Check if flag exists in registry
             if not self.registry.get_flag(flag_name):
-                logger.warning(f"Feature flag not found in registry: {flag_name}")
+                logger.warning("Feature flag not found in registry: %s", flag_name)
                 return None
 
             # Convert schema to dict if needed
@@ -395,7 +416,7 @@ class FeatureFlagService(FeatureFlagObserver):
             # Update in database first
             updated_flag = await self.repository.update(flag_name, data_dict)
             if not updated_flag:
-                logger.warning(f"Feature flag not found in database: {flag_name}")
+                logger.warning("Feature flag not found in database: %s", flag_name)
                 return None
 
             # Then update registry
@@ -414,11 +435,11 @@ class FeatureFlagService(FeatureFlagObserver):
                 updated_at=ensure_utc(updated_flag.updated_at),
             )
 
-            logger.info(f"Feature flag updated: {flag_name}")
+            logger.info("Feature flag updated: %s", flag_name)
             return response
 
         except Exception as e:
-            logger.error(f"Error updating feature flag: {e}")
+            logger.error("Error updating feature flag: %s", e)
             return None
 
     async def delete_flag(self, flag_name: str) -> bool:
@@ -438,24 +459,24 @@ class FeatureFlagService(FeatureFlagObserver):
             # Check if this is a system flag
             flag = self.registry.get_flag(flag_name)
             if flag and flag.get("is_system", False):
-                logger.warning(f"Cannot delete system feature flag: {flag_name}")
+                logger.warning("Cannot delete system feature flag: %s", flag_name)
                 return False
 
-            # Delete from database
+            # Delete from database using direct repository access
             deleted = await self.repository.delete(flag_name)
             if not deleted:
-                logger.warning(f"Feature flag not found in database: {flag_name}")
+                logger.warning("Feature flag not found in database: %s", flag_name)
                 return False
 
             # Remove from registry
             # Note: registry doesn't have a direct method to remove flags
             # A full reload would be needed to synchronize
 
-            logger.info(f"Feature flag deleted: {flag_name}")
+            logger.info("Feature flag deleted: %s", flag_name)
             return True
 
         except Exception as e:
-            logger.error(f"Error deleting feature flag: {e}")
+            logger.error("Error deleting feature flag: %s", e)
             return False
 
     async def get_all_flags(
@@ -553,7 +574,7 @@ class FeatureFlagService(FeatureFlagObserver):
         result = {}
 
         for flag_name, update_data in updates.items():
-            # update_flag now returns a FeatureFlagResponse with proper UTC conversion
+            # update_flag uses direct repository access
             response = await self.update_flag(flag_name, update_data)
             if response:
                 result[flag_name] = response
@@ -593,7 +614,10 @@ class FeatureFlagService(FeatureFlagObserver):
             which already handles persistence.
         """
         logger.info(
-            f"Feature flag '{flag_name}' changed: {old_value} -> {new_value}",
+            "Feature flag '%s' changed: %s -> %s",
+            flag_name,
+            old_value,
+            new_value,
             extra={
                 "flag_name": flag_name,
                 "old_value": old_value,

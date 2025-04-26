@@ -36,12 +36,12 @@ from src.utils.datetime_utils import ensure_utc, utc_now
 class IncomeTrendsService(BaseService):
     """
     Service for analyzing income trends based on historical data.
-    
+
     This service uses the IncomeTrendsRepository for data access operations,
     following ADR-014 Repository Layer Compliance. It processes income data
     to identify patterns, seasonality, and provide statistical analysis.
     """
-    
+
     def __init__(
         self,
         session: AsyncSession,
@@ -49,7 +49,7 @@ class IncomeTrendsService(BaseService):
         config_provider: Optional[Any] = None,
     ):
         """Initialize the service with session and optional services.
-        
+
         Args:
             session: SQLAlchemy async session
             feature_flag_service: Optional feature flag service
@@ -61,27 +61,27 @@ class IncomeTrendsService(BaseService):
         self, request: IncomeTrendsRequest
     ) -> IncomeTrendsAnalysis:
         """Analyze income trends based on historical data.
-        
+
         This method retrieves income records matching the request criteria
         and analyzes them for patterns, seasonality, and statistical metrics.
-        
+
         Args:
             request: Parameters for the trends analysis
-            
+
         Returns:
             Comprehensive analysis of income trends
-            
+
         Raises:
             ValueError: If no income records are found for the specified criteria
         """
         # Get repository
         repo = await self._get_repository(IncomeTrendsRepository)
-        
+
         # Get income data within date range using repository
         income_records = await repo.get_income_records(
             start_date=request.start_date,
             end_date=request.end_date,
-            source=request.source
+            source=request.source,
         )
 
         if not income_records:
@@ -114,7 +114,7 @@ class IncomeTrendsService(BaseService):
 
         # Get min and max dates from records using repository
         min_date, max_date = await repo.get_min_max_dates(income_records)
-        
+
         # Return complete analysis
         return IncomeTrendsAnalysis(
             patterns=patterns,
@@ -130,11 +130,11 @@ class IncomeTrendsService(BaseService):
         self, source: str, records: List[Income]
     ) -> IncomePattern:
         """Analyze pattern for a specific income source.
-        
+
         Args:
             source: Income source name
             records: List of income records for this source
-            
+
         Returns:
             Detected pattern for this income source
         """
@@ -165,7 +165,9 @@ class IncomeTrendsService(BaseService):
         # Predict next occurrence if pattern is reliable
         next_predicted = None
         if confidence > Decimal("0.7"):
-            next_predicted = ensure_utc(max(dates) + timedelta(days=round(float(avg_interval))))
+            next_predicted = ensure_utc(
+                max(dates) + timedelta(days=round(float(avg_interval)))
+            )
 
         return IncomePattern(
             source=source,
@@ -180,11 +182,11 @@ class IncomeTrendsService(BaseService):
         self, avg_interval: Decimal, interval_std: Decimal
     ) -> Tuple[str, Decimal]:
         """Determine frequency pattern and confidence score.
-        
+
         Args:
             avg_interval: Average interval between income dates
             interval_std: Standard deviation of intervals
-            
+
         Returns:
             Tuple of (frequency_pattern, confidence_score)
         """
@@ -217,11 +219,11 @@ class IncomeTrendsService(BaseService):
         self, source: str, records: List[Income]
     ) -> SourceStatistics:
         """Calculate statistical metrics for an income source.
-        
+
         Args:
             source: Income source name
             records: List of income records for this source
-            
+
         Returns:
             Statistical metrics for this income source
         """
@@ -242,10 +244,10 @@ class IncomeTrendsService(BaseService):
 
     def _calculate_reliability_score(self, records: List[Income]) -> Decimal:
         """Calculate reliability score based on consistency of amounts and timing.
-        
+
         Args:
             records: List of income records to analyze
-            
+
         Returns:
             Reliability score between 0 and 1
         """
@@ -278,11 +280,11 @@ class IncomeTrendsService(BaseService):
         self, records: List[Income], repo: IncomeTrendsRepository
     ) -> Optional[SeasonalityMetrics]:
         """Analyze seasonal patterns in income data.
-        
+
         Args:
             records: List of income records to analyze
             repo: IncomeTrendsRepository for data access operations
-            
+
         Returns:
             Seasonality metrics if sufficient data exists, None otherwise
         """
@@ -291,7 +293,7 @@ class IncomeTrendsService(BaseService):
 
         # Group by month using repository method
         monthly_records = await repo.get_records_by_month(records)
-        
+
         # Calculate monthly averages with Decimal
         monthly_averages = {}
         for month, month_records in monthly_records.items():
@@ -338,11 +340,11 @@ class IncomeTrendsService(BaseService):
         self, patterns: List[IncomePattern], statistics: List[SourceStatistics]
     ) -> float:
         """Calculate overall predictability score.
-        
+
         Args:
             patterns: List of detected income patterns
             statistics: List of source statistics
-            
+
         Returns:
             Predictability score between 0 and 1
         """

@@ -118,13 +118,13 @@ class PaymentService(BaseService):
         """
         # Get payment repository
         payment_repo = await self._get_repository(PaymentRepository)
-        
+
         # Use paginated query with sources included
         return await payment_repo.get_multi(
-            skip=skip, 
-            limit=limit, 
+            skip=skip,
+            limit=limit,
             order_by=[Payment.payment_date.desc()],
-            options=[{"include_sources": True}]
+            options=[{"include_sources": True}],
         )
 
     async def get_payment(self, payment_id: int) -> Optional[Payment]:
@@ -139,7 +139,7 @@ class PaymentService(BaseService):
         """
         # Get payment repository
         payment_repo = await self._get_repository(PaymentRepository)
-        
+
         # Use specialized get_with_sources method
         return await payment_repo.get_with_sources(payment_id)
 
@@ -172,16 +172,20 @@ class PaymentService(BaseService):
 
         # Get payment repository
         payment_repo = await self._get_repository(PaymentRepository)
-        
+
         # Prepare payment data
         payment_data = payment_create.model_dump()
-        
+
         # Round amount for internal storage
-        payment_data["amount"] = DecimalPrecision.round_for_calculation(payment_data["amount"])
-        
+        payment_data["amount"] = DecimalPrecision.round_for_calculation(
+            payment_data["amount"]
+        )
+
         # Round source amounts
         for source in payment_data["sources"]:
-            source["amount"] = DecimalPrecision.round_for_calculation(Decimal(str(source["amount"])))
+            source["amount"] = DecimalPrecision.round_for_calculation(
+                Decimal(str(source["amount"]))
+            )
 
         # Create payment with sources in one operation through repository
         return await payment_repo.create(payment_data)
@@ -204,7 +208,7 @@ class PaymentService(BaseService):
         """
         # Get payment repository
         payment_repo = await self._get_repository(PaymentRepository)
-        
+
         # Get existing payment
         db_payment = await payment_repo.get_with_sources(payment_id)
         if not db_payment:
@@ -212,7 +216,7 @@ class PaymentService(BaseService):
 
         # Prepare update data
         update_data = payment_update.model_dump(exclude_unset=True)
-        
+
         # If sources are being updated, validate account availability
         if "sources" in update_data:
             # Validate account availability
@@ -221,14 +225,16 @@ class PaymentService(BaseService):
             )
             if not valid:
                 raise ValueError(error)
-            
+
             # Round source amounts for consistency
             for source in update_data["sources"]:
-                source["amount"] = DecimalPrecision.round_for_calculation(Decimal(str(source["amount"])))
+                source["amount"] = DecimalPrecision.round_for_calculation(
+                    Decimal(str(source["amount"]))
+                )
 
         # Perform update through repository
         await payment_repo.update(payment_id, update_data)
-        
+
         # Return payment with sources loaded
         return await payment_repo.get_with_sources(payment_id)
 
@@ -244,12 +250,12 @@ class PaymentService(BaseService):
         """
         # Get payment repository
         payment_repo = await self._get_repository(PaymentRepository)
-        
+
         # Get existing payment
         db_payment = await payment_repo.get(payment_id)
         if not db_payment:
             return False
-        
+
         # Delete through repository
         await payment_repo.remove(payment_id)
         return True
@@ -269,20 +275,18 @@ class PaymentService(BaseService):
         """
         # Get payment repository
         payment_repo = await self._get_repository(PaymentRepository)
-        
+
         # Convert dates to datetime for repository method
         start_datetime = datetime.combine(start_date, datetime.min.time())
         end_datetime = datetime.combine(end_date, datetime.max.time())
-        
+
         # Ensure UTC timezone awareness
         start_datetime = ensure_utc(start_datetime)
         end_datetime = ensure_utc(end_datetime)
-        
+
         # Use repository's specialized method
         return await payment_repo.get_payments_in_date_range(
-            start_datetime, 
-            end_datetime,
-            include_sources=True
+            start_datetime, end_datetime, include_sources=True
         )
 
     async def get_payments_for_liability(self, liability_id: int) -> List[Payment]:
@@ -297,11 +301,10 @@ class PaymentService(BaseService):
         """
         # Get payment repository
         payment_repo = await self._get_repository(PaymentRepository)
-        
+
         # Use repository's specialized method
         return await payment_repo.get_payments_for_bill(
-            liability_id,
-            include_sources=True
+            liability_id, include_sources=True
         )
 
     async def get_payments_for_account(self, account_id: int) -> List[Payment]:
@@ -316,69 +319,59 @@ class PaymentService(BaseService):
         """
         # Get payment repository
         payment_repo = await self._get_repository(PaymentRepository)
-        
+
         # Use repository's specialized method
         return await payment_repo.get_payments_for_account(
-            account_id,
-            include_sources=True
+            account_id, include_sources=True
         )
-        
+
     async def get_total_amount_in_range(
-        self, 
-        start_date: date, 
-        end_date: date,
-        category: Optional[str] = None
+        self, start_date: date, end_date: date, category: Optional[str] = None
     ) -> Decimal:
         """
         Get total payment amount in a date range, optionally filtered by category.
-        
+
         Args:
             start_date: Start date (inclusive)
             end_date: End date (inclusive)
             category: Optional category filter
-            
+
         Returns:
             Total payment amount as Decimal
         """
         # Get payment repository
         payment_repo = await self._get_repository(PaymentRepository)
-        
+
         # Convert dates to datetime for repository method
         start_datetime = datetime.combine(start_date, datetime.min.time())
         end_datetime = datetime.combine(end_date, datetime.max.time())
-        
+
         # Ensure UTC timezone awareness
         start_datetime = ensure_utc(start_datetime)
         end_datetime = ensure_utc(end_datetime)
-        
+
         # Use repository's specialized method
         return await payment_repo.get_total_amount_in_range(
-            start_datetime,
-            end_datetime,
-            category
+            start_datetime, end_datetime, category
         )
-        
+
     async def get_recent_payments(
-        self,
-        days: int = 30,
-        limit: int = 20
+        self, days: int = 30, limit: int = 20
     ) -> List[Payment]:
         """
         Get recent payments from the last specified number of days.
-        
+
         Args:
             days: Number of days to look back
             limit: Maximum number of payments to return
-            
+
         Returns:
             List of recent Payment objects with sources loaded
         """
         # Get payment repository
         payment_repo = await self._get_repository(PaymentRepository)
-        
+
         # Use repository's specialized method
         return await payment_repo.get_recent_payments(
-            days=days,
-            limit=limit,
-            include_sources=True
+            days=days, limit=limit, include_sources=True
         )

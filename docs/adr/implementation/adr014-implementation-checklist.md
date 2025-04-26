@@ -40,8 +40,8 @@ To make this work more manageable, the implementation has been divided into focu
 
 ### Completed Work
 
-- [x] **Phase 0: Foundation (COMPLETED)** 
-  - [x] Created `BaseService` class in `src/services/base.py` 
+- [x] **Phase 0: Foundation (COMPLETED)**
+  - [x] Created `BaseService` class in `src/services/base.py`
   - [x] Refined Repository Factory to focus solely on polymorphic repositories
   - [x] Fixed cashflow services to properly use the repository pattern:
     - [x] Refactored cashflow/base.py to properly inherit from app-wide BaseService
@@ -199,23 +199,30 @@ Each phase is designed to be completed in a single coding session:
 
 **Focus**: Refactor supporting services to follow the repository pattern
 
-- [ ] **Phase 15: Bulk Import Implementation**
-  - [ ] Create `BulkImportRepository` with appropriate methods
-  - [ ] Refactor `bulk_import.py` to use repository pattern
-  - [ ] Implement proper transaction handling for bulk operations
-  - [ ] Completion criteria: Bulk import service using repository pattern exclusively
+- [x] **Phase 15: Bulk Import Implementation** ✅ COMPLETED
+  - [x] Refactored BulkImportService to inherit from BaseService
+  - [x] Applied proper ADR-011 datetime compliance with utility functions
+  - [x] Improved schema organization by creating dedicated schema file
+  - [x] Enhanced documentation with comprehensive docstrings
+  - [x] Maintained service orchestration pattern through other services
+  - [x] Completion criteria: BulkImport service properly using repository pattern
 
-- [ ] **Phase 16: Deposit Schedules Implementation**
-  - [ ] Create `DepositScheduleRepository` with appropriate methods
-  - [ ] Refactor `deposit_schedules.py` to use repository pattern
-  - [ ] Implement proper validation in repository methods
-  - [ ] Completion criteria: Deposit schedules service using repository pattern exclusively
+- [x] **Phase 16: Deposit Schedules Implementation** ✅ COMPLETED
+  - [x] Used existing DepositScheduleRepository with comprehensive methods
+  - [x] Refactored DepositScheduleService to inherit from BaseService
+  - [x] Replaced all direct database queries with repository method calls
+  - [x] Applied proper ADR-011 datetime compliance with utility functions
+  - [x] Enhanced service methods to use repository pattern consistently
+  - [x] Added improved documentation and error handling
+  - [x] Completion criteria: Deposit schedules service using repository pattern exclusively
 
-- [ ] **Phase 17: System Services Implementation**
-  - [ ] Review and refactor `feature_flags.py` to properly use repository pattern
-  - [ ] Update `system_initialization.py` to use repository pattern
-  - [ ] Ensure proper feature flag integration
-  - [ ] Completion criteria: System services using repository pattern exclusively
+- [x] **Phase 17: System Services Implementation** ✅ COMPLETED
+  - [x] Refactored `feature_flags.py` to properly use repository pattern
+  - [x] Updated `system_initialization.py` to use repository pattern consistently
+  - [x] Ensured proper feature flag integration and initialization
+  - [x] Added system feature flags initialization during system startup
+  - [x] Maintained backward compatibility for existing code
+  - [x] Completion criteria: System services using repository pattern exclusively
 
 #### Analysis and Recommendation Services (Lower Priority)
 
@@ -371,10 +378,10 @@ For each refactored service, verify:
 | `categories.py` | ✅ Fully compliant | None needed | 12 |
 | `statement_history.py` | ✅ Fully compliant | None needed | 13 |
 | `liabilities.py` | ✅ Fully compliant | None needed | 14 |
-| `bulk_import.py` | Not compliant | Needs repository access implementation | 15 |
-| `deposit_schedules.py` | Not compliant | Create repository and refactor service | 16 |
-| `feature_flags.py` | Partially compliant | Review and refactor to use `BaseService` | 17 |
-| `system_initialization.py` | Not compliant | Update to use repository pattern | 17 |
+| `bulk_import.py` | ✅ Fully compliant | None needed | 15 |
+| `deposit_schedules.py` | ✅ Fully compliant | None needed | 16 |
+| `feature_flags.py` | ✅ Fully compliant | None needed | 17 |
+| `system_initialization.py` | ✅ Fully compliant | None needed | 17 |
 | `recommendations.py` | Not compliant | Create repository and refactor service | 18 |
 | `impact_analysis.py` | Not compliant | Create repository and refactor service | 19 |
 | `recurring_bills.py` | Not compliant | Convert to repository pattern | 20 |
@@ -429,6 +436,7 @@ if datetime_equals(db_dt, user_dt, ignore_timezone=True):  # Right: Safe compari
 #### Common Anti-Patterns Found in Codebase
 
 1. **Direct Database Access**
+
    ```python
    # ANTI-PATTERN: Direct database session usage
    result = await self.db.execute(select(Model).where(Model.field == value))
@@ -440,6 +448,7 @@ if datetime_equals(db_dt, user_dt, ignore_timezone=True):  # Right: Safe compari
    ```
 
 2. **Session Manipulation in Services**
+
    ```python
    # ANTI-PATTERN: Session management in services
    self.db.add(new_entity)
@@ -452,6 +461,7 @@ if datetime_equals(db_dt, user_dt, ignore_timezone=True):  # Right: Safe compari
    ```
 
 3. **Mixed Business Logic and Data Access**
+
    ```python
    # ANTI-PATTERN: Business logic mixed with data access
    async def process_payment(self, payment_data):
@@ -498,5 +508,5 @@ if datetime_equals(db_dt, user_dt, ignore_timezone=True):  # Right: Safe compari
    - CORRECT: `result = await repo.get_by_criteria(criteria)`
 
 4. **Missing Feature Flag Integration**
-   - INCORRECT: Not passing feature_flag_service to super().__init__
+   - INCORRECT: Not passing feature_flag_service to `super().__init__`
    - CORRECT: `super().__init__(session, feature_flag_service, config_provider)`

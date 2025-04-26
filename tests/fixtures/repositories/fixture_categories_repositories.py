@@ -9,7 +9,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.repositories.categories import CategoryRepository
-from src.services.system_initialization import ensure_system_categories
+from src.services.system_initialization import SystemInitializationService
 
 
 @pytest_asyncio.fixture
@@ -28,6 +28,8 @@ async def category_repository(db_session: AsyncSession) -> CategoryRepository:
     repo = CategoryRepository(db_session)
 
     # Initialize system categories to ensure default category exists
-    await ensure_system_categories(repo)
+    # Use the service class directly instead of the legacy function
+    service = SystemInitializationService(db_session)
+    await service.ensure_system_categories()
 
     return repo

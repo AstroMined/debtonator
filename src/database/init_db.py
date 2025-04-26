@@ -6,8 +6,7 @@ from src.database.base import Base
 from src.database.database import engine
 
 # Import all models through __init__.py to ensure proper registration
-from src.repositories.categories import CategoryRepository
-from src.services.system_initialization import ensure_system_categories
+from src.services.system_initialization import SystemInitializationService
 
 
 async def init_db(db_engine: AsyncEngine) -> None:
@@ -16,11 +15,11 @@ async def init_db(db_engine: AsyncEngine) -> None:
     async with db_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    # Initialize system data through repository layer
+    # Initialize system data through service layer
     async with AsyncSession(db_engine) as session:
-        # Use repository for all data access
-        category_repo = CategoryRepository(session)
-        await ensure_system_categories(category_repo)
+        # Use SystemInitializationService to initialize all required system data
+        system_init_service = SystemInitializationService(session)
+        await system_init_service.initialize_system()
 
 
 def init_database() -> None:

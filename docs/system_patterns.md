@@ -650,4 +650,4 @@ System initialization follows a layered architectural approach:
 - Dedicated service layer for system data initialization
 - Clear separation between schema creation and data seeding
 - Ensures all required system data exists on startup
-- Example: `ensure_system_categories()` for default category creation
+- Example: `SystemInitializationService.ensure_system_categories()` for default category creation

@@ -15,7 +15,6 @@ from src.schemas.cashflow import (
     CustomForecastResponse,
     CustomForecastResult,
 )
-
 from src.services.cashflow.cashflow_base import CashflowBaseService
 from src.services.cashflow.cashflow_transaction_service import TransactionService
 from src.services.cashflow.cashflow_types import DateType

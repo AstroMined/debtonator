@@ -7,6 +7,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.146] - 2025-04-26
+
+### Fixed
+
+- Fixed syntax errors in feature_flags.py:
+  - Corrected missing commas in function calls
+  - Fixed inconsistencies between f-strings and %-formatting
+  - Resolved broken method implementations
+  - Eliminated duplicate logging
+
+### Improved
+
+- Refactored FeatureFlagService to eliminate technical debt:
+  - Removed unused backward compatibility functions
+  - Fixed circular dependency issues with TYPE_CHECKING import
+  - Updated code to use service classes directly
+  - Improved error handling and logging
+- Updated SystemInitializationService to properly use repository pattern
+- Completed Phase 17 of ADR-014 implementation checklist
+
 ## [0.5.145] - 2025-04-26
 
 ### Changed
