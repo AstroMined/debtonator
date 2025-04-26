@@ -15,16 +15,16 @@ from src.database.database import get_db
 from src.registry.feature_flags_registry import FeatureFlagRegistry
 from src.repositories.feature_flags import FeatureFlagRepository
 from src.services.feature_flags import FeatureFlagService
-from src.utils.feature_flags.context import EnvironmentContext
+from src.utils.feature_flags.context import create_default_context
 
 
 # Singleton instances for performance reasons
-_context = EnvironmentContext()
+_context = create_default_context()
 _service_instance = None
 
 
 async def get_feature_flag_service(
-    session: AsyncSession = Depends(get_db()),
+    session: AsyncSession = Depends(get_db),
 ) -> FeatureFlagService:
     """
     Get an instance of FeatureFlagService with all required dependencies.

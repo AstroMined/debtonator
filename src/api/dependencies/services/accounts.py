@@ -24,7 +24,7 @@ from src.services.feature_flags import FeatureFlagService
 
 
 async def get_account_service(
-    session: AsyncSession = Depends(get_db()),
+    session: AsyncSession = Depends(get_db),
     feature_flag_service: Optional[FeatureFlagService] = Depends(
         get_feature_flag_service
     ),

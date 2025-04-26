@@ -741,7 +741,7 @@ class AccountService(BaseService):
         if not db_account:
             return None
 
-        if db_account.type != "credit":
+        if db_account.account_type != "credit":
             raise ValueError(
                 "Available credit calculation only available for credit accounts"
             )
@@ -771,9 +771,9 @@ class AccountService(BaseService):
         adjusted_balance = DecimalPrecision.round_for_display(adjusted_balance)
 
         # Calculate available credit with proper precision
-        if db_account.total_limit:
+        if db_account.credit_limit:
             abs_adjusted = DecimalPrecision.round_for_calculation(abs(adjusted_balance))
-            limit_calc = DecimalPrecision.round_for_calculation(db_account.total_limit)
+            limit_calc = DecimalPrecision.round_for_calculation(db_account.credit_limit)
             available_credit = DecimalPrecision.round_for_display(
                 limit_calc - abs_adjusted
             )
@@ -783,7 +783,7 @@ class AccountService(BaseService):
         return AvailableCreditResponse(
             account_id=db_account.id,
             account_name=db_account.name,
-            total_limit=db_account.total_limit or Decimal(0),
+            total_limit=db_account.credit_limit or Decimal(0),
             current_balance=current_balance,
             pending_transactions=total_pending,
             adjusted_balance=adjusted_balance,

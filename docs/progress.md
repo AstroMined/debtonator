@@ -2,6 +2,18 @@
 
 ## Recent Updates
 
+### Environment Context Initialization Fix (2025-04-25)
+
+- Fixed environment context initialization in feature flag service:
+  - Updated `feature_flags.py` to use `create_default_context()` instead of direct instantiation
+  - Fixed dependency injection issue by properly passing `get_db` function to FastAPI
+  - Added proper exports in `repositories/cashflow/__init__.py` module
+  - Fixed attribute inconsistencies in AccountService (`type` → `account_type`, `total_limit` → `credit_limit`)
+  - Fixed test execution for polymorphic account types
+  - Resolved validation errors in `EnvironmentContext` initialization
+  - Added support for proper integration testing of AccountService
+
+
 ### BillSplitService Refactoring for ADR-014 Compliance (2025-04-25)
 
 - Completed BillSplitService refactoring to comply with ADR-014 Repository Layer Compliance:

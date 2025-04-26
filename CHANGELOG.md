@@ -7,6 +7,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.136] - 2025-04-25
+
+### Fixed
+
+- Fixed environment context initialization in feature flag service:
+  - Updated `feature_flags.py` to use `create_default_context()` instead of direct instantiation
+  - Fixed dependency injection issue by properly passing `get_db` function to FastAPI
+  - Added proper exports in `repositories/cashflow/__init__.py` to fix import errors
+  - Fixed attribute naming inconsistencies in AccountService (`type` → `account_type`, `total_limit` → `credit_limit`)
+  - Resolved validation errors in `EnvironmentContext` initialization
+  - Improved test execution reliability with polymorphic account types
+
+### Changed
+
+- Enhanced repository folder structure for better organization:
+  - Added proper exports in repository modules
+  - Improved module discovery with properly exported class definitions
+  - Better support for polymorphic repository operations
+
 ## [0.5.135] - 2025-04-25
 
 ### Changed

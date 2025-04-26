@@ -2,9 +2,18 @@
 
 ## Current Focus
 
-Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Account Type Expansion, Feature Flag System, Banking Account Types Integration, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation
+Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Account Type Expansion, Feature Flag System, Banking Account Types Integration, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration
 
 ### Recent Changes
+
+1. **Fixed Environment Context Initialization in Feature Flags (April 25, 2025)** ✓
+   - Fixed error when executing tests in `test_accounts_services.py`
+   - Updated feature flags dependencies to use `create_default_context()` for proper initialization
+   - Fixed dependency injection issue by properly passing `get_db` function to FastAPI
+   - Added proper exports in `repositories/cashflow/__init__.py` 
+   - Fixed attribute naming inconsistencies in AccountService (`type` → `account_type`, `total_limit` → `credit_limit`)
+   - Ensured proper test execution with polymorphic account types
+
 
 1. **Completed BillSplitService Refactoring for ADR-014 Compliance (April 25, 2025)** ✓
    - Refactored BillSplitService to inherit from BaseService

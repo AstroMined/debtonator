@@ -54,7 +54,7 @@ async def lifespan(app: FastAPI):
     await create_tables()
 
     # Initialize feature flag registry from database
-    async for db_session in get_db():
+    async for db_session in get_db:
         try:
             # Create repository and service
             repository = FeatureFlagRepository(db_session)
