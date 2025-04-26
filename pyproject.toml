@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "debtonator"
-version = "0.5.139"
+version = "0.5.140"
 authors = [
   { name = "Debtonator Team" },
 ]

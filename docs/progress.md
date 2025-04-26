@@ -2,6 +2,23 @@
 
 ## Recent Updates
 
+### Payment Service Refactoring for ADR-014 Compliance (2025-04-26)
+
+- Completed Payment Service refactoring to comply with ADR-014 Repository Layer Compliance:
+  - Refactored PaymentService to inherit from BaseService
+  - Used existing PaymentRepository and PaymentSourceRepository for data access operations
+  - Replaced all direct database queries with repository method calls
+  - Updated validation methods to use repositories for account and reference verification
+  - Maintained identical business logic while using repository pattern
+  - Applied proper ADR-011 datetime compliance with utility functions
+  - Used _get_repository method for standardized repository access
+  - Enhanced documentation with comprehensive method docstrings
+  - Added type hints for improved code readability
+  - Removed unused imports and fixed code quality issues
+  - Leveraged existing specialized repository methods like get_payments_in_date_range
+  - Added get_total_amount_in_range and get_recent_payments methods to service 
+  - Updated implementation checklist to mark Phase 6 as completed
+
 ### Recurring Income Service Refactoring for ADR-014 Compliance (2025-04-25)
 
 - Completed Recurring Income Service refactoring to comply with ADR-014 Repository Layer Compliance:
@@ -173,12 +190,12 @@
 
 1. **Continue Repository Layer Compliance (ADR-014)**
    - Focus on medium-priority services next:
-     - payment_patterns.py
-     - payment_schedules.py
+     - payment_patterns.py (Phase 8)
+     - payment_schedules.py (Phase 9)
    - Create specialized repositories for each service
    - Apply consistent repository pattern and dependency injection
    - Ensure proper datetime handling with ADR-011 compliance
-   - Follow established patterns from IncomeTrendsRepository implementation
+   - Follow established patterns from PaymentService implementation
 
 2. **Implement API Layer for Account Types**
    - Create endpoint for GET /banking/overview

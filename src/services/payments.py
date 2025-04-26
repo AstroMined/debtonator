@@ -1,32 +1,58 @@
-from datetime import date
+"""
+Payment service implementation.
+
+This module provides a service for payment operations, including creating, updating,
+and retrieving payments with their payment sources, following the repository pattern
+according to ADR-014 compliance.
+"""
+
+from datetime import date, datetime
 from decimal import Decimal
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
 
-from src.models.accounts import Account
-from src.models.income import Income
-from src.models.liabilities import Liability
-from src.models.payments import Payment, PaymentSource
+from src.models.payments import Payment
+from src.repositories.accounts import AccountRepository
+from src.repositories.income import IncomeRepository
+from src.repositories.liabilities import LiabilityRepository
+from src.repositories.payments import PaymentRepository
 from src.schemas.payments import PaymentCreate, PaymentUpdate
+from src.services.base import BaseService
+from src.services.feature_flags import FeatureFlagService
+from src.utils.datetime_utils import ensure_utc
 from src.utils.decimal_precision import DecimalPrecision
 
 
-class PaymentService:
-    def __init__(self, db: AsyncSession):
-        self.db = db
+class PaymentService(BaseService):
+    """
+    Service for payment operations.
+
+    This service implements the ADR-014 Repository Pattern Compliance by using repositories
+    for all data access operations and inheriting from BaseService for standardized
+    repository initialization.
+    """
+
+    # No custom initialization needed - using BaseService's __init__
 
     async def validate_account_availability(
-        self, sources: List[dict]
+        self, sources: List[Dict[str, Any]]
     ) -> Tuple[bool, Optional[str]]:
-        """Validates accounts exist and have sufficient funds/credit."""
+        """
+        Validate that accounts exist and have sufficient funds/credit.
+
+        Args:
+            sources: List of payment source dictionaries with account_id and amount keys
+
+        Returns:
+            Tuple containing validity flag and optional error message
+        """
+        # Get account repository
+        account_repo = await self._get_repository(AccountRepository)
+
         for source in sources:
-            account_result = await self.db.execute(
-                select(Account).filter(Account.id == source["account_id"])
-            )
-            account = account_result.scalar_one_or_none()
+            # Get account from repository
+            account = await account_repo.get(source["account_id"])
             if not account:
                 return False, f"Account {source['account_id']} not found"
 
@@ -53,44 +79,83 @@ class PaymentService:
     async def validate_references(
         self, liability_id: Optional[int], income_id: Optional[int]
     ) -> Tuple[bool, Optional[str]]:
-        """Validates optional liability and income references exist."""
+        """
+        Validate that optional liability and income references exist.
+
+        Args:
+            liability_id: Optional liability ID to validate
+            income_id: Optional income ID to validate
+
+        Returns:
+            Tuple containing validity flag and optional error message
+        """
         if liability_id:
-            liability_result = await self.db.execute(
-                select(Liability).filter(Liability.id == liability_id)
-            )
-            if not liability_result.scalar_one_or_none():
+            # Get liability repository and check existence
+            liability_repo = await self._get_repository(LiabilityRepository)
+            liability = await liability_repo.get(liability_id)
+            if not liability:
                 return False, f"Liability {liability_id} not found"
 
         if income_id:
-            income_result = await self.db.execute(
-                select(Income).filter(Income.id == income_id)
-            )
-            if not income_result.scalar_one_or_none():
+            # Get income repository and check existence
+            income_repo = await self._get_repository(IncomeRepository)
+            income = await income_repo.get(income_id)
+            if not income:
                 return False, f"Income {income_id} not found"
 
         return True, None
 
     async def get_payments(self, skip: int = 0, limit: int = 100) -> List[Payment]:
-        stmt = (
-            select(Payment)
-            .options(joinedload(Payment.sources))
-            .offset(skip)
-            .limit(limit)
-            .order_by(Payment.payment_date.desc())
+        """
+        Get paginated list of payments with sources loaded.
+
+        Args:
+            skip: Number of records to skip
+            limit: Maximum number of records to return
+
+        Returns:
+            List of Payment objects with sources loaded
+        """
+        # Get payment repository
+        payment_repo = await self._get_repository(PaymentRepository)
+        
+        # Use paginated query with sources included
+        return await payment_repo.get_multi(
+            skip=skip, 
+            limit=limit, 
+            order_by=[Payment.payment_date.desc()],
+            options=[{"include_sources": True}]
         )
-        result = await self.db.execute(stmt)
-        return result.unique().scalars().all()
 
     async def get_payment(self, payment_id: int) -> Optional[Payment]:
-        stmt = (
-            select(Payment)
-            .options(joinedload(Payment.sources))
-            .filter(Payment.id == payment_id)
-        )
-        result = await self.db.execute(stmt)
-        return result.unique().scalar_one_or_none()
+        """
+        Get a payment by ID with sources loaded.
+
+        Args:
+            payment_id: Payment ID to retrieve
+
+        Returns:
+            Payment object with sources loaded or None if not found
+        """
+        # Get payment repository
+        payment_repo = await self._get_repository(PaymentRepository)
+        
+        # Use specialized get_with_sources method
+        return await payment_repo.get_with_sources(payment_id)
 
     async def create_payment(self, payment_create: PaymentCreate) -> Payment:
+        """
+        Create a new payment with its sources.
+
+        Args:
+            payment_create: Payment creation data with sources
+
+        Returns:
+            Created Payment object with sources loaded
+
+        Raises:
+            ValueError: If validation fails for accounts or references
+        """
         # Validate account availability
         valid, error = await self.validate_account_availability(
             [source.model_dump() for source in payment_create.sources]
@@ -105,119 +170,215 @@ class PaymentService:
         if not valid:
             raise ValueError(error)
 
-        # Create payment
-        # Use calculation precision for internal storage, but this will display as 2 decimal places in API responses
-        amount = DecimalPrecision.round_for_calculation(payment_create.amount)
-        db_payment = Payment(
-            liability_id=payment_create.liability_id,
-            income_id=payment_create.income_id,
-            amount=amount,
-            payment_date=payment_create.payment_date,
-            description=payment_create.description,
-            category=payment_create.category,
-        )
-        self.db.add(db_payment)
-        await self.db.flush()
+        # Get payment repository
+        payment_repo = await self._get_repository(PaymentRepository)
+        
+        # Prepare payment data
+        payment_data = payment_create.model_dump()
+        
+        # Round amount for internal storage
+        payment_data["amount"] = DecimalPrecision.round_for_calculation(payment_data["amount"])
+        
+        # Round source amounts
+        for source in payment_data["sources"]:
+            source["amount"] = DecimalPrecision.round_for_calculation(Decimal(str(source["amount"])))
 
-        # Create payment sources
-        for source in payment_create.sources:
-            source_amount = DecimalPrecision.round_for_calculation(source.amount)
-            db_source = PaymentSource(
-                payment_id=db_payment.id,
-                account_id=source.account_id,
-                amount=source_amount,
-            )
-            self.db.add(db_source)
-
-        await self.db.commit()
-
-        # Fetch the complete payment with sources
-        stmt = (
-            select(Payment)
-            .options(joinedload(Payment.sources))
-            .filter(Payment.id == db_payment.id)
-        )
-        result = await self.db.execute(stmt)
-        return result.unique().scalar_one()
+        # Create payment with sources in one operation through repository
+        return await payment_repo.create(payment_data)
 
     async def update_payment(
         self, payment_id: int, payment_update: PaymentUpdate
     ) -> Optional[Payment]:
-        # Get existing payment with sources
-        db_payment = await self.get_payment(payment_id)
+        """
+        Update an existing payment and optionally its sources.
+
+        Args:
+            payment_id: ID of payment to update
+            payment_update: Payment update data with optional sources
+
+        Returns:
+            Updated Payment object with sources loaded or None if not found
+
+        Raises:
+            ValueError: If validation fails for accounts
+        """
+        # Get payment repository
+        payment_repo = await self._get_repository(PaymentRepository)
+        
+        # Get existing payment
+        db_payment = await payment_repo.get_with_sources(payment_id)
         if not db_payment:
             return None
 
         # Prepare update data
-        update_data = payment_update.model_dump(exclude_unset=True, exclude={"sources"})
-
-        # Update payment fields
-        for key, value in update_data.items():
-            setattr(db_payment, key, value)
-
+        update_data = payment_update.model_dump(exclude_unset=True)
+        
         # If sources are being updated, validate account availability
-        if payment_update.sources is not None:
+        if "sources" in update_data:
             # Validate account availability
             valid, error = await self.validate_account_availability(
-                [source.model_dump() for source in payment_update.sources]
+                [source for source in update_data["sources"]]
             )
             if not valid:
                 raise ValueError(error)
+            
+            # Round source amounts for consistency
+            for source in update_data["sources"]:
+                source["amount"] = DecimalPrecision.round_for_calculation(Decimal(str(source["amount"])))
 
-            # Clear existing sources and set new ones
-            db_payment.sources = [
-                PaymentSource(
-                    payment_id=payment_id,
-                    account_id=source.account_id,
-                    amount=source.amount,
-                )
-                for source in payment_update.sources
-            ]
-
-            await self.db.commit()
-            return await self.get_payment(payment_id)
-        else:
-            await self.db.commit()
-            return await self.get_payment(payment_id)
+        # Perform update through repository
+        await payment_repo.update(payment_id, update_data)
+        
+        # Return payment with sources loaded
+        return await payment_repo.get_with_sources(payment_id)
 
     async def delete_payment(self, payment_id: int) -> bool:
-        db_payment = await self.get_payment(payment_id)
+        """
+        Delete a payment and its sources.
+
+        Args:
+            payment_id: ID of payment to delete
+
+        Returns:
+            True if payment was deleted, False if not found
+        """
+        # Get payment repository
+        payment_repo = await self._get_repository(PaymentRepository)
+        
+        # Get existing payment
+        db_payment = await payment_repo.get(payment_id)
         if not db_payment:
             return False
-
-        await self.db.delete(db_payment)
-        await self.db.commit()
+        
+        # Delete through repository
+        await payment_repo.remove(payment_id)
         return True
 
     async def get_payments_by_date_range(
         self, start_date: date, end_date: date
     ) -> List[Payment]:
-        stmt = (
-            select(Payment)
-            .options(joinedload(Payment.sources))
-            .filter(Payment.payment_date.between(start_date, end_date))
-            .order_by(Payment.payment_date.desc())
+        """
+        Get payments within a specific date range.
+
+        Args:
+            start_date: Start date (inclusive)
+            end_date: End date (inclusive)
+
+        Returns:
+            List of Payment objects with sources loaded
+        """
+        # Get payment repository
+        payment_repo = await self._get_repository(PaymentRepository)
+        
+        # Convert dates to datetime for repository method
+        start_datetime = datetime.combine(start_date, datetime.min.time())
+        end_datetime = datetime.combine(end_date, datetime.max.time())
+        
+        # Ensure UTC timezone awareness
+        start_datetime = ensure_utc(start_datetime)
+        end_datetime = ensure_utc(end_datetime)
+        
+        # Use repository's specialized method
+        return await payment_repo.get_payments_in_date_range(
+            start_datetime, 
+            end_datetime,
+            include_sources=True
         )
-        result = await self.db.execute(stmt)
-        return result.unique().scalars().all()
 
     async def get_payments_for_liability(self, liability_id: int) -> List[Payment]:
-        stmt = (
-            select(Payment)
-            .options(joinedload(Payment.sources))
-            .filter(Payment.liability_id == liability_id)
-            .order_by(Payment.payment_date.desc())
+        """
+        Get payments for a specific liability.
+
+        Args:
+            liability_id: Liability ID
+
+        Returns:
+            List of Payment objects with sources loaded
+        """
+        # Get payment repository
+        payment_repo = await self._get_repository(PaymentRepository)
+        
+        # Use repository's specialized method
+        return await payment_repo.get_payments_for_bill(
+            liability_id,
+            include_sources=True
         )
-        result = await self.db.execute(stmt)
-        return result.unique().scalars().all()
 
     async def get_payments_for_account(self, account_id: int) -> List[Payment]:
-        stmt = (
-            select(Payment)
-            .options(joinedload(Payment.sources))
-            .join(PaymentSource)
-            .filter(PaymentSource.account_id == account_id)
-            .order_by(Payment.payment_date.desc())
+        """
+        Get payments that use a specific account as a source.
+
+        Args:
+            account_id: Account ID
+
+        Returns:
+            List of Payment objects with sources loaded
+        """
+        # Get payment repository
+        payment_repo = await self._get_repository(PaymentRepository)
+        
+        # Use repository's specialized method
+        return await payment_repo.get_payments_for_account(
+            account_id,
+            include_sources=True
         )
-        result = await self.db.execute(stmt)
-        return result.unique().scalars().all()
+        
+    async def get_total_amount_in_range(
+        self, 
+        start_date: date, 
+        end_date: date,
+        category: Optional[str] = None
+    ) -> Decimal:
+        """
+        Get total payment amount in a date range, optionally filtered by category.
+        
+        Args:
+            start_date: Start date (inclusive)
+            end_date: End date (inclusive)
+            category: Optional category filter
+            
+        Returns:
+            Total payment amount as Decimal
+        """
+        # Get payment repository
+        payment_repo = await self._get_repository(PaymentRepository)
+        
+        # Convert dates to datetime for repository method
+        start_datetime = datetime.combine(start_date, datetime.min.time())
+        end_datetime = datetime.combine(end_date, datetime.max.time())
+        
+        # Ensure UTC timezone awareness
+        start_datetime = ensure_utc(start_datetime)
+        end_datetime = ensure_utc(end_datetime)
+        
+        # Use repository's specialized method
+        return await payment_repo.get_total_amount_in_range(
+            start_datetime,
+            end_datetime,
+            category
+        )
+        
+    async def get_recent_payments(
+        self,
+        days: int = 30,
+        limit: int = 20
+    ) -> List[Payment]:
+        """
+        Get recent payments from the last specified number of days.
+        
+        Args:
+            days: Number of days to look back
+            limit: Maximum number of payments to return
+            
+        Returns:
+            List of recent Payment objects with sources loaded
+        """
+        # Get payment repository
+        payment_repo = await self._get_repository(PaymentRepository)
+        
+        # Use repository's specialized method
+        return await payment_repo.get_recent_payments(
+            days=days,
+            limit=limit,
+            include_sources=True
+        )

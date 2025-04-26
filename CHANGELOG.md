@@ -7,6 +7,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.140] - 2025-04-26
+
+### Changed
+
+- Refactored PaymentService to comply with ADR-014 Repository Layer standards:
+  - Updated PaymentService to inherit from BaseService
+  - Replaced all direct database queries with repository method calls
+  - Used _get_repository method for standardized repository access
+  - Updated validation methods to use repositories for account and reference verification
+  - Applied proper ADR-011 datetime compliance with utility functions
+  - Fixed code quality issues by removing unused imports and variables
+  - Enhanced service with additional functionality (get_total_amount_in_range, get_recent_payments)
+  - Improved documentation with comprehensive method docstrings
+
+### Documentation
+
+- Updated ADR-014 implementation checklist:
+  - Marked Phase 6 (Payment Service Refactoring) as completed
+  - Updated implementation status with completed refactoring tasks
+  - Added detailed implementation notes for future work
+  - Added standardized patterns for PaymentService implementation
+
 ## [0.5.139] - 2025-04-25
 
 ### Changed
