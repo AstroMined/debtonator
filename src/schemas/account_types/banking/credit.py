@@ -33,7 +33,9 @@ class CreditAccountBase(AccountBase):
         default=None, description="Available credit for credit accounts", ge=0
     )
     total_limit: Optional[MoneyDecimal] = Field(
-        default=None, description="Alias for credit_limit for backward compatibility", ge=0
+        default=None,
+        description="Alias for credit_limit for backward compatibility",
+        ge=0,
     )
     statement_balance: Optional[MoneyDecimal] = Field(
         default=None, description="Current statement balance"

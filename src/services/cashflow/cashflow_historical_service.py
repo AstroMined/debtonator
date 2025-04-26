@@ -11,12 +11,12 @@ from src.schemas.cashflow import (
     SeasonalityAnalysis,
 )
 
-from .base import BaseService
-from .transaction_service import TransactionService
-from .types import DateType
+from src.services.cashflow.cashflow_base import CashflowBaseService
+from src.services.cashflow.cashflow_transaction_service import TransactionService
+from src.services.cashflow.cashflow_types import DateType
 
 
-class HistoricalService(BaseService):
+class HistoricalService(CashflowBaseService):
     """Service for analyzing historical cashflow trends and patterns."""
 
     def __init__(self, db):

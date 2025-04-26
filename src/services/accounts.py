@@ -46,7 +46,7 @@ class AccountService(BaseService):
     creation, updates, and specialized operations like statement and credit limit management.
 
     Supports dynamic loading of type-specific service modules for different account types.
-    
+
     Implements ADR-014 Repository Layer Compliance with standardized repository access
     through the BaseService class.
     """
@@ -66,7 +66,7 @@ class AccountService(BaseService):
             config_provider: Optional config provider for feature flags
         """
         super().__init__(session, feature_flag_service, config_provider)
-        
+
         # Storage for dynamically loaded type-specific functions
         self._type_specific_functions: Dict[str, Callable] = {}
 
@@ -178,7 +178,7 @@ class AccountService(BaseService):
         account_repo = await self._get_repository(
             AccountRepository, polymorphic_type=None
         )
-        
+
         # Get the account using the repository
         account = await account_repo.get(account_id)
 
@@ -267,7 +267,9 @@ class AccountService(BaseService):
         if not account_type_registry.is_valid_account_type(
             account_type, self._feature_flag_service
         ):
-            valid_types = account_type_registry.get_all_types(self._feature_flag_service)
+            valid_types = account_type_registry.get_all_types(
+                self._feature_flag_service
+            )
             valid_type_ids = [t["id"] for t in valid_types]
             valid_types_str = ", ".join(valid_type_ids)
             raise ValueError(
@@ -317,11 +319,9 @@ class AccountService(BaseService):
         account_repo = await self._get_repository(
             AccountRepository, polymorphic_type=account_type
         )
-        
+
         # Use repository to create account with typed entity
-        db_account = await account_repo.create_typed_entity(
-            account_type, account_dict
-        )
+        db_account = await account_repo.create_typed_entity(account_type, account_dict)
 
         # Convert to appropriate response type based on account type
         # This will work with a discriminated union because all the response types
@@ -340,7 +340,7 @@ class AccountService(BaseService):
         """
         # Get the account repository using _get_repository method
         account_repo = await self._get_repository(AccountRepository)
-        
+
         db_account = await account_repo.get(account_id)
         return AccountInDB.model_validate(db_account) if db_account else None
 
@@ -362,7 +362,7 @@ class AccountService(BaseService):
         """
         # Get the account repository using _get_repository method
         account_repo = await self._get_repository(AccountRepository)
-        
+
         db_account = await account_repo.get(account_id)
         if not db_account:
             return None
@@ -402,7 +402,7 @@ class AccountService(BaseService):
         typed_account_repo = await self._get_repository(
             AccountRepository, polymorphic_type=account_type
         )
-        
+
         # Use repository to update account with proper type
         updated_account = await typed_account_repo.update_typed_entity(
             account_id, account_type, update_data
@@ -468,7 +468,7 @@ class AccountService(BaseService):
         """
         # Get the account repository
         account_repo = await self._get_repository(AccountRepository)
-        
+
         db_account = await account_repo.get(account_id)
         if not db_account:
             return False
@@ -490,7 +490,7 @@ class AccountService(BaseService):
         """
         # Get the account repository
         account_repo = await self._get_repository(AccountRepository)
-        
+
         accounts = await account_repo.get_active_accounts()
         return [AccountInDB.model_validate(account) for account in accounts]
 
@@ -565,7 +565,7 @@ class AccountService(BaseService):
         """
         # Get the account repository
         account_repo = await self._get_repository(AccountRepository)
-        
+
         db_account = await account_repo.get(account_id)
         if not db_account:
             return None
@@ -627,7 +627,7 @@ class AccountService(BaseService):
         """
         # Get account repository
         account_repo = await self._get_repository(AccountRepository)
-        
+
         db_account = await account_repo.get(account_id)
         if not db_account:
             return None
@@ -696,7 +696,7 @@ class AccountService(BaseService):
         """
         # Get account repository
         account_repo = await self._get_repository(AccountRepository)
-        
+
         db_account = await account_repo.get(account_id)
         if not db_account:
             return None
@@ -736,7 +736,7 @@ class AccountService(BaseService):
         """
         # Get account repository
         account_repo = await self._get_repository(AccountRepository)
-        
+
         db_account = await account_repo.get(account_id)
         if not db_account:
             return None
@@ -838,7 +838,7 @@ class AccountService(BaseService):
         """
         # Get transaction repository
         transaction_repo = await self._get_repository(TransactionHistoryRepository)
-        
+
         transactions = await transaction_repo.get_debit_sum_for_account(account_id)
         return transactions or Decimal(0)
 
@@ -854,7 +854,7 @@ class AccountService(BaseService):
         """
         # Get transaction repository
         transaction_repo = await self._get_repository(TransactionHistoryRepository)
-        
+
         payments = await transaction_repo.get_credit_sum_for_account(account_id)
         return payments or Decimal(0)
 
@@ -872,7 +872,7 @@ class AccountService(BaseService):
         """
         # Get account repository
         account_repo = await self._get_repository(AccountRepository)
-        
+
         # Get account using repository
         db_account = await account_repo.get(account_id)
         if not db_account:
@@ -880,7 +880,7 @@ class AccountService(BaseService):
 
         # Get statement repository
         statement_repo = await self._get_repository(StatementHistoryRepository)
-        
+
         # Get statement history ordered by date descending
         history_records = await statement_repo.get_by_account_ordered(
             account_id, order_by_desc=True
@@ -999,7 +999,7 @@ class AccountService(BaseService):
         """
         # Get account repository
         account_repo = await self._get_repository(AccountRepository)
-        
+
         # Get all accounts for the user
         accounts = await account_repo.get_by_user(user_id)
 
@@ -1082,7 +1082,7 @@ class AccountService(BaseService):
 
         # Get account repository
         account_repo = await self._get_repository(AccountRepository)
-        
+
         # Get accounts for the user
         accounts = await account_repo.get_by_user(user_id)
 
@@ -1118,6 +1118,6 @@ class AccountService(BaseService):
         """
         # Get account repository
         account_repo = await self._get_repository(AccountRepository)
-        
+
         accounts = await account_repo.get_by_user_and_type(user_id, account_type)
         return [AccountInDB.model_validate(account) for account in accounts]

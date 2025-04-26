@@ -15,7 +15,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from src.models.income import Income
 from src.repositories.base_repository import BaseRepository
-from src.utils.datetime_utils import ensure_utc, naive_start_of_day, naive_end_of_day
+from src.utils.datetime_utils import ensure_utc, naive_end_of_day, naive_start_of_day
 
 
 class IncomeRepository(BaseRepository[Income, int]):
@@ -70,11 +70,11 @@ class IncomeRepository(BaseRepository[Income, int]):
         # Ensure UTC timezone awareness for datetime parameters
         start_date = ensure_utc(start_date)
         end_date = ensure_utc(end_date)
-        
+
         # Use naive functions directly for database queries
         db_start_date = naive_start_of_day(start_date)
         db_end_date = naive_end_of_day(end_date)
-        
+
         conditions = [Income.date >= db_start_date, Income.date <= db_end_date]
 
         if account_id is not None:
@@ -282,11 +282,11 @@ class IncomeRepository(BaseRepository[Income, int]):
         # Ensure UTC timezone awareness for datetime parameters
         start_date = ensure_utc(start_date)
         end_date = ensure_utc(end_date)
-        
+
         # Use naive functions directly for database queries
         db_start_date = naive_start_of_day(start_date)
         db_end_date = naive_end_of_day(end_date)
-        
+
         # Build conditions based on parameters
         conditions = [Income.date >= db_start_date, Income.date <= db_end_date]
 

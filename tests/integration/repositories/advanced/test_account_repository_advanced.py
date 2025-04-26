@@ -180,8 +180,12 @@ async def test_update_balance_credit_account(
     """Test updating a credit account balance which should update available credit."""
     # 1. ARRANGE: Setup is already done with fixtures
     original_balance = test_credit_account.available_balance
-    original_credit = test_credit_account.available_credit or Decimal("0.00")  # Handle None case
-    credit_limit = test_credit_account.credit_limit or Decimal("2000.00")  # Default value if None
+    original_credit = test_credit_account.available_credit or Decimal(
+        "0.00"
+    )  # Handle None case
+    credit_limit = test_credit_account.credit_limit or Decimal(
+        "2000.00"
+    )  # Default value if None
     amount_change = Decimal("-200.00")  # Increasing debt (more negative balance)
 
     # First ensure the test account has proper credit values
@@ -192,13 +196,13 @@ async def test_update_balance_credit_account(
             "credit",
             {
                 "credit_limit": credit_limit,
-                "available_credit": credit_limit - abs(original_balance)
-            }
+                "available_credit": credit_limit - abs(original_balance),
+            },
         )
         # Refresh our reference
         test_credit_account = await account_repository.get(test_credit_account.id)
         original_credit = test_credit_account.available_credit
-        
+
     # 2. ACT: Update the credit account balance
     result = await account_repository.update_balance(
         test_credit_account.id, amount_change
@@ -208,20 +212,27 @@ async def test_update_balance_credit_account(
     assert result is not None
     assert result.id == test_credit_account.id
     assert result.available_balance == original_balance + amount_change
-    
+
     # For credit accounts, available credit should decrease when balance becomes more negative
     # But we need to check what's returned rather than calculating ourselves
     assert result.available_credit is not None, "available_credit should not be None"
-    
+
     # The implementation seems to be setting available_credit properly
     # Let's make sure it follows the expected pattern of reducing when debt increases
     if original_credit > Decimal("0"):
-        assert result.available_credit < original_credit, "Available credit should decrease when debt increases"
-    
+        assert (
+            result.available_credit < original_credit
+        ), "Available credit should decrease when debt increases"
+
     # If we start with zero credit, verify that the new value is properly calculated from the limit
-    if original_credit == Decimal("0") and hasattr(result, "credit_limit") and result.credit_limit is not None:
-        assert result.available_credit == result.credit_limit - abs(result.available_balance), \
-            "Available credit should be correctly calculated from credit limit and balance"
+    if (
+        original_credit == Decimal("0")
+        and hasattr(result, "credit_limit")
+        and result.credit_limit is not None
+    ):
+        assert result.available_credit == result.credit_limit - abs(
+            result.available_balance
+        ), "Available credit should be correctly calculated from credit limit and balance"
 
 
 async def test_update_statement_balance(
@@ -273,35 +284,35 @@ async def test_credit_account_with_low_credit(
     # First ensure the credit account has proper credit values
     credit_limit = Decimal("2000.00")
     low_available_credit = Decimal("200.00")  # Only 10% of credit limit
-    
+
     update_data = {
         "available_balance": Decimal("-1800.00"),  # Negative balance
         "available_credit": low_available_credit,  # Low available credit
-        "credit_limit": credit_limit  # Set credit limit explicitly
+        "credit_limit": credit_limit,  # Set credit limit explicitly
     }
     # Update the account using the polymorphic update method
     await account_repository.update_typed_entity(
-        test_credit_account.id, 
-        "credit", 
-        update_data
+        test_credit_account.id, "credit", update_data
     )
-    
+
     # Get the updated account
     updated_account = await account_repository.get(test_credit_account.id)
-    
+
     # 2. VERIFY: Credit account has low available credit
     # Verify essential credit attributes
     assert updated_account.account_type == "credit"
     assert updated_account.available_credit is not None
     assert updated_account.credit_limit is not None
-    
+
     # Verify expected credit values match what we set
     assert updated_account.available_credit == low_available_credit
     assert updated_account.credit_limit == credit_limit
-    
+
     # Check that available credit is indeed low compared to limit (10% or less)
     credit_ratio = updated_account.available_credit / updated_account.credit_limit
-    assert credit_ratio <= Decimal("0.1"), f"Expected credit ratio ≤ 0.1, got {credit_ratio}"
+    assert credit_ratio <= Decimal(
+        "0.1"
+    ), f"Expected credit ratio ≤ 0.1, got {credit_ratio}"
 
 
 async def test_validation_error_handling():

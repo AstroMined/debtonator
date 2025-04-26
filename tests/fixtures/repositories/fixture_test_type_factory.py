@@ -159,10 +159,12 @@ async def test_repository_factory(db_session: AsyncSession, test_type_registry):
     Returns:
         Function: Factory function for creating test repositories
     """
+
     async def factory(entity_type=None):
         return await TestRepositoryFactory.create_test_repository(
             db_session, entity_type, test_type_registry
         )
+
     return factory
 
 

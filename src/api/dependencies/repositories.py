@@ -16,7 +16,7 @@ from src.repositories.balance_history import BalanceHistoryRepository
 from src.repositories.balance_reconciliation import BalanceReconciliationRepository
 from src.repositories.base_repository import BaseRepository
 from src.repositories.bill_splits import BillSplitRepository
-from src.repositories.cashflow import CashflowForecastRepository
+from src.repositories.cashflow.cashflow_forecast_repository import CashflowForecastRepository
 from src.repositories.categories import CategoryRepository
 from src.repositories.credit_limit_history import CreditLimitHistoryRepository
 from src.repositories.deposit_schedules import DepositScheduleRepository

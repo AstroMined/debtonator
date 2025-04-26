@@ -11,11 +11,12 @@ Implements the Feature Flag System defined in ADR-024.
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.dependencies.database import get_session
-from src.registry.feature_flags_registry import feature_flag_registry
+from src.database.database import get_db
+from src.registry.feature_flags_registry import FeatureFlagRegistry
 from src.repositories.feature_flags import FeatureFlagRepository
 from src.services.feature_flags import FeatureFlagService
 from src.utils.feature_flags.context import EnvironmentContext
+
 
 # Singleton instances for performance reasons
 _context = EnvironmentContext()
@@ -23,7 +24,7 @@ _service_instance = None
 
 
 async def get_feature_flag_service(
-    session: AsyncSession = Depends(get_session),
+    session: AsyncSession = Depends(get_db()),
 ) -> FeatureFlagService:
     """
     Get an instance of FeatureFlagService with all required dependencies.
@@ -44,7 +45,7 @@ async def get_feature_flag_service(
     if _service_instance is None:
         repository = FeatureFlagRepository(session)
         _service_instance = FeatureFlagService(
-            registry=feature_flag_registry,
+            registry=FeatureFlagRegistry,
             repository=repository,
             context=_context,
         )

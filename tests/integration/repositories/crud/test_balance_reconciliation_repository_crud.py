@@ -126,7 +126,9 @@ async def test_delete_balance_reconciliation(
     # 1. ARRANGE & 2. SCHEMA: Setup is already done with fixtures
 
     # 3. ACT: Delete the reconciliation entry
-    result = await balance_reconciliation_repository.delete(test_balance_reconciliation.id)
+    result = await balance_reconciliation_repository.delete(
+        test_balance_reconciliation.id
+    )
 
     # 4. ASSERT: Verify the operation results
     assert result is True

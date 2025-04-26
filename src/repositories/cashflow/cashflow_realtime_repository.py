@@ -17,7 +17,6 @@ repositories, including proper datetime handling following ADR-011 and
 consistent decimal precision handling for financial calculations.
 """
 
-import statistics
 from collections import defaultdict
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -25,24 +24,16 @@ from typing import Dict, List, Optional, Set, Tuple
 
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from src.models.accounts import Account
 from src.models.liabilities import Liability
 from src.models.payments import Payment, PaymentSource
 from src.models.transaction_history import TransactionHistory
-from src.repositories.cashflow.base import BaseCashflowRepository
-from src.utils.datetime_utils import (
-    days_from_now,
-    days_ago,
-    naive_end_of_day,
-    naive_start_of_day,
-    utc_now,
-)
+from src.repositories.cashflow.cashflow_base import CashflowBaseRepository
 from src.utils.decimal_precision import DecimalPrecision
 
 
-class RealtimeCashflowRepository(BaseCashflowRepository[Account]):
+class RealtimeCashflowRepository(CashflowBaseRepository[Account]):
     """
     Repository for realtime cashflow operations.
 
@@ -133,7 +124,9 @@ class RealtimeCashflowRepository(BaseCashflowRepository[Account]):
         total = sum((bill.amount for bill in upcoming_bills), Decimal(0))
         return DecimalPrecision.round_for_calculation(total)
 
-    async def get_unpaid_liabilities(self, current_date: Optional[datetime] = None) -> List[Liability]:
+    async def get_unpaid_liabilities(
+        self, current_date: Optional[datetime] = None
+    ) -> List[Liability]:
         """
         Get all unpaid liabilities from current date forward.
 
@@ -205,13 +198,17 @@ class RealtimeCashflowRepository(BaseCashflowRepository[Account]):
         range_start, range_end = self._prepare_date_range(start_date, end_date)
 
         # Query for transactions in date range
-        query = select(TransactionHistory).where(
-            and_(
-                TransactionHistory.account_id == account_id,
-                TransactionHistory.transaction_date >= range_start,
-                TransactionHistory.transaction_date <= range_end,
+        query = (
+            select(TransactionHistory)
+            .where(
+                and_(
+                    TransactionHistory.account_id == account_id,
+                    TransactionHistory.transaction_date >= range_start,
+                    TransactionHistory.transaction_date <= range_end,
+                )
             )
-        ).order_by(TransactionHistory.transaction_date)
+            .order_by(TransactionHistory.transaction_date)
+        )
 
         result = await self.session.execute(query)
         return result.scalars().all()
@@ -313,7 +310,7 @@ class RealtimeCashflowRepository(BaseCashflowRepository[Account]):
         query = select(Account).where(Account.id == account_id)
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
-        
+
     async def get_common_transaction_descriptions(
         self, account_ids: List[int]
     ) -> Set[str]:
@@ -328,25 +325,25 @@ class RealtimeCashflowRepository(BaseCashflowRepository[Account]):
         """
         # Initialize empty set for each account
         account_descriptions = {}
-        
+
         # For each account, get distinct descriptions
         for account_id in account_ids:
             # Get transaction history
             transactions = await self.get_transaction_history(account_id)
-            
+
             # Extract descriptions
             descriptions = {tx.description for tx in transactions if tx.description}
             account_descriptions[account_id] = descriptions
-        
+
         # Find intersection of all description sets
         if not account_descriptions:
             return set()
-            
+
         # Start with first account's descriptions
         common = account_descriptions.get(account_ids[0], set())
-        
+
         # Intersect with each other account's descriptions
         for account_id in account_ids[1:]:
             common = common.intersection(account_descriptions.get(account_id, set()))
-            
+
         return common

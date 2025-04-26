@@ -9,9 +9,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 from src.utils.datetime_utils import utc_now
-from tests.helpers.schema_factories.base_schema_schema_factories import (
-    factory_function,
-)
+from tests.helpers.schema_factories.base_schema_schema_factories import factory_function
 from tests.helpers.schemas.polymorphic_test_schemas import (
     TestBaseModelCreate,
     TestBaseModelInDB,

@@ -9,19 +9,19 @@ from src.schemas.cashflow import CustomForecastResult
 from src.services.feature_flags import FeatureFlagService
 from src.utils.decimal_precision import DecimalPrecision
 
-from .base import BaseService
-from .transaction_service import TransactionService
-from .types import DateType
+from src.services.cashflow.cashflow_base import CashflowBaseService
+from src.services.cashflow.cashflow_transaction_service import TransactionService
+from src.services.cashflow.cashflow_types import DateType
 
 
-class MetricsService(BaseService):
+class MetricsService(CashflowBaseService):
     """Service for calculating cashflow metrics and analysis."""
 
     def __init__(
-        self, 
+        self,
         session: AsyncSession,
         feature_flag_service: Optional[FeatureFlagService] = None,
-        config_provider: Optional[Any] = None
+        config_provider: Optional[Any] = None,
     ):
         super().__init__(session, feature_flag_service, config_provider)
         self._transaction_service = TransactionService(session)
@@ -105,9 +105,9 @@ class MetricsService(BaseService):
         # Use metrics repository to calculate required funds
         metrics_repo = await self.metrics_repository
         total = await metrics_repo.get_required_funds(account_id, start_date, end_date)
-        
+
         return total
-        
+
     async def get_liabilities_for_metrics(
         self, account_id: int, start_date: DateType, end_date: DateType
     ) -> List:
@@ -126,22 +126,22 @@ class MetricsService(BaseService):
         liabilities = await metrics_repo.get_liabilities_for_metrics(
             account_id, start_date, end_date
         )
-        
+
         return liabilities
 
     async def get_min_forecast_values(self, days: int = 90) -> Dict[str, Decimal]:
         """Get minimum forecast values across all lookout periods.
-        
+
         Args:
             days: Number of days to consider (default: 90)
-            
+
         Returns:
             Dictionary with minimum values for each lookout period
         """
         # Use metrics repository to get minimum forecast values
         metrics_repo = await self.metrics_repository
         min_values = await metrics_repo.get_min_forecast_values(days)
-        
+
         return min_values
 
     def calculate_daily_deficit(self, min_amount: Decimal, days: int) -> Decimal:

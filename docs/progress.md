@@ -2,6 +2,18 @@
 
 ## Recent Updates
 
+### TransactionService Refactoring for ADR-014 Compliance (2025-04-25)
+
+- Completed TransactionService refactoring to comply with ADR-014 Repository Layer Compliance:
+  - Updated class to inherit from BaseService for standardized repository access
+  - Replaced property-based repository access with _get_repository method calls
+  - Removed unnecessary constructor override for better code quality
+  - Ensured all methods use consistent repository access pattern
+  - Improved documentation with comprehensive method docstrings
+  - Fixed code quality issues and removed unused imports
+  - Verified service compiles correctly with proper architecture
+  - Updated implementation checklist to reflect completed phase
+
 ### AccountService Refactoring for ADR-014 Compliance (2025-04-25)
 
 - Refactored AccountService to comply with ADR-014 Repository Layer Compliance:

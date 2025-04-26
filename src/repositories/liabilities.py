@@ -19,7 +19,7 @@ from src.utils.datetime_utils import (
     days_from_now,
     end_of_day,
     last_day_of_month,
-    naive_end_of_day, 
+    naive_end_of_day,
     naive_start_of_day,
     utc_datetime,
     utc_now,
@@ -138,7 +138,7 @@ class LiabilityRepository(BaseRepository[Liability, int]):
         # and inclusive date range semantics (start to end, inclusive of both)
         naive_start = naive_start_of_day(start_date)
         naive_end = naive_end_of_day(end_date)
-        
+
         query = (
             select(Liability)
             .where(
@@ -353,7 +353,7 @@ class LiabilityRepository(BaseRepository[Liability, int]):
         # Create date range for the month using ADR-011 compliant methods
         start_date = utc_datetime(year, month, 1)
         end_date = last_day_of_month(start_date)
-        
+
         # Convert to naive for database operations
         naive_start = naive_start_of_day(start_date)
         naive_end = naive_end_of_day(end_date)
@@ -372,7 +372,7 @@ class LiabilityRepository(BaseRepository[Liability, int]):
         return total if total is not None else Decimal("0")
 
     async def mark_as_paid(
-        self, liability_id: int, payment_date = None
+        self, liability_id: int, payment_date=None
     ) -> Optional[Liability]:
         """
         Mark a liability as paid.

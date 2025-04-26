@@ -16,12 +16,12 @@ from src.schemas.cashflow import (
     CustomForecastResult,
 )
 
-from .base import BaseService
-from .transaction_service import TransactionService
-from .types import DateType
+from src.services.cashflow.cashflow_base import CashflowBaseService
+from src.services.cashflow.cashflow_transaction_service import TransactionService
+from src.services.cashflow.cashflow_types import DateType
 
 
-class ForecastService(BaseService):
+class ForecastService(CashflowBaseService):
     """Service for generating cashflow forecasts."""
 
     def __init__(self, db):

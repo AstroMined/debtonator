@@ -79,10 +79,10 @@ async def test_credit_with_statement(db_session: AsyncSession) -> CreditAccount:
 async def test_credit_with_due_date(db_session: AsyncSession) -> CreditAccount:
     """
     Create a credit account with an upcoming due date for payment testing.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         CreditAccount: Credit account with due date in the next 10 days
     """
@@ -119,10 +119,10 @@ async def test_credit_with_due_date(db_session: AsyncSession) -> CreditAccount:
 async def test_credit_with_rewards(db_session: AsyncSession) -> CreditAccount:
     """
     Create a credit account with rewards program and autopay enabled.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         CreditAccount: Credit account with rewards and autopay
     """

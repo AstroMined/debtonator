@@ -28,6 +28,7 @@ pytestmark = pytest.mark.asyncio
 # Core Factory Functionality Tests
 #
 
+
 @pytest.mark.asyncio
 async def test_create_repository_with_type(
     test_repository_factory,
@@ -36,9 +37,9 @@ async def test_create_repository_with_type(
     Test creating repository for specific entity types.
 
     This test verifies that a repository factory correctly creates specialized
-    repositories for different entity types with dynamically bound type-specific 
+    repositories for different entity types with dynamically bound type-specific
     methods.
-    
+
     Args:
         test_repository_factory: Repository factory fixture for test entities
     """
@@ -49,7 +50,7 @@ async def test_create_repository_with_type(
     # 3. ACT: Create repositories for different entity types
     type_a_repo = await test_repository_factory(entity_type="type_a")
     type_b_repo = await test_repository_factory(entity_type="type_b")
-    
+
     # 4. ASSERT: Verify the repositories were created with type-specific methods
     assert type_a_repo is not None
     assert type_b_repo is not None
@@ -81,10 +82,10 @@ async def test_dynamic_method_binding_type_a(
 
     # 3. ACT: Create repository and use dynamically bound methods
     repo = await test_repository_factory(entity_type="type_a")
-    
+
     # Count entities
     count = await repo.count_type_a_entities()
-    
+
     # Get entities with specific field value
     entities = await repo.get_type_a_entities_with_field_value(
         field_value="Test A Field Value"
@@ -118,12 +119,12 @@ async def test_dynamic_method_binding_type_b(
 
     # 3. ACT: Create repository and use dynamically bound methods
     repo = await test_repository_factory(entity_type="type_b")
-    
+
     # Get entities with required field
     entities = await repo.get_type_b_entities_with_required_field(
         field_value="Required B Field Value"
     )
-    
+
     # Find entities by name pattern
     entities_by_name = await repo.find_type_b_by_name_pattern(
         name_pattern="Test Type B"
@@ -134,7 +135,7 @@ async def test_dynamic_method_binding_type_b(
     assert test_type_b_entity.id in [e.id for e in entities]
     assert all(isinstance(e, TestTypeBModel) for e in entities)
     assert all(e.b_field == "Required B Field Value" for e in entities)
-    
+
     assert len(entities_by_name) >= 1
     assert test_type_b_entity.id in [e.id for e in entities_by_name]
 
@@ -169,9 +170,7 @@ async def test_fallback_behavior_for_unknown_type(
 
 
 @pytest.mark.asyncio
-async def test_session_propagation(
-    test_repository_factory, db_session: AsyncSession
-):
+async def test_session_propagation(test_repository_factory, db_session: AsyncSession):
     """
     Test that session is properly propagated to created repositories.
 
@@ -198,7 +197,7 @@ async def test_session_propagation(
 
     # Test that operations using the session work
     entity = await repo.create_typed_entity("type_a", entity_data.model_dump())
-    
+
     # Use the repository to fetch the entity
     fetched = await repo.get(entity.id)
     assert fetched is not None
@@ -229,7 +228,7 @@ async def test_no_type_repository_creation(
 
     # 4. ASSERT: Verify the repository was created
     assert repo is not None
-    
+
     # Should not have specialized methods
     assert not hasattr(repo, "get_type_a_entities_with_field_value")
     assert not hasattr(repo, "count_type_a_entities")
@@ -240,6 +239,7 @@ async def test_no_type_repository_creation(
 #
 # Polymorphic Entity Creation Tests
 #
+
 
 @pytest.mark.asyncio
 async def test_create_typed_entity_through_factory(
@@ -273,7 +273,7 @@ async def test_create_typed_entity_through_factory(
     assert entity.b_field == "Factory Test Value"
     assert entity.model_type == "type_b"
     assert isinstance(entity, TestTypeBModel)
-    
+
     # Verify entity was stored properly
     stored = await repo.get(entity.id)
     assert stored is not None
@@ -297,16 +297,16 @@ async def test_update_typed_entity_through_factory(
     """
     # 1. ARRANGE: Create repository and entity
     repo = await test_repository_factory(entity_type="type_a")
-    
+
     # 2. SCHEMA: Create entity and update schemas
     create_data = create_test_type_a_schema(
         name="Original Name",
         a_field="Original Value",
     )
-    
+
     # Create entity to update
     entity = await repo.create_typed_entity("type_a", create_data.model_dump())
-    
+
     # 3. ACT: Update the entity
     updated = await repo.update_typed_entity(
         entity.id,
@@ -323,7 +323,7 @@ async def test_update_typed_entity_through_factory(
     assert updated.name == "Updated Name"
     assert updated.a_field == "Updated Value"
     assert updated.model_type == "type_a"
-    
+
     # Verify entity was updated in database
     stored = await repo.get(entity.id)
     assert stored is not None
@@ -337,40 +337,40 @@ async def test_combining_repository_and_type_specific_functions(
 ):
     """
     Test using both repository base methods and type-specific functions.
-    
+
     This test verifies that repositories created by the factory correctly
     combine base repository methods with dynamically bound type-specific methods.
-    
+
     Args:
         test_repository_factory: Repository factory fixture
         test_type_b_entity: Test entity fixture
     """
     # 1. ARRANGE: Repository factory and test entity provided by fixtures
-    
+
     # 2. SCHEMA: Create data for a new entity
     create_data = create_test_type_b_schema(
         name="Combined Test Entity",
         b_field="Combined Test Value",
     )
-    
+
     # 3. ACT: Create repository and use both base and specific methods
     repo = await test_repository_factory(entity_type="type_b")
-    
+
     # Use base repository method to create entity
     entity = await repo.create_typed_entity("type_b", create_data.model_dump())
-    
+
     # Use type-specific method to find entities
     entities_by_name = await repo.find_type_b_by_name_pattern("Combined")
-    
+
     # Use base repository method to delete entity
     deleted = await repo.delete(entity.id)
-    
+
     # 4. ASSERT: Verify both sets of methods work correctly
     assert entity.id is not None
     assert entity.name == "Combined Test Entity"
-    
+
     assert len(entities_by_name) >= 1
     assert entity.id in [e.id for e in entities_by_name]
-    
+
     assert deleted is True
     assert await repo.get(entity.id) is None

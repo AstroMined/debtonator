@@ -14,7 +14,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.balance_reconciliation import BalanceReconciliation
 from src.repositories.base_repository import BaseRepository
-from src.utils.datetime_utils import days_ago, ensure_utc, naive_start_of_day, naive_end_of_day, utc_now
+from src.utils.datetime_utils import (
+    days_ago,
+    ensure_utc,
+    naive_end_of_day,
+    naive_start_of_day,
+    utc_now,
+)
 
 
 class BalanceReconciliationRepository(BaseRepository[BalanceReconciliation, int]):
@@ -74,7 +80,7 @@ class BalanceReconciliationRepository(BaseRepository[BalanceReconciliation, int]
         """
         Get balance reconciliation entries within a date range.
 
-        Following ADR-011, uses inclusive date range with naive_start_of_day and 
+        Following ADR-011, uses inclusive date range with naive_start_of_day and
         naive_end_of_day for direct database storage without timezone conversion.
 
         Args:
@@ -88,11 +94,11 @@ class BalanceReconciliationRepository(BaseRepository[BalanceReconciliation, int]
         # Ensure UTC timezone awareness for datetime parameters
         start_date = ensure_utc(start_date)
         end_date = ensure_utc(end_date)
-        
+
         # Use naive functions directly for database queries
         db_start_date = naive_start_of_day(start_date)
         db_end_date = naive_end_of_day(end_date)
-        
+
         query = (
             select(BalanceReconciliation)
             .where(
@@ -174,13 +180,17 @@ class BalanceReconciliationRepository(BaseRepository[BalanceReconciliation, int]
             # Ensure UTC timezone awareness and convert to naive datetime for DB
             start_date = ensure_utc(start_date)
             db_start_date = naive_start_of_day(start_date)
-            query = query.where(BalanceReconciliation.reconciliation_date >= db_start_date)
+            query = query.where(
+                BalanceReconciliation.reconciliation_date >= db_start_date
+            )
 
         if end_date:
             # Ensure UTC timezone awareness and convert to naive datetime for DB
             end_date = ensure_utc(end_date)
             db_end_date = naive_end_of_day(end_date)
-            query = query.where(BalanceReconciliation.reconciliation_date <= db_end_date)
+            query = query.where(
+                BalanceReconciliation.reconciliation_date <= db_end_date
+            )
 
         result = await self.session.execute(query)
         total = result.scalar_one_or_none()

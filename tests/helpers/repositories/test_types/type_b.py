@@ -30,10 +30,10 @@ async def get_type_b_entities_with_required_field(
         List of TestTypeBModel instances matching the criteria
     """
     query = select(TestTypeBModel)
-    
+
     if field_value is not None:
         query = query.where(TestTypeBModel.b_field == field_value)
-    
+
     result = await session.execute(query)
     return list(result.scalars().all())
 

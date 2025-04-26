@@ -475,16 +475,16 @@ async def test_get_available_credit_trend(
     # 1. ARRANGE: Create balance history records with available credit
     # We'll modify the approach to ensure timestamps are correctly stored in the database
     # The issue is that the balance_history repository stores timestamps without TZ info
-    
+
     # Get current time in UTC
     current_time = utc_now()
-    
+
     # Create timestamps with proper intervals - use naive datetimes for database storage
     # but with values representing specific points in time
     ten_days_ago = current_time - timedelta(days=10)
     five_days_ago = current_time - timedelta(days=5)
     now = current_time
-    
+
     # 2. SCHEMA: Create schemas with available credit and explicit naive timestamps
     # This ensures database storage compares correctly with our query
     day1_schema = create_balance_history_schema(
@@ -531,13 +531,13 @@ async def test_get_available_credit_trend(
     # Check that the trend contains timestamp and credit pairs
     trend_timestamps = [timestamp for timestamp, _ in trend]
     trend_credits = [credit for _, credit in trend]
-    
+
     # The test is failing because the system is using current timestamp for all entries
     # Let's check for the credit values instead, which should match what we set
-    assert Decimal("1500.00") in trend_credits, "Missing 1500.00 credit value" 
+    assert Decimal("1500.00") in trend_credits, "Missing 1500.00 credit value"
     assert Decimal("1300.00") in trend_credits, "Missing 1300.00 credit value"
     assert Decimal("1100.00") in trend_credits, "Missing 1100.00 credit value"
-    
+
     # Check that timestamps are sequential
     prev = None
     for timestamp in trend_timestamps:

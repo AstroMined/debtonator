@@ -32,7 +32,9 @@ class CreditAccount(Account):
         Numeric(12, 4), nullable=False, comment="Total credit limit"
     )
     available_credit: Mapped[Optional[Decimal]] = mapped_column(
-        Numeric(12, 4), nullable=True, comment="Available credit (credit_limit - balance)"
+        Numeric(12, 4),
+        nullable=True,
+        comment="Available credit (credit_limit - balance)",
     )
     statement_balance: Mapped[Optional[Decimal]] = mapped_column(
         Numeric(12, 4), nullable=True, comment="Current statement balance"

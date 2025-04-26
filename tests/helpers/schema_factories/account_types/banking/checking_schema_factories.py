@@ -192,7 +192,7 @@ def create_checking_account_update_schema(
 
     if interest_rate is not None:
         data["interest_rate"] = interest_rate
-        
+
     # Explicitly set credit-specific fields to None to prevent inheriting from base schema
     data["available_credit"] = None
     data["total_limit"] = None
@@ -303,7 +303,7 @@ def create_checking_account_response_schema(
         "updated_at": updated_at,
         **base_dict,
     }
-    
+
     # Ensure credit-specific fields are explicitly set to None
     response_data["available_credit"] = None
     response_data["total_limit"] = None

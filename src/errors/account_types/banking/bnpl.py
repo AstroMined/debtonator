@@ -88,7 +88,7 @@ class BNPLPaymentFrequencyError(BNPLAccountError):
 class BNPLNextPaymentDateError(BNPLAccountError):
     """
     Error raised for next payment date issues.
-    
+
     Per ADR-011, ensures all datetime values are converted to UTC before processing.
     """
 

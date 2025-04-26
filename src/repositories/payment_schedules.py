@@ -15,11 +15,11 @@ from sqlalchemy.orm import joinedload
 from src.models.payment_schedules import PaymentSchedule
 from src.repositories.base_repository import BaseRepository
 from src.utils.datetime_utils import (
-    ensure_utc, 
-    naive_start_of_day, 
-    naive_end_of_day, 
-    safe_end_date, 
-    utc_now
+    ensure_utc,
+    naive_end_of_day,
+    naive_start_of_day,
+    safe_end_date,
+    utc_now,
 )
 
 
@@ -124,11 +124,11 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
         # Ensure UTC timezone awareness for datetime parameters
         start_date = ensure_utc(start_date)
         end_date = ensure_utc(end_date)
-        
+
         # Use naive functions directly for database queries
         db_start_date = naive_start_of_day(start_date)
         db_end_date = naive_end_of_day(end_date)
-        
+
         result = await self.session.execute(
             select(PaymentSchedule)
             .where(
@@ -192,7 +192,7 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
             current_time = ensure_utc(processed_date)
         else:
             current_time = utc_now()
-        
+
         # For database operations, strip timezone info
         db_current_time = current_time.replace(tzinfo=None)
 
@@ -230,11 +230,11 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
             # Ensure UTC timezone awareness for datetime parameters
             start_date = ensure_utc(start_date)
             end_date = ensure_utc(end_date)
-            
+
             # Use naive functions directly for database queries
             db_start_date = naive_start_of_day(start_date)
             db_end_date = naive_end_of_day(end_date)
-            
+
             query = query.where(
                 and_(
                     PaymentSchedule.scheduled_date >= db_start_date,
@@ -260,7 +260,7 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
         """
         today = utc_now()
         end_date = safe_end_date(today, days)
-        
+
         # For database operations, strip timezone info
         db_today = today.replace(tzinfo=None)
         db_end_date = end_date.replace(tzinfo=None)
@@ -300,7 +300,7 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
             List[PaymentSchedule]: List of overdue payment schedules
         """
         today = utc_now()
-        
+
         # For database operations, strip timezone info
         db_today = today.replace(tzinfo=None)
 
@@ -358,11 +358,11 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
             # Ensure UTC timezone awareness for datetime parameters
             start_date = ensure_utc(start_date)
             end_date = ensure_utc(end_date)
-            
+
             # Use naive functions directly for database queries
             db_start_date = naive_start_of_day(start_date)
             db_end_date = naive_end_of_day(end_date)
-            
+
             query = query.where(
                 and_(
                     PaymentSchedule.scheduled_date >= db_start_date,
@@ -393,11 +393,11 @@ class PaymentScheduleRepository(BaseRepository[PaymentSchedule, int]):
         # Ensure UTC timezone awareness for datetime parameters
         start_date = ensure_utc(start_date)
         end_date = ensure_utc(end_date)
-        
+
         # Use naive functions directly for database queries
         db_start_date = naive_start_of_day(start_date)
         db_end_date = naive_end_of_day(end_date)
-        
+
         query = select(func.sum(PaymentSchedule.amount)).where(
             and_(
                 PaymentSchedule.scheduled_date >= db_start_date,

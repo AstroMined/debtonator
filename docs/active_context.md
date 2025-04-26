@@ -6,6 +6,16 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Account Type
 
 ### Recent Changes
 
+1. **Completed TransactionService Refactoring for ADR-014 Compliance (April 25, 2025)** ✓
+   - Refactored TransactionService to inherit from BaseService
+   - Replaced property-based repository access with _get_repository method calls
+   - Removed unnecessary constructor override for better code quality
+   - Updated all methods to use consistent repository access pattern
+   - Ensured proper datetime handling in date-related operations
+   - Improved documentation with comprehensive method docstrings
+   - Updated implementation checklist documentation
+   - Preserved all existing business logic and functionality
+
 1. **Completed AccountService Refactoring for ADR-014 Compliance (April 25, 2025)** ✓
    - Refactored AccountService to inherit from BaseService
    - Replaced direct repository access with _get_repository method calls

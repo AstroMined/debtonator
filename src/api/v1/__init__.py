@@ -53,6 +53,4 @@ api_v1_router.include_router(realtime_cashflow_router, tags=["realtime-cashflow"
 api_v1_router.include_router(
     feature_flags_router, prefix="/feature-flags", tags=["feature-flags"]
 )
-api_v1_router.include_router(
-    banking_router, prefix="/banking", tags=["banking"]
-)
+api_v1_router.include_router(banking_router, prefix="/banking", tags=["banking"])

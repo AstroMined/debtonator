@@ -332,9 +332,10 @@ class FeatureFlagContext(BaseSchemaValidator):
         if v is not None:
             # Simple regex for IPv4 and IPv6 validation
             import re
+
             ipv4_pattern = r"^(\d{1,3}\.){3}\d{1,3}$"
             ipv6_pattern = r"^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$"
-            
+
             if not (re.match(ipv4_pattern, v) or re.match(ipv6_pattern, v)):
                 raise ValueError("client_ip must be a valid IP address")
         return v

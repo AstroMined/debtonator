@@ -180,13 +180,11 @@ class FeatureFlagRegistry:
                 # Convert string timestamps to datetime if needed
                 if isinstance(start_time, str):
                     start_time = utc_datetime_from_str(
-                        start_time.replace("Z", "+00:00"),
-                        "%Y-%m-%dT%H:%M:%S.%f%z"
+                        start_time.replace("Z", "+00:00"), "%Y-%m-%dT%H:%M:%S.%f%z"
                     )
                 if isinstance(end_time, str):
                     end_time = utc_datetime_from_str(
-                        end_time.replace("Z", "+00:00"),
-                        "%Y-%m-%dT%H:%M:%S.%f%z"
+                        end_time.replace("Z", "+00:00"), "%Y-%m-%dT%H:%M:%S.%f%z"
                     )
 
                 # Ensure datetimes are UTC-compliant per ADR-011

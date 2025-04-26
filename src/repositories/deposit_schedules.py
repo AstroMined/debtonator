@@ -15,11 +15,11 @@ from sqlalchemy.orm import joinedload
 from src.models.deposit_schedules import DepositSchedule
 from src.repositories.base_repository import BaseRepository
 from src.utils.datetime_utils import (
-    ensure_utc, 
-    naive_start_of_day, 
-    naive_end_of_day, 
-    safe_end_date, 
-    utc_now
+    ensure_utc,
+    naive_end_of_day,
+    naive_start_of_day,
+    safe_end_date,
+    utc_now,
 )
 
 
@@ -124,11 +124,11 @@ class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
         # Ensure UTC timezone awareness for datetime parameters
         start_date = ensure_utc(start_date)
         end_date = ensure_utc(end_date)
-        
+
         # Use naive functions directly for database queries
         db_start_date = naive_start_of_day(start_date)
         db_end_date = naive_end_of_day(end_date)
-        
+
         result = await self.session.execute(
             select(DepositSchedule)
             .where(
@@ -216,11 +216,11 @@ class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
             # Ensure UTC timezone awareness for datetime parameters
             start_date = ensure_utc(start_date)
             end_date = ensure_utc(end_date)
-            
+
             # Use naive functions directly for database queries
             db_start_date = naive_start_of_day(start_date)
             db_end_date = naive_end_of_day(end_date)
-            
+
             query = query.where(
                 and_(
                     DepositSchedule.schedule_date >= db_start_date,
@@ -246,7 +246,7 @@ class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
         """
         today = utc_now()
         end_date = safe_end_date(today, days)
-        
+
         # For database operations, strip timezone info
         db_today = today.replace(tzinfo=None)
         db_end_date = end_date.replace(tzinfo=None)
@@ -286,7 +286,7 @@ class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
             List[DepositSchedule]: List of overdue deposit schedules
         """
         today = utc_now()
-        
+
         # For database operations, strip timezone info
         db_today = today.replace(tzinfo=None)
 
@@ -345,11 +345,11 @@ class DepositScheduleRepository(BaseRepository[DepositSchedule, int]):
         # Ensure UTC timezone awareness for datetime parameters
         start_date = ensure_utc(start_date)
         end_date = ensure_utc(end_date)
-        
+
         # Use naive functions directly for database queries
         db_start_date = naive_start_of_day(start_date)
         db_end_date = naive_end_of_day(end_date)
-        
+
         query = select(func.sum(DepositSchedule.amount)).where(
             and_(
                 DepositSchedule.schedule_date >= db_start_date,

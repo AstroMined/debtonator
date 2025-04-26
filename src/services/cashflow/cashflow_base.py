@@ -4,25 +4,27 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.repositories.cashflow.forecast_repository import CashflowForecastRepository
-from src.repositories.cashflow.metrics_repository import CashflowMetricsRepository
-from src.repositories.cashflow.transaction_repository import CashflowTransactionRepository
-from src.services.base import BaseService as AppBaseService
-from src.services.cashflow.types import CashflowHolidays, CashflowWarningThresholds
+from src.repositories.cashflow.cashflow_forecast_repository import CashflowForecastRepository
+from src.repositories.cashflow.cashflow_metrics_repository import CashflowMetricsRepository
+from src.repositories.cashflow.cashflow_transaction_repository import (
+    CashflowTransactionRepository,
+)
+from src.services.base import BaseService
+from src.services.cashflow.cashflow_types import CashflowHolidays, CashflowWarningThresholds
 from src.services.feature_flags import FeatureFlagService
 
 # Generic type for repository types
 RepositoryType = TypeVar("RepositoryType")
 
 
-class BaseService(AppBaseService):
+class CashflowBaseService(BaseService):
     """Base service with shared functionality for cashflow services."""
 
     def __init__(
-        self, 
+        self,
         session: AsyncSession,
         feature_flag_service: Optional[FeatureFlagService] = None,
-        config_provider: Optional[Any] = None
+        config_provider: Optional[Any] = None,
     ):
         """Initialize the base service.
 
@@ -60,34 +62,34 @@ class BaseService(AppBaseService):
             return True
         except Exception:
             return False
-    
+
     # Repository accessors with lazy loading using BaseService._get_repository
-    
+
     @property
     async def forecast_repository(self) -> CashflowForecastRepository:
         """
         Get the cashflow forecast repository instance.
-        
+
         Returns:
             CashflowForecastRepository: Cashflow forecast repository
         """
         return await self._get_repository(CashflowForecastRepository)
-    
+
     @property
     async def metrics_repository(self) -> CashflowMetricsRepository:
         """
         Get the cashflow metrics repository instance.
-        
+
         Returns:
             CashflowMetricsRepository: Cashflow metrics repository
         """
         return await self._get_repository(CashflowMetricsRepository)
-    
+
     @property
     async def transaction_repository(self) -> CashflowTransactionRepository:
         """
         Get the cashflow transaction repository instance.
-        
+
         Returns:
             CashflowTransactionRepository: Cashflow transaction repository
         """

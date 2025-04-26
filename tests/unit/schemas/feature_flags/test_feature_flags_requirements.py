@@ -93,7 +93,9 @@ def test_requirements_update_invalid_layer():
 
 def test_requirements_update_invalid_repository_format():
     """Test the requirements update schema with invalid repository format."""
-    with pytest.raises(ValidationError, match="Repository requirements must be a dictionary"):
+    with pytest.raises(
+        ValidationError, match="Repository requirements must be a dictionary"
+    ):
         RequirementsUpdate(
             requirements={
                 "repository": "not_a_dict",  # Should be a dict
@@ -103,7 +105,9 @@ def test_requirements_update_invalid_repository_format():
 
 def test_requirements_update_invalid_method_name():
     """Test the requirements update schema with an invalid method name."""
-    with pytest.raises(ValidationError, match="Repository method names must be strings"):
+    with pytest.raises(
+        ValidationError, match="Repository method names must be strings"
+    ):
         RequirementsUpdate(
             requirements={
                 "repository": {
@@ -115,7 +119,10 @@ def test_requirements_update_invalid_method_name():
 
 def test_requirements_update_invalid_account_types():
     """Test the requirements update schema with invalid account types."""
-    with pytest.raises(ValidationError, match="Account types for method 'create_typed_entity' must be a list or dictionary"):
+    with pytest.raises(
+        ValidationError,
+        match="Account types for method 'create_typed_entity' must be a list or dictionary",
+    ):
         RequirementsUpdate(
             requirements={
                 "repository": {
@@ -127,7 +134,10 @@ def test_requirements_update_invalid_account_types():
 
 def test_requirements_update_non_string_account_types():
     """Test the requirements update schema with non-string account types."""
-    with pytest.raises(ValidationError, match="Account types for method 'create_typed_entity' must be strings"):
+    with pytest.raises(
+        ValidationError,
+        match="Account types for method 'create_typed_entity' must be strings",
+    ):
         RequirementsUpdate(
             requirements={
                 "repository": {
@@ -151,7 +161,10 @@ def test_requirements_update_service_validation():
     assert update.requirements["service"]["create_account"] == ["bnpl", "ewa"]
 
     # Invalid service method type
-    with pytest.raises(ValidationError, match="Account types for method 'create_account' must be a list or dictionary"):
+    with pytest.raises(
+        ValidationError,
+        match="Account types for method 'create_account' must be a list or dictionary",
+    ):
         RequirementsUpdate(
             requirements={
                 "service": {
@@ -185,7 +198,10 @@ def test_requirements_update_api_validation():
         )
 
     # Invalid account types format
-    with pytest.raises(ValidationError, match="Account types for endpoint '/api/v1/accounts' must be a list or dictionary"):
+    with pytest.raises(
+        ValidationError,
+        match="Account types for endpoint '/api/v1/accounts' must be a list or dictionary",
+    ):
         RequirementsUpdate(
             requirements={
                 "api": {
@@ -231,9 +247,7 @@ def test_requirements_update_validation_comprehensive():
 
     # Test with invalid top-level keys
     with pytest.raises(ValidationError, match="Invalid layers in requirements"):
-        RequirementsUpdate(
-            requirements={"invalid_layer": {}}
-        )
+        RequirementsUpdate(requirements={"invalid_layer": {}})
 
     # Test with multiple invalid top-level keys
     with pytest.raises(ValidationError, match="Invalid layers in requirements"):
@@ -246,23 +260,22 @@ def test_requirements_update_validation_comprehensive():
         )
 
     # Test with non-dictionary service requirements
-    with pytest.raises(ValidationError, match="Service requirements must be a dictionary"):
+    with pytest.raises(
+        ValidationError, match="Service requirements must be a dictionary"
+    ):
         RequirementsUpdate(
-            requirements={
-                "service": ["method1", "method2"]  # Should be a dict
-            }
+            requirements={"service": ["method1", "method2"]}  # Should be a dict
         )
 
     # Test with invalid service method name type
     with pytest.raises(ValidationError, match="Service method names must be strings"):
-        RequirementsUpdate(
-            requirements={
-                "service": {123: ["admin"]}  # Non-string key
-            }
-        )
+        RequirementsUpdate(requirements={"service": {123: ["admin"]}})  # Non-string key
 
     # Test with non-list/dict account types in service
-    with pytest.raises(ValidationError, match="Account types for method 'create_account' must be a list or dictionary"):
+    with pytest.raises(
+        ValidationError,
+        match="Account types for method 'create_account' must be a list or dictionary",
+    ):
         RequirementsUpdate(
             requirements={
                 "service": {"create_account": "bnpl"}  # String instead of list/dict
@@ -270,7 +283,10 @@ def test_requirements_update_validation_comprehensive():
         )
 
     # Test with non-string account types in service list
-    with pytest.raises(ValidationError, match="Account types for method 'create_account' must be strings"):
+    with pytest.raises(
+        ValidationError,
+        match="Account types for method 'create_account' must be strings",
+    ):
         RequirementsUpdate(
             requirements={
                 "service": {"create_account": [123, 456]}  # Non-string values
@@ -280,21 +296,18 @@ def test_requirements_update_validation_comprehensive():
     # Test with non-dictionary API requirements
     with pytest.raises(ValidationError, match="API requirements must be a dictionary"):
         RequirementsUpdate(
-            requirements={
-                "api": ["endpoint1", "endpoint2"]  # Should be a dict
-            }
+            requirements={"api": ["endpoint1", "endpoint2"]}  # Should be a dict
         )
 
     # Test with invalid API endpoint path type
     with pytest.raises(ValidationError, match="API endpoint paths must be strings"):
-        RequirementsUpdate(
-            requirements={
-                "api": {123: ["admin"]}  # Non-string key
-            }
-        )
+        RequirementsUpdate(requirements={"api": {123: ["admin"]}})  # Non-string key
 
     # Test with non-list/dict account types in API
-    with pytest.raises(ValidationError, match="Account types for endpoint '/api/v1/accounts' must be a list or dictionary"):
+    with pytest.raises(
+        ValidationError,
+        match="Account types for endpoint '/api/v1/accounts' must be a list or dictionary",
+    ):
         RequirementsUpdate(
             requirements={
                 "api": {"/api/v1/accounts": "bnpl"}  # String instead of list/dict
@@ -302,11 +315,12 @@ def test_requirements_update_validation_comprehensive():
         )
 
     # Test with non-string account types in API list
-    with pytest.raises(ValidationError, match="Account types for endpoint '/api/v1/accounts' must be strings"):
+    with pytest.raises(
+        ValidationError,
+        match="Account types for endpoint '/api/v1/accounts' must be strings",
+    ):
         RequirementsUpdate(
-            requirements={
-                "api": {"/api/v1/accounts": [123, 456]}  # Non-string values
-            }
+            requirements={"api": {"/api/v1/accounts": [123, 456]}}  # Non-string values
         )
 
     # Test with valid complex structure
@@ -318,11 +332,17 @@ def test_requirements_update_validation_comprehensive():
             },
             "service": {
                 "create_account": ["bnpl", "ewa"],
-                "update_account": {"bnpl": {"enabled": True}, "ewa": {"enabled": False}},
+                "update_account": {
+                    "bnpl": {"enabled": True},
+                    "ewa": {"enabled": False},
+                },
             },
             "api": {
                 "/api/v1/accounts": ["bnpl", "ewa"],
-                "/api/v1/accounts/{id}": {"bnpl": {"methods": ["PUT", "DELETE"]}, "ewa": {"methods": ["GET"]}},
+                "/api/v1/accounts/{id}": {
+                    "bnpl": {"methods": ["PUT", "DELETE"]},
+                    "ewa": {"methods": ["GET"]},
+                },
             },
         }
     )

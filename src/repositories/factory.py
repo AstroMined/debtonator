@@ -1,18 +1,18 @@
 """
 Repository factory implementation.
 
-This module provides a factory ONLY for creating polymorphic repositories with specialized 
-functionality based on account types. It dynamically loads type-specific repository modules 
+This module provides a factory ONLY for creating polymorphic repositories with specialized
+functionality based on account types. It dynamically loads type-specific repository modules
 and binds their functions to the base repository instance.
 
 It also handles feature flag enforcement through proxies that intercept repository
 method calls and apply feature flag restrictions based on centralized configuration.
 
-IMPORTANT: Following ADR-014 Repository Layer Compliance, this factory should ONLY be used 
-for polymorphic repositories (like AccountRepository). For standard repositories, use 
+IMPORTANT: Following ADR-014 Repository Layer Compliance, this factory should ONLY be used
+for polymorphic repositories (like AccountRepository). For standard repositories, use
 BaseService._get_repository() instead of direct factory methods.
 
-Implemented as part of ADR-014 Repository Layer Compliance, ADR-016 Account Type Expansion, 
+Implemented as part of ADR-014 Repository Layer Compliance, ADR-016 Account Type Expansion,
 ADR-019 Banking Account Types, and ADR-024 Feature Flag System.
 """
 
@@ -43,18 +43,18 @@ class RepositoryFactory:
     This class implements the factory pattern ONLY for polymorphic repositories with
     type-specific functionality. It dynamically loads repository modules based
     on account types and binds their functions to the base repository instance.
-    
+
     STANDARD (non-polymorphic) repositories should NOT use this factory.
     Instead, they should be created directly by BaseService._get_repository().
-    
+
     Example usage in BaseService:
-    
+
         # For polymorphic repositories:
         account_repo = await self._get_repository(
-            AccountRepository, 
+            AccountRepository,
             polymorphic_type="checking"
         )
-        
+
         # For standard repositories:
         transaction_repo = await self._get_repository(TransactionHistoryRepository)
     """
@@ -169,7 +169,8 @@ class RepositoryFactory:
             except Exception as e:
                 # Fall back to in-memory provider if database provider fails
                 logger.warning(
-                    "Could not create DatabaseConfigProvider: %s. Using InMemoryConfigProvider", e
+                    "Could not create DatabaseConfigProvider: %s. Using InMemoryConfigProvider",
+                    e,
                 )
                 config_provider = InMemoryConfigProvider()
 

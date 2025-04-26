@@ -5,7 +5,7 @@ This module provides a repository for Payment model CRUD operations and speciali
 payment-related queries.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
@@ -16,11 +16,10 @@ from sqlalchemy.orm import joinedload, selectinload
 from src.models.payments import Payment, PaymentSource
 from src.repositories.base_repository import BaseRepository
 from src.utils.datetime_utils import (
-    days_ago, 
-    ensure_utc, 
-    naive_start_of_day, 
-    naive_end_of_day, 
-    utc_now
+    days_ago,
+    ensure_utc,
+    naive_end_of_day,
+    naive_start_of_day,
 )
 
 
@@ -210,17 +209,17 @@ class PaymentRepository(BaseRepository[Payment, int]):
         # Ensure UTC timezone awareness for datetime parameters
         start_date = ensure_utc(start_date)
         end_date = ensure_utc(end_date)
-        
+
         # Use naive functions directly for database queries
         db_start_date = naive_start_of_day(start_date)
         db_end_date = naive_end_of_day(end_date)
-        
+
         query = (
             select(Payment)
             .where(
                 and_(
-                    Payment.payment_date >= db_start_date, 
-                    Payment.payment_date <= db_end_date
+                    Payment.payment_date >= db_start_date,
+                    Payment.payment_date <= db_end_date,
                 )
             )
             .order_by(Payment.payment_date)
@@ -276,11 +275,11 @@ class PaymentRepository(BaseRepository[Payment, int]):
         # Ensure UTC timezone awareness for datetime parameters
         start_date = ensure_utc(start_date)
         end_date = ensure_utc(end_date)
-        
+
         # Use naive functions directly for database queries
         db_start_date = naive_start_of_day(start_date)
         db_end_date = naive_end_of_day(end_date)
-        
+
         query = select(func.sum(Payment.amount)).where(
             between(Payment.payment_date, db_start_date, db_end_date)
         )
@@ -308,7 +307,7 @@ class PaymentRepository(BaseRepository[Payment, int]):
         """
         # Use days_ago function instead of manual calculation
         cutoff_date = days_ago(days=days)
-        
+
         # For database operations, strip timezone info
         db_cutoff_date = cutoff_date.replace(tzinfo=None)
 

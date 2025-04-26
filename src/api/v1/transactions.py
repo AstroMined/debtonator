@@ -13,7 +13,6 @@ from src.schemas.transaction_history import (
     TransactionHistoryUpdate as TransactionUpdate,
 )
 from src.services.transactions import TransactionService
-from src.utils.datetime_utils import ensure_utc
 
 router = APIRouter(prefix="/accounts/{account_id}/transactions", tags=["transactions"])
 
@@ -46,8 +45,8 @@ async def list_transactions(
 ) -> TransactionList:
     """
     List transactions for an account with optional date filtering.
-    
-    Date parameters are expected to be ISO format strings following ADR-011 
+
+    Date parameters are expected to be ISO format strings following ADR-011
     requirements for UTC datetime standardization.
     """
     service = TransactionService(db)

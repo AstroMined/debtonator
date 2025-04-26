@@ -161,14 +161,17 @@ def test_feature_flag_account_http_exception_with_flag_name():
     """Test initializing FeatureFlagAccountHTTPException with flag name."""
     exception = FeatureFlagAccountHTTPException("TEST_FLAG")
     assert exception.status_code == status.HTTP_403_FORBIDDEN
-    
+
     # The detail field has a nested structure
     assert "message" in exception.detail
     assert isinstance(exception.detail["message"], dict)
-    
+
     # Check the nested message dictionary
     message_dict = exception.detail["message"]
-    assert message_dict["message"] == "Operation not available: feature 'TEST_FLAG' is disabled for account"
+    assert (
+        message_dict["message"]
+        == "Operation not available: feature 'TEST_FLAG' is disabled for account"
+    )
     assert message_dict["feature_flag"] == "TEST_FLAG"
     assert message_dict["entity_type"] == "account"
 
@@ -179,11 +182,11 @@ def test_feature_flag_account_http_exception_with_custom_message():
         "TEST_FLAG", "Custom feature flag message"
     )
     assert exception.status_code == status.HTTP_403_FORBIDDEN
-    
+
     # The detail field has a nested structure
     assert "message" in exception.detail
     assert isinstance(exception.detail["message"], dict)
-    
+
     # Check the nested message dictionary
     message_dict = exception.detail["message"]
     assert message_dict["message"] == "Custom feature flag message"
@@ -198,11 +201,11 @@ def test_feature_flag_account_http_exception_with_all_parameters():
         "TEST_FLAG", "Custom feature flag message", details
     )
     assert exception.status_code == status.HTTP_403_FORBIDDEN
-    
+
     # The detail field has a nested structure
     assert "message" in exception.detail
     assert isinstance(exception.detail["message"], dict)
-    
+
     # Check the nested message dictionary
     message_dict = exception.detail["message"]
     assert message_dict["message"] == "Custom feature flag message"

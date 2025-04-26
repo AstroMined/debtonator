@@ -15,7 +15,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from src.models.recurring_income import RecurringIncome
 from src.repositories.base_repository import BaseRepository
-from src.utils.datetime_utils import ensure_utc, days_from_now, utc_now
+from src.utils.datetime_utils import utc_now
 
 
 class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):
@@ -310,7 +310,7 @@ class RecurringIncomeRepository(BaseRepository[RecurringIncome, int]):
         today = utc_now()
         # For date calculations strip timezone
         today_naive = today.replace(tzinfo=None)
-        
+
         current_month = today_naive.month
         current_year = today_naive.year
         current_day = today_naive.day

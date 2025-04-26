@@ -117,7 +117,7 @@ async def test_get_by_date_range(
     # Convert to naive (no timezone) but semantically representing UTC time for DB
     start_date_naive = (current_time - timedelta(days=6)).replace(tzinfo=None)
     end_date_naive = (current_time + timedelta(days=20)).replace(tzinfo=None)
-    
+
     # Get timezone-aware equivalents for comparison
     start_date = utc_now() - timedelta(days=6)
     end_date = utc_now() + timedelta(days=20)
@@ -125,20 +125,23 @@ async def test_get_by_date_range(
     # 2. SCHEMA: Not needed for this query-only operation
 
     # 3. ACT: Get payment schedules within date range using naive datetimes for DB compatibility
-    results = await payment_schedule_repository.get_by_date_range(start_date_naive, end_date_naive)
+    results = await payment_schedule_repository.get_by_date_range(
+        start_date_naive, end_date_naive
+    )
 
     # 4. ASSERT: Verify the operation results
     assert len(results) >= 2, "Should get at least 2 schedules in this range"
-    
+
     # Check that we found schedules
     for schedule in results:
         # Database fields will have no timezone info
         # Add timezone info for proper comparison (ADR-011 compliance)
         schedule_date_utc = ensure_utc(schedule.scheduled_date)
-        
+
         # Check if schedule date is within range (inclusive)
-        assert start_date <= schedule_date_utc <= end_date, \
-            f"Schedule date {schedule_date_utc} is not within range ({start_date} to {end_date})"
+        assert (
+            start_date <= schedule_date_utc <= end_date
+        ), f"Schedule date {schedule_date_utc} is not within range ({start_date} to {end_date})"
 
 
 async def test_get_pending_schedules(

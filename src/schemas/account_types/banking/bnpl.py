@@ -203,53 +203,47 @@ class BNPLAccountResponse(BNPLAccountBase, AccountResponse):
 class BNPLAccountStatusUpdate(AccountBase):
     """
     Schema for updating the status of a BNPL account.
-    
+
     This schema is used for the BNPL status update endpoint, which handles
     lifecycle events like installment payments and account closure.
-    
+
     Only includes the fields that can be updated in a status update operation.
     For full account updates, use the standard account update endpoint.
     """
-    
+
     # Override account_type to be a fixed literal for BNPL accounts
     account_type: Literal["bnpl"] = "bnpl"
-    
+
     # Fields that can be updated in a status update
     installments_paid: Optional[int] = Field(
-        default=None, 
-        description="Number of installments already paid", 
-        ge=0
+        default=None, description="Number of installments already paid", ge=0
     )
     next_payment_date: Optional[datetime] = Field(
-        default=None, 
-        description="Date of next payment due"
+        default=None, description="Date of next payment due"
     )
     is_closed: Optional[bool] = Field(
-        default=None,
-        description="Whether the account is closed"
+        default=None, description="Whether the account is closed"
     )
     current_balance: Optional[MoneyDecimal] = Field(
-        default=None,
-        description="Current balance of the account",
-        ge=0
+        default=None, description="Current balance of the account", ge=0
     )
-    
+
     @field_validator("installments_paid")
     @classmethod
     def validate_installments_paid(cls, value: Optional[int]) -> Optional[int]:
         """
         Validate installments paid value if provided.
-        
+
         Args:
             value: The installments paid count
-            
+
         Returns:
             The validated installments paid count
-            
+
         Raises:
             ValueError: If installments paid is negative
         """
         if value is not None and value < 0:
             raise ValueError("Installments paid cannot be negative")
-        
+
         return value

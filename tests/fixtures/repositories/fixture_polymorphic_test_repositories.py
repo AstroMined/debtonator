@@ -21,7 +21,7 @@ from tests.helpers.models.polymorphic_test_models import (
 class TestTypeRegistry:
     """
     Test registry for polymorphic type lookup.
-    
+
     This registry maps entity types to their model classes for use in
     polymorphic repository operations.
     """
@@ -29,7 +29,7 @@ class TestTypeRegistry:
     def __init__(self, models: Dict[str, Type]):
         """
         Initialize registry with model type mappings.
-        
+
         Args:
             models: Dictionary mapping type names to model classes
         """
@@ -38,10 +38,10 @@ class TestTypeRegistry:
     def get_model_class(self, entity_type: str) -> Type:
         """
         Get model class for specified entity type.
-        
+
         Args:
             entity_type: The polymorphic type identifier
-            
+
         Returns:
             The model class for the specified type
         """
@@ -51,7 +51,7 @@ class TestTypeRegistry:
 class TestPolymorphicRepository(PolymorphicBaseRepository[TestBaseModel, int]):
     """
     Test repository for polymorphic entity operations.
-    
+
     This repository implements the polymorphic repository pattern for
     test models to verify proper polymorphic entity handling.
     """
@@ -59,7 +59,7 @@ class TestPolymorphicRepository(PolymorphicBaseRepository[TestBaseModel, int]):
     def __init__(self, session: AsyncSession, registry: Any = None):
         """
         Initialize repository with session and registry.
-        
+
         Args:
             session: The database session to use
             registry: Optional registry for model class lookup
@@ -78,10 +78,10 @@ class TestPolymorphicRepository(PolymorphicBaseRepository[TestBaseModel, int]):
 async def test_type_registry():
     """
     Create a test type registry for polymorphic model lookup.
-    
+
     This fixture provides a registry with mappings between type identifiers
     and model classes for use in polymorphic repository operations.
-    
+
     Returns:
         A test registry instance with mappings for TestTypeAModel and TestTypeBModel
     """
@@ -92,14 +92,14 @@ async def test_type_registry():
 async def polymorphic_test_repository(db_session: AsyncSession, test_type_registry):
     """
     Create a polymorphic test repository instance.
-    
+
     This fixture provides a real PolymorphicBaseRepository implementation
     connected to the test database session for integration testing without mocks.
-    
+
     Args:
         db_session: Test database session
         test_type_registry: Registry for test model type lookup
-        
+
     Returns:
         A TestPolymorphicRepository instance connected to the test database
     """

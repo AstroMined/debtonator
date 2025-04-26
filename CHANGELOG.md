@@ -7,6 +7,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.134] - 2025-04-25
+
+### Changed
+
+- Refactored TransactionService to comply with ADR-014 Repository Layer Compliance:
+  - Updated class to inherit from BaseService for standardized repository access
+  - Replaced property-based repository access with _get_repository method calls
+  - Removed unnecessary constructor override for better code quality
+  - Ensured all methods use consistent repository access pattern
+  - Improved documentation with comprehensive method docstrings
+
+### Improved
+
+- Enhanced repository access pattern for TransactionService:
+  - Used _get_repository for proper repository instantiation
+  - Applied consistent repository access throughout all methods
+  - Ensured proper feature flag integration through BaseService
+  - Eliminated direct repository factory usage for non-polymorphic repositories
+  - Removed unused imports and improved code quality
+
+### Documentation
+
+- Updated implementation documentation in ADR-014 checklist:
+  - Marked TransactionService refactoring as completed
+  - Updated progress tracking for service layer implementation
+  - Prepared for next phase of repository layer compliance work
+
 ## [0.5.133] - 2025-04-25
 
 ### Changed

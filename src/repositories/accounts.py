@@ -234,7 +234,9 @@ class AccountRepository(PolymorphicBaseRepository[Account, int]):
                 and credit_account.credit_limit is not None
             ):
                 # Recalculate available credit
-                credit_account.available_credit = credit_account.credit_limit - abs(account.available_balance)
+                credit_account.available_credit = credit_account.credit_limit - abs(
+                    account.available_balance
+                )
                 # Set next_action_amount field for credit available
                 if hasattr(account, "next_action_amount"):
                     account.next_action_amount = credit_account.available_credit
@@ -254,7 +256,7 @@ class AccountRepository(PolymorphicBaseRepository[Account, int]):
         Args:
             account_id (int): Account ID
             statement_balance (Decimal): New statement balance
-            statement_date (datetime): Statement date, must be a timezone-aware 
+            statement_date (datetime): Statement date, must be a timezone-aware
                 datetime (UTC)
 
         Returns:
@@ -266,7 +268,7 @@ class AccountRepository(PolymorphicBaseRepository[Account, int]):
 
         # Ensure UTC timezone awareness for datetime parameter
         statement_date = ensure_utc(statement_date)
-        
+
         # For database operations, strip timezone
         db_statement_date = statement_date.replace(tzinfo=None)
 

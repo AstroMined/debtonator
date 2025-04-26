@@ -46,7 +46,7 @@ class CreditCreditLimitExceededError(CreditAccountError):
 class CreditPaymentDueError(CreditAccountError):
     """
     Error raised for payment due issues.
-    
+
     Per ADR-011, ensures all datetime values are converted to UTC before processing.
     """
 
@@ -106,7 +106,7 @@ class CreditAutopayError(CreditAccountError):
 class CreditStatementError(CreditAccountError):
     """
     Error raised for statement issues.
-    
+
     Per ADR-011, ensures all datetime values are converted to UTC before processing.
     """
 

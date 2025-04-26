@@ -191,7 +191,7 @@ def create_account_response_schema(
         Dict[str, Any]: Data to create AccountResponse schema
     """
     # Use the AccountInDB factory since they have the same structure
-    # Note: Credit-specific fields like total_limit should be handled 
+    # Note: Credit-specific fields like total_limit should be handled
     # by the CreditAccountResponse schema, not here
     return create_account_in_db_schema(
         id=id,

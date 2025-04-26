@@ -5,9 +5,10 @@ This module provides the minimal required fixtures for feature flag testing.
 Each fixture is async-compatible and properly isolated for clean tests.
 """
 
+from datetime import timedelta
+
 import pytest
 import pytest_asyncio
-from datetime import timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.feature_flags import FeatureFlag
@@ -75,7 +76,7 @@ def registry_with_predefined_flags() -> FeatureFlagRegistry:
     """
     registry = FeatureFlagRegistry()
     registry.reset()  # Ensure clean state
-    
+
     # Register a boolean flag
     registry.register(
         flag_name="TEST_BOOLEAN_FLAG",
@@ -83,7 +84,7 @@ def registry_with_predefined_flags() -> FeatureFlagRegistry:
         default_value=True,
         description="Test boolean flag",
     )
-    
+
     # Register a percentage flag
     registry.register(
         flag_name="TEST_PERCENTAGE_FLAG",
@@ -91,7 +92,7 @@ def registry_with_predefined_flags() -> FeatureFlagRegistry:
         default_value=50,
         description="Test percentage flag",
     )
-    
+
     # Register a user segment flag
     registry.register(
         flag_name="TEST_USER_SEGMENT_FLAG",
@@ -99,7 +100,7 @@ def registry_with_predefined_flags() -> FeatureFlagRegistry:
         default_value=["admin", "beta"],
         description="Test user segment flag",
     )
-    
+
     # Register a time-based flag
     start_time = utc_now() - timedelta(days=1)
     end_time = utc_now() + timedelta(days=1)
@@ -112,7 +113,7 @@ def registry_with_predefined_flags() -> FeatureFlagRegistry:
         },
         description="Test time-based flag",
     )
-    
+
     return registry
 
 

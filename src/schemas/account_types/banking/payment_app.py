@@ -137,13 +137,13 @@ class PaymentAppAccountBase(AccountBase):
                 ) from exc
 
         return value
-        
+
     @model_validator(mode="after")
     def validate_card_last_four_with_debit_card(self) -> "PaymentAppAccountBase":
         """
         Validate that card_last_four is provided when has_debit_card is True,
         and not provided when has_debit_card is False.
-        
+
         This cross-field validation ensures consistency between the two fields.
         If card_last_four is provided without has_debit_card being explicitly set,
         has_debit_card is implicitly set to True.
@@ -158,15 +158,19 @@ class PaymentAppAccountBase(AccountBase):
                     # Implicitly set has_debit_card to True
                     object.__setattr__(self, "has_debit_card", True)
                     return self
-        
+
         # If has_debit_card is True, card_last_four must be provided
         if self.has_debit_card and not self.card_last_four:
-            raise ValueError("Card last four digits are required when debit card is enabled")
-            
+            raise ValueError(
+                "Card last four digits are required when debit card is enabled"
+            )
+
         # If has_debit_card is False, card_last_four must not be provided
         if not self.has_debit_card and self.card_last_four:
-            raise ValueError("Card last four digits cannot be provided when debit card is not enabled")
-            
+            raise ValueError(
+                "Card last four digits cannot be provided when debit card is not enabled"
+            )
+
         return self
 
 
@@ -322,13 +326,13 @@ class PaymentAppAccountUpdate(AccountBase):
             raise ValueError(
                 "Linked account IDs must be a comma-separated list of integers"
             ) from exc
-            
+
     @model_validator(mode="after")
     def validate_card_last_four_with_debit_card(self) -> "PaymentAppAccountUpdate":
         """
         Validate that card_last_four is provided when has_debit_card is True,
         and not provided when has_debit_card is False.
-        
+
         This cross-field validation ensures consistency between the two fields.
         If card_last_four is provided without has_debit_card being explicitly set,
         has_debit_card is implicitly set to True.
@@ -343,14 +347,18 @@ class PaymentAppAccountUpdate(AccountBase):
                     # Implicitly set has_debit_card to True
                     object.__setattr__(self, "has_debit_card", True)
                     return self
-        
+
         # Only validate if has_debit_card is explicitly set
         if self.has_debit_card is True and not self.card_last_four:
-            raise ValueError("Card last four digits are required when debit card is enabled")
-            
+            raise ValueError(
+                "Card last four digits are required when debit card is enabled"
+            )
+
         if self.has_debit_card is False and self.card_last_four:
-            raise ValueError("Card last four digits cannot be provided when debit card is not enabled")
-            
+            raise ValueError(
+                "Card last four digits cannot be provided when debit card is not enabled"
+            )
+
         return self
 
 

@@ -81,10 +81,10 @@ async def test_emergency_fund(db_session: AsyncSession) -> SavingsAccount:
 async def test_savings_with_interest(db_session: AsyncSession) -> SavingsAccount:
     """
     Create a savings account with high interest rate for testing.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         SavingsAccount: Savings account with 2.5% interest rate
     """
@@ -110,10 +110,10 @@ async def test_savings_with_interest(db_session: AsyncSession) -> SavingsAccount
 async def test_savings_with_min_balance(db_session: AsyncSession) -> SavingsAccount:
     """
     Create a savings account with minimum balance requirement and high interest.
-    
+
     Args:
         db_session: Database session fixture
-        
+
     Returns:
         SavingsAccount: Savings account with minimum balance and 3% interest
     """

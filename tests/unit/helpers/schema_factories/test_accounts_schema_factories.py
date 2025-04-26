@@ -33,6 +33,9 @@ from src.schemas.accounts import (
     StatementBalanceHistory,
 )
 from src.utils.datetime_utils import datetime_equals, utc_now
+from tests.helpers.schema_factories.account_types.banking.credit_schema_factories import (
+    create_credit_account_schema,
+)
 from tests.helpers.schema_factories.accounts_schema_factories import (
     create_account_in_db_schema,
     create_account_response_schema,
@@ -41,9 +44,6 @@ from tests.helpers.schema_factories.accounts_schema_factories import (
     create_account_update_schema,
     create_available_credit_response_schema,
     create_statement_balance_history_schema,
-)
-from tests.helpers.schema_factories.account_types.banking.credit_schema_factories import (
-    create_credit_account_schema,
 )
 
 
@@ -201,12 +201,12 @@ def test_create_account_in_db_schema_credit():
     assert schema.name == "Credit Card"
     assert schema.account_type == "credit"
     assert schema.available_balance == Decimal("-1500.00")
-    
+
     # last_statement_balance and last_statement_date have been moved to credit-specific schemas
     # Verify datetime fields are timezone-aware and in UTC per ADR-011
     assert schema.created_at.tzinfo is not None
     assert schema.created_at.tzinfo == timezone.utc
-    
+
     # Credit-specific fields should be accessed through CreditAccountResponse
     # Testing those fields requires using the credit-specific schema factories
 
@@ -244,7 +244,7 @@ def test_create_account_response_schema_credit():
     assert schema.name == "Credit Card"
     assert schema.account_type == "credit"
     assert schema.available_balance == Decimal("-1500.00")
-    
+
     # To test credit-specific fields, we need to use CreditAccountResponse
     # which would be tested separately
 
@@ -437,7 +437,7 @@ def test_create_account_update_schema_credit_fields():
 
     assert isinstance(schema, AccountUpdate)
     assert schema.account_type == "credit"
-    
+
     # Credit-specific fields should be accessed through CreditAccountUpdate
     # Testing those fields requires using the credit-specific schema factories
 
@@ -450,7 +450,7 @@ def test_create_account_update_schema_credit_validation():
     schema = create_account_update_schema(
         account_type="checking",
     )
-    
+
     assert isinstance(schema, AccountUpdate)
     assert schema.account_type == "checking"
 
@@ -459,9 +459,9 @@ def test_create_credit_account_schema():
     """Test creating a CreditAccountCreate schema with credit-specific fields."""
     schema = create_credit_account_schema(
         name="Test Credit Card",
-        credit_limit=Decimal("10000.00"), 
+        credit_limit=Decimal("10000.00"),
     )
-    
+
     assert isinstance(schema, CreditAccountCreate)
     assert schema.name == "Test Credit Card"
     assert schema.account_type == "credit"
@@ -474,14 +474,14 @@ def test_credit_account_polymorphic_structure():
     """Test that the polymorphic structure for credit accounts works properly."""
     # This test verifies that credit-specific fields are only available
     # in the credit-specific schemas, not in the base schemas
-    
+
     # Create a base account schema with credit type
     base_schema = create_account_update_schema(
         account_type="credit",
     )
     assert isinstance(base_schema, AccountUpdate)
     assert base_schema.account_type == "credit"
-    
+
     # Verify the appropriate schema type is used for create_account_schema with credit type
     account_schema = create_account_schema(account_type="credit")
     assert isinstance(account_schema, CreditAccountCreate)

@@ -5,24 +5,23 @@ from zoneinfo import ZoneInfo
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.accounts import Account
-from src.models.transaction_history import TransactionType
 from src.services.feature_flags import FeatureFlagService
 
-from .base import BaseService
-from .types import DateType
+from src.services.cashflow.cashflow_base import CashflowBaseService
+from src.services.cashflow.cashflow_types import DateType
 
 
-class TransactionService(BaseService):
+class TransactionService(CashflowBaseService):
     """Service for managing and retrieving cashflow transactions."""
-    
+
     def __init__(
-        self, 
+        self,
         session: AsyncSession,
         feature_flag_service: Optional[FeatureFlagService] = None,
-        config_provider: Optional[Any] = None
+        config_provider: Optional[Any] = None,
     ):
         """Initialize the transaction service.
-        
+
         Args:
             session: SQLAlchemy async session for database operations
             feature_flag_service: Optional feature flag service for repository proxies
@@ -127,12 +126,12 @@ class TransactionService(BaseService):
             List of transaction dictionaries
         """
         transaction_repo = await self.transaction_repository
-        
+
         # Get payments with sources
         payments = await transaction_repo.get_historical_payments(
             account_ids, start_date, end_date
         )
-        
+
         # Get income with explicit account filtering
         income_entries = await transaction_repo.get_historical_income(
             account_ids, start_date, end_date

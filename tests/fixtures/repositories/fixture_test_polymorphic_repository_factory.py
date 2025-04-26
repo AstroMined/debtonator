@@ -10,15 +10,17 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.repositories.factory import RepositoryFactory
-from tests.helpers.models.polymorphic_test_models import TestBaseModel
 from tests.fixtures.repositories.fixture_polymorphic_test_repositories import (
     TestPolymorphicRepository,
     TestTypeRegistry,
 )
+from tests.helpers.models.polymorphic_test_models import TestBaseModel
 
 
 @pytest_asyncio.fixture
-async def test_polymorphic_repository_factory(db_session: AsyncSession, test_type_registry):
+async def test_polymorphic_repository_factory(
+    db_session: AsyncSession, test_type_registry
+):
     """
     Create a repository factory for polymorphic test repositories.
 
@@ -33,15 +35,16 @@ async def test_polymorphic_repository_factory(db_session: AsyncSession, test_typ
     Returns:
         Function: Factory function for creating test repositories
     """
+
     async def factory(entity_type=None):
         # Create the base repository
         base_repo = TestPolymorphicRepository(db_session)
         base_repo.registry = test_type_registry
-        
+
         # Return the base repository if no entity type specified
         if not entity_type:
             return base_repo
-            
+
         return base_repo
-        
+
     return factory

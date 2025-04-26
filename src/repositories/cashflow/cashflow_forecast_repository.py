@@ -12,17 +12,16 @@ from sqlalchemy import and_, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.cashflow import CashflowForecast
-from src.repositories.cashflow.base import BaseCashflowRepository
+from src.repositories.cashflow.cashflow_base import CashflowBaseRepository
 from src.utils.datetime_utils import (
     days_ago,
-    days_from_now,
     naive_end_of_day,
     naive_start_of_day,
     utc_now,
 )
 
 
-class CashflowForecastRepository(BaseCashflowRepository[CashflowForecast]):
+class CashflowForecastRepository(CashflowBaseRepository[CashflowForecast]):
     """
     Repository for CashflowForecast model operations.
 
@@ -69,9 +68,7 @@ class CashflowForecastRepository(BaseCashflowRepository[CashflowForecast]):
         )
         return result.scalars().first()
 
-    async def get_by_date_range(
-        self, start_date, end_date
-    ) -> List[CashflowForecast]:
+    async def get_by_date_range(self, start_date, end_date) -> List[CashflowForecast]:
         """
         Get forecasts within a date range.
 
@@ -96,7 +93,8 @@ class CashflowForecastRepository(BaseCashflowRepository[CashflowForecast]):
             .where(
                 and_(
                     CashflowForecast.forecast_date >= range_start,
-                    CashflowForecast.forecast_date <= range_end,  # Use <= for inclusive end date per ADR-011
+                    CashflowForecast.forecast_date
+                    <= range_end,  # Use <= for inclusive end date per ADR-011
                 )
             )
             .group_by(func.date(CashflowForecast.forecast_date))
@@ -319,7 +317,7 @@ class CashflowForecastRepository(BaseCashflowRepository[CashflowForecast]):
         }
 
     async def get_forecast_summary(
-        self, start_date = None, end_date = None
+        self, start_date=None, end_date=None
     ) -> Dict[str, Any]:
         """
         Get a summary of forecasts over a period.

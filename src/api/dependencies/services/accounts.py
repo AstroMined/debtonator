@@ -14,7 +14,7 @@ from typing import Optional
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.dependencies.database import get_session
+from src.database.database import get_db
 
 # Feature flag service dependency
 from src.api.dependencies.services.feature_flags import get_feature_flag_service
@@ -24,7 +24,7 @@ from src.services.feature_flags import FeatureFlagService
 
 
 async def get_account_service(
-    session: AsyncSession = Depends(get_session),
+    session: AsyncSession = Depends(get_db()),
     feature_flag_service: Optional[FeatureFlagService] = Depends(
         get_feature_flag_service
     ),

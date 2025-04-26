@@ -62,7 +62,7 @@ class EWAAdvancePercentageError(EWAAccountError):
 class EWAPayPeriodError(EWAAccountError):
     """
     Error raised for pay period issues.
-    
+
     Per ADR-011, ensures all datetime values are converted to UTC before processing.
     """
 
@@ -95,7 +95,7 @@ class EWAPayPeriodError(EWAAccountError):
 class EWANextPaydayError(EWAAccountError):
     """
     Error raised for next payday issues.
-    
+
     Per ADR-011, ensures all datetime values are converted to UTC before processing.
     """
 

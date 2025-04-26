@@ -6,7 +6,7 @@ including required funds calculation, deficit analysis, and other metrics.
 """
 
 from decimal import Decimal
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,12 +15,12 @@ from src.models.accounts import Account
 from src.models.cashflow import CashflowForecast
 from src.models.liabilities import Liability
 from src.models.payments import Payment
-from src.repositories.cashflow.base import BaseCashflowRepository
-from src.utils.datetime_utils import days_ago, end_of_day, start_of_day
+from src.repositories.cashflow.cashflow_base import CashflowBaseRepository
+from src.utils.datetime_utils import days_ago, utc_now
 from src.utils.decimal_precision import DecimalPrecision
 
 
-class CashflowMetricsRepository(BaseCashflowRepository[CashflowForecast]):
+class CashflowMetricsRepository(CashflowBaseRepository[CashflowForecast]):
     """
     Repository for cashflow metrics operations.
 
@@ -69,7 +69,7 @@ class CashflowMetricsRepository(BaseCashflowRepository[CashflowForecast]):
         # Execute query and get result
         result = await self.session.execute(query)
         total = result.scalar_one_or_none() or Decimal("0.0000")
-        
+
         # Use 4 decimal precision for internal calculations
         return DecimalPrecision.round_for_calculation(total)
 
@@ -132,7 +132,7 @@ class CashflowMetricsRepository(BaseCashflowRepository[CashflowForecast]):
         # Calculate date range
         end_date = await self.utc_now()
         start_date = await self.days_ago(days)
-        
+
         # Prepare date range for database query
         range_start, range_end = self._prepare_date_range(start_date, end_date)
 
@@ -165,7 +165,7 @@ class CashflowMetricsRepository(BaseCashflowRepository[CashflowForecast]):
     async def utc_now(self):
         """
         Get current UTC datetime.
-        
+
         Returns:
             datetime: Current UTC datetime
         """
@@ -174,10 +174,10 @@ class CashflowMetricsRepository(BaseCashflowRepository[CashflowForecast]):
     async def days_ago(self, days: int):
         """
         Get datetime for specified number of days ago.
-        
+
         Args:
             days (int): Number of days ago
-            
+
         Returns:
             datetime: Datetime for specified number of days ago
         """

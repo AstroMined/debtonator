@@ -8,7 +8,11 @@ including boolean, percentage, user segment, time-based, and environment flags.
 import pytest
 from pydantic import ValidationError
 
-from src.schemas.feature_flags import FeatureFlagCreate, FeatureFlagType, FeatureFlagUpdate
+from src.schemas.feature_flags import (
+    FeatureFlagCreate,
+    FeatureFlagType,
+    FeatureFlagUpdate,
+)
 from src.utils.datetime_utils import utc_now
 
 
@@ -81,7 +85,9 @@ def test_invalid_percentage_value():
         )
 
     # Test value out of range (negative)
-    with pytest.raises(ValidationError, match="Percentage flag value must be between 0 and 100"):
+    with pytest.raises(
+        ValidationError, match="Percentage flag value must be between 0 and 100"
+    ):
         FeatureFlagCreate(
             name="TEST_PERCENTAGE_FLAG",
             flag_type=FeatureFlagType.PERCENTAGE,
@@ -89,7 +95,9 @@ def test_invalid_percentage_value():
         )
 
     # Test value out of range (over 100)
-    with pytest.raises(ValidationError, match="Percentage flag value must be between 0 and 100"):
+    with pytest.raises(
+        ValidationError, match="Percentage flag value must be between 0 and 100"
+    ):
         FeatureFlagCreate(
             name="TEST_PERCENTAGE_FLAG",
             flag_type=FeatureFlagType.PERCENTAGE,
@@ -114,14 +122,18 @@ def test_percentage_flag_update():
         )
 
     # Invalid update - negative value
-    with pytest.raises(ValidationError, match="Percentage flag value must be between 0 and 100"):
+    with pytest.raises(
+        ValidationError, match="Percentage flag value must be between 0 and 100"
+    ):
         FeatureFlagUpdate(
             flag_type=FeatureFlagType.PERCENTAGE,
             value=-10,
         )
 
     # Invalid update - value over 100
-    with pytest.raises(ValidationError, match="Percentage flag value must be between 0 and 100"):
+    with pytest.raises(
+        ValidationError, match="Percentage flag value must be between 0 and 100"
+    ):
         FeatureFlagUpdate(
             flag_type=FeatureFlagType.PERCENTAGE,
             value=110,
@@ -145,7 +157,9 @@ def test_valid_user_segment_flag():
 
 def test_invalid_user_segment_value():
     """Test that user segment flags must have list values."""
-    with pytest.raises(ValidationError, match="User segment flag value must be a list of segments"):
+    with pytest.raises(
+        ValidationError, match="User segment flag value must be a list of segments"
+    ):
         FeatureFlagCreate(
             name="TEST_USER_SEGMENT_FLAG",
             flag_type=FeatureFlagType.USER_SEGMENT,
@@ -163,7 +177,9 @@ def test_user_segment_flag_update():
     assert update.value == ["admin", "beta", "premium"]
 
     # Invalid update
-    with pytest.raises(ValidationError, match="User segment flag value must be a list of segments"):
+    with pytest.raises(
+        ValidationError, match="User segment flag value must be a list of segments"
+    ):
         FeatureFlagUpdate(
             flag_type=FeatureFlagType.USER_SEGMENT,
             value="admin",  # String instead of list
@@ -188,7 +204,9 @@ def test_valid_time_based_flag():
 
 def test_invalid_time_based_value():
     """Test that time-based flags must have dictionary values."""
-    with pytest.raises(ValidationError, match="Time-based flag value must be a dictionary"):
+    with pytest.raises(
+        ValidationError, match="Time-based flag value must be a dictionary"
+    ):
         FeatureFlagCreate(
             name="TEST_TIME_BASED_FLAG",
             flag_type=FeatureFlagType.TIME_BASED,
@@ -210,7 +228,9 @@ def test_time_based_flag_update():
     assert update.value["start_time"] == now.isoformat()
 
     # Invalid update
-    with pytest.raises(ValidationError, match="Time-based flag value must be a dictionary"):
+    with pytest.raises(
+        ValidationError, match="Time-based flag value must be a dictionary"
+    ):
         FeatureFlagUpdate(
             flag_type=FeatureFlagType.TIME_BASED,
             value="2025-01-01",  # String instead of dict
@@ -235,14 +255,20 @@ def test_valid_environment_flag():
 
 def test_invalid_environment_flag_missing_keys():
     """Test that environment flags must have required keys."""
-    with pytest.raises(ValidationError, match="Environment flag value must contain 'environments' and 'default' keys"):
+    with pytest.raises(
+        ValidationError,
+        match="Environment flag value must contain 'environments' and 'default' keys",
+    ):
         FeatureFlagCreate(
             name="TEST_ENVIRONMENT_FLAG",
             flag_type=FeatureFlagType.ENVIRONMENT,
             value={"environments": ["dev", "staging"]},  # Missing 'default' key
         )
 
-    with pytest.raises(ValidationError, match="Environment flag value must contain 'environments' and 'default' keys"):
+    with pytest.raises(
+        ValidationError,
+        match="Environment flag value must contain 'environments' and 'default' keys",
+    ):
         FeatureFlagCreate(
             name="TEST_ENVIRONMENT_FLAG",
             flag_type=FeatureFlagType.ENVIRONMENT,
@@ -252,7 +278,9 @@ def test_invalid_environment_flag_missing_keys():
 
 def test_invalid_environment_flag_wrong_type():
     """Test that environment flags must have the correct value types."""
-    with pytest.raises(ValidationError, match="'environments' must be a list of environment names"):
+    with pytest.raises(
+        ValidationError, match="'environments' must be a list of environment names"
+    ):
         FeatureFlagCreate(
             name="TEST_ENVIRONMENT_FLAG",
             flag_type=FeatureFlagType.ENVIRONMENT,
@@ -274,14 +302,19 @@ def test_environment_flag_update():
     assert update.value["default"] is True
 
     # Invalid update - missing required keys
-    with pytest.raises(ValidationError, match="Environment flag value must contain 'environments' and 'default' keys"):
+    with pytest.raises(
+        ValidationError,
+        match="Environment flag value must contain 'environments' and 'default' keys",
+    ):
         FeatureFlagUpdate(
             flag_type=FeatureFlagType.ENVIRONMENT,
             value={"environments": ["dev"]},  # Missing 'default' key
         )
 
     # Invalid update - wrong type for environments
-    with pytest.raises(ValidationError, match="'environments' must be a list of environment names"):
+    with pytest.raises(
+        ValidationError, match="'environments' must be a list of environment names"
+    ):
         FeatureFlagUpdate(
             flag_type=FeatureFlagType.ENVIRONMENT,
             value={"environments": "all", "default": False},  # Should be a list

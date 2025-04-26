@@ -248,10 +248,14 @@ class PolymorphicBaseRepository(BaseRepository[PolyModelType, PKType]):
                 # Skip setting required fields to NULL
                 if key in valid_fields.get("required", set()) and value is None:
                     continue
-                
+
                 # Skip setting optional fields to NULL if they already have a value
                 current_value = getattr(entity, key)
-                if value is None and current_value is not None and key not in valid_fields.get("required", set()):
+                if (
+                    value is None
+                    and current_value is not None
+                    and key not in valid_fields.get("required", set())
+                ):
                     continue
 
                 setattr(entity, key, value)

@@ -1,16 +1,13 @@
 import statistics
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.accounts import Account
-from src.models.liabilities import Liability
-from src.models.payments import Payment, PaymentSource
 from src.models.transaction_history import TransactionHistory
-from src.repositories.cashflow.realtime_repository import RealtimeCashflowRepository
+from src.repositories.cashflow.cashflow_realtime_repository import RealtimeCashflowRepository
 from src.schemas.cashflow import (
     AccountCorrelation,
     AccountRiskAssessment,
@@ -28,38 +25,39 @@ from src.utils.decimal_precision import DecimalPrecision
 class RealtimeCashflowService(BaseService):
     """
     Service for real-time cashflow analysis across accounts.
-    
+
     This service provides real-time cashflow data, account correlations,
-    transfer patterns, usage patterns, balance distribution, and risk 
+    transfer patterns, usage patterns, balance distribution, and risk
     assessment. Following ADR-014 Repository Layer Compliance, this service
     now uses repositories for all database operations rather than direct
     database access.
-    
+
     The service maintains a clear separation between:
     1. Business logic (in this service)
     2. Data access (in RealtimeCashflowRepository)
     3. API contracts (through schema objects)
     """
+
     def __init__(
-        self, 
+        self,
         session: AsyncSession,
         feature_flag_service: Optional[FeatureFlagService] = None,
-        config_provider: Optional[Any] = None
+        config_provider: Optional[Any] = None,
     ):
         """Initialize the realtime cashflow service.
-        
+
         Args:
             session: SQLAlchemy async session for database operations
             feature_flag_service: Optional feature flag service for repository proxies
             config_provider: Optional config provider for feature flags
         """
         super().__init__(session, feature_flag_service, config_provider)
-        
+
     @property
     async def realtime_repository(self) -> RealtimeCashflowRepository:
         """
         Get the realtime cashflow repository instance.
-        
+
         Returns:
             RealtimeCashflowRepository: Realtime cashflow repository
         """
@@ -151,7 +149,9 @@ class RealtimeCashflowService(BaseService):
                     continue
 
                 # Get transfers between accounts
-                transfers = await repo.get_transfers_between_accounts([acc1.id, acc2.id])
+                transfers = await repo.get_transfers_between_accounts(
+                    [acc1.id, acc2.id]
+                )
 
                 # Calculate correlation metrics
                 transfer_frequency = len(transfers)
@@ -159,7 +159,7 @@ class RealtimeCashflowService(BaseService):
                 # Get transactions with descriptions for each account
                 acc1_txs = await repo.get_transaction_history(acc1.id)
                 acc2_txs = await repo.get_transaction_history(acc2.id)
-                
+
                 # Extract descriptions and find common ones
                 acc1_categories = [tx.description for tx in acc1_txs if tx.description]
                 acc2_categories = [tx.description for tx in acc2_txs if tx.description]
@@ -177,7 +177,9 @@ class RealtimeCashflowService(BaseService):
                         Decimal("1")
                     ),
                     transfer_frequency=transfer_frequency,
-                    common_categories=common_categories[:10],  # Limit to top 10 categories
+                    common_categories=common_categories[
+                        :10
+                    ],  # Limit to top 10 categories
                     relationship_type=relationship_type,
                 )
 
@@ -190,40 +192,44 @@ class RealtimeCashflowService(BaseService):
 
         # Get all accounts
         accounts = await repo.get_all_accounts()
-        
+
         # For each account, build transfer patterns
         for account in accounts:
             # Get all transfers for this account
             transfers = await repo.get_transfers_between_accounts([account.id])
-            
+
             if not transfers:
                 continue
-                
+
             # Simple aggregation - in real implementation would use repository
             source_accounts = {}
             target_accounts = {}
-            
+
             # Simple frequency calculation
             for transfer in transfers:
                 if transfer.account_id not in source_accounts:
                     source_accounts[transfer.account_id] = []
                 source_accounts[transfer.account_id].append(transfer)
-            
+
             # For each source account, calculate metrics
             for source_id, source_transfers in source_accounts.items():
                 # Calculate average amount
-                avg_amount = sum([t.amount for t in source_transfers], Decimal(0)) / len(source_transfers)
-                
+                avg_amount = sum(
+                    [t.amount for t in source_transfers], Decimal(0)
+                ) / len(source_transfers)
+
                 # Get payment categories
                 categories = await repo.get_payment_categories(source_id)
-                
+
                 # Create a transfer pattern
                 patterns.append(
                     TransferPattern(
                         source_account_id=source_id,
                         # In a real implementation, we would track target accounts
                         target_account_id=source_id,  # Placeholder
-                        average_amount=DecimalPrecision.round_for_calculation(avg_amount),
+                        average_amount=DecimalPrecision.round_for_calculation(
+                            avg_amount
+                        ),
                         frequency=len(source_transfers),
                         typical_day_of_month=None,  # Would require more complex analysis
                         category_distribution=categories,
@@ -236,7 +242,7 @@ class RealtimeCashflowService(BaseService):
         """Analyze usage patterns for each account."""
         repo = await self.realtime_repository
         patterns = {}
-        
+
         # Get all accounts
         accounts = await repo.get_all_accounts()
 
@@ -267,7 +273,7 @@ class RealtimeCashflowService(BaseService):
 
             # Get common merchants from repository
             merchants_data = await repo.get_transactions_with_description(account.id)
-            
+
             # Get peak usage days
             days = [tx.transaction_date.day for tx in transactions]
             peak_days = list(set(days))[:31]  # Limit to 31 days
@@ -281,7 +287,9 @@ class RealtimeCashflowService(BaseService):
                 account_id=account.id,
                 primary_use=self._determine_primary_use(transactions),
                 average_transaction_size=avg_transaction,
-                common_merchants=sorted(merchants_data.keys(), key=merchants_data.get, reverse=True)[:10],
+                common_merchants=sorted(
+                    merchants_data.keys(), key=merchants_data.get, reverse=True
+                )[:10],
                 peak_usage_days=peak_days,
                 category_preferences=self._calculate_category_preferences(transactions),
                 utilization_rate=utilization_rate,
@@ -320,19 +328,21 @@ class RealtimeCashflowService(BaseService):
         """Analyze balance distribution across accounts."""
         repo = await self.realtime_repository
         distributions = {}
-        
+
         # Get all accounts
         accounts = await repo.get_all_accounts()
-        
+
         # Calculate total balance for percentage calculations
         total_balance = sum(
-            abs(acc.available_balance) for acc in accounts if acc.account_type != "credit"
+            abs(acc.available_balance)
+            for acc in accounts
+            if acc.account_type != "credit"
         )
 
         for account in accounts:
             # Get historical balances using repository
             balances = await repo.get_balance_history_in_range(account.id, 30)
-            
+
             if not balances:
                 continue
 
@@ -366,18 +376,18 @@ class RealtimeCashflowService(BaseService):
         """Assess risks for each account."""
         repo = await self.realtime_repository
         risks = {}
-        
+
         # Get all accounts
         accounts = await repo.get_all_accounts()
 
         for account in accounts:
             # Get recent transactions using repository
             balances = await repo.get_balance_history_in_range(account.id, 30)
-            
+
             # Initialize risk metrics with defaults if no transactions
             if not balances:
                 balances = [account.available_balance]
-                
+
             volatility = statistics.stdev(balances) if len(balances) > 1 else Decimal(0)
 
             # Calculate overdraft risk

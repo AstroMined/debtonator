@@ -108,7 +108,7 @@ class CreditLimitHistoryRepository(BaseRepository[CreditLimitHistory, int]):
         # and ensure inclusive range semantics
         naive_start = naive_start_of_day(start_date)
         naive_end = naive_end_of_day(end_date)
-        
+
         query = (
             select(CreditLimitHistory)
             .where(
@@ -155,10 +155,10 @@ class CreditLimitHistoryRepository(BaseRepository[CreditLimitHistory, int]):
         """
         # Ensure target_date is UTC-compliant per ADR-011
         target_date = ensure_utc(target_date)
-        
+
         # Convert to naive for database query
         naive_target = target_date.replace(tzinfo=None)
-        
+
         query = (
             select(CreditLimitHistory)
             .where(
@@ -172,7 +172,7 @@ class CreditLimitHistoryRepository(BaseRepository[CreditLimitHistory, int]):
         return result.scalars().first()
 
     async def get_limit_increases(
-        self, account_id: int, since_date = None
+        self, account_id: int, since_date=None
     ) -> List[CreditLimitHistory]:
         """
         Get credit limit increases for an account.
@@ -220,7 +220,7 @@ class CreditLimitHistoryRepository(BaseRepository[CreditLimitHistory, int]):
         return result.scalars().all()
 
     async def get_limit_decreases(
-        self, account_id: int, since_date = None
+        self, account_id: int, since_date=None
     ) -> List[CreditLimitHistory]:
         """
         Get credit limit decreases for an account.

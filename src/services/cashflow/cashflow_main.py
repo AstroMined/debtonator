@@ -12,15 +12,15 @@ from src.schemas.cashflow import (
     HistoricalTrendsResponse,
 )
 
-from .base import BaseService
-from .forecast_service import ForecastService
-from .historical_service import HistoricalService
-from .metrics_service import MetricsService
-from .transaction_service import TransactionService
-from .types import DateType
+from .cashflow_base import CashflowBaseService
+from .cashflow_forecast_service import ForecastService
+from .cashflow_historical_service import HistoricalService
+from .cashflow_metrics_service import MetricsService
+from .cashflow_transaction_service import TransactionService
+from .cashflow_types import DateType
 
 
-class CashflowService(BaseService):
+class CashflowService(CashflowBaseService):
     """Main cashflow service that delegates to specialized services."""
 
     def __init__(self, db: AsyncSession):

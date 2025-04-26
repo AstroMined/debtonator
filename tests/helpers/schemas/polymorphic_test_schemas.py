@@ -17,7 +17,7 @@ from src.schemas.base_schema import BaseSchemaValidator
 class TestBaseModelSchema(BaseSchemaValidator):
     """
     Base schema for polymorphic model testing.
-    
+
     Contains common fields for all polymorphic test entities.
     """
 
@@ -28,7 +28,7 @@ class TestBaseModelSchema(BaseSchemaValidator):
 class TestTypeASchema(TestBaseModelSchema):
     """
     Schema for Type A test entities.
-    
+
     Extends base schema with an optional a_field.
     """
 
@@ -41,7 +41,7 @@ class TestTypeASchema(TestBaseModelSchema):
 class TestTypeBSchema(TestBaseModelSchema):
     """
     Schema for Type B test entities.
-    
+
     Extends base schema with a required b_field to test required field handling.
     """
 
@@ -72,7 +72,7 @@ class TestTypeBCreate(TestTypeBSchema, TestBaseModelCreate):
 class TestBaseModelUpdate(BaseSchemaValidator):
     """
     Base schema for updating polymorphic entities.
-    
+
     All fields are optional to allow partial updates.
     """
 
@@ -100,7 +100,7 @@ class TestTypeBUpdate(TestBaseModelUpdate):
 class TestBaseModelInDB(TestBaseModelSchema):
     """
     Schema for polymorphic entity data as stored in the database.
-    
+
     Extends the base schema with database-specific fields.
     """
 

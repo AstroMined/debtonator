@@ -5,11 +5,9 @@ This module provides a repository for cashflow transaction operations,
 including retrieving day transactions, historical transactions, and projected transactions.
 """
 
-from datetime import date, datetime
-from typing import Dict, List, Optional
-from zoneinfo import ZoneInfo
+from typing import List, Optional
 
-from sqlalchemy import and_, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -17,16 +15,11 @@ from src.models.accounts import Account
 from src.models.income import Income
 from src.models.liabilities import Liability
 from src.models.payments import Payment
-from src.repositories.cashflow.base import BaseCashflowRepository
-from src.utils.datetime_utils import (
-    days_from_now,
-    days_ago,
-    naive_end_of_day,
-    naive_start_of_day,
-)
+from src.repositories.cashflow.cashflow_base import CashflowBaseRepository
+from src.utils.datetime_utils import naive_end_of_day, naive_start_of_day
 
 
-class CashflowTransactionRepository(BaseCashflowRepository[Liability]):
+class CashflowTransactionRepository(CashflowBaseRepository[Liability]):
     """
     Repository for cashflow transaction operations.
 
@@ -42,7 +35,9 @@ class CashflowTransactionRepository(BaseCashflowRepository[Liability]):
         Args:
             session (AsyncSession): SQLAlchemy async session
         """
-        super().__init__(session, Liability)  # Use Liability as base model for simplicity
+        super().__init__(
+            session, Liability
+        )  # Use Liability as base model for simplicity
 
     async def get_bills_due_on_date(
         self, account_id: int, target_date, include_pending: bool = True
