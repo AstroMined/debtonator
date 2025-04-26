@@ -7,6 +7,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.141] - 2025-04-26
+
+### Added
+
+- Created PaymentPatternRepository with specialized methods:
+  - Implemented get_payments_with_filters with comprehensive filtering options
+  - Added get_bill_payments for liability-specific payment analysis
+  - Created calculate_payment_frequency_metrics for interval pattern detection
+  - Added calculate_amount_statistics for financial pattern analysis
+  - Implemented get_date_range_for_pattern_analysis and get_most_common_category
+
+### Changed
+
+- Refactored BillPaymentPatternService to comply with ADR-014 Repository Layer standards:
+  - Updated service to inherit from BaseService for standardized repository access
+  - Replaced all direct database queries with repository method calls
+  - Used _get_repository method for repository instantiation
+  - Delegated data operations to repository layer while maintaining business logic
+  - Applied proper ADR-011 datetime compliance with utility functions
+  - Improved separation of concerns with data access in repository layer
+  - Enhanced method documentation with comprehensive docstrings
+
+### Documentation
+
+- Updated ADR-014 implementation checklist:
+  - Marked Phase 8 (Payment Patterns Implementation) as completed
+  - Updated implementation status with completed refactoring tasks
+  - Added standardized patterns for payment pattern analysis services
+
 ## [0.5.140] - 2025-04-26
 
 ### Changed

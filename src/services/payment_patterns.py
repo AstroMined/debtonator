@@ -1,12 +1,16 @@
-from datetime import datetime, timedelta, timezone
-from decimal import Decimal
-from typing import List, Optional, Tuple
+"""
+Payment pattern service implementation.
 
-import numpy as np
-from sqlalchemy import select
+This module provides services for analyzing payment patterns, including
+frequency detection, amount analysis, and pattern classification.
+"""
+
+from typing import Any, List, Optional, Tuple
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.payments import Payment, PaymentSource
+from src.models.payments import Payment
+from src.repositories.payment_patterns import PaymentPatternRepository
 from src.schemas.payment_patterns import (
     AmountStatistics,
     FrequencyMetrics,
@@ -14,41 +18,68 @@ from src.schemas.payment_patterns import (
     PaymentPatternAnalysis,
     PaymentPatternRequest,
 )
+from src.services.base import BaseService
+from src.services.feature_flags import FeatureFlagService
 
 
 # TODO: Create a separate ExpensePatternService for analyzing non-bill payment patterns
-class BillPaymentPatternService:
+class BillPaymentPatternService(BaseService):
+    """
+    Service for analyzing payment patterns for bills.
+    
+    Provides comprehensive analysis of payment patterns, including frequency
+    detection, amount analysis, and pattern classification.
+    """
+    
     # Expected days before due date
     TARGET_DAYS = 5
 
-    def __init__(self, session: AsyncSession):
-        self.session = session
+    def __init__(
+        self, 
+        session: AsyncSession,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None,
+    ):
+        """
+        Initialize service with database session and optional services.
+        
+        Args:
+            session (AsyncSession): SQLAlchemy async session
+            feature_flag_service (Optional[FeatureFlagService]): Feature flag service
+            config_provider (Optional[Any]): Configuration provider
+        """
+        super().__init__(session, feature_flag_service, config_provider)
 
     async def analyze_payment_patterns(
         self, request: PaymentPatternRequest
     ) -> PaymentPatternAnalysis:
-        # Build base query
-        query = select(Payment).order_by(Payment.payment_date.asc())
-
-        # Add filters
-        if request.liability_id:
-            query = query.where(Payment.liability_id == request.liability_id)
-        if request.account_id:
-            query = query.join(Payment.sources).filter(
-                PaymentSource.account_id == request.account_id
-            )
-        if request.category_id:
-            query = query.filter(
-                Payment.category.ilike(f"%{request.category_id}%")
-            )  # Case-insensitive partial match
-        if request.start_date:
-            query = query.filter(Payment.payment_date >= request.start_date)
-        if request.end_date:
-            query = query.filter(Payment.payment_date <= request.end_date)
-
-        # Execute query
-        result = await self.session.execute(query)
-        payments = result.scalars().all()
+        """
+        Analyze payment patterns based on the provided request criteria.
+        
+        This method retrieves payments matching the filter criteria and performs
+        comprehensive pattern analysis, including frequency detection, amount
+        analysis, and pattern classification.
+        
+        Args:
+            request (PaymentPatternRequest): Filter criteria and analysis parameters
+            
+        Returns:
+            PaymentPatternAnalysis: Comprehensive pattern analysis result
+        """
+        # Get repository
+        pattern_repo = await self._get_repository(PaymentPatternRepository)
+        
+        # Get payments using repository
+        payments = await pattern_repo.get_payments_with_filters(
+            liability_id=request.liability_id,
+            account_id=request.account_id,
+            category_id=request.category_id,
+            start_date=request.start_date,
+            end_date=request.end_date,
+            order_by_asc=True,  # Always ascending for pattern analysis
+        )
+        
+        # Debug info
         print(
             f"\nGot {len(payments)} payments for liability {request.liability_id} between {request.start_date} and {request.end_date}"
         )
@@ -57,24 +88,44 @@ class BillPaymentPatternService:
                 f"  Payment: {p.amount} on {p.payment_date} (liability_id={p.liability_id})"
             )
 
+        # Not enough data for analysis
         if len(payments) < request.min_sample_size:
             return self._create_unknown_pattern(payments, request)
 
-        # Calculate metrics
-        frequency_metrics = await self._calculate_frequency_metrics(payments)
-        amount_statistics = self._calculate_amount_statistics(payments)
+        # Calculate metrics using repository methods
+        avg_days, std_dev_days, min_days, max_days = await pattern_repo.calculate_payment_frequency_metrics(payments)
+        frequency_metrics = FrequencyMetrics(
+            average_days_between=avg_days,
+            std_dev_days=std_dev_days,
+            min_days=min_days,
+            max_days=max_days,
+        )
+        
+        avg_amount, std_dev_amount, min_amount, max_amount, total_amount = await pattern_repo.calculate_amount_statistics(payments)
+        amount_statistics = AmountStatistics(
+            average_amount=avg_amount,
+            std_dev_amount=std_dev_amount,
+            min_amount=min_amount,
+            max_amount=max_amount,
+            total_amount=total_amount,
+        )
+        
+        # Determine pattern type (business logic stays in service)
         pattern_type, confidence_score, notes = self._determine_pattern_type(
             frequency_metrics, amount_statistics, len(payments)
         )
 
-        # Ensure payment dates are UTC
-        first_payment = payments[0].payment_date
-        last_payment = payments[-1].payment_date
-        if not first_payment.tzinfo:
-            first_payment = first_payment.replace(tzinfo=timezone.utc)
-        if not last_payment.tzinfo:
-            last_payment = last_payment.replace(tzinfo=timezone.utc)
+        # Get date range using repository method
+        first_payment, last_payment = await pattern_repo.get_date_range_for_pattern_analysis(
+            payments,
+            default_start_date=request.start_date,
+            default_end_date=request.end_date,
+        )
 
+        # Get suggested category using repository method
+        suggested_category = await pattern_repo.get_most_common_category(payments)
+
+        # Return comprehensive analysis
         return PaymentPatternAnalysis(
             pattern_type=pattern_type,
             confidence_score=confidence_score,
@@ -83,79 +134,65 @@ class BillPaymentPatternService:
             sample_size=len(payments),
             analysis_period_start=first_payment,
             analysis_period_end=last_payment,
-            suggested_category=self._suggest_category(payments),
+            suggested_category=suggested_category,
             notes=notes,
         )
 
+    # These methods are now in the repository layer
+    # Keeping them as private methods to maintain backwards compatibility
+    # but they simply delegate to the repository implementation
+    
     async def _calculate_frequency_metrics(
         self, payments: List[Payment]
     ) -> FrequencyMetrics:
-        if len(payments) < 2:
-            return FrequencyMetrics(
-                average_days_between=0, std_dev_days=0, min_days=0, max_days=0
-            )
-
-        # Calculate days between consecutive payments
-        days_between = []
-        payment_dates = []
-
-        # Ensure all payment dates are UTC
-        for payment in payments:
-            payment_date = (
-                payment.payment_date
-                if payment.payment_date.tzinfo
-                else payment.payment_date.replace(tzinfo=timezone.utc)
-            )
-            payment_dates.append(payment_date)
-
-        # Sort dates to ensure correct interval calculation
-        payment_dates.sort()
-
-        # Check if all payments are on the same day
-        if (max(payment_dates) - min(payment_dates)).days == 0:
-            return FrequencyMetrics(
-                average_days_between=0, std_dev_days=0, min_days=0, max_days=0
-            )
-
-        # Calculate intervals between consecutive payments
-        for i in range(len(payment_dates) - 1):
-            delta = (payment_dates[i + 1] - payment_dates[i]).days
-            if delta > 0:  # Only count non-zero intervals
-                days_between.append(delta)
-
-        if not days_between:  # If no valid intervals found
-            return FrequencyMetrics(
-                average_days_between=0, std_dev_days=0, min_days=0, max_days=0
-            )
-
-        # Calculate metrics
-        mean_days = float(np.mean(days_between))
-        std_dev = float(np.std(days_between))
-
+        """
+        Calculate frequency metrics for a list of payments.
+        
+        This method delegates to the repository layer implementation.
+        
+        Args:
+            payments (List[Payment]): List of payments to analyze
+            
+        Returns:
+            FrequencyMetrics: Metrics about payment frequency
+        """
+        # This method is retained for backwards compatibility,
+        # but now delegates to the repository implementation
+        pattern_repo = await self._get_repository(PaymentPatternRepository)
+        avg_days, std_dev_days, min_days, max_days = await pattern_repo.calculate_payment_frequency_metrics(payments)
+        
         return FrequencyMetrics(
-            average_days_between=mean_days,
-            std_dev_days=std_dev,
-            min_days=min(days_between),
-            max_days=max(days_between),
+            average_days_between=avg_days,
+            std_dev_days=std_dev_days,
+            min_days=min_days,
+            max_days=max_days,
         )
-
-    def _calculate_amount_statistics(self, payments: List[Payment]) -> AmountStatistics:
-        if not payments:
-            return AmountStatistics(
-                average_amount=Decimal("0"),
-                std_dev_amount=Decimal("0"),
-                min_amount=Decimal("0"),
-                max_amount=Decimal("0"),
-                total_amount=Decimal("0"),
-            )
-
-        amounts = [payment.amount for payment in payments]
+        
+    async def _calculate_amount_statistics(
+        self, payments: List[Payment]
+    ) -> AmountStatistics:
+        """
+        Calculate amount statistics for a list of payments.
+        
+        This method delegates to the repository layer implementation.
+        
+        Args:
+            payments (List[Payment]): List of payments to analyze
+            
+        Returns:
+            AmountStatistics: Statistical analysis of payment amounts
+        """
+        # This method is retained for backwards compatibility,
+        # but now delegates to the repository implementation
+        pattern_repo = await self._get_repository(PaymentPatternRepository)
+        avg_amount, std_dev_amount, min_amount, max_amount, total_amount = await pattern_repo.calculate_amount_statistics(payments)
+        
         return AmountStatistics(
-            average_amount=Decimal(str(np.mean(amounts))),
-            std_dev_amount=Decimal(str(np.std(amounts))),
-            min_amount=min(amounts),
-            max_amount=max(amounts),
-            total_amount=sum(amounts),
+            average_amount=avg_amount,
+            std_dev_amount=std_dev_amount,
+            min_amount=min_amount,
+            max_amount=max_amount,
+            total_amount=total_amount,
         )
 
     def _determine_pattern_type(
@@ -257,17 +294,34 @@ class BillPaymentPatternService:
         confidence = min(0.6, 0.3 + (sample_size_factor * 0.3))
         return PatternType.IRREGULAR, confidence, notes
 
-    def _create_unknown_pattern(
+    async def _create_unknown_pattern(
         self, payments: List[Payment], request: PaymentPatternRequest
     ) -> PaymentPatternAnalysis:
-        # Use request dates if available, otherwise use current time in UTC
-        start_date = (
-            request.start_date if request.start_date else datetime.now(timezone.utc)
+        """
+        Create an unknown pattern analysis result when insufficient data is available.
+        
+        Args:
+            payments (List[Payment]): Limited list of payments (below minimum sample size)
+            request (PaymentPatternRequest): Original analysis request
+            
+        Returns:
+            PaymentPatternAnalysis: Pattern analysis with UNKNOWN type
+        """
+        # Get repository
+        pattern_repo = await self._get_repository(PaymentPatternRepository)
+        
+        # Use request dates if available, otherwise use the repository method
+        start_date, end_date = await pattern_repo.get_date_range_for_pattern_analysis(
+            payments,
+            default_start_date=request.start_date,
+            default_end_date=request.end_date,
         )
-        end_date = request.end_date if request.end_date else datetime.now(timezone.utc)
 
         # Ensure we have at least one payment for sample_size validation
         sample_size = max(1, len(payments))
+        
+        # Calculate amount statistics using repository method
+        amount_statistics = await self._calculate_amount_statistics(payments)
 
         return PaymentPatternAnalysis(
             pattern_type=PatternType.UNKNOWN,
@@ -275,43 +329,47 @@ class BillPaymentPatternService:
             frequency_metrics=FrequencyMetrics(
                 average_days_between=0, std_dev_days=0, min_days=0, max_days=0
             ),
-            amount_statistics=self._calculate_amount_statistics(payments),
+            amount_statistics=amount_statistics,
             sample_size=sample_size,
             analysis_period_start=start_date,
             analysis_period_end=end_date,
             notes=["Insufficient data for pattern analysis"],
         )
 
-    def _suggest_category(self, payments: List[Payment]) -> Optional[str]:
-        if not payments:
-            return None
-
-        # Get the most common category
-        categories = {}
-        for payment in payments:
-            if payment.category:
-                categories[payment.category] = categories.get(payment.category, 0) + 1
-
-        if not categories:
-            return None
-
-        most_common = max(categories.items(), key=lambda x: x[1])[0]
-        return most_common
+    async def _suggest_category(self, payments: List[Payment]) -> Optional[str]:
+        """
+        Get the most common category from a list of payments.
+        
+        This method delegates to the repository layer implementation.
+        
+        Args:
+            payments (List[Payment]): List of payments to analyze
+            
+        Returns:
+            Optional[str]: Most common category or None if no categories
+        """
+        # This method is retained for backwards compatibility,
+        # but now delegates to the repository implementation
+        pattern_repo = await self._get_repository(PaymentPatternRepository)
+        return await pattern_repo.get_most_common_category(payments)
 
     async def analyze_bill_payments(
         self, liability_id: int
     ) -> Optional[PaymentPatternAnalysis]:
-        """Analyze payment patterns for a specific bill."""
-        # Build query for bill payments
-        query = (
-            select(Payment)
-            .where(Payment.liability_id == liability_id)
-            .order_by(Payment.payment_date.asc())
-        )  # Order by ascending date to match other methods
-
-        # Execute query
-        result = await self.session.execute(query)
-        payments = result.scalars().all()
+        """
+        Analyze payment patterns for a specific bill.
+        
+        Args:
+            liability_id (int): ID of the liability/bill to analyze
+            
+        Returns:
+            Optional[PaymentPatternAnalysis]: Pattern analysis or None if no payments
+        """
+        # Get repositories
+        pattern_repo = await self._get_repository(PaymentPatternRepository)
+        
+        # Get bill payments using repository
+        payments = await pattern_repo.get_bill_payments(liability_id)
 
         print(f"\nFound {len(payments)} payments:")
         for p in payments:
@@ -322,32 +380,10 @@ class BillPaymentPatternService:
         if not payments:
             return None
 
-        # Create request with default parameters
-        # Get the earliest and latest payment dates
-        payment_dates = [
-            (
-                payment.payment_date
-                if payment.payment_date.tzinfo
-                else payment.payment_date.replace(tzinfo=timezone.utc)
-            )
-            for payment in payments
-        ]
+        # Get date range using repository method
+        start_date, end_date = await pattern_repo.get_date_range_for_pattern_analysis(payments)
 
-        if payment_dates:
-            # Include the full day for both start and end dates in UTC
-            min_date = min(payment_dates)
-            max_date = max(payment_dates)
-
-            # Set time components for start/end dates
-            start_date = min_date.replace(
-                hour=0, minute=0, second=0, microsecond=0
-            ) - timedelta(days=1)
-            end_date = max_date.replace(
-                hour=23, minute=59, second=59, microsecond=999999
-            )
-        else:
-            start_date = end_date = datetime.now(timezone.utc)
-
+        # Create request with appropriate parameters
         request = PaymentPatternRequest(
             min_sample_size=2,  # Lower minimum for bill-specific analysis
             start_date=start_date,
