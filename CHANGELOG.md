@@ -7,6 +7,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.137] - 2025-04-25
+
+### Added
+
+- Implemented IncomeTrendsRepository for ADR-014 compliance:
+  - Created repository with specialized methods for income data analysis
+  - Added get_income_records method with proper filtering capabilities
+  - Implemented group_records_by_source method for source-specific analysis
+  - Added get_min_max_dates for data range operations
+  - Added get_records_by_month for seasonality analysis
+  - Ensured proper datetime handling with ADR-011 utility functions
+
+### Changed
+
+- Refactored IncomeTrendsService to use repository pattern:
+  - Updated service to inherit from BaseService for standardized repository access
+  - Replaced direct database queries with repository method calls
+  - Improved timezone handling with ADR-011 datetime utility functions
+  - Enhanced method documentation with comprehensive docstrings
+  - Preserved all statistical analysis and seasonality detection capabilities
+  - Ensured clean separation between data access and business logic
+  - Fixed tests to use proper UTC-aware datetimes
+
+### Documentation
+
+- Updated implementation checklist in ADR-014-implementation-checklist.md:
+  - Marked income trends implementation as completed
+  - Updated current status with implementation details
+  - Added implementation patterns for similar services
+
 ## [0.5.136] - 2025-04-25
 
 ### Fixed

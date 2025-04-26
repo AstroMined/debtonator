@@ -6,6 +6,7 @@ import pytest
 from src.models.income import Income
 from src.schemas.income_trends import IncomeTrendsRequest
 from src.services.income_trends import IncomeTrendsService
+from src.utils.datetime_utils import utc_datetime
 
 
 @pytest.fixture(scope="function")
@@ -90,7 +91,7 @@ async def test_analyze_weekly_pattern(db_session, weekly_income_data):
     await db_session.commit()
 
     request = IncomeTrendsRequest(
-        start_date=date(2024, 1, 1), end_date=date(2024, 12, 31)
+        start_date=utc_datetime(2024, 1, 1), end_date=utc_datetime(2024, 12, 31)
     )
 
     # Act
@@ -113,7 +114,7 @@ async def test_analyze_monthly_pattern(db_session, monthly_income_data):
     await db_session.commit()
 
     request = IncomeTrendsRequest(
-        start_date=date(2024, 1, 1), end_date=date(2024, 12, 31)
+        start_date=utc_datetime(2024, 1, 1), end_date=utc_datetime(2024, 12, 31)
     )
 
     # Act
@@ -136,7 +137,7 @@ async def test_analyze_irregular_pattern(db_session, irregular_income_data):
     await db_session.commit()
 
     request = IncomeTrendsRequest(
-        start_date=date(2024, 1, 1), end_date=date(2024, 12, 31)
+        start_date=utc_datetime(2024, 1, 1), end_date=utc_datetime(2024, 12, 31)
     )
 
     # Act
@@ -158,7 +159,7 @@ async def test_source_statistics(db_session, weekly_income_data, monthly_income_
     await db_session.commit()
 
     request = IncomeTrendsRequest(
-        start_date=date(2024, 1, 1), end_date=date(2024, 12, 31)
+        start_date=utc_datetime(2024, 1, 1), end_date=utc_datetime(2024, 12, 31)
     )
 
     # Act
@@ -201,7 +202,7 @@ async def test_seasonality_analysis(db_session, monthly_income_data):
     await db_session.commit()
 
     request = IncomeTrendsRequest(
-        start_date=date(2024, 1, 1), end_date=date(2024, 12, 31)
+        start_date=utc_datetime(2024, 1, 1), end_date=utc_datetime(2024, 12, 31)
     )
 
     # Act
@@ -222,7 +223,7 @@ async def test_empty_data_handling(db_session):
     # Arrange
     service = IncomeTrendsService(db_session)
     request = IncomeTrendsRequest(
-        start_date=date(2024, 1, 1), end_date=date(2024, 12, 31)
+        start_date=utc_datetime(2024, 1, 1), end_date=utc_datetime(2024, 12, 31)
     )
 
     # Act & Assert

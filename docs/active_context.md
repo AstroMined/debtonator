@@ -6,6 +6,25 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance, Account Type
 
 ### Recent Changes
 
+1. **Implemented IncomeTrendsRepository for ADR-014 Compliance (April 25, 2025)** ✓
+   - Created IncomeTrendsRepository with specialized methods:
+     - Implemented get_income_records with proper filtering
+     - Added group_records_by_source for source-specific analysis
+     - Created get_min_max_dates for date range operations
+     - Added get_records_by_month for seasonality analysis
+   - Refactored IncomeTrendsService to use repository pattern:
+     - Updated service to inherit from BaseService
+     - Replaced direct database queries with repository methods
+     - Improved timezone handling with ADR-011 utility functions
+     - Enhanced method documentation and parameter validation
+     - Maintained all statistical analysis capabilities
+   - Ensured proper datetime handling with utc_now and ensure_utc
+   - Updated test suite to use proper UTC-aware datetimes
+   - Updated implementation checklist to reflect completed phase
+   - Marked as completed in ADR-014 compliance documentation
+
+1. **Fixed Environment Context Initialization in Feature Flags (April 25, 2025)** ✓
+
 1. **Fixed Environment Context Initialization in Feature Flags (April 25, 2025)** ✓
    - Fixed error when executing tests in `test_accounts_services.py`
    - Updated feature flags dependencies to use `create_default_context()` for proper initialization

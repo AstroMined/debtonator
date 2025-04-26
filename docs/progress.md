@@ -2,6 +2,21 @@
 
 ## Recent Updates
 
+### Income Trends Service Refactoring for ADR-014 Compliance (2025-04-25)
+
+- Completed Income Trends Service refactoring to comply with ADR-014 Repository Layer Compliance:
+  - Created IncomeTrendsRepository with appropriate methods for data access
+  - Updated IncomeTrendsService to inherit from BaseService for standardized repository access
+  - Replaced direct database operations with repository method calls
+  - Fixed timezone handling with proper ADR-011 datetime utility functions
+  - Improved method documentation with comprehensive docstrings
+  - Maintained statistical analysis and seasonality detection functionality
+  - All income trends functionality now works through repository layer
+  - Updated tests to use proper UTC-aware datetimes
+  - Updated implementation checklist to reflect completed phase
+  - Added proper parameter validation in repository methods
+  - Ensured clean separation between data access and business logic
+
 ### Environment Context Initialization Fix (2025-04-25)
 
 - Fixed environment context initialization in feature flag service:
@@ -123,13 +138,12 @@
 
 1. **Continue Repository Layer Compliance (ADR-014)**
    - Focus on medium-priority services next:
-     - income_trends.py
      - payment_patterns.py
      - payment_schedules.py
    - Create specialized repositories for each service
    - Apply consistent repository pattern and dependency injection
-   - Extend RepositoryFactory with methods for new repositories
-   - Follow established patterns from RealtimeCashflowRepository implementation
+   - Ensure proper datetime handling with ADR-011 compliance
+   - Follow established patterns from IncomeTrendsRepository implementation
 
 2. **Implement API Layer for Account Types**
    - Create endpoint for GET /banking/overview

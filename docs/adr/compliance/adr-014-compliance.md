@@ -80,7 +80,7 @@ None identified yet
 Files that primarily use direct database access instead of repositories:
 
 - src/services/deposit_schedules.py - Uses direct SQLAlchemy queries with session instead of repositories
-- src/services/income_trends.py - Uses direct database access for queries and analysis
+- src/services/income_trends.py - ✅ Refactored to use IncomeTrendsRepository (2025-04-25)
 - src/services/payment_patterns.py - Uses direct database session for all operations
 - src/services/payment_schedules.py - Direct database access for CRUD operations
 - src/services/recommendations.py - Direct database access with SQLAlchemy queries
@@ -549,7 +549,7 @@ After a complete examination of all service files in the project, I've identifie
 | cashflow/metrics_service.py | CashflowMetricsRepository | ✅ Complete | Fully refactored on 2025-04-24 |
 | cashflow/transaction_service.py | CashflowTransactionRepository | ✅ Complete | Fully refactored on 2025-04-24 |
 | deposit_schedules.py | DepositScheduleRepository | ❌ Not Started | Uses direct session management |
-| income_trends.py | IncomeTrendsRepository | ❌ Not Started | Direct database queries |
+| income_trends.py | IncomeTrendsRepository | ✅ Complete | Refactored on 2025-04-25 |
 | payment_patterns.py | PaymentPatternRepository | ❌ Not Started | Direct database operations |
 | payment_schedules.py | PaymentScheduleRepository | ❌ Not Started | Direct database operations |
 | recommendations.py | RecommendationRepository | ❌ Not Started | Direct database queries |
