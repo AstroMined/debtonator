@@ -7,6 +7,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.150] - 2025-04-27
+
+### Changed
+
+- Refactored cashflow integration tests to follow project structure:
+  - Moved tests from monolithic files to specialized test files in cashflow directory
+  - Created test_metrics_service.py, test_forecast_service.py, test_historical_service.py, and test_transaction_service.py
+  - Aligned test directory structure with implementation structure
+
+### Fixed
+
+- Corrected fixture usage in cashflow tests:
+  - Used registered fixtures from fixture directory structure
+  - Fixed import paths for model modules (balance_history, transaction_history)
+  - Updated field references to match model structure (timestamp, transaction_date)
+  - Resolved timezone handling for model creation
+  - Maintained consistent service initialization with BaseService pattern
+
 ## [0.5.149] - 2025-04-26
 
 ### Removed

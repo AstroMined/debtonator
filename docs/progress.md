@@ -2,6 +2,26 @@
 
 ## Recent Updates
 
+### Refactored Cashflow Integration Tests to Follow Project Structure (2025-04-27)
+
+- Reorganized integration tests for cashflow services:
+  - Created specialized test files in cashflow directory to match implementation structure
+  - Moved all tests from test_cashflow_metrics_service.py and test_cashflow_services.py into specialized files
+  - Test files now mirror the implementation structure in src/services/cashflow/
+  - Updated import paths to use correct model modules (balance_history, transaction_history)
+  - Fixed field name references to match model structure (timestamp, transaction_date, transaction_type)
+  - Removed redundant test code and used proper registered fixtures
+- Ensured proper use of fixtures from established fixture directory:
+  - Used test_cashflow_forecast fixture from fixture_cashflow_models.py
+  - Maintained proper separation between test files and fixtures
+  - Followed project's fixture organization pattern without local conftest.py
+  - Used registered fixtures for models, repositories, and services
+- Maintained test patterns and best practices:
+  - Preserved function-style tests with clear docstrings
+  - Followed established test structure (Arrange, Schema, Act, Assert)
+  - Maintained comprehensive test coverage for all cashflow functionality
+  - Used proper service initialization with session parameter
+
 ### Resolved Circular Import Dependencies in Cashflow Module (2025-04-26)
 
 - Created a common domain types module for proper architecture:

@@ -2,9 +2,29 @@
 
 ## Current Focus
 
-Repository Pattern Refinement, ADR-014 Repository Layer Compliance Implementation, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration, Repository Test Fixes, Circular Dependency Resolution
+Repository Pattern Refinement, ADR-014 Repository Layer Compliance Implementation, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration, Repository Test Fixes, Circular Dependency Resolution, Test Directory Structure Alignment
 
 ### Recent Changes
+
+1. **Refactored Cashflow Integration Tests to Follow Project Structure (April 27, 2025)** ✓
+   - Moved tests from monolithic files to specialized test files in cashflow directory:
+     - Created test_metrics_service.py to test cashflow metrics calculations
+     - Created test_forecast_service.py to test forecast functionality
+     - Created test_historical_service.py to test historical analysis features
+     - Created test_transaction_service.py to test transaction functionality
+   - Ensured proper use of registered fixtures from fixture directory structure:
+     - Used test_cashflow_forecast fixture from fixture_cashflow_models.py
+     - Followed established test patterns for fixture usage
+     - Maintained service constructor alignment with BaseService pattern
+   - Fixed import and model issues:
+     - Updated imports to use correct model paths (balance_history, transaction_history)
+     - Fixed field name references to match actual model structure (timestamp, transaction_date)
+     - Resolved timezone handling issues in model creation
+   - Maintained test organization patterns:
+     - Kept test directory structure aligned with implementation structure
+     - Used function-style tests with descriptive docstrings
+     - Followed four-step test pattern (Arrange, Schema, Act, Assert)
+     - Preserved comprehensive test coverage for all cashflow functionality
 
 1. **Resolved Circular Import Dependencies in Cashflow Module (April 26, 2025)** ✓
    - Created a common domain types module to break circular dependencies:
