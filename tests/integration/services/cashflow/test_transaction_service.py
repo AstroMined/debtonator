@@ -1,6 +1,6 @@
 """Integration tests for the cashflow transaction service."""
 
-from datetime import date, datetime, timedelta
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.accounts import Account
 from src.models.transaction_history import TransactionHistory, TransactionType
 from src.services.cashflow.cashflow_transaction_service import TransactionService
-from src.utils.datetime_utils import ensure_utc, naive_utc_from_date, utc_now, naive_utc_now
+from src.utils.datetime_utils import naive_days_ago, utc_now
 
 
 @pytest.mark.asyncio
@@ -36,10 +36,9 @@ async def test_get_recent_transactions(db_session: AsyncSession):
             TransactionType.DEPOSIT if i % 2 == 0 else TransactionType.WITHDRAWAL
         )
 
-        trans_date = today - timedelta(days=i)
         transaction = TransactionHistory(
             account_id=account.id,
-            transaction_date=naive_utc_now(),
+            transaction_date=naive_days_ago(i),
             description=f"Transaction {i+1}",
             amount=amount,
             transaction_type=trans_type,
@@ -90,10 +89,9 @@ async def test_analyze_spending_by_category(db_session: AsyncSession):
     ]
 
     for i in range(4):
-        trans_date = today - timedelta(days=i)
         transaction = TransactionHistory(
             account_id=account.id,
-            transaction_date=naive_utc_now(),
+            transaction_date=naive_days_ago(i),
             description=f"Transaction {i+1}",
             amount=amounts[i],
             type=TransactionType.WITHDRAWAL,
@@ -161,10 +159,9 @@ async def test_get_cash_flow_summary(db_session: AsyncSession):
     ]
 
     for i, data in enumerate(transaction_data):
-        trans_date = today - timedelta(days=i)
         transaction = TransactionHistory(
             account_id=account.id,
-            transaction_date=naive_utc_now(),
+            transaction_date=naive_days_ago(i),
             description=f"Transaction {i+1}",
             amount=data["amount"],
             type=data["type"],
@@ -207,10 +204,9 @@ async def test_get_transactions_by_date_range(db_session: AsyncSession):
     # Create transactions across several days
     today = utc_now().date()
     for i in range(10):
-        trans_date = today - timedelta(days=i)
         transaction = TransactionHistory(
             account_id=account.id,
-            transaction_date=naive_utc_now(),
+            transaction_date=naive_days_ago(i),
             description=f"Transaction {i+1}",
             amount=Decimal("-10.00") * (i + 1),
             type=TransactionType.WITHDRAWAL,

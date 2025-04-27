@@ -7,6 +7,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.152] - 2025-04-27
+
+### Fixed
+
+- Refactored cashflow integration tests to use proper registered fixtures:
+  - Updated all tests to use fixtures from fixture directories instead of direct test data creation
+  - Fixed transaction date creation in test_transaction_service.py using naive_days_ago
+  - Updated test_forecast_service.py to use test_checking_account and test_category fixtures
+  - Improved test reliability with proper date handling
+  - Followed project testing standards with proper 4-step test pattern
+
 ## [0.5.151] - 2025-04-27
 
 ### Fixed

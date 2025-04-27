@@ -2,9 +2,26 @@
 
 ## Current Focus
 
-Repository Pattern Refinement, ADR-014 Repository Layer Compliance Implementation, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration, Repository Test Fixes, Circular Dependency Resolution, Test Directory Structure Alignment, Cashflow Service Improvements
+Repository Pattern Refinement, ADR-014 Repository Layer Compliance Implementation, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration, Repository Test Fixes, Circular Dependency Resolution, Test Directory Structure Alignment, Cashflow Service Improvements, Integration Test Refactoring
 
 ### Recent Changes
+
+1. **Refactored Cashflow Service Integration Tests to Use Registered Fixtures (April 27, 2025)** ✓
+   - Fixed test data setup to use registered fixtures instead of direct model creation:
+     - Updated test_metrics_service.py to use test_cashflow_forecast fixture
+     - Updated test_forecast_service.py to use test_checking_account and test_category fixtures
+     - Followed project standards with proper four-step test pattern
+     - Eliminated duplicate test data creation across multiple test files
+   - Improved datetime handling in test fixtures:
+     - Fixed trans_date usage by replacing with naive_days_ago(i) in test_transaction_service.py
+     - Replaced all naive_utc_from_date calls with cleaner naive_days_from_now function
+     - Fixed timezone handling in date range queries
+     - Improved readability and maintainability of date-related code
+   - Enhanced test structure following project standards:
+     - Implemented proper Arrange, Schema, Act, Assert pattern in all tests
+     - Ensured consistent variable naming and data structures
+     - Improved test assertions to be more readable and maintainable
+     - Maintained functionality while improving code organization
 
 1. **Improved Cashflow Service Implementation with Proper Data Usage (April 27, 2025)** ✓
    - Enhanced historical data usage in cashflow metrics calculation:
@@ -75,96 +92,16 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance Implementatio
      - Both can import from common types
      - Cleaner testing and module initialization
 
-2. **Removed CashflowService Anti-Pattern (April 26, 2025)** ✓
-   - Eliminated unnecessary layer of abstraction:
-     - Deleted cashflow_main.py containing the CashflowService class
-     - Updated documentation references to use specialized services
-   - Fixed test files to use proper specialized services:
-     - Added proper exports to src/services/cashflow/__init__.py
-     - Updated test_account_specific_forecasts.py to use ForecastService
-     - Updated test_cashflow_services.py to use the appropriate services
-     - Updated test_historical_trends_services.py to use HistoricalService
-   - Updated documentation references:
-     - Changed ADR references to use specialized services
-     - Updated service fixture patterns in README.md
-   - Improved architecture by removing unnecessary delegation layer
-
-3. **Completed DepositScheduleService Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
-   - Refactored DepositScheduleService to inherit from BaseService:
-     - Updated constructor to properly initialize BaseService
-     - Used _get_repository method for standardized repository access
-     - Leveraged existing DepositScheduleRepository's comprehensive methods
-   - Replaced direct database operations:
-     - Removed all direct SQL queries using select()
-     - Used repository methods for data access and filtering
-     - Maintained business logic in service layer
-   - Applied proper ADR-011 datetime compliance:
-     - Used utc_now() for current time
-     - Used ensure_utc() for timezone awareness
-     - Used naive_start_of_day() and naive_end_of_day() for DB operations
-   - Enhanced service methods:
-     - Updated create_deposit_schedule to use repository.create
-     - Updated get_deposit_schedule to use repository.get
-     - Updated update_deposit_schedule to use repository.update
-     - Updated delete_deposit_schedule to use repository.delete
-     - Updated list_deposit_schedules to use specialized repository methods
-   - Updated ADR-014 implementation checklist to mark Phase 16 as completed
-
-4. **Completed Statement History Service Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
-   - Refactored StatementService to inherit from BaseService:
-     - Updated constructor to properly initialize BaseService
-     - Used _get_repository method for standardized repository access
-     - Replaced all direct database queries with repository method calls
-   - Leveraged existing StatementHistoryRepository's comprehensive methods:
-     - Used get_by_account for efficient statement retrieval
-     - Used get_by_date_range for filtering by date period
-     - Used get_with_account for loading account relationships
-     - Added get_latest_statement for recent statement access
-   - Applied proper ADR-011 datetime compliance:
-     - Used ensure_utc() for timezone awareness throughout
-     - Properly handled timezone in date comparisons and filtering
-     - Used utc_now() for current time access with proper timezone
-   - Enhanced service with additional functionality:
-     - Added methods for trend analysis and financial reporting
-     - Added get_total_minimum_payments_due for financial summaries
-     - Added get_upcoming_statements for forecasting
-     - Improved method documentation with comprehensive docstrings
-   - Updated ADR-014 implementation checklist to mark Phase 13 as completed
-
-5. **Completed Liabilities Service Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
-   - Refactored LiabilityService to inherit from BaseService:
-     - Updated constructor to properly initialize BaseService
-     - Used _get_repository method for standardized repository access
-     - Replaced all direct database queries with repository method calls
-   - Leveraged existing LiabilityRepository's comprehensive methods:
-     - Used get_bills_due_in_range for date-based filtering
-     - Used get_bills_for_account for account-specific liabilities
-     - Added get_with_relationships for complete record access
-     - Used proper validation methods from repository layer
-   - Applied proper ADR-011 datetime compliance:
-     - Used ensure_utc() for timezone awareness throughout
-     - Used utc_now() instead of datetime.now() for current time
-     - Added proper date range handling in filter methods
-   - Updated ADR-014 implementation checklist to mark Phase 14 as completed
-
-### Previous Changes
-
-1. **Completed Categories Service Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
-   - Refactored CategoryService to inherit from BaseService:
-     - Updated constructor to properly initialize BaseService
-     - Used _get_repository method for standardized repository access
-     - Leveraged existing CategoryRepository's comprehensive methods
-   - Maintained specialized category tree composition methods:
-     - Preserved hierarchical response composition without circular references
-     - Kept bill relationship handling intact with repository pattern
-   - Enhanced error handling with improved CategoryError class:
-     - Added proper context fields for better debugging
-     - Provided descriptive error messages for validation failures
-   - Updated ADR-014 implementation checklist to mark Phase 12 as completed
-
 ## Next Steps
 
-1. **Complete Repository Test Refactoring (65%)**
+1. **Enhance Error Handling in Cashflow Services (60%)**
+   - Create specialized error classes for cashflow-specific errors
+   - Improve error translation between repository and service layers
+   - Add user-friendly error messages to API responses
+   - Implement error handling middleware for API endpoints
+   - Add comprehensive documentation for error handling patterns
+
+2. **Complete Repository Test Refactoring (65%)**
    - Fix remaining repository fixtures for account types
    - Update method calls to use new interface
    - Refactor account type advanced tests
@@ -173,20 +110,13 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance Implementatio
    - Add specialized repository methods for account types
    - Fix timezone handling in datetime-related methods
 
-2. **Implement API Layer for Account Types**
+3. **Implement API Layer for Account Types**
    - Create endpoint for GET /banking/overview
    - Implement endpoint for GET /banking/upcoming-payments
    - Add POST /accounts/banking endpoint
    - Create POST /accounts/bnpl/{account_id}/update-status endpoint
    - Add comprehensive documentation with OpenAPI annotations
    - Implement proper schema validation for API responses
-
-3. **Complete Error Handling System**
-   - Implement error translation between layers
-   - Create consistent error formatting for API responses
-   - Add user-friendly error messages to API responses
-   - Implement error handling middleware for API endpoints
-   - Add comprehensive documentation for error handling patterns
 
 ## Implementation Lessons
 
@@ -225,8 +155,18 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance Implementatio
      - utc_now() for the current time with proper timezone
      - ensure_utc() for guaranteeing timezone awareness
      - naive_start_of_day() and naive_end_of_day() for DB operations
+     - naive_days_ago() and naive_days_from_now() for test data creation
    - Maintain consistent pattern of storing naive datetimes in the database
    - Use timezone-aware datetimes in the service and API boundaries
    - Be explicit about timezone handling in method signatures and docstrings
    - Use proper timezone-aware datetime comparisons
    - Convert dates to datetime objects with consistent timezone handling
+
+6. **Test Fixture Usage Pattern**
+   - Always use registered fixtures from tests/fixtures/ directories
+   - Avoid direct model instantiation in test files
+   - Follow the four-step test pattern: Arrange, Schema, Act, Assert
+   - Use naive_days_ago() and naive_days_from_now() for test date creation
+   - Keep assertions focused on testing a single behavior
+   - Use descriptive test names and comprehensive docstrings
+   - Maintain proper separation between fixture setup and test assertions

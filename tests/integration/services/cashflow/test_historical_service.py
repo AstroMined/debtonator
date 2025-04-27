@@ -1,6 +1,6 @@
 """Integration tests for the cashflow historical service."""
 
-from datetime import date, datetime, timedelta
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.accounts import Account
 from src.models.balance_history import BalanceHistory
 from src.services.cashflow.cashflow_historical_service import HistoricalService
-from src.utils.datetime_utils import ensure_utc, naive_utc_from_date, utc_now, naive_utc_now
+from src.utils.datetime_utils import naive_utc_from_date, naive_utc_now, utc_now
 
 
 @pytest.mark.asyncio

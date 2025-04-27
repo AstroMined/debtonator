@@ -6,40 +6,20 @@ from decimal import Decimal
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.accounts import Account
-from src.models.categories import Category
 from src.models.income import Income
 from src.models.liabilities import Liability
 from src.schemas.cashflow import CustomForecastParameters
 from src.services.cashflow.cashflow_forecast_service import ForecastService
-from src.utils.datetime_utils import ensure_utc, naive_utc_from_date
+from src.utils.datetime_utils import naive_days_from_now
 
 
 @pytest.mark.asyncio
-async def test_get_forecast(db_session: AsyncSession):
+async def test_get_forecast(
+    db_session: AsyncSession, test_checking_account, test_category
+):
     """Test getting cashflow forecast for a date range."""
     # Arrange: Create test data
-    account = Account(
-        name="Test Checking",
-        account_type="checking",
-        available_balance=Decimal("1000.00"),
-    )
-    db_session.add(account)
-    await db_session.commit()
-    await db_session.refresh(account)
-
-    # Create categories
-    categories = [
-        Category(name="Housing", description="Housing related expenses"),
-        Category(name="Utilities", description="Utility bills"),
-    ]
-    for category in categories:
-        db_session.add(category)
-    await db_session.commit()
-    category_dict = {}
-    for category in categories:
-        await db_session.refresh(category)
-        category_dict[category.name] = category
+    # We use the test_checking_account fixture instead of creating a new account
 
     # Create liabilities
     today = date.today()
@@ -47,9 +27,9 @@ async def test_get_forecast(db_session: AsyncSession):
         Liability(
             name="Rent",
             amount=Decimal("800.00"),
-            due_date=naive_utc_from_date(today + timedelta(days=5)),
-            category_id=category_dict["Housing"].id,
-            primary_account_id=account.id,
+            due_date=naive_days_from_now(5),  # 5 days in the future
+            category_id=test_category.id,
+            primary_account_id=test_checking_account.id,
             recurring=False,
             auto_pay=False,
             auto_pay_enabled=False,
@@ -58,9 +38,9 @@ async def test_get_forecast(db_session: AsyncSession):
         Liability(
             name="Utilities",
             amount=Decimal("100.00"),
-            due_date=naive_utc_from_date(today + timedelta(days=10)),
-            category_id=category_dict["Utilities"].id,
-            primary_account_id=account.id,
+            due_date=naive_days_from_now(10),  # 10 days in the future
+            category_id=test_category.id,
+            primary_account_id=test_checking_account.id,
             recurring=False,
             auto_pay=False,
             auto_pay_enabled=False,
@@ -69,9 +49,9 @@ async def test_get_forecast(db_session: AsyncSession):
         Liability(
             name="Internet",
             amount=Decimal("50.00"),
-            due_date=naive_utc_from_date(today + timedelta(days=15)),
-            category_id=category_dict["Utilities"].id,
-            primary_account_id=account.id,
+            due_date=naive_days_from_now(15),  # 15 days in the future
+            category_id=test_category.id,
+            primary_account_id=test_checking_account.id,
             recurring=False,
             auto_pay=False,
             auto_pay_enabled=False,
@@ -85,18 +65,18 @@ async def test_get_forecast(db_session: AsyncSession):
     # Create income
     income_entries = [
         Income(
-            date=naive_utc_from_date(today + timedelta(days=3)),
+            date=naive_days_from_now(3),  # 3 days in the future
             source="Salary",
             amount=Decimal("2000.00"),
             deposited=False,
-            account_id=account.id,
+            account_id=test_checking_account.id,
         ),
         Income(
-            date=naive_utc_from_date(today + timedelta(days=17)),
+            date=naive_days_from_now(17),  # 17 days in the future
             source="Freelance",
             amount=Decimal("500.00"),
             deposited=False,
-            account_id=account.id,
+            account_id=test_checking_account.id,
         ),
     ]
     for income in income_entries:
@@ -109,61 +89,52 @@ async def test_get_forecast(db_session: AsyncSession):
     # Act: Get forecast for date range
     start_date = today
     end_date = today + timedelta(days=20)
-    forecast = await service.get_forecast(account.id, start_date, end_date)
+    forecast = await service.get_forecast(
+        test_checking_account.id, start_date, end_date
+    )
 
     # Assert: Validate forecast results
     assert len(forecast) == 21  # 21 days including start and end date
     assert forecast[0]["date"] == start_date
-    assert forecast[0]["balance"] == Decimal("1000.00")  # Initial balance
+    assert (
+        forecast[0]["balance"] == test_checking_account.available_balance
+    )  # Initial balance
 
     # Check balance after first income
-    assert forecast[3]["balance"] == Decimal("3000.00")  # 1000 + 2000
+    assert forecast[3]["balance"] == test_checking_account.available_balance + Decimal(
+        "2000.00"
+    )
 
     # Check balance after first liability
-    assert forecast[5]["balance"] == Decimal("2200.00")  # 3000 - 800
+    assert forecast[5]["balance"] == test_checking_account.available_balance + Decimal(
+        "2000.00"
+    ) - Decimal("800.00")
 
     # Check balance after second liability
-    assert forecast[10]["balance"] == Decimal("2100.00")  # 2200 - 100
+    assert forecast[10]["balance"] == test_checking_account.available_balance + Decimal(
+        "2000.00"
+    ) - Decimal("800.00") - Decimal("100.00")
 
     # Check balance after third liability and second income
-    assert forecast[17]["balance"] == Decimal("2550.00")  # 2050 + 500
+    assert forecast[17]["balance"] == test_checking_account.available_balance + Decimal(
+        "2000.00"
+    ) + Decimal("500.00") - Decimal("800.00") - Decimal("100.00") - Decimal("50.00")
 
 
 @pytest.mark.asyncio
-async def test_get_required_funds(db_session: AsyncSession):
+async def test_get_required_funds(
+    db_session: AsyncSession, test_checking_account, test_category
+):
     """Test calculating required funds for a date range."""
-    # Arrange: Create test data
-    account = Account(
-        name="Test Checking",
-        account_type="checking",
-        available_balance=Decimal("1000.00"),
-    )
-    db_session.add(account)
-    await db_session.commit()
-    await db_session.refresh(account)
-
-    # Create categories
-    categories = [
-        Category(name="Housing", description="Housing related expenses"),
-        Category(name="Utilities", description="Utility bills"),
-    ]
-    for category in categories:
-        db_session.add(category)
-    await db_session.commit()
-    category_dict = {}
-    for category in categories:
-        await db_session.refresh(category)
-        category_dict[category.name] = category
-
-    # Create liabilities
+    # Arrange: Create test liabilities
     today = date.today()
     liabilities = [
         Liability(
             name="Rent",
             amount=Decimal("800.00"),
-            due_date=naive_utc_from_date(today + timedelta(days=5)),
-            category_id=category_dict["Housing"].id,
-            primary_account_id=account.id,
+            due_date=naive_days_from_now(5),
+            category_id=test_category.id,
+            primary_account_id=test_checking_account.id,
             recurring=False,
             auto_pay=False,
             auto_pay_enabled=False,
@@ -172,9 +143,9 @@ async def test_get_required_funds(db_session: AsyncSession):
         Liability(
             name="Utilities",
             amount=Decimal("100.00"),
-            due_date=naive_utc_from_date(today + timedelta(days=10)),
-            category_id=category_dict["Utilities"].id,
-            primary_account_id=account.id,
+            due_date=naive_days_from_now(10),
+            category_id=test_category.id,
+            primary_account_id=test_checking_account.id,
             recurring=False,
             auto_pay=False,
             auto_pay_enabled=False,
@@ -183,9 +154,9 @@ async def test_get_required_funds(db_session: AsyncSession):
         Liability(
             name="Internet",
             amount=Decimal("50.00"),
-            due_date=naive_utc_from_date(today + timedelta(days=15)),
-            category_id=category_dict["Utilities"].id,
-            primary_account_id=account.id,
+            due_date=naive_days_from_now(15),
+            category_id=test_category.id,
+            primary_account_id=test_checking_account.id,
             recurring=False,
             auto_pay=False,
             auto_pay_enabled=False,
@@ -202,25 +173,19 @@ async def test_get_required_funds(db_session: AsyncSession):
     # Act: Get required funds for date range
     start_date = today
     end_date = today + timedelta(days=20)
-    required_funds = await service.get_required_funds(account.id, start_date, end_date)
+    required_funds = await service.get_required_funds(
+        test_checking_account.id, start_date, end_date
+    )
 
     # Assert: Sum of all liabilities in range
     assert required_funds == Decimal("950.00")  # 800 + 100 + 50
 
 
 @pytest.mark.asyncio
-async def test_get_forecast_empty_range(db_session: AsyncSession):
+async def test_get_forecast_empty_range(
+    db_session: AsyncSession, test_checking_account
+):
     """Test getting forecast with no liabilities or income in range."""
-    # Arrange: Create test account
-    account = Account(
-        name="Test Checking",
-        account_type="checking",
-        available_balance=Decimal("1000.00"),
-    )
-    db_session.add(account)
-    await db_session.commit()
-    await db_session.refresh(account)
-
     # Create forecast service
     service = ForecastService(session=db_session)
 
@@ -228,27 +193,21 @@ async def test_get_forecast_empty_range(db_session: AsyncSession):
     today = date.today()
     start_date = today + timedelta(days=100)  # Future date with no entries
     end_date = start_date + timedelta(days=5)
-    forecast = await service.get_forecast(account.id, start_date, end_date)
+    forecast = await service.get_forecast(
+        test_checking_account.id, start_date, end_date
+    )
 
     # Assert: Verify forecast has correct length and balances
     assert len(forecast) == 6  # 6 days including start and end date
     for entry in forecast:
-        assert entry["balance"] == account.available_balance
+        assert entry["balance"] == test_checking_account.available_balance
 
 
 @pytest.mark.asyncio
-async def test_get_required_funds_empty_range(db_session: AsyncSession):
+async def test_get_required_funds_empty_range(
+    db_session: AsyncSession, test_checking_account
+):
     """Test getting required funds with no liabilities in range."""
-    # Arrange: Create test account
-    account = Account(
-        name="Test Checking",
-        account_type="checking",
-        available_balance=Decimal("1000.00"),
-    )
-    db_session.add(account)
-    await db_session.commit()
-    await db_session.refresh(account)
-
     # Create forecast service
     service = ForecastService(session=db_session)
 
@@ -256,37 +215,20 @@ async def test_get_required_funds_empty_range(db_session: AsyncSession):
     today = date.today()
     start_date = today + timedelta(days=100)  # Future date with no entries
     end_date = start_date + timedelta(days=5)
-    required_funds = await service.get_required_funds(account.id, start_date, end_date)
+    required_funds = await service.get_required_funds(
+        test_checking_account.id, start_date, end_date
+    )
 
     # Assert: No funds required for empty range
     assert required_funds == Decimal("0.00")
 
 
 @pytest.mark.asyncio
-async def test_get_custom_forecast(db_session: AsyncSession):
+async def test_get_custom_forecast(
+    db_session: AsyncSession, test_checking_account, test_category
+):
     """Test getting custom forecast with specific parameters."""
-    # Arrange: Create test account
-    account = Account(
-        name="Test Checking",
-        account_type="checking",
-        available_balance=Decimal("1000.00"),
-    )
-    db_session.add(account)
-    await db_session.commit()
-    await db_session.refresh(account)
-
-    # Create categories
-    categories = [
-        Category(name="Housing", description="Housing related expenses"),
-        Category(name="Utilities", description="Utility bills"),
-    ]
-    for category in categories:
-        db_session.add(category)
-    await db_session.commit()
-    category_dict = {}
-    for category in categories:
-        await db_session.refresh(category)
-        category_dict[category.name] = category
+    # Arrange: We use the test_checking_account fixture instead of creating a new account
 
     # Create liabilities
     today = date.today()
@@ -294,9 +236,9 @@ async def test_get_custom_forecast(db_session: AsyncSession):
         Liability(
             name="Rent",
             amount=Decimal("800.00"),
-            due_date=naive_utc_from_date(today + timedelta(days=5)),
-            category_id=category_dict["Housing"].id,
-            primary_account_id=account.id,
+            due_date=naive_days_from_now(5),
+            category_id=test_category.id,
+            primary_account_id=test_checking_account.id,
             recurring=False,
             auto_pay=False,
             auto_pay_enabled=False,
@@ -305,9 +247,9 @@ async def test_get_custom_forecast(db_session: AsyncSession):
         Liability(
             name="Utilities",
             amount=Decimal("100.00"),
-            due_date=naive_utc_from_date(today + timedelta(days=10)),
-            category_id=category_dict["Utilities"].id,
-            primary_account_id=account.id,
+            due_date=naive_days_from_now(10),
+            category_id=test_category.id,
+            primary_account_id=test_checking_account.id,
             recurring=False,
             auto_pay=False,
             auto_pay_enabled=False,
@@ -316,9 +258,9 @@ async def test_get_custom_forecast(db_session: AsyncSession):
         Liability(
             name="Internet",
             amount=Decimal("50.00"),
-            due_date=naive_utc_from_date(today + timedelta(days=15)),
-            category_id=category_dict["Utilities"].id,
-            primary_account_id=account.id,
+            due_date=naive_days_from_now(15),
+            category_id=test_category.id,
+            primary_account_id=test_checking_account.id,
             recurring=False,
             auto_pay=False,
             auto_pay_enabled=False,
@@ -332,18 +274,18 @@ async def test_get_custom_forecast(db_session: AsyncSession):
     # Create income
     income_entries = [
         Income(
-            date=naive_utc_from_date(today + timedelta(days=3)),
+            date=naive_days_from_now(3),
             source="Salary",
             amount=Decimal("2000.00"),
             deposited=False,
-            account_id=account.id,
+            account_id=test_checking_account.id,
         ),
         Income(
-            date=naive_utc_from_date(today + timedelta(days=17)),
+            date=naive_days_from_now(17),
             source="Freelance",
             amount=Decimal("500.00"),
             deposited=False,
-            account_id=account.id,
+            account_id=test_checking_account.id,
         ),
     ]
     for income in income_entries:
@@ -358,7 +300,7 @@ async def test_get_custom_forecast(db_session: AsyncSession):
         start_date=today,
         end_date=today + timedelta(days=20),
         include_pending=True,
-        account_ids=[account.id],
+        account_ids=[test_checking_account.id],
         confidence_threshold=Decimal("0.8"),
     )
 
@@ -381,7 +323,7 @@ async def test_get_custom_forecast(db_session: AsyncSession):
     # Verify first day's projections
     first_day = forecast.results[0]
     assert first_day.date == today
-    assert first_day.projected_balance == account.available_balance
+    assert first_day.projected_balance == test_checking_account.available_balance
     assert first_day.confidence_score >= Decimal("0.0")
     assert first_day.confidence_score <= Decimal("1.0")
 
@@ -397,30 +339,11 @@ async def test_get_custom_forecast(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_get_custom_forecast_filtered(db_session: AsyncSession):
+async def test_get_custom_forecast_filtered(
+    db_session: AsyncSession, test_checking_account, test_category
+):
     """Test getting custom forecast with category filters."""
-    # Arrange: Create test account
-    account = Account(
-        name="Test Checking",
-        account_type="checking",
-        available_balance=Decimal("1000.00"),
-    )
-    db_session.add(account)
-    await db_session.commit()
-    await db_session.refresh(account)
-
-    # Create categories
-    categories = [
-        Category(name="Housing", description="Housing related expenses"),
-        Category(name="Utilities", description="Utility bills"),
-    ]
-    for category in categories:
-        db_session.add(category)
-    await db_session.commit()
-    category_dict = {}
-    for category in categories:
-        await db_session.refresh(category)
-        category_dict[category.name] = category
+    # Arrange: We use the test_checking_account fixture instead of creating a new account
 
     # Create liabilities
     today = date.today()
@@ -428,9 +351,9 @@ async def test_get_custom_forecast_filtered(db_session: AsyncSession):
         Liability(
             name="Rent",
             amount=Decimal("800.00"),
-            due_date=naive_utc_from_date(today + timedelta(days=5)),
-            category_id=category_dict["Housing"].id,
-            primary_account_id=account.id,
+            due_date=naive_days_from_now(5),
+            category_id=test_category.id,
+            primary_account_id=test_checking_account.id,
             recurring=False,
             auto_pay=False,
             auto_pay_enabled=False,
@@ -439,9 +362,9 @@ async def test_get_custom_forecast_filtered(db_session: AsyncSession):
         Liability(
             name="Utilities",
             amount=Decimal("100.00"),
-            due_date=naive_utc_from_date(today + timedelta(days=10)),
-            category_id=category_dict["Utilities"].id,
-            primary_account_id=account.id,
+            due_date=naive_days_from_now(10),
+            category_id=test_category.id,
+            primary_account_id=test_checking_account.id,
             recurring=False,
             auto_pay=False,
             auto_pay_enabled=False,
@@ -450,9 +373,9 @@ async def test_get_custom_forecast_filtered(db_session: AsyncSession):
         Liability(
             name="Internet",
             amount=Decimal("50.00"),
-            due_date=naive_utc_from_date(today + timedelta(days=15)),
-            category_id=category_dict["Utilities"].id,
-            primary_account_id=account.id,
+            due_date=naive_days_from_now(15),
+            category_id=test_category.id,
+            primary_account_id=test_checking_account.id,
             recurring=False,
             auto_pay=False,
             auto_pay_enabled=False,
@@ -466,18 +389,18 @@ async def test_get_custom_forecast_filtered(db_session: AsyncSession):
     # Create income
     income_entries = [
         Income(
-            date=naive_utc_from_date(today + timedelta(days=3)),
+            date=naive_days_from_now(3),
             source="Salary",
             amount=Decimal("2000.00"),
             deposited=False,
-            account_id=account.id,
+            account_id=test_checking_account.id,
         ),
         Income(
-            date=naive_utc_from_date(today + timedelta(days=17)),
+            date=naive_days_from_now(17),
             source="Freelance",
             amount=Decimal("500.00"),
             deposited=False,
-            account_id=account.id,
+            account_id=test_checking_account.id,
         ),
     ]
     for income in income_entries:
@@ -492,7 +415,7 @@ async def test_get_custom_forecast_filtered(db_session: AsyncSession):
         start_date=today,
         end_date=today + timedelta(days=20),
         include_pending=True,
-        account_ids=[account.id],
+        account_ids=[test_checking_account.id],
         categories=["Utilities"],  # Only include utilities
         confidence_threshold=Decimal("0.8"),
     )
@@ -506,9 +429,9 @@ async def test_get_custom_forecast_filtered(db_session: AsyncSession):
 
     for day in forecast.results:
         for factor, amount in day.contributing_factors.items():
-            if f"liability_{category_dict['Utilities'].name}" in factor:
+            if "liability_Utilities" in factor:
                 utilities_total += amount
-            elif f"liability_{category_dict['Housing'].name}" in factor:
+            elif "liability_Housing" in factor:
                 housing_total += amount
 
     assert utilities_total == Decimal("150.00")  # 100 + 50

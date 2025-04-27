@@ -5,18 +5,25 @@ from decimal import Decimal
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.cashflow import CashflowForecast
 from src.services.cashflow.cashflow_metrics_service import MetricsService
-from src.utils.datetime_utils import utc_now
 
 
 @pytest.mark.asyncio
 async def test_update_cashflow_deficits(
-    test_cashflow_forecast: CashflowForecast, db_session: AsyncSession
+    test_cashflow_forecast, db_session: AsyncSession
 ):
     """Test the update_cashflow_deficits method with negative minimum amounts."""
-    # Create metrics service
+    # Arrange: Create metrics service
     metrics_service = MetricsService(session=db_session)
+
+    # Modify the forecast to have negative minimum amounts for testing
+    test_cashflow_forecast.min_14_day = Decimal("-300.00")
+    test_cashflow_forecast.min_30_day = Decimal("-400.00")
+    test_cashflow_forecast.min_60_day = Decimal("-500.00")
+    test_cashflow_forecast.min_90_day = Decimal("-600.00")
+    test_cashflow_forecast.daily_deficit = Decimal("0")
+    test_cashflow_forecast.yearly_deficit = Decimal("0")
+    await db_session.flush()
 
     # Act: Use service method
     metrics_service.update_cashflow_deficits(test_cashflow_forecast)
@@ -40,181 +47,159 @@ async def test_update_cashflow_deficits(
 
 
 @pytest.mark.asyncio
-async def test_update_cashflow_deficits_positive(db_session: AsyncSession):
+async def test_update_cashflow_deficits_positive(
+    db_session: AsyncSession, test_cashflow_forecast
+):
     """Test the update_cashflow_deficits method with positive minimum amounts."""
-    # Arrange: Create test forecast with positive minimum amounts
-    forecast = CashflowForecast(
-        forecast_date=utc_now(),
-        total_bills=Decimal("1000.00"),
-        total_income=Decimal("1200.00"),
-        balance=Decimal("200.00"),
-        forecast=Decimal("200.00"),
-        min_14_day=Decimal("300.00"),
-        min_30_day=Decimal("400.00"),
-        min_60_day=Decimal("500.00"),
-        min_90_day=Decimal("600.00"),
-        daily_deficit=Decimal("0"),
-        yearly_deficit=Decimal("0"),
-        required_income=Decimal("0"),
-        hourly_rate_40=Decimal("0"),
-        hourly_rate_30=Decimal("0"),
-        hourly_rate_20=Decimal("0"),
-    )
+    # Arrange: Modify forecast to have positive minimum amounts
+    test_cashflow_forecast.min_14_day = Decimal("300.00")
+    test_cashflow_forecast.min_30_day = Decimal("400.00")
+    test_cashflow_forecast.min_60_day = Decimal("500.00")
+    test_cashflow_forecast.min_90_day = Decimal("600.00")
+    test_cashflow_forecast.daily_deficit = Decimal("0")
+    test_cashflow_forecast.yearly_deficit = Decimal("0")
+    await db_session.flush()
 
     # Create metrics service
     metrics_service = MetricsService(session=db_session)
 
     # Act: Use service method
-    metrics_service.update_cashflow_deficits(forecast)
+    metrics_service.update_cashflow_deficits(test_cashflow_forecast)
 
     # Assert: When min values are positive, daily and yearly deficits should be 0
-    assert forecast.daily_deficit == Decimal("0.00")
-    assert forecast.yearly_deficit == Decimal("0")
+    assert test_cashflow_forecast.daily_deficit == Decimal("0.00")
+    assert test_cashflow_forecast.yearly_deficit == Decimal("0")
 
 
 @pytest.mark.asyncio
-async def test_update_cashflow_required_income(db_session: AsyncSession):
+async def test_update_cashflow_required_income(
+    db_session: AsyncSession, test_cashflow_forecast
+):
     """Test the update_cashflow_required_income method."""
-    # Arrange: Create test forecast with yearly deficit
-    forecast = CashflowForecast(
-        forecast_date=utc_now(),
-        total_bills=Decimal("1000.00"),
-        total_income=Decimal("800.00"),
-        balance=Decimal("-200.00"),
-        forecast=Decimal("-200.00"),
-        min_14_day=Decimal("-300.00"),
-        min_30_day=Decimal("-400.00"),
-        min_60_day=Decimal("-500.00"),
-        min_90_day=Decimal("-600.00"),
-        daily_deficit=Decimal("42.86"),
-        yearly_deficit=Decimal("52000.00"),  # $52,000/year
-        required_income=Decimal("0"),
-        hourly_rate_40=Decimal("0"),
-        hourly_rate_30=Decimal("0"),
-        hourly_rate_20=Decimal("0"),
-    )
+    # Arrange: Modify forecast to have specific yearly deficit
+    test_cashflow_forecast.balance = Decimal("-200.00")
+    test_cashflow_forecast.forecast = Decimal("-200.00")
+    test_cashflow_forecast.min_14_day = Decimal("-300.00")
+    test_cashflow_forecast.min_30_day = Decimal("-400.00")
+    test_cashflow_forecast.min_60_day = Decimal("-500.00")
+    test_cashflow_forecast.min_90_day = Decimal("-600.00")
+    test_cashflow_forecast.daily_deficit = Decimal("42.86")
+    test_cashflow_forecast.yearly_deficit = Decimal("52000.00")  # $52,000/year
+    test_cashflow_forecast.required_income = Decimal("0")
+    await db_session.flush()
 
     # Create metrics service
     metrics_service = MetricsService(session=db_session)
 
     # Act: Use service method
-    metrics_service.update_cashflow_required_income(forecast)
+    metrics_service.update_cashflow_required_income(test_cashflow_forecast)
 
     # Assert: Required income should be 52000/0.8 to account for taxes
     expected = Decimal("52000.00") / Decimal("0.8")  # $65,000
-    assert forecast.required_income == expected
+    assert test_cashflow_forecast.required_income == expected
 
 
 @pytest.mark.asyncio
-async def test_update_cashflow_required_income_custom_tax(db_session: AsyncSession):
+async def test_update_cashflow_required_income_custom_tax(
+    db_session: AsyncSession, test_cashflow_forecast
+):
     """Test the update_cashflow_required_income method with custom tax rate."""
-    # Arrange: Create test forecast with yearly deficit
-    forecast = CashflowForecast(
-        forecast_date=utc_now(),
-        total_bills=Decimal("1000.00"),
-        total_income=Decimal("800.00"),
-        balance=Decimal("-200.00"),
-        forecast=Decimal("-200.00"),
-        min_14_day=Decimal("-300.00"),
-        min_30_day=Decimal("-400.00"),
-        min_60_day=Decimal("-500.00"),
-        min_90_day=Decimal("-600.00"),
-        daily_deficit=Decimal("42.86"),
-        yearly_deficit=Decimal("52000.00"),  # $52,000/year
-        required_income=Decimal("0"),
-        hourly_rate_40=Decimal("0"),
-        hourly_rate_30=Decimal("0"),
-        hourly_rate_20=Decimal("0"),
-    )
+    # Arrange: Modify forecast to have specific yearly deficit
+    test_cashflow_forecast.balance = Decimal("-200.00")
+    test_cashflow_forecast.forecast = Decimal("-200.00")
+    test_cashflow_forecast.min_14_day = Decimal("-300.00")
+    test_cashflow_forecast.min_30_day = Decimal("-400.00")
+    test_cashflow_forecast.min_60_day = Decimal("-500.00")
+    test_cashflow_forecast.min_90_day = Decimal("-600.00")
+    test_cashflow_forecast.daily_deficit = Decimal("42.86")
+    test_cashflow_forecast.yearly_deficit = Decimal("52000.00")  # $52,000/year
+    test_cashflow_forecast.required_income = Decimal("0")
+    await db_session.flush()
 
     # Create metrics service
     metrics_service = MetricsService(session=db_session)
 
     # Act: Use service method with custom tax rate
-    metrics_service.update_cashflow_required_income(forecast, Decimal("0.75"))
+    metrics_service.update_cashflow_required_income(
+        test_cashflow_forecast, Decimal("0.75")
+    )
 
     # Assert: Required income should be 52000/0.75 to account for taxes
     expected = Decimal("52000.00") / Decimal("0.75")  # ~$69,333.33
-    assert forecast.required_income == expected
+    assert test_cashflow_forecast.required_income == expected
 
 
 @pytest.mark.asyncio
-async def test_update_cashflow_hourly_rates(db_session: AsyncSession):
+async def test_update_cashflow_hourly_rates(
+    db_session: AsyncSession, test_cashflow_forecast
+):
     """Test the update_cashflow_hourly_rates method."""
-    # Arrange: Create test forecast with required income
-    forecast = CashflowForecast(
-        forecast_date=utc_now(),
-        total_bills=Decimal("1000.00"),
-        total_income=Decimal("800.00"),
-        balance=Decimal("-200.00"),
-        forecast=Decimal("-200.00"),
-        min_14_day=Decimal("-300.00"),
-        min_30_day=Decimal("-400.00"),
-        min_60_day=Decimal("-500.00"),
-        min_90_day=Decimal("-600.00"),
-        daily_deficit=Decimal("42.86"),
-        yearly_deficit=Decimal("52000.00"),
-        required_income=Decimal("65000.00"),
-        hourly_rate_40=Decimal("0"),
-        hourly_rate_30=Decimal("0"),
-        hourly_rate_20=Decimal("0"),
-    )
+    # Arrange: Modify forecast to have specific required income
+    test_cashflow_forecast.required_income = Decimal("65000.00")
+    test_cashflow_forecast.hourly_rate_40 = Decimal("0")
+    test_cashflow_forecast.hourly_rate_30 = Decimal("0")
+    test_cashflow_forecast.hourly_rate_20 = Decimal("0")
+    await db_session.flush()
 
     # Create metrics service
     metrics_service = MetricsService(session=db_session)
 
     # Act: Use service method
-    metrics_service.update_cashflow_hourly_rates(forecast)
+    metrics_service.update_cashflow_hourly_rates(test_cashflow_forecast)
 
     # Assert: Test each hourly rate
     weekly = Decimal("65000.00") / 52
-    assert forecast.hourly_rate_40 == weekly / 40  # ~$31.25/hr
-    assert forecast.hourly_rate_30 == weekly / 30  # ~$41.67/hr
-    assert forecast.hourly_rate_20 == weekly / 20  # ~$62.50/hr
+    assert test_cashflow_forecast.hourly_rate_40 == weekly / 40  # ~$31.25/hr
+    assert test_cashflow_forecast.hourly_rate_30 == weekly / 30  # ~$41.67/hr
+    assert test_cashflow_forecast.hourly_rate_20 == weekly / 20  # ~$62.50/hr
 
 
 @pytest.mark.asyncio
-async def test_update_cashflow_all_calculations(db_session: AsyncSession):
+async def test_update_cashflow_all_calculations(
+    db_session: AsyncSession, test_cashflow_forecast
+):
     """Test the update_cashflow_all_calculations method for full calculation chain."""
-    # Arrange: Create test forecast
-    forecast = CashflowForecast(
-        forecast_date=utc_now(),
-        total_bills=Decimal("1000.00"),
-        total_income=Decimal("800.00"),
-        balance=Decimal("-200.00"),
-        forecast=Decimal("-200.00"),
-        min_14_day=Decimal("-300.00"),
-        min_30_day=Decimal("-400.00"),
-        min_60_day=Decimal("-500.00"),
-        min_90_day=Decimal("-600.00"),
-        daily_deficit=Decimal("0"),
-        yearly_deficit=Decimal("0"),
-        required_income=Decimal("0"),
-        hourly_rate_40=Decimal("0"),
-        hourly_rate_30=Decimal("0"),
-        hourly_rate_20=Decimal("0"),
-    )
+    # Arrange: Modify forecast to have negative minimum amounts
+    test_cashflow_forecast.balance = Decimal("-200.00")
+    test_cashflow_forecast.forecast = Decimal("-200.00")
+    test_cashflow_forecast.min_14_day = Decimal("-300.00")
+    test_cashflow_forecast.min_30_day = Decimal("-400.00")
+    test_cashflow_forecast.min_60_day = Decimal("-500.00")
+    test_cashflow_forecast.min_90_day = Decimal("-600.00")
+    test_cashflow_forecast.daily_deficit = Decimal("0")
+    test_cashflow_forecast.yearly_deficit = Decimal("0")
+    test_cashflow_forecast.required_income = Decimal("0")
+    test_cashflow_forecast.hourly_rate_40 = Decimal("0")
+    test_cashflow_forecast.hourly_rate_30 = Decimal("0")
+    test_cashflow_forecast.hourly_rate_20 = Decimal("0")
+    await db_session.flush()
 
     # Create metrics service
     metrics_service = MetricsService(session=db_session)
 
     # Act: Use service method for full calculation chain
-    metrics_service.update_cashflow_all_calculations(forecast)
+    metrics_service.update_cashflow_all_calculations(test_cashflow_forecast)
 
     # Assert: Verify the chain works end-to-end
-    assert forecast.daily_deficit > 0
-    assert forecast.yearly_deficit > 0
-    assert forecast.required_income > 0
+    assert test_cashflow_forecast.daily_deficit > 0
+    assert test_cashflow_forecast.yearly_deficit > 0
+    assert test_cashflow_forecast.required_income > 0
 
     # Check the mathematical relationships
-    assert forecast.yearly_deficit == forecast.daily_deficit * 365
-    assert forecast.required_income == forecast.yearly_deficit / Decimal("0.8")
+    assert (
+        test_cashflow_forecast.yearly_deficit
+        == test_cashflow_forecast.daily_deficit * 365
+    )
+    assert (
+        test_cashflow_forecast.required_income
+        == test_cashflow_forecast.yearly_deficit / Decimal("0.8")
+    )
 
     # Check hourly rates
-    weekly_required = forecast.required_income / 52
-    assert forecast.hourly_rate_40 == weekly_required / 40
-    assert forecast.hourly_rate_30 == weekly_required / 30
-    assert forecast.hourly_rate_20 == weekly_required / 20
+    weekly_required = test_cashflow_forecast.required_income / 52
+    assert test_cashflow_forecast.hourly_rate_40 == weekly_required / 40
+    assert test_cashflow_forecast.hourly_rate_30 == weekly_required / 30
+    assert test_cashflow_forecast.hourly_rate_20 == weekly_required / 20
 
 
 @pytest.mark.asyncio
