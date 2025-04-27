@@ -4,6 +4,7 @@ from statistics import mean, stdev
 from typing import Dict, List
 from zoneinfo import ZoneInfo
 
+from src.common.cashflow_types import DateType
 from src.schemas.cashflow import (
     HistoricalPeriodAnalysis,
     HistoricalTrendMetrics,
@@ -12,7 +13,6 @@ from src.schemas.cashflow import (
 )
 from src.services.cashflow.cashflow_base import CashflowBaseService
 from src.services.cashflow.cashflow_transaction_service import TransactionService
-from src.common.cashflow_types import DateType
 
 
 class HistoricalService(CashflowBaseService):

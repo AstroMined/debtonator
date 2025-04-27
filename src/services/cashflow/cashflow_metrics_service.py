@@ -3,12 +3,12 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.common.cashflow_types import DateType
 from src.models.accounts import Account
 from src.models.cashflow import CashflowForecast
 from src.schemas.cashflow import CustomForecastResult
 from src.services.cashflow.cashflow_base import CashflowBaseService
 from src.services.cashflow.cashflow_transaction_service import TransactionService
-from src.common.cashflow_types import DateType
 from src.services.feature_flags import FeatureFlagService
 from src.utils.decimal_precision import DecimalPrecision
 

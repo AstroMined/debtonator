@@ -2,6 +2,53 @@
 
 ## Recent Updates
 
+### Improved Cashflow Service Implementation with Proper Data Usage (2025-04-27)
+
+- Enhanced historical data usage in cashflow metrics calculation:
+  - Replaced unused historical transactions variable with proper implementation
+  - Created historical daily transaction grouping and analysis
+  - Implemented volatility calculation using actual historical data
+  - Added fallback to projected volatility only when historical data is insufficient
+  - Adjusted confidence scores based on historical data availability
+  - Improved volatility analysis with appropriate scaling
+- Expanded account-specific confidence calculation:
+  - Fixed previously unused account and balance parameters
+  - Added account type-specific adjustments (different for credit vs. checking)
+  - Implemented balance-based confidence modifiers
+  - Created transaction size relative to balance assessment
+  - Added negative balance confidence handling
+  - Enhanced confidence calculation with more granular transaction volume adjustments
+- Enhanced forecast parameter usage for customization:
+  - Fixed previously unused params parameter in daily forecast
+  - Implemented scenario-based adjustments (optimistic, pessimistic, etc.)
+  - Added custom warning threshold handling
+  - Created account type filtering based on parameters
+  - Implemented parameter-controlled transaction inclusion
+  - Added seasonal factor application
+  - Created confidence floor customization
+  - Improved risk assessment with parameter-specific thresholds
+
+### Fixed Repository Pattern Compliance in Cashflow Services (2025-04-27)
+
+- Removed direct database queries from cashflow services:
+  - Replaced `select(Account)` with repository method calls
+  - Added `get_accounts_for_forecast` to CashflowMetricsRepository
+  - Used transaction repository for account retrieval instead of direct DB access
+  - Fixed service initialization to properly use BaseService
+  - Updated constructor to accept session and feature flag service
+  - Properly passed parameters to super().__init__()
+  - Fixed transaction service initialization
+- Enhanced datetime handling for ADR-011 compliance:
+  - Used `utc_now()` instead of `date.today()`
+  - Implemented proper timezone handling in date manipulations
+  - Corrected date conversion issues
+  - Used appropriate datetime utility functions
+- Created and updated documentation:
+  - Added comprehensive service README.md with architectural details
+  - Updated main services README.md with cashflow information
+  - Added datetime handling patterns to documentation
+  - Included ADR compliance status information
+
 ### Refactored Cashflow Integration Tests to Follow Project Structure (2025-04-27)
 
 - Reorganized integration tests for cashflow services:

@@ -6,7 +6,7 @@ including required funds calculation, deficit analysis, and other metrics.
 """
 
 from decimal import Decimal
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -82,6 +82,29 @@ class CashflowMetricsRepository(CashflowBaseRepository[CashflowForecast]):
         """
         # Query for all accounts
         query = select(Account)
+        result = await self.session.execute(query)
+        return result.scalars().all()
+
+    async def get_accounts_for_forecast(
+        self, account_ids: Optional[List[int]] = None
+    ) -> List[Account]:
+        """
+        Get accounts for forecast analysis, filtered by account IDs if provided.
+
+        Args:
+            account_ids (Optional[List[int]]): List of account IDs to include, or None for all accounts
+
+        Returns:
+            List[Account]: List of accounts matching the filter criteria
+        """
+        # Build query for accounts
+        query = select(Account)
+
+        # Apply filter if account IDs provided
+        if account_ids:
+            query = query.where(Account.id.in_(account_ids))
+
+        # Execute query
         result = await self.session.execute(query)
         return result.scalars().all()
 

@@ -8,6 +8,8 @@ The services layer is the heart of Debtonator's business logic, orchestrating op
 
 - [Repository Layer README](/code/debtonator/src/repositories/README.md)
 - [ADR-014: Repository Layer for CRUD Operations](/code/debtonator/docs/adr/backend/014-repository-layer-for-crud-operations.md)
+- [ADR-011: Datetime Standardization](/code/debtonator/docs/adr/backend/011-datetime-standardization.md)
+- [UTC Datetime Compliance Guide](/code/debtonator/docs/guides/utc_datetime_compliance.md)
 - [System Patterns: Repository Module Pattern](/code/debtonator/docs/system_patterns.md)
 
 ## Architecture
@@ -19,6 +21,7 @@ The services layer:
 3. **Orchestrates workflows**: Manages multi-step business processes
 4. **Handles transactions**: Ensures data integrity across multiple operations
 5. **Implements feature flags**: Services are wrapped by feature flag proxies
+6. **Enforces datetime standards**: Uses datetime_utils.py for all datetime operations
 
 ```tree
 src/services/
@@ -32,10 +35,11 @@ src/services/
 │   │   ├── credit.py
 │   │   └── ...
 ├── cashflow/                 # Cashflow-specific services
-│   ├── base.py
-│   ├── forecast_service.py
-│   ├── main.py
-│   └── ...
+│   ├── cashflow_base.py      # Base service for all cashflow services
+│   ├── cashflow_forecast_service.py   # Forecast generation
+│   ├── cashflow_historical_service.py # Historical analysis
+│   ├── cashflow_metrics_service.py    # Financial metrics calculations
+│   └── cashflow_transaction_service.py # Transaction management
 ├── interceptors/             # Service method interceptors
 │   └── feature_flag_interceptor.py
 └── proxies/                  # Service method proxies
@@ -68,6 +72,35 @@ class SomeService(BaseService):
         
         # Use repository methods
         return await account_repo.some_method()
+```
+
+### Datetime Handling Pattern
+
+All services must use the utilities from `datetime_utils.py` for datetime operations:
+
+```python
+from src.utils.datetime_utils import (
+    ensure_utc, utc_now, days_from_now, 
+    naive_start_of_day, naive_end_of_day
+)
+
+class SomeService(BaseService):
+    """Service with proper datetime handling."""
+    
+    async def get_data_for_date_range(self, start_date, end_date):
+        # Ensure UTC timezone for business logic
+        start_date = ensure_utc(start_date)
+        end_date = ensure_utc(end_date)
+        
+        # Get repository
+        repo = await self._get_repository(SomeRepository)
+        
+        # For database operations, use naive datetime functions
+        db_start = naive_start_of_day(start_date)
+        db_end = naive_end_of_day(end_date)
+        
+        # Use repository methods with proper date parameters
+        return await repo.get_by_date_range(db_start, db_end)
 ```
 
 ### Transaction Management
@@ -172,6 +205,15 @@ except FeatureDisabledError as e:
 
 All services must follow the repository pattern for data access per ADR-014. Direct database queries through SQLAlchemy are prohibited - all data access must happen through repositories.
 
+### ADR-011 Compliance
+
+All services must follow the UTC datetime standards per ADR-011:
+
+1. **Always use datetime_utils.py functions** - Never use raw datetime functions
+2. **Store all datetimes in UTC** - Use timezone-aware datetimes in business logic
+3. **Use naive datetimes for database operations** - Database stores naive datetimes (semantically UTC)
+4. **Use inclusive date ranges** - Use start_of_day and end_of_day for inclusive ranges
+
 ### Repository Access through BaseService
 
 All services must:
@@ -207,3 +249,11 @@ Services are proxied to enforce feature flags, with method calls intercepted to 
 ### Type-Specific Implementation
 
 Account type-specific functionality is implemented in dedicated modules under `account_types/` to maintain a clean architecture while supporting the full range of account types.
+
+### Specialized Service Pattern
+
+Complex domains like cashflow are implemented as specialized services that each focus on a specific aspect:
+
+1. **Base service**: Shared functionality and repository access
+2. **Specialized services**: Each focusing on one domain aspect (e.g., forecasting, historical analysis)
+3. **Service composition**: Services can use other services for complex operations

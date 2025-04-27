@@ -2,9 +2,40 @@
 
 ## Current Focus
 
-Repository Pattern Refinement, ADR-014 Repository Layer Compliance Implementation, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration, Repository Test Fixes, Circular Dependency Resolution, Test Directory Structure Alignment
+Repository Pattern Refinement, ADR-014 Repository Layer Compliance Implementation, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration, Repository Test Fixes, Circular Dependency Resolution, Test Directory Structure Alignment, Cashflow Service Improvements
 
 ### Recent Changes
+
+1. **Improved Cashflow Service Implementation with Proper Data Usage (April 27, 2025)** ✓
+   - Enhanced historical data usage in cashflow metrics calculation:
+     - Implemented proper historical volatility calculation using actual transaction data
+     - Created historical daily transaction grouping and analysis
+     - Added confidence adjustment based on historical data availability
+     - Improved volatility calculation with fallback mechanisms
+   - Expanded account-specific confidence calculation:
+     - Added account type-specific confidence adjustments (credit vs. checking)
+     - Implemented balance-based confidence modifiers
+     - Created transaction size relative to balance assessment
+     - Enhanced confidence calculation with granular deductions
+   - Enhanced forecast parameter usage:
+     - Implemented scenario-based adjustments (optimistic, pessimistic)
+     - Added custom threshold handling from parameters
+     - Created account type filtering based on parameters
+     - Added seasonal factor application for fine-tuned forecasts
+
+1. **Fixed Repository Pattern Compliance in Cashflow Services (April 27, 2025)** ✓
+   - Removed direct database queries from ForecastService:
+     - Replaced `select(Account)` with repository method calls
+     - Added `get_accounts_for_forecast` to CashflowMetricsRepository
+     - Updated database access to use transaction repository
+   - Fixed service initialization to properly use BaseService:
+     - Updated constructor to accept session and feature flag service
+     - Properly passed parameters to super().__init__()
+     - Fixed transaction service initialization
+   - Enhanced datetime handling for ADR-011 compliance:
+     - Used `utc_now()` instead of `date.today()`
+     - Corrected timezone handling in date manipulations
+     - Implemented proper date conversions
 
 1. **Refactored Cashflow Integration Tests to Follow Project Structure (April 27, 2025)** ✓
    - Moved tests from monolithic files to specialized test files in cashflow directory:
@@ -57,25 +88,6 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance Implementatio
      - Changed ADR references to use specialized services
      - Updated service fixture patterns in README.md
    - Improved architecture by removing unnecessary delegation layer
-
-3. **Fixed Repository Test Issues (April 26, 2025)** ✓
-   - Fixed AccountService fixture parameter mismatch:
-     - Updated account_service fixture to match constructor signature
-     - Aligned parameters with BaseService inheritance pattern
-     - Simplified dependency injection approach
-     - Removed obsolete parameter names (account_repo, statement_repo, etc.)
-     - Used session parameter directly from repository session
-   - Implemented missing repository method in CashflowForecastRepository:
-     - Added get_min_forecast method to calculate minimum forecast values
-     - Used existing get_by_date_range method to avoid code duplication
-     - Added appropriate error handling for empty result sets
-     - Followed consistent method pattern for data aggregation
-     - Added comprehensive docstrings with parameter and return documentation
-   - Fixed all failing tests in integration test suite:
-     - Resolved TypeError in account service fixture
-     - Fixed AttributeError in cashflow repository
-     - Maintained consistent method signatures across codebase
-     - Enhanced code quality with proper typing and documentation
 
 3. **Completed DepositScheduleService Refactoring for ADR-014 Repository Pattern Compliance (April 26, 2025)** ✓
    - Refactored DepositScheduleService to inherit from BaseService:

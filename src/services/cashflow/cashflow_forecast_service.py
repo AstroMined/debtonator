@@ -1,10 +1,11 @@
 from datetime import date, timedelta
 from decimal import Decimal
 from statistics import mean, stdev
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
-from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.common.cashflow_types import DateType
 from src.models.accounts import Account
 from src.schemas.cashflow import (
     AccountForecastMetrics,
@@ -17,15 +18,30 @@ from src.schemas.cashflow import (
 )
 from src.services.cashflow.cashflow_base import CashflowBaseService
 from src.services.cashflow.cashflow_transaction_service import TransactionService
-from src.common.cashflow_types import DateType
+from src.services.feature_flags import FeatureFlagService
+from src.utils.datetime_utils import utc_now
 
 
 class ForecastService(CashflowBaseService):
     """Service for generating cashflow forecasts."""
 
-    def __init__(self, db):
-        super().__init__(db)
-        self._transaction_service = TransactionService(db)
+    def __init__(
+        self,
+        session: AsyncSession,
+        feature_flag_service: Optional[FeatureFlagService] = None,
+        config_provider: Optional[Any] = None,
+    ):
+        """Initialize the forecast service.
+
+        Args:
+            session: SQLAlchemy async session for database operations
+            feature_flag_service: Optional feature flag service for repository proxies
+            config_provider: Optional config provider for feature flags
+        """
+        super().__init__(session, feature_flag_service, config_provider)
+        self._transaction_service = TransactionService(
+            session, feature_flag_service, config_provider
+        )
 
     async def get_account_forecast(
         self, params: AccountForecastRequest
@@ -38,8 +54,9 @@ class ForecastService(CashflowBaseService):
         Returns:
             AccountForecastResponse with forecast details
         """
-        # Verify account exists and get its details
-        account = await self.db.get(Account, params.account_id)
+        # Verify account exists and get its details using repository
+        transaction_repo = await self.transaction_repository
+        account = await transaction_repo.get_account_by_id(params.account_id)
         if not account:
             raise ValueError(f"Account with id {params.account_id} not found")
 
@@ -73,7 +90,7 @@ class ForecastService(CashflowBaseService):
             metrics=metrics,
             daily_forecasts=daily_forecasts,
             overall_confidence=overall_confidence,
-            timestamp=date.today(),
+            timestamp=utc_now().date(),
         )
 
     async def get_custom_forecast(
@@ -97,11 +114,9 @@ class ForecastService(CashflowBaseService):
             "max_balance": Decimal("-999999999.99"),
         }
 
-        # Get accounts to analyze
-        accounts_query = select(Account)
-        if params.account_ids:
-            accounts_query = accounts_query.where(Account.id.in_(params.account_ids))
-        accounts = (await self.db.execute(accounts_query)).scalars().all()
+        # Get accounts to analyze using repository
+        metrics_repo = await self.metrics_repository
+        accounts = await metrics_repo.get_accounts_for_forecast(params.account_ids)
 
         if not accounts:
             raise ValueError("No valid accounts found for analysis")
@@ -174,8 +189,10 @@ class ForecastService(CashflowBaseService):
             if isinstance(start_date, date)
             else start_date.date() - timedelta(days=90)
         )
-        transactions = await self._transaction_service.get_historical_transactions(
-            [account.id], historical_start, start_date
+        historical_transactions = (
+            await self._transaction_service.get_historical_transactions(
+                [account.id], historical_start, start_date
+            )
         )
 
         # Calculate projected transactions
@@ -185,7 +202,32 @@ class ForecastService(CashflowBaseService):
             )
         )
 
-        # Calculate metrics
+        # Calculate historical metrics
+        historical_daily_changes = []
+        if historical_transactions:
+            # Group transactions by date
+            historical_daily_totals = {}
+            for trans in historical_transactions:
+                trans_date = (
+                    trans["date"].date()
+                    if hasattr(trans["date"], "date")
+                    else trans["date"]
+                )
+                if trans_date not in historical_daily_totals:
+                    historical_daily_totals[trans_date] = Decimal("0")
+                historical_daily_totals[trans_date] += trans["amount"]
+
+            # Calculate daily changes
+            historical_daily_changes = list(historical_daily_totals.values())
+
+        # Calculate historical volatility
+        historical_volatility = (
+            Decimal(str(stdev(historical_daily_changes)))
+            if len(historical_daily_changes) > 1
+            else Decimal("0")
+        )
+
+        # Calculate projected metrics
         daily_balances = []
         inflows = []
         outflows = []
@@ -217,12 +259,31 @@ class ForecastService(CashflowBaseService):
                     abs(account.available_balance) / account.total_limit
                 )
 
-        # Calculate balance volatility
-        balance_volatility = (
-            Decimal(str(stdev(daily_balances)))
-            if len(daily_balances) > 1
-            else Decimal("0")
-        )
+        # Calculate balance volatility - use historical data when available
+        balance_volatility = historical_volatility
+        if balance_volatility == Decimal("0") and len(daily_balances) > 1:
+            # Fall back to projected volatility if no historical data
+            balance_volatility = Decimal(str(stdev(daily_balances)))
+
+        # Calculate forecast confidence based on historical data consistency
+        forecast_confidence = Decimal("0.9")  # Base confidence
+
+        # Adjust confidence based on historical data availability
+        if not historical_transactions:
+            forecast_confidence -= Decimal("0.2")  # Less confidence without history
+
+        # Adjust confidence based on volatility
+        if historical_volatility > Decimal("0") and len(daily_balances) > 0:
+            avg_balance = (
+                Decimal(str(mean(daily_balances)))
+                if daily_balances
+                else account.available_balance
+            )
+            volatility_ratio = balance_volatility / (abs(avg_balance) + Decimal("0.01"))
+            if volatility_ratio > Decimal("0.2"):
+                forecast_confidence -= Decimal(
+                    "0.1"
+                )  # Higher volatility = lower confidence
 
         return AccountForecastMetrics(
             average_daily_balance=(
@@ -239,9 +300,7 @@ class ForecastService(CashflowBaseService):
             projected_low_balance_dates=low_balance_dates,
             credit_utilization=credit_utilization,
             balance_volatility=balance_volatility,
-            forecast_confidence=Decimal(
-                "0.9"
-            ),  # Will be adjusted in _calculate_forecast_confidence
+            forecast_confidence=forecast_confidence,
         )
 
     async def _generate_account_daily_forecasts(
@@ -398,9 +457,46 @@ class ForecastService(CashflowBaseService):
             if flag in confidence_deductions:
                 base_confidence -= confidence_deductions[flag]
 
-        # Adjust for transaction volume
+        # Account-specific confidence adjustments
+        if account.account_type == "credit":
+            # Credit accounts have different risk profiles
+            if account.total_limit:
+                # Calculate current utilization
+                utilization = abs(balance) / account.total_limit
+
+                # Higher utilization = lower confidence
+                if utilization > Decimal("0.8"):
+                    base_confidence -= Decimal("0.15")
+                elif utilization > Decimal("0.5"):
+                    base_confidence -= Decimal("0.05")
+
+                # Approaching limit is a major confidence reducer
+                if utilization > Decimal("0.95"):
+                    base_confidence -= Decimal("0.25")
+
+        elif account.account_type == "checking":
+            # Checking accounts: low balance is a bigger risk
+            if balance < Decimal("200"):
+                base_confidence -= Decimal("0.2")
+            elif balance < Decimal("500"):
+                base_confidence -= Decimal("0.1")
+
+            # Large transactions relative to balance reduce confidence
+            if transactions:
+                largest_transaction = max(abs(t["amount"]) for t in transactions)
+                if largest_transaction > balance * Decimal("0.5"):
+                    base_confidence -= Decimal("0.15")
+
+        # Transaction volume adjustments
         if len(transactions) > 5:  # High transaction volume increases uncertainty
             base_confidence -= Decimal("0.1")
+        elif len(transactions) > 10:  # Very high volume is even more uncertain
+            base_confidence -= Decimal("0.2")
+
+        # Balance-based adjustments
+        if balance < Decimal("0"):
+            # Negative balance is a significant confidence reducer
+            base_confidence -= Decimal("0.2")
 
         # Ensure confidence stays within valid range
         return max(min(base_confidence, Decimal("1.0")), Decimal("0.1"))
@@ -418,7 +514,7 @@ class ForecastService(CashflowBaseService):
             current_date: Date to calculate forecast for
             accounts: List of accounts to include
             current_balances: Current balance for each account
-            params: Forecast parameters
+            params: Forecast parameters for customization
 
         Returns:
             CustomForecastResult for the day or None if no data
@@ -428,37 +524,99 @@ class ForecastService(CashflowBaseService):
         contributing_factors: Dict[str, Decimal] = {}
         risk_factors: Dict[str, Decimal] = {}
 
+        # Apply parameter-specific adjustment factors
+        income_adjustment = Decimal("1.0")
+        expense_adjustment = Decimal("1.0")
+
+        # Adjust based on scenario parameter
+        if params.scenario == "optimistic":
+            income_adjustment = Decimal("1.1")  # 10% higher income
+            expense_adjustment = Decimal("0.9")  # 10% lower expenses
+        elif params.scenario == "pessimistic":
+            income_adjustment = Decimal("0.9")  # 10% lower income
+            expense_adjustment = Decimal("1.1")  # 10% higher expenses
+
+        # Apply custom thresholds from parameters if provided
+        warning_threshold = (
+            params.warning_threshold
+            if params.warning_threshold is not None
+            else self._warning_thresholds.LOW_BALANCE
+        )
+
         for account in accounts:
+            # Apply account filters from parameters
+            if (
+                params.account_types
+                and account.account_type not in params.account_types
+            ):
+                # Skip accounts not in specified types
+                continue
+
+            # Get transactions for the day with parameter settings
             transactions = await self._transaction_service.get_day_transactions(
                 account,
                 current_date,
-                include_pending=True,
-                include_recurring=True,
-                include_transfers=True,
+                include_pending=params.include_pending,
+                include_recurring=params.include_recurring,
+                include_transfers=params.include_transfers,
             )
 
-            # Update totals
+            # Update totals with parameter-specific adjustments
             for trans in transactions:
                 if trans["amount"] > 0:
-                    daily_income += trans["amount"]
-                    contributing_factors[f"income_{trans['type']}"] = trans["amount"]
+                    # Adjust income based on scenario
+                    adjusted_amount = trans["amount"] * income_adjustment
+                    daily_income += adjusted_amount
+                    contributing_factors[f"income_{trans['type']}"] = adjusted_amount
                 else:
-                    amount = abs(trans["amount"])
+                    # Adjust expenses based on scenario
+                    amount = abs(trans["amount"]) * expense_adjustment
                     daily_expenses += amount
                     contributing_factors[f"expense_{trans['type']}"] = amount
 
-                    # Risk assessment
+                    # Risk assessment using parameter-specific thresholds
                     if amount > current_balances[account.id]:
                         risk_factors["insufficient_funds"] = Decimal("0.3")
 
-            # Update balances
-            current_balances[account.id] += daily_income - daily_expenses
+                    # Apply custom threshold for risk assessment
+                    if current_balances[account.id] - amount < warning_threshold:
+                        risk_factors["approaching_warning_threshold"] = Decimal("0.2")
 
-        # Calculate confidence score
+            # Update balances
+            net_change = daily_income - daily_expenses
+            current_balances[account.id] += net_change
+
+            # Apply seasonal factors if enabled in parameters
+            if params.apply_seasonal_factors and hasattr(params, "seasonal_factors"):
+                # Get month name from current date
+                month_name = current_date.strftime("%B").lower()
+                if month_name in params.seasonal_factors:
+                    # Apply seasonal adjustment to balance
+                    seasonal_factor = params.seasonal_factors[month_name]
+                    current_balances[account.id] *= Decimal("1.0") + seasonal_factor
+
+        # Calculate confidence score with parameter-specific adjustments
         base_confidence = Decimal("1.0")
         if risk_factors:
             base_confidence -= sum(risk_factors.values())
-        confidence_score = max(min(base_confidence, Decimal("1.0")), Decimal("0.0"))
+
+        # Adjust confidence based on scenario
+        if params.scenario == "pessimistic":
+            base_confidence *= Decimal(
+                "0.9"
+            )  # Lower confidence for pessimistic scenario
+        elif params.scenario == "optimistic":
+            base_confidence *= Decimal(
+                "0.95"
+            )  # Slightly lower for optimistic (still uncertain)
+
+        # Apply confidence floor from parameters if provided
+        min_confidence = (
+            params.min_confidence
+            if hasattr(params, "min_confidence")
+            else Decimal("0.1")
+        )
+        confidence_score = max(min(base_confidence, Decimal("1.0")), min_confidence)
 
         return CustomForecastResult(
             date=current_date,

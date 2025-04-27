@@ -403,9 +403,9 @@ class CashflowForecastRepository(CashflowBaseRepository[CashflowForecast]):
         # Get forecasts for the specified days
         end_date = utc_now()
         start_date = days_ago(days)
-        
+
         forecasts = await self.get_by_date_range(start_date, end_date)
-        
+
         if not forecasts:
             return {
                 "min_14_day": Decimal("0.00"),
@@ -413,13 +413,13 @@ class CashflowForecastRepository(CashflowBaseRepository[CashflowForecast]):
                 "min_60_day": Decimal("0.00"),
                 "min_90_day": Decimal("0.00"),
             }
-        
+
         # Calculate minimum values for each lookout period
         min_14_day = min(f.min_14_day for f in forecasts)
         min_30_day = min(f.min_30_day for f in forecasts)
         min_60_day = min(f.min_60_day for f in forecasts)
         min_90_day = min(f.min_90_day for f in forecasts)
-        
+
         return {
             "min_14_day": min_14_day,
             "min_30_day": min_30_day,

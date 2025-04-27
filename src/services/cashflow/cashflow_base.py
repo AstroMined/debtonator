@@ -4,6 +4,7 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.common.cashflow_types import CashflowHolidays, CashflowWarningThresholds
 from src.repositories.cashflow.cashflow_forecast_repository import (
     CashflowForecastRepository,
 )
@@ -14,10 +15,6 @@ from src.repositories.cashflow.cashflow_transaction_repository import (
     CashflowTransactionRepository,
 )
 from src.services.base import BaseService
-from src.common.cashflow_types import (
-    CashflowHolidays,
-    CashflowWarningThresholds,
-)
 from src.services.feature_flags import FeatureFlagService
 
 # Generic type for repository types

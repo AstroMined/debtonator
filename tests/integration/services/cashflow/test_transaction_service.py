@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.accounts import Account
 from src.models.transaction_history import TransactionHistory, TransactionType
 from src.services.cashflow.cashflow_transaction_service import TransactionService
-from src.utils.datetime_utils import ensure_utc, naive_utc_from_date, utc_now
+from src.utils.datetime_utils import ensure_utc, naive_utc_from_date, utc_now, naive_utc_now
 
 
 @pytest.mark.asyncio

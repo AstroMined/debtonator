@@ -7,6 +7,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.151] - 2025-04-27
+
+### Fixed
+
+- Fixed ADR-014 Repository Layer Compliance in Cashflow Services:
+  - Removed direct database queries in favor of repository methods
+  - Added `get_accounts_for_forecast` method to CashflowMetricsRepository
+  - Fixed service initialization to properly use BaseService
+  - Updated session and feature flag service handling
+
+### Improved
+
+- Enhanced cashflow calculation with proper data usage:
+  - Implemented historical volatility calculation using actual transaction data
+  - Fixed unused parameters in day confidence calculation
+  - Added account type-specific confidence adjustments
+  - Implemented parameter-based customization in forecasts
+  
+### Added
+
+- Created service documentation:
+  - Added comprehensive `/services/cashflow/README.md` with architectural details
+  - Updated main `/services/README.md` with cashflow and datetime information
+
 ## [0.5.150] - 2025-04-27
 
 ### Changed
