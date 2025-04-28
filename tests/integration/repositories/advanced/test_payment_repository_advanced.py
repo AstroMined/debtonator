@@ -28,7 +28,7 @@ pytestmark = pytest.mark.asyncio
 async def test_create_split_payment(
     payment_repository: PaymentRepository,
     test_checking_account: Account,
-    test_second_account: Account,
+    test_second_checking_account: Account,
 ):
     """Test creating a payment split across multiple accounts."""
     # 1. ARRANGE: Setup is already done with fixtures
@@ -45,7 +45,7 @@ async def test_create_split_payment(
                 "amount": Decimal("100.00"),
             },
             {
-                "account_id": test_second_account.id,
+                "account_id": test_second_checking_account.id,
                 "amount": Decimal("50.00"),
             },
         ],
@@ -70,7 +70,7 @@ async def test_create_split_payment(
     source1 = next(
         s for s in result.sources if s.account_id == test_checking_account.id
     )
-    source2 = next(s for s in result.sources if s.account_id == test_second_account.id)
+    source2 = next(s for s in result.sources if s.account_id == test_second_checking_account.id)
 
     assert source1.amount == Decimal("100.00")
     assert source2.amount == Decimal("50.00")

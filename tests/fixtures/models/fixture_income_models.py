@@ -46,14 +46,14 @@ async def test_income(
 @pytest_asyncio.fixture
 async def test_additional_income(
     db_session: AsyncSession,
-    test_second_account,
+    test_second_checking_account,
 ) -> Income:
     """
     Create a second test income entry.
 
     Args:
         db_session: Database session fixture
-        test_second_account: Test second account fixture
+        test_second_checking_account: Test second account fixture
 
     Returns:
         Income: Created additional income entry
@@ -65,7 +65,7 @@ async def test_additional_income(
     income = Income(
         source="Freelance Payment",
         amount=Decimal("1500.00"),
-        account_id=test_second_account.id,
+        account_id=test_second_checking_account.id,
         date=income_date,
         deposited=False,
     )

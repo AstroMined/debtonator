@@ -63,7 +63,7 @@ async def test_payment(
 async def test_multiple_payments(
     db_session: AsyncSession,
     test_checking_account,
-    test_second_account,
+    test_second_checking_account,
     test_liability,
 ) -> List[Payment]:
     """
@@ -72,7 +72,7 @@ async def test_multiple_payments(
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
-        test_second_account: Test second account fixture
+        test_second_checking_account: Test second account fixture
         test_liability: Test liability fixture
 
     Returns:
@@ -106,7 +106,7 @@ async def test_multiple_payments(
             "category": "Insurance",
             "sources": [
                 {"account_id": test_checking_account.id, "amount": Decimal("60.00")},
-                {"account_id": test_second_account.id, "amount": Decimal("60.00")},
+                {"account_id": test_second_checking_account.id, "amount": Decimal("60.00")},
             ],
         },
         # Future payment (scheduled)
@@ -190,7 +190,7 @@ async def test_payment_source(
 async def test_payment_with_multiple_sources(
     db_session: AsyncSession,
     test_checking_account,
-    test_second_account,
+    test_second_checking_account,
 ) -> Payment:
     """
     Create a test payment with multiple payment sources.
@@ -198,7 +198,7 @@ async def test_payment_with_multiple_sources(
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
-        test_second_account: Test second account fixture
+        test_second_checking_account: Test second account fixture
 
     Returns:
         Payment: Created payment with multiple payment sources
@@ -227,7 +227,7 @@ async def test_payment_with_multiple_sources(
         ),
         PaymentSource(
             payment_id=payment.id,
-            account_id=test_second_account.id,
+            account_id=test_second_checking_account.id,
             amount=Decimal("50.00"),
         ),
     ]

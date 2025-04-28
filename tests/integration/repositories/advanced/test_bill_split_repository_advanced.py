@@ -156,7 +156,7 @@ async def test_bulk_create_splits(
     bill_split_repository: BillSplitRepository,
     test_liability: Liability,
     test_checking_account: Account,
-    test_second_account: Account,
+    test_second_checking_account: Account,
 ):
     """Test creating multiple bill splits in bulk with proper validation flow."""
     # 1. ARRANGE: Clear out any existing splits first
@@ -171,7 +171,7 @@ async def test_bulk_create_splits(
         ),
         create_bill_split_schema(
             liability_id=test_liability.id,  # Will be overridden in bulk_create_splits
-            account_id=test_second_account.id,
+            account_id=test_second_checking_account.id,
             amount=Decimal("200.00"),
         ),
     ]

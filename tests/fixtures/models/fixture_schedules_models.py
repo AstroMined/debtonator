@@ -53,7 +53,7 @@ async def test_multiple_payment_schedules(
     db_session: AsyncSession,
     test_liability,
     test_checking_account,
-    test_second_account,
+    test_second_checking_account,
 ) -> List[PaymentSchedule]:
     """
     Create multiple payment schedules for testing.
@@ -62,7 +62,7 @@ async def test_multiple_payment_schedules(
         db_session: Database session fixture
         test_liability: Test liability fixture
         test_checking_account: Test checking account fixture
-        test_second_account: Test second account fixture
+        test_second_checking_account: Test second account fixture
 
     Returns:
         List[PaymentSchedule]: List of created payment schedules
@@ -89,7 +89,7 @@ async def test_multiple_payment_schedules(
         },
         {
             "liability_id": test_liability.id,
-            "account_id": test_second_account.id,
+            "account_id": test_second_checking_account.id,
             "amount": Decimal("50.00"),
             "scheduled_date": now + timedelta(days=30),
             "description": "End of month payment",
@@ -179,7 +179,7 @@ async def test_multiple_deposit_schedules(
     test_income,
     test_additional_income,
     test_checking_account,
-    test_second_account,
+    test_second_checking_account,
 ) -> List[DepositSchedule]:
     """
     Create multiple deposit schedules for testing.
@@ -189,7 +189,7 @@ async def test_multiple_deposit_schedules(
         test_income: Test income fixture
         test_additional_income: Test additional income fixture
         test_checking_account: Test checking account fixture
-        test_second_account: Test second account fixture
+        test_second_checking_account: Test second account fixture
 
     Returns:
         List[DepositSchedule]: List of created deposit schedules
@@ -209,7 +209,7 @@ async def test_multiple_deposit_schedules(
         },
         {
             "income_id": test_additional_income.id,
-            "account_id": test_second_account.id,
+            "account_id": test_second_checking_account.id,
             "schedule_date": now + timedelta(days=14),
             "amount": Decimal("1500.00"),
             "recurring": True,
@@ -227,7 +227,7 @@ async def test_multiple_deposit_schedules(
         },
         {
             "income_id": test_additional_income.id,
-            "account_id": test_second_account.id,
+            "account_id": test_second_checking_account.id,
             "schedule_date": now - timedelta(days=10),  # Past date
             "amount": Decimal("500.00"),
             "recurring": False,

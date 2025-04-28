@@ -6,6 +6,22 @@ Repository Pattern Refinement, ADR-014 Repository Layer Compliance Implementatio
 
 ### Recent Changes
 
+1. **Fixed and Consolidated Historical Service Tests (April 28, 2025)** ✓
+   - Fixed test_historical_service_v2.py dictionary access:
+     - Updated assertions to use dictionary key access (`trend[0]["date"]`) instead of attribute access (`trend[0].date`)
+     - Ensured consistent field naming using `is_reconciled` instead of `reconciled`
+     - Maintained service constructor parameters using `db=db_session` instead of `session=db_session`
+   - Consolidated test files by merging test_historical_service_v2.py into test_historical_service.py:
+     - Renamed the fixed file to replace the older version
+     - Fixed issues in the test implementation while maintaining functionality
+     - Ensured all tests follow proper fixture usage with test_checking_account
+     - Maintained ADR-011 compliance for datetime handling
+   - Enhanced test structure and readability:
+     - Added comprehensive docstrings with explicit Args sections
+     - Improved code comments for clarity
+     - Applied consistent indentation and spacing
+
+
 1. **Refactored Cashflow Service Integration Tests to Use Registered Fixtures (April 27, 2025)** ✓
    - Fixed test data setup to use registered fixtures instead of direct model creation:
      - Updated test_metrics_service.py to use test_cashflow_forecast fixture

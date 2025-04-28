@@ -37,6 +37,35 @@ async def test_checking_account(db_session: AsyncSession) -> CheckingAccount:
 
 
 @pytest_asyncio.fixture
+async def test_second_checking_account(db_session: AsyncSession) -> CheckingAccount:
+    """
+    Create a second test checking account for use in split payment tests.
+    
+    This fixture is heavily used in payment, bill split, and recurring model tests
+    for split payment scenarios.
+
+    Args:
+        db_session: Database session fixture
+
+    Returns:
+        CheckingAccount: Created checking account
+    """
+    # Create model instance directly using CheckingAccount
+    account = CheckingAccount(
+        name="Second Checking Account",
+        available_balance=Decimal("2000.00"),
+        current_balance=Decimal("2000.00"),
+    )
+
+    # Add to session manually
+    db_session.add(account)
+    await db_session.flush()
+    await db_session.refresh(account)
+
+    return account
+
+
+@pytest_asyncio.fixture
 async def test_checking_with_overdraft(db_session: AsyncSession) -> CheckingAccount:
     """Create a checking account with overdraft protection."""
     # Create a checking account with polymorphic identity and overdraft protection

@@ -2,6 +2,24 @@
 
 ## Recent Updates
 
+### Fixed and Consolidated Historical Service Tests (2025-04-28)
+
+- Fixed test dictionary access issues in historical service tests:
+  - Updated test_historical_service_v2.py to use dictionary key access (`trend[0]["date"]`) instead of attribute access (`trend[0].date`) 
+  - Fixed AttributeError when accessing date values from returned dictionaries
+  - Ensured all tests access returned data with correct key access patterns
+  - Preserved field naming using `is_reconciled` for consistency
+- Consolidated test files into a single comprehensive test module:
+  - Merged the fixed test_historical_service_v2.py into test_historical_service.py
+  - Eliminated duplicate test coverage between the two files
+  - Simplified test maintenance by having a single source of truth
+  - Maintained full test coverage of all historical service methods
+- Enhanced test structure, documentation, and fixture usage:
+  - Improved doc comments with explicit Args sections for all test functions
+  - Used the CheckingAccount fixture throughout instead of creating accounts directly
+  - Ensured consistent service initialization using the proper parameter name (`db=db_session`)
+  - Added clear comments explaining ADR-011 compliance for datetime handling
+
 ### Improved Cashflow Service Implementation with Proper Data Usage (2025-04-27)
 
 - Enhanced historical data usage in cashflow metrics calculation:

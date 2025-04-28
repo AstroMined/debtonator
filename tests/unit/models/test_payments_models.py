@@ -51,7 +51,7 @@ async def test_create_split_payment(
     db_session: AsyncSession,
     test_liability: Liability,
     test_checking_account,  # Will use proper subclass from fixture
-    test_second_account,  # Will use proper subclass from fixture
+    test_second_checking_account,  # Will use proper subclass from fixture
 ):
     """Test creating a payment split across multiple sources"""
 
@@ -79,7 +79,7 @@ async def test_create_split_payment(
         ),
         PaymentSource(
             payment_id=payment.id,
-            account_id=test_second_account.id,
+            account_id=test_second_checking_account.id,
             amount=Decimal("40.00"),
             created_at=naive_utc_now(),
             updated_at=naive_utc_now(),

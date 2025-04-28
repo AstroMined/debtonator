@@ -1,3 +1,17 @@
+"""
+Fixture module for account models that don't fit in a specialized fixture file.
+
+This module contains fixtures that are either:
+1. Collections of different account types (test_multiple_accounts)
+2. Support fixtures used across many test files
+
+For specialized account type fixtures, use the appropriate module in 
+tests/fixtures/models/account_types/banking/ instead:
+- CheckingAccount: fixture_checking_models.py
+- SavingsAccount: fixture_savings_models.py 
+- CreditAccount: fixture_credit_models.py
+"""
+
 from decimal import Decimal
 from typing import List
 
@@ -8,89 +22,15 @@ from src.models.account_types.banking.checking import CheckingAccount
 from src.models.account_types.banking.credit import CreditAccount
 from src.models.account_types.banking.savings import SavingsAccount
 from src.models.accounts import Account
-from src.utils.datetime_utils import naive_utc_now
-
-
-@pytest_asyncio.fixture
-async def test_checking_account(db_session: AsyncSession) -> CheckingAccount:
-    """
-    Create a primary test checking account for use in various tests.
-
-    Args:
-        db_session: Database session fixture
-
-    Returns:
-        CheckingAccount: Created checking account
-    """
-    checking_account = CheckingAccount(
-        name="Primary Test Checking",
-        available_balance=Decimal("1000.00"),
-        current_balance=Decimal("1000.00"),  # Added current_balance which is required
-        created_at=naive_utc_now(),
-        updated_at=naive_utc_now(),
-    )
-    db_session.add(checking_account)
-    await db_session.flush()
-    await db_session.refresh(checking_account)
-    return checking_account
-
-
-@pytest_asyncio.fixture
-async def test_savings_account(db_session: AsyncSession) -> SavingsAccount:
-    """
-    Create a test savings account for recurring income.
-
-    Args:
-        db_session: Database session fixture
-
-    Returns:
-        SavingsAccount: Created savings account
-    """
-    # Create model instance directly using SavingsAccount
-    account = SavingsAccount(
-        name="Test Savings Account",
-        available_balance=Decimal("500.00"),
-        current_balance=Decimal("500.00"),  # Added current_balance which is required
-    )
-
-    # Add to session manually
-    db_session.add(account)
-    await db_session.flush()
-    await db_session.refresh(account)
-
-    return account
-
-
-@pytest_asyncio.fixture
-async def test_second_account(db_session: AsyncSession) -> CheckingAccount:
-    """
-    Create a second test checking account for use in split payment tests.
-
-    Args:
-        db_session: Database session fixture
-
-    Returns:
-        CheckingAccount: Created checking account
-    """
-    # Create model instance directly using CheckingAccount
-    account = CheckingAccount(
-        name="Second Checking Account",
-        available_balance=Decimal("2000.00"),
-        current_balance=Decimal("2000.00"),  # Added current_balance which is required
-    )
-
-    # Add to session manually
-    db_session.add(account)
-    await db_session.flush()
-    await db_session.refresh(account)
-
-    return account
 
 
 @pytest_asyncio.fixture
 async def test_multiple_accounts(db_session: AsyncSession) -> List[Account]:
     """
     Create multiple test accounts of different types.
+    
+    This fixture creates a collection of different account types for testing
+    operations that need to work across multiple account types.
 
     Args:
         db_session: Database session fixture
@@ -146,29 +86,3 @@ async def test_multiple_accounts(db_session: AsyncSession) -> List[Account]:
         await db_session.refresh(account)
 
     return accounts
-
-
-@pytest_asyncio.fixture
-async def test_credit_account(db_session: AsyncSession) -> CreditAccount:
-    """
-    Create a test credit account for use in various tests.
-
-    Args:
-        db_session: Database session fixture
-
-    Returns:
-        CreditAccount: Created credit account
-    """
-    credit_account = CreditAccount(
-        name="Test Credit Card",
-        available_balance=Decimal("-500.00"),
-        current_balance=Decimal("-500.00"),  # Added current_balance which is required
-        credit_limit=Decimal("2000.00"),  # Credit accounts use credit_limit
-        available_credit=Decimal("1500.00"),  # total_limit - abs(available_balance)
-        created_at=naive_utc_now(),
-        updated_at=naive_utc_now(),
-    )
-    db_session.add(credit_account)
-    await db_session.flush()
-    await db_session.refresh(credit_account)
-    return credit_account

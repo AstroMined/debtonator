@@ -227,7 +227,7 @@ async def test_bills_by_account(
 async def test_multiple_recurring_incomes(
     db_session: AsyncSession,
     test_checking_account,
-    test_second_account,
+    test_second_checking_account,
     test_income_category,
 ) -> List[RecurringIncome]:
     """
@@ -236,7 +236,7 @@ async def test_multiple_recurring_incomes(
     Args:
         db_session: Database session fixture
         test_checking_account: Test checking account fixture
-        test_second_account: Test second account fixture
+        test_second_checking_account: Test second account fixture
         test_income_category: Test income category fixture
 
     Returns:
@@ -255,7 +255,7 @@ async def test_multiple_recurring_incomes(
         {
             "source": "Part-time Job",
             "amount": Decimal("1200.00"),
-            "account_id": test_second_account.id,
+            "account_id": test_second_checking_account.id,
             "category_id": test_income_category.id,
             "day_of_month": 15,
             "active": True,
@@ -271,7 +271,7 @@ async def test_multiple_recurring_incomes(
         {
             "source": "Previous Freelance Contract",
             "amount": Decimal("1500.00"),
-            "account_id": test_second_account.id,
+            "account_id": test_second_checking_account.id,
             "category_id": test_income_category.id,
             "day_of_month": 20,
             "active": False,  # Inactive income

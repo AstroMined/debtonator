@@ -7,6 +7,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.153] - 2025-04-28
+
+### Fixed
+
+- Fixed dictionary access in historical service tests:
+  - Updated assertions to use dictionary key access (`trend[0]["date"]`) instead of attribute access (`trend[0].date`)
+  - Fixed AttributeError when accessing date values from returned trend data
+  - Ensured proper field name references with `is_reconciled` instead of `reconciled`
+  
+### Changed
+
+- Consolidated duplicate test files:
+  - Merged test_historical_service_v2.py into test_historical_service.py
+  - Improved test structure with better documentation
+  - Enhanced fixture usage to follow best practices
+  - Maintained ADR-011 compliance for proper datetime handling
+
 ## [0.5.152] - 2025-04-27
 
 ### Fixed

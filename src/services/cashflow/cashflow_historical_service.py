@@ -1,10 +1,11 @@
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from statistics import mean, stdev
-from typing import Dict, List
+from typing import Dict, List, Optional
 from zoneinfo import ZoneInfo
 
 from src.common.cashflow_types import DateType
+from src.repositories.balance_history import BalanceHistoryRepository
 from src.schemas.cashflow import (
     HistoricalPeriodAnalysis,
     HistoricalTrendMetrics,
@@ -21,6 +22,194 @@ class HistoricalService(CashflowBaseService):
     def __init__(self, db):
         super().__init__(db)
         self._transaction_service = TransactionService(db)
+        
+    async def get_historical_balance_trend(
+        self, account_id: int, start_date: date, end_date: date
+    ) -> List[Dict]:
+        """
+        Get historical balance trend for an account within a date range.
+        
+        Args:
+            account_id: ID of the account to get balance trend for
+            start_date: Start date of the range (inclusive)
+            end_date: End date of the range (inclusive)
+            
+        Returns:
+            List of trend data points with date and balance
+        """
+        # Get the balance history repository
+        repo = await self._get_repository(BalanceHistoryRepository)
+        
+        # Convert dates to UTC-naive datetimes for database queries
+        start_datetime = datetime.combine(start_date, datetime.min.time())
+        end_datetime = datetime.combine(end_date, datetime.max.time())
+        
+        # Get balance history records
+        history = await repo.get_by_date_range(
+            account_id=account_id,
+            start_date=start_datetime,
+            end_date=end_datetime
+        )
+        
+        # Convert to trend data
+        trend = []
+        for record in history:
+            # Convert timestamp to date
+            record_date = record.timestamp.date()
+            
+            # Add trend data point
+            trend.append({
+                "date": record_date,
+                "balance": record.balance
+            })
+            
+        # Sort by date descending (newest first)
+        trend.sort(key=lambda x: x["date"], reverse=True)
+            
+        return trend
+    
+    async def get_min_max_balance(
+        self, account_id: int, start_date: date, end_date: date
+    ) -> Dict:
+        """
+        Get minimum and maximum balance for an account within a date range.
+        
+        Args:
+            account_id: ID of the account
+            start_date: Start date of the range (inclusive)
+            end_date: End date of the range (inclusive)
+            
+        Returns:
+            Dictionary with min, max, start, end, and average balances
+        """
+        # Get the balance history repository
+        repo = await self._get_repository(BalanceHistoryRepository)
+        
+        # Convert dates to UTC-naive datetimes for database queries
+        start_datetime = datetime.combine(start_date, datetime.min.time())
+        end_datetime = datetime.combine(end_date, datetime.max.time())
+        
+        # Get balance history records
+        history = await repo.get_by_date_range(
+            account_id=account_id,
+            start_date=start_datetime,
+            end_date=end_datetime
+        )
+        
+        if not history:
+            return {
+                "min": Decimal("0"),
+                "max": Decimal("0"),
+                "start": Decimal("0"),
+                "end": Decimal("0"),
+                "average": Decimal("0")
+            }
+        
+        # Get balances
+        balances = [record.balance for record in history]
+        
+        # Get min, max, start, end, and average
+        result = {
+            "min": min(balances),
+            "max": max(balances),
+            "average": sum(balances) / len(balances)
+        }
+        
+        # Get start and end balances
+        for record in history:
+            if record.timestamp.date() == start_date:
+                result["start"] = record.balance
+            if record.timestamp.date() == end_date:
+                result["end"] = record.balance
+                
+        # If start or end date not found, use first and last records
+        if "start" not in result and history:
+            start_record = min(history, key=lambda x: x.timestamp)
+            result["start"] = start_record.balance
+            
+        if "end" not in result and history:
+            end_record = max(history, key=lambda x: x.timestamp)
+            result["end"] = end_record.balance
+            
+        return result
+    
+    async def find_missing_days(
+        self, account_id: int, start_date: date, end_date: date
+    ) -> List[date]:
+        """
+        Find missing days in balance history for an account.
+        
+        Args:
+            account_id: ID of the account
+            start_date: Start date of the range (inclusive)
+            end_date: End date of the range (inclusive)
+            
+        Returns:
+            List of dates with missing balance history records
+        """
+        # Get the balance history repository
+        repo = await self._get_repository(BalanceHistoryRepository)
+        
+        # Convert dates to UTC-naive datetimes for database queries
+        start_datetime = datetime.combine(start_date, datetime.min.time())
+        end_datetime = datetime.combine(end_date, datetime.max.time())
+        
+        # Get balance history records
+        history = await repo.get_by_date_range(
+            account_id=account_id,
+            start_date=start_datetime,
+            end_date=end_datetime
+        )
+        
+        # Get all dates in range
+        all_dates = []
+        current_date = start_date
+        while current_date <= end_date:
+            all_dates.append(current_date)
+            current_date += timedelta(days=1)
+            
+        # Get dates with records
+        recorded_dates = [record.timestamp.date() for record in history]
+        
+        # Find missing dates
+        missing_dates = [d for d in all_dates if d not in recorded_dates]
+            
+        return missing_dates
+    
+    async def mark_balance_reconciled(
+        self, history_id: int, reconciled: bool = True, notes: Optional[str] = None
+    ) -> bool:
+        """
+        Mark a balance history record as reconciled.
+        
+        This uses the BalanceHistoryRepository to mark a balance history
+        record as reconciled and optionally add notes.
+        
+        Args:
+            history_id: ID of the balance history record
+            reconciled: Whether to mark as reconciled (True) or unreconciled (False)
+            notes: Optional notes to add to the record
+            
+        Returns:
+            bool: True if successful, False otherwise
+            
+        Raises:
+            ValueError: If balance history record not found
+        """
+        # Get the balance history repository
+        repo = await self._get_repository(BalanceHistoryRepository)
+        
+        # Mark as reconciled
+        result = await repo.mark_as_reconciled(balance_id=history_id, reconciled=reconciled)
+        
+        if result is None:
+            raise ValueError("Balance history record not found")
+            
+        # Add notes if provided
+        if notes:
+            await repo.add_balance_note(balance_id=history_id, note=notes)
+            
+        return True
 
     async def get_historical_trends(
         self, account_ids: List[int], start_date: DateType, end_date: DateType
