@@ -2,9 +2,19 @@
 
 ## Current Focus
 
-Repository Pattern Refinement, ADR-014 Repository Layer Compliance Implementation, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration, Repository Test Fixes, Circular Dependency Resolution, Test Directory Structure Alignment, Cashflow Service Improvements, Integration Test Refactoring
+Repository Pattern Refinement, Transaction Categorization and Reference System, ADR-014 Repository Layer Compliance Implementation, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration, Repository Test Fixes, Circular Dependency Resolution, Test Directory Structure Alignment, Cashflow Service Improvements, Integration Test Refactoring
 
 ### Recent Changes
+
+1. **Created ADR-029 for Transaction Categorization and Reference System (April 28, 2025)** ✓
+   - Identified root causes of forecast service test failures related to transaction categorization
+   - Created comprehensive ADR-029 implementing a Transaction Reference System using registry pattern
+   - Designed consistent approach to transaction handling with specialized services
+   - Established proper categorization matching with hierarchical support
+   - Created implementation checklist with phased approach to rollout
+   - Updated master ADR catalog and implementation directory README
+
+
 
 1. **Fixed and Consolidated Historical Service Tests (April 28, 2025)** ✓
    - Fixed test_historical_service_v2.py dictionary access:

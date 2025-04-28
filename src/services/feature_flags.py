@@ -27,7 +27,7 @@ from src.utils.feature_flags.context import EnvironmentContext, create_default_c
 
 # Use TYPE_CHECKING to avoid circular import
 if TYPE_CHECKING:
-    from src.services.base import BaseService
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -272,8 +272,7 @@ class FeatureFlagService(FeatureFlagObserver):
                 return False
             if value < 0 or value > 100:
                 logger.warning(
-                    "Invalid percentage value: %s. "
-                    "Value must be between 0 and 100.",
+                    "Invalid percentage value: %s. " "Value must be between 0 and 100.",
                     value,
                 )
                 return False

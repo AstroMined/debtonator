@@ -2,6 +2,25 @@
 
 ## Recent Updates
 
+### Created ADR-029 for Transaction Categorization and Reference System (2025-04-28)
+
+- Identified and analyzed cashflow forecast service test failures:
+  - Problems with income transaction key generation (using type instead of source)
+  - Issues with category filtering due to hardcoded string matching
+  - Lack of standardized approach to transaction field access and references
+- Created comprehensive ADR-029 to address transaction categorization and reference issues:
+  - Designed a Transaction Reference Registry for standardized transaction handling
+  - Created a CategoryMatcher service for proper category matching with hierarchical support
+  - Standardized transaction attribute access and key generation
+  - Eliminated hardcoded string matching with registry-based approach
+- Established implementation plan with phased approach:
+  - Created detailed ADR-029 implementation checklist in docs/adr/implementation
+  - Defined six implementation phases with clear tasks and dependencies
+  - Updated master ADR catalog and implementation directory documentation
+  - Set groundwork for future integration with existing services
+
+
+
 ### Fixed and Consolidated Historical Service Tests (2025-04-28)
 
 - Fixed test dictionary access issues in historical service tests:

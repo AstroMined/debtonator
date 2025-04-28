@@ -10,12 +10,7 @@ from src.repositories.deposit_schedules import DepositScheduleRepository
 from src.schemas.deposit_schedules import DepositScheduleCreate, DepositScheduleUpdate
 from src.services.base import BaseService
 from src.services.feature_flags import FeatureFlagService
-from src.utils.datetime_utils import (
-    ensure_utc,
-    naive_end_of_day,
-    naive_start_of_day,
-    utc_now,
-)
+from src.utils.datetime_utils import ensure_utc
 
 
 class DepositScheduleService(BaseService):

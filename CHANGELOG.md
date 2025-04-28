@@ -7,6 +7,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.154] - 2025-04-28
+
+### Added
+
+- ADR-029: Transaction Categorization and Reference System to address inconsistencies in how transactions are categorized, referenced, and matched
+- Implementation checklist for ADR-029 with phased approach for registry and category matcher implementation
+
+### Documentation
+
+- Updated ADR catalog README with entry for ADR-029
+- Created README for ADR implementation directory with standardized structure
+
 ## [0.5.153] - 2025-04-28
 
 ### Fixed

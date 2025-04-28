@@ -12,10 +12,9 @@ for all data access operations rather than direct database queries.
 """
 
 import statistics
-from collections import defaultdict
-from datetime import date, datetime, timedelta
+from datetime import timedelta
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 

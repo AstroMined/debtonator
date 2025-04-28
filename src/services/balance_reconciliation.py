@@ -9,7 +9,6 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.accounts import Account
 from src.models.balance_reconciliation import BalanceReconciliation
 from src.repositories.accounts import AccountRepository
 from src.repositories.balance_reconciliation import BalanceReconciliationRepository

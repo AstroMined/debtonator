@@ -4,10 +4,10 @@ Balance history service implementation.
 This module provides a service for managing balance history records.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 from statistics import mean, stdev
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 

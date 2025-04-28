@@ -10,8 +10,6 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.models.payments import Payment
 from src.repositories.accounts import AccountRepository
 from src.repositories.income import IncomeRepository
@@ -19,7 +17,6 @@ from src.repositories.liabilities import LiabilityRepository
 from src.repositories.payments import PaymentRepository
 from src.schemas.payments import PaymentCreate, PaymentUpdate
 from src.services.base import BaseService
-from src.services.feature_flags import FeatureFlagService
 from src.utils.datetime_utils import ensure_utc
 from src.utils.decimal_precision import DecimalPrecision
 

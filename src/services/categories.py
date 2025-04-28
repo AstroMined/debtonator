@@ -5,7 +5,7 @@ This module provides services for category management, hierarchical organization
 and category-liability relationships with proper system category protection.
 """
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession

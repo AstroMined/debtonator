@@ -33,6 +33,9 @@ class CustomForecastParameters(BaseSchemaValidator):
     account_ids: Optional[List[int]] = Field(
         None, description="Specific accounts to include in forecast"
     )
+    account_types: Optional[List[str]] = Field(
+        None, description="Specific account types to include in forecast (e.g., 'checking', 'credit')"
+    )
     categories: Optional[List[str]] = Field(
         None, description="Specific categories to include in forecast"
     )
@@ -45,6 +48,29 @@ class CustomForecastParameters(BaseSchemaValidator):
     )
     include_historical_patterns: bool = Field(
         True, description="Whether to include patterns from historical data"
+    )
+    include_transfers: bool = Field(
+        True, description="Whether to include inter-account transfers"
+    )
+    scenario: str = Field(
+        default="normal", 
+        description="Forecast scenario type: 'normal', 'optimistic', or 'pessimistic'"
+    )
+    warning_threshold: Optional[MoneyDecimal] = Field(
+        default=None, 
+        description="Custom threshold for low balance warnings (overrides default)"
+    )
+    min_confidence: Optional[PercentageDecimal] = Field(
+        default=Decimal("0.1"),
+        description="Minimum confidence floor for forecast calculations",
+    )
+    apply_seasonal_factors: bool = Field(
+        default=False,
+        description="Whether to apply seasonal adjustments to calculations",
+    )
+    seasonal_factors: Optional[Dict[str, Decimal]] = Field(
+        default=None,
+        description="Month-specific adjustment factors for seasonal trends",
     )
 
 
@@ -71,11 +97,11 @@ class CustomForecastResult(BaseSchemaValidator):
     confidence_score: PercentageDecimal = Field(
         ..., description="Confidence score for this forecast point (0-1 scale)"
     )
-    contributing_factors: PercentageDict = Field(
-        ..., description="Factors contributing to this forecast and their weights"
+    contributing_factors: Dict[str, MoneyDecimal] = Field(
+        ..., description="Factors contributing to this forecast and their monetary values"
     )
     risk_factors: PercentageDict = Field(
-        ..., description="Risk factors for this forecast and their weights"
+        ..., description="Risk factors for this forecast and their weights (0-1 scale)"
     )
 
 
@@ -96,7 +122,7 @@ class CustomForecastResponse(BaseSchemaValidator):
     overall_confidence: PercentageDecimal = Field(
         ..., description="Overall confidence score for the forecast"
     )
-    summary_statistics: MoneyDict = Field(
+    summary_statistics: Dict[str, Union[MoneyDecimal, PercentageDecimal]] = Field(
         ..., description="Summary statistics for the forecast period"
     )
     timestamp: datetime = Field(

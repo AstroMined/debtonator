@@ -9,7 +9,6 @@ repository pattern usage.
 from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import HTTPException
-from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.income import Income

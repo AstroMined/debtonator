@@ -1,7 +1,7 @@
 """
 Integration tests for the cashflow historical service.
 
-This module contains tests for the HistoricalService that follow ADR-011 datetime 
+This module contains tests for the HistoricalService that follow ADR-011 datetime
 standardization requirements, using proper utility functions for all datetime operations
 and reusing account fixtures for consistent test data.
 """
@@ -11,29 +11,22 @@ from decimal import Decimal
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.balance_history import BalanceHistory
 from src.models.account_types.banking.checking import CheckingAccount
-from src.repositories.balance_history import BalanceHistoryRepository
+from src.models.balance_history import BalanceHistory
 from src.services.cashflow.cashflow_historical_service import HistoricalService
-from src.utils.datetime_utils import (
-    days_ago,
-    naive_days_ago,
-    naive_utc_now,
-    utc_now,
-)
+from src.utils.datetime_utils import days_ago, naive_days_ago, naive_utc_now, utc_now
 
 
 @pytest.mark.asyncio
 async def test_get_historical_balance_trend(
-    db_session: AsyncSession, 
-    test_checking_account: CheckingAccount
+    db_session: AsyncSession, test_checking_account: CheckingAccount
 ):
     """
     Test getting historical balance trend for an account.
-    
+
     Uses ADR-011 compliant datetime handling with proper naive datetime utilities
     for database records and timezone-aware datetimes for business logic.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Checking account fixture
@@ -66,7 +59,7 @@ async def test_get_historical_balance_trend(
     # Use days_ago for service parameters following ADR-011
     start_date = days_ago(4).date()
     end_date = today
-    
+
     trend = await service.get_historical_balance_trend(
         account_id=test_checking_account.id, start_date=start_date, end_date=end_date
     )
@@ -91,15 +84,14 @@ async def test_get_historical_balance_trend(
 
 @pytest.mark.asyncio
 async def test_get_min_max_balance(
-    db_session: AsyncSession, 
-    test_checking_account: CheckingAccount
+    db_session: AsyncSession, test_checking_account: CheckingAccount
 ):
     """
     Test getting minimum and maximum balance for a date range.
-    
+
     Uses ADR-011 compliant datetime handling with proper utility functions
     for consistent timestamp creation.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Checking account fixture
@@ -107,10 +99,10 @@ async def test_get_min_max_balance(
     # Create balance history records with varying balances
     balance_values = [
         Decimal("1000.00"),  # Today
-        Decimal("800.00"),   # Yesterday
+        Decimal("800.00"),  # Yesterday
         Decimal("1500.00"),  # 2 days ago
-        Decimal("600.00"),   # 3 days ago
-        Decimal("900.00"),   # 4 days ago
+        Decimal("600.00"),  # 3 days ago
+        Decimal("900.00"),  # 4 days ago
     ]
 
     for i, balance in enumerate(balance_values):
@@ -133,7 +125,7 @@ async def test_get_min_max_balance(
     today = utc_now().date()
     start_date = days_ago(4).date()
     end_date = today
-    
+
     min_max = await service.get_min_max_balance(
         account_id=test_checking_account.id, start_date=start_date, end_date=end_date
     )
@@ -148,14 +140,13 @@ async def test_get_min_max_balance(
 
 @pytest.mark.asyncio
 async def test_find_missing_days(
-    db_session: AsyncSession, 
-    test_checking_account: CheckingAccount
+    db_session: AsyncSession, test_checking_account: CheckingAccount
 ):
     """
     Test finding missing days in balance history.
-    
+
     Follows ADR-011 guidance for proper date range handling and timestamp creation.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Checking account fixture
@@ -182,20 +173,17 @@ async def test_find_missing_days(
     today = utc_now().date()
     start_date = days_ago(4).date()
     end_date = today
-    
+
     missing_days = await service.find_missing_days(
         account_id=test_checking_account.id, start_date=start_date, end_date=end_date
     )
 
     # Assert: Verify missing days (days 1 and 3)
     assert len(missing_days) == 2
-    
+
     # Create expected dates using proper utility functions
-    expected_missing_days = [
-        days_ago(1).date(),
-        days_ago(3).date()
-    ]
-    
+    expected_missing_days = [days_ago(1).date(), days_ago(3).date()]
+
     # Verify missing days match expected days
     for missing_day in missing_days:
         assert missing_day in expected_missing_days
@@ -203,14 +191,13 @@ async def test_find_missing_days(
 
 @pytest.mark.asyncio
 async def test_get_historical_balance_trend_empty_range(
-    db_session: AsyncSession, 
-    test_checking_account: CheckingAccount
+    db_session: AsyncSession, test_checking_account: CheckingAccount
 ):
     """
     Test getting historical balance trend with no records in range.
-    
+
     Uses ADR-011 compliant datetime handling for date range creation.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Checking account fixture
@@ -222,7 +209,7 @@ async def test_get_historical_balance_trend_empty_range(
     # Use days_ago instead of manual timedelta manipulation
     start_date = days_ago(10).date()
     end_date = days_ago(5).date()
-    
+
     trend = await service.get_historical_balance_trend(
         account_id=test_checking_account.id, start_date=start_date, end_date=end_date
     )
@@ -233,14 +220,13 @@ async def test_get_historical_balance_trend_empty_range(
 
 @pytest.mark.asyncio
 async def test_mark_balance_reconciled(
-    db_session: AsyncSession, 
-    test_checking_account: CheckingAccount
+    db_session: AsyncSession, test_checking_account: CheckingAccount
 ):
     """
     Test marking balance history record as reconciled.
-    
+
     Uses ADR-011 compliant datetime functions for timestamp creation.
-    
+
     Args:
         db_session: Database session fixture
         test_checking_account: Checking account fixture
@@ -262,9 +248,7 @@ async def test_mark_balance_reconciled(
 
     # Act: Mark balance as reconciled using service method
     result = await service.mark_balance_reconciled(
-        history_id=history.id, 
-        reconciled=True, 
-        notes="Reconciled with bank statement"
+        history_id=history.id, reconciled=True, notes="Reconciled with bank statement"
     )
 
     # Assert: Verify balance is marked as reconciled
@@ -278,9 +262,9 @@ async def test_mark_balance_reconciled(
 async def test_mark_balance_reconciled_not_found(db_session: AsyncSession):
     """
     Test marking non-existent balance history record as reconciled.
-    
+
     Verifies proper error handling when record is not found.
-    
+
     Args:
         db_session: Database session fixture
     """
