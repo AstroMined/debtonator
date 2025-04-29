@@ -16,9 +16,10 @@ from src.schemas.liabilities import LiabilityCreate
 class ImportError(BaseModel):
     """
     Schema for import errors.
-    
+
     Tracks the row, field, and error message for import validation failures.
     """
+
     row: int = Field(..., description="Row number where the error occurred")
     field: str = Field(..., description="Field name where the error occurred")
     message: str = Field(..., description="Error message")
@@ -27,10 +28,11 @@ class ImportError(BaseModel):
 class BulkImportResponse(BaseModel):
     """
     Schema for bulk import operation response.
-    
+
     Contains detailed information about the results of a bulk import operation,
     including success/failure counts and validation errors.
     """
+
     success: bool = Field(..., description="Overall success status of the import")
     processed: int = Field(..., description="Total number of records processed")
     succeeded: int = Field(..., description="Number of records successfully imported")
@@ -43,10 +45,11 @@ class BulkImportResponse(BaseModel):
 class BulkImportPreview(BaseModel):
     """
     Schema for bulk import preview.
-    
+
     Contains validation information and records that passed validation
     before committing the import.
     """
+
     records: List[Union[LiabilityCreate, IncomeCreate]] = Field(
         ..., description="List of validated records ready for import"
     )

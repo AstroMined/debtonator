@@ -10,15 +10,10 @@ from datetime import timedelta
 
 import pytest
 
-from src.registry.feature_flags_registry import FeatureFlagRegistry
 from src.schemas.feature_flags import FeatureFlagType
 from src.utils.datetime_utils import utc_now
 
 # Import fixtures from the fixtures directory
-from tests.fixtures.fixture_feature_flags import (
-    feature_flag_registry,
-    registry_with_predefined_flags,
-)
 
 
 # Registry initialization tests

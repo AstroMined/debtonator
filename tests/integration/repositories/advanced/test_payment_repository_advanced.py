@@ -70,7 +70,9 @@ async def test_create_split_payment(
     source1 = next(
         s for s in result.sources if s.account_id == test_checking_account.id
     )
-    source2 = next(s for s in result.sources if s.account_id == test_second_checking_account.id)
+    source2 = next(
+        s for s in result.sources if s.account_id == test_second_checking_account.id
+    )
 
     assert source1.amount == Decimal("100.00")
     assert source2.amount == Decimal("50.00")

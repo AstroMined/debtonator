@@ -40,7 +40,7 @@ async def test_checking_account(db_session: AsyncSession) -> CheckingAccount:
 async def test_second_checking_account(db_session: AsyncSession) -> CheckingAccount:
     """
     Create a second test checking account for use in split payment tests.
-    
+
     This fixture is heavily used in payment, bill split, and recurring model tests
     for split payment scenarios.
 

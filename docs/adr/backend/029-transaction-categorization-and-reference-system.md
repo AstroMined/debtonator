@@ -34,19 +34,22 @@ Addressing these issues is critical as we expand the system's capabilities with 
 We will implement a Transaction Reference System (TRS) using the registry pattern to standardize how transactions are categorized, referenced, and matched throughout the application. This system will:
 
 1. **Establish a TransactionReferenceRegistry**:
-   - Create a central registry for transaction attribute definitions
+   - Create a central registry in the `src/registry` module alongside other registries
    - Define standard keys for transaction types, sources, and categories
    - Provide consistent methods for generating contribution keys and matching categories
+   - Follow the existing registry pattern established in the project
 
 2. **Implement a CategoryMatcher Service**:
    - Create a specialized service for matching transactions to categories
    - Support hierarchical category relationships (parent-child categories)
    - Enable fuzzy matching for similar category names when needed
+   - Leverage existing CategoryRepository methods for efficient queries
 
 3. **Standardize Transaction Fields**:
    - Define a consistent approach for referencing transaction attributes
    - Create helper methods for extracting standardized information from different transaction types
    - Support generating consistent keys for contributing factors
+   - Eliminate all hardcoded string matching throughout the codebase
 
 We considered alternatives:
 
@@ -58,19 +61,19 @@ We considered alternatives:
 
 The registry pattern was selected because:
 
-- It aligns with our existing architectural patterns (similar to account type registry)
-- It provides a centralized approach that improves maintainability
-- It allows for extension without code modifications as new types are added
-- It supports advanced features like hierarchical relationships and fuzzy matching
+- It directly aligns with our existing registry pattern (account_type_registry, feature_flag_registry)
+- It provides a centralized approach that eliminates string matching technical debt
+- It addresses the root cause rather than symptoms of the categorization issues
+- It supports advanced features like hierarchical relationships while maintaining code quality
 
 ## Technical Details
 
 ### Architecture Overview
 
-The Transaction Reference System will follow the registry pattern already established in our codebase. It will consist of:
+The Transaction Reference System will follow the registry pattern already established in our codebase through the `src/registry` module. It will consist of:
 
 1. **Core Components**:
-   - `TransactionReferenceRegistry`: Central registry managing transaction attribute definitions
+   - `TransactionReferenceRegistry`: Central registry managing transaction attribute definitions located in `src/registry/transaction_reference.py`
    - `CategoryMatcher`: Service for matching transactions to categories
    - `TransactionFieldExtractor`: Utility for consistently extracting fields from transactions
 
@@ -88,9 +91,10 @@ The Transaction Reference System will follow the registry pattern already establ
    ```
 
 3. **Implementation Approach**:
-   - Preserve backward compatibility with existing code
-   - Enable gradual adoption across the codebase
-   - Support both hardcoded and registry-based access during transition
+   - Follow the singleton pattern used in other registries
+   - Implement a clean, direct solution without temporary workarounds
+   - Provide a complete implementation that eliminates string matching
+   - Update all affected services to use the registry from the start
 
 ### Data Layer
 
@@ -135,76 +139,166 @@ class TransactionSchema(BaseSchemaValidator):
         # Implementation using CategoryMatcher
 ```
 
-#### Services
+#### Registry
 
-1. **TransactionReferenceRegistry**:
+The TransactionReferenceRegistry will follow the singleton pattern used by other registries:
 
-   ```python
-   class TransactionReferenceRegistry:
-       """Registry for transaction attribute definitions."""
-       
-       # Transaction type definitions
-       INCOME = "income"
-       EXPENSE = "expense"
-       TRANSFER = "transfer"
-       
-       # Field access patterns
-       SOURCE_FIELDS = {
-           INCOME: "source",
-           EXPENSE: "description",
-           TRANSFER: "description"
-       }
-       
-       @classmethod
-       def get_contribution_key(cls, transaction_type: str, identifier: str) -> str:
-           """Generate a consistent key for contribution factors."""
-           return f"{transaction_type}_{identifier}"
-       
-       @classmethod
-       def extract_source(cls, transaction: Dict[str, Any]) -> str:
-           """Extract the source identifier from a transaction."""
-           if "type" not in transaction:
-               return "unknown"
-               
-           field = cls.SOURCE_FIELDS.get(transaction["type"], "description")
-           return transaction.get(field, "unknown")
-   ```
+```python
+class TransactionReferenceRegistry:
+    """Registry for transaction attribute definitions.
+    
+    This class implements the singleton pattern to ensure a single registry instance
+    exists across the application. Transaction types can be registered with their
+    associated fields, categories, and metadata.
+    """
+    
+    _instance: ClassVar[Optional["TransactionReferenceRegistry"]] = None
+    
+    def __new__(cls) -> "TransactionReferenceRegistry":
+        """Create a new TransactionReferenceRegistry instance or return the existing instance."""
+        if cls._instance is None:
+            cls._instance = super(TransactionReferenceRegistry, cls).__new__(cls)
+            cls._instance._initialize()
+        return cls._instance
+    
+    def _initialize(self) -> None:
+        """Initialize the registry with default transaction types."""
+        # Transaction type definitions
+        self.INCOME = "income"
+        self.EXPENSE = "expense"
+        self.BILL = "bill"
+        self.TRANSFER = "transfer"
+        
+        # Field access patterns
+        self.SOURCE_FIELDS = {
+            self.INCOME: "source",
+            self.EXPENSE: "description",
+            self.BILL: "name",
+            self.TRANSFER: "description"
+        }
+        
+        # Category field mappings
+        self.CATEGORY_FIELDS = {
+            self.INCOME: "category",
+            self.EXPENSE: "category",
+            self.BILL: "category",
+            self.TRANSFER: None  # Transfers typically don't have categories
+        }
+    
+    def get_contribution_key(self, transaction_type: str, identifier: str) -> str:
+        """Generate a consistent key for contribution factors."""
+        return f"{transaction_type}_{identifier}"
+    
+    def extract_source(self, transaction: Dict[str, Any]) -> str:
+        """Extract the source identifier from a transaction."""
+        if "type" not in transaction:
+            return "unknown"
+            
+        field = self.SOURCE_FIELDS.get(transaction["type"], "description")
+        return transaction.get(field, "unknown")
+    
+    def extract_category(self, transaction: Dict[str, Any]) -> Optional[str]:
+        """Extract the category from a transaction."""
+        if "type" not in transaction:
+            return None
+            
+        field = self.CATEGORY_FIELDS.get(transaction["type"])
+        if not field:
+            return None
+            
+        return transaction.get(field)
 
-2. **CategoryMatcher Service**:
+# Global instance for convenience - follows singleton pattern
+transaction_reference_registry = TransactionReferenceRegistry()
+```
+
+1. **CategoryMatcher Service**:
 
    ```python
    class CategoryMatcher(BaseService):
-       """Service for matching transactions to categories."""
+       """Service for matching transactions to categories.
+       
+       This service provides methods for determining if a transaction belongs
+       to a specific category, including handling hierarchical relationships
+       between categories.
+       """
+       
+       def __init__(
+           self,
+           session: AsyncSession,
+           feature_flag_service: Optional[FeatureFlagService] = None,
+           config_provider: Optional[Any] = None,
+       ):
+           """Initialize the category matcher service.
+           
+           Args:
+               session: SQLAlchemy async session for database operations
+               feature_flag_service: Optional feature flag service for repository proxies
+               config_provider: Optional config provider for feature flags
+           """
+           super().__init__(session, feature_flag_service, config_provider)
+           self._registry = transaction_reference_registry
        
        async def matches_category(
            self, 
            transaction: Dict[str, Any], 
            category: Union[str, Category]
        ) -> bool:
-           """Check if transaction matches the given category."""
-           # Get transaction category
-           transaction_category = self._extract_category(transaction)
+           """Check if transaction matches the given category.
            
+           This method checks if a transaction belongs to the specified category
+           or any of its child categories, supporting hierarchical categorization.
+           
+           Args:
+               transaction: Transaction dictionary
+               category: Category name or Category object
+               
+           Returns:
+               True if the transaction matches the category, False otherwise
+           """
+           # Get transaction category
+           transaction_category = self._registry.extract_category(transaction)
+           if not transaction_category:
+               return False
+               
            # Get category repository
            category_repo = await self._get_repository(CategoryRepository)
+           
+           # Get the category name
+           category_name = category.name if isinstance(category, Category) else category
            
            # Check if transaction category matches target category or its children
            return await category_repo.is_category_or_child(
                transaction_category, 
-               category.name if isinstance(category, Category) else category
+               category_name
            )
-       
-       def _extract_category(self, transaction: Dict[str, Any]) -> Optional[str]:
-           """Extract category from transaction dict."""
-           # Implementation with fallbacks for different transaction structures
    ```
 
-3. **ForecastService Enhancements**:
+2. **ForecastService Enhancements**:
    Update the ForecastService to use the registry and matcher:
 
    ```python
    class ForecastService(CashflowBaseService):
        """Service for generating cashflow forecasts."""
+       
+       def __init__(
+           self,
+           session: AsyncSession,
+           feature_flag_service: Optional[FeatureFlagService] = None,
+           config_provider: Optional[Any] = None,
+       ):
+           """Initialize the forecast service.
+           
+           Args:
+               session: SQLAlchemy async session for database operations
+               feature_flag_service: Optional feature flag service for repository proxies
+               config_provider: Optional config provider for feature flags
+           """
+           super().__init__(session, feature_flag_service, config_provider)
+           self._transaction_service = TransactionService(
+               session, feature_flag_service, config_provider
+           )
+           self._registry = transaction_reference_registry
        
        async def _calculate_daily_forecast(
            self,
@@ -238,11 +332,15 @@ class TransactionSchema(BaseSchemaValidator):
            for trans in filtered_transactions:
                if trans["amount"] > 0:
                    # Use proper source for income
-                   source = TransactionReferenceRegistry.extract_source(trans)
-                   key = TransactionReferenceRegistry.get_contribution_key("income", source)
+                   source = self._registry.extract_source(trans)
+                   key = self._registry.get_contribution_key(self._registry.INCOME, source)
                    contributing_factors[key] = rounded_amount
                else:
-                   # ...existing code...
+                   # Use proper key for expenses/outflows
+                   transaction_type = trans.get("type", self._registry.EXPENSE)
+                   description = trans.get("description", "Unknown")
+                   key = self._registry.get_contribution_key(transaction_type, description)
+                   contributing_factors[key] = rounded_amount
    ```
 
 ### API Layer
@@ -256,24 +354,34 @@ No immediate changes required for the API layer, but the implementation will sup
 ### Config, Utils, and Cross-Cutting Concerns
 
 1. **Registry Configuration**:
+   The registry will be self-contained without external configuration files, following the pattern used by other registries:
 
    ```python
-   # Configuration for TransactionReferenceRegistry
-   TRANSACTION_TYPE_MAPPINGS = {
-       "income": {
-           "source_field": "source",
-           "default_key": "income",
-           "category_field": "category",
-           # Add other mappings as needed
-       },
-       "expense": {
-           "source_field": "description",
-           "default_key": "expense",
-           "category_field": "category",
-           # Add other mappings as needed
-       },
-       # Add other transaction types
-   }
+   # Registration of transaction types happens in _initialize
+   def _initialize(self) -> None:
+       """Initialize the registry with default transaction types."""
+       self._registry_types = {
+           "income": {
+               "source_field": "source",
+               "category_field": "category",
+               "description": "Income transaction"
+           },
+           "expense": {
+               "source_field": "description",
+               "category_field": "category",
+               "description": "Expense transaction"
+           },
+           "bill": {
+               "source_field": "name",
+               "category_field": "category",
+               "description": "Bill payment"
+           },
+           "transfer": {
+               "source_field": "description",
+               "category_field": None,
+               "description": "Transfer between accounts"
+           }
+       }
    ```
 
 2. **Logging Enhancements**:
@@ -286,22 +394,49 @@ No immediate changes required for the API layer, but the implementation will sup
    )
    ```
 
+3. **Documentation**:
+   We'll add comprehensive documentation in the registry module:
+
+   ```python
+   # Add a README.md to the registry module
+   """
+   # Registry Module
+
+   This module provides central registries for configuration and runtime state
+   management across the application. Registries implement the singleton pattern
+   for global access with consistent interfaces.
+   
+   The TransactionReferenceRegistry standardizes how transactions are categorized,
+   referenced, and matched throughout the application, eliminating hardcoded string
+   matching and providing consistent key generation.
+   """
+   ```
+
 ### Implementation Impact
 
 The changes will affect several components, requiring:
 
-1. **Service Updates**:
-   - Modify ForecastService to use the new registry and matcher
-   - Update other services that deal with transaction categorization
+1. **Registry Implementation**:
+   - Create TransactionReferenceRegistry in the src/registry module
+   - Implement singleton pattern with proper initialization
+   - Add comprehensive documentation and tests
 
-2. **Test Updates**:
-   - Update tests to verify proper transaction references
-   - Add tests for category matching edge cases
+2. **Service Implementation**:
+   - Create CategoryMatcher service inheriting from BaseService
+   - Implement proper category relationship handling
+   - Add robust error handling and logging
 
-3. **Migration Strategy**:
-   - Implement registry and matcher first
-   - Update ForecastService to resolve current test issues
-   - Gradually adopt across other services
+3. **Service Integration**:
+   - Update ForecastService to use the registry and matcher
+   - Eliminate all hardcoded string matching
+   - Fix key generation for contributing factors
+   - Update TransactionService to use standard field extraction
+
+4. **Test Implementation**:
+   - Create comprehensive tests for the registry
+   - Test hierarchical category matching
+   - Verify key generation consistency
+   - Test integration with forecast service
 
 ## Consequences
 

@@ -145,7 +145,9 @@ async def test_payment_with_multiple_sources(
     source1 = next(
         s for s in result.sources if s.account_id == test_checking_account.id
     )
-    source2 = next(s for s in result.sources if s.account_id == test_second_checking_account.id)
+    source2 = next(
+        s for s in result.sources if s.account_id == test_second_checking_account.id
+    )
 
     # Verify first source
     assert source1.payment_id == result.id

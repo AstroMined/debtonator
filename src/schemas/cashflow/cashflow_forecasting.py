@@ -7,7 +7,6 @@ from pydantic import Field
 from src.schemas.base_schema import (
     BaseSchemaValidator,
     MoneyDecimal,
-    MoneyDict,
     PercentageDecimal,
     PercentageDict,
 )
@@ -34,7 +33,8 @@ class CustomForecastParameters(BaseSchemaValidator):
         None, description="Specific accounts to include in forecast"
     )
     account_types: Optional[List[str]] = Field(
-        None, description="Specific account types to include in forecast (e.g., 'checking', 'credit')"
+        None,
+        description="Specific account types to include in forecast (e.g., 'checking', 'credit')",
     )
     categories: Optional[List[str]] = Field(
         None, description="Specific categories to include in forecast"
@@ -53,12 +53,12 @@ class CustomForecastParameters(BaseSchemaValidator):
         True, description="Whether to include inter-account transfers"
     )
     scenario: str = Field(
-        default="normal", 
-        description="Forecast scenario type: 'normal', 'optimistic', or 'pessimistic'"
+        default="normal",
+        description="Forecast scenario type: 'normal', 'optimistic', or 'pessimistic'",
     )
     warning_threshold: Optional[MoneyDecimal] = Field(
-        default=None, 
-        description="Custom threshold for low balance warnings (overrides default)"
+        default=None,
+        description="Custom threshold for low balance warnings (overrides default)",
     )
     min_confidence: Optional[PercentageDecimal] = Field(
         default=Decimal("0.1"),
@@ -98,7 +98,8 @@ class CustomForecastResult(BaseSchemaValidator):
         ..., description="Confidence score for this forecast point (0-1 scale)"
     )
     contributing_factors: Dict[str, MoneyDecimal] = Field(
-        ..., description="Factors contributing to this forecast and their monetary values"
+        ...,
+        description="Factors contributing to this forecast and their monetary values",
     )
     risk_factors: PercentageDict = Field(
         ..., description="Risk factors for this forecast and their weights (0-1 scale)"

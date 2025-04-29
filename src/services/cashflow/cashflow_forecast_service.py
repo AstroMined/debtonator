@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.common.cashflow_types import DateType
 from src.models.accounts import Account
 from src.models.liabilities import Liability
+from src.registry.transaction_reference import transaction_reference_registry
 from src.schemas.cashflow import (
     AccountForecastMetrics,
     AccountForecastRequest,
@@ -20,8 +21,9 @@ from src.schemas.cashflow import (
 )
 from src.services.cashflow.cashflow_base import CashflowBaseService
 from src.services.cashflow.cashflow_transaction_service import TransactionService
+from src.services.category_matcher import CategoryMatcher
 from src.services.feature_flags import FeatureFlagService
-from src.utils.datetime_utils import ensure_utc, naive_utc_from_date, utc_now, naive_start_of_day, naive_end_of_day
+from src.utils.datetime_utils import naive_end_of_day, naive_start_of_day, utc_now
 from src.utils.decimal_precision import DecimalPrecision
 
 
@@ -45,20 +47,22 @@ class ForecastService(CashflowBaseService):
         self._transaction_service = TransactionService(
             session, feature_flag_service, config_provider
         )
-        
+        self._registry = transaction_reference_registry
+        self._category_matcher = None
+
     async def get_required_funds(
         self,
         account_id: int,
         start_date: Union[date, datetime],
-        end_date: Union[date, datetime]
+        end_date: Union[date, datetime],
     ) -> Decimal:
         """Calculate the total funds required to cover liabilities in the specified date range.
-        
+
         Args:
             account_id: ID of the account
             start_date: Start date for the calculation
             end_date: End date for the calculation
-            
+
         Returns:
             Decimal: Total amount required to cover all liabilities in the date range
         """
@@ -67,26 +71,26 @@ class ForecastService(CashflowBaseService):
             start_naive = naive_start_of_day(start_date)
         else:
             start_naive = start_date
-            
+
         if isinstance(end_date, date):
             end_naive = naive_end_of_day(end_date)
         else:
             end_naive = end_date
-        
+
         # Query liabilities for the account within the date range
         stmt = select(Liability).where(
             Liability.primary_account_id == account_id,
             Liability.due_date >= start_naive,
             Liability.due_date <= end_naive,
-            Liability.paid == False  # Only include unpaid liabilities
+            Liability.paid == False,  # Only include unpaid liabilities
         )
-        
+
         result = await self._session.execute(stmt)
         liabilities = result.scalars().all()
-        
+
         # Sum up all liability amounts
         total_required = sum(liability.amount for liability in liabilities)
-        
+
         return total_required
 
     async def get_account_forecast(
@@ -129,7 +133,7 @@ class ForecastService(CashflowBaseService):
         overall_confidence = await self._calculate_forecast_confidence(
             account, daily_forecasts, metrics
         )
-        
+
         # Ensure proper rounding for overall_confidence
         rounded_confidence = DecimalPrecision.round_for_calculation(overall_confidence)
 
@@ -139,7 +143,7 @@ class ForecastService(CashflowBaseService):
             metrics=metrics,
             daily_forecasts=daily_forecasts,
             overall_confidence=rounded_confidence,
-            timestamp=utc_now()
+            timestamp=utc_now(),
         )
 
     async def get_custom_forecast(
@@ -185,7 +189,9 @@ class ForecastService(CashflowBaseService):
             if daily_result:
                 results.append(daily_result)
                 summary_stats["total_projected_income"] += daily_result.projected_income
-                summary_stats["total_projected_expenses"] += daily_result.projected_expenses
+                summary_stats[
+                    "total_projected_expenses"
+                ] += daily_result.projected_expenses
                 summary_stats["min_balance"] = min(
                     summary_stats["min_balance"], daily_result.projected_balance
                 )
@@ -202,26 +208,32 @@ class ForecastService(CashflowBaseService):
             avg_confidence = total_confidence / days_processed
             # We use DecimalPrecision.round_for_display because summary_stats is a dictionary
             # that may contain MoneyDecimal values which require 2 decimal places
-            summary_stats["average_confidence"] = DecimalPrecision.round_for_display(avg_confidence)
+            summary_stats["average_confidence"] = DecimalPrecision.round_for_display(
+                avg_confidence
+            )
         else:
             summary_stats["average_confidence"] = Decimal("0.0")
 
         # Apply proper rounding to overall confidence per ADR-013
         # This is a PercentageDecimal which can have 4 decimal places
-        overall_confidence = DecimalPrecision.round_for_calculation(avg_confidence if days_processed > 0 else Decimal("0.0"))
+        overall_confidence = DecimalPrecision.round_for_calculation(
+            avg_confidence if days_processed > 0 else Decimal("0.0")
+        )
 
         # Round all monetary values in summary_stats to 2 decimal places
         for key in summary_stats.keys():
             if key != "average_confidence":  # We already handled this one
-                summary_stats[key] = DecimalPrecision.round_for_display(summary_stats[key])
-        
+                summary_stats[key] = DecimalPrecision.round_for_display(
+                    summary_stats[key]
+                )
+
         # Create and return response with proper formatting
         return CustomForecastResponse(
             parameters=params,
             results=results,
             overall_confidence=overall_confidence,
             summary_statistics=summary_stats,
-            timestamp=utc_now()
+            timestamp=utc_now(),
         )
 
     async def _calculate_account_metrics(
@@ -356,11 +368,23 @@ class ForecastService(CashflowBaseService):
             maximum_projected_balance=(
                 max(daily_balances) if daily_balances else account.available_balance
             ),
-            average_inflow=Decimal(str(mean(inflows))).quantize(Decimal("0.01")) if inflows else Decimal("0"),
-            average_outflow=Decimal(str(mean(outflows))).quantize(Decimal("0.01")) if outflows else Decimal("0"),
+            average_inflow=(
+                Decimal(str(mean(inflows))).quantize(Decimal("0.01"))
+                if inflows
+                else Decimal("0")
+            ),
+            average_outflow=(
+                Decimal(str(mean(outflows))).quantize(Decimal("0.01"))
+                if outflows
+                else Decimal("0")
+            ),
             projected_low_balance_dates=low_balance_dates,
             credit_utilization=credit_utilization,
-            balance_volatility=balance_volatility.quantize(Decimal("0.01")) if balance_volatility else Decimal("0"),
+            balance_volatility=(
+                balance_volatility.quantize(Decimal("0.01"))
+                if balance_volatility
+                else Decimal("0")
+            ),
             forecast_confidence=forecast_confidence,
         )
 
@@ -628,19 +652,26 @@ class ForecastService(CashflowBaseService):
 
             # Apply category filtering if specified in parameters
             filtered_transactions = []
+
+            # Get category matcher service if needed for filtering
+            if params.categories is not None and not self._category_matcher:
+                self._category_matcher = await self._get_service(CategoryMatcher)
+
             for trans in transactions:
-                # If categories are specified, only include transactions with matching categories
+                # If categories are specified, filter using CategoryMatcher
                 if params.categories is not None:
-                    # Only include transactions that have a category matching one of the specified categories
-                    if "category" in trans and trans["category"] in params.categories:
-                        filtered_transactions.append(trans)
-                    # For expenses with no category, we'll include them in the "expense_bill" category
-                    elif "type" in trans and trans["type"] == "bill" and "Utilities" in trans["description"]:
-                        filtered_transactions.append(trans)
+                    # Check each category to see if the transaction matches
+                    for category_name in params.categories:
+                        # Use CategoryMatcher for hierarchical matching
+                        if await self._category_matcher.matches_category(
+                            trans, category_name
+                        ):
+                            filtered_transactions.append(trans)
+                            break
                 else:
                     # No category filtering, include all transactions
                     filtered_transactions.append(trans)
-                    
+
             # Update totals with parameter-specific adjustments
             for trans in filtered_transactions:
                 if trans["amount"] > 0:
@@ -649,21 +680,35 @@ class ForecastService(CashflowBaseService):
                     # Apply proper 2-decimal rounding for MoneyDecimal values
                     rounded_amount = DecimalPrecision.round_for_display(adjusted_amount)
                     daily_income += rounded_amount
-                    contributing_factors[f"income_{trans['type']}"] = rounded_amount
+
+                    # Use registry for standardized key generation
+                    source = self._registry.extract_source(trans)
+                    key = self._registry.get_contribution_key(
+                        self._registry.INCOME, source
+                    )
+                    contributing_factors[key] = rounded_amount
                 else:
                     # Adjust expenses based on scenario
                     amount = abs(trans["amount"]) * expense_adjustment
                     # Apply proper 2-decimal rounding for MoneyDecimal values
                     rounded_amount = DecimalPrecision.round_for_display(amount)
                     daily_expenses += rounded_amount
-                    contributing_factors[f"expense_{trans['type']}"] = rounded_amount
+
+                    # Use registry for standardized key generation
+                    transaction_type = trans.get("type", self._registry.EXPENSE)
+                    source = self._registry.extract_source(trans)
+                    key = self._registry.get_contribution_key(transaction_type, source)
+                    contributing_factors[key] = rounded_amount
 
                     # Risk assessment using parameter-specific thresholds
                     if rounded_amount > current_balances[account.id]:
                         risk_factors["insufficient_funds"] = Decimal("0.3")
 
                     # Apply custom threshold for risk assessment
-                    if current_balances[account.id] - rounded_amount < warning_threshold:
+                    if (
+                        current_balances[account.id] - rounded_amount
+                        < warning_threshold
+                    ):
                         risk_factors["approaching_warning_threshold"] = Decimal("0.2")
 
             # Update balances
@@ -705,8 +750,10 @@ class ForecastService(CashflowBaseService):
         confidence_score = DecimalPrecision.round_for_calculation(bounded_confidence)
 
         # Apply proper rounding to all values before returning
-        projected_balance = DecimalPrecision.round_for_display(sum(current_balances.values()))
-        
+        projected_balance = DecimalPrecision.round_for_display(
+            sum(current_balances.values())
+        )
+
         return CustomForecastResult(
             date=current_date,
             projected_balance=projected_balance,

@@ -16,7 +16,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from tests.fixtures.repositories.fixture_polymorphic_test_repositories import (
     TestPolymorphicRepository,
-    TestTypeRegistry,
 )
 from tests.helpers.models.polymorphic_test_models import TestTypeAModel, TestTypeBModel
 from tests.helpers.schema_factories.polymorphic_test_schema_factories import (

@@ -12,19 +12,13 @@ from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.base import api_router
-from src.api.dependencies.repositories import get_account_repository
-from src.api.dependencies.services import get_account_service
 from src.main import app
-from src.models.account_types.banking import BNPLAccount, CheckingAccount
-from src.models.accounts import Account
 from src.repositories.accounts import AccountRepository
 from src.services.accounts import AccountService
-from src.services.feature_flags import FeatureFlagService
 from tests.fixtures.models.account_types.banking import (
     fixture_bnpl_account,
     fixture_checking_account,
 )
-from tests.fixtures.repositories.accounts import fixture_account_repository
 
 
 @pytest.fixture

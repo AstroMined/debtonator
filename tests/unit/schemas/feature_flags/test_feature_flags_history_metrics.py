@@ -5,9 +5,6 @@ This module contains tests for the schemas used to track feature flag history an
 including FlagHistoryEntry, FlagHistoryResponse, and FlagMetricsResponse.
 """
 
-import pytest
-from pydantic import ValidationError
-
 from src.schemas.feature_flags import (
     FlagHistoryEntry,
     FlagHistoryResponse,

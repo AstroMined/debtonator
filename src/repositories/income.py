@@ -259,32 +259,29 @@ class IncomeRepository(BaseRepository[Income, int]):
 
         result = await self.session.execute(query)
         return result.unique().scalars().all()
-        
+
     async def find_by_recurring_and_date(
         self, recurring_id: int, month: int, year: int
     ) -> List[Income]:
         """
         Find income entries for a specific recurring income and month/year.
-        
+
         Args:
             recurring_id (int): ID of the recurring income template
             month (int): Month (1-12)
             year (int): Year (e.g., 2025)
-            
+
         Returns:
             List[Income]: List of matching income entries
         """
-        query = (
-            select(Income)
-            .where(
-                and_(
-                    Income.recurring_income_id == recurring_id,
-                    func.strftime("%m", Income.date).cast(Integer) == month,
-                    func.strftime("%Y", Income.date).cast(Integer) == year,
-                )
+        query = select(Income).where(
+            and_(
+                Income.recurring_income_id == recurring_id,
+                func.strftime("%m", Income.date).cast(Integer) == month,
+                func.strftime("%Y", Income.date).cast(Integer) == year,
             )
         )
-        
+
         result = await self.session.execute(query)
         return result.scalars().all()
 

@@ -332,3 +332,6 @@ class FeatureFlagRegistry:
 
         # User is included if their bucket is below the percentage
         return bucket < percentage
+
+# Global instance for convenience - follows singleton pattern
+feature_flag_registry = FeatureFlagRegistry()

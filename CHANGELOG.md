@@ -7,6 +7,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.155] - 2025-04-28
+
+### Added
+
+- Created transaction_constants.py in the common module for centralized constants
+- Added ALL_TRANSACTION_TYPES list for iteration over transaction types
+
+### Changed
+
+- Refactored TransactionReferenceRegistry to use constants from common module
+- Fixed singleton pattern implementation with proper __init__() method
+- Updated documentation in common module README with constants organization patterns
+- Improved code quality in TransactionReferenceRegistry (10.00/10 pylint rating)
+
+### Fixed
+
+- Eliminated pylint warnings in TransactionReferenceRegistry
+- Fixed initialization order in singleton pattern implementation
+- Removed duplicate string constants across the codebase
+
 ## [0.5.154] - 2025-04-28
 
 ### Added

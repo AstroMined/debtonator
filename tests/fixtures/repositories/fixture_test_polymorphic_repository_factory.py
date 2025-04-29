@@ -9,12 +9,9 @@ the repository factory's ability to load type-specific modules.
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.repositories.factory import RepositoryFactory
 from tests.fixtures.repositories.fixture_polymorphic_test_repositories import (
     TestPolymorphicRepository,
-    TestTypeRegistry,
 )
-from tests.helpers.models.polymorphic_test_models import TestBaseModel
 
 
 @pytest_asyncio.fixture

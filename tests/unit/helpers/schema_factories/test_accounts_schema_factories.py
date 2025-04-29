@@ -20,10 +20,6 @@ from src.schemas.account_types.banking import (
     PaymentAppAccountCreate,
     SavingsAccountCreate,
 )
-from src.schemas.account_types.banking.credit import (
-    CreditAccountResponse,
-    CreditAccountUpdate,
-)
 from src.schemas.accounts import (
     AccountInDB,
     AccountResponse,

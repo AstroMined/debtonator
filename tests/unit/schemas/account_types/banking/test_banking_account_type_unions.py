@@ -8,9 +8,6 @@ Implements testing for ADR-016 Account Type Expansion.
 
 from decimal import Decimal
 
-import pytest
-from pydantic import ValidationError
-
 from src.schemas.account_types import CheckingAccountCreate, CreditAccountCreate
 from src.schemas.account_types.banking.checking import CheckingAccountCreate
 from src.schemas.account_types.banking.credit import CreditAccountCreate

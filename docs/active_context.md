@@ -2,11 +2,32 @@
 
 ## Current Focus
 
-Repository Pattern Refinement, Transaction Categorization and Reference System, ADR-014 Repository Layer Compliance Implementation, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration, Repository Test Fixes, Circular Dependency Resolution, Test Directory Structure Alignment, Cashflow Service Improvements, Integration Test Refactoring
+Repository Pattern Refinement, Transaction Categorization and Reference System Implementation, ADR-014 Repository Layer Compliance Implementation, Error Handling System, UTC Datetime Compliance, Repository Test Pattern Implementation, API Layer Implementation, Feature Flag Context Integration, Repository Test Fixes, Circular Dependency Resolution, Test Directory Structure Alignment, Cashflow Service Improvements, Integration Test Refactoring
 
 ### Recent Changes
 
-1. **Created ADR-029 for Transaction Categorization and Reference System (April 28, 2025)** ✓
+1. **Refactored Transaction Registry to Use Common Constants (April 28, 2025)** ✓
+   - Created dedicated transaction_constants.py in common module
+   - Moved hardcoded string constants to centralized location
+   - Updated TransactionReferenceRegistry to import from common module
+   - Fixed singleton pattern implementation with proper `__init__` method
+   - Eliminated pylint warnings by following best practices
+   - Updated common module README with constants organization patterns
+   - Improved code quality to achieve 10.00/10 pylint rating
+   - Maintained backward compatibility with all existing tests
+
+2. **Implemented Core Components of ADR-029 Transaction Categorization System (April 28, 2025)** ✓
+   - Created TransactionReferenceRegistry singleton with field mapping and key generation
+   - Implemented CategoryMatcher service with hierarchical category support and caching
+   - Added is_category_or_child method to CategoryRepository for relationship testing
+   - Added comprehensive tests for registry and matcher service functionality
+   - Updated ForecastService to integrate with the new registry and matcher
+   - Eliminated hardcoded string matching with standardized field extraction
+   - Fixed contribution key generation with proper source fields
+   - Created implementation fixtures for integration tests
+   - Updated implementation checklist to track progress (60% complete)
+
+3. **Created ADR-029 for Transaction Categorization and Reference System (April 28, 2025)** ✓
    - Identified root causes of forecast service test failures related to transaction categorization
    - Created comprehensive ADR-029 implementing a Transaction Reference System using registry pattern
    - Designed consistent approach to transaction handling with specialized services
@@ -14,9 +35,7 @@ Repository Pattern Refinement, Transaction Categorization and Reference System, 
    - Created implementation checklist with phased approach to rollout
    - Updated master ADR catalog and implementation directory README
 
-
-
-1. **Fixed and Consolidated Historical Service Tests (April 28, 2025)** ✓
+4. **Fixed and Consolidated Historical Service Tests (April 28, 2025)** ✓
    - Fixed test_historical_service_v2.py dictionary access:
      - Updated assertions to use dictionary key access (`trend[0]["date"]`) instead of attribute access (`trend[0].date`)
      - Ensured consistent field naming using `is_reconciled` instead of `reconciled`
@@ -31,8 +50,7 @@ Repository Pattern Refinement, Transaction Categorization and Reference System, 
      - Improved code comments for clarity
      - Applied consistent indentation and spacing
 
-
-1. **Refactored Cashflow Service Integration Tests to Use Registered Fixtures (April 27, 2025)** ✓
+5. **Refactored Cashflow Service Integration Tests to Use Registered Fixtures (April 27, 2025)** ✓
    - Fixed test data setup to use registered fixtures instead of direct model creation:
      - Updated test_metrics_service.py to use test_cashflow_forecast fixture
      - Updated test_forecast_service.py to use test_checking_account and test_category fixtures
@@ -49,7 +67,7 @@ Repository Pattern Refinement, Transaction Categorization and Reference System, 
      - Improved test assertions to be more readable and maintainable
      - Maintained functionality while improving code organization
 
-1. **Improved Cashflow Service Implementation with Proper Data Usage (April 27, 2025)** ✓
+6. **Improved Cashflow Service Implementation with Proper Data Usage (April 27, 2025)** ✓
    - Enhanced historical data usage in cashflow metrics calculation:
      - Implemented proper historical volatility calculation using actual transaction data
      - Created historical daily transaction grouping and analysis
@@ -66,21 +84,21 @@ Repository Pattern Refinement, Transaction Categorization and Reference System, 
      - Created account type filtering based on parameters
      - Added seasonal factor application for fine-tuned forecasts
 
-1. **Fixed Repository Pattern Compliance in Cashflow Services (April 27, 2025)** ✓
+7. **Fixed Repository Pattern Compliance in Cashflow Services (April 27, 2025)** ✓
    - Removed direct database queries from ForecastService:
      - Replaced `select(Account)` with repository method calls
      - Added `get_accounts_for_forecast` to CashflowMetricsRepository
      - Updated database access to use transaction repository
    - Fixed service initialization to properly use BaseService:
      - Updated constructor to accept session and feature flag service
-     - Properly passed parameters to super().__init__()
+     - Properly passed parameters to `super().__init__()`
      - Fixed transaction service initialization
    - Enhanced datetime handling for ADR-011 compliance:
      - Used `utc_now()` instead of `date.today()`
      - Corrected timezone handling in date manipulations
      - Implemented proper date conversions
 
-1. **Refactored Cashflow Integration Tests to Follow Project Structure (April 27, 2025)** ✓
+8. **Refactored Cashflow Integration Tests to Follow Project Structure (April 27, 2025)** ✓
    - Moved tests from monolithic files to specialized test files in cashflow directory:
      - Created test_metrics_service.py to test cashflow metrics calculations
      - Created test_forecast_service.py to test forecast functionality
@@ -100,7 +118,7 @@ Repository Pattern Refinement, Transaction Categorization and Reference System, 
      - Followed four-step test pattern (Arrange, Schema, Act, Assert)
      - Preserved comprehensive test coverage for all cashflow functionality
 
-1. **Resolved Circular Import Dependencies in Cashflow Module (April 26, 2025)** ✓
+9. **Resolved Circular Import Dependencies in Cashflow Module (April 26, 2025)** ✓
    - Created a common domain types module to break circular dependencies:
      - Moved shared types like CashflowHolidays and CashflowWarningThresholds to src/common/cashflow_types.py
      - Documented the architecture with a comprehensive README.md file
@@ -164,7 +182,7 @@ Repository Pattern Refinement, Transaction Categorization and Reference System, 
    - Always use BaseService._get_repository() method for repository access
    - Never use direct repository initialization in services
    - Follow established pattern for constructor initialization
-   - Pass feature flag service and config provider to super().__init__()
+   - Pass feature flag service and config provider to `super().__init__()`
    - Always maintain the pattern of delegating data operations to repositories
    - Keep business logic in the service layer while data access goes in repositories
    - Use specialized repository methods rather than reimplementing data access logic

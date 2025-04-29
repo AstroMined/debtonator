@@ -27,7 +27,7 @@ from src.utils.datetime_utils import (
 class PaymentPatternRepository(BaseRepository[Payment, int]):
     """
     Repository for payment pattern analysis operations.
-    
+
     This repository provides specialized queries for analyzing payment patterns,
     including frequency metrics, amount statistics, and pattern detection.
     """
@@ -35,7 +35,7 @@ class PaymentPatternRepository(BaseRepository[Payment, int]):
     def __init__(self, session: AsyncSession):
         """
         Initialize repository with database session.
-        
+
         Args:
             session (AsyncSession): SQLAlchemy async session
         """
@@ -53,7 +53,7 @@ class PaymentPatternRepository(BaseRepository[Payment, int]):
     ) -> List[Payment]:
         """
         Get payments with various filter criteria.
-        
+
         Args:
             liability_id (Optional[int]): Filter by liability/bill ID
             account_id (Optional[int]): Filter by account ID
@@ -62,67 +62,65 @@ class PaymentPatternRepository(BaseRepository[Payment, int]):
             end_date (Optional[datetime]): End date filter (inclusive)
             order_by_asc (bool): Sort by payment date ascending if True, descending if False
             include_sources (bool): Include payment sources in the result
-            
+
         Returns:
             List[Payment]: Filtered payments
         """
         # Build base query
         query = select(Payment)
-        
+
         # Add filters
         if liability_id is not None:
             query = query.where(Payment.liability_id == liability_id)
-            
+
         if account_id is not None:
             query = query.join(Payment.sources).filter(
                 PaymentSource.account_id == account_id
             )
-            
+
         if category_id is not None:
-            query = query.filter(
-                Payment.category.ilike(f"%{category_id}%")
-            )
-            
+            query = query.filter(Payment.category.ilike(f"%{category_id}%"))
+
         if start_date is not None:
             # Ensure UTC timezone awareness
             start_date = ensure_utc(start_date)
             # Use naive datetime for database query
             db_start_date = naive_start_of_day(start_date)
             query = query.where(Payment.payment_date >= db_start_date)
-            
+
         if end_date is not None:
             # Ensure UTC timezone awareness
             end_date = ensure_utc(end_date)
             # Use naive datetime for database query
             db_end_date = naive_end_of_day(end_date)
             query = query.where(Payment.payment_date <= db_end_date)
-        
+
         # Add ordering
         if order_by_asc:
             query = query.order_by(Payment.payment_date.asc())
         else:
             query = query.order_by(Payment.payment_date.desc())
-            
+
         # Add relationship loading if requested
         if include_sources:
             query = query.options(selectinload(Payment.sources))
-            
+
         # Execute query
         result = await self.session.execute(query)
         return result.scalars().all()
-    
+
     async def get_bill_payments(
-        self, 
-        liability_id: int, 
+        self,
+        liability_id: int,
         include_sources: bool = False,
     ) -> List[Payment]:
         """
         Get all payments for a specific bill/liability.
-        
+
         Args:
             liability_id (int): Liability/bill ID
             include_sources (bool): Include payment sources in the result
-            
+
         Returns:
             List[Payment]: Payments for the specified bill
         """
@@ -131,16 +129,16 @@ class PaymentPatternRepository(BaseRepository[Payment, int]):
             include_sources=include_sources,
             order_by_asc=True,  # Ascending order for pattern analysis
         )
-    
+
     async def calculate_payment_frequency_metrics(
         self, payments: List[Payment]
     ) -> Tuple[float, float, int, int]:
         """
         Calculate frequency metrics for a list of payments.
-        
+
         Args:
             payments (List[Payment]): List of payments to analyze
-            
+
         Returns:
             Tuple[float, float, int, int]: Tuple containing:
                 - average_days_between: Average number of days between payments
@@ -185,16 +183,16 @@ class PaymentPatternRepository(BaseRepository[Payment, int]):
         max_days = max(days_between)
 
         return (mean_days, std_dev, min_days, max_days)
-    
+
     async def calculate_amount_statistics(
         self, payments: List[Payment]
     ) -> Tuple[Decimal, Decimal, Decimal, Decimal, Decimal]:
         """
         Calculate amount statistics for a list of payments.
-        
+
         Args:
             payments (List[Payment]): List of payments to analyze
-            
+
         Returns:
             Tuple[Decimal, Decimal, Decimal, Decimal, Decimal]: Tuple containing:
                 - average_amount: Average payment amount
@@ -213,29 +211,29 @@ class PaymentPatternRepository(BaseRepository[Payment, int]):
             )
 
         amounts = [payment.amount for payment in payments]
-        
+
         average_amount = Decimal(str(np.mean(amounts)))
         std_dev_amount = Decimal(str(np.std(amounts)))
         min_amount = min(amounts)
         max_amount = max(amounts)
         total_amount = sum(amounts)
-        
+
         return (average_amount, std_dev_amount, min_amount, max_amount, total_amount)
-    
+
     async def get_date_range_for_pattern_analysis(
-        self, 
+        self,
         payments: List[Payment],
         default_start_date: Optional[datetime] = None,
         default_end_date: Optional[datetime] = None,
     ) -> Tuple[datetime, datetime]:
         """
         Get optimal date range for pattern analysis based on payment dates.
-        
+
         Args:
             payments (List[Payment]): List of payments to analyze
             default_start_date (Optional[datetime]): Default start date if no payments
             default_end_date (Optional[datetime]): Default end date if no payments
-            
+
         Returns:
             Tuple[datetime, datetime]: Start and end dates for analysis period
         """
@@ -243,10 +241,10 @@ class PaymentPatternRepository(BaseRepository[Payment, int]):
         now = utc_now()
         default_start = default_start_date or now
         default_end = default_end_date or now
-        
+
         if not payments:
             return (ensure_utc(default_start), ensure_utc(default_end))
-        
+
         # Get payment dates and ensure they have timezone info
         payment_dates = []
         for payment in payments:
@@ -254,10 +252,10 @@ class PaymentPatternRepository(BaseRepository[Payment, int]):
             if not payment_date.tzinfo:
                 payment_date = payment_date.replace(tzinfo=timezone.utc)
             payment_dates.append(payment_date)
-        
+
         if not payment_dates:
             return (ensure_utc(default_start), ensure_utc(default_end))
-        
+
         # Include the full day for both start and end dates in UTC
         min_date = min(payment_dates)
         max_date = max(payment_dates)
@@ -266,19 +264,17 @@ class PaymentPatternRepository(BaseRepository[Payment, int]):
         start_date = min_date.replace(
             hour=0, minute=0, second=0, microsecond=0
         ) - timedelta(days=1)
-        end_date = max_date.replace(
-            hour=23, minute=59, second=59, microsecond=999999
-        )
-        
+        end_date = max_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+
         return (ensure_utc(start_date), ensure_utc(end_date))
-    
+
     async def get_most_common_category(self, payments: List[Payment]) -> Optional[str]:
         """
         Get the most common category from a list of payments.
-        
+
         Args:
             payments (List[Payment]): List of payments to analyze
-            
+
         Returns:
             Optional[str]: Most common category or None if no categories
         """

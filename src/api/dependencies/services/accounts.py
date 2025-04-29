@@ -14,10 +14,9 @@ from typing import Optional
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.database import get_db
-
 # Feature flag service dependency
 from src.api.dependencies.services.feature_flags import get_feature_flag_service
+from src.database.database import get_db
 from src.services.accounts import AccountService
 from src.services.factory import ServiceFactory
 from src.services.feature_flags import FeatureFlagService

@@ -17,7 +17,6 @@ from src.repositories.feature_flags import FeatureFlagRepository
 from src.services.feature_flags import FeatureFlagService
 from src.utils.feature_flags.context import create_default_context
 
-
 # Singleton instances for performance reasons
 _context = create_default_context()
 _service_instance = None

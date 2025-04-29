@@ -5,10 +5,10 @@ This module contains fixtures that are either:
 1. Collections of different account types (test_multiple_accounts)
 2. Support fixtures used across many test files
 
-For specialized account type fixtures, use the appropriate module in 
+For specialized account type fixtures, use the appropriate module in
 tests/fixtures/models/account_types/banking/ instead:
 - CheckingAccount: fixture_checking_models.py
-- SavingsAccount: fixture_savings_models.py 
+- SavingsAccount: fixture_savings_models.py
 - CreditAccount: fixture_credit_models.py
 """
 
@@ -28,7 +28,7 @@ from src.models.accounts import Account
 async def test_multiple_accounts(db_session: AsyncSession) -> List[Account]:
     """
     Create multiple test accounts of different types.
-    
+
     This fixture creates a collection of different account types for testing
     operations that need to work across multiple account types.
 

@@ -15,7 +15,7 @@ DateType = Union[date, datetime]
 
 class CashflowWarningThresholds:
     """Standard warning thresholds for cashflow analysis.
-    
+
     These thresholds are used to generate warnings and alerts in the UI
     based on financial conditions like low account balances or high
     credit utilization.
@@ -28,7 +28,7 @@ class CashflowWarningThresholds:
 
 class CashflowHolidays:
     """Major US holidays that might impact cashflow.
-    
+
     Used for holiday-aware financial calculations and forecasting.
     Some financial transactions are affected by bank holidays.
     """
@@ -43,7 +43,7 @@ class CashflowHolidays:
 
     def get_holidays(self) -> Dict[str, date]:
         """Get a copy of the holidays dictionary.
-        
+
         Returns:
             Dict[str, date]: Dictionary of holiday names to dates
         """

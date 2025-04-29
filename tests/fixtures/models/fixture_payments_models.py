@@ -106,7 +106,10 @@ async def test_multiple_payments(
             "category": "Insurance",
             "sources": [
                 {"account_id": test_checking_account.id, "amount": Decimal("60.00")},
-                {"account_id": test_second_checking_account.id, "amount": Decimal("60.00")},
+                {
+                    "account_id": test_second_checking_account.id,
+                    "amount": Decimal("60.00"),
+                },
             ],
         },
         # Future payment (scheduled)

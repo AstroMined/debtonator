@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.account_types.banking.credit import CreditAccount
 from src.repositories.accounts import AccountRepository
 from src.services.accounts import AccountService
-from src.utils.datetime_utils import datetime_less_than, ensure_utc, utc_now
+from src.utils.datetime_utils import ensure_utc, utc_now
 from tests.helpers.schema_factories.account_types.banking.credit_schema_factories import (
     create_credit_account_schema,
     create_credit_account_update_schema,

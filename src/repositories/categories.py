@@ -436,6 +436,40 @@ class CategoryRepository(BaseRepository[Category, int]):
         )
         return [(row.Category, row.total_amount) for row in result.all()]
 
+    async def is_category_or_child(
+        self, transaction_category: str, filter_category: str
+    ) -> bool:
+        """
+        Check if transaction category matches filter category or is a child category.
+
+        This method is used for hierarchical category matching, supporting the
+        Transaction Reference System from ADR-029.
+
+        Args:
+            transaction_category (str): Category name from the transaction
+            filter_category (str): Category name to filter by
+
+        Returns:
+            bool: True if transaction_category matches or is a child of filter_category
+        """
+        # Exact match case
+        if transaction_category == filter_category:
+            return True
+
+        # Get category objects by name
+        transaction_cat_obj = await self.get_by_name(transaction_category)
+        filter_cat_obj = await self.get_by_name(filter_category)
+
+        # If either category doesn't exist, no match
+        if not transaction_cat_obj or not filter_cat_obj:
+            return False
+
+        # Check if filter category is an ancestor of transaction category
+        ancestors = await self.get_ancestors(transaction_cat_obj.id)
+
+        # Check if filter category is among the ancestors
+        return any(ancestor.id == filter_cat_obj.id for ancestor in ancestors)
+
     async def delete_if_unused(self, category_id: int) -> bool:
         """
         Delete a category only if it has no children and no bills.

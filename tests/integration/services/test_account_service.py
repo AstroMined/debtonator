@@ -4,14 +4,7 @@ from decimal import Decimal
 import pytest
 
 from src.repositories.accounts import AccountRepository
-from src.repositories.credit_limit_history import CreditLimitHistoryRepository
 from src.repositories.statement_history import StatementHistoryRepository
-from src.repositories.transaction_history import TransactionHistoryRepository
-from src.schemas.account_types import (
-    CheckingAccountCreate,
-    CreditAccountCreate,
-    AccountCreateUnion
-)
 from src.schemas.accounts import AccountUpdate
 from src.schemas.credit_limit_history import CreditLimitHistoryUpdate
 from src.services.accounts import AccountService

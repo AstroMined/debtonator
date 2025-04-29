@@ -54,19 +54,13 @@ class TestTypeBSchema(TestBaseModelSchema):
 class TestBaseModelCreate(TestBaseModelSchema):
     """Base schema for creating polymorphic entities."""
 
-    pass
-
 
 class TestTypeACreate(TestTypeASchema, TestBaseModelCreate):
     """Schema for creating Type A entities."""
 
-    pass
-
 
 class TestTypeBCreate(TestTypeBSchema, TestBaseModelCreate):
     """Schema for creating Type B entities."""
-
-    pass
 
 
 class TestBaseModelUpdate(BaseSchemaValidator):
@@ -116,10 +110,6 @@ class TestBaseModelInDB(TestBaseModelSchema):
 class TestTypeAInDB(TestTypeASchema, TestBaseModelInDB):
     """Schema for Type A entity data as stored in the database."""
 
-    pass
-
 
 class TestTypeBInDB(TestTypeBSchema, TestBaseModelInDB):
     """Schema for Type B entity data as stored in the database."""
-
-    pass

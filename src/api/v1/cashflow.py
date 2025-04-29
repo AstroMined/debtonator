@@ -17,7 +17,6 @@ from src.schemas.cashflow import (
 )
 from src.services.cashflow.cashflow_base import CashflowBaseService
 
-
 router = APIRouter(prefix="/cashflow", tags=["cashflow"])
 
 

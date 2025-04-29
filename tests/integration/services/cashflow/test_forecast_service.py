@@ -1,6 +1,6 @@
 """Integration tests for the cashflow forecast service."""
 
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 
 import pytest
@@ -8,22 +8,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.income import Income
 from src.models.liabilities import Liability
-from src.repositories.liabilities import LiabilityRepository
-from src.schemas.cashflow import (
-    AccountForecastRequest,
-    CustomForecastParameters
-)
+from src.schemas.cashflow import AccountForecastRequest, CustomForecastParameters
 from src.services.cashflow.cashflow_forecast_service import ForecastService
 from src.utils.datetime_utils import (
-    utc_now,
-    ensure_utc,
     days_from_now,
-    naive_days_from_now, 
-    naive_start_of_day,
+    ensure_utc,
+    naive_days_from_now,
     naive_end_of_day,
-    naive_end_of_day
+    naive_start_of_day,
+    utc_now,
 )
-from src.services.cashflow.cashflow_forecast_service import ForecastService
 
 
 @pytest.mark.asyncio
@@ -102,48 +96,71 @@ async def test_get_forecast(
     # Act: Get forecast for date range
     start_date = today
     end_date = today + timedelta(days=20)
-    
+
     # Create request parameters with proper datetime conversion
     start_datetime = ensure_utc(naive_start_of_day(start_date))
     end_datetime = ensure_utc(naive_end_of_day(end_date))
-    
+
     request = AccountForecastRequest(
         account_id=test_checking_account.id,
         start_date=start_datetime,
         end_date=end_datetime,
         include_pending=True,
         include_recurring=True,
-        include_transfers=True
+        include_transfers=True,
     )
-    
+
     forecast_response = await service.get_account_forecast(request)
-    
+
     # Assert: Validate forecast results
-    assert len(forecast_response.daily_forecasts) == 21  # 21 days including start and end date
+    assert (
+        len(forecast_response.daily_forecasts) == 21
+    )  # 21 days including start and end date
     assert forecast_response.daily_forecasts[0].date.date() == start_date
     assert (
-        forecast_response.daily_forecasts[0].projected_balance == test_checking_account.available_balance
+        forecast_response.daily_forecasts[0].projected_balance
+        == test_checking_account.available_balance
     )  # Initial balance
 
     # Check balance after first income
-    assert forecast_response.daily_forecasts[3].projected_balance == test_checking_account.available_balance + Decimal(
-        "2000.00"
-    )
+    assert forecast_response.daily_forecasts[
+        3
+    ].projected_balance == test_checking_account.available_balance + Decimal("2000.00")
 
     # Check balance after first liability
-    assert forecast_response.daily_forecasts[5].projected_balance == test_checking_account.available_balance + Decimal(
+    assert forecast_response.daily_forecasts[
+        5
+    ].projected_balance == test_checking_account.available_balance + Decimal(
         "2000.00"
-    ) - Decimal("800.00")
+    ) - Decimal(
+        "800.00"
+    )
 
     # Check balance after second liability
-    assert forecast_response.daily_forecasts[10].projected_balance == test_checking_account.available_balance + Decimal(
+    assert forecast_response.daily_forecasts[
+        10
+    ].projected_balance == test_checking_account.available_balance + Decimal(
         "2000.00"
-    ) - Decimal("800.00") - Decimal("100.00")
+    ) - Decimal(
+        "800.00"
+    ) - Decimal(
+        "100.00"
+    )
 
     # Check balance after third liability and second income
-    assert forecast_response.daily_forecasts[17].projected_balance == test_checking_account.available_balance + Decimal(
+    assert forecast_response.daily_forecasts[
+        17
+    ].projected_balance == test_checking_account.available_balance + Decimal(
         "2000.00"
-    ) + Decimal("500.00") - Decimal("800.00") - Decimal("100.00") - Decimal("50.00")
+    ) + Decimal(
+        "500.00"
+    ) - Decimal(
+        "800.00"
+    ) - Decimal(
+        "100.00"
+    ) - Decimal(
+        "50.00"
+    )
 
 
 @pytest.mark.asyncio
@@ -218,24 +235,26 @@ async def test_get_forecast_empty_range(
     today = date.today()
     start_date = today + timedelta(days=100)  # Future date with no entries
     end_date = start_date + timedelta(days=5)
-    
+
     # Create request parameters with proper datetime conversion
     start_datetime = ensure_utc(naive_start_of_day(start_date))
     end_datetime = ensure_utc(naive_end_of_day(end_date))
-    
+
     request = AccountForecastRequest(
         account_id=test_checking_account.id,
         start_date=start_datetime,
         end_date=end_datetime,
         include_pending=True,
         include_recurring=True,
-        include_transfers=True
+        include_transfers=True,
     )
-    
+
     forecast_response = await service.get_account_forecast(request)
 
     # Assert: Verify forecast has correct length and balances
-    assert len(forecast_response.daily_forecasts) == 6  # 6 days including start and end date
+    assert (
+        len(forecast_response.daily_forecasts) == 6
+    )  # 6 days including start and end date
     for entry in forecast_response.daily_forecasts:
         assert entry.projected_balance == test_checking_account.available_balance
 

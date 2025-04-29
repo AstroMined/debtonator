@@ -7,14 +7,13 @@ using generic test models rather than domain-specific models.
 
 import importlib
 import inspect
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Dict, Optional
 
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tests.fixtures.repositories.fixture_polymorphic_test_repositories import (
     TestPolymorphicRepository,
-    TestTypeRegistry,
 )
 
 
